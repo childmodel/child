@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.140 2003-05-06 12:20:34 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.141 2003-05-06 16:37:18 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2883,6 +2883,69 @@ ExtricateEdge( tEdge * edgePtr )
    return 1;
 }
 
+//*************************************************************************
+// ClearEdge: function to remove edge and its complement from the
+//   spokes of the origin nodes, call WarnSpokeLeaving for the origins,
+//   and call ClearTriangle for the triangles associated with the edges.
+//   Leaves the edges still pointing to the nodes and triangles and
+//   to each other.
+// 3/99 SL
+// 4/2003 AD
+//*************************************************************************
+template< class tSubNode >
+int tMesh< tSubNode >::
+ClearEdge( tEdge* ce )
+{
+   tEdge *tempedgePtr, *cce;
+   tSpkIter spokIter;
+   tTriangle* triPtr0, * triPtr1;
+   //Need to make sure that "edg" member of node was not pointing
+   //to one of the edges that will be removed.  Also, may be implications
+   //for some types of subnodes, so take care of that also.
+   // WarnSpokeLeaving is virtual:
+    ce->getOriginPtrNC()->WarnSpokeLeaving( ce );
+   // Remove the edge from it's origin's spokelist:
+   spokIter.Reset( ce->getOriginPtrNC() );
+   if( spokIter.Get( ce ) )
+       if( spokIter.Next() )
+           tempedgePtr = spokIter.removePrev();
+
+   // Find the triangle that points to the edge
+   triPtr0 = TriWithEdgePtr( ce );
+
+   // Find the edge's complement
+   cce = ce->getComplementEdge();
+
+   //Need to make sure that "edg" member of node was not pointing
+   //to one of the edges that will be removed.  Also, may be implications
+   //for some types of subnodes, so take care of that also.
+   // WarnSpokeLeaving is virtual:
+   cce->getOriginPtrNC()->WarnSpokeLeaving( cce );
+
+   // Find the triangle that points to the edges complement
+   triPtr1 = TriWithEdgePtr( cce );
+   //if triangles exist, delete them
+   if( triPtr0 != 0 )
+       if( !ClearTriangle( triPtr0 ) )
+       {
+          cerr << "from ClearEdge(...), ClearTriangle(...) failed \n";
+          return 0;
+       }
+
+   if( triPtr1 != 0 )
+       if( !ClearTriangle( triPtr1 ) )
+       {
+          cerr << "from ClearEdge(...), ClearTriangle(...) failed \n";
+          return 0;
+       }
+
+     //update complement's origin's spokelist
+   spokIter.Reset( cce->getOriginPtrNC() );
+   if( spokIter.Get( cce ) )
+       if( spokIter.Next() )
+           tempedgePtr = spokIter.removePrev();
+   return 1;
+}
 
 /***************************************************************************\
 **
@@ -3059,6 +3122,28 @@ DeleteTriangle( tTriangle * triPtr )
    return 1;
 }
 
+//*************************************************************************
+// ClearTriangle: function to "un-point" neighbor triangles. Leaves all
+//   the triangle's own pointers unaffected. Does not un-point the edges
+//   pointing to the triangle because this is called in the process of
+//   flipping an edge and, to reinitialize the triangles, we'll need the
+//   edges to point to triangles in order to set the triangle's nbr ptrs.
+// 3/99 SL
+// 4/2003 AD
+//*************************************************************************
+template< class tSubNode >
+int tMesh< tSubNode >::
+ClearTriangle( tTriangle *triPtr )
+{
+  int i, j;
+  for( i=0; i<3; i++ )
+    for( j=0; j<3; j++ )
+      if( triPtr->tPtr(i) != 0 )
+	if( triPtr->tPtr(i)->tPtr(j) == triPtr )
+	  triPtr->tPtr(i)->setTPtr( j, 0 );
+  return 1;
+}
+
 /**************************************************************************\
 **
 **  tMesh::ExtricateTriangle
@@ -3089,7 +3174,8 @@ ExtricateTriangle( tTriangle *triPtr )
    // Tell your neighboring triangles that you're about to disappear by
    // setting their corresponding tPtr's to zero
    int i, j;
-   for( i=0; i<3; i++ ) for( j=0; j<3; j++ )
+   for( i=0; i<3; i++ )
+     for( j=0; j<3; j++ )
        if( triPtr->tPtr(i) != 0 )
            if( triPtr->tPtr(i)->tPtr(j) == triPtr )
                triPtr->tPtr(i)->setTPtr( j, 0 );
@@ -4194,6 +4280,16 @@ CheckForFlip( tTriangle * tri, int nv, bool flip )
 **        and an edge ac will be made.
 **        nbrList contains the points a, b, c, d
 **
+**                d
+**               / \
+**       tri->  /   \
+**             /     \
+**            a-------c
+**             \     /
+**              \   / <-triop
+**               \ /
+**                b
+**
 **    Inputs:  tri, triop -- the triangles sharing the edge to be
 **                           flipped
 **             nv -- the number of tri's vertex (0, 1 or 2) opposite
@@ -4210,20 +4306,24 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
 {
    if (0) //DEBUG
      cout << "FlipEdge(...)..." << endl;
+   tSubNode* na = static_cast<tSubNode *>(tri->pPtr(nv));
+   tSubNode* nb = static_cast<tSubNode *>(tri->pPtr((nv+1)%3));
+   tSubNode* nc = static_cast<tSubNode *>(triop->pPtr( nvop ));
+   tSubNode* nd = static_cast<tSubNode *>(tri->pPtr((nv+2)%3));
+   tEdge* edg = tri->ePtr( (nv+2)%3 );
    tPtrList< tSubNode > nbrList;
    //DumpTriangles();
 
    // Place the four vertices of the two triangles on a list
-   nbrList.insertAtBack( static_cast<tSubNode *>(tri->pPtr(nv)) );
-   nbrList.insertAtBack( static_cast<tSubNode *>(tri->pPtr((nv+1)%3)) );
-   nbrList.insertAtBack( static_cast<tSubNode *>(triop->pPtr( nvop )) );
-   nbrList.insertAtBack( static_cast<tSubNode *>(tri->pPtr((nv+2)%3)) );
+   nbrList.insertAtBack( na );
+   nbrList.insertAtBack( nb );
+   nbrList.insertAtBack( nc );
+   nbrList.insertAtBack( nd );
    nbrList.makeCircular();
 
    // Delete the edge pair between the triangles, along with the tri's
    //cout << "calling deleteedge from flipedge\n";
-   //XDeleteEdge( tri->ePtr( (nv+1)%3 ) );
-   DeleteEdge( tri->ePtr( (nv+2)%3 ) );  // Changed for right-hand data struc
+   DeleteEdge( edg );  // Changed for right-hand data struc
 
    // Recreate the triangles and the edges in their new orientation
    tPtrListIter< tSubNode > nbrIter( nbrList );

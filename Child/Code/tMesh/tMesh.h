@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.47 2003-04-29 09:33:51 childcvs Exp $
+**  $Id: tMesh.h,v 1.48 2003-05-06 16:37:19 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -108,9 +108,11 @@ public:
    int DeleteEdge( tEdge * );
    /*calls ExTriangle; deals w/edge and compliment, deletes nbr tri(s):*/
    int ExtricateEdge( tEdge * );
+   int ClearEdge( tEdge* ); // calls ClearTriangle
    int DeleteTriangle( tTriangle * );
    /*"un-points" nbr triangles:*/
    int ExtricateTriangle( tTriangle * );
+   int ClearTriangle( tTriangle* );
    /*complicated; fills in (any) hole defined by circular node ptr list:*/
    int RepairMesh( tPtrList< tSubNode > & );
    int AddEdgeAndMakeTriangle( tPtrList< tSubNode > &,
