@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.55 1998-07-23 23:36:31 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.56 1998-07-24 19:16:16 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -598,19 +598,13 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       add++;
    }
 
-
-   
-   if( numg > 1 ){
-      qsm.setSize( numg );
-      qsinm.setSize( numg );
-      
-   }
+   qsm.setSize( numg );
+   qsinm.setSize( numg );      
 
    i = infile.ReadItem( i, "OPTREADLAYER" );
 
    if(i!=1){
       
-      help = infile.ReadItem( help, "REGINIT" );
 //    cout << "regolith depth is " << help << endl;
       
 //    cout << "1 grain size is "<<grade[0]<<" 2 grain size is "<<grade[1] << endl;
@@ -644,6 +638,7 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
           ReportFatalError("Problem with the bedrock proportion of grain sizes in input file");
 //   cout << "nic, you got past fatal errors" << endl;
       
+      help = infile.ReadItem( help, "REGINIT" );
       if( help > 0){
          // Make a bedrock and regolith layer, possibly two depending
          // on the depth of the regolith layer.  The code will decide
@@ -734,7 +729,7 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
    }
    
    cout << "nic, what is size of grade array ? " << grade.getSize() << endl;
-   cout << "1 is size " << grade[0] << " 2 is size " << grade[1] << endl;   
+   //cout << "1 is size " << grade[0] << " 2 is size " << grade[1] << endl;   
 
 //   i=0;
 //   while(i<layerlist.getSize()){
@@ -1261,6 +1256,12 @@ void tLNode::EroDep( double dz )
    reg.thickness += dz;
    if( reg.thickness < 0 ) reg.thickness = 0.0;
 }
+
+void tLNode::InsertLayerBack( tLayer lyr )
+{
+   layerlist.insertAtBack( lyr );
+}
+
 
 void tLNode::setAlluvThickness( double val )
 {
