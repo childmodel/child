@@ -336,8 +336,6 @@ void ReadChild
     cxDataAllocErrorClear();
     return;
   }
-  // Recover data from CORBA object
-  // Note: memcpy cannot safely be used (due to the integer sign) 
   {
     // element to vertex connectivity table
     for(int ielem=0;ielem<nbe;ielem++){
