@@ -19,7 +19,7 @@
 **  is included in this file.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.cpp,v 1.4 1998-01-27 23:33:48 stlancas Exp $
+**  $Id: tStorm.cpp,v 1.5 1998-01-29 19:48:45 gtucker Exp $
 */
 
 #include <math.h>
@@ -52,7 +52,7 @@ tStorm::tStorm( int optvar )
 **                   initializes current depth, etc, to the mean values,
 **                   and initializes the random number generator.
 */
-tStorm::tStorm( float mp, float ms, float mis, unsigned sd, int optvar )
+tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar )
 {
    optVariable = optvar;
    pMean = mp;
@@ -111,9 +111,9 @@ void tStorm::GenerateStorm()
 **  tStorm::ExpDev:  Finds a random number with an exponential distribution
 **                   (adapted from Numerical Recipes).
 */
-float tStorm::ExpDev( long *idum )
+double tStorm::ExpDev( long *idum )
 {
-    float dum;
+    double dum;
 
     do
         dum = ran3( idum );
@@ -127,7 +127,7 @@ float tStorm::ExpDev( long *idum )
 **
 **  Returns the storm duration.
 */
-float tStorm::GetStormDuration()
+double tStorm::GetStormDuration()
 {
    return stdur;
 }
@@ -137,7 +137,7 @@ float tStorm::GetStormDuration()
 **
 **  Returns the interstorm duration.
 */
-float tStorm::InterstormDur()
+double tStorm::InterstormDur()
 {
    return istdur;
 }
@@ -147,14 +147,14 @@ float tStorm::InterstormDur()
 **
 **  Returns the rainfall rate.
 */
-float tStorm::GetRainrate()
+double tStorm::GetRainrate()
 {
    return p;
 }
 
-float tStorm::getMeanStormDur() const {return stdurMean;}
-float tStorm::getMeanInterstormDur() const {return istdurMean;}
-float tStorm::getMeanPrecip() const {return pMean;}
+double tStorm::getMeanStormDur() const {return stdurMean;}
+double tStorm::getMeanInterstormDur() const {return istdurMean;}
+double tStorm::getMeanPrecip() const {return pMean;}
 
 /*
 **  GammaDev

@@ -7,35 +7,36 @@
 **  time to write output, printing the current time to standard output if
 **  desired, and writing the current time to a file every so often.
 **
-**  $Id: tRunTimer.h,v 1.1 1998-01-14 20:44:56 gtucker Exp $
+**  $Id: tRunTimer.h,v 1.2 1998-01-29 19:49:18 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TRUNTIMER_H
 #define TRUNTIMER_H
 
+
 class tRunTimer
 {
 public:
-	tRunTimer( float duration, float opint, int optprint=1 );
+	tRunTimer( double duration, double opint, int optprint=1 );
 	tRunTimer( tInputFile &infile, int optprint=1 );
 	tRunTimer();
-	float GetCurrentTime();
-	int Advance( float );
+	double GetCurrentTime();
+	int Advance( double );
 	int IsFinished();
-	float RemainingTime();
-	void Start( float, float );
+	double RemainingTime();
+	void Start( double, double );
 	int CheckOutputTime();
 	void ReportTimeStatus();
 	
 private:
-	float currentTime;
-	float endTime;
-	float outputInterval;
-	float nextOutputTime;
+	double currentTime;
+	double endTime;
+	double outputInterval;
+	double nextOutputTime;
 	int optPrintEachTime;
 	ofstream timeStatusFile;
-	float notifyInterval;
-	float nextNotify;
+	double notifyInterval;
+	double nextNotify;
 };
 
 

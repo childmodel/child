@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.1 1998-01-14 20:44:59 gtucker Exp $
+**  $Id: tRunTimer.cpp,v 1.2 1998-01-29 19:50:11 gtucker Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -52,7 +52,7 @@ tRunTimer::tRunTimer()
 	nextNotify = 0;
 }
 
-tRunTimer::tRunTimer( float duration, float opint, int optprint )
+tRunTimer::tRunTimer( double duration, double opint, int optprint )
 {
 	currentTime = 0;
 	endTime = duration;
@@ -80,7 +80,7 @@ tRunTimer::tRunTimer( tInputFile &infile, int optprint )
 //
 // Sets the current time and run duration.
 //****************************************************
-void tRunTimer::Start( float start, float end )
+void tRunTimer::Start( double start, double end )
 {
    assert( end > start );
    currentTime = start;
@@ -92,7 +92,7 @@ void tRunTimer::Start( float start, float end )
 //
 // Returns the current time.
 //****************************************************
-float tRunTimer::GetCurrentTime()
+double tRunTimer::GetCurrentTime()
 {
 	return currentTime;
 }
@@ -102,7 +102,7 @@ float tRunTimer::GetCurrentTime()
 //
 // Returns the remaining time.
 //****************************************************
-float tRunTimer::RemainingTime()
+double tRunTimer::RemainingTime()
 {
 	return endTime - currentTime;
 }
@@ -114,7 +114,7 @@ float tRunTimer::RemainingTime()
 // Returns 1 if there is still time
 // remaining, 0 if the time is up.
 //****************************************************
-int tRunTimer::Advance( float dt )
+int tRunTimer::Advance( double dt )
 {
 	currentTime += dt;
 	return( currentTime < endTime );
