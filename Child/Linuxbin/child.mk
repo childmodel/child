@@ -15,7 +15,7 @@ OBJECTS = \
  tStorm.$(OBJEXT) tStreamNet.$(OBJEXT) tUplift.$(OBJEXT) errors.$(OBJEXT) \
  tFloodplain.$(OBJEXT) tEolian.$(OBJEXT) globalFns.$(OBJEXT) \
  predicates.$(OBJEXT) tVegetation.$(OBJEXT) tListInputData.$(OBJEXT) \
- tStratGrid.$(OBJEXT) \
+ tStratGrid.$(OBJEXT) tOption.$(OBJEXT) \
  tTimeSeries.$(OBJEXT) ParamMesh_t.$(OBJEXT) TipperTriangulator.$(OBJEXT) \
  TipperTriangulatorError.$(OBJEXT)
 
@@ -42,6 +42,9 @@ tLNode.$(OBJEXT): $(PT)/tLNode/tLNode.cpp
 
 tListInputData.$(OBJEXT): $(PT)/tListInputData/tListInputData.cpp
 	$(CXX) $(CFLAGS) $(PT)/tListInputData/tListInputData.cpp
+
+tOption.$(OBJEXT): $(PT)/tOption/tOption.cpp
+	$(CXX) $(CFLAGS) $(PT)/tOption/tOption.cpp
 
 tRunTimer.$(OBJEXT): $(PT)/tRunTimer/tRunTimer.cpp
 	$(CXX) $(CFLAGS) $(PT)/tRunTimer/tRunTimer.cpp
@@ -133,6 +136,7 @@ HFILES = \
 	$(PT)/tMesh/tMesh.h \
 	$(PT)/tMesh/tMesh2.cpp \
 	$(PT)/tMeshList/tMeshList.h \
+	$(PT)/tOption/tOption.h \
 	$(PT)/tOutput/tOutput.cpp \
 	$(PT)/tOutput/tOutput.h \
 	$(PT)/tPtrList/tPtrList.h \
@@ -163,6 +167,7 @@ tFloodplain.$(OBJEXT): $(HFILES)
 tInputFile.$(OBJEXT): $(HFILES)
 tLNode.$(OBJEXT): $(HFILES)
 tListInputData.$(OBJEXT): $(HFILES)
+tOption.$(OBJEXT): $(HFILES)
 tRunTimer.$(OBJEXT): $(HFILES)
 tStorm.$(OBJEXT) : $(HFILES)
 tStratGrid.$(OBJEXT) : $(HFILES)
