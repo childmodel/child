@@ -4,36 +4,11 @@
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.3 1998-01-21 20:03:03 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.4 1998-01-21 22:10:45 gtucker Exp $
 \**************************************************************************/
 
-#include <iostream.h>
-#include <fstream.h>
 #include <assert.h>
-#include <math.h>
-#include "../Definitions.h"
-#include "../Classes.h"
-#include "../GlobalFns.h"
-#include "../tArray/tArray.h"
-#include "../tPtrListNode/tPtrListNode.h"
-#include "../tPtrList/tPtrList.h"
-#include "../tPtrListIter/tPtrListIter.h"
-#include "../tNode/tNode.h"
-#include "../tEdge/tEdge.h"
-#include "../tTriangle/tTriangle.h"
-#include "../tListNode/tListNode.h"
-#include "../tList/tList.h"
-#include "../tGridList/tGridList.h"
-#include "../tListIter/tListIter.h"
-#include "../tGridListIter/tGridListIter.h"
-#include "../tInputFile/tInputFile.h"
-#include "../tListInputData/tListInputData.h"
-#include "../tLNode/tLNode.h"
-#include "../tGrid/tGrid.h"
-#include "../tStorm/tStorm.h"
 #include "../errors/errors.h"
-#include "../Erosion/erosion.h"
-
 #include "tStreamNet.h"
 
 
