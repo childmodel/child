@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.97 2003-10-03 10:00:46 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.98 2003-11-03 12:42:08 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1917,8 +1917,10 @@ void tStreamMeander::CheckBrokenFlowedg()
 		cout << "   meanders" << endl;
 	      dn = cn->getDownstrmNbr();
               //if downstrm nbr exists and is still in nodeList (formerly asserted):
-	      if( dn != 0 && dI.Get( dn->getID() ) )
+	      if( dn != 0 )
 		{
+		  if (1) //DEBUG
+		    assert(dI.Get( dn->getID() ));
 		  fedg = cn->getFlowEdg();
 		  assert( fedg != 0 );
 		  //now getting a bug: assertion in getEdgeComplement that fedg is in
@@ -1938,7 +1940,7 @@ void tStreamMeander::CheckBrokenFlowedg()
 		      nln = ltri->nVOp( rtri );
 		      //nrn = rtri->nVOp( ltri );
 		      //check for flip of flowedge (tri's on either side of flowedge:
-		      if( meshPtr->CheckForFlip( ltri, nln, flip ) )
+		      if( meshPtr->CheckForFlip( ltri, nln, flip ) != FLIP_NOT_NEEDED )
 			{
 			  //if flowedge to be flipped, delete closer of two "third" nodes
 			  //if their drareas are smaller:
@@ -1955,7 +1957,7 @@ void tStreamMeander::CheckBrokenFlowedg()
 			      //if it is, revert to old coords.
 			      if( dis0 < dis1 )
 				{
-				  if( ln->getBoundaryFlag() == kNonBoundary )
+				  if( ln->getBoundaryFlag() == kNonBoundary && !ln->isMobile())
 				    {
 				      meshPtr->DeleteNode( ln );
 				      cn->setFlowEdg( cn->EdgToNod( dn ) );
@@ -1967,7 +1969,7 @@ void tStreamMeander::CheckBrokenFlowedg()
 				}
 			      else
 				{
-				  if( rn->getBoundaryFlag() == kNonBoundary )
+				  if( rn->getBoundaryFlag() == kNonBoundary && !rn->isMobile())
 				    {
 				      meshPtr->DeleteNode( rn );
 				      cn->setFlowEdg( cn->EdgToNod( dn ) );
