@@ -1,4 +1,4 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /**************************************************************************/
 /**
@@ -18,7 +18,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.9 2003-05-06 14:31:01 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.10 2003-05-06 16:51:39 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -39,11 +39,11 @@
 **  @class tMainChannelDriver
 **
 **  Class tMainChannelDriver controls the altitude behavior of the main
-**  channel within the floodplain. It is used, at the user's option, to 
+**  channel within the floodplain. It is used, at the user's option, to
 **  control the gradient and relative altitude of the main channel as an
 **  imposed boundary condition. It is only used when the user switches
 **  on the option to impose the main channel height/slope as a boundary
-**  condition, as opposed to allowing it to evolve as a function of 
+**  condition, as opposed to allowing it to evolve as a function of
 **  erosion, deposition, and baselevel change.
 **    A tMainChannelDriver object sits within a tFloodplain object.
 **
@@ -54,6 +54,9 @@
 /**************************************************************************/
 class tMainChannelDriver
 {
+  tMainChannelDriver(const tMainChannelDriver&);
+  tMainChannelDriver& operator=(const tMainChannelDriver&);
+
 public:
   tMainChannelDriver( tInputFile &infile );
   void UpdateMainChannelElevation( double tm, tLNode * inletNode );
@@ -91,12 +94,12 @@ private:
 class tFloodplain
 {
   tFloodplain(const tFloodplain&);
-  
+  tFloodplain& operator=(const tFloodplain&);
+
 public:
     tFloodplain( tInputFile &infile, tMesh<tLNode> *mp );
     void DepositOverbank( double precip, double delt, double ctime );
-    tFloodplain& operator=(const tFloodplain&);
-  bool OptControlMainChan();
+  bool OptControlMainChan() const;
   void UpdateMainChannelHeight( double tm, tLNode * inletNode );
 
 private:
@@ -126,7 +129,7 @@ private:
 class tFloodNode
 {
     friend class tFloodplain;
-    
+
 private:
     tLNode *nodePtr; // ptr to flood node
     double wsh;      // water surface height at flood node

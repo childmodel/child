@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.13 2003-05-06 14:31:00 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.14 2003-05-06 16:51:38 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -106,8 +106,11 @@ tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
    numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    deparr.setSize(numg); // dimension & init to 0 the deparr array
 
-   optControlMainChan = infile.ReadItem( optControlMainChan,
-					     "FP_OPTCONTROLCHAN" );
+   {
+     int tmp_;
+     optControlMainChan = infile.ReadItem( tmp_,
+					   "FP_OPTCONTROLCHAN" );
+   }
    if( optControlMainChan )
      chanDriver = new tMainChannelDriver( infile );
    
@@ -257,7 +260,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 **  @brief Returns TRUE if user has requested control of main channel elev.
 **
 \**************************************************************************/
-bool tFloodplain::OptControlMainChan() { return optControlMainChan; }
+bool tFloodplain::OptControlMainChan() const { return optControlMainChan; }
 
 
 /**************************************************************************\
