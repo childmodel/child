@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.123 2003-10-02 14:21:59 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.124 2003-10-15 09:28:34 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -307,13 +307,14 @@ qsm(),
 qsin(0.),
 qsinm(),
 uplift(0.),
-layerlist()
+layerlist(),
+public1(-1)
 {
   if (0) //DEBUG
     cout << "=>tLNode()" << endl;
 }
 
-tLNode::tLNode( tInputFile &infile )                               //tLNode
+tLNode::tLNode( const tInputFile &infile )
   :
 tNode(), vegCover(), rock(), reg(), chan(),
 flood(kNotFlooded), flowedge(0), tracer(0),
@@ -322,7 +323,8 @@ qsm(),
 qsin(0.),
 qsinm(),
 uplift(0.),
-layerlist()
+layerlist(),
+public1(-1)
 {
   int i;
   char add[2], name[20];
@@ -494,7 +496,8 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
     qsin(orig.qsin),
     qsinm(orig.qsinm ),
     uplift(orig.uplift),
-    layerlist()
+    layerlist(),
+    public1(orig.public1)
 {
 
   //Be aware that the copy constructor should be called using the
@@ -541,6 +544,7 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
       qsm = right.qsm;
       qsinm = right.qsinm;
       layerlist = right.layerlist;
+      public1 = right.public1;
     }
   return *this;
 }

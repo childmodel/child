@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.81 2003-10-02 14:22:04 childcvs Exp $
+ **  $Id: tLNode.h,v 1.82 2003-10-15 09:28:35 childcvs Exp $
  */
 /************************************************************************/
 
@@ -390,7 +390,7 @@ class tLNode : public tNode
 {
 public:
   tLNode();
-  tLNode( tInputFile &infile );
+  tLNode( const tInputFile &infile );
   tLNode( const tLNode & );
   //Syntax for calling copy constructor
   //tLNode *newnode = new tLNode( *oldtLNode );
