@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.11 1998-03-16 21:18:47 gtucker Exp $
+**  $Id: erosion.cpp,v 1.12 1998-03-20 15:42:31 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -78,7 +78,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
    double slp = n->GetSlope();
    double erorate =  kb*pow( n->GetQ(), mb )*pow( slp, nb );
-   n->SetDrDt( -erorate );
+   n->setDrDt( -erorate );
    return erorate;
 }
 
@@ -125,7 +125,7 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node )
    double cap = 0;
    if( !node->GetFloodStatus() )
        cap = kf * pow( node->GetQ(), mf ) * pow( node->GetSlope(), nf );
-   node->SetQs( cap );
+   node->setQs( cap );
    return cap;
 }
    
@@ -138,6 +138,10 @@ tErosion::tErosion( tGrid<tLNode> *gptr, tInputFile &infile )
 {
    assert( gptr!=0 );
    gridPtr = gptr;
+
+   // Read parameters needed from input file
+   kd = infile.ReadItem( kd, "KD" );  // Hillslope diffusivity coefficient
+   
 }
 
 
@@ -186,13 +190,13 @@ void tErosion::ErodeDetachLim( double dtg )
    {
       //first find erosion rate:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->SetQs( -bedErode.DetachCapacity( cn ) );
+          cn->setQs( -bedErode.DetachCapacity( cn ) );
       dtmax = dtg;
       //find max. time step s.t. slope does not reverse:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
          dn = cn->GetDownstrmNbr();
-         ratediff = dn->GetQs() - cn->GetQs();
+         ratediff = dn->getQs() - cn->getQs();
          if( ratediff > 0 )
          {
             dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
@@ -202,7 +206,7 @@ void tErosion::ErodeDetachLim( double dtg )
       //assert( dtmax > 0 );
       //apply erosion:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->EroDep( cn->GetQs() * dtmax );
+          cn->EroDep( cn->getQs() * dtmax );
       //update time:
       dtg -= dtmax;
    } while( dtg>0 );
@@ -230,7 +234,7 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
    {
       //first find erosion rate:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->SetDzDt( -bedErode.DetachCapacity( cn ) );
+          cn->setDzDt( -bedErode.DetachCapacity( cn ) );
       dtmax = dtg;
       //find max. time step s.t. slope does not reverse:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
@@ -248,9 +252,9 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
          
          dn = cn->GetDownstrmNbr();
          if( dn->getBoundaryFlag() == kNonBoundary )
-             ratediff = dn->GetDzDt() - cn->GetDzDt();
+             ratediff = dn->getDzDt() - cn->getDzDt();
          else
-             ratediff = dn->GetDzDt() - cn->GetDzDt() - UPtr->GetRate();
+             ratediff = dn->getDzDt() - cn->getDzDt() - UPtr->GetRate();
          if( ratediff > 0 && cn->getZ() > dn->getZ() )
          {
             dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
@@ -270,7 +274,7 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
       //assert( dtmax > 0 );
       //apply erosion:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->EroDep( cn->GetDzDt() * dtmax );
+          cn->EroDep( cn->getDzDt() * dtmax );
       //update time:
       dtg -= dtmax;
    } while( dtg>0 );
@@ -305,7 +309,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       
       // Zero out sed influx
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->SetQsin( 0.0 );
+          cn->setQsin( 0.0 );
 
       // Compute erosion rates: when this block is done, the transport rate
       // (qs), influx (qsin), and deposition/erosion rate (dzdt) values are
@@ -315,7 +319,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          // Transport capacity and potential erosion/deposition rate
          // (this also sets the node's Qs value)
          cap = sedTrans.TransCapacity( cn );
-         pedr = (cn->GetQsin() - cap ) / cn->getVArea();
+         pedr = (cn->getQsin() - cap ) / cn->getVArea();
          // If we're on bedrock, adjust accordingly
          if( cn->OnBedrock() && pedr<0 )
          {
@@ -326,8 +330,8 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          }
          // Set the erosion (deposition) rate and send the corresponding
          // sediment influx downstream
-         cn->SetDzDt( pedr );
-         cn->GetDownstrmNbr()->AddQsin( cn->GetQsin() - pedr*cn->getVArea() );
+         cn->setDzDt( pedr );
+         cn->GetDownstrmNbr()->AddQsin( cn->getQsin() - pedr*cn->getVArea() );
          //cout << "RATE STEP:\n";
          //cn->TellAll();
       }
@@ -340,7 +344,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
          dn = cn->GetDownstrmNbr();
-         ratediff = dn->GetDzDt() - cn->GetDzDt(); // Are the pts converging?
+         ratediff = dn->getDzDt() - cn->getDzDt(); // Are the pts converging?
          if( ratediff > 0 && cn->getZ() > dn->getZ() )  // if yes, get time
          {                                              //  to zero slope
             dt = ( cn->getZ() - dn->getZ() ) / ratediff;
@@ -359,7 +363,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       // Zero out sed influx again, because depending on bedrock-alluvial
       // interaction it may be modified
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->SetQsin( 0.0 );
+          cn->setQsin( 0.0 );
 
       // Notes for multi-size adaptation:
       // qs, qsin, dz, etc could be arrays with dimensions (1..NUMG+1) with
@@ -397,11 +401,11 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          // Depth of potential erosion due to excess transport capacity
          // Note: for multiple sizes, dz could be an array (1..NUMG),
          // maybe w/ an extra field for the total dz.
-         dz = ( (cn->GetQsin() - cn->GetQs() ) / cn->getVArea() ) * dtmax;
+         dz = ( (cn->getQsin() - cn->getQs() ) / cn->getVArea() ) * dtmax;
          
          // If we're on bedrock, scour the bedrock
          if( cn->OnBedrock() && dz<0.0 ) {
-            dzr = cn->GetDrDt()*dtmax;  // potential bedrock erosion depth
+            dzr = cn->getDrDt()*dtmax;  // potential bedrock erosion depth
             // If excess capacity depth-equivalent is greater than the depth
             // of sediment available on bed plus eroded from bedrock, limit
             // depth of erosion to alluvium plus bedrock erosion depth
@@ -419,7 +423,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 
          // Send sediment downstream: sediment flux is equal to the flux in
          // plus/minus rate of erosion/deposition times node area
-         dn->AddQsin( cn->GetQsin() - dz*cn->getVArea()/dtmax );
+         dn->AddQsin( cn->getQsin() - dz*cn->getVArea()/dtmax );
       }
 
       // Update time remaining
@@ -428,6 +432,67 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
    } while( dtg>1e-6 ); // Keep going until we've used up the whole time intrvl
    
 }
+
+
+void tErosion::Diffuse( double dt, int noDepoFlag )
+{
+   tLNode * cn;
+   tEdge * ce;
+   double fluxout;
+   tGridListIter<tLNode> nodIter( gridPtr->GetNodeList() );
+   tGridListIter<tEdge> edgIter( gridPtr->GetEdgeList() );
+
+#if TRACKFNS
+   cout << "Diffuse" << endl << flush;
+#endif
+   
+   //printf( "IN DIFFUSE1: dt %f  nt %d  kd %f\n",dt,nt,kd);
+   
+   // Reset sed input for each node for the new time step
+   for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+       cn->setQsin( 0 );
+   
+   // Compute sediment volume transfer along each edge
+   for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
+   {
+      cout << "EDG " << ce->getID() << "  bnd: " << ce->getBoundaryFlag()
+           << endl;
+      fluxout = kd*ce->CalcSlope()*ce->getVEdgLen()*dt;
+      // Record outgoing flux from origin
+      cn = (tLNode *)ce->getOriginPtrNC();
+      cn->AddQsin( -fluxout );
+      // Record incoming flux to dest'n
+      cn = (tLNode *)ce->getDestinationPtrNC();
+      cn->AddQsin( fluxout );
+      /*if( ce->org->id==700 || ce->dest->id==700 ) {*/
+      cout << fluxout << " mass exch. from " << ce->getOriginPtr()->getID()
+           << " to "
+           << ce->getDestinationPtr()->getID()
+           << " on slp " << ce->getSlope() << " ve " << ce->getVEdgLen()
+           << "  vp " << ce->getRVtx()[0] << " " << ce->getRVtx()[1] << endl;
+      ((tLNode*)ce->getOriginPtr())->TellAll();
+      ((tLNode*)ce->getDestinationPtr())->TellAll();
+      ce = edgIter.NextP();  // Skip complementary edge
+   }
+   
+   // Compute erosion/deposition for each node
+   for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+   {
+      //cout << "Node " << cn->id << " " << cn->z << " --> ";
+      if( noDepoFlag )
+          if( cn->getQsin() > 0.0 )
+              cn->setQsin( 0.0 );
+      cn->ChangeZ( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area
+      //cout << cn->z << "Q: " << cn->q << "VA " << cn->varea << endl;
+      /*if( cn->id==700 ) {
+        cn->TellAll();
+        }*/
+   }
+   
+}
+
+
+
 
    
          
