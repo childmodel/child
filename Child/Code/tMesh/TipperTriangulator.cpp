@@ -331,6 +331,7 @@ void cyclist::print() const {
 
 // if the first points are aligned, then we build "by hand" the triangulation.
 // Draw a picture to find out. Not that difficult.
+static
 void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edge,
 			 int &next_point,
 			 int npoints, const point *p,  edge *edges,
@@ -460,6 +461,7 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edg
   }
 }
 
+static
 void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 
   assert(npoints >= 3);
