@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.185 2003-10-15 09:30:52 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.186 2003-10-17 14:22:35 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2664,7 +2664,7 @@ DeleteNode( tListNode< tSubNode >* nodPtr, kRepairMesh_t repairFlag,
 
    // remove node from nodeList:
    tSubNode nodeVal;
-   if( node->getBoundaryFlag() )
+   if( node->getBoundaryFlag() != kNonBoundary )
    {
       nodeList.moveToBack( nodPtr );
       nodeList.removeFromBack( nodeVal );
@@ -2762,7 +2762,7 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
       nbrPtr = static_cast< tSubNode * >(ce->getDestinationPtrNC());
       nbrList.insertAtBack( nbrPtr );
       // If node is a bdy make sure nbrs are also boundaries:
-      if( node->getBoundaryFlag()
+      if( node->getBoundaryFlag() != kNonBoundary
           && nbrPtr->getBoundaryFlag()==kNonBoundary )
       {
          nbrPtr->ConvertToClosedBoundary();
@@ -2808,7 +2808,7 @@ DeleteEdge( tEdge * edgePtr )
    // the edge list, it only moves the two edges (one 'line' that
    // has two directions) to the end or front of the list.
    // These two edges are then actually removed here.
-   if( edgePtr->getBoundaryFlag() )
+   if( edgePtr->getBoundaryFlag() != kNonBoundary )
    {
       if( !( edgeList.removeFromBack( edgeVal1 ) ) ) return 0;
       if( !( edgeList.removeFromBack( edgeVal2 ) ) ) return 0;
@@ -2925,7 +2925,7 @@ ExtricateEdge( tEdge * edgePtr )
    //There is no longer a legit place to flow, we need to check
    //to see if nodece and nodecce are now boundaries, and take proper action.
 
-   if( ce->getBoundaryFlag() )
+   if( ce->getBoundaryFlag() != kNonBoundary )
    {
       //move edges to back of list
       edgeList.moveToBack( listnodePtr1 );
