@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.127 2003-10-15 09:23:56 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.128 2003-11-03 12:30:46 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -1692,7 +1692,8 @@ tErosion::~tErosion(){
  **     erosion. This is done because the detachment capacity functions now
  **     require a defined channel width. (GT 2/01)
 \*****************************************************************************/
-void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tVegetation * pVegetation )
+void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet,
+			       tVegetation * /*pVegetation*/ )
 {
   if(0) //DEBUG
     cout<<"ErodeDetachLim...";
@@ -2390,7 +2391,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 \************************************************************************/
 
 void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
-			   tVegetation * pVegetation )
+			   tVegetation * /*pVegetation*/ )
 {
 
   //Added 4/00, if there is no runoff, this would crash, so check
