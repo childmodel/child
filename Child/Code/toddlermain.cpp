@@ -35,7 +35,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.15 2003-11-14 17:59:26 childcvs Exp $
+**  $Id: toddlermain.cpp,v 1.16 2003-11-18 12:41:21 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -107,10 +107,6 @@ int main( int argc, char **argv )
    tStreamNet strmNet( mesh, storm, inputFile );
    tErosion erosion( &mesh, inputFile );
    tUplift uplift( inputFile );
-   cout << "Writing data for time zero...\n";
-   tRunTimer time( inputFile, BOOL(!silent_mode) );
-   output.WriteOutput( 0. );
-   cout << "Initialization done.\n";
 
    // Get various options
    optDetachLim = inputFile.ReadItem( optDetachLim, "OPTDETACHLIM" );
@@ -130,6 +126,11 @@ int main( int argc, char **argv )
    // If applicable, create eolian deposition object
    if( optLoessDep )
        loess = new tEolian( inputFile );
+
+   cout << "Writing data for time zero...\n";
+   tRunTimer time( inputFile, BOOL(!silent_mode) );
+   output.WriteOutput( 0. );
+   cout << "Initialization done.\n";
 
    // Option for time series output (IN PROGRESS)
    /*   switch( optTSOutput ){

@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.13 2003-11-14 17:59:26 childcvs Exp $
+**  $Id: childmain.cpp,v 1.14 2003-11-18 12:41:19 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -108,10 +108,6 @@ int main( int argc, char **argv )
    tStreamNet strmNet( mesh, storm, inputFile );
    tErosion erosion( &mesh, inputFile );
    tUplift uplift( inputFile );
-   cout << "Writing data for time zero...\n";
-   tRunTimer time( inputFile, BOOL(!silent_mode) );
-   output.WriteOutput( 0. );
-   cout << "Initialization done.\n";
 
    // Get various options
    optDetachLim = inputFile.ReadItem( optDetachLim, "OPTDETACHLIM" );
@@ -136,6 +132,11 @@ int main( int argc, char **argv )
    // If applicable, create Stream Meander object
    if( optMeander )
      strmMeander = new tStreamMeander( strmNet, mesh, inputFile, &rand );
+
+   cout << "Writing data for time zero...\n";
+   tRunTimer time( inputFile, BOOL(!silent_mode) );
+   output.WriteOutput( 0. );
+   cout << "Initialization done.\n";
 
    // Option for time series output (IN PROGRESS)
    /*   switch( optTSOutput ){
