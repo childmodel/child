@@ -5,7 +5,7 @@
 **  tStreamNet objects contain data and functions related to flow routing
 **  and sediment transport across the landscape surface.
 **
-**  $Id: tStreamNet.h,v 1.15 1998-04-22 00:15:47 stlancas Exp $
+**  $Id: tStreamNet.h,v 1.16 1998-04-22 20:34:44 nmgaspar Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -31,7 +31,9 @@ public:
     ~tInlet();
    void FindNewInlet();
    double getInSedLoad() const;
+   tArray< double > getInSedLoadm() const;
    void setInSedLoad( double );
+   void setInSedLoadm( int, double );
    double getInDrArea() const;
    void setInDrArea( double );
    tLNode *getInNodePtr();
@@ -40,6 +42,7 @@ private:
     tLNode *innode;
     double inDrArea;
    double inSedLoad;
+   tArray< double > inSedLoadm; // incoming sediment load if multi-sizes
     tGrid< tLNode > *gridPtr;
 };
 
