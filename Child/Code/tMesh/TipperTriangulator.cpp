@@ -604,6 +604,15 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
  
 #include "heapsort.h"
 
+static
+void tt_verify_sort(int npoints, const point *p){
+  for(int ipoint=1; ipoint < npoints; ++ipoint){
+    assert(p[ipoint-1].x <= p[ipoint].x);
+    if (p[ipoint-1].x == p[ipoint].x)
+      assert(p[ipoint-1].y <= p[ipoint].y);
+  }
+}
+
 void tt_sort_triangulate(int npoints, point *p,
 			 int *pnedges, edge** edges_ret){
 
@@ -611,6 +620,8 @@ void tt_sort_triangulate(int npoints, point *p,
   // < operator so that the sort is on the x co-ordinate
   //array p will be replaced with the array sorted in x
   heapsort(npoints,p);
+  if (0)
+    tt_verify_sort(npoints, p);
 
 #if defined(TIMING)
   {
@@ -625,7 +636,7 @@ void tt_sort_triangulate(int npoints, point *p,
 #if defined(TIMING)
     time_t t2 = time(NULL);
     clock_t tick2 = clock();
-    cout << "elapsed time (time) = " << difftime(t2,t1) << " s"
+    cout << "elapsed time (time)= " << difftime(t2,t1) << " s"
 	 << " (clock)= " << (double)(tick2-tick1)/CLOCKS_PER_SEC << " s"
 	 << endl;
   }
