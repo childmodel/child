@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.72 2003-08-08 11:10:05 childcvs Exp $
+ **  $Id: tLNode.h,v 1.73 2003-08-08 12:08:03 childcvs Exp $
  */
 /************************************************************************/
 
@@ -437,21 +437,21 @@ public:
   inline double getBankRough() const;
   inline double getDrArea() const;
   double getTotalLayerDepth() const;
-  tArray< double > getZOld() const;
-  tArray< double > getNew2DCoords() const;   //for chan.migration.newx, newy
-  void setNew2DCoords( double, double );      //        "
-  tArray< double > getNew3DCoords() const;   //        "
-  tArray< double > getLatDisplace() const;  //for chan.migration.deltax, deltay
-  void setLatDisplace( double, double );      //        "
-  void addLatDisplace( double, double );      //        "
+  inline tArray< double > getZOld() const;
+  inline tArray< double > getNew2DCoords() const;   //for chan.migration.newx, newy
+  inline void setNew2DCoords( double, double );      //        "
+  inline tArray< double > getNew3DCoords() const;   //        "
+  inline tArray< double > getLatDisplace() const;  //for chan.migration.deltax, deltay
+  inline void setLatDisplace( double, double );      //        "
+  inline void addLatDisplace( double, double );      //        "
   inline void setRock( const tBedrock & );
   inline void setVegCover( const tLNode * );
   inline void setReg( const tRegolith & );
   inline void setChan( const tChannel & );
-  void setDischarge( double );
-  void setZOld( double, double );
-  void RevertToOldCoords();
-  virtual void UpdateCoords();
+  inline void setDischarge( double );
+  inline void setZOld( double, double );
+  inline void RevertToOldCoords();
+  virtual inline void UpdateCoords();
   double DistNew( tLNode const *, tLNode const * ) const;
   void ActivateSortTracer();
   void DeactivateSortTracer();
@@ -704,6 +704,78 @@ inline void tLNode::setBankRough( double val )
 {chan.migration.bankrough = ( val > 0 ) ? val : 0;}
 
 inline double tLNode::getDrArea() const {return chan.drarea;}
+
+inline tArray< double >
+tLNode::getZOld() const
+{
+  return
+    tArray< double >( chan.migration.zoldright,
+		      chan.migration.zoldleft );
+}
+
+inline void tLNode::setZOld( double right, double left )
+{
+  chan.migration.zoldright = right;
+  chan.migration.zoldleft = left;
+}
+
+inline tArray< double >
+tLNode::getNew2DCoords() const
+{
+  return Meanders() ?
+    tArray< double >( chan.migration.newx, chan.migration.newy ):
+    tArray< double >( x, y );
+}
+
+inline tArray< double >                                                   //tNode
+tLNode::getNew3DCoords() const
+{
+  return Meanders() ?
+    tArray< double >( chan.migration.newx, chan.migration.newy, z ):
+    tArray< double >( x, y, z );
+}
+
+inline void tLNode::setNew2DCoords( double val1, double val2 )
+{
+  chan.migration.newx = val1;
+  chan.migration.newy = val2;
+}
+
+inline tArray< double > tLNode::
+getLatDisplace() const
+{
+  return
+    tArray< double >( chan.migration.deltax,
+		      chan.migration.deltay );
+}
+
+inline void tLNode::setLatDisplace( double dx, double dy )
+{
+  chan.migration.deltax = dx;
+  chan.migration.deltay = dy;
+}
+
+inline void tLNode::addLatDisplace( double dx, double dy )
+{
+  chan.migration.deltax += dx;
+  chan.migration.deltay += dy;
+}
+
+inline void tLNode::setDischarge( double val ) {chan.q = ( val > 0 ) ? val : 0;}
+
+inline void tLNode::RevertToOldCoords()
+{
+  chan.migration.newx = x;
+  chan.migration.newy = y;
+}
+
+inline void tLNode::UpdateCoords()
+{
+  if (Meanders()) {
+    x = chan.migration.newx;
+    y = chan.migration.newy;
+  }
+}
 
 inline void tLNode::setBedErody( double val )
 {rock.erodibility = ( val >= 0.0 ) ? val : 0.0;}

@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.117 2003-08-08 11:10:04 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.118 2003-08-08 12:08:01 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -561,102 +561,6 @@ double tLNode::getDiam() const {
   return di;
 }
 
-tArray< double >
-tLNode::getZOld() const
-{
-  tArray< double > rl(2);
-  rl[0] = chan.migration.zoldright;
-  rl[1] = chan.migration.zoldleft;
-  return rl;
-}
-
-void tLNode::setZOld( double right, double left )
-{
-  chan.migration.zoldright = right;
-  chan.migration.zoldleft = left;
-}
-
-tArray< double >                                                   //tNode
-tLNode::getNew2DCoords() const
-{
-  tArray< double > xy(2);
-  if( Meanders() )
-    {
-      xy[0] = chan.migration.newx;
-      xy[1] = chan.migration.newy;
-    }
-  else
-    {
-      xy[0] = x;
-      xy[1] = y;
-    }
-  return xy;
-}
-
-tArray< double >                                                   //tNode
-tLNode::getNew3DCoords() const
-{
-  tArray< double > xyz(3);
-  if( Meanders() )
-    {
-      xyz[0] = chan.migration.newx;
-      xyz[1] = chan.migration.newy;
-    }
-  else
-    {
-      xyz[0] = x;
-      xyz[1] = y;
-    }
-  xyz[2] = z;
-  return xyz;
-}
-
-void tLNode::setNew2DCoords( double val1, double val2 )        //tNode
-{
-  chan.migration.newx = val1;
-  chan.migration.newy = val2;
-}
-
-tArray< double > tLNode::
-getLatDisplace() const
-{
-  tArray< double > xy(2);
-  xy[0] = chan.migration.deltax;
-  xy[1] = chan.migration.deltay;
-  return xy;
-}
-
-void tLNode::setLatDisplace( double dx, double dy )
-{
-  chan.migration.deltax = dx;
-  chan.migration.deltay = dy;
-}
-
-void tLNode::addLatDisplace( double dx, double dy )
-{
-  chan.migration.deltax += dx;
-  chan.migration.deltay += dy;
-}
-
-
-
-void tLNode::setDischarge( double val ) {chan.q = ( val > 0 ) ? val : 0;}
-
-void tLNode::RevertToOldCoords()
-{
-  chan.migration.newx = x;
-  chan.migration.newy = y;
-}
-
-void tLNode::UpdateCoords()
-{
-  if (Meanders()) {
-    x = chan.migration.newx;
-    y = chan.migration.newy;
-  }
-}
-
-
 /************************************************************************\
  **  GetSlopeMeander: Computes and returns the slope of the node's flowedg, or
  **  zero if the slope is less than zero.
@@ -879,10 +783,8 @@ void tLNode::EroDep( double dz )
   if (0) //DEBUG
     cout << "  eroding " << id << " by " << dz << endl << flush;
 
-  //sed += dz;
-  //if( sed<0 ) sed=0;
   reg.thickness += dz;
-  if( reg.thickness < 0 ) reg.thickness = 0.0;
+  if( reg.thickness < 0. ) reg.thickness = 0.0;
 }
 
 void tLNode::InsertLayerBack( tLayer const & lyr )
@@ -906,7 +808,7 @@ void tLNode::setQsin( int i, double val )
     TellAll();
   }
   qsinm[i]=val;
-  double tot=0;
+  double tot=0.;
   for(int j=0; j<numg; j++)
     tot+=qsinm[j];
   qsin=tot;
@@ -2437,7 +2339,7 @@ void tLNode::makeNewLayerBelow(int i, int sd, double erd,
 //Returns depth of all the layers - pretty useless for the current model
 double tLNode::getTotalLayerDepth() const
 {
-  double sz = layerlist.getSize();
+  const double sz = layerlist.getSize();
   int i=0;
   double elev = 0;
   while(i<sz)
@@ -2451,11 +2353,9 @@ double tLNode::getTotalLayerDepth() const
 
 double tLNode::DistFromOldXY() const
 {
-  double xo, yo;
-  tArray< double > oldpos( chan.migration.xyzd );
-
-  xo = oldpos[0];
-  yo = oldpos[1];
+  tArray< double > const &oldpos =  chan.migration.xyzd;
+  const double xo = oldpos[0];
+  const double yo = oldpos[1];
 
   return sqrt( (x-xo) * (x-xo) + (y-yo) * (y-yo) );
 }
