@@ -26,11 +26,11 @@ ParamMMFS_t::ParamMMFS_t(tInputFile &infile) :
   boundType = infile.ReadItem( boundType, "TYP_BOUND" );
    //ng 12/99 added so that the initial surface could be sloped
    //with one side open bndry cndtn if kSloped = 1.
-   if(boundType == kOpenSide){
+  //if(boundType == kOpenSide){
       kSloped = infile.ReadItem( kSloped, "SLOPED_SURF" );
       if(kSloped)
           upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
-   }
+      //}
    //read mean elevation & amplitude for random variation in elevation
    mElev = infile.ReadItem( mElev, "MEAN_ELEV" );
    randElev = infile.ReadItem( randElev, "RAND_ELEV" );
