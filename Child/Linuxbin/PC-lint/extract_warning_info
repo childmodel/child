@@ -1,0 +1,19 @@
+#! /bin/sh -u
+
+if [ $# -lt 1 ]; then
+  echo "Usage: `basename $0` <logfile>." 1>&2
+  exit 1
+fi
+
+LOG=$1
+
+find_sort(){
+ echo "-- ${1}"
+ grep -e "${1}" "${LOG}" | sed -e 's%^.*'"${1}"'%%' | sort -n -u
+}
+
+find_sort ' Error '
+echo
+find_sort ' Warning '
+echo
+find_sort ' Info '

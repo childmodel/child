@@ -3,6 +3,7 @@ PT = ../Code
 include gcc.mk
 #include icc.mk
 #include bcc.mk
+#include PC-lint/pclint.mk
 
 EXENAME = child$(EXEEXT)
 
