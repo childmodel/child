@@ -8,8 +8,9 @@
 **      starting from a given location; modified constructors to set
 **      initial value of mSearchOriginTriPtr, and modified ExtricateTri...
 **      to avoid dangling ptr. GT, 1/2000
+**    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.88 2000-06-24 15:16:07 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.89 2000-12-07 11:44:52 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -642,6 +643,67 @@ MakeMeshFromInputData( tInputFile &infile )
    }
    
    cout<<"done.\n";
+
+   // The user may wish to densify the starting mesh uniformly by adding
+   // a new node at the circumcenter of every triangle. That option is
+   // implemented here. We simply iterate through the list of triangles
+   // and add a node at the circumcenter of each. In doing so we take
+   // advantage of the fact that the circumcenter is also a Voronoi vertex,
+   // and is pointed to by each of the clockwise-directed edges in the
+   // triangle. The z value of each new node is obtained by linear (plane)
+   // interpolation from the 3 triangle vertices.
+   //   "initMeshDensLevel" serves as both a flag indicating whether the
+   // user wants densification, and as an indicator of the number of passes
+   // (the "level") to make -- ie, the number of times we sweep through
+   // adding a node in each triangle.
+   //   Added Sept. 2000, GT
+   int initMeshDensLevel = 
+     infile.ReadItem( initMeshDensLevel, "OPTINITMESHDENS" );
+   if( initMeshDensLevel)
+   {
+     int j;  // Level counter
+     int nnewpoints;  // No. of new points added in a given pass
+     tArray<double> newx, newy, newz;   // Lists of new coords
+     tArray<double> zvals(3);   // z values of a triangle's 3 nodes
+     tempnode.setBoundaryFlag( 0 );  // assumed all interior points
+     for( j=1; j<=initMeshDensLevel; j++ )
+     {
+       // Set up for this pass
+       cout << "Densifying initial mesh (level " << j << ")\n";
+       UpdateMesh();
+       nnewpoints = ntri = triList.getSize();  // no. of triangles in the list
+       newx.setSize( nnewpoints );
+       newy.setSize( nnewpoints );
+       newz.setSize( nnewpoints );
+
+       // Compute and store the x,y,z coordinates of the points to be added
+       ct = triIter.FirstP();     // start with the first triangle
+       for( i=0; i<ntri; i++ )    // loop through the triangles
+       {
+	 assert( ct!=0 );
+	 tArray<double> xy = ct->ePtr(0)->getRVtx();  // get the coords
+	 newx[i] = xy[0];
+	 newy[i] = xy[1];
+
+	 // Now find the z coordinate using interpolation
+	 zvals[0] = ct->pPtr(0)->getZ();
+	 zvals[1] = ct->pPtr(1)->getZ();
+	 zvals[2] = ct->pPtr(2)->getZ();
+	 newz[i] = PlaneFit( xy[0], xy[1], ct->pPtr(0)->get2DCoords(), 
+			       ct->pPtr(1)->get2DCoords(), 
+			       ct->pPtr(2)->get2DCoords(), zvals );
+	 ct = triIter.NextP();
+       }
+
+       // Now loop through and add the nodes
+       for( i=0; i<nnewpoints; i++ )
+       {
+	 tempnode.set3DCoords( newx[i], newy[i], newz[i] );  // assign them
+	 tempnode.setID( nnodes+i );
+	 AddNode( tempnode );        // Add the new node
+       }
+     }  // end of current densification level
+   } // end of optional mesh densification  
 
    UpdateMesh();
    CheckMeshConsistency();
