@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.10 1998-03-10 23:31:33 stlancas Exp $
+**  $Id: meshElements.cpp,v 1.11 1998-03-20 15:41:44 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -255,6 +255,10 @@ void tNode::CalcSpokeVEdgLengths()
       double dx = nvtx[0] - cvtx[0];
       double dy = nvtx[1] - cvtx[1];
       nextedg->setVEdgLen( sqrt( dx * dx + dy * dy ) );
+      cout << "  VE of edg " << nextedg->getID() << " ("
+           << nextedg->getOriginPtr()->getID() << ","
+           << nextedg->getDestinationPtr()->getID() << ") = "
+           << nextedg->getVEdgLen() << endl;
    }
 }
 
@@ -633,6 +637,7 @@ int tEdge::FlowAllowed()
 
 void tEdge::setID( int val ) {id = ( val >=0 ) ? val : 0;}           //tEdge
 
+//TODO: for performance, don't test value, just assume >=0
 void tEdge::setLength( double val )                                   //tEdge
 {len = ( val >= 0.0 ) ? val : 0.0;}
 
@@ -676,6 +681,30 @@ double tEdge::CalcLength()
    return len;
 }
 
+/**************************************************************************\
+**
+**  CalcSlope
+**
+**  Computes the slope of the edge as ( Zorg - Zdest ) / length.
+**
+**  Returns: the slope
+**  Modifies: slope (data mbr)
+**  Assumes: length >0; org and dest valid.
+**
+\**************************************************************************/
+double tEdge::CalcSlope()
+{
+   const tNode * org = getOriginPtr();
+   const tNode * dest = getDestinationPtr();
+   
+   assert( org!=0 );  // Failure = edge has no origin and/or destination node
+   assert( dest!=0 );
+   assert( len>0.0 );
+
+   slope = ( org->getZ() - dest->getZ() ) / len;
+   return slope;
+}
+
 
 ostream &operator<<( ostream &output, const tEdge &edge )            //'tEdge'
 {
@@ -714,6 +743,13 @@ void tEdge::setRVtx( tArray< double > arr )
 
 void tEdge::setVEdgLen( double val ) {vedglen = ( val > 0 ) ? val : 0;}
 
+void tEdge::TellCoords()
+{
+   cout << "EDGE " << id << ":\n";
+   cout << "  " << org->getID() << " (" << org->getX() << ","
+        << org->getY() << ") -> " << dest->getID() << " ("
+        << dest->getX() << "," << dest->getY() << endl;
+}
 
 
 /**************************************************************************\
@@ -957,3 +993,30 @@ tTriangle::FindCircumcenter()
 
    return xy;
 }
+
+
+/* TellAll: debugging output routine */
+#ifndef NDEBUG
+void tTriangle::TellAll()
+{
+   int i;
+   
+   assert( this!=0 );
+   cout << "TRIANGLE #" << id << ":\n";
+   for( i=0; i<3; i++ )
+   {
+      cout << "  P" << i << " ";
+      if( p[i]!=0 ) cout << p[i]->getID();
+      else cout << "(ndef)";
+      cout << "  E" << i << " ";
+      if( e[i]!=0 ) cout << e[i]->getID();
+      else cout << "(ndef)";
+      cout << "  T" << i << " ";
+      if( t[i]!=0 ) cout << t[i]->getID();
+      else cout << "(ndef)";
+      cout << endl;
+   }
+}
+#endif
+
+      
