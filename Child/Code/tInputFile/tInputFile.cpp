@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.27 2003-07-28 10:47:14 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.28 2003-07-31 13:13:00 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -263,7 +263,7 @@ tInputFile::tInputFile( const char *filename )
 **  Write log file.
 **  - 11/07/2003 AD
 \****************************************************************************/
-void tInputFile::writeLogFile()
+void tInputFile::writeLogFile() const
 {
   ofstream inoutfile;  // output file in which items are recorded
   char inoutname[kMaxNameLength];
@@ -305,7 +305,7 @@ void tInputFile::writeLogFile()
 **  Returns notFound in case of failure.
 **  - 11/07/2003 AD
 \****************************************************************************/
-int tInputFile::findKeyWord( const char *key )
+int tInputFile::findKeyWord( const char *key ) const
 {
   assert(key != NULL);
   const int len = KeyWordTable.getSize();
@@ -348,7 +348,7 @@ void ReportNonExistingKeyWord(const char *itemCode){
   ReportFatalError( "Missing parameter in input file" );
 }
 
-int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode )
+int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode ) const
 {
   const int i = findKeyWord( itemCode );
   if (i == notFound)
@@ -356,7 +356,7 @@ int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode )
   return atoi(KeyWordTable[i].value());
 }
 
-long tInputFile::ReadItem( const long & /*datType*/, const char *itemCode )
+long tInputFile::ReadItem( const long & /*datType*/, const char *itemCode ) const
 {
   const int i = findKeyWord( itemCode );
   if (i == notFound)
@@ -364,7 +364,7 @@ long tInputFile::ReadItem( const long & /*datType*/, const char *itemCode )
   return atol(KeyWordTable[i].value());
 }
 
-double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode )
+double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode ) const
 {
   const int i = findKeyWord( itemCode );
   if (i == notFound)
@@ -374,7 +374,7 @@ double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode )
 
 // The size of 'theString' is 'len' including the trailing '\0'
 void tInputFile::ReadItem( char * theString, size_t len,
-			   const char *itemCode )
+			   const char *itemCode ) const
 {
   assert(len>0);
   const int i = findKeyWord( itemCode );

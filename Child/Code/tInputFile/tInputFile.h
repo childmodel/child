@@ -38,7 +38,7 @@
 **  Created by Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.h,v 1.17 2003-07-25 12:01:34 childcvs Exp $
+**  $Id: tInputFile.h,v 1.18 2003-07-31 13:13:00 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -83,18 +83,18 @@ class tInputFile
 {
 public:
   tInputFile( const char * );   // constructor takes name of file to open
-  int ReadItem( const int &, const char * );       // reads an int
-  long ReadItem( const long &, const char * );     // reads a long
-  double ReadItem( const double &, const char * ); // reads a double
-  void ReadItem( char *, size_t len, const char * );// reads a string
+  int ReadItem( const int &, const char * ) const;       // reads an int
+  long ReadItem( const long &, const char * ) const;     // reads a long
+  double ReadItem( const double &, const char * ) const; // reads a double
+  void ReadItem( char *, size_t len, const char * ) const;// reads a string
   // similar overrides could be added for other data types
 
 private:
   tArray< tKeyPair > KeyWordTable; // hold key/value pair
 
   enum { notFound = -1 }; // must be strictly negative
-  int findKeyWord(const char*); // find index of keyword
-  void writeLogFile();
+  int findKeyWord(const char*) const; // find index of keyword
+  void writeLogFile() const;
 };
 
 #endif
