@@ -60,12 +60,16 @@ prove that CVS_RSH is properly defined.
 
 Do the following steps only after your key has been added to the access list:
 
-4. Test by entering at the unix prompt the following line:
+4. Navigate to the directory in which you wish to keep your snapshot (you
+might want to create a new directory for it).
 
-ssh -l childcvs nimbus.geog.ox.ac.uk 'uname -a'
+5. Enter the following command:
 
-You should see something similar to:
-SunOS nimbus.geog.ox.ac.uk 5.7 Generic_106541-19 sun4u sparc SUNW,Ultra-4
+cvs -d:ext:childcvs@nimbus.geog.ox.ac.uk:/miami/miami2/childcvs/cvs checkout Child
+
+You should then see a new directory called Child with a series of
+subdirectories containing source code, documentation, example input files, etc.
+Later CVS command do not need this long "-d" option.
 
 There has been one report that using "ssh -c 3des" was necessary although
 it should be the default. In such (unlikely) case, create a file containing:
@@ -76,18 +80,7 @@ CVS_RSH to its full path (i.e. setenv CVS_RSH /path/to/oxford_ssh).
 
 If it still does not work, email us for help.
 
-5. Navigate to the directory in which you wish to keep your snapshot (you
-might want to create a new directory for it).
-
-6. Enter the following command:
-
-cvs -d:ext:childcvs@nimbus.geog.ox.ac.uk:/miami/miami2/childcvs/cvs checkout Child
-
-You should then see a new directory called Child with a series of
-subdirectories containing source code, documentation, example input files, etc.
-Later CVS command do not need this long "-d" option.
-
-7. A few tips about CVS
+6. A few tips about CVS
 
 Information about using CVS is available at http://www.cvshome.org.
 The cvs manual is available at http://www.cvshome.org/docs/manual/.
