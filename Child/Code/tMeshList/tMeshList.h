@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.22 2003-06-23 10:31:23 childcvs Exp $
+**  $Id: tMeshList.h,v 1.23 2003-08-05 12:29:48 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -792,7 +792,7 @@ LastActiveP()
 **
 \**************************************************************************/
 template< class NodeType >   //tMeshListIter
-int tMeshListIter< NodeType >::
+inline int tMeshListIter< NodeType >::
 IsActive() const
 {
    if( this->curnode!=0 )
