@@ -45,7 +45,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.112 2003-05-16 12:55:58 childcvs Exp $
+**  $Id: erosion.cpp,v 1.113 2003-05-16 15:16:54 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1711,7 +1711,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
 **     erosion. This is done because the detachment capacity functions now
 **     require a defined channel width. (GT 2/01)
 \*****************************************************************************/
-void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift *UPtr )
+void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift const *UPtr )
 {
    double dt,
        dtmax = 1000000.0; // time increment: initialize to arbitrary large val

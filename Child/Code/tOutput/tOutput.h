@@ -29,7 +29,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.36 2003-05-16 14:03:39 childcvs Exp $
+**  $Id: tOutput.h,v 1.37 2003-05-16 15:17:53 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -103,11 +103,11 @@ protected:
   static int orderREdge(const void*, const void*);
   static int orderRTriangle(const void*, const void*);
   void RenumberIDCanonically();
-  static void SetTriangleIndex(tTriangle *, int[3]);
+  static void SetTriangleIndex(tTriangle const *, int[3]);
   // write an individual record
   inline void WriteNodeRecord( tNode * );
   inline void WriteEdgeRecord( tEdge * );
-  inline void WriteTriangleRecord( tTriangle *, const int[3]);
+  inline void WriteTriangleRecord( tTriangle const *, const int[3]);
 };
 
 

@@ -59,7 +59,7 @@
 **     - Added codes to go along with erosion & transport options, to
 **       enable checking against user-specified options (GT 7/02)
 **
-**  $Id: erosion.h,v 1.45 2003-01-17 17:30:21 childcvs Exp $
+**  $Id: erosion.h,v 1.46 2003-05-16 15:16:57 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -496,7 +496,7 @@ public:
     tErosion( tMesh< tLNode > *, tInputFile & );
     ~tErosion();
     void ErodeDetachLim( double dtg, tStreamNet * );
-    void ErodeDetachLim( double dtg, tStreamNet *, tUplift * );
+    void ErodeDetachLim( double dtg, tStreamNet *, tUplift const * );
     void StreamErode( double dtg, tStreamNet * );
     void StreamErodeMulti( double dtg, tStreamNet *, double time);
     void DetachErode( double dtg, tStreamNet *, double time);

@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.69 2003-05-16 14:03:39 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.70 2003-05-16 15:17:51 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -201,7 +201,7 @@ inline void tOutput<tSubNode>::WriteEdgeRecord( tEdge *ce )
 }
 
 template< class tSubNode >
-inline void tOutput<tSubNode>::WriteTriangleRecord( tTriangle *ct,
+inline void tOutput<tSubNode>::WriteTriangleRecord( tTriangle const *ct,
 						    const int index[3])
 {
   int i;
@@ -376,7 +376,7 @@ int tOutput<tSubNode>::orderREdge( const void *a_, const void *b_ )
 
 // Build a circular array so that ct->pPtr(index[0])->getID() is the lowest
 template< class tSubNode >
-void tOutput<tSubNode>::SetTriangleIndex( tTriangle *ct, int index[3] )
+void tOutput<tSubNode>::SetTriangleIndex( tTriangle const *ct, int index[3] )
 {
   const int ID[] = { ct->pPtr(0)->getID(),
 		     ct->pPtr(1)->getID(),

@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.39 2003-02-10 16:35:39 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.40 2003-05-16 15:13:11 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -64,7 +64,7 @@
 
 
 double DistanceToLine( double x2, double y2, double a, double b, double c );
-double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 );
+double DistanceToLine( double x2, double y2, tNode const *p0, tNode const *p1 );
 
 
 /**************************************************************************/

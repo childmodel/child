@@ -4,7 +4,7 @@
 **  @brief Global functions used by tGrid and other modules of
 **         CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.15 2003-05-16 14:00:02 childcvs Exp $
+**  $Id: globalFns.cpp,v 1.16 2003-05-16 15:12:45 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -26,7 +26,7 @@ using namespace std;
 **
 */
 /**************************************************************************/
-tArray< double > UnitVector( tEdge* ePtr )
+tArray< double > UnitVector( tEdge const * ePtr )
 {
    assert( ePtr != 0 );
    tArray< double > oxy( ePtr->getOriginPtr()->get2DCoords() );
@@ -193,7 +193,7 @@ int Orientation( tArray< double > const &p0,
 **  TODO: use general "moving" indicator, or dispense w/ the mdr test
 */
 /***************************************************************************/
-int NewTriCCW( tTriangle *ct )
+int NewTriCCW( tTriangle const *ct )
 {
    assert( ct != 0 );
    tLNode *cn;
@@ -228,7 +228,7 @@ int NewTriCCW( tTriangle *ct )
 **  TODO: use general "moving" indicator, or dispense w/ the mdr test
 */
 /***************************************************************************/
-int InNewTri( tArray< double > const &xy, tTriangle *ct )
+int InNewTri( tArray< double > const &xy, tTriangle const *ct )
 {
    int j;
    tLNode *vtx;

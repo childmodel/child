@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.30 2003-05-16 14:05:53 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.31 2003-05-16 15:13:10 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -72,7 +72,7 @@ double DistanceToLine( double x2, double y2, double a, double b, double c )
 **      Calls:
 **
 \*****************************************************************************/
-double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
+double DistanceToLine( double x2, double y2, tNode const *p0, tNode const *p1 )
 {
    double a, b, c, x0, y0, x1, y1, d;
 
