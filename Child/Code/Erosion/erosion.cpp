@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.59 1999-04-05 17:31:48 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.60 1999-04-05 22:59:40 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1364,24 +1364,17 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
    tArray <double> erolist( cn->getNumg() );
    tArray <double> insed = strmNet->getInSedLoadm();
 
-   //cout<<"sorting in DetachErode\n";
-
    // Sort so that we always work in upstream to downstream order
    strmNet->SortNodesByNetOrder();
    strmNet->FindChanGeom();
    strmNet->FindHydrGeom();
 
-   //cout<<"starting detach erode"<<endl;
-   
    // Compute erosion and/or deposition until all of the elapsed time (dtg)
    // is used up
-
    do
    {   
       // Zero out sed influx of all sizes
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
-         //if(cn->getID()==384) cn->TellAll();
-         //  cout<<"93 is active"<<endl;
          cn->setQs(0.0);
          if( cn!=inletNode )
          {
@@ -1401,9 +1394,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          }
       }
 
-      //cout << "size of erolay is " << erolay.getSize() << endl;
-      //cout << "zero out loop done\n";
-
       // Estimate erosion rates and time-step size
       // NOTE - in this first loop we are only dealing with
       // totals for time-step calculations, however transport
@@ -1415,27 +1405,16 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          drdt=0;
          qs=0;
 
-//         cout<<"finding appropriate dzdt for node "<<cn->getID()<<endl;
-         
-         //cout<<"channel depth is "<<cn->getChanDepth()<<" at node ";
-         //cout<<cn->getID()<<" x "<<cn->getX()<<" y "<<cn->getY()<<endl;
-         //cout<<"channel width is "<<cn->getChanWidth()<<endl;
-         //cout<<"hydraulic width is "<<cn->getHydrWidth()<<endl;
-         //cout<<"channel rough is "<<cn->getChanRough()<<endl;
          assert(cn->getChanDepth()<100);
          
          while((cn->getChanDepth()-depck)>0.0001)
          {
-            //cout<<"in while"<<endl;
             // Total transport capacity is a weighted average
             // of the transport capacity calculated from each 
             // layer within the channel depth.
             // sediment and bedrock treated the same
             // units on qs are l^3/t
 
-            //cout<<"depck at begining is "<<depck<<" index i is "<<i<<endl;
-            //cout<<"layer depth is "<<cn->getLayerDepth(i);
-            //cout<<" is layer sed? "<<cn->getLayerSed(i)<<endl;
             if((depck+cn->getLayerDepth(i))<=cn->getChanDepth()){
                //TransportCapacity function should keep running
                //sum of qs of each grain size.  
@@ -1444,15 +1423,10 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                }
             else{
                qs+=sedTrans.TransCapacity(cn,i,1-(depck/cn->getChanDepth()));
-                  // if(cn->getID() == 11)
-
             }
             depck+=cn->getLayerDepth(i); //need to keep this here for qs calc
             i++;
-            //cout<<"at end of loop "<<i-1<<" drdt is "<<drdt<<endl;
-            //cout<<"depck at end is "<<depck<<" index i is "<<i<<endl;
          }
-         //cout<<"value of qs total is "<<qs<<endl;
          
          //NIC this detachcapacity returns the correct thing, but
          //it also sets within the layer the drdt of each size.
@@ -1465,32 +1439,19 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          else
              drdt=-bedErode.DetachCapacity( cn, i );//[m^3/yr]
 
-         //cout<<"value returned from detach capacity is "<<drdt<<endl;
-         
          cn->setDrDt(drdt);
          cn->setDzDt(drdt);
 
-         //cout<<"value of qsin is "<<cn->getQsin()<<endl;
-         
          excap=(qs - cn->getQsin())/cn->getVArea();//[m/yr]
          //excap negative = deposition; positive = erosion
          //Note that signs are opposite to what one
          //might expect.  This works out for Qsin addition.
          //Limit erosion to capacity of flow or deposition
          if( -drdt > excap ){
-            //Does this work??
-            //What if you are depositing less than you want to erode?
-            //Would this catch that????
             cn->setDzDt(-excap);
-            //cout<<"at node "<<cn->getID()<<" erosion is limited to capacity of "<<excap<<endl;
          }
-         //cout<<"area of node is "<<cn->getVArea()<<endl;
-         //cout<<"amount added to downstream load "<<cn->getQsin()-cn->getDzDt()*cn->getVArea()<<endl;
-         
          cn->getDownstrmNbr()->addQsin(cn->getQsin()-cn->getDzDt()*cn->getVArea());
       }//ends for( cn = ni.FirstP...
-
-      //cout<<"found dzdts"<<endl;
       
       //Find local time-step based on dzdt
       dtmax = dtg/frac;
@@ -1499,15 +1460,13 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          //Not for time step calculations, just utilizing loop
          if( cn!=inletNode )
          {
-            cn->setQsin(0.0);
-            // NIC, part below may be redundant, Check this
+            //Note-seting qsini for each size should automatically
+            //properly set qstotal to be the sum of all qsini
             for( i=0; i<cn->getNumg(); i++ )
                 cn->setQsin( i, 0.0 );
          }
          else
          {
-            cn->setQsin( insedloadtotal );
-            // NIC, part below may be redundant, Check this
             for( i=0; i<cn->getNumg(); i++ )
                 cn->setQsin( i, insed[i] );
          }
@@ -1537,8 +1496,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       dtmax *= frac;  // Take a fraction of time-to-flattening
       timegb+=dtmax;
 
-      //cout<<"timegb is "<<timegb<<endl;
-      
       //At this point: we have drdt and qs for each node, plus dtmax
       
       // Do erosion/deposition
@@ -1576,25 +1533,14 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          //Note: I think need to do the add in here and possibly take out later
          //because of looping through layers for the same erosion pass.
          
-         
-         //cout<<"dz is "<<dz<<endl;
-         
          if( dz<0 ) //total erosion
          {
-//             if(cn->getID()==79 && timegb >= 1756){
-//                cout<<"in erosion with node 79"<<endl;
-//             }
             if(flag==0){ // detach-lim
-               //cout<<"in detach lim erosion"<<endl;
-               
                i=0;
                depck=0;
                while(dz<-0.000000001&&depck<cn->getChanDepth()&&i<cn->getNumLayer()){   
                   depck+=cn->getLayerDepth(i);
                   if(-dz<=cn->getLayerDepth(i)){//top layer can supply total depth
-//                      if(cn->getID()==79 && timegb >= 1756){
-//                         cout<<"got enough in surface to erode 79"<<endl;
-//                      }
                      for(j=0;j<cn->getNumg();j++){
                         erolist[j]=dz*cn->getLayerDgrade(i,j)/cn->getLayerDepth(i);
                         if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
@@ -1611,12 +1557,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                      dz=0;
                   }
                   else{//top layer is not deep enough, need to erode more layers
-//                      if(cn->getID()==79 && timegb >= 1756){
-//                         cout<<"surface can't supply"<<endl;
-//                         cout<<"i is "<<i<<" flag is "<<flag<<endl;
-//                         cout<<"depth of layer is "<<cn->getLayerDepth(i)<<endl;
-//                         cout<<"dz is "<<dz<<" qs1 is "<<cn->getQs(0)<<" qs2 is "<<cn->getQs(1)<<endl;                        
-//                     } 
                      sum=0;
                      flag=0;
                      for(j=0;j<cn->getNumg();j++){
@@ -1646,10 +1586,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                }
             }
             else{//trans-lim
-//                if(cn->getID()==79 && timegb >= 1756){
-//                   cout<<"in trans-lim erosion"<<endl;
-//                }
-               
                for(j=0;j<cn->getNumg();j++){
                   erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
                }
@@ -1663,12 +1599,9 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                   sum=0;
                   for(j=0;j<cn->getNumg();j++){
                      cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
-                     //cout<<"  added to dsnbr "<<-ret[j]*cn->getVArea()/dtmax;
-                     
                      erolist[j]-=ret[j];
                      sum+=erolist[j];
                   }
-                  //cout<<endl;
                   if(sum>-0.0000001)
                       depck=cn->getChanDepth();
                   if(flag==cn->getNumLayer())
@@ -1687,10 +1620,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             }
             
          }
-         //for(j=0;j<cn->getNumg();j++)
-         //  cout<<"eroded amt "<<ret[j]<<" ";
-         //cout<<endl;
-         //cn->TellAll();         
       } // Ends for( cn = ni.FirstP()...
       // Update time remainig   
       dtg -= dtmax;
@@ -1698,7 +1627,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
    } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
 
    //cout<<"ending detach erode"<<endl;
-   
 }// End erosion algorithm
 
 
