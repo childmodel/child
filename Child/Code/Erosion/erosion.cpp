@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.39 1998-07-26 23:02:50 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.40 1998-07-27 17:09:39 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1411,6 +1411,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          //cout<<"amount added to downstream load "<<cn->getQsin()-cn->getDzDt()*cn->getVArea()<<endl;
          
          cn->getDownstrmNbr()->addQsin(cn->getQsin()-cn->getDzDt()*cn->getVArea());
+         cn->TellAll();
       }//ends for( cn = ni.FirstP...
 
       //cout<<"found dzdts"<<endl;
@@ -1604,6 +1605,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                 erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
             ret=cn->EroDep(0,erolist,timegb);
          }
+         cn->TellAll();
       } // Ends for( cn = ni.FirstP()...
       // Update time remainig   
       dtg -= dtmax;
