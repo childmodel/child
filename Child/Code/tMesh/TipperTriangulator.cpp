@@ -664,7 +664,7 @@ void tt_sort_triangulate(int npoints, point *p,
   // < operator so that the sort is on the x co-ordinate
   //array p will be replaced with the array sorted in x
   heapsort(npoints,p);
-  if (0)
+  if (0) // DEBUG
     tt_verify_sort(npoints, p);
 
 #if defined(TIMING)
