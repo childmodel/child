@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.155 2003-05-20 11:56:47 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.156 2003-05-22 09:28:16 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -237,7 +237,11 @@ tMesh( tInputFile &infile )
 //destructor
 template< class tSubNode >
 tMesh< tSubNode >::
-~tMesh() {cout << "    ~tMesh()" << endl;}                    //tMesh
+~tMesh() {
+  mSearchOriginTriPtr = 0;
+  if (1)//DEBUG
+    cout << "    ~tMesh()" << endl;
+}
 
 
 /************************************************************************\
@@ -348,7 +352,7 @@ MakeLayersFromInputData( tInputFile &infile )
       add++;
    }
 
-   assert(sumbr>0.999 & sumbr<1.001);
+   assert(sumbr>0.999 && sumbr<1.001);
 
    layhelp.setCtime(0);
    layhelp.setRtime(0);
@@ -4037,7 +4041,7 @@ UpdateMesh()
       curedg = elist.NextP();
       assert( curedg != 0 ); // failure = complementary edges not consecutive
       curedg->setLength( len );
-   } while( curedg=elist.NextP() );
+   } while( (curedg=elist.NextP()) );
 
    setVoronoiVertices();
    CalcVoronoiEdgeLengths();
