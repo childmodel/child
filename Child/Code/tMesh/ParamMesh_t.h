@@ -27,6 +27,6 @@ public:
   double xout, yout;            // coordinates of user-specified outlet
   int numPts;                   // total no. of interior pts (if random)
 
-  ParamMMFS_t(tInputFile & );
+  ParamMMFS_t(const tInputFile & );
 };
 

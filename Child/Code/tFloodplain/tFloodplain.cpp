@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.20 2003-09-02 13:57:10 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.21 2003-10-15 09:21:32 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -81,7 +81,7 @@
 **  and kdb = Kdb * Pe^(mqb-mqs).
 **
 \**************************************************************************/
-tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
+tFloodplain::tFloodplain( const tInputFile &infile, tMesh<tLNode> *mp )
   :
   chanDriver(0),
   meshPtr(mp)
@@ -295,7 +295,7 @@ void tFloodplain::UpdateMainChannelHeight( double tm, tLNode * inletNode )
 **  @param infile Reference to the input file for the run
 **
 \**************************************************************************/
-tMainChannelDriver::tMainChannelDriver( tInputFile &infile )
+tMainChannelDriver::tMainChannelDriver( const tInputFile &infile )
 {
   optChanAltitudeVariation = infile.ReadItem( optChanAltitudeVariation,
 					      "FP_OPTCHANALITUDEVARIATION" );

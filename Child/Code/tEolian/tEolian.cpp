@@ -5,7 +5,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tEolian.cpp,v 1.5 2003-01-17 17:30:26 childcvs Exp $
+**  $Id: tEolian.cpp,v 1.6 2003-10-15 09:24:24 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -23,7 +23,7 @@
 **  which is then passed to tLNode::EroDep.
 **
 \**************************************************************************/
-tEolian::tEolian( tInputFile &infile )
+tEolian::tEolian( const tInputFile &infile )
 {
    int numg=1;
    

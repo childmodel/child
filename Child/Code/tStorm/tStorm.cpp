@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.30 2003-09-02 13:52:57 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.31 2003-10-15 09:20:09 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -114,7 +114,7 @@ tStorm::tStorm( double mp, double ms, double mis, tRand *rand_, bool optvar, dou
 **     history (GT)
 **
 \**************************************************************************/
-tStorm::tStorm( tInputFile &infile, tRand *rand_ ) :
+tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
   rand(rand_)
 {
    // Read + set parameters for storm intensity, duration, and spacing

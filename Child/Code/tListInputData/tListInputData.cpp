@@ -14,7 +14,7 @@
  **   - Remove dead code. Add findRightTime (AD 07/03)
  **   - Add Random number generator handling. (AD 08/03)
  **
- **  $Id: tListInputData.cpp,v 1.20 2003-09-02 08:44:33 childcvs Exp $
+ **  $Id: tListInputData.cpp,v 1.21 2003-10-15 09:18:34 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -74,7 +74,7 @@ ReportIOError(IOErrorType t, const char *filename,
 \**************************************************************************/
 template< class tSubNode >
 tListInputData< tSubNode >::
-tListInputData( tInputFile &infile, tRand &rand )          //tListInputData
+tListInputData( const tInputFile &infile, tRand &rand )          //tListInputData
 {
   double intime;                   // desired time
   char basename[80],               // base name of input files

@@ -20,7 +20,7 @@
 **
 **  (Created 2/99 by GT)
 **
-**  $Id: tEolian.h,v 1.7 2003-06-23 10:36:20 childcvs Exp $
+**  $Id: tEolian.h,v 1.8 2003-10-15 09:24:26 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -48,7 +48,7 @@
 class tEolian
 {
 public:
-    tEolian( tInputFile &infile );
+    tEolian( const tInputFile &infile );
     void DepositLoess( tMesh<tLNode> *mp, double delt, double ctime );
     
 private:

@@ -14,7 +14,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.25 2003-09-03 12:37:05 childcvs Exp $
+**  $Id: tRunTimer.cpp,v 1.26 2003-10-15 09:23:10 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -88,7 +88,7 @@ tRunTimer::tRunTimer( double duration, double opint, bool optprint )
 {
 }
 
-tRunTimer::tRunTimer( tInputFile &infile, bool optprint )
+tRunTimer::tRunTimer( const tInputFile &infile, bool optprint )
   :
   currentTime(0),
   notifyInterval(1000),

@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.21 2003-09-02 11:56:52 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.22 2003-10-15 09:21:12 childcvs Exp $
 */
 /************************************************************************/
 
@@ -28,7 +28,7 @@
 **  Inputs:  infile -- input file from which to read parameters
 **
 \************************************************************************/
-tUplift::tUplift( tInputFile &infile )
+tUplift::tUplift( const tInputFile &infile )
 {
    // Find out what kind of uplift the user wants
    typeCode = infile.ReadItem( typeCode, "UPTYPE" );

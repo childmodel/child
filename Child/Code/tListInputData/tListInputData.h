@@ -16,7 +16,7 @@
  **     to avoid multiple definition errors resulting from mixing
  **     template & non-template classes (1/99)
  **
- **  $Id: tListInputData.h,v 1.22 2003-10-14 13:03:01 childcvs Exp $
+ **  $Id: tListInputData.h,v 1.23 2003-10-15 09:18:34 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -127,7 +127,7 @@ class tListInputData
   friend class tMesh< tSubNode >;  // gives tMesh direct access
 
 public:
-  tListInputData( tInputFile &, tRand & ); // Read filename & time from main inp file
+  tListInputData( const tInputFile &, tRand & ); // Read filename & time from main inp file
 
 private:
   static void findRightTime(ifstream &, int &, double,

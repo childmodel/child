@@ -28,7 +28,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.27 2003-09-02 13:58:50 childcvs Exp $
+**  $Id: tStorm.h,v 1.28 2003-10-15 09:20:09 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -49,7 +49,7 @@ class tStorm
 public:
     tStorm( bool optVariable = true );
     tStorm( double, double, double, tRand *, bool optvar=true, double et=1.0e9 );
-    tStorm( tInputFile &, tRand *);
+    tStorm( const tInputFile &, tRand *);
     void  GenerateStorm( double tm, double minp=0.0, double mind=0.0);
     double getStormDuration() const;
     double interstormDur() const;

@@ -13,7 +13,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.cpp,v 1.10 2003-06-23 10:36:27 childcvs Exp $
+**  $Id: tVegetation.cpp,v 1.11 2003-10-15 09:25:20 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -41,7 +41,7 @@ tVegetation::tVegetation()
   mdTauCritBare(0), mdTauCritVeg(0)
 {}
 
-tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, tInputFile &infile )
+tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, const tInputFile &infile )
   :
   mdKvd(0),
   mdTVeg(1),

@@ -24,7 +24,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.h,v 1.10 2003-05-16 16:18:13 childcvs Exp $
+**  $Id: tVegetation.h,v 1.11 2003-10-15 09:25:21 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -41,7 +41,7 @@ class tVegetation
 {
   public:
    tVegetation();
-   tVegetation( tMesh<class tLNode> *, tInputFile & );
+   tVegetation( tMesh<class tLNode> *, const tInputFile & );
    void UpdateVegetation( tMesh<class tLNode> *, double, double ) const;
   private:
    double mdKvd;   // Vegetation erosion coefficient (dim's LT/M)

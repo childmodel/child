@@ -11,7 +11,7 @@
 #include "../tInputFile/tInputFile.h"
 #include "../errors/errors.h"
 
-ParamMMFS_t::ParamMMFS_t(tInputFile &infile) :
+ParamMMFS_t::ParamMMFS_t(const tInputFile &infile) :
   kSloped(0),
   xout(0), yout(0)
 {

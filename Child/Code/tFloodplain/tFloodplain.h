@@ -18,7 +18,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.14 2003-09-02 13:57:13 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.15 2003-10-15 09:21:32 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -58,7 +58,7 @@ class tMainChannelDriver
   tMainChannelDriver& operator=(const tMainChannelDriver&);
 
 public:
-  tMainChannelDriver( tInputFile &infile );
+  tMainChannelDriver( const tInputFile &infile );
   void UpdateMainChannelElevation( double tm, tLNode * inletNode );
 
 private:
@@ -97,7 +97,7 @@ class tFloodplain
   tFloodplain& operator=(const tFloodplain&);
 
 public:
-  tFloodplain( tInputFile &infile, tMesh<tLNode> *mp );
+  tFloodplain( const tInputFile &infile, tMesh<tLNode> *mp );
   ~tFloodplain();
   void DepositOverbank( double precip, double delt, double ctime );
   bool OptControlMainChan() const;
