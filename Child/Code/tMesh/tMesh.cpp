@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.152 2003-05-19 14:56:49 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.153 2003-05-19 15:33:16 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3975,49 +3975,25 @@ AddNodeAt( tArray< double > &xyz, double time )
 
    assert( node1 != 0 && node2 != 0 && node3 != 0 );
    AddEdge( node1, node2, node3 );  //add edge between node1 and node2
-   tPtrList< tSubNode > tmpList;
-   tmpList.insertAtBack( node3 );
-   tmpList.insertAtBack( node1 );
-   tmpList.insertAtBack( node2 );
-   tPtrListIter< tSubNode > tmpIter( tmpList );
-   AddEdgeAndMakeTriangle( tmpList, tmpIter );
-   tmpList.Flush();
-   tmpList.insertAtBack( node2 );
-   tmpList.insertAtBack( node1 );
-   tmpList.insertAtBack( node4 );
-   tmpIter.First();
-   AddEdgeAndMakeTriangle( tmpList, tmpIter );
-   tmpList.Flush();
-   tmpList.insertAtBack( node2 );
-   tmpList.insertAtBack( node4 );
-   tmpList.insertAtBack( node3 );
-   tmpList.makeCircular();
-   tmpIter.First();
-   MakeTriangle( tmpList, tmpIter );
+   AddEdgeAndMakeTriangle( node3, node1, node2 );
+   AddEdgeAndMakeTriangle( node2, node1, node4 );
+   MakeTriangle( node2, node4, node3 );
    //put 3 resulting triangles in ptr list
    if( xyz.getSize() == 3 )
    {
      CheckTrianglesAt( node2 );
    }
    //reset node id's
-   cout << "reset ids\n";
+   if (1)//DEBUG
+     cout << "reset ids\n";
    ResetNodeID();
    //nmg uncommented line below and added initialize line
    node2->InitializeNode();
 
    UpdateMesh();
 
-   tEdge *ce, *fe;
-   fe = node2->getFlowEdg();
-   ce = fe;
-
-   int hlp=0;
-   do{
-      ce=ce->getCCWEdg();
-      hlp++;
-   }while(ce != fe );
-
-   //cout << "AddNodeAt finished, " << nnodes << endl;
+   if (0)//DEBUG
+     cout << "AddNodeAt finished, " << nnodes << endl;
    return node2;
 }
 #undef kLargeNumber
