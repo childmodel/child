@@ -4,11 +4,13 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.17 1998-04-04 00:06:59 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.18 1998-04-06 19:27:53 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
 #define TLNODE_H
+#include <iostream.h>
+#include <fstream.h>
 
 #include "../tArray/tArray.h"
 #include "../GridElements/gridElements.h"
@@ -117,9 +119,7 @@ class tRegolith
   public:
    tRegolith();
    tRegolith( tInputFile &infile ); /* Reads needed values from input file*/
-   /* Append tRegolith so that it checks for multi size flag */
    tRegolith( const tRegolith & );
-   //tRegolith( int, double ); /*no of grain sizes and active layer thickness*/
    ~tRegolith();
    const tRegolith &operator=( const tRegolith & );
   private:
@@ -129,9 +129,8 @@ class tRegolith
    int numg;           /* number of grain sizes */
    tArray< double > dgrade;/* depth of each sediment class in active layer [m]
 			     dgrade[0]= total depth of active layer */
-   tArray< double > grade; /* representative grain diameter of each of 
-			      the grain size classes 
-			      grade[0]= 0*/
+   static tArray< double > grade;/* representive grain diameter of 
+			     each sediment class [m], grade[0]=0 */
    double dpth;         /* dynamic depth of active layer */
    double actdpth;      /* standard active layer depth */
    tList< tDeposit > depositList;
