@@ -76,7 +76,7 @@ tInlet::~tInlet()
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.15 1998-02-27 22:57:43 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.16 1998-03-03 22:30:52 gtucker Exp $
 \**************************************************************************/
 
 
@@ -108,7 +108,7 @@ tInlet::~tInlet()
 
 tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
                         tInputFile &infile )
-    : bedErode( infile ), inlet( &gridRef, infile )
+    : inlet( &gridRef, infile )
 {
    cout << "tStreamNet(...)...";
    assert( &gridRef != 0 );
@@ -1236,136 +1236,3 @@ cur = firstnode;
  
 }
 
-
-/*****************************************************************************\
-**
-**  ErodeDetachLim
-**
-**  Solves for erosion and deposition during a time interval dtg, for the
-**  case in which any sediment detached from the landscape is assumed to
-**  be carried away. This might be appropriate, for example, in a bedrock
-**  channel system in which deposition is negligible. This case is handled
-**  separately from the more general case in which transport capacity and
-**  deposition are taken into account, because the numerical solutions
-**  to detachment-limited erosion equations tend to be considerably more
-**  stable than the general case.
-**
-**  The function will solve the erosion equation(s) over one or more time
-**  intervals within the total "global" time period dtg. First, the
-**  maximum time step size dt is computed. Then erosion is computed
-**  iteratively in increments of dt until the total time dtg has been used.
-**
-**  Modified, 2/20/98, SL & GT: maximize time step such that slope in down-
-**   stream direction does not reverse; don't use modified Courant condition.
-**   This has the advantage that it does not grind to a halt when n<1; but, it
-**   is not completely satisfactory; it seems to be good at finding out how
-**   small the time step needs to be but not how large it can be; i.e., if
-**   dtg is quite large, one can still run into problems. E.g., for m=0.3,
-**   n=0.7, kb=3.16e-02 m^3/N, U=1e-3 m/yr, Q=100m^3/s, kwds=3, knds=0.03
-**   => dtg=10 yrs seems to work well; dtg=100 yrs does not work well.
-\*****************************************************************************/
-void tStreamNet::ErodeDetachLim( double dtg )
-{
-   double dt,
-       dtmax = 1000000.0; // time increment: initialize to arbitrary large val
-   double frac = 0.9; //fraction of time to zero slope
-   int i;
-   tLNode * cn, *dn;
-   int nActNodes = gridPtr->GetNodeList()->getActiveSize();
-   tGridListIter<tLNode> ni( gridPtr->GetNodeList() );
-   tArray<double> //dz( nActNodes ), // Erosion depth @ each node
-       dzdt( nActNodes ); //Erosion rate @ ea. node
-   double ratediff;
-
-   // Iterate until total time dtg has been consumed
-   do
-   {
-      //first find erosion rate:
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->setQs( -bedErode.DetachCapacity( cn ) );
-      dtmax = dtg;
-      //find max. time step s.t. slope does not reverse:
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-      {
-         dn = cn->GetDownstrmNbr();
-         ratediff = dn->getQs() - cn->getQs();
-         if( ratediff > 0 )
-         {
-            dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
-            if( dt > 0 && dt < dtmax ) dtmax = dt;
-         }
-      }
-      //assert( dtmax > 0 );
-      //apply erosion:
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->EroDep( cn->getQs() * dtmax );
-      //update time:
-      dtg -= dtmax;
-   } while( dtg>0 );
-   
-
-   
-/*
-   // First, estimate maximum stable/accurate time step size
-   for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-       if( (dt=bedErode.SetTimeStep( cn )) < dtmax )
-           dtmax = dt;
-   dt = dtmax;
-   cout << "In ErodeDetachLim, time step set to " << dtmax;
-
-   // Iterate until total time dtg has been consumed
-   do
-   {
-      if( dt > dtg ) dt = dtg; // dt shouldn't exceed remaining time
-        // Compute erosion depths
-      for( i=0, cn=ni.FirstP(); i<nActNodes; i++, cn=ni.NextP() )
-          dz[i] = -bedErode.DetachCapacity( cn, dt );
-        // Apply erosion depths
-      for( i=0, cn=ni.FirstP(); i<nActNodes; i++, cn=ni.NextP() )
-          cn->EroDep( dz[i] );
-      dtg -= dt;  // decrease remaining time
-   } while( dtg>0 );
-   */
-}
-
-   
-void tStreamNet::ErodeDetachLim( double dtg, tUplift *UPtr )
-{
-   double dt,
-       dtmax = 1000000.0; // time increment: initialize to arbitrary large val
-   double frac = 0.9; //fraction of time to zero slope
-   int i;
-   tLNode * cn, *dn;
-   int nActNodes = gridPtr->GetNodeList()->getActiveSize();
-   tGridListIter<tLNode> ni( gridPtr->GetNodeList() );
-   tArray<double> //dz( nActNodes ), // Erosion depth @ each node
-       dzdt( nActNodes ); //Erosion rate @ ea. node
-   double ratediff;
-
-   // Iterate until total time dtg has been consumed
-   do
-   {
-      //first find erosion rate:
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->setQs( -bedErode.DetachCapacity( cn ) + UPtr->GetRate() );
-      dtmax = dtg;
-      //find max. time step s.t. slope does not reverse:
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-      {
-         dn = cn->GetDownstrmNbr();
-         ratediff = dn->getQs() - cn->getQs();
-         if( ratediff > 0 && cn->getZ() > dn->getZ() )
-         {
-            dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
-            if( dt > 0 && dt < dtmax ) dtmax = dt;
-         }
-      }
-      //assert( dtmax > 0 );
-      //apply erosion:
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->EroDep( cn->getQs() * dtmax );
-      //update time:
-      dtg -= dtmax;
-   } while( dtg>0 );
-   
-}
