@@ -6,7 +6,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.13 2002-09-23 12:11:49 arnaud Exp $
+**  $Id: tInputFile.cpp,v 1.14 2002-09-25 14:47:15 gtucker Exp $
 \****************************************************************************/
 
 #if !defined(HAVE_NO_NAMESPACE)
@@ -17,6 +17,7 @@ using namespace std;
 #endif
 #include "../tAssert.h"
 #include <string.h>
+#include <stdlib.h>
 //#include "../Definitions.h"
 //#include "../Classes.h"
 #include "tInputFile.h"
@@ -114,6 +115,7 @@ int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode )
    assert( infile.good() );
 
    // NB: Should check for eof on reading each line
+   // NB: Should also check for lines that are too long (>kMaxNameLength)
 
    // look for itemCode
    readUntilKeyword(headerLine, infile, itemCode);

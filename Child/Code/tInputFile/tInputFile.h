@@ -36,7 +36,7 @@
 **
 **  Created by Greg Tucker, November 1997
 **
-**  $Id: tInputFile.h,v 1.7 2002-09-23 12:11:49 arnaud Exp $
+**  $Id: tInputFile.h,v 1.8 2002-09-25 14:47:15 gtucker Exp $
 \****************************************************************************/
 
 #ifndef TINPUTFILE_H
@@ -49,7 +49,7 @@ using namespace std;
 # include <fstream.h>
 #endif
 
-#define kMaxNameLength 80
+#define kMaxNameLength 120
 #define kCommentMark '#'
 
 class tInputFile
