@@ -21,7 +21,13 @@
 **     - added DensifyMesh function to add new nodes in areas of high
 **       erosion/deposition flux. (gt, 2/2000)
 **
-**  $Id: erosion.cpp,v 1.79 2000-03-09 20:05:20 gtucker Exp $
+**    Known bugs:
+**     - ErodeDetachLim assumes 1 grain size. If multiple grain sizes
+**       are specified in the input file and the detachment limited
+**       option is used, a crash will result when tLNode::EroDep
+**       attempts to access array indices above 1. TODO (GT 3/00)
+**
+**  $Id: erosion.cpp,v 1.80 2000-03-30 22:41:09 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -481,6 +487,13 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
    for(i=0; i<node->getNumg(); i++)
        node->addQs(i, cap*node->getLayerDgrade(lyr,i)/node->getLayerDepth(lyr));
    
+   if( node->getDrArea() > 1e7 ) {
+       node->TellAll();
+       cout << "tauex=" << tauex << " bfwid=" << node->getChanWidth()
+            << " wid=" << node->getHydrWidth() << " cap=" << cap << endl;
+   }
+   
+   
    node->setQs( cap );
    return cap;
 }
@@ -501,9 +514,8 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
    int i;
    char add[1], name[20];
    double help;
-   //Xdouble sum;
 
-   //cout << "tSedTransWilcock(infile)\n" << endl;
+   cout << "tSedTransWilcock(infile)\n" << endl;
    strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
    grade.setSize(2);
    for(i=0; i<=1; i++){
@@ -644,11 +656,17 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 {
    double tau;
    double taucrit;
+   if( nd->getLayerDepth(i)<=0 ) {
+      cout << "Uh-oh: i=" << i << " LD=" << nd->getLayerDepth(i) << endl;
+      nd->TellAll();
+   }
    assert( nd->getLayerDepth(i)>0 );
    double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
    //double timeadjust=31536000.00; /* number of seconds in a year */
    double qss, qsg=0; //gravel and sand transport rate
-   
+
+   //cout << "tSedTransWilcock::TransCapacity(tLNode,int,double)\n";
+
 
    if( nd->getSlope() < 0 ){
       nd->setQs(0, 0);
@@ -737,7 +755,9 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
    if( optAdaptMesh )
        mdMeshAdaptMaxFlux = infile.ReadItem( mdMeshAdaptMaxFlux,
                                              "MESHADAPT_MAXNODEFLUX" );
-   
+
+   cout << "SEDIMENT TRANSPORT OPTION: " << SEDTRANSOPTION << endl;
+
 }
 
 
@@ -1463,14 +1483,12 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
    int nActNodes = meshPtr->getNodeList()->getActiveSize();
    tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
    double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
-       //Xdzdt, 
        drdt,
        dz,
        depck,
        qs,
        excap,
        sum;
-   //Xaddon;
    tLNode * inletNode = strmNet->getInletNodePtr();
    double insedloadtotal = strmNet->getInSedLoad();
    
@@ -1490,7 +1508,8 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
    do
    {   
       // Zero out sed influx of all sizes
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+      {
          cn->setQs(0.0);
          if( cn!=inletNode )
          {
@@ -1592,7 +1611,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          {                                              //  to zero slope
             dt = ( cn->getZ() - dn->getZ() ) / ratediff;
             if( dt < dtmax ) dtmax = dt;
-            if( dt < 0.005 )
+            if( dt < 0.0001 )
             {
                //cout << "Very small dt " << dt <<  endl;
                //cout << "rate dif is " << ratediff << endl;
@@ -1602,7 +1621,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                //cn->TellAll();
                //dn->TellAll();
                //cout << "arbitrarily set dt to 0.0015" << endl;
-               dtmax=0.005; //GREG I added this just because things
+               dtmax=0.0001; //GREG I added this just because things
                // were taking forever.  I kept it for now just for
                // testing stuff.  Maybe we should discuss this.
             }
@@ -1616,7 +1635,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       // Do erosion/deposition
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
-         
          //need to recalculate cause qsin may change due to time step calc
          excap=(cn->getQs() - cn->getQsin())/cn->getVArea();         
 
@@ -1647,6 +1665,15 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          //i.e. send (qsin[i]-ret[i]*varea/dtmax) downstream
          //Note: I think need to do the add in here and possibly take out later
          //because of looping through layers for the same erosion pass.
+         
+         /*DEBUG double l0, l1;
+         if( cn->getX()>50.0 && cn->getX()<51.0 
+             && cn->getY()>29.0 && cn->getY()<30.0 )
+         {
+            cout << "f (" << cn->getID() << " ld = " << cn->getLayerDepth(0) << endl;
+            l0 = cn->getLayerDgrade(0,0);
+            l1 = cn->getLayerDgrade(0,1);
+            }*/
          
          if( dz<0 ) //total erosion
          {
@@ -1735,6 +1762,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             }
             
          }
+
       } // Ends for( cn = ni.FirstP()...
       // Update time remainig   
       dtg -= dtmax;
