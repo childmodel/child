@@ -38,14 +38,18 @@ void heapsort(int n,TYPE array[]){
   TYPE temp;
     
 
+  {
   for (int k=n/2;k>=1;k--){
     temp=array[k-1];
     shunt(k,n,temp,array);
   }
+  }
+  {
   for(int k=n;k>1;k--) {
     temp=array[k-1];
     array[k-1]=array[0];
     shunt(1,k-1,temp,array);
+  }
   }
   array[0]=temp;
 }
