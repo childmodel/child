@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.132 2004-04-19 14:01:10 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.133 2004-04-19 17:30:08 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -2709,9 +2709,9 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 #undef NEWVEG
 #endif
 
-	 // Update time remainig
-	 dtg -= dtmax;
-	 //cout<<"Time remaining now "<<dtg<<endl;
+	// Update time remainig
+	dtg -= dtmax;
+	//cout<<"Time remaining now "<<dtg<<endl;
       } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
   }//end if rainrate-infilt>0
 

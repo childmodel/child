@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.74 2004-04-19 16:32:50 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.75 2004-04-19 17:30:09 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -739,25 +739,22 @@ void tStreamNet::CheckMeander() const
 	      <<" F: "<<FloodName(surnode->getFloodStatus())<<endl;
         }
 
-         cout<<"     "<<endl;
-         cout<<"Showing the existing meander list:  "<<endl;
-         cn= getInletNodePtr();
-         counter=0;
-         while (counter < 150 && cn != NULL){
+	cout<<"     "<<endl;
+	cout<<"Showing the existing meander list:  "<<endl;
+	cn= getInletNodePtr();
+	counter=0;
+	while (counter < 150 && cn != NULL){
+	  cout<<cn->getID()<<" "
+	      <<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()
+	      <<" M: "<<cn->Meanders()
+	      <<" F: "<<FloodName(cn->getFloodStatus())<<endl;
+	  cn=cn->getDownstrmNbr();
 
-   	      cout<<cn->getID()<<" "
-		  <<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()
-		  <<" M: "<<cn->Meanders()
-		  <<" F: "<<FloodName(cn->getFloodStatus())<<endl;
-   	      cn=cn->getDownstrmNbr();
+	  counter++;
+	}
 
-   	      counter++;
-         }
-
-
-
-         cout<<"Stop Run due to bump "<<endl;
-         //exit(1);
+	cout<<"Stop Run due to bump "<<endl;
+	//exit(1);
       }
 
       if(cn != NULL){
@@ -767,8 +764,6 @@ void tStreamNet::CheckMeander() const
       	  cout<<"has flood status: "<<FloodName(cn->getFloodStatus())<<endl;
       	}
       }
-
-
 
       counter++;
 
@@ -3312,57 +3307,55 @@ void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
 
 void tStreamNet::DebugShowNbrs( tLNode *theNode ) const
 {
-
   if(theNode->getX() < 12000 && theNode->getX() > 7000){	// stay within boundary
-  cout<<"Look around node number: "
-      << theNode->getID() << " "
-      << theNode->getX() << " " << theNode->getY() <<" "<<theNode->getZ()
-      <<" M: "<< theNode->Meanders()
-      <<" F: "<< FloodName(theNode->getFloodStatus()) <<endl;
-  tLNode *nextNode = theNode->getDownstrmNbr();
-  if(nextNode != NULL){
-     cout<<"with dstr nbr:		 "
-	 << nextNode->getID() << " "
-	 << nextNode->getX() << " " << nextNode->getY() <<" "<<nextNode->getZ()
-	 <<" M: "<< nextNode->Meanders()
-	 <<" F: "<< FloodName(nextNode->getFloodStatus()) <<endl;
-  }
-  cout << "flowedge flippable ? " << (theNode->getFlowEdg()->isFlippable()
-				    ? "yes": "no") << endl;
-
-  cout<<"other nbrs are:          "<<endl;
-
-  tEdge *ce;
-  tSpkIter spokIter( theNode );
-
-  int counter=0;
-  for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
-    {
-      counter++;
-      tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
-      cout<<"    "<<endl;
-      cout<<"neighbour "<<counter<< ":"<<endl;
-      cout<<surnode->getID()<<" "
-	  <<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()
-	  <<" M: " << surnode->Meanders()
-	  <<" F: " << FloodName(surnode->getFloodStatus())
-	  <<" ce-slope: "<<ce->getSlope()<<endl;
-      cout<<"has nbrs itself: "<<endl;
-      tEdge *cee;
-      tSpkIter spokIter2(surnode);
-      if(1){
-      for( cee = spokIter2.FirstP(); !( spokIter2.AtEnd() ); cee = spokIter2.NextP() ){
-      	  tLNode* morenode = static_cast<tLNode *>( cee->getDestinationPtrNC() );
-      	  cout<<morenode->getID()<<" "
-	      <<morenode->getX()<<" "<<morenode->getY()<<" "<<morenode->getZ()
-	      <<" M: "<<morenode->Meanders()
-	      <<" F: "<<FloodName(morenode->getFloodStatus())
-	      <<" ce-slope: "<<cee->getSlope()<<endl;
-      }
-      }
-
+    cout<<"Look around node number: "
+	<< theNode->getID() << " "
+	<< theNode->getX() << " " << theNode->getY() <<" "<<theNode->getZ()
+	<<" M: "<< theNode->Meanders()
+	<<" F: "<< FloodName(theNode->getFloodStatus()) <<endl;
+    tLNode *nextNode = theNode->getDownstrmNbr();
+    if(nextNode != NULL){
+      cout<<"with dstr nbr:		 "
+	  << nextNode->getID() << " "
+	  << nextNode->getX() << " " << nextNode->getY() <<" "<<nextNode->getZ()
+	  <<" M: "<< nextNode->Meanders()
+	  <<" F: "<< FloodName(nextNode->getFloodStatus()) <<endl;
     }
-    cout<<"   "<<endl;
+    cout << "flowedge flippable ? " << (theNode->getFlowEdg()->isFlippable()
+					? "yes": "no") << endl;
 
-   }
+    cout<<"other nbrs are:          "<<endl;
+
+    tEdge *ce;
+    tSpkIter spokIter( theNode );
+
+    int counter=0;
+    for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
+      {
+	counter++;
+	tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
+	cout<<"    "<<endl;
+	cout<<"neighbour "<<counter<< ":"<<endl;
+	cout<<surnode->getID()<<" "
+	    <<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()
+	    <<" M: " << surnode->Meanders()
+	    <<" F: " << FloodName(surnode->getFloodStatus())
+	    <<" ce-slope: "<<ce->getSlope()<<endl;
+	cout<<"has nbrs itself: "<<endl;
+	tEdge *cee;
+	tSpkIter spokIter2(surnode);
+	if(1){
+	  for( cee = spokIter2.FirstP(); !( spokIter2.AtEnd() ); cee = spokIter2.NextP() ){
+	    tLNode* morenode = static_cast<tLNode *>( cee->getDestinationPtrNC() );
+	    cout<<morenode->getID()<<" "
+		<<morenode->getX()<<" "<<morenode->getY()<<" "<<morenode->getZ()
+		<<" M: "<<morenode->Meanders()
+		<<" F: "<<FloodName(morenode->getFloodStatus())
+		<<" ce-slope: "<<cee->getSlope()<<endl;
+	  }
+	}
+
+      }
+    cout<<"   "<<endl;
+  }
 }

@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.21 2004-04-19 14:01:10 childcvs Exp $
+**  $Id: childmain.cpp,v 1.22 2004-04-19 17:30:07 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -227,24 +227,22 @@ OptTSOutput." );
 	  if( floodplain->OptControlMainChan() )
 	    floodplain->UpdateMainChannelHeight( time.getCurrentTime(),
 						 strmNet.getInletNodePtrNC() );
-	    cout << "UpdateChannelHeight::Done..\n";
+	  cout << "UpdateChannelHeight::Done..\n";
 
-	    if( optStratGrid ){
-	      stratGrid->UpdateStratGrid(3,time.getCurrentTime());
-	    }
+	  if( optStratGrid ){
+	    stratGrid->UpdateStratGrid(3,time.getCurrentTime());
+	  }
 
-            floodplain->DepositOverbank( storm.getRainrate(),
-                                         storm.getStormDuration(),
-                                         time.getCurrentTime() );
-	    cout << "tFloodplain::Done..\n";
+	  floodplain->DepositOverbank( storm.getRainrate(),
+				       storm.getStormDuration(),
+				       time.getCurrentTime() );
+	  cout << "tFloodplain::Done..\n";
 
-	    if( optStratGrid ){
-      	       stratGrid->UpdateStratGrid(4,time.getCurrentTime());
-      	    }
-
+	  if( optStratGrid ){
+	    stratGrid->UpdateStratGrid(4,time.getCurrentTime());
+	  }
 
 	} // end of floodplain stuff
-
 
 
 #define NEWVEG 1
