@@ -2,12 +2,13 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.3 1998-01-21 20:15:02 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.4 1998-01-21 22:09:58 gtucker Exp $
 \***************************************************************************/
 
 #include <assert.h>
 #include <math.h>
 #include "../tLNode/tLNode.h"
+#include "../Mathutil/mathutil.h"
 #include "tGrid.h"
 
 
@@ -1065,6 +1066,237 @@ template< class tSubNode >
 tGrid< tSubNode >::
 ~tGrid() {cout << "    ~tGrid()" << endl;}                    //tGrid
  
+
+
+/*****************************************************************************\
+**
+**  CheckMeshConsistency
+**
+**  Performs a series of tests to make sure the mesh connectivity is correct.
+**  Should be called immediately after reading in a user-defined mesh (but
+**  of course can also be used for debugging).
+**
+**  The consistency checks include the following:
+**
+**  1) Each edge:
+**     - Has valid origin and destination pointers
+**     - Has a valid counter-clockwise edge, which shares the same origin but
+**       not the same destination
+**     - Is paired with its complement in the list
+**
+**  2) Each node:
+**     - Points to a valid edge which has the node as its origin
+**     - If the node is not a boundary, it has at least one neighbor that
+**       is not a closed boundary
+**     - Has a consistent spoke list (ie, you can go around the spokes and
+**       get back to where you started)
+**
+**  3) Each triangle:
+**     - Has 3 valid points and edges
+**     - Each edge Ei has Pi as its origin and P((i+1)%3) as its
+**       destination
+**     - If an opposite triangle Ti exists, points P((i+1)%3) and
+**       P((i+2)%3) are the same as points PO((n+2)%3) and PO((n+1)%3) in
+**       the opposite triangle, where PO denotes a point in the opposite
+**       triangle and n is the vertex ID (0, 1, or 2) of the point in the
+**       opposite triangle that is opposite from the shared face.
+**     - If an opposite triange Ti does not exist, points P((i+1)%3) and
+**       and P((i+2)%3) should both be boundary points.
+**
+**      Data members updated: none
+**      Called by: 
+**      Calls:
+**      Notes: does not check whether ID's are within the valid range;
+**             that's assumed to be taken care of by the input routines
+**        
+**      Created: GT 1/98
+**
+\*****************************************************************************/
+#define kMaxSpokes 100
+template<class tSubNode>
+void tGrid< tSubNode >::
+CheckMeshConsistency( void )
+{
+   tGridListIter<tSubNode> nodIter( nodeList );
+   tGridListIter<tEdge> edgIter( edgeList );
+   tListIter<tTriangle> triIter( triList );
+   tNode * cn, * org, * dest;
+   tEdge * ce, * cne, * ccwedg;
+   tTriangle * ct, * optr;
+   int boundary_check_ok, i, nvop;
+
+   // Edges: make sure complementary pairs are together in the list
+   // (each pair Ei and Ei+1, for i=0,2,4,...nedges-1, should have the same
+   // endpoints but the opposite orientation)
+   for( ce=edgIter.FirstP(); !(edgIter.AtEnd()); ce=edgIter.NextP() )
+   {
+      cne = edgIter.NextP();
+      if( ce->getOriginPtrNC() != cne->getDestinationPtrNC()
+          || ce->getDestinationPtrNC() != cne->getOriginPtrNC() )
+      {
+          cerr << "EDGE #" << ce->getID()
+               << " must be followed by its complement in the list\n";
+          goto error;
+      }
+      
+   }
+
+   // Edges: check for valid origin, destination, and ccwedg
+   for( ce=edgIter.FirstP(); !(edgIter.AtEnd()); ce=edgIter.NextP() )
+   {
+      if( !(org=ce->getOriginPtrNC() ) )
+      {
+         cerr << "EDGE #" << ce->getID()
+              << " does not have a valid origin point\n";
+         goto error;
+      }
+      if( !(dest=ce->getDestinationPtrNC() ) )
+      {
+         cerr << "EDGE #" << ce->getID()
+              << " does not have a valid destination point\n";
+         goto error;
+      }
+      if( !(ccwedg=ce->GetCCWEdg() ) )
+      {
+         cerr << "EDGE #" << ce->getID()
+              << " does not point to a valid counter-clockwise edge\n";
+         goto error;
+      }
+      if( ccwedg->getOriginPtrNC()!=org )
+      {
+         cerr << "EDGE #" << ce->getID()
+              << " points to a CCW edge with a different origin\n";
+         goto error;
+      }
+      if( ccwedg->getDestinationPtrNC()==dest )
+      {
+         cerr << "EDGE #" << ce->getID()
+              << " points to a CCW edge with the same destination\n";
+         goto error;
+      }
+
+   }
+   cout << "EDGES PASSED\n";
+
+   // Nodes: check for valid edg pointer, spoke connectivity, and connection
+   // to at least one non-boundary or open boundary node
+   for( cn=nodIter.FirstP(); !(nodIter.AtEnd()); cn=nodIter.NextP() )
+   {
+      // edg pointer
+      if( !(ce = cn->GetEdg()) )
+      {
+         cerr << "NODE #" << cn->getID()
+              << " does not point to a valid edge\n";
+         goto error;
+      }
+      if( ce->getOriginPtrNC()!=cn )
+      {
+         cerr << "NODE #" << cn->getID()
+              << " points to an edge that has a different origin\n";
+         goto error;
+      }
+
+      // Boundary check and spoke consistency: if node is NOT a boundary,
+      // it should be adjacent to at least one non-boundary or open boundary
+      // point
+      boundary_check_ok = ( cn->getBoundaryFlag()==kNonBoundary ) ? 0 : 1;
+      i = 0;
+      // Loop around the spokes until we're back at the beginning
+      do
+      {
+         if( ce->getDestinationPtrNC()->getBoundaryFlag()!=kClosedBoundary )
+             boundary_check_ok = 1;  // OK, there's at least one open nbr
+         i++;
+         if( i>kMaxSpokes ) // Uh-oh, an infinite loop
+         {
+            cerr << "NODE #" << cn->getID()
+                 << ": infinite loop in spoke connectivity\n";
+            goto error;
+         }
+      } while( (ce=ce->GetCCWEdg())!=cn->GetEdg() );
+      if( !boundary_check_ok )
+      {
+         cerr << "NODE #" << cn->getID()
+              << " is surrounded by closed boundary nodes\n";
+         goto error;
+      }
+      
+   }
+   cout << "NODES PASSED\n";
+   
+   // Triangles: check for valid points and connectivity
+   for( ct=triIter.FirstP(); !(triIter.AtEnd()); ct=triIter.NextP() )
+   {
+      for( i=0; i<=2; i++ )
+      {
+         // Valid point i?
+         if( !(cn=ct->pPtr(i)) )
+         {
+            cerr << "TRIANGLE #" << ct->getID()
+                 << " has an invalid point " << i << endl;
+            goto error;
+         }
+         // Valid edge i?
+         if( !(ce=ct->ePtr(i)) )
+         {
+            cerr << "TRIANGLE #" << ct->getID()
+                 << " has an invalid edge " << i << endl;
+            goto error;
+         }
+         // Edge and point consistency
+         if( ce->getOriginPtrNC()!=cn )
+         {
+            cerr << "TRIANGLE #" << ct->getID()
+                 << ": edge " << i << " does not have point " << i
+                 << " as origin\n";
+            goto error;
+         }
+         if( ce->getDestinationPtrNC()!=ct->pPtr((i+1)%3) )
+         {
+            cerr << "TRIANGLE #" << ct->getID()
+                 << ": edge " << i << " does not have point " << (i+1)%3
+                 << " as destination\n";
+            goto error;
+         }
+         // Opposite triangle: if it exists, check common points
+         if( (optr = ct->tPtr(i)) )
+         {
+            nvop = optr->nVOp(ct); // Num (0,1,2) of opposite vertex in optr
+            if( ct->pPtr((i+1)%3) != optr->pPtr((nvop+2)%3)
+                || ct->pPtr((i+2)%3) != optr->pPtr((nvop+1)%3) )
+            {
+               cerr << "TRIANGLE #" << ct->getID()
+                    << ": opposite triangle " << i << " does not share nodes "
+                    << (ct->pPtr((i+1)%3))->getID() << " and "
+                    << (ct->pPtr((i+2)%3))->getID() << endl;
+               goto error;
+            }
+         }
+         // If no opposite triangle, make sure it really is a boundary
+         else
+         {
+            if( (ct->pPtr((i+1)%3))->getBoundaryFlag()==kNonBoundary
+                || (ct->pPtr((i+2)%3))->getBoundaryFlag()==kNonBoundary )
+            {
+               cerr << "TRIANGLE #" << ct->getID()
+                    << ": there is no neighboring triangle opposite node "
+                    << cn->getID() << " but one (or both) of the other nodes "
+                    << "is a non-boundary point\n";
+               goto error;
+            }
+         }       
+      }
+   }
+   cout << "TRIANGLES PASSED\n";
+
+   return;
+   
+  error:
+   ReportFatalError( "Error in mesh consistency." );
+   
+}
+#undef kMaxSpokes
+
 template< class tSubNode >
 void tGrid< tSubNode >::
 Print()                                                  //tGrid
@@ -3081,235 +3313,6 @@ MoveNodes()
    cout << "MoveNodes() finished" << endl;
 }
 
-
-/*****************************************************************************\
-**
-**  CheckMeshConsistency
-**
-**  Performs a series of tests to make sure the mesh connectivity is correct.
-**  Should be called immediately after reading in a user-defined mesh (but
-**  of course can also be used for debugging).
-**
-**  The consistency checks include the following:
-**
-**  1) Each edge:
-**     - Has valid origin and destination pointers
-**     - Has a valid counter-clockwise edge, which shares the same origin but
-**       not the same destination
-**     - Is paired with its complement in the list
-**
-**  2) Each node:
-**     - Points to a valid edge which has the node as its origin
-**     - If the node is not a boundary, it has at least one neighbor that
-**       is not a closed boundary
-**     - Has a consistent spoke list (ie, you can go around the spokes and
-**       get back to where you started)
-**
-**  3) Each triangle:
-**     - Has 3 valid points and edges
-**     - Each edge Ei has Pi as its origin and P((i+1)%3) as its
-**       destination
-**     - If an opposite triangle Ti exists, points P((i+1)%3) and
-**       P((i+2)%3) are the same as points PO((n+2)%3) and PO((n+1)%3) in
-**       the opposite triangle, where PO denotes a point in the opposite
-**       triangle and n is the vertex ID (0, 1, or 2) of the point in the
-**       opposite triangle that is opposite from the shared face.
-**     - If an opposite triange Ti does not exist, points P((i+1)%3) and
-**       and P((i+2)%3) should both be boundary points.
-**
-**      Data members updated: none
-**      Called by: 
-**      Calls:
-**      Notes: does not check whether ID's are within the valid range;
-**             that's assumed to be taken care of by the input routines
-**        
-**      Created: GT 1/98
-**
-\*****************************************************************************/
-#define kMaxSpokes 100
-template<class tSubNode>
-void tGrid<tSubNode>::
-CheckMeshConsistency()
-{
-   tGridListIter<tSubNode> nodIter( nodeList );
-   tGridListIter<tEdge> edgIter( edgeList );
-   tListIter<tTriangle> triIter( triList );
-   tNode * cn, * org, * dest;
-   tEdge * ce, * cne, * ccwedg;
-   tTriangle * ct, * optr;
-   int boundary_check_ok, i, nvop;
-
-   // Edges: make sure complementary pairs are together in the list
-   // (each pair Ei and Ei+1, for i=0,2,4,...nedges-1, should have the same
-   // endpoints but the opposite orientation)
-   for( ce=edgIter.FirstP(); !(edgIter.AtEnd()); ce=edgIter.NextP() )
-   {
-      cne = edgIter.NextP();
-      if( ce->getOriginPtrNC() != cne->getDestinationPtrNC()
-          || ce->getDestinationPtrNC() != cne->getOriginPtrNC() )
-      {
-          cerr << "EDGE #" << ce->getID()
-               << " must be followed by its complement in the list\n";
-          goto error;
-      }
-      
-   }
-
-   // Edges: check for valid origin, destination, and ccwedg
-   for( ce=edgIter.FirstP(); !(edgIter.AtEnd()); ce=edgIter.NextP() )
-   {
-      if( !(org=ce->getOriginPtrNC() ) )
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " does not have a valid origin point\n";
-         goto error;
-      }
-      if( !(dest=ce->getDestinationPtrNC() ) )
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " does not have a valid destination point\n";
-         goto error;
-      }
-      if( !(ccwedg=ce->GetCCWEdg() ) )
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " does not point to a valid counter-clockwise edge\n";
-         goto error;
-      }
-      if( ccwedg->getOriginPtrNC()!=org )
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " points to a CCW edge with a different origin\n";
-         goto error;
-      }
-      if( ccwedg->getDestinationPtrNC()==dest )
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " points to a CCW edge with the same destination\n";
-         goto error;
-      }
-
-   }
-   cout << "EDGES PASSED\n";
-
-   // Nodes: check for valid edg pointer, spoke connectivity, and connection
-   // to at least one non-boundary or open boundary node
-   for( cn=nodIter.FirstP(); !(nodIter.AtEnd()); cn=nodIter.NextP() )
-   {
-      // edg pointer
-      if( !(ce = cn->GetEdg()) )
-      {
-         cerr << "NODE #" << cn->getID()
-              << " does not point to a valid edge\n";
-         goto error;
-      }
-      if( ce->getOriginPtrNC()!=cn )
-      {
-         cerr << "NODE #" << cn->getID()
-              << " points to an edge that has a different origin\n";
-         goto error;
-      }
-
-      // Boundary check and spoke consistency: if node is NOT a boundary,
-      // it should be adjacent to at least one non-boundary or open boundary
-      // point
-      boundary_check_ok = ( cn->getBoundaryFlag()==kNonBoundary ) ? 0 : 1;
-      i = 0;
-      // Loop around the spokes until we're back at the beginning
-      do
-      {
-         if( ce->getDestinationPtrNC()->getBoundaryFlag()!=kClosedBoundary )
-             boundary_check_ok = 1;  // OK, there's at least one open nbr
-         i++;
-         if( i>kMaxSpokes ) // Uh-oh, an infinite loop
-         {
-            cerr << "NODE #" << cn->getID()
-                 << ": infinite loop in spoke connectivity\n";
-            goto error;
-         }
-      } while( (ce=ce->GetCCWEdg())!=cn->GetEdg() );
-      if( !boundary_check_ok )
-      {
-         cerr << "NODE #" << cn->getID()
-              << " is surrounded by closed boundary nodes\n";
-         goto error;
-      }
-      
-   }
-   cout << "NODES PASSED\n";
-   
-   // Triangles: check for valid points and connectivity
-   for( ct=triIter.FirstP(); !(triIter.AtEnd()); ct=triIter.NextP() )
-   {
-      for( i=0; i<=2; i++ )
-      {
-         // Valid point i?
-         if( !(cn=ct->pPtr(i)) )
-         {
-            cerr << "TRIANGLE #" << ct->getID()
-                 << " has an invalid point " << i << endl;
-            goto error;
-         }
-         // Valid edge i?
-         if( !(ce=ct->ePtr(i)) )
-         {
-            cerr << "TRIANGLE #" << ct->getID()
-                 << " has an invalid edge " << i << endl;
-            goto error;
-         }
-         // Edge and point consistency
-         if( ce->getOriginPtrNC()!=cn )
-         {
-            cerr << "TRIANGLE #" << ct->getID()
-                 << ": edge " << i << " does not have point " << i
-                 << " as origin\n";
-            goto error;
-         }
-         if( ce->getDestinationPtrNC()!=ct->pPtr((i+1)%3) )
-         {
-            cerr << "TRIANGLE #" << ct->getID()
-                 << ": edge " << i << " does not have point " << (i+1)%3
-                 << " as destination\n";
-            goto error;
-         }
-         // Opposite triangle: if it exists, check common points
-         if( (optr = ct->tPtr(i)) )
-         {
-            nvop = optr->nVOp(ct); // Num (0,1,2) of opposite vertex in optr
-            if( ct->pPtr((i+1)%3) != optr->pPtr((nvop+2)%3)
-                || ct->pPtr((i+2)%3) != optr->pPtr((nvop+1)%3) )
-            {
-               cerr << "TRIANGLE #" << ct->getID()
-                    << ": opposite triangle " << i << " does not share nodes "
-                    << (ct->pPtr((i+1)%3))->getID() << " and "
-                    << (ct->pPtr((i+2)%3))->getID() << endl;
-               goto error;
-            }
-         }
-         // If no opposite triangle, make sure it really is a boundary
-         else
-         {
-            if( (ct->pPtr((i+1)%3))->getBoundaryFlag()==kNonBoundary
-                || (ct->pPtr((i+2)%3))->getBoundaryFlag()==kNonBoundary )
-            {
-               cerr << "TRIANGLE #" << ct->getID()
-                    << ": there is no neighboring triangle opposite node "
-                    << cn->getID() << " but one (or both) of the other nodes "
-                    << "is a non-boundary point\n";
-               goto error;
-            }
-         }       
-      }
-   }
-   cout << "TRIANGLES PASSED\n";
-
-   return;
-   
-  error:
-   ReportFatalError( "Error in mesh consistency." );
-   
-}
-#undef kMaxSpokes
 
 
 /*****************************************************************************\
