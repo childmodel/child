@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.14 1998-07-23 15:50:51 nmgaspar Exp $
+**  $Id: tOutput.cpp,v 1.15 1998-11-12 22:25:23 nmgaspar Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -226,13 +226,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       else*/
       if( cn->getNumg()>1 ) // temporary hack TODO
       {
-         if( cn->getID()==40 )
-         {
-            cn->TellAll();
-            cout << cn->getLayerDgrade(0,0) << " "
-                 << cn->getLayerDepth(0) << endl << flush;
-         }
-         texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;
+            texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;
       }
       
    }
