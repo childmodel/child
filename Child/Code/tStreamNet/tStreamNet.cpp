@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.8 2002-04-11 10:27:47 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.9 2002-04-11 11:20:45 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2181,7 +2181,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
    tArray< double > xyz(3);
    tTriangle *intri, *ntri;
    tLNode *cn,
-       *closestNode;  // -> to closest nearby node found so far
+       *closestNode(0);  // -> to closest nearby node found so far
    tPtrList< tLNode > nPL;            // List of nearby non-boundary nodes
    tPtrListIter< tLNode > itr( nPL ); // Iterator for the above list
    
@@ -2279,6 +2279,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
       
       if( add ) // fix here:
       {
+	assert( closestNode != 0 );
          //cout << "ADDING INLET: Closest node is:" << endl;
          //closestNode->TellAll();
          //BE AWARE
