@@ -19,7 +19,7 @@
 **  is included in this file.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.cpp,v 1.7 1998-05-05 19:42:43 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.8 1998-05-05 21:59:18 gtucker Exp $
 */
 
 #include <math.h>
@@ -181,6 +181,7 @@ double tStorm::getMeanPrecip() const {return pMean;}
 double tStorm::GammaDev(double m, long * idum)
 {
   double x, y,z, c,t,b,u,w,v;
+  
   if (m<1)
     {
       c = 1/m;
