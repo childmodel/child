@@ -30,7 +30,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.1 2002-08-13 14:15:50 gtucker Exp $
+**  $Id: childmain.cpp,v 1.2 2002-09-11 11:35:27 gtucker Exp $
 \**************************************************************************/
 
 /* set traps for some floating point exceptions on Linux */
@@ -49,10 +49,12 @@ int main( int argc, char **argv )
        optFloodplainDep,  // Option for floodplain (overbank) deposition
        optLoessDep,       // Option for eolian deposition
        optVegetation,     // Option for dynamic vegetation cover
+       optMeander,        // Option for stream meandering
        optDiffuseDepo;    // Option for deposition / no deposition by diff'n
    tVegetation *vegetation(0);  // -> vegetation object
    tFloodplain *floodplain(0);  // -> floodplain object
    tEolian *loess(0);           // -> eolian deposition object
+   tStreamMeander *strmMeander(0); // -> stream meander object
    
    /****************** INITIALIZATION *************************************\
    **  ALGORITHM
@@ -124,7 +126,7 @@ int main( int argc, char **argv )
 
    // If applicable, create Stream Meander object
    if( optMeander )
-     strmMeander = new tStreamMeander( inputFile );
+     strmMeander = new tStreamMeander( strmNet, mesh, inputFile );
 
    // Option for time series output (IN PROGRESS)
    /*   switch( optTSOutput ){
@@ -210,6 +212,9 @@ OptTSOutput." );
       else
           erosion.DetachErode( storm.getStormDuration(), &strmNet,
                                time.getCurrentTime() );
+
+      if( optMeander )
+	  strmMeander->Migrate( time.getCurrentTime() );
 
       if( optVegetation )
 	  vegetation->UpdateVegetation( &mesh, storm.getStormDuration(),
