@@ -12,7 +12,7 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.9 1999-05-11 15:28:16 gtucker Exp $
+**  $Id: tArray.h,v 1.10 2000-12-07 12:06:06 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TARRAY_H
@@ -53,5 +53,13 @@ private:
     int npts;   // size of array
     T * avalue; // the array itself
 };
+
+/*
+** The following is designed to allow for compiling under the Borland-style
+** template instantiation used by the Linux/GNU and Solaris versions of GCC
+*/
+#ifdef __GNUC__
+#include "tArray.cpp"
+#endif
 
 #endif

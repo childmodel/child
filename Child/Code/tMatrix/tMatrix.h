@@ -8,7 +8,7 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.h,v 1.3 1999-01-05 22:10:04 stlancas Exp $
+**  $Id: tMatrix.h,v 1.4 2000-12-07 12:07:40 gtucker Exp $
 \*************************************************************************/
 #ifndef TMATRIX_H
 #define TMATRIX_H
@@ -32,5 +32,13 @@ private:
     int nrows;
     int ncols;  
 };
+
+/*
+** The following is designed to allow for compiling under the Borland-style
+** template instantiation used by the Linux/GNU and Solaris versions of GCC
+*/
+#ifdef __GNUC__
+#include "tMesh.cpp"
+#endif
 
 #endif

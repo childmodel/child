@@ -13,7 +13,7 @@
 **     to avoid multiple definition errors resulting from mixing
 **     template & non-template classes (1/99)
 **
-**  $Id: tListInputData.h,v 1.8 1999-04-05 15:33:52 gtucker Exp $
+**  $Id: tListInputData.h,v 1.9 2000-12-07 12:07:04 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TLISTINPUTDATA_H
@@ -174,6 +174,14 @@ private:
    ifstream triinfile;
    ifstream zinfile;
 };*/
+
+/*
+** The following is designed to allow for compiling under the Borland-style
+** template instantiation used by the Linux/GNU and Solaris versions of GCC
+*/
+#ifdef __GNUC__
+#include "tListInputData.cpp"
+#endif
 
 #endif
 

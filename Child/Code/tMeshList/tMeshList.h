@@ -29,7 +29,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.h,v 1.7 1999-04-05 15:00:32 gtucker Exp $
+**  $Id: tMeshList.h,v 1.8 2000-12-07 12:08:21 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TMESHLIST_H
@@ -117,5 +117,13 @@ class tMeshListIter
   //private:
    //tMeshList< NodeType > *meshlistPtr; 
 };
+
+/*
+** The following is designed to allow for compiling under the Borland-style
+** template instantiation used by the Linux/GNU and Solaris versions of GCC
+*/
+#ifdef __GNUC__
+#include "tMeshList.cpp"
+#endif
 
 #endif
