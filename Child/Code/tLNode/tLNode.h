@@ -7,7 +7,7 @@
 **  Changes:
 **    - GT commented out inclusion of run timer, 1/99
 **
-**  $Id: tLNode.h,v 1.39 1999-01-22 23:29:57 gtucker Exp $
+**  $Id: tLNode.h,v 1.40 1999-02-04 19:27:10 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -179,7 +179,7 @@ class tChannel
    const tChannel &operator=( const tChannel & );
   private:
    double drarea;       /* drainage area (2/97)*/
-   double q;
+   double q;  /* discharge in m^3/yr */
    double chanwidth;    /* Channel geometry: width*/
    double hydrwidth;    /* hydraulic geometry: width*/
    double channrough;       /* Channel roughness (Manning 'n')*/
@@ -218,7 +218,7 @@ public:
     void AddDischarge( double );
     tLNode * getDownstrmNbr();
     double getQ();        // Gets total discharge from embedded chan obj
-   // fluvial discharge is in m^3/sec 
+   // fluvial discharge is in now in m^3/YR 
     double getSlope();    // Computes and returns slope in flow direction
     double getDSlopeDt();
     int Meanders() const;
@@ -353,10 +353,10 @@ public:
    void makeNewLayerBelow(int, int, double, tArray<double>, double);
    void removeLayer(int);
    void InsertLayerBack( tLayer );
-   void LayerInterpolation( tTriangle *, double, double );
-   double PlaneFit( double, double, tArray<tLNode *>, tArray<double> );
-   void WarnSpokeLeaving(tEdge *);
-   
+   void LayerInterpolation( tTriangle *, double, double, double );
+   virtual void WarnSpokeLeaving(tEdge *);
+   virtual void InitializeNode();
+
 #ifndef NDEBUG
    void TellAll();
 #endif

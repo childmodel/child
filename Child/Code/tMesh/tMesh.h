@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.17 1999-01-05 21:54:25 stlancas Exp $
+**  $Id: tMesh.h,v 1.18 1999-02-04 19:26:28 nmgaspar Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -87,12 +87,9 @@ public:
                      tPtrListIter< tSubNode > & );
    int AddEdge( tSubNode *, tSubNode *, tSubNode * );
    //add a node with referenced value/properties, update mesh connectivity
-   tSubNode *AddNode( tSubNode &, int updatemesh = 1 );
+   tSubNode *AddNode( tSubNode &, int updatemesh = 1, double time = 0.0 );
    //add a generic node at the referenced coordinates
-   //tSubNode *AddNode( tSubNode & , int dum );
-   //add a generic node at the referenced coordinates, used when layer
-   //interp should be done
-   tSubNode *AddNodeAt( tArray< double > & );
+   tSubNode *AddNodeAt( tArray< double > &, double time = 0.0 );
    tGridList<tEdge> * getEdgeList();
    tGridList<tSubNode> * getNodeList();
    tList< tTriangle > * getTriList();
@@ -115,7 +112,7 @@ public:
    //once 'newx' and 'newy' are set, this is the only function one needs to call
    //to execute the move; maybe should have a separate function for doing things
    //peculiar to channels, but now this is the only one. 
-   void MoveNodes();
+   void MoveNodes( double time = 0.0 );
    /*end moving routines*/
 
 #ifndef NDEBUG
@@ -132,12 +129,8 @@ protected:
    tGridList< tEdge > edgeList;
    tList< tTriangle > triList;
    long seed;
-   int layerflag;
-   //Although tGrid is a mesh of generic nodes, layer interpolation
-   //only needs to be done if the mesh is of tLNodes.  Nicole didn't
-   //know a better way of identifying if the layer interpolation needed
-   //to be done other than to make a flag.  TODO This should probably
-   //be changed since other types of nodes will not have a layerinterp func.
+   bool layerflag;
+
 };
 
 #endif

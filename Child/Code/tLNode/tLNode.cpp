@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.64 1999-01-04 23:47:45 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.65 1999-02-04 19:26:46 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -571,6 +571,7 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
    tArray<double> dgradehelp;
    tArray<double> dgradebrhelp;
 
+   
    //cout << "=>tLNode( infile )" << endl;
    flood = 0;
    flowedge = 0;
@@ -1041,8 +1042,18 @@ double tLNode::getSlope()
          on = on->getDownstrmNbr();
       }
       if( z - on->z < 0.0 ) slp = 0.0;
+      //cout<<"tLNode::getSlope() nd "<<getID()<<" slp "<<slp;
+      //cout<<" other slope "<<(z - getDownstrmNbr()->z ) / flowedge->getLength()<<endl;
+      //cout<<" downstream neighbor is "<<getDownstrmNbr()->getID()<<endl;
+      //cout<<"node z "<<z<<" DS z "<<getDownstrmNbr()->z<<" edge "<<flowedge->getLength()<<endl;
+      
    }
-   else slp = (z - getDownstrmNbr()->z ) / flowedge->getLength();
+   else{
+      slp = (z - getDownstrmNbr()->z ) / flowedge->getLength();
+      //cout<<"nonmeandering node "<<getID()<<" slp "<<slp;
+      //cout<<"node z "<<z<<" DS z "<<getDownstrmNbr()->z<<" edge "<<flowedge->getLength()<<endl;
+   }
+   
    if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
    if( slp>=0.0 ) return slp;
    else return 0.0;
@@ -1590,6 +1601,7 @@ void tLNode::setLayerDgrade( int i, int g, double val)
         The attributes of its vertices are used for the interpolation.
   tx = The new x location at which the point will be located.
   ty = The new y location at which the point will be located.
+  time = current time
 
   You may wonder why x and y need to be passed.  This is just in case a
   node is moving, in which case you need to reference the newx and newy
@@ -1601,17 +1613,17 @@ void tLNode::setLayerDgrade( int i, int g, double val)
   This is done in case a node is moving and its old layers are needed
   for the interpolation.
 
-  Designed by GT, Coded by NG 
+  Designed by GT, Coded by NG, last update 2/1999 
 \*************************************************************************/
 
 #define kAncient 9999999999999999
-void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty )
+void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double time )
 {
-   cout<<"tLNode::LayerInterpolation...."<<endl<<flush;
-   cout<<"current x = "<<x<<" current y = "<<y<<endl<<flush;
-   cout<<"newx= "<<tx<<" newy= "<<ty<<endl<<flush;
+   cout<<"tLNode::LayerInterpolation...."<<endl;
+   //ut<<"current x = "<<x<<" current y = "<<y;
+   //ut<<" newx= "<<tx<<" newy= "<<ty<<endl<<flush;
    
-   tArray< tLNode * > lnds(3);
+   tLNode *lnds[3];
    int i;
 
    for(i=0; i<=2; i++)
@@ -1622,17 +1634,22 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty )
    //the list is made, then set the nodes layerlist equal to helplist.
    
    tArray<int> layindex(3);//What layer are you at for each node
-   tArray<double> tex(3);//The texture of the layer with the matching age
+   //tArray<double> tex(3);//The texture of the layer with the matching age
    tArray<double> dep(3);//The depth of the layer with the matching age
    tArray<double> age(3);//The age of the current layer at each node
    tArray<int> sed(3);//The sediment flag of the current layer at each node
    
+   double dist[3]; //distance b/w new point and the three triangle points
+   dist[0]=DistanceBW2Points(tx, ty, lnds[0]->getX(), lnds[0]->getY());
+   dist[1]=DistanceBW2Points(tx, ty, lnds[1]->getX(), lnds[1]->getY());
+   dist[2]=DistanceBW2Points(tx, ty, lnds[2]->getX(), lnds[2]->getY());
+
    double CA=-1;
-   int SD;
+   //int SD;
    for(i=0; i<=2; i++){
       if(lnds[i]->getLayerRtime(0)>CA){
          CA=lnds[i]->getLayerRtime(0);
-         SD=(lnds[i]->getLayerSed(0)<1 ? 0 : 1);
+         //SD=(lnds[i]->getLayerSed(0)<1 ? 0 : 1);
          //SD=(lnds[i]->getLayerSed(0)<=1 ? lnds[i]->getLayerSed(0) : 1);
       }
       //cout<<"i "<<i<<" sed "<<lnds[i]->getLayerSed(0)<<" depth "<<lnds[i]->getLayerDepth(0)<<endl;
@@ -1642,6 +1659,7 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty )
           age[i]=lnds[i]->getLayerRtime(0);
       else
           age[i]=kAncient;
+      layindex[i]=0;//Initialize layindex
    }
 
    //cout<<"Current age is "<<CA<<endl;
@@ -1652,20 +1670,27 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty )
    //SD contains the "sediment type" of the youngest layer.
    //Note that for now it is either bedrock or sediment.
    //There is no discrimination between different types of sediment.
-   double newtex; //interpolated texture value
+   double newtex; //texture value of new layer
+   double sum;  //helper used to calculate the new texture & erody value
+   double newerody; //erodability of new layer
    double newdep; //interpolated depth value
    tLayer layhelp; //set values in this layer then insert in back of layerlist
-   layhelp.setCtime(0.0);//Should probably be current time,
-   //need to pass that.  TODO: change this
+   layhelp.setDgradesize(numg);
+   layhelp.setCtime(time);
 
-   int erohelp;//Use to set erodibility of each layer
+   //int erohelp;//Use to set erodibility of each layer
    //NIC, this is a fudge, figure out what to do with this later.
-   erohelp=lnds[1]->getLayerErody(0);
+   //NIC you should probably interpolate this
+   //erohelp=lnds[1]->getLayerErody(0);
 
    //NIC RIGHT AWAY, need to add in check so that you do not interpolate
    //bedrock layers with sediment layers. DONE
    do
    {
+      newtex=0;
+      sum=0;
+      newerody=0;
+      
       for(i=0; i<=2; i++){
          //cout<<"i = "<<i<<" age = "<<age[i]<<" sed = "<<sed[i]<<endl;
          if(age[i]<=CA+10&&age[i]>=CA-10&&sed[i]>0){
@@ -1673,25 +1698,29 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty )
             //set node texture helper to texture of that layer
             //NOTE - This only works for two sizes right now.
             //set node depth helper to depth of that layer
-            tex[i]=lnds[i]->getLayerDgrade(layindex[i],0)/
-                lnds[i]->getLayerDepth(layindex[i]);
+            //tex[i]=lnds[i]->getLayerDgrade(layindex[i],0)/
+            //lnds[i]->getLayerDepth(layindex[i]);
+            newtex+=lnds[i]->getLayerDgrade(layindex[i],0)/dist[i];
+            newerody+=lnds[i]->getLayerErody(layindex[i])*lnds[i]->getLayerDepth(layindex[i])/dist[i];
+            sum+=lnds[i]->getLayerDepth(layindex[i])/dist[i];
             //cout<<"layerindex is "<<layindex[i]<<endl;
 //             cout<<"depth of that layer is "<<lnds[i]->getLayerDepth(layindex[i])<<endl;
 //             cout<<"depth of dgrade of 0 of that layer is "<<lnds[i]->getLayerDgrade(layindex[i],0)<<endl;
             dep[i]=lnds[i]->getLayerDepth(layindex[i]);
             //cout<<"in age range, texture is "<<tex[i]<<" depth is "<<dep[i]<<endl;
-            
+            //SD=sed[i];
+            layhelp.setSed(sed[i]);
             if( layindex[i] != lnds[i]->getNumLayer()-1 ){
                //More layers below, continue to search
                //cout<<"going to next layer"<<endl;
                layindex[i]+=1;
                //cout<<"layer index is now "<<layindex[i]<<endl;
-               sed[i]=(lnds[i]->getLayerSed(layindex[i])<=1 ? lnds[i]->getLayerSed(layindex[i]) : 1);
+               sed[i]=(lnds[i]->getLayerSed(layindex[i])<1 ? 0 : 1);
                if(sed[i]>0)
                    age[i]=lnds[i]->getLayerRtime(layindex[i]);
                else
                    age[i]=kAncient;
-               SD=lnds[i]->getLayerSed(layindex[i]);
+               //SD=lnds[i]->getLayerSed(layindex[i]);
                //cout<<"age is "<<age[i]<<" sed is "<<sed[i]<<endl;
             }
             //Should never run out of layers because end when you hit
@@ -1702,26 +1731,29 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty )
             //}
          }
          else{
-            tex[i]==0;
+            //tex[i]==0;
             dep[i]==0;
             //cout<<"not in correct range, tex and dep set to 0"<<endl;
          }
       }
+      
       //Now find the values of the texture and layer depth in the new
       //location, given what we found out above.  Set everything, and
       //then insert the new layer.
-      newtex=PlaneFit(tx, ty, lnds,tex);
-      newdep=PlaneFit(tx, ty, lnds,dep);
+      newtex=newtex/sum;
+      newdep=PlaneFit(tx, ty, lnds[0]->get2DCoords(), lnds[1]->get2DCoords(),
+                      lnds[2]->get2DCoords(), dep);
       layhelp.setDepth(newdep);
       layhelp.setDgrade(0,newtex*newdep);
+      layhelp.setErody(newerody/sum);
       if(numg>1)
           layhelp.setDgrade(1,(1-newtex)*newdep);
-      layhelp.setSed(SD);
-      layhelp.setErody(erohelp);
+      //layhelp.setSed(SD);
+      //layhelp.setErody(erohelp);
       helplist.insertAtBack( layhelp );
       CA=age[0];
       for(i=1; i<=2; i++){
-         if(age[i]<CA){
+         if(age[i]>CA){
 //Changed cause you might get to kAncient while there were still
 //younger layers - still debugging this
             CA=age[i];
@@ -1731,6 +1763,9 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty )
       
    }while(CA<kAncient);
    
+   newtex=0;
+   newerody=0;
+   sum=0;
    //Now, you need to interpolate bedrock layer here
    for(i=0; i<=2; i++){
       //cout<<"in bedrock interpolation"<<endl;
@@ -1738,83 +1773,44 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty )
       //cout<<"layer index is "<<layindex[i]<<endl;
       //NOTE - This only works for two sizes right now.
       //set node depth helper to depth of that layer
-      tex[i]=lnds[i]->getLayerDgrade(layindex[i],0)/
-          lnds[i]->getLayerDepth(layindex[i]);
+      //tex[i]=lnds[i]->getLayerDgrade(layindex[i],0)/
+      //lnds[i]->getLayerDepth(layindex[i]);
 //       cout<<"depth of that layer is "<<lnds[i]->getLayerDepth(layindex[i])<<endl;
 //       cout<<"depth of dgrade of 0 of that layer is "<<lnds[i]->getLayerDgrade(layindex[i],0)<<endl;
+      newtex+=lnds[i]->getLayerDgrade(layindex[i],0)/dist[i];
+      newerody+=lnds[i]->getLayerErody(layindex[i])*lnds[i]->getLayerDepth(layindex[i])/dist[i];
+      sum+=lnds[i]->getLayerDepth(layindex[i])/dist[i];
       dep[i]=lnds[i]->getLayerDepth(layindex[i]);
       //cout<<"in age range, texture is "<<tex[i]<<" depth is "<<dep[i]<<endl;
    }
-   newtex=PlaneFit(tx, ty, lnds,tex);
-   newdep=PlaneFit(tx, ty, lnds,dep);
+   newtex=newtex/sum;
+   newdep=PlaneFit(tx, ty, lnds[0]->get2DCoords(),lnds[1]->get2DCoords(),
+                   lnds[2]->get2DCoords(), dep);
    layhelp.setDepth(newdep);
    layhelp.setDgrade(0,newtex*newdep);
    if(numg>1)
        layhelp.setDgrade(1,(1-newtex)*newdep);
-   layhelp.setSed(SD); //NIC NIC NIC YOU STIll must deal with setting sed
-   layhelp.setErody(erohelp);
+   layhelp.setSed(0); 
+   layhelp.setErody(newerody/sum);
    helplist.insertAtBack( layhelp );
       
    layerlist=helplist;
    i=0;
-   while(i<layerlist.getSize()){
-      cout << "layer " << i+1 << " now from the getlayer func" << endl;
+//   while(i<layerlist.getSize()){
+//      cout << "layer " << i+1 << " now from the getlayer func" << endl;
 //      cout << "layer creation time is " << getLayerCtime(i) << endl;
 //      cout << "layer recent time is " << getLayerRtime(i) << endl;
-      cout << "layer depth is " << getLayerDepth(i) << endl;
+//      cout << "layer depth is " << getLayerDepth(i) << endl;
 //      cout << "layer erodibility is " << getLayerErody(i) << endl;
-      cout << "is layer sediment? " << getLayerSed(i) << endl;
-      cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
-      if( numg>1 ) cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
-      i++;
-   }
+//      cout << "is layer sediment? " << getLayerSed(i) << endl;
+//      cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
+//      if( numg>1 ) cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
+//      i++;
+//   }
    
 }
 #undef kAncient
 
-/***********************************************************************\
-  tLNode::PlaneFit
-  Fits a plane to three points and returns the "z" value on this plane
-  at the tx and ty values passed to this function.
-  nds = Array of size three pointers to nodes.  Use the x and y
-        values from these three nodes for the plane fit.
-  zs = Array of size three of the "z" values used for the fit.
-
-\***********************************************************************/
-double tLNode::PlaneFit(double tx, double ty, tArray<tLNode *> nds, tArray<double> zs)
-{
-   double a, b, c;
-   double y0, y1, y2, x0, x1, x2, z0, z1, z2;
-   y0=nds[0]->getY();
-   y1=nds[1]->getY();
-   y2=nds[2]->getY();
-   x0=nds[0]->getX();
-   x1=nds[1]->getX();
-   x2=nds[2]->getX();
-   z0=zs[0];
-   z1=zs[1];
-   z2=zs[2];
-
-//    cout<<"in PlaneFit"<<endl;
-//    cout<<"nds[0]->getY()"<<nds[0]->getY()<<endl;
-//    cout<<"nds[1]->getY()"<<nds[1]->getY()<<endl;
-//    cout<<"nds[2]->getY()"<<nds[2]->getY()<<endl;
-//    cout<<"nds[0]->getX()"<<nds[0]->getX()<<endl;
-//    cout<<"nds[1]->getX()"<<nds[1]->getX()<<endl;
-//    cout<<"nds[2]->getX()"<<nds[2]->getX()<<endl;
-   
-   a=(-y1*z2+z2*y0+z1*y2-y2*z0+z0*y1-y0*z1)/(y2*x1-x1*y0-x2*y1+y1*x0-x0*y2+y0*x2);
-   b=-(x2*z1-z1*x0-z2*x1+x1*z0-z0*x2+x0*z2)/(y2*x1-x1*y0-x2*y1+y1*x0-x0*y2+y0*x2);
-   c=(y2*x1*z0-z0*x2*y1+z2*y1*x0-y2*z1*x0+y0*x2*z1-z2*x1*y0)/(y2*x1-x1*y0-x2*y1+y1*x0-x0*y2+y0*x2);
-
-//    cout<<"a is "<<a<<endl<<flush;
-//    cout<<"b is "<<b<<endl<<flush;
-//    cout<<"c is "<<c<<endl<<flush;
-   cout<<"interpolated z is "<<a*tx+b*ty+c<<endl;
-   cout<<"at x = "<<tx<<" y = "<<ty<<endl<<flush;
-   return(a*tx+b*ty+c);
-   
-}
 
 /*************************************************************\
   tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
@@ -1823,7 +1819,7 @@ double tLNode::PlaneFit(double tx, double ty, tArray<tLNode *> nds, tArray<doubl
   If flowedge is pointing to the edge
   which will be removed, this flowedge must be updated.
 
-  edglvingptr is as it sais, a pointer to the edge which will be
+  edglvingptr is, as it sais, a pointer to the edge which will be
   removed.
 
   Called from tGrid::ExtricateEdge
@@ -1847,9 +1843,41 @@ void tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
    }
 }
 
-      
-      
-      
+/**********************************************************************\
+ **
+ ** tLNode::InitializeNode()
+ **
+ ** A virtual function.  Used when nodes are creating during the evolution
+ ** process, not at the start of a run.  Assigns one of the spokes as 
+ ** the flow edge.
+ **
+ ** Called from tGrid::AddNode
+ **
+ ** Created 1/1999 NG
+ ***********************************************************************/
+void tLNode::InitializeNode()
+{
+   flowedge=getEdg();
+   //cout<<"tLNode::InitializeNode node "<<id<<" flow edge "<<flowedge->getID()<<endl;
+   //nmg everything below is temporary-shouldn't need it when layerinterp works
+   //cout<<"tLNode::InitializeNode node "<<id<<" number of layers "<<getNumLayer()<<endl;
+//     if(getNumLayer()==0){
+//        tLayer layhelp;
+//        layhelp.setCtime( 0.0 );
+//        layhelp.setRtime( 0.0 );
+//        layhelp.setErody(((tLNode *)flowedge->getDestinationPtr())->getLayerErody(1));
+//        layhelp.setSed(0);
+//        layhelp.setDgradesize(numg);
+//        int i=0;
+//        while(i<numg){
+//           layhelp.setDgrade(i, 5000/numg);
+//           i++;
+//        }         
+//        layerlist.insertAtBack( layhelp );
+//     }
+   //cout<<"after tLNode::InitializeNode node "<<id<<" number of layers "<<getNumLayer()<<endl;
+}
+
 
 /***********************************************************************\
   tArray<double> tLNode::EroDep

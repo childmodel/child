@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.55 1999-01-26 20:36:15 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.56 1999-02-04 19:26:06 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -106,7 +106,7 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
 //default constructor
 template< class tSubNode >
 tGrid< tSubNode >::
-tGrid() {nnodes = nedges = ntri = seed = 0;cout<<"tGrid()"<<endl;}     //tGrid
+tGrid() {nnodes = nedges = ntri = seed = 0;cout<<"tGrid()"<<endl;layerflag=false;}     //tGrid
 
 /**************************************************************************\
 **
@@ -163,8 +163,10 @@ tGrid( tInputFile &infile )
    else
        MakeGridFromScratch( infile ); //create new grid with parameters
 
-   layerflag=infile.ReadItem( layerflag, "OPTINTERPLAYER");
-   
+   int help = infile.ReadItem( help, "OPTINTERPLAYER" );
+   if(help>0) layerflag=true;
+   else layerflag=false;
+
 }
 
 //destructor
@@ -1231,8 +1233,8 @@ MakeGridFromScratch( tInputFile &infile )
             xyz[1] = j * delGrid;
             if( ptPlace == kPerturbedGrid )
             {
-               xyz[0] += 0.01 * delGrid * ( ran3( &seed ) - 0.5 );
-               xyz[1] += 0.01 * delGrid * ( ran3( &seed ) - 0.5 );
+               xyz[0] += 0.5 * delGrid * ( ran3( &seed ) - 0.5 );
+               xyz[1] += 0.5 * delGrid * ( ran3( &seed ) - 0.5 );
             }
             xyz[2] = mElev + mElev * ( ran3( &seed ) - 0.5 );
             if( boundType == kOppositeSidesOpen )
@@ -2005,6 +2007,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
       // Loop around the spokes until we're back at the beginning
       do
       {
+         
          if( ce->getDestinationPtrNC()->getBoundaryFlag()!=kClosedBoundary )
              boundary_check_ok = 1;  // OK, there's at least one open nbr
          i++;
@@ -3316,7 +3319,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
 #define kLargeNumber 1000000000
 template< class tSubNode >
 tSubNode * tGrid< tSubNode >::
-AddNode( tSubNode &nodeRef, int updatemesh )
+AddNode( tSubNode &nodeRef, int updatemesh, double time )
 {
    int i, j, k, ctr;
    tTriangle *tri;
@@ -3327,7 +3330,7 @@ AddNode( tSubNode &nodeRef, int updatemesh )
    tGridListIter< tSubNode > nodIter( nodeList );
    assert( &nodeRef != 0 );
 
-   cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
+   cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << " time "<<time<<endl;
 
    //cout << "locate tri" << endl << flush;
    tri = LocateTriangle( xyz[0], xyz[1] );
@@ -3337,6 +3340,8 @@ AddNode( tSubNode &nodeRef, int updatemesh )
       cerr << "tGrid::AddNode(...): node coords out of bounds: " << xyz[0] << " " << xyz[1] << endl;
       return 0;
    }
+   if( layerflag && time > 0 ) nodeRef.LayerInterpolation( tri, xyz[0], xyz[1], time );
+   
    
    // Assign ID to the new node and insert it at the back of either the active
    // portion of the node list (if it's not a boundary) or the boundary
@@ -3493,6 +3498,7 @@ AddNode( tSubNode &nodeRef, int updatemesh )
       cn->setID( i );
    }
    node2->makeCCWEdges();
+   node2->InitializeNode();
 
    if( updatemesh ) UpdateMesh();
    //cout << "AddNode finished" << endl; 
@@ -3710,10 +3716,10 @@ AddNode( tSubNode &nodeRef, int dum )
 // to a dummy new node and call AddNode
 template< class tSubNode >
 tSubNode *tGrid< tSubNode >::
-AddNodeAt( tArray< double > &xyz )
+AddNodeAt( tArray< double > &xyz, double time )
 {
    assert( &xyz != 0 );
-   cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
+   cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] <<" time "<<time<< endl;
    tTriangle *tri;
    //cout << "locate tri" << endl << flush;
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
@@ -3723,8 +3729,7 @@ AddNodeAt( tArray< double > &xyz )
    tGridListIter< tSubNode > nodIter( nodeList );
    tSubNode tempNode, *cn;
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );
-   if( layerflag )
-       tempNode.LayerInterpolation( tri, xyz[0], xyz[1] );
+   if( layerflag && time > 0.0) tempNode.LayerInterpolation( tri, xyz[0], xyz[1], time );
    if( xyz.getSize() != 3 ) tempNode.setNew2DCoords( xyz[0], xyz[1] );
    tempNode.setBoundaryFlag( 0 );
 
@@ -3841,7 +3846,10 @@ AddNodeAt( tArray< double > &xyz )
    {
       cn->setID( i );
    }
-   //node2->makeCCWEdges();
+   //nmg uncommented line below and added initialize line
+   node2->makeCCWEdges();
+   node2->InitializeNode();
+   
    UpdateMesh();
    //cout << "AddNodeAt finished, " << nnodes << endl;
    return node2;
@@ -4466,29 +4474,29 @@ CheckTriEdgeIntersect()
 \*****************************************************************************/
 template< class tSubNode >
 void tGrid< tSubNode >::
-MoveNodes()
+MoveNodes( double time )
 {
 
-   cout << "MoveNodes()..." << flush << endl;
+   cout << "MoveNodes()... time " << time <<flush << endl;
    tSubNode * cn;  
    tGridListIter< tSubNode > nodIter( nodeList );
    //Before any edges and triangles are changed, layer interpolation
    //must be performed.
-   if( layerflag ){   
+   if( layerflag && time > 0.0 ){   
       tTriangle *tri;
       tArray<double> newxy(2);
       for(cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP()){
          newxy=cn->getNew2DCoords();
-         if( (cn->getX()!=newxy[0]) && (cn->getY()!=newxy[1]) ){
+         if( (cn->getX()!=newxy[0]) || (cn->getY()!=newxy[1]) ){
             //Nic - there may be some issues if boundary nodes make up
             //the triangle.
             cout<<"a point will be moved in movenodes"<<endl;
-            cout<<cn->getX()<<" "<<newxy[0]<<" "<<cn->getY()<<" "<<newxy[1]<<endl;
             tri = LocateTriangle( newxy[0], newxy[1] );
-            cn->LayerInterpolation( tri, newxy[0], newxy[1] );
+            cn->LayerInterpolation( tri, newxy[0], newxy[1], time );
          }
       }
    }
+     
    
    //check for triangles with edges which intersect (an)other edge(s)
    CheckTriEdgeIntersect(); //calls tLNode::UpdateCoords() for each node
