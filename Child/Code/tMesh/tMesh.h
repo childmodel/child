@@ -12,7 +12,11 @@
 **    - move, add, and/or delete nodes
 **    - update Delaunay and Voronoi geometry
 **
-**  $Id: tMesh.h,v 1.24 1999-11-30 21:25:02 gtucker Exp $
+**  Summary of recent changes:
+**    - added data mbr mSearchOriginTriPtr to implement triangle search
+**      starting from a given location, GT, 1/2000
+**
+**  $Id: tMesh.h,v 1.25 2000-03-09 20:09:53 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -101,7 +105,7 @@ public:
    tSubNode *AddNodeAt( tArray< double > &, double time = 0.0 );
    tMeshList<tEdge> * getEdgeList();
    tMeshList<tSubNode> * getNodeList();
-   tList< tTriangle > * getTriList();
+   tPtrList< tTriangle > * getTriList();
    tEdge *getEdgeComplement( tEdge * );
    /* Tests consistency of a user-defined mesh */
    void CheckMeshConsistency( int boundaryCheckFlag=1 );
@@ -124,6 +128,8 @@ public:
    void MoveNodes( double time = 0.0 );
    /*end moving routines*/
 
+   void AddNodesAround( tSubNode *, double time=0.0 );  // Local mesh densify
+
 #ifndef NDEBUG
    /*'dump' routines for debugging*/
    void DumpEdges();
@@ -136,9 +142,13 @@ protected:
    int nnodes, nedges, ntri;       // # of nodes, edges, and tri's (obsolete?)
    tMeshList< tSubNode > nodeList; // list of nodes
    tMeshList< tEdge > edgeList;    // list of directed edges
-   tList< tTriangle > triList;     // list of triangles
+   tPtrList< tTriangle > triList;  // list of ptrs to triangles
+   int miNextNodeID;                    // next ID for added triangle
+   int miNextEdgID;                    // next ID for added triangle
+   int miNextTriID;                    // next ID for added triangle
    long seed;                      // random seed
    int layerflag;                 // flag indicating whether nodes have layers
+   tTriangle* mSearchOriginTriPtr; // ptr to tri. from which to start searches
 
 };
 
