@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.81 2003-05-09 17:35:48 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.82 2003-05-12 12:07:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -12,6 +12,7 @@
 
 #include "meander.h"
 
+#if 0
 /*****************************************************************************\
 **
 **
@@ -24,6 +25,7 @@
 **        
 **
 \*****************************************************************************/
+static
 double LineRemainder( double x, double y, tNode * p0,tNode * p1 )
 {
   double a,b,c, x0, y0, x1, y1;
@@ -37,8 +39,7 @@ double LineRemainder( double x, double y, tNode * p0,tNode * p1 )
   c = -( a * x0 + b * y0 );
   return (a * x + b * y + c);
 }
-
-
+#endif
 
 /**************************************************************************\
 **
