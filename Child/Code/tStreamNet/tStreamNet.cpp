@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.57 2003-09-03 09:52:08 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.58 2003-09-03 11:39:29 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -137,7 +137,11 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
      tmp_ = infile.ReadItem( tmp_, "FLOWGEN" );
      miOptFlowgen = static_cast<kFlowGen_t>(tmp_);
    }
-   filllakes = infile.ReadItem( filllakes, "LAKEFILL" );
+   {
+     int tmp_;
+     tmp_ = infile.ReadItem( tmp_, "LAKEFILL" );
+     filllakes = BOOL( tmp_ != 0 );
+   }
    if( miOptFlowgen == kSaturatedFlow1 || miOptFlowgen==kSaturatedFlow2 )
       trans = infile.ReadItem( trans, "TRANSMISSIVITY" );
    if( miOptFlowgen==kSaturatedFlow2 || miOptFlowgen==kConstSoilStore
@@ -173,8 +177,11 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    // Get the initial rainfall rate from the storm object, and read in option
    // for stochastic variation in rainfall
    rainrate = stormPtr->getRainrate();
-   optrainvar = infile.ReadItem( optrainvar, "OPTVAR" );
-
+   {
+     int tmp_;
+     tmp_ = infile.ReadItem( tmp_, "OPTVAR" );
+     optrainvar = BOOL(tmp_ != 0 );
+   }
    // Options related to stream meandering
    int itMeanders = infile.ReadItem( itMeanders, "OPTMEANDER" );
 
@@ -283,7 +290,7 @@ tStorm *tStreamNet::getStormPtrNC() {return stormPtr;}
 
 inline kFlowGen_t tStreamNet::getFlowGenOpt() const {return miOptFlowgen;}
 
-int tStreamNet::getFillLakesOpt() const {return filllakes;}
+bool tStreamNet::getFillLakesOpt() const {return filllakes;}
 
 double tStreamNet::getRainRate() const {return rainrate;}
 
@@ -310,9 +317,8 @@ void tStreamNet::setFlowGenOpt( kFlowGen_t val )
 {miOptFlowgen=val;
 /*miOptFlowgen = ( val == 0 || val == 1 ) ? val : 0;*/}
 
-void tStreamNet::setFillLakesOpt( int val )
-{filllakes = val;
-/*filllakes = ( val == 0 || val == 1 ) ? val : 0;*/}
+void tStreamNet::setFillLakesOpt( bool val )
+{filllakes = val;}
 
 void tStreamNet::setRainRate( double val ) {rainrate = val;
 /*( val >= 0 ) ? val : 0;*/}
@@ -1553,6 +1559,7 @@ tLNode *tStreamNet::BuildLakeList( tPtrList< tLNode > &lakeList, tLNode *cn )
 		break;
 	      }
 	    } while( ( ce=ce->getCCWEdg() ) != cln->getEdg() );// END spokes
+
 
 	} /* END lakeList */
 

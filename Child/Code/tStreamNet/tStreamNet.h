@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.52 2003-09-03 09:52:09 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.53 2003-09-03 11:39:37 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -210,7 +210,7 @@ public:
     const tStorm *getStormPtr() const;
     tStorm *getStormPtrNC();
     kFlowGen_t getFlowGenOpt() const;
-    int getFillLakesOpt() const;
+    bool getFillLakesOpt() const;
     double getRainRate() const;
     double getTransmissivity() const;
     double getInfilt() const;
@@ -221,7 +221,7 @@ public:
     tLNode *getInletNodePtr() const;
     tLNode *getInletNodePtrNC();
     void setFlowGenOpt( kFlowGen_t );
-    void setFillLakesOpt( int );
+    void setFillLakesOpt( bool );
     void setRainRate( double );
     void setTransmissivity( double );
     void setInfilt( double );
@@ -265,10 +265,10 @@ protected:
     static void RouteError( tLNode * ) ATTRIBUTE_NORETURN;
 
     tMesh< tLNode > * meshPtr;  // ptr to mesh
-    tStorm *stormPtr;    // ptr to storm object (for getting precip)
+    tStorm *stormPtr; // ptr to storm object (for getting precip)
     kFlowGen_t miOptFlowgen; // option for runoff generation & routing method
-    int filllakes;       // option for filling lakes
-    int optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
+    bool filllakes;   // option for filling lakes
+    bool optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
     double kwds, ewds, ewstn;//coefs & exps for dwnstrm & at-a-stn hydr. width
     double kdds, edds, edstn;//coefs & exps for dwnstrm & at-a-stn hydr. depth
     double knds, ends, enstn;//coefs & exps for ds & at-a-stn hydr. roughness
