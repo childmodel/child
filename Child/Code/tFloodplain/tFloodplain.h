@@ -18,7 +18,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.8 2003-01-17 17:30:27 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.9 2003-05-06 14:31:01 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -36,6 +36,42 @@
 
 /**************************************************************************/
 /**
+**  @class tMainChannelDriver
+**
+**  Class tMainChannelDriver controls the altitude behavior of the main
+**  channel within the floodplain. It is used, at the user's option, to 
+**  control the gradient and relative altitude of the main channel as an
+**  imposed boundary condition. It is only used when the user switches
+**  on the option to impose the main channel height/slope as a boundary
+**  condition, as opposed to allowing it to evolve as a function of 
+**  erosion, deposition, and baselevel change.
+**    A tMainChannelDriver object sits within a tFloodplain object.
+**
+**    Created May 2003 by GT based on earlier implementation within a
+**    a special version of the main file (gamain1.cpp) designed by
+**    GT and NMG.
+*/
+/**************************************************************************/
+class tMainChannelDriver
+{
+public:
+  tMainChannelDriver( tInputFile &infile );
+  void UpdateMainChannelElevation( double tm, tLNode * inletNode );
+
+private:
+  enum { SINEWAVE,
+	 STEPWAVE,
+	 USERDEFINED };
+  int optChanAltitudeVariation; // Form of variation (see enum above)
+  double drop;      // Channel elevation drop from top to bottom of valley [L]
+  double period;    // Period of elev oscillation [T], if oscillating
+  double amplitude; // Amplitude of elev oscillation [L], if osc'ing
+  int num_grnsize_fractions;  // No. of grain size fractions
+};
+
+
+/**************************************************************************/
+/**
 **  @class tFloodplain
 **
 **  Class tFloodplain contains the parameters for the modified Howard
@@ -47,6 +83,8 @@
 **    - 3/13/99 GT added deparr variable which is used by DepositOverbank
 **              (could be a local var but this saves having to reinit
 **              it with every call to tFloodplain)
+**    - May 2003 GT added code to implement control of main channel
+**              elevations as a boundary condition.
 **
 */
 /**************************************************************************/
@@ -58,6 +96,9 @@ public:
     tFloodplain( tInputFile &infile, tMesh<tLNode> *mp );
     void DepositOverbank( double precip, double delt, double ctime );
     tFloodplain& operator=(const tFloodplain&);
+  bool OptControlMainChan();
+  void UpdateMainChannelHeight( double tm, tLNode * inletNode );
+
 private:
     double fpmu;            // "mu" parameter of Howard model
     double fplamda;         // "lamda" (distance-decay) parameter
@@ -68,6 +109,8 @@ private:
     double mqbmqs;          // bankfull minus at-a-station exponents
     tArray<double> deparr;  // depth deposited (# grn size; all but 1st=0)
     tMesh<tLNode> *meshPtr; // ptr to mesh
+  bool optControlMainChan;  // option to treat chan elev as boundary cond
+  tMainChannelDriver * chanDriver;   // if user wants to control chan elev
 };
 
 
@@ -75,7 +118,7 @@ private:
 /**
 **  @class tFloodNode
 **
-**  Basically just a data record used to construct a list of flood nodes.
+**  @brief Data record used in constructing a list of flood nodes.
 **  Contains a pointer to the node and the water surface height.
 **
 */

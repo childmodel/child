@@ -37,7 +37,7 @@ SEED: Random seed used to generate storm sequence & mesh, etc (as applicable)
 #    INPUTTIME - if reading in a mesh from an earlier run, this specifies
 #                    the time slice number
 #
-OPTREADINPUT: 0=create new mesh; 1=read existing run/file; 2=read point file
+OPTREADINPUT: 0 or 10=new mesh; 1=read existing run/file; 2 or 12=point file
 1
 #12
 INPUTDATAFILE: name of file to read input data from (only if reading mesh)
@@ -282,7 +282,25 @@ BANKFULLEVENT: precipitation rate of a bankfull event, in m/year
 #   Other options
 #
 OPTFLOODPLAIN: option for overbank deposition using modified Howard 1992 model
+1
+FP_OPTCONTROLCHAN: option for controlling channel elevation as boundary cond
+1
+FP_OPTCHANALITUDEVARIATION
 0
+FP_VALDROP: elevation drop between top and bottom of valley [m]
+1.0
+FP_DRAREAMIN: minimum drainage area for "main" channl
+2e8
+FP_BANKFULLEVENT: 
+11.0
+FP_MU:
+0.0
+FP_LAMBDA:
+100.0
+FP_PERIOD:
+5000
+FP_AMPLITUDE:
+0.0
 OPTLOESSDEP: space-time uniform surface accumulation of sediment (loess)
 0
 OPTEXPOSURETIME: option for tracking surface-layer exposure ages

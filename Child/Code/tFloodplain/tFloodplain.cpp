@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.12 2003-02-10 16:37:05 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.13 2003-05-06 14:31:00 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -70,7 +70,11 @@
 
 /**************************************************************************\
 **
-**  Constructor:
+**  @fn tFloodplain( tInputFile &infile, tMesh<tLNode *mp );
+**  @brief Main constructor for tFloodplain
+**
+**  @param infile Input file from which parameters are read
+**  @param mp Pointer to the mesh
 **
 **  Takes a tInputFile as an argument and reads from it the various
 **  necessary parameters. For convenience and speed, mqbmqs = mqb - mqs
@@ -101,6 +105,11 @@ tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
 
    numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    deparr.setSize(numg); // dimension & init to 0 the deparr array
+
+   optControlMainChan = infile.ReadItem( optControlMainChan,
+					     "FP_OPTCONTROLCHAN" );
+   if( optControlMainChan )
+     chanDriver = new tMainChannelDriver( infile );
    
 }
 
@@ -242,3 +251,132 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 }
 
 
+/**************************************************************************\
+**
+**  @fn OptControlMainChan()  
+**  @brief Returns TRUE if user has requested control of main channel elev.
+**
+\**************************************************************************/
+bool tFloodplain::OptControlMainChan() { return optControlMainChan; }
+
+
+/**************************************************************************\
+**
+**  @fn UpdateMainChannelHeight()  
+**  @brief Calls function in tMainChannelDriver to set main channel height.
+**
+\**************************************************************************/
+void tFloodplain::UpdateMainChannelHeight( double tm, tLNode * inletNode ) 
+{
+  chanDriver->UpdateMainChannelElevation( tm, inletNode );
+}
+
+
+
+/**************************************************************************\
+**
+**  @fn tMainChannelDriver( tInputFile &infile )  
+**  @brief tMainChannelDriver constructor
+**
+**  @param infile Reference to the input file for the run
+**
+\**************************************************************************/
+tMainChannelDriver::tMainChannelDriver( tInputFile &infile )
+{
+  optChanAltitudeVariation = infile.ReadItem( optChanAltitudeVariation,
+					      "FP_OPTCHANALITUDEVARIATION" );
+  drop = infile.ReadItem( drop, "FP_VALDROP" );
+  num_grnsize_fractions = infile.ReadItem( num_grnsize_fractions, 
+					   "NUMGRNSIZE" );
+  if( num_grnsize_fractions <= 0 )
+    ReportFatalError( "NUMGRNSIZE must be >= 1" );
+
+  switch( optChanAltitudeVariation )
+    {
+    case SINEWAVE:
+      period = infile.ReadItem( period, "FP_PERIOD" );
+      period = 2.0*PI/period;
+      amplitude = infile.ReadItem( amplitude, "FP_AMPLITUDE" );
+      break;
+    default:
+      ReportFatalError( "FP_OPTCHANALTITUDEVARIATION: Unrecognized option." );
+    }
+
+}
+
+
+/**************************************************************************\
+**
+**  @fn UpdateMainChannelElevation( double tm )  
+**  @brief Updates elevations along the main stream channel.
+**  
+**  @param tm Current time in simulation
+**
+**  This function sets elevations along the main channel as a function of
+**  (a) time (via sinusoidal, step-wave, or user-specified variation), and
+**  (b) a user-specified valley gradient (contained in the parameter
+**      "drop", which is the height drop between the top and bottom of
+**      the main valley.
+**
+**  Created: GT, May 2003
+**
+**  Assumes: (1) delz array elements initialized to zero;
+**           (2) highest grain size fraction is the coarsest
+**
+\**************************************************************************/
+void tMainChannelDriver::UpdateMainChannelElevation( double tm, 
+						     tLNode * inletNode )
+{
+  double newInletElevation,
+    elev,
+    chanslp;
+  tEdge * fe;    // Ptr to flow edge of current node
+  tLNode * cn;   // Current node along main channel
+
+  assert( inletNode != 0 );
+
+  // Update elevation at head of channel reach (inlet)
+  switch( optChanAltitudeVariation )
+    {
+    case SINEWAVE:
+      newInletElevation = drop + amplitude*sin( period*tm );
+      break;
+    }
+
+  // Compute length and slope of channel
+  cn = inletNode;
+  double totlen = 0.0;  // Total length of channel found so far
+  do 
+    {
+      fe = cn->getFlowEdg();
+      assert( fe );
+      totlen += fe->getLength();
+      cn = cn->getDownstrmNbr();
+      assert( cn );
+    }
+  while( cn->getBoundaryFlag()==kNonBoundary );
+  chanslp = drop / totlen;
+
+  // Update elevations of all channel points below inlet
+  tArray<double> delz( num_grnsize_fractions );
+  elev = newInletElevation;
+  cn = inletNode;
+  do
+    {
+      // Set elevation of current node
+      delz[num_grnsize_fractions-1] = elev - cn->getZ();
+      cn->EroDep( 0, delz, tm );
+      
+      // Calculate new elevation of downstream node
+      fe = cn->getFlowEdg();
+      assert( fe );
+      elev = elev - chanslp * fe->getLength();
+
+      // Move to downstream node
+      cn = cn->getDownstrmNbr();
+      assert( cn );
+    }
+  while( cn->getBoundaryFlag()==kNonBoundary );
+  
+
+}

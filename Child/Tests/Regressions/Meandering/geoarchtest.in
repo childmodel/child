@@ -1,0 +1,377 @@
+######## Mesh creation ##############################
+#0=newmesh;1=inputdatafile;2=pointfile;3=randomfromDEM;4=hexagonalfromDEM;5=TINArcinfo
+OPTREADINPUT: 
+1
+OPT_PT_PLACE:  (if optreadinput=0) point placement 0=regular;1=offset;2=random
+0
+NUM_PTS: for random grid, number of points to place
+100
+X_GRID_SIZE: "length" of grid, meters
+1000
+Y_GRID_SIZE: "width" of grid, meters
+1000
+GRID_SPACING: mean distance between grid nodes, meters
+50
+MEAN_ELEVATION:
+1
+ELEV_PERTURB: noisiness of surfaces - mean +- elev_perturb   
+0.25
+SLOPED_SURF: sloped surface option
+0
+UPPER_BOUND_Z: If sloped, what is the max elev?
+2
+VALLEY_RIDGE: initial topo valley and ridge
+1
+WEST_RIDGEX: x-value of west ridge
+300
+EAST_RIDGEX: x-value of east ridge
+700
+RIDGE_Z: elevation of ridge (mean_elev is elevation of valley)
+50
+INPUTDATAFILE:  name of file to read input data from (if optreadinput=1)
+/data/nicole/Child/Terraces/initc
+POINTFILENAME;  (if optreadinput=2)
+/data/nicole/Child/Terraces/testinpoints
+SEED:
+23
+OPTINITMESHDENS:
+0
+*********
+ARCINFOFILENAME: (if optreadinput=5) name of the file created with ARCINFO (.net) as input
+**bearinfo.net
+################ mesh adaptation
+OPTMESHADAPTAREA
+0
+OPTMESHADAPTDZ:
+0
+################### Boundaries options ####################################
+TYP_BOUND: open boundary;0=corner,1=side,2= sides,3=4 sides,4=specify
+1
+OUTLET_X_COORD:
+10
+OUTLET_Y_COORD:
+300
+OPTINLET:
+1
+INLET_X: (if optinlet =1)
+487.5
+INLET_Y:  (if optinlet =1)
+950
+INDRAREA:  (if optinlet =1) (m^2)
+250000000.
+INSEDLOAD1:   (if optinlet =1)
+0
+################### Time options ############################################
+INPUTTIME: 
+1500000
+RUNTIME: Duration of run (years)
+5
+################## Geology ########################################
+BEDROCKDEPTH: initial depth of bedrock
+100000.
+MAXREGDEPTH:
+0.1
+REGINIT:
+1000000.0
+NUMGRNSIZE:
+1
+BRPROPORTION1: proportion of sediments of grain size diam1 in bedrock [.]
+1.
+REGPROPORTION1:
+1.
+GRAINDIAM1:
+0.0007
+REGPROPORTION2: proportion of sediments of grain size diam2 in regolith [.]
+1.0
+BRPROPORTION2: proportion of sediments of grain size diam2 in bedrock [.]
+0.4
+GRAINDIAM2: representative diameter of second grain size class [m]
+0.03
+################## Uplift options###################################
+UPTYPE: type of uplift (0=none, 1=uniform, 2=block)
+1
+UPDUR: duration of uplift (yrs)
+10000000
+UPRATE: uplift rate (m/yr)  
+0.0001
+FAULTPOS: position of the fault (y coord.)
+500
+################# Rainfall options ###############################
+PMEAN:  Mean rainfall intensity (m/yr) (instantaneous
+1
+STDUR:  Mean storm duration (yr)
+0.1
+ISTDUR: Mean time between storms (yr)
+0.1
+OPTVAR: Option for rainfall variation
+1
+OPTSINVAR: Option for sinusoidal variation in mean rainfall, duration, etc
+0
+PERIOD  (if optsinvar =1)
+0
+MAXPMEAN:  (if optsinvar =1)
+0
+MAXSTDURNM:   (if optsinvar =1)
+0
+MAXISTDURNM:   (if optsinvar =1)
+0
+OPTSTORMFILE
+0
+STORMFILE   (if optstormfile=1)
+rainoutput
+OPTRAININPUT
+0
+RAINFILENAME
+rainfile
+UNITRAINFILE: 0=m/years; 1=m/days; 2=m/hours
+0
+LAKEFILL:  fill lakes if = 1 
+1
+################  Runoff and infiltration options ################
+flow generation, 1=saturated flow, 2=sat flow 2, 3=const store, 4=kin-wave, 5=hydrograph peak
+FLOWGEN:
+0
+FLOWVELOCITY: if flowgen=5 (m/yr, I think??? 31,356,000m/yr=1m/sec)
+31536000
+CHAN_GEOM_MODEL: 1=pwr law scaling, 2=Parker-Paola
+1
+HYDROSHAPEFAC: if flowgen=5
+1
+INFILTRATION: same units than rain input m/yr
+0.0
+TRANSMISSIVITY: (if flowgen=1 or 2)
+0
+OPTSINVARINFILT:
+0
+PERIOD_INFILT: (if optsinvarinfilt =1)
+0
+MAXICMEAN:  (if optsinvarinfilt =1)
+0
+###############  Hillslope sediment transport #################  
+KD: diffusivity coef (m^2/yr)
+0.0001
+OPTDIFFDEP
+0
+###############  Landslide parameters #####################
+OPTLANDSLIDE (1 if landsliding; 0 if not)
+0
+EPSILON
+0.5
+CEFF
+10.
+PHI
+30.
+GAMMA
+2600.
+##############  Stream erosion and deposition ################
+############## Detachment limited
+KB:  bedrock erodibility coefficient
+0.000000001
+KR: regolith erodibility coefficient
+0.000000001
+OPTDETACHLIM: Option for detachment limited
+1
+MB: discharge exponent
+.5
+NB: slope exponent
+1.0
+PB: excess stream power or shear stress exponent
+1.5
+KT:  Shear stress (or stream power) coefficient (putting things to secs here)
+18.68
+TAUCD: critical shear stress for detachmentlimited-erosion (kg/m/s^2)
+0
+############## transport limited ( power law)
+KF: sediment transport efficiency factor (dimensions vary)
+0
+MF: sediment transport capacity discharge exponent
+2
+NF: sed transport capacity slope exponent (ND)
+2
+PF
+0
+##############  Hydraulic geometry  ##########################
+BANKFULLEVENT:
+1
+HYDR_WID_COEFF_DS: coeff. on downstream hydraulic width relation (m/(m3/s)^exp
+3
+HYDR_WID_EXP_DS: exponent on downstream hydraulic width relation 
+0.5
+HYDR_WID_EXP_STN: exp. on at-a-station hydraulic width relation
+0.25
+HYDR_DEP_EXP_DS: exponent on downstream hydraulic depth relation 
+.4
+HYDR_DEP_COEFF_DS: coeff. on downstream hydraulic depth relation (m/(m3/s)^exp)
+0.028
+HYDR_DEP_EXP_STN: exp. on at-a-station hydraulic depth relation
+0.4
+HYDR_ROUGH_COEFF_DS: coeff. on downstrm hydraulic roughness reln. (manning n)
+3e-2
+HYDR_ROUGH_EXP_DS: exp. on downstream hydraulic roughness
+-0.01
+HYDR_ROUGH_EXP_STN: exp on at-a-station hydr. rough.
+-0.21
+BANK_ROUGH_COEFF: coeff. on downstream bank roughness relation
+15
+BANK_ROUGH_EXP: exp on discharge for downstream bank roughness relation
+0.0
+####################   LOESS DEPOSITION ################
+OPTLOESSDEP:
+0
+LOESS_DEP_RATE:
+0.0005
+#####################   Overbank deposition ##############
+OPTFLOODPLAIN:
+0
+FP_DRAREAMIN:
+1e8
+FP_BANKFULLEVENT: (m/yr - rainfall to have overbank flow)
+27.5
+FP_MU: coefficient in Howard Model
+1.0
+FP_LAMBDA: decay distance
+200
+####################  Meandering  ########################
+OPTMNDR:  Option for meandering
+1
+VEG_ERODY
+0
+CRITICAL_FLOW: minimum flow for which we calc. meandering (m3/yr)
+100000000.00
+OPT_VAR_SIZE: option for varying grain size, yes = 1, no = 0
+0
+MEDIAN_DIAMETER: median grain diameter, meters
+0.0007
+DEF_CHAN_DISCR: default channel discr. for meandering channels (widths)
+1.0
+FRAC_WID_MOVE: maximum fraction of width node allowed to move in a step
+0.1
+FRAC_WID_ADD: how far channel moves before adding new node behind it
+0.7
+LATADJUST: ratio of bank to bed erodibility
+100.0
+BANKERO:
+0.1
+BNKHTDEP:
+0.0
+####################  Layers ############################
+OPTINTERPLAYER:
+1
+OPTREADLAYER:
+1
+LAYERFILESUFFIX: include the "."
+.lay4
+################  Vegetation    #######################
+OPTVEG
+0
+OPTREADVEG: if creating mesh from input data, do you want veg info read in?
+0
+######## Output options ##################################
+OUTFILENAME:
+/data/nicole/Child/Terraces/geoarchtest
+OPINTRVL:  Output interval (years)
+1
+OPTEROSION
+0
+################### tracking exposure age ################
+OPTEXPOSURETIME:
+1
+####
+OPTKINWAVE
+0
+#*************added by Daniel Collins
+OPTTSOUTPUT
+0
+OPTSTOUT
+0
+OPTLAYER
+1
+TSOPINTRVL:
+0.5
+OPTSTORMOUT:
+0
+#****************NMG additions
+OPTVARKB:
+0
+RIDGE_KB:
+0
+VALLEY_KB:
+0.0001
+WEST_RIDGEX: x-value of west ridge
+300
+EAST_RIDGEX: x-value of east ridge
+700
+#***************GEOARCHEAOLOGY
+NUMFLDPLNPTS: number of points to define elevation of stream with
+13
+FLDPLNTIME1:
+0
+FLDPLNHT1:
+1
+FLDPLNTIME2:
+2000
+FLDPLNHT2:
+8
+FLDPLNTIME3:
+2500
+FLDPLNHT3:
+5
+FLDPLNTIME4:
+3000
+FLDPLNHT4:
+8
+FLDPLNTIME5:
+5000
+FLDPLNHT5:
+9
+FLDPLNTIME6:
+5500
+FLDPLNHT6:
+2
+FLDPLNTIME7:
+7000
+FLDPLNHT7:
+8
+FLDPLNTIME8:
+7500
+FLDPLNHT8:
+3
+FLDPLNTIME9:
+8000
+FLDPLNHT9:
+6
+FLDPLNTIME10:
+8500
+FLDPLNHT10:
+2
+FLDPLNTIME11:
+9000
+FLDPLNHT11:
+5
+FLDPLNTIME12:
+9500
+FLDPLNHT12:
+2
+FLDPLNTIME13:
+10000
+FLDPLNHT13:
+4
+GA_VALDROP
+1
+GA_INLETELEV
+1
+GA_PERIOD
+2000
+GA_AMPLITUDE
+5
+GA_OPTWAVE
+2
+GA_TPEAK
+0.9
+CHANSLOPE:
+0.0001
+
+
+
+
+
