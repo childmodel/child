@@ -19,7 +19,7 @@ OBJ = obj
 OBJECTS = childmain.$(OBJ) erosion.$(OBJ) meshElements.$(OBJ) mathutil.$(OBJ) \
  tInputFile.$(OBJ) tLNode.$(OBJ) tRunTimer.$(OBJ) tStreamMeander.$(OBJ) meander.$(OBJ) \
 tStorm.$(OBJ) tStreamNet.$(OBJ) tUplift.$(OBJ) errors.$(OBJ) tFloodplain.$(OBJ) \
-tEolian.$(OBJ) globalFns.$(OBJ) predicates.$(OBJ) tVegetation.$(OBJ) \
+tEolian.$(OBJ) globalFns.$(OBJ) predicates.$(OBJ) tVegetation.$(OBJ) tListInputData.$(OBJ) \
 ParamMesh_t.$(OBJ) TipperTriangulator.$(OBJ) TipperTriangulatorError.$(OBJ)
 
 all : $(EXENAME)
@@ -45,6 +45,9 @@ tLNode.$(OBJ): $(PT)/tLNode/tLNode.cpp
 
 tRunTimer.$(OBJ): $(PT)/tRunTimer/tRunTimer.cpp
 	$(CXX) $(CFLAGS) $(PT)/tRunTimer/tRunTimer.cpp
+
+tListInputData.$(OBJ): $(PT)/tListInputData/tListInputData.cpp
+	$(CXX) $(CFLAGS) $(PT)/tListInputData/tListInputData.cpp
 
 tStorm.$(OBJ): $(PT)/tStorm/tStorm.h
 	$(CXX) $(CFLAGS) $(PT)/tStorm/tStorm.cpp
@@ -117,7 +120,6 @@ HFILES = \
 	$(PT)/tInputFile/tInputFile.h \
 	$(PT)/tLNode/tLNode.h \
 	$(PT)/tList/tList.h \
-	$(PT)/tListInputData/tListInputData.cpp \
 	$(PT)/tListInputData/tListInputData.h \
 	$(PT)/tMatrix/tMatrix.h \
 	$(PT)/tMesh/ParamMesh_t.h \
@@ -153,6 +155,7 @@ tEolian.$(OBJ): $(HFILES)
 tFloodplain.$(OBJ): $(HFILES)
 tInputFile.$(OBJ): $(HFILES)
 tLNode.$(OBJ): $(HFILES)
+tListInputData.$(OBJ): $(HFILES)
 tRunTimer.$(OBJ): $(HFILES)
 tStorm.$(OBJ) : $(HFILES)
 tStreamNet.$(OBJ): $(HFILES)

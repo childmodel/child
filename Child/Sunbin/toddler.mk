@@ -9,7 +9,7 @@ EXENAME = toddler
 OBJECTS = toddlermain.o erosion.o meshElements.o mathutil.o \
  tInputFile.o tLNode.o tRunTimer.o \
 tStorm.o tStreamNet.o tUplift.o errors.o tFloodplain.o \
-tEolian.o globalFns.o predicates.o tVegetation.o \
+tEolian.o globalFns.o predicates.o tVegetation.o tListInputData.o \
 ParamMesh_t.o TipperTriangulator.o TipperTriangulatorError.o
 
 $(EXENAME): $(OBJECTS)
@@ -29,6 +29,9 @@ tInputFile.o: $(PT)/tInputFile/tInputFile.cpp
 
 tLNode.o: $(PT)/tLNode/tLNode.cpp
 	$(CXX) $(CFLAGS) $(PT)/tLNode/tLNode.cpp
+
+tListInputData.o: $(PT)/tListInputData/tListInputData.cpp
+	$(CXX) $(CFLAGS) $(PT)/tListInputData/tListInputData.cpp
 
 tRunTimer.o: $(PT)/tRunTimer/tRunTimer.cpp
 	$(CXX) $(CFLAGS) $(PT)/tRunTimer/tRunTimer.cpp
@@ -100,7 +103,6 @@ HFILES = \
 	$(PT)/tInputFile/tInputFile.h \
 	$(PT)/tLNode/tLNode.h \
 	$(PT)/tList/tList.h \
-	$(PT)/tListInputData/tListInputData.cpp \
 	$(PT)/tListInputData/tListInputData.h \
 	$(PT)/tMatrix/tMatrix.h \
 	$(PT)/tMesh/ParamMesh_t.h \
@@ -134,6 +136,7 @@ tEolian.o: $(HFILES)
 tFloodplain.o: $(HFILES)
 tInputFile.o: $(HFILES)
 tLNode.o: $(HFILES)
+tListInputData.o: $(HFILES)
 tRunTimer.o: $(HFILES)
 tStorm.o : $(HFILES)
 tStreamNet.o: $(HFILES)
