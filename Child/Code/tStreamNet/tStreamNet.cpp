@@ -4,7 +4,12 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.67 2000-02-02 22:34:11 gtucker Exp $
+**    Modifications:
+**     - 2/00 added DensifyMeshDrArea plus modifications to tStreamNet
+**       constructor to implement dynamic node addition in regions of
+**       high drainage area (ie, main channels; see below) GT
+**
+**  $Id: tStreamNet.cpp,v 1.2.1.68 2000-03-09 20:09:02 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -184,6 +189,16 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
        cout << "mdKinWaveRough " << mdKinWaveRough << endl;
    }
    else mdKinWaveExp = mdKinWaveRough = 0.0;
+
+   // Option for adaptive meshing related to drainage area
+   int optMeshAdapt = infile.ReadItem( optMeshAdapt, "OPTMESHADAPTAREA" );
+   if( optMeshAdapt )
+   {
+      mdMeshAdaptMinArea = infile.ReadItem( mdMeshAdaptMinArea,
+                                            "MESHADAPTAREA_MINAREA" );
+      mdMeshAdaptMaxVArea = infile.ReadItem( mdMeshAdaptMaxVArea,
+                                             "MESHADAPTAREA_MAXVAREA" );
+   }
 
    // Initialize the network by calculating slopes, flow directions,
    // drainage areas, and discharge
@@ -536,8 +551,6 @@ void tStreamNet::InitFlowDirs()
       {
          flowedg = flowedg->getCCWEdg();
          assert( flowedg>0 );
-         //Xcout << " edg " << flowedg->getID() << " fa: "
-         //X     << flowedg->FlowAllowed() << endl;
          ctr++;
          if( ctr>kMaxSpokes ) // Make sure to prevent endless loops
          {
@@ -1942,6 +1955,52 @@ void tStreamNet::RouteFlowKinWave( double rainrate )
    
       
 } // End of tStreamNet::RouteFlowKinWave
+
+
+/*****************************************************************************\
+**
+**  tStreamNet::DensifyMeshDrArea
+**
+**  Densifies the locally along channels/valleys by adding new nodes
+**  wherever (a) drainage area exceeds a user-specified threshold
+**  (stored in mdMeshAdaptMinArea) and (b) Voronoi area is larger than
+**  a user specified maximum (stored in mdMeshAdaptMaxVArea). When a
+**  node is found that meets these criteria, the tMesh function
+**  AddNodesAround is called to add new nodes at the Voronoi vertices of
+**  the node in question.
+**
+**		  Inputs: time -- current simulation time (if applicable; defaults
+**                      to zero)
+**      Other parameters: mdMeshAdaptMinArea, mdMeshAdaptMaxVArea
+**      Called by: functions outside tStreamNet (eg, main)
+**      Calls: tMesh::AddNodesAround
+**      Created: GT 2/2000
+**      Modifications:
+**
+\*****************************************************************************/
+void tStreamNet::DensifyMeshDrArea( double time )
+{
+   tMeshListIter<tLNode> niter( meshPtr->getNodeList() );  // node list iter.
+   tLNode *cn;              // Current node being checked
+
+   cout << "Checking nodes...\n";
+   
+   // Check all active nodes
+   for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
+   {
+      if( cn->getDrArea()>mdMeshAdaptMinArea )
+          cn->TellAll();
+      // If local flux (ero rate * varea) exceeds threshold, add new nodes
+      if( cn->getDrArea()>mdMeshAdaptMinArea 
+          && cn->getVArea() > mdMeshAdaptMaxVArea )
+      {
+         meshPtr->AddNodesAround( cn, time );
+         //cout << "*** Adding points here:\n";
+         //cn->TellAll();
+      }
+   }
+
+}
 
 
 
