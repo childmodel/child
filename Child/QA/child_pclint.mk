@@ -3,7 +3,7 @@ LINT = C:\\lint\\lint-nt -iC:\\lint std.lnt
 LINTFLAGS = child.lnt
 MODFLAGS =  -u -zero -oo\($@\)
 
-APPFLAGS = -dHAVE_NO_NAMESPACE
+APPFLAGS =
 
 OBJECTS = childmain.lob erosion.lob meshElements.lob mathutil.lob \
  tInputFile.lob tLNode.lob tRunTimer.lob tStreamMeander.lob meander.lob \
