@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.51 2003-05-12 11:50:15 childcvs Exp $
+**  $Id: tMesh.h,v 1.52 2003-05-16 14:04:59 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -93,14 +93,14 @@ public:
    void MakeRandomPointsFromArcGrid( tInputFile & ); // mesh from arc (rand)
    void MakeHexMeshFromArcGrid( tInputFile &infile );// mesh from arc (hex)
    void MakeLayersFromInputData( tInputFile & );
-   void Print();
+   void Print() const;
    void setVoronoiVertices();
    void CalcVoronoiEdgeLengths();
    void CalcVAreas();
    tTriangle *LocateTriangle( double, double );
    tTriangle *LocateNewTriangle( double, double );
    /*returns ptr to triangle which points to edge, or zero if none:*/
-   tTriangle *TriWithEdgePtr( tEdge * );
+   tTriangle *TriWithEdgePtr( tEdge * ) const;
    /*only routine needed to delete node; calls ExNode, RepairMesh:*/
    int DeleteNode( tListNode< tSubNode > *, bool repairFlag=true );
    int DeleteNode( tSubNode *, bool repairFlag=true );
@@ -113,7 +113,7 @@ public:
    int DeleteTriangle( tTriangle * );
    /*"un-points" nbr triangles:*/
    int ExtricateTriangle( tTriangle * );
-   int ClearTriangle( tTriangle* );
+   int ClearTriangle( tTriangle* ) const;
    /*complicated; fills in (any) hole defined by circular node ptr list:*/
    int RepairMesh( tPtrList< tSubNode > & );
    int AddEdgeAndMakeTriangle( tPtrList< tSubNode > &,
@@ -134,7 +134,7 @@ public:
    tMeshList<tEdge> * getEdgeList();
    tMeshList<tSubNode> * getNodeList();
    tList< tTriangle > * getTriList();
-   tEdge *getEdgeComplement( tEdge * );
+   tEdge *getEdgeComplement( tEdge * ) const;
    /* Tests consistency of a user-defined mesh */
    void CheckMeshConsistency( bool boundaryCheckFlag=true );
    /* Updates mesh by comp'ing edg lengths & slopes & node Voronoi areas */
@@ -168,7 +168,7 @@ public:
 #ifndef NDEBUG
    /*'dump' routines for debugging*/
    void DumpEdges();
-   void DumpSpokes( tSubNode * );
+   void DumpSpokes( tSubNode * ) const;
    void DumpTriangles();
    void DumpNodes();
 #endif

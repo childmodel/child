@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.149 2003-05-16 13:03:40 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.150 2003-05-16 14:04:58 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -84,11 +84,11 @@ tMesh()
   nnodes(0),
   nedges(0),
   ntri(0),
-  seed(0),
-  layerflag(false),
   miNextNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),
+  seed(0),
+  layerflag(false),
   mSearchOriginTriPtr(0)
 {
   if (0) //DEBUG
@@ -2397,7 +2397,7 @@ CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
 
 template< class tSubNode >
 void tMesh< tSubNode >::
-Print()                                                  //tMesh
+Print() const
 {
    triList.print();
    nodeList.print();
@@ -3085,7 +3085,7 @@ LocateNewTriangle( double x, double y )
 \**************************************************************************/
 template< class tSubNode >
 tTriangle *tMesh< tSubNode >::
-TriWithEdgePtr( tEdge *edgPtr )
+TriWithEdgePtr( tEdge *edgPtr ) const
 {
    assert( edgPtr != 0 );
    return edgPtr->TriWithEdgePtr();
@@ -3138,7 +3138,7 @@ DeleteTriangle( tTriangle * triPtr )
 //*************************************************************************
 template< class tSubNode >
 int tMesh< tSubNode >::
-ClearTriangle( tTriangle *triPtr )
+ClearTriangle( tTriangle *triPtr ) const
 {
   int i, j;
   for( i=0; i<3; i++ )
@@ -4063,7 +4063,7 @@ getTriList() {return &triList;}
 \**************************************************************************/
 template< class tSubNode >
 tEdge *tMesh< tSubNode >::
-getEdgeComplement( tEdge *edge )
+getEdgeComplement( tEdge *edge ) const
 {
    return edge->getComplementEdge();
 }
@@ -4737,7 +4737,7 @@ DumpEdges()
 
 template<class tSubNode>
 void tMesh<tSubNode>::
-DumpSpokes( tSubNode *cn )
+DumpSpokes( tSubNode *cn ) const
 {
    tEdge *ce;
    tSpkIter spokIter( cn );
