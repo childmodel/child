@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.86 2004-03-04 12:27:11 childcvs Exp $
+ **  $Id: tLNode.h,v 1.87 2004-03-22 15:56:22 childcvs Exp $
  */
 /************************************************************************/
 
@@ -73,8 +73,6 @@ typedef enum {
     Layer records */
 class tLayer
 {
-  friend class tListNode< tLayer >;
-
 public:
   inline tLayer();
   inline tLayer( int );
