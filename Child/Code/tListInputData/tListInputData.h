@@ -16,7 +16,7 @@
  **     to avoid multiple definition errors resulting from mixing
  **     template & non-template classes (1/99)
  **
- **  $Id: tListInputData.h,v 1.25 2003-11-14 17:59:28 childcvs Exp $
+ **  $Id: tListInputData.h,v 1.26 2003-11-18 15:45:59 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -63,7 +63,8 @@ protected:
     IORecord
   } IOErrorType;
   static void ReportIOError(IOErrorType t, const char *filename,
-			    const char *suffix, int n=-1);
+			    const char *suffix, int n=-1)
+    ATTRIBUTE_NORETURN ;
 };
 
 /**************************************************************************/
@@ -196,6 +197,19 @@ public:
   tListInputDataRand( const tInputFile &, tRand & );
 };
 
+/**************************************************************************/
+/**
+ **  @class tListInputDataVegetation
+ **
+ **  tListInputData reads an established random number generator state.
+ */
+/**************************************************************************/
+class tListInputDataVegetation : private tListInputDataBase
+{
+public:
+  tListInputDataVegetation( const tInputFile &);
+  tArray< double > vegCov;
+};
 
 
 

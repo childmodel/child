@@ -13,9 +13,10 @@
  **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
  **   - Remove dead code. Add findRightTime (AD 07/03)
  **   - Add Random number generator handling. (AD 08/03)
- **   - refactoring with multiple classes (AD 11/03)
+ **   - Refactoring with multiple classes (AD 11/03)
+ **   - Add tVegetation handling (AD 11/03)
  **
- **  $Id: tListInputData.cpp,v 1.23 2003-11-14 17:59:27 childcvs Exp $
+ **  $Id: tListInputData.cpp,v 1.24 2003-11-18 15:45:57 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -136,39 +137,73 @@ findRightTime( ifstream &infile, int &nn, double intime,
 
 /**************************************************************************\
  **
- **  tListInputRand::tListInputDataRand()
+ **  tListInputDataRand::tListInputDataRand()
  **
  **  Read state from file
  **
 \**************************************************************************/
 tListInputDataRand::
-tListInputDataRand( const tInputFile &infile, tRand &rand )
+tListInputDataRand( const tInputFile &inputfile, tRand &rand )
 {
   double intime;                   // desired time
   char basename[80];
 
-  // Read base name for triangulation files from infile
-  infile.ReadItem( basename, sizeof(basename), "INPUTDATAFILE" );
+  inputfile.ReadItem( basename, sizeof(basename), "INPUTDATAFILE" );
 
-  // Open each of the four files
-  ifstream randominfile;
-  openFile( randominfile, basename, SRANDOM);
+  ifstream dataInfile;
+  openFile( dataInfile, basename, SRANDOM);
 
   // Find out which time slice we want to extract
-  intime = infile.ReadItem( intime, "INPUTTIME" );
+  intime = inputfile.ReadItem( intime, "INPUTTIME" );
   if (1) //DEBUG
     cout << "intime = " << intime << endl;
 
   // Find specified input times in input data files and read # items.
- // And finally, random number generator:
-  int nrandom;
-  findRightTime( randominfile, nrandom, intime,
+  int nn;
+  findRightTime( dataInfile, nn, intime,
 		 basename, SRANDOM, "random number generator");
-  if ( rand.numberRecords() != nrandom ) {
+  if ( rand.numberRecords() != nn ) {
     cerr << "Invalid number of records for the random number generator\n";
     ReportFatalError( "Input error" );
   }
 
   // Read in data from file
-  rand.readFromFile( randominfile );
+  rand.readFromFile( dataInfile );
+}
+
+/**************************************************************************\
+ **
+ **  tListInputDataVegetation::tListInputDataVegetation()
+ **
+ **  Read state from file
+ **
+\**************************************************************************/
+tListInputDataVegetation::
+tListInputDataVegetation( const tInputFile &inputfile )
+{
+  double intime;                   // desired time
+  char basename[80];
+
+  // Read base name for triangulation files from inputfile
+  inputfile.ReadItem( basename, sizeof(basename), "INPUTDATAFILE" );
+
+  ifstream dataInfile;
+  openFile( dataInfile, basename, SVEG);
+
+  // Find out which time slice we want to extract
+  intime = inputfile.ReadItem( intime, "INPUTTIME" );
+  if (1) //DEBUG
+    cout << "intime = " << intime << endl;
+
+  // Find specified input times in input data files and read # items.
+  int nn;
+  findRightTime( dataInfile, nn, intime,
+		 basename, SVEG, "vegetation mask");
+  // Read in data from file
+  vegCov.setSize(nn);
+  for( int i=0; i<nn; ++i ){
+    dataInfile >> vegCov[i];
+    if (dataInfile.fail())
+      ReportIOError(IORecord, basename, SVEG, i);
+  }
 }

@@ -12,8 +12,9 @@
 **  vegetation cover).
 **
 **  Created January, 2000, GT
-**  
-**  $Id: tVegetation.cpp,v 1.12 2003-10-22 13:04:30 childcvs Exp $
+**  State read back from file if needed - November 2003, AD
+**
+**  $Id: tVegetation.cpp,v 1.13 2003-11-18 15:46:02 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -56,17 +57,35 @@ tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, const tInputFile &infil
    // (for now, assume constant; later need to add restart capability)
    // Note: assumes initially 100% cover.
    tMeshListIter<tLNode> niter( meshPtr->getNodeList() );
-   tLNode * cn;   
 
    // unused
    // intlVegCover = infile.ReadItem( intlVegCover, "INTLVEGCOV" );
 
-   for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
-   {
-       cn->getVegCover().mdVeg = 1.0;
+   // Initialise nodes
+   int opt;
+   if ( (opt = infile.ReadItem( opt, "OPTREADINPUT" ))
+	== OPTREADINPUT_PREVIOUS) {
+     // Start from a previous computation
+     tListInputDataVegetation inputVegData( infile );
+     const int nnodes = meshPtr->getNodeList()->getSize();
+     if (inputVegData.vegCov.getSize() != nnodes)
+       ReportFatalError( "tVegetation(): invalid number of records"
+			 " in input file." );
+     // Rely on the fact that the IDs have not been re-numbered.
+     // for fast lookup per ID
+     const tIdArray< tLNode > NodeTable(*(meshPtr->getNodeList()));
+     for( int id=0; id < nnodes; ++id )
+       NodeTable[id]->getVegCover().mdVeg = inputVegData.vegCov[id];
+     for( tLNode *cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
        cn->setTauCrit( mdTauCritBare + mdTauCritVeg );
+   } else {
+     // Start from scratch
+     for( tLNode *cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
+       {
+	 cn->getVegCover().mdVeg = 1.0;
+	 cn->setTauCrit( mdTauCritBare + mdTauCritVeg );
+       }
    }
-   
 }
 
 /**************************************************************************\
@@ -169,8 +188,5 @@ void tVegetation::GrowVegetation(  tMesh<class tLNode> *meshPtr,
       cn->setTauCrit( mdTauCritBare + veg*mdTauCritVeg );
       //cout << "tau crit: " << mdTauCritBare + veg*mdTauCritVeg << endl;
    }
-   
 }
-
-
 
