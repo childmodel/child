@@ -4,14 +4,14 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.34 1998-04-21 00:37:31 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.35 1998-04-22 22:43:59 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
 #include <math.h>
 #include "../errors/errors.h"
 #include "tLNode.h"
-#define kBugTime 500
+#define kBugTime 5000000
 
 /*************************************************************************
 **  tDeposit::tDeposit : Constructor function for tDeposit
@@ -265,7 +265,7 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
 {
   int i;
   char add, name[20];
-  double help;
+  double help, sum;
 
    cout << "tRegolith(infile)\n";
    thickness = infile.ReadItem( thickness, "REGINIT" );
@@ -277,7 +277,8 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
    if( numg>1 )
    {
      dgrade.setSize( numg+1 );
-     dgrade[0]=0;
+     dgrade[0]=dpth;
+     sum = 0;
      i=1;
      add='1';
      while ( i<=numg ){
@@ -285,9 +286,13 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
        strcat( name, &add ); 
        help = infile.ReadItem( help, name);
        dgrade[i] = help*dpth;
+       sum += dgrade[i];
        i++;
        add++;
      }
+     if(fabs(sum-dgrade[0])>0.01)
+         ReportFatalError("Problem with the proportion of grain sizes in input file");
+     
      //if( grade.getSize()<2 ){
        grade.setSize( numg+1 );
        grade[0]=0;
@@ -927,6 +932,11 @@ void tLNode::setAlluvThickness( double val )
 
 double tLNode::getAlluvThickness() const {return reg.thickness;}
 
+tArray< double >
+tLNode::getAlluvThicknessm( ) const 
+{
+   return reg.dgrade;
+}
 
 void tLNode::setVegErody( double val )
 {surf.vegerody = ( val >= 0.0 ) ? val : 0.0;}
@@ -945,16 +955,49 @@ int tLNode::getReachMember() const {return chan.migration.reachmember;}
 
 void tLNode::setQs( double val ) {qs = val;}
 
+void tLNode::setQs( int i, double val ) 
+{
+   if(i>reg.numg+1)
+       ReportFatalError( "Trying to index sediment sizes that don't exist ");
+   qsm[i] = val;
+}
+
 double tLNode::getQs() const {return qs;}
 
+tArray< double >
+tLNode::getQsm( ) const
+{
+   return qsm;
+}
+
 void tLNode::setQsin( double val ) {qsin = val;}
+
+void tLNode::setQsin( int i, double val ) 
+{
+   if(i>reg.numg+1)
+       ReportFatalError( "Trying to index sediment sizes that don't exist ");
+   qsm[i]=val;
+}
 
 void tLNode::AddQsin( double val ) 
 {
    qsin += val;
 }
 
+void tLNode::AddQsinm( tArray< double > val )
+{
+   int i;
+   for(i=0; i<=val.getSize(); i++)
+       qsinm[i] += val[i];
+}
+
 double tLNode::getQsin() const {return qsin;}
+
+tArray< double >
+tLNode::getQsinm( ) const
+{
+   return qsinm;
+}
 
 void tLNode::setDzDt( double val ) {dzdt = val;}
 
