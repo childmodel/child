@@ -9,12 +9,68 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.16 1998-04-29 21:40:31 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.17 1998-05-08 16:39:42 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
 #include <math.h>
 #include "gridElements.h"
+
+//global fns:
+//  FindIntersectionCoords: finds and returns intersection of line segments
+//   defined by endpoints given as arguments; 1st seg. endpts are xy1, xy2;
+//   2nd seg. endpts are xy3, xy4
+tArray< double > FindIntersectionCoords( tArray< double > xy1,
+                                         tArray< double > xy2,
+                                         tArray< double > xy3,
+                                         tArray< double > xy4 )
+{
+   double dxa, dxb, dya, dyb, a, b, c, f, g, h, x, y;
+   tArray< double > intxy(2);
+   dxa = xy2[0] - xy1[0];
+   dxb = xy4[0] - xy3[0];
+   dya = xy2[1] - xy1[1];
+   dyb = xy4[1] - xy3[1];
+   a = dya;
+   b = -dxa;
+   c = dxa * xy1[1] - dya * xy1[0];
+   f = dyb;
+   g = -dxb;
+   h = dxb * xy3[1] - dyb * xy4[0];
+   if( fabs(dxa) > 0 && fabs(dxb) > 0 )
+   {
+      if( fabs(f - g * a / b) > 0 )
+      {
+         intxy[0] = (g * c / b - h) / (f - g * a / b);
+         intxy[1] = (-c - a * intxy[0]) / b;
+      }
+   }
+   else
+   {
+      if( fabs(dya) > 0 && fabs(dyb) > 0 )
+      {
+         if( fabs(g - f * b / a) > 0 )
+         {
+            intxy[1] = (f * c / a - h) / (g - f * b / a);
+            intxy[0] = (-c - b * intxy[1]) / a;
+         }
+      }
+      else //one horiz. line and one vert. line:
+      {
+         if( fabs(dya) == 0 )
+         {
+            intxy[0] = xy3[0];
+            intxy[1] = xy1[1];
+         }
+         else
+         {
+            intxy[0] = xy1[0];
+            intxy[1] = xy3[1];
+         }
+      }
+   }
+   return intxy;
+}
 
 //default constructor
 tNode::tNode()                                                      //tNode
@@ -303,6 +359,18 @@ tEdge *tNode::EdgToNod( tNode * nod )
 **  TODO: for speed, return to triangle-based method of computing nodes.
 **        (could save space too by only storing VVert in tri's not edges)
 **
+**  5/7/98, SL: Found a bug in this procedure that requires a not-so-simple
+**  fix. When a migrating node approaches the boundary, part of its calculated
+**  Voronoi area may lie outside the grid domain. The area can even blow up
+**  if the migrating node comes very close to the boundary.
+**
+**  If spokes connect to boundary nodes, find which side of the edge connecting
+**  those boundary nodes the node in question falls on, and make sure all
+**  Voronoi vertices fall on the same side. If not, find intersections of
+**  Voronoi edges with the boundary edge and put those intersections in vertex
+**  list when calculating Vor. areas. To implement this, put in a list of
+**  vertex coordinates from which the area will finally be calculated.
+**
 \*****************************************************************************/
 double tNode::ComputeVoronoiArea()
 {
@@ -320,7 +388,9 @@ double tNode::ComputeVoronoiArea()
    tPtrList< tEdge > vedgList /*= spokeList*/;
    tPtrListIter< tEdge > //spokIter( spokeList ),
        vtxIter( vedgList );
-   tArray< double > xy, xyn, xynn, xynnn, xy1, xy2;
+   tList< tArray< double > > vcL; // list of vertex coordinates
+   tListIter< tArray< double > > vcI( vcL ); // iterator for coord list
+   tArray< double > xy, xyn, xynn, xynnn, xy1, xy2, xy3, xy4;
    int i;
 
    /*for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
@@ -459,18 +529,57 @@ double tNode::ComputeVoronoiArea()
          }
       } while( cw ); //while we're still finding loops in the polygon
 
+      //Before the next step, make a list of V. vertex coord. arrays.
+      //In doing so, check for parts of the V. area lying outside the
+      //grid domain and cut them off by substituting coordinates of
+      //two intersections of V. edges with boundary edge for the V.
+      //vertex lying outside the boundary. This should take care of any
+      //outlying area as long as all boundaries are convex.
+      // Go through spokes and put RVtx of ccw edge in coord list, but
+      // first check that the vtx lies within the bndies
+      tEdge *ne, *nne;
+      tNode *bn0, *bn1;
+      for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
+      {
+         ne = ce->GetCCWEdg();
+         bn0 = ce->getDestinationPtrNC();
+         bn1 = ne->getDestinationPtrNC();
+         xy1 = ne->getRVtx();
+         xy2 = bn0->get2DCoords();
+         xy3 = bn1->get2DCoords();
+         //checking polygon edge is on boundary and ccw edge's RVtx is on
+         //wrong side of bndy edge...
+         if( ce->getBoundaryFlag() && ne->getBoundaryFlag() &&
+             !PointsCCW( xy1, xy2, xy3 ) )
+         {
+            //"cut off" portion of V. area outside bndy by finding intersections
+            //of V. edges and bndy edge:
+            xy = FindIntersectionCoords( ce->getRVtx(), xy1, xy2, xy3 );
+            vcL.insertAtBack( xy );
+            nne = ne->GetCCWEdg();
+            xy = FindIntersectionCoords( xy1, nne->getRVtx(), xy2, xy3 );
+            vcL.insertAtBack( xy );
+         }
+         else
+         {
+            vcL.insertAtBack( xy1 );
+         }
+      }
+      
       // Now that we've found the correct vertices, make triangles to
       // fill the polygon; the sum of the tri areas is the v. area.
       // For a convex polygon, we can compute the total area as the
       // sum of the area of triangles [P(1) P(i) P(i+1)] for i=2,3...N-1.
       //cout << "find polygon area" << endl << flush;
-      ce = vtxIter.FirstP();
-      xy = ce->getRVtx(); // coords of first vertex
-      int nverts = vedgList.getSize(); // Find out # of vertices in polygon
+      // coords of first vertex:
+      xy = *(vcI.FirstP()); //ce = vtxIter.FirstP();
+      //xy = ce->getRVtx(); 
+      // Find out # of vertices in polygon:
+      int nverts = vcL.getSize(); //vedgList.getSize(); 
       for( i=2; i<=nverts-1; i++ )
       {
-         xyn = vtxIter.NextP()->getRVtx();        // Vertex i
-         xynn = vtxIter.ReportNextP()->getRVtx(); // Vertex i+1
+         xyn = *(vcI.NextP()); //xyn = vtxIter.NextP()->getRVtx();// Vertex i
+         xynn = *(vcI.NextP());//vtxIter.ReportNextP()->getRVtx(); // Vertex i+1
          dx = xyn[0] - xy[0];
          dy = xyn[1] - xy[1];
          a = sqrt( dx*dx + dy*dy );
@@ -483,6 +592,7 @@ double tNode::ComputeVoronoiArea()
            //cout<<"V_a 3: a "<<a<<", b "<<b<<", c "<<c<<endl<<flush;
          area += 0.25*sqrt( 4*a*a*b*b -
                             (c*c - (b*b + a*a))*(c*c - (b*b + a*a)));
+         vcI.Prev();
       }
    }
    varea = area;
