@@ -3,7 +3,7 @@
 **  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
 **                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.10 1998-04-29 20:39:25 gtucker Exp $
+**  $Id: tPtrList.cpp,v 1.11 1998-09-23 21:41:30 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tPtrList.h"
@@ -148,7 +148,7 @@ tPtrList< NodeType >::
 {
    if( !isEmpty() )
    {
-        //cout<<"Destroying nodes ... "<<endl;
+      //cout<<"Destroying nodes ... "<<endl;
       tPtrListNode<NodeType > * current = first, * temp;
       first = 0;
       while( last != 0 )
