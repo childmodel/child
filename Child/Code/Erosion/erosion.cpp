@@ -43,7 +43,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.102 2002-07-26 10:29:31 gtucker Exp $
+**  $Id: erosion.cpp,v 1.103 2002-07-26 11:30:31 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -877,7 +877,7 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node, int lyr, double weight )
 \***************************************************************************/
 tSedTransBridgeDom::tSedTransBridgeDom( tInputFile &infile )
 {
-   double secPerYear = 365.25*24*3600.0;  // # secs in one year
+   const double secPerYear = SECPERYEAR;  // # secs in one year
 
    kf = infile.ReadItem( kf, "KF" );
    kt = infile.ReadItem( kt, "KT" );
@@ -1001,7 +1001,7 @@ tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
    const double thetac = 0.045,
      sig = RHOSED,
      rho = RHO,
-     g =GRAV;
+     g = GRAV;
    for( i=0; i<miNumgrnsizes; i++ )
      {
        /*tagline = taglinebase + digits.substr(i,i);
