@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.50 1998-09-10 19:21:06 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.51 1998-12-02 14:08:02 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -364,6 +364,10 @@ void tStreamNet::CheckNetConsistency()
          cerr << "NODE #" << cn->getID() << " has no downstrm nbr\n";
          goto error;
       }
+      if( dn->getID() == cn->getID() ){
+         cerr<< "NODE #" << cn->getID() << " flows to itself!\n";
+         goto error;
+      }
       if( ln = tI.GetP( dn->getID() ) )
       {
          if( ln != dn )
@@ -651,6 +655,7 @@ void tStreamNet::FlowDirs()
    double slp;        // steepest slope found so far
    tLNode *curnode;  // ptr to the current node
    tLNode *newnode;  // ptr to new downstream node
+   const tNode *tempnode;  // temporary node for testing purposes
    tEdge * firstedg; // ptr to first edg
    tEdge * curedg;   // pointer to current edge
    tEdge * nbredg;   // steepest neighbouring edge so far
@@ -659,7 +664,7 @@ void tStreamNet::FlowDirs()
    int ctr;
    
 //#if TRACKFNS
-   cout << "FlowDirs" << endl;
+   //cout << "FlowDirs" << endl;
 //#endif
 
    //int redo = 1;
@@ -679,14 +684,13 @@ void tStreamNet::FlowDirs()
          slp = firstedg->getSlope();
          nbredg = firstedg;
          curedg = firstedg->getCCWEdg();
-         ctr = 0;
+         ctr = 0;         
          
          // Check each of the various "spokes", stopping when we've gotten
          // back to the beginning
          while( curedg!=firstedg )
          {
-            if( curedg->getDestinationPtrNC()==curnode )
-                cout << "MAJOR PROBLEMS!!!\n";
+            tempnode=curedg->getOriginPtr();
             assert( curedg > 0 );
             if ( curedg->getSlope() > slp && curedg->FlowAllowed() )
             {
@@ -702,7 +706,8 @@ void tStreamNet::FlowDirs()
                     << endl;
                ReportFatalError( "Bailing out of FlowDirs()" );
             }
-         }
+         }         
+
      //add a wrinkle: if node is a meander node and presently flows
      //to another meander node and the new 'nbredg' does not lead to a
      //meander node, then choose a random number and
@@ -733,11 +738,19 @@ void tStreamNet::FlowDirs()
                break;
             }
          }*/
-         curnode->setFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
+         //Nicole changed the line below which is commented out, replaced
+         //it with the new if because of the new function WarnSpokeLeaving
+         //which can set a node as a boundary node.
+         //curnode->setFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
+         if( (slp>0) && (curnode->getBoundaryFlag() != kClosedBoundary) )
+             curnode->setFloodStatus( kNotFlooded );
+         else
+             curnode->setFloodStatus( kSink );
         
          curnode = i.NextP();
-
+         
       }
+      
       //}
    //cout << "FlowDirs() finished" << endl << flush;
   
@@ -1313,7 +1326,7 @@ void tStreamNet::FillLakes()
                         cln->setFloodStatus( kOutletPreFlag );
                         cln->setFlowEdg( ce );
                         //cout << "Node " << cln->getID() << " flows to "
-                        //     << cln->getDownstrmNbr()->getID() << endl;
+                        //<< cln->getDownstrmNbr()->getID() << endl;
                         
                      }
                   } while( cln->getFloodStatus() != kOutletFlag
@@ -1415,8 +1428,8 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node )
          // Assign the new max slope and set the flow edge accordingly
          maxslp = ce->getSlope();
          node->setFlowEdg( ce );
-         //cout << "Node " << node->getID() << " flows to "
-         //     << node->getDownstrmNbr()->getID() << endl;
+         // cout << "Node " << node->getID() << " flows to "
+         //      << node->getDownstrmNbr()->getID() << endl;
       }
    } while( ( ce=ce->getCCWEdg() ) != node->getEdg() );
    
@@ -1679,6 +1692,7 @@ void tStreamNet::FindChanGeom()
 **
 \**************************************************************************/
 tInlet::tInlet()
+        :inSedLoadm()
 {
    innode = 0;
    inDrArea = 0;
@@ -1730,16 +1744,17 @@ tInlet::tInlet( tGrid< tLNode > *gPtr, tInputFile &infile )
       if(numg <= 1)
           inSedLoad = infile.ReadItem( inSedLoad, "INSEDLOAD" );
       else{
-         inSedLoadm.setSize(numg+1);
-         inSedLoadm[0]=0.0;
+         inSedLoadm.setSize(numg);
+         inSedLoad=0.0;
          i=1;
          end='1';
          while( i<=numg ){
             strcpy( name, "INSEDLOAD");
             strcat( name, &end ); 
             help = infile.ReadItem( help, name);
-            inSedLoadm[i] = help;
-            inSedLoadm[0] += help;
+            inSedLoadm[i-1] = help;
+            inSedLoad += help;
+            cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i-1]<<endl;
             i++;
             end++;
          }
@@ -1794,38 +1809,42 @@ tInlet::tInlet( tGrid< tLNode > *gPtr, tInputFile &infile )
             innode = cn;
          }*/
       }
+      
       if( add ) // fix here:
       {
-         // NOTE: this leads to a new bug, as yet unfixed. For unknown
-         // reasons, the dgrade array of the top layer of closestNode becomes
-         // corrupted, but apparently not until after this routine... so it's
-         // an indirect effect. I suspect the problem lies in the copy
-         // constructor (or lack of one) in one of component objects that
-         // are being copied: tLNode -> tRegolith -> layerlist -> dgrade arr?
          cout << "ADDING INLET: Closest node is:" << endl;
          closestNode->TellAll();
-         cout << "DGRADE BEFORE: " << closestNode->getLayerDgrade(0,0);
-         tLNode newnode( *closestNode );
+         //BE AWARE
+         //The following commented line caused many problems for the code:
+         //tLNode newnode( *closestNode );
+         //This did not call the copy constructor which was created for 
+         //tLNode.  Most likely it called some default copy constructor
+         //which could not handle copying of user created classes.
+         //This created errors in the closestNode's layerlist.
+         //The following calls the correct copy constructor.
+         tLNode *newnode = new tLNode( *closestNode );
          cout << " DGRADE AFTER: " << closestNode->getLayerDgrade(0,0) << endl << flush;
-         newnode.setZ( zin / suminvdist );
-         newnode.setX( xin );
-         newnode.setY( yin );
+         newnode->setZ( zin / suminvdist );
+         newnode->setX( xin );
+         newnode->setY( yin );
          //zin = zin / suminvdist;
          //xyz[0] = xin;
          //xyz[1] = yin;
          //xyz[2] = zin;
          //innode = gridPtr->AddNodeAt( xyz );
-         innode = gridPtr->AddNode( newnode );
-         cout << " DGRADE AFTER AFTER: " << closestNode->getLayerDgrade(0,0) << endl << flush;
+         innode = gridPtr->AddNode( *newnode );
          cout << "INLET NODE IS:\n";
          innode->TellAll();
+         //Don't delet newnode because it is now part of the grid list
       }
    }
+   
    else
    {
       inDrArea = 0;
       innode = 0;
    }
+
 }
 
 tInlet::~tInlet()
@@ -1935,7 +1954,7 @@ double tInlet::getInSedLoad() const {return inSedLoad;}
 
 double tInlet::getInSedLoad( int i )  
 {
-   if(i>inSedLoadm.getSize()-1)
+   if(i>=inSedLoadm.getSize())
         ReportFatalError( "Trying to set size in sediment load that doesn't exist");
    return inSedLoadm[i];
 }
@@ -1951,7 +1970,7 @@ tInlet::getInSedLoadm( ) const
 void tInlet::setInSedLoad( double val ) {inSedLoad = ( val > 0.0 ) ? val : 0.0;}
 void tInlet::setInSedLoad( int i, double val )
 {
-   if(i>inSedLoadm.getSize()-1)
+   if(i>=inSedLoadm.getSize())
         ReportFatalError( "Trying to set size in sediment load that doesn't exist");
    inSedLoadm[i]=val;
 }
