@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.44 2004-03-24 14:44:28 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.45 2004-03-24 14:47:02 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -1309,7 +1309,7 @@ NextIsNotFirst() const
  **  data pointer, or 0 if first/last item is empty.
  **
 \**************************************************************************/
-template< class NodeType >        //tListIter
+template< class NodeType >
 inline NodeType * tPtrListIter< NodeType >::
 FirstP()
 {
@@ -1317,7 +1317,7 @@ FirstP()
     curptrnode->Ptr : 0;
 }
 
-template< class NodeType >        //tListIter
+template< class NodeType >
 inline NodeType * tPtrListIter< NodeType >::
 LastP()
 {
