@@ -9,7 +9,7 @@
 **       constructor to implement dynamic node addition in regions of
 **       high drainage area (ie, main channels; see below) GT
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.70 2000-04-25 16:56:14 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.71 2001-09-24 03:49:35 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -180,15 +180,22 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    klambda = infile.ReadItem( klambda, "BANK_ROUGH_COEFF" );
    elambda = infile.ReadItem( elambda, "BANK_ROUGH_EXP" );
 
-   // Option for 2D kinematic-wave overland flow routing
-   int optKinWave = infile.ReadItem( optKinWave, "OPTKINWAVE" );
-   if( optKinWave )
+   // Options for flow routing:
+   //  1 = normal discharge-area method
+   //  2 = steady 2D kinematic wave
+   //  3 = variable storm duration method
+   int optRouteFlow = infile.ReadItem( optKinWave, "OPTROUTEFLOW" );
+   if( optRouteFlow == 2 )
    {
        mdKinWaveExp = infile.ReadItem( mdKinWaveExp, "KINWAVE_HQEXP" );
        mdKinWaveRough = knds * kYearpersec;
        cout << "mdKinWaveRough " << mdKinWaveRough << endl;
    }
    else mdKinWaveExp = mdKinWaveRough = 0.0;
+   if( optRouteFlow == 3 )
+     {
+       cout << "Option for variable storm duration chosen\n";
+     }
 
    // Option for adaptive meshing related to drainage area
    int optMeshAdapt = infile.ReadItem( optMeshAdapt, "OPTMESHADAPTAREA" );
@@ -834,6 +841,58 @@ void tStreamNet::DrainAreaVoronoi()
 
 /*****************************************************************************\
 **
+**  tStreamNet::FlowPathLength
+**
+**  Computes the longest flow path length from divide to a node, for each
+**  node on the mesh. This is used to approximate peak discharge.
+**
+\*****************************************************************************/
+void tStreamNet::FlowPathLength()
+{
+  // Local variables
+  tLNode * curnode,    // Pointer to the current node
+    * downstreamNode;  // Pointer to current node's downstream neighbor
+  double localPathLength;  // Potential flow path length to downstream nbr
+
+  // Get list of nodes and node iterator
+  tMeshListIter<tLNode> nodeIter( meshPtr->getNodeList() );
+
+  // Sort nodes in upstream-to-downstream order
+  SortNodesByNetOrder( 0 );
+
+  // Reset all flow path lengths to zero
+  for( curnode = nodeIter.FirstP(); nodeIter.IsActive(); 
+       curnode = nodeIter.NextP() )
+    curnode->setFlowPathLength( 0.0 );
+
+  // Work through all active nodes, from upstream to downstream, setting
+  // the flow path length of each node's downstream neighbor to the 
+  // maximum of (a) the current node's flow path length plus the length of
+  // the flow edge, or (b) the downstream node's existing flow path length.
+  for( curnode = nodeIter.FirstP(); nodeIter.IsActive(); 
+       curnode = nodeIter.NextP() )
+    {
+      // Compute "local" flow path length to the downstream neighbor --
+      // equal to flow path length at the current node plus the length of
+      // the edge connecting current node to its downstream neighbor
+      localPathLength = curnode->getFlowPathLength()
+	+ ( curnode->getFlowEdg() )->getLength();
+
+      // Get a pointer to the downstream neighbor
+      downstreamNode = curnode->getDownstrmNbr();
+
+      // Compare the local flow path length to the downstream neighbor's
+      // current value of flow path length, which might have been set via
+      // another of its upstream nodes -- if the "local" route is longer,
+      // set downstream's flow path length to localPathLength.
+      if( localPathLength > downstreamNode->getFlowPathLength() )
+	downstreamNode->setFlowPathLength( localPathLength );
+    }
+
+}
+
+/*****************************************************************************\
+**
 **  tStreamNet::RouteFlowArea
 **
 **  Starting with the current node, this routine increments 
@@ -988,6 +1047,9 @@ void tStreamNet::FlowUniform()
    }
    //cout << "FlowUniform finished" << endl;
 }
+
+
+
 
 
 /*****************************************************************************\
