@@ -21,7 +21,7 @@
 **
 **  Created by Greg Tucker, November 1997.
 **
-**  $Id: tStorm.h,v 1.15 1999-05-06 21:05:45 gtucker Exp $
+**  $Id: tStorm.h,v 1.16 2000-02-02 23:14:35 nmgaspar Exp $
 \**************************************************************************/
 
 #ifndef TSTORM_H
@@ -35,9 +35,9 @@ class tStorm
 {
 public:
     tStorm( int optVariable=1 );
-    tStorm( double, double, double, unsigned, int optvar=1 );
+    tStorm( double, double, double, unsigned, int optvar=1, double et=9999999999 );
     tStorm( tInputFile & );
-    void  GenerateStorm( double tm, double minp=0.0, double mind=0.0 );
+    void  GenerateStorm( double tm, double minp=0.0, double mind=0.0);
     double getStormDuration();
     double interstormDur();
     double getRainrate();
@@ -66,6 +66,8 @@ private:
     double istdurdev;
     double twoPiLam;   // Parameter for sinusoidal variation: 2pi / period
     long  seed;        // Random seed
+   double endtm;       // The end time of the run, just in case a big enough 
+                       // storm is never generated
 };
 
 

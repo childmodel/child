@@ -9,7 +9,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.15 2000-01-06 21:44:02 nmgaspar Exp $
+**  $Id: tStorm.cpp,v 1.16 2000-02-02 23:14:27 nmgaspar Exp $
 \**************************************************************************/
 
 
@@ -38,6 +38,7 @@ tStorm::tStorm( int optvar )
    p = 1.0;
    stdur = 1.0;
    istdur = 1.0;
+   endtm = 999999999999999;
    //srand( 0 );
 }
 
@@ -52,7 +53,7 @@ tStorm::tStorm( int optvar )
 **                   variation in means).
 **
 \**************************************************************************/
-tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar )
+tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar, double et )
 {
    optVariable = optvar;
    optSinVar = 0;
@@ -63,6 +64,7 @@ tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar )
    stdur = stdurMean;
    istdur = istdurMean;
    seed = sd;
+   endtm = et;
    //srand( seed );
 }
 
@@ -93,6 +95,17 @@ tStorm::tStorm( tInputFile &infile )
    p = pMean;
    stdur = stdurMean;
    istdur = istdurMean;
+
+
+   endtm = infile.ReadItem( endtm, "RUNTIME" );
+   double help;
+
+   help = infile.ReadItem( help, "OPTREADINPUT" );
+   if(help>0){
+      help = infile.ReadItem( help, "INPUTTIME" );
+      endtm += help;
+   }
+
 
    // Handle option for sinuidoil variation in means
    optSinVar = infile.ReadItem( optSinVar, "OPTSINVAR" );
@@ -139,6 +152,8 @@ tStorm::tStorm( tInputFile &infile )
 **
 **  Modifications:
 **   - changed AND to OR in while loop, GT 5/99
+**   - added to while loop an additional check to see if time has run out,
+**     NG 2/00
 **
 \**************************************************************************/
 void tStorm::GenerateStorm( double tm, double minp, double mind )
@@ -150,7 +165,7 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
    {
       double sinfn = sin( tm*twoPiLam );
       pMean = p0 + pdev*sinfn;
-      cout << "pMean = " << pMean << endl;
+      //cout << "pMean = " << pMean << endl;
       stdurMean = stdur0 + stdurdev*sinfn;
       istdurMean = istdur0 + istdurdev*sinfn;
       p = pMean;
@@ -171,10 +186,11 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
          p = pMean*ExpDev( &seed );
          istdur += istdurMean*ExpDev( &seed ) + stdur;
          stdur = stdurMean*ExpDev( &seed );
-         /*cout << "P " << p << "  ST " << stdur << "  IST " << istdur
-              << "  DP " << p*stdur << endl;*/
+         //cout << "P " << p << "  ST " << stdur << "  IST " << istdur
+         //     << "  DP " << p*stdur << " minp " << minp << " mind " <<mind <<
+         //            endl;
          //srand( seed );
-      } while( p<=minp || (p*stdur)<=mind );
+      } while( (p<=minp || (p*stdur)<=mind) && (tm+istdur+stdur<endtm) );
    }
 }
 
