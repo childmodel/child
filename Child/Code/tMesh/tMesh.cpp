@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.116 2002-12-12 13:50:24 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.117 2002-12-12 15:54:43 childcvs Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -4014,10 +4014,12 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    if( updatemesh ) UpdateMesh();
    //cout << "AddNode finished" << endl;
 
+#if 0
    tEdge *ce, *fe;
    //fe = node2->getFlowEdg(); GT changed to Edg 'cus was crashing
    fe = node2->getEdg();
    ce = fe;
+#endif
 
    //Xint hlp=0;
    //do{
