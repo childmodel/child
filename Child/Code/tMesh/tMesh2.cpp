@@ -239,9 +239,9 @@ BuildDelaunayMeshTipper()
 	 else
 	   {
 	     edgeList.insertAtBack( tempedge1 );
-	     tEdge *e1 = edgeList.getLast()->getDataPtrNC();
+	     tEdge *e1 = edgeList.getLastNC()->getDataPtrNC();
 	     edgeList.insertAtBack( tempedge2 );
-	     tEdge *e2 = edgeList.getLast()->getDataPtrNC();
+	     tEdge *e2 = edgeList.getLastNC()->getDataPtrNC();
 	     e1->setComplementEdge(e2);
 	     e2->setComplementEdge(e1);
 	   }

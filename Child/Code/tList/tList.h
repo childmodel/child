@@ -34,7 +34,7 @@
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **    - AD - March 2004: tListNode is a template argument.
  **
- **  $Id: tList.h,v 1.55 2004-04-19 12:11:29 childcvs Exp $
+ **  $Id: tList.h,v 1.56 2004-04-19 13:33:37 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -529,8 +529,10 @@ public:
   void print() const;  // prints contents of list - DEBUG ONLY
 #endif
   inline int getSize() const; // returns # of items on list
-  inline ListNodeType * getFirst() const; // returns ptr to 1st list node
-  inline ListNodeType * getLast() const;  // returns ptr to last list node
+  inline ListNodeType const * getFirst() const; // returns ptr to 1st list node
+  inline ListNodeType const * getLast() const;  // returns ptr to last list node
+  inline ListNodeType * getFirstNC(); // returns ptr to 1st list node
+  inline ListNodeType * getLastNC();  // returns ptr to last list node
   inline NodeType * FirstP();  // returns ptr to 1st data item & sets current to 1st
   inline NodeType * NextP();   // moves to next node and returns ptr to data item
   inline void moveToBack( ListNodeType *  );  // move given node to back
@@ -988,12 +990,20 @@ inline int tList< NodeType, ListNodeType >::
 getSize() const {return nNodes;}
 
 template< class NodeType, class ListNodeType >
-inline ListNodeType * tList< NodeType, ListNodeType >::
+inline ListNodeType const * tList< NodeType, ListNodeType >::
 getFirst() const {return first;}
 
 template< class NodeType, class ListNodeType >
-inline ListNodeType * tList< NodeType, ListNodeType >::
+inline ListNodeType const * tList< NodeType, ListNodeType >::
 getLast() const {return last;}
+
+template< class NodeType, class ListNodeType >
+inline ListNodeType * tList< NodeType, ListNodeType >::
+getFirstNC() {return first;}
+
+template< class NodeType, class ListNodeType >
+inline ListNodeType * tList< NodeType, ListNodeType >::
+getLastNC() {return last;}
 
 // Added by gt 1/99
 template< class NodeType, class ListNodeType >

@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.208 2004-04-19 12:09:45 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.209 2004-04-19 13:33:38 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -559,9 +559,9 @@ MakeMeshFromInputData( const tInputFile &infile )
 	   else
 	     {
 	       edgeList.insertAtBack( tempedge1 );
-	       tEdge *e1 = edgeList.getLast()->getDataPtrNC();
+	       tEdge *e1 = edgeList.getLastNC()->getDataPtrNC();
 	       edgeList.insertAtBack( tempedge2 );
-	       tEdge *e2 = edgeList.getLast()->getDataPtrNC();
+	       tEdge *e2 = edgeList.getLastNC()->getDataPtrNC();
 	       e1->setComplementEdge(e2);
 	       e2->setComplementEdge(e1);
 	     }
@@ -3357,9 +3357,9 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode const *node3 )
      else
        {
 	 edgeList.insertAtBack( tempEdge1 );        //put edge1 in list
-	 tEdge *e1 = edgeList.getLast()->getDataPtrNC();
+	 tEdge *e1 = edgeList.getLastNC()->getDataPtrNC();
 	 edgeList.insertAtBack( tempEdge2 );        //put edge2 in list
-	 tEdge *e2 = edgeList.getLast()->getDataPtrNC();
+	 tEdge *e2 = edgeList.getLastNC()->getDataPtrNC();
 	 e1->setComplementEdge(e2);
 	 e2->setComplementEdge(e1);
 	 nle = e1;
