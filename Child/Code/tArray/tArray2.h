@@ -11,7 +11,7 @@
  **
  **  Arnaud Desitter - April 2004
  **
- **  $Id: tArray2.h,v 1.2 2004-06-16 13:37:30 childcvs Exp $
+ **  $Id: tArray2.h,v 1.3 2004-07-15 14:08:27 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -33,7 +33,7 @@
 template< class T >
 class tArray2
 {
-  void fatalReport( unsigned int ) const ATTRIBUTE_NORETURN; // bail out
+  static void fatalReport( unsigned char ) ATTRIBUTE_NORETURN; // bail out
 public:
   inline tArray2();                      // default constructor
   inline tArray2( const tArray2< T > & ); // copy constructor
@@ -45,11 +45,11 @@ public:
   inline bool operator!=( const tArray2< T > & ) const;    // memberwise comparison
 private:
   // Do not use them (too slow) !
-  inline T &operator[]( unsigned int );   // overloaded array index operator
-  inline const T &operator[]( unsigned int ) const;
+  inline T &operator[]( unsigned char );   // overloaded array index operator
+  inline const T &operator[]( unsigned char ) const;
 public:
-  inline T & at( unsigned int );
-  inline const T & at( unsigned int ) const;
+  inline T & at( unsigned char );
+  inline const T & at( unsigned char ) const;
   inline T *getArrayPtr();   // returns the actual array; needed for passing
   // to fortran.
   inline const T *getArrayPtr() const; // returns the actual array
@@ -132,7 +132,7 @@ inline bool tArray2< T >::operator!=( const tArray2< T > &right ) const
 
 //overloaded subscript operator:
 template< class T >
-inline T &tArray2< T >::operator[]( unsigned int subscript )
+inline T &tArray2< T >::operator[]( unsigned char subscript )
 {
   if ( unlikely(subscript >= 2) )
     fatalReport( subscript );
@@ -140,7 +140,7 @@ inline T &tArray2< T >::operator[]( unsigned int subscript )
 }
 
 template< class T >
-inline const T &tArray2< T >::operator[]( unsigned int subscript ) const
+inline const T &tArray2< T >::operator[]( unsigned char subscript ) const
 {
   if ( unlikely(subscript >= 2) )
     fatalReport( subscript );
@@ -149,19 +149,19 @@ inline const T &tArray2< T >::operator[]( unsigned int subscript ) const
 
 // likewise with no check
 template< class T >
-inline T &tArray2< T >::at( unsigned int subscript )
+inline T &tArray2< T >::at( unsigned char subscript )
 {
   return avalue[subscript];
 }
 
 template< class T >
-inline const T &tArray2< T >::at( unsigned int subscript ) const
+inline const T &tArray2< T >::at( unsigned char subscript ) const
 {
   return avalue[subscript];
 }
 
 template< class T >
-void tArray2< T >::fatalReport( unsigned int subscript ) const
+void tArray2< T >::fatalReport( unsigned char subscript )
 {
   std::cout << "subscript is " << subscript << " > 2" <<std::endl;
   ReportFatalError( "Subscript out of range." );
