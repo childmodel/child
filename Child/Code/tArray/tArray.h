@@ -13,7 +13,7 @@
  **  argument passed to the constructor or by assignment of one array
  **  to another.
  **
- **  $Id: tArray.h,v 1.22 2003-08-08 12:07:01 childcvs Exp $
+ **  $Id: tArray.h,v 1.23 2003-09-01 13:02:31 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -69,6 +69,93 @@ private:
 
 template< class T >
 ostream &operator<<( ostream &output, const tArray< T > &a );
+
+
+/**************************************************************************\
+ **
+ **  Constructors & destructors:
+ **
+ **  (1) default constructor - sets size to zero and pointer to null
+ **  (2) creates an array of specified size and initializes values to zero
+ **  (3) copy constructor - makes copy; assumes original array not empty
+ **
+ **  Destructor deletes the array elements.
+ **
+\**************************************************************************/
+//default constructor
+template< class T >
+inline tArray< T >::
+tArray() :
+  npts(1), avalue(0)
+{
+  avalue = new T [1];
+  avalue[0] = 0;
+}
+
+//specialized constructors
+template< class T >
+inline tArray< T >::
+tArray( const T& e1, const T& e2 ) :
+  npts(2), avalue(0)
+{
+  avalue = new T [2];
+  avalue[0] = e1;
+  avalue[1] = e2;
+}
+
+template< class T >
+inline tArray< T >::
+tArray( const T& e1, const T& e2, const T& e3 ) :
+  npts(3), avalue(0)
+{
+  avalue = new T [3];
+  avalue[0] = e1;
+  avalue[1] = e2;
+  avalue[2] = e3;
+}
+
+template< class T >
+inline tArray< T >::
+~tArray()
+{
+  delete [] avalue;
+}
+
+/**************************************************************************\
+ **  Overloaded operators:
+ **
+ **    index - uses an assertion to check array bounds (assumed to be within
+ **           bounds at runtime) and returns value
+ **
+\**************************************************************************/
+//overloaded subscript operator:
+template< class T >
+inline T &tArray< T >::operator[]( int subscript )
+{
+  if ( unlikely(0 > subscript || subscript >= npts) )
+    fatalReport( subscript );
+  return avalue[subscript];
+}
+
+template< class T >
+inline const T &tArray< T >::operator[]( int subscript ) const
+{
+  if ( unlikely(0 > subscript || subscript >= npts) )
+    fatalReport( subscript );
+  return avalue[subscript];
+}
+
+/**************************************************************************\
+ **  getArrayPtr: returns a pointer to the head of the array (needed for
+ **               passing arrays to Fortran routines)
+\**************************************************************************/
+template< class T >
+inline T *tArray< T >::
+getArrayPtr() {return avalue;}
+
+template< class T >
+inline const T *tArray< T >::
+getArrayPtr() const {return avalue;}
 
 /*
 ** The following is designed to allow for compiling under the Borland-style

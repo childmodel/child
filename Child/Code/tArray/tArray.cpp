@@ -3,7 +3,7 @@
  **  @file tArray.cpp
  **  @brief Functions for template class tArray< T >
  **
- **  $Id: tArray.cpp,v 1.22 2003-08-12 13:30:29 childcvs Exp $
+ **  $Id: tArray.cpp,v 1.23 2003-09-01 13:02:28 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -28,16 +28,6 @@ using namespace std;
  **  Destructor deletes the array elements.
  **
 \**************************************************************************/
-
-//default constructor
-template< class T >
-inline tArray< T >::
-tArray() :
-  npts(1), avalue(0)
-{
-  avalue = new T [1];
-  avalue[0] = 0;
-}
 
 //constructor that initializes array size
 template< class T >
@@ -64,34 +54,6 @@ tArray( const tArray< T > &original ) :
     avalue[i] = original.avalue[i];
 }
 
-//specialized constructors
-template< class T >
-inline tArray< T >::
-tArray( const T& e1, const T& e2 ) :
-  npts(2), avalue(0)
-{
-  avalue = new T [2];
-  avalue[0] = e1;
-  avalue[1] = e2;
-}
-
-template< class T >
-inline tArray< T >::
-tArray( const T& e1, const T& e2, const T& e3 ) :
-  npts(3), avalue(0)
-{
-  avalue = new T [3];
-  avalue[0] = e1;
-  avalue[1] = e2;
-  avalue[2] = e3;
-}
-
-template< class T >
-inline tArray< T >::
-~tArray()
-{
-  delete [] avalue;
-}
 
 
 /**************************************************************************\
@@ -160,22 +122,6 @@ void tArray< T >::fatalReport( int subscript ) const
   ReportFatalError( "Subscript out of range." );
 }
 
-//overloaded subscript operator:
-template< class T >
-inline T &tArray< T >::operator[]( int subscript )
-{
-  if ( unlikely(0 > subscript || subscript >= npts) )
-    fatalReport( subscript );
-  return avalue[subscript];
-}
-
-template< class T >
-inline const T &tArray< T >::operator[]( int subscript ) const
-{
-  if ( unlikely(0 > subscript || subscript >= npts) )
-    fatalReport( subscript );
-  return avalue[subscript];
-}
 
 //overloaded left shift operator
 template< class T >
@@ -191,18 +137,6 @@ ostream &operator<<( ostream &output, const tArray< T > &a )
   if( i % 10 != 0 ) output<<endl;
   return output;
 }
-
-/**************************************************************************\
- **  getArrayPtr: returns a pointer to the head of the array (needed for
- **               passing arrays to Fortran routines)
-\**************************************************************************/
-template< class T >
-inline T *tArray< T >::
-getArrayPtr() {return avalue;}
-
-template< class T >
-inline const T *tArray< T >::
-getArrayPtr() const {return avalue;}
 
 /**************************************************************************\
  **  setSize: reinitializes and resizes the array
