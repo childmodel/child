@@ -25,7 +25,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.46 2000-01-25 19:01:17 gtucker Exp $
+**  $Id: tLNode.h,v 1.47 2000-01-27 22:36:09 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -436,7 +436,9 @@ public:
     void UpdateCoords();
     double DistNew( tLNode *, tLNode * );
     void ActivateSortTracer();
+    void DeactivateSortTracer();
     void MoveSortTracerDownstream();
+    void FlagDownhillNodes();
     void AddTracer();
     int NoMoreTracers();
     void EroDep( double dz );
@@ -593,6 +595,75 @@ inline tVegCover & tLNode::getVegCover()
 inline void tLNode::setVegCover( const tLNode *node )
 {
    vegCover = node->vegCover;
+}
+
+/**************************************************************************\
+**
+**  Tracer-sorting routines:
+**
+**  These routines are utilities that are used in sorting the nodes
+**  according to their position within the drainage network. The main
+**  sorting algorithm is implemented in tStreamNet::SortNodesByNetOrder().
+**  The sorting method works by introducing a "tracer" at each point,
+**  then allowing the tracers to iteratively cascade downstream. At each
+**  step any nodes not containing tracers are moved to the back of the
+**  list. The result is a list sorted in upstream-to-downstream order.
+**
+**  These utilities do the following:
+**    ActivateSortTracer -- injects a single tracer at a node
+**    AddTracer -- adds a tracer to a node (ignored if node is a bdy)
+**    MoveSortTracerDownstream -- removes a tracer and sends it to the
+**                                downstream neighbor (unless the node is
+**                                a sink; then the tracer just vanishes)
+**    FlagDownhillNodes -- for multiple flow direction
+**                         routing: flag all downhill nodes
+**    NoMoreTracers -- reports whether there are any tracers left here
+**
+**  Created by GT 12/97.
+**
+**  Modifications:
+**   - added MoveSortTracersDownstrmMulti and moved all files to .h
+**     for inlining, 1/00, GT
+**
+\**************************************************************************/
+
+inline void tLNode::ActivateSortTracer()
+{ tracer = 1; }
+
+inline void tLNode::DeactivateSortTracer()
+{ tracer = 0; }
+
+inline void tLNode::MoveSortTracerDownstream()
+{
+   tracer--;
+   if( flood!=kSink ) getDownstrmNbr()->AddTracer();
+}
+
+inline void tLNode::FlagDownhillNodes()
+{
+   tEdge *ce;
+   
+   // Flag all adjacent nodes that are lower than me
+   ce = edg;
+   do
+   {
+      if( ce->getDestinationPtr()->getZ() < z && ce->FlowAllowed() )
+          ((tLNode *)(ce->getDestinationPtr()))->ActivateSortTracer();
+      ce = ce->getCCWEdg();
+   }
+   while( ce!=edg );
+
+}
+
+inline void tLNode::AddTracer()
+{
+   if( !boundary ) tracer++;
+}
+
+inline int tLNode::NoMoreTracers()
+{
+   assert( tracer>=0 );
+   return( tracer==0 );
 }
 
 
