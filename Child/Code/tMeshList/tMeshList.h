@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.26 2004-03-25 17:27:49 childcvs Exp $
+**  $Id: tMeshList.h,v 1.27 2004-04-19 13:01:08 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -67,7 +67,7 @@ class tMeshList : public tList< NodeType, ListNodeType >
    bool operator==( const tMeshList< NodeType, ListNodeType > & ) const;
    bool operator!=( const tMeshList< NodeType, ListNodeType > & ) const;
    inline int getActiveSize() const;
-   inline ListNodeType * getLastActive() const;
+   inline ListNodeType * getLastActive();
    int isActiveEmpty() const;
    int isBoundEmpty() const;
    void insertAtBoundFront( const NodeType & );
@@ -84,8 +84,8 @@ class tMeshList : public tList< NodeType, ListNodeType >
    void moveToBack( NodeType const * );
    void insertAtFront( const NodeType & );
    int removeFromFront( NodeType & );
-   void moveToBefore( ListNodeType*, ListNodeType* );
-   void moveToAfter( ListNodeType*, ListNodeType* );
+   inline void moveToBefore( ListNodeType*, ListNodeType* );
+   inline void moveToAfter( ListNodeType*, ListNodeType* );
    int InActiveList( ListNodeType const * );
    void Flush();
    int CheckConsistency( const char * );
@@ -204,7 +204,7 @@ getActiveSize() const {return nActiveNodes;}
 template< class NodeType, class ListNodeType >
 inline ListNodeType *
 tMeshList< NodeType, ListNodeType >::
-getLastActive() const {return lastactive;}
+getLastActive() {return lastactive;}
 
 template< class NodeType, class ListNodeType >
 inline void tMeshList< NodeType, ListNodeType >::
