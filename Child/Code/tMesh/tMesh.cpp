@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.190 2004-01-07 15:32:01 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.191 2004-01-07 15:35:48 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -5032,6 +5032,149 @@ void tMesh<tSubNode>::
 SetmiNextTriID(int n_)
 {
   miNextTriID = n_;
+}
+
+BYPASS_DEBUG_ROUTINES/*****************************************************************************\
+**
+**      InterveningTriangles: find triangles between one node and the next
+**      Created: SL 11/2003
+**      Called by: tStreamMeander::ForceFlow
+**
+\*****************************************************************************/
+template<class tSubNode>
+tPtrList< tTriangle > tMesh<tSubNode>::
+InterveningTriangles( tNode* un, tNode* dn )
+{
+   assert( un->EdgToNod( dn ) == NULL );
+   // must find the two nodes that are (a) both connected to un and dn;
+   // (b) connected to each other; and (c) on either side of where we
+   // want the new flowedge to be; the edge between them is the one that
+   // needs to be flipped
+   // find line between un and dn:
+   const double a = un->getY() - dn->getY();
+   const double b = dn->getX() - un->getX(); 
+   const double c = -b * un->getY() - a * un->getX();
+   tSpkIter sI(un);
+   tArray< double > spD( sI.getNumSpokes() * 2 );
+   const int n = sI.getNumSpokes();
+   //find remainders of pts wrt line:
+   tEdge *fe = un->getEdg();
+   tEdge *ce = fe;
+   int i = 0;
+   do
+   {
+      tNode* cn = ce->getDestinationPtrNC();
+      const double d = a * cn->getX() + b * cn->getY() + c;
+      spD[i] = spD[n + i] = d;
+      //if d=0 then point is on line
+      ce = ce->getCCWEdg();
+      ++i;
+   } while( ce != fe );
+   //find point pairs:
+   i=0;
+   ce = fe;
+   do
+   {
+      //find signs of 'this' and 'next' remainders
+      double s1;
+      double s2;
+      if( spD[i] != 0.0 ) s1 = spD[i] / fabs( spD[i] );
+      else s1 = 0.0;
+      if( spD[i + 1] != 0.0 ) s2 = spD[i + 1] / fabs( spD[i + 1] );
+      else
+      {
+         s2 = 0.0;
+         spD[i + 1] = spD[i+2];
+         //NG added in the above line. If spD=0, the below if will be
+         //entered twice with the same node. This new line should
+         //prevent that from happening.
+         //Problem is that one of the surrounding nodes lies
+         //exactly on line.
+      }
+      //points are on opposite sides of the line, and first point is on right:
+      //const tArray< double > unpos = un->get2DCoords();
+      //const tArray< double >
+      if( s1 != s2 && PointsCCW( un->get2DCoords(), 
+                                 ce->getDestinationPtr()->get2DCoords(), 
+                                 dn->get2DCoords() ) )
+          break;
+      i++;
+      ce = ce->getCCWEdg();
+   } while( ce != fe );
+   tNode* an = ce->getDestinationPtrNC();
+   tNode* bn = ce->getCCWEdg()->getDestinationPtrNC();
+   // make sure these nodes are attached to dn:
+   assert( an->EdgToNod( dn ) != NULL );
+   assert( bn->EdgToNod( dn ) != NULL );
+   // edge from bn to an is clockwise edge of "upstream" triangle
+   tEdge* edgToFlip = bn->EdgToNod( an );
+   // make sure nodes are connected:
+   assert( edgToFlip != NULL );
+   // find triangles and vertex numbers and
+   // put on a list
+   tPtrList< tTriangle > tPList;
+   tPList.insertAtBack( edgToFlip->TriWithEdgePtr() );
+   tPList.insertAtBack( edgToFlip->getComplementEdge()->TriWithEdgePtr() );
+   return tPList;
+}
+
+/******************************************************************************\
+**
+**  ForceFlow( upstrmNode, dnstrmNode ):
+**
+**  We hope this function is never called, but just in case...
+**
+**    Use to set flow from upstrmNode to dnstrmNode when they are not
+**    already connected by an edge.
+**    1. find triangles between one node and the next
+**    2. flip the edge between them (tMesh::FlipEdge)
+**    3. make that edge the flowedge
+**    4. put the two (new) triangles on a list
+**    5. for that two-member list call tMesh::MakeDelaunay,
+**       which will result in a call to tMesh::SplitNonFlippableEdge,
+**       which will interpolate the edge
+**
+**		Parameters:
+**		Called by: InterpChannel
+**		Created: 11/03 SL
+**
+\*****************************************************************************/
+template<class tSubNode>
+void tMesh<tSubNode>::
+ForceFlow( tSubNode* un, tSubNode* dn, double time )
+{
+   if(1)//DEBUG
+       cout << "tMesh::ForceFlow connecting nodes" << un->getID()
+            << " and " << dn->getID() << endl;
+   
+// find triangles between one node and the next
+   tPtrList< tTriangle > tPList = InterveningTriangles( un, dn );
+   // find vertex numbers:
+   // upstream triangle and vertex
+   tTriangle* tri = tPList.removeFromFront();
+   int nv = tri->nVtx( un );
+   // downstream triangle and vertex
+   tTriangle* triop = tPList.removeFromFront();
+   int nvop = triop->nVtx( dn );
+   // make sure nodes are indeed opposite:
+   assert( nvop == triop->nVOp( tri ) );
+   assert( nv == tri->nVOp( triop ) );
+// flip the edge between the triangles
+   FlipEdge( tri, triop, nv, nvop );
+// make that edge the flowedge
+   un->setDownstrmNbr( dn );
+   // make sure it worked:
+   assert( un->getFlowEdg() != NULL );
+// put the two (new) triangles on list
+   // (triangles still have same addresses)
+   tPList.insertAtBack( tri );
+   tPList.insertAtBack( triop );
+// for that two-member list call tMesh::MakeDelaunay
+   MakeDelaunay( tPList, time );
+   // that should have put an extra point between un and dn and
+   // reset the flowedges. check:
+   tSubNode* mn = static_cast< tSubNode* >( un->getDownstrmNbr() );
+   assert( mn->getDownstrmNbr() == dn );
 }
 
 #include "tMesh2.cpp"
