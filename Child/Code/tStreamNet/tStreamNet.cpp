@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.48 2003-08-07 15:00:24 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.49 2003-08-08 09:19:34 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1498,6 +1498,8 @@ void tStreamNet::FillLakes()
 **  tStreamNet::FillLakesFlowDirs
 **
 **  Moved from FillLakes (AD 08/2003)
+**  - AD 08/2003: Speed-up: break early from inner loop and we allow to flow
+**    to a kOutletPreFlag node.
 **
 \*****************************************************************************/
 void tStreamNet::FillLakesFlowDirs(tPtrListIter< tLNode > &lakeIter,
@@ -1522,19 +1524,24 @@ void tStreamNet::FillLakesFlowDirs(tPtrListIter< tLNode > &lakeIter,
   bool done;  // Flag indicating whether outlet has been found
   do
     {
+      bool newOutLetFound = false;
       done = true;  // assume done until proven otherwise
       tLNode *cln;  // current lake node
       for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
 	   cln = lakeIter.NextP() )
 	{
 	  const tFlood_t fs = cln->getFloodStatus();
+	  assert( fs != kOutletPreFlag );
 	  if( fs != kOutletFlag )
 	    {
 	      done = false;
 
 	      // Check each neighbor
-	      tEdge * const ce1 = cln->getEdg();
-	      tEdge *ce = ce1;
+	      // take the first node with kOutletFlag, if not found
+	      // take the first node with kOutletPreFlag
+	      tEdge * const ce1 = cln->getEdg(); // first edge
+	      tEdge *ce = ce1;                   // current edge
+	      tEdge *cePreFlag = 0;              // edge with kOutletPreFlag
 	      do
 		{
 		  const tFlood_t fsnode =
@@ -1542,20 +1549,30 @@ void tStreamNet::FillLakesFlowDirs(tPtrListIter< tLNode > &lakeIter,
 		    ->getFloodStatus();
 		  if( fsnode == kOutletFlag )
 		    {     // found one!
+		      newOutLetFound = true;
 		      cln->setFloodStatus( kOutletPreFlag );
 		      cln->setFlowEdg( ce );
-		      break;
+		      goto foundOutlet;
 		    }
+		  if( cePreFlag == 0 && fsnode == kOutletPreFlag  )
+		    cePreFlag = ce;
 		} while( ( ce=ce->getCCWEdg() ) != ce1 );
+	      if ( cePreFlag != 0 )
+		{
+		  newOutLetFound = true;
+		  cln->setFloodStatus( kOutletPreFlag );
+		  cln->setFlowEdg( cePreFlag );
+		}
+	    foundOutlet: ;	      ;
 	    } // END if node not flagged as outlet
 	} // END for each lake node
 
       // Now flag all the "preflagged" lake nodes as outlets
-      for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
-	   cln = lakeIter.NextP() )
-	if( cln->getFloodStatus() == kOutletPreFlag )
-	  cln->setFloodStatus( kOutletFlag );
-
+      if (newOutLetFound)
+	for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
+	     cln = lakeIter.NextP() )
+	  if( cln->getFloodStatus() == kOutletPreFlag )
+	    cln->setFloodStatus( kOutletFlag );
     } while( !done );
   lowestNode->setFloodStatus( kNotFlooded );
 }
