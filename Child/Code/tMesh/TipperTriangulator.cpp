@@ -20,7 +20,6 @@ using namespace std;
 #include <time.h>
 #include <assert.h>
 
-#define DEBUG_PRINT 1
 #include "TipperTriangulator.h"
 
 #define TIMING 1

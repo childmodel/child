@@ -14,6 +14,8 @@ typedef enum { false=0, true } bool;
 # endif
 #endif
 
+#define DEBUG_PRINT 1
+
 class point;
 class edge;
 class elem;
