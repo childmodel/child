@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.147 2003-05-12 12:07:07 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.148 2003-05-13 14:03:51 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -39,25 +39,20 @@
 **
 \***************************************************************************/
 template< class tSubNode >
-int Next3Delaunay( tPtrList< tSubNode > &nbrList,
+int Next3Delaunay( tPtrList< tSubNode > & /*nbrList*/,
                    tPtrListIter< tSubNode > &nbrIter )
 {
-   static int ncalls = 0;
-   ncalls++;
-   tSubNode *cn, *nbrnd;
+   if (0) { //DEBUG
+     static int ncalls = 0;
+     ncalls++;
+     cout << "Next3Delaunay? no calls =  " << ncalls << endl;
+   }
 
-   assert( (&nbrList != 0) && (&nbrIter != 0) );
-
-   nbrnd = nbrIter.DatPtr();
-     //cout << "Next3Delaunay? no calls =  " << ncalls << endl;
-     //cout << "N3D: pt a\n";
+   tSubNode *nbrnd = nbrIter.DatPtr();
    tPtrListIter< tSubNode > nbrIterCopy( nbrIter );
-     //cout << "N3D: point d\n";
-   // tPtrListNode< tSubNode > *tempptrnode = nbrIter.NodePtr();
-   tArray< double > p0( nbrIterCopy.DatPtr()->get2DCoords() );
-   tArray< double > p1( nbrIterCopy.NextP()->get2DCoords() );
-   tArray< double > p2( nbrIterCopy.NextP()->get2DCoords() );
-     //cout << "N3D: point B\n";
+   const tArray< double > p0( nbrIterCopy.DatPtr()->get2DCoords() );
+   const tArray< double > p1( nbrIterCopy.NextP()->get2DCoords() );
+   const tArray< double > p2( nbrIterCopy.NextP()->get2DCoords() );
 
    // If points aren't counter-clockwise, we know it's not Delaunay
    if( !PointsCCW( p0, p1, p2 ) ) return 0;
@@ -65,20 +60,14 @@ int Next3Delaunay( tPtrList< tSubNode > &nbrList,
    // Otherwise, compare it to each of the other potential triangles
    // p0-p1-ptest (?) where ptest is one of the other points in the
    // ring
-   tArray< double > ptest;
-   cn = nbrIterCopy.NextP();  // Move to next point in the ring
-   while( cn != nbrnd )       // Keep testing 'til we're back to p0
+   tSubNode *cn;
+   // Keep testing 'til we're back to p0
+   while( ( cn  = nbrIterCopy.NextP() ) != nbrnd )
    {
-      ptest = cn->get2DCoords();
-      if( !TriPasses( ptest, p0, p1, p2 ) )
-      {
-           //cout << "Next3Delaunay? No" << endl;
-         return 0;
-      }
-        //else cout << "Next3Del? this tri passed..\n";
-      cn = nbrIterCopy.NextP();  // Next point in ring
+     const tArray< double > ptest = cn->get2DCoords();
+     if( !TriPasses( ptest, p0, p1, p2 ) )
+       return 0;
    }
-   //cout << "Next3Delaunay? Yes" << endl;
    return 1;
 }
 
@@ -102,6 +91,7 @@ tMesh()
   miNextTriID(0),
   mSearchOriginTriPtr(0)
 {
+  if (0) //DEBUG
    cout<<"tMesh()"<<endl;
 }
 
@@ -2640,12 +2630,11 @@ DeleteNode( tListNode< tSubNode >* nodPtr, bool repairFlag)
    //cout << "nn " << nnodes << "  ne " << nedges << "  nt " << ntri << endl;
 
    if (0) { //DEBUG
-     int i;
      tPtrListIter< tSubNode > nbrIter( nbrList );
-     cout << "leaving hole defined by " << endl << "   Node  x  y " << endl;
-     for( i=0, nbrIter.First(); nbrIter.NextIsNotFirst(); i++ )
+     cout << "leaving hole defined by \n"
+	  << "   Node  x  y " << endl;
+     for( nbrIter.First(); (!nbrIter.AtEnd()); nbrIter.Next() )
        {
-	 if( i>0 ) nbrIter.Next();
 	 cout << "   " << nbrIter.DatPtr()->getID() << "     "
 	      << nbrIter.DatPtr()->getX() << "  "
 	      << nbrIter.DatPtr()->getY() << endl;
@@ -3259,7 +3248,8 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
       if( Next3Delaunay( nbrList, nbrIter ) ) //checks for ccw and Del.
       {
            //cout << "found 3 Delaun!\n";
-         AddEdgeAndMakeTriangle( nbrList, nbrIter );
+         int ret = AddEdgeAndMakeTriangle( nbrList, nbrIter );
+	 assert( ret );
            //remove "closed off" pt
 	 /* tSubNode * meshnodePtr = */
          nbrList.removeNext( nbrIter.NodePtr() );
@@ -3272,9 +3262,11 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    assert( ntri == triList.getSize() );
    assert( nedges == edgeList.getSize() );
    assert( nnodes == nodeList.getSize() );       //make sure numbers are right
-   MakeTriangle( nbrList, nbrIter );             //make final triangle
-     //do some checking?
-     //cout << "done" << endl;
+   int ret =    MakeTriangle( nbrList, nbrIter );             //make final triangle
+   assert( ret );
+
+   if (1) //DEBUG
+     cout << "done" << endl;
    return 1;
 }
 
