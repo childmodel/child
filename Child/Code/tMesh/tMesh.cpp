@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.210 2004-04-19 16:23:45 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.211 2004-04-19 17:25:38 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3945,7 +3945,7 @@ RemoveFromList( tSubNode * nPtr )
          assert( nPtr == nodIter.FirstBoundaryP() );
          nodeList.removeFromBoundFront( rmnode );
          break;
-     default:
+     case kClosedBoundary:
          assert( nPtr == nodIter.LastP() );
          nodeList.removeFromBack( rmnode );
          break;
