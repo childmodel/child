@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.6 2004-03-30 09:49:10 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.7 2004-04-01 09:58:33 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -216,16 +216,18 @@ public:
 
 TriBox::TriBox(tTriangle const *ct,
 	       double xcorner, double ycorner, double griddx){
+  tNode const * const node1Ptr = ct->pPtr(0);
   double
-    maxx = ct->pPtr(0)->getX(),
-    maxy = ct->pPtr(0)->getY();
+    maxx = node1Ptr->getX(),
+    maxy = node1Ptr->getY();
   double
     minx = maxx,
     miny = maxy;
 #define COMPUTE_MINMAX(NODEID) \
     do { \
-      const double xx = ct->pPtr(NODEID)->getX(); \
-      const double yy = ct->pPtr(NODEID)->getY(); \
+      tNode const * const nodePtr = ct->pPtr(NODEID); \
+      const double xx = nodePtr->getX(); \
+      const double yy = nodePtr->getY(); \
       maxx = max( maxx, xx ); \
       maxy = max( maxy, yy ); \
       minx = min( minx, xx ); \
