@@ -42,7 +42,7 @@ c     version 1.6: eliminated erroneous division by dels in shear
 c     stress calculation
 c                 1.7  8/11: debugged version SL
 c
-c     $Id: meander.f,v 1.4 2002-08-14 10:34:26 arnaud Exp $
+c     $Id: meander.f,v 1.5 2002-08-14 11:34:18 arnaud Exp $
 c
       subroutine meander (stations, stnserod, x, y, xs, dels, flow,  
      +                    rerody, lerody, slope, width, depth, 
@@ -65,6 +65,7 @@ c
      +       rerody(*), lerody(*),
      +       delta_x(*), delta_y(*), lambda(*)
 C
+      continue
 c     print *, 'stnserod in meander:', stnserod
 c
 C     declare parameter values; get initial channel config.:
@@ -113,6 +114,7 @@ c      print *, 'last reach node K = ', transfactor
       real*8 angle
       external angle
 c
+      continue
 c     print *, 'stnserod in initialize:', stnserod
       rho = 1000.d0
       grav = 9.8d0
@@ -156,12 +158,14 @@ C
      +       grainshields, corner, delx(*), 
      +       dely(*), transfactor, rectchan, radh, 
      +       xmagtransslope
-      intrinsic log10, log
+      intrinsic abs, log10, log
+      continue
 C
       call getcurv (stnserod, stations, delx, dely, dels, curvature)
 c     print *, 'stnserod in channel:', stnserod
       do s = 1, stnserod - 1
          if (slope(s) .le. 0.d0) 
+     +        continue
      +       print *, 'neg. or zero slope:', slope(s), s, flow(s)
          if (width(s) .ne. 0.d0 .and. width(s) .ne. -2.d0*depth(s)) 
      +        then
@@ -206,10 +210,10 @@ c          go back to H ~= R approx.
 c           approximate Engelund diagram for subcritical flow:
             if (shields .ge. 0.1d0 .and. shields .lt. 1.d0 ) then
                grainshields = 10.d0 ** (0.74d0 
-     +                        * (log10(shields) + 1.03d0) ** 2.d0
+     +                        * (log10(shields) + 1.03d0) ** 2
      +                        - 1.18d0)
             else if (shields .ge. 1.d0 .and. shields .lt. 2.d0) then
-               grainshields = 0.4d0 * shields ** 2.d0
+               grainshields = 0.4d0 * shields ** 2
             else
                ! if (shields .ge. 2.0 .or. shields .lt. 0.1) then
                grainshields = shields
@@ -217,7 +221,7 @@ c           approximate Engelund diagram for subcritical flow:
             corner = 2.d0 * depth(s) / width(s)
 c          calculation for skin friction:
             transfactor = depth(s) * (grainshields / shields) 
-     +                    * (grainshields / critshields) ** 0.5d0 
+     +                    * sqrt(grainshields / critshields) 
      +                    * (0.5695d0 * log(11.d0 * grainshields *  
      +                    depth(s) / shields / diam(s)) - 0.3606d0)
 c           calculation for total shear:
@@ -226,15 +230,15 @@ c    +                    * (0.2279d0 / sqrt(grav * radh * slope(s)) * vel(s)
 c    +                    - 0.3606d0)
             rectchan = 0.5d0 * width(s) * depth(s)
             transslope(s) = transfactor * curvature(s) 
-            xmagtransslope = sign(transslope(s), 1.d0)
+            xmagtransslope = abs(transslope(s))
             if (xmagtransslope .le. corner) then
-               Acs(s) = rectchan - width(s) ** 2.d0 * 
+               Acs(s) = rectchan - width(s) ** 2 * 
      +                  xmagtransslope / 8.d0
                rightdepth(s) = depth(s) + width(s) * 
      +                         transslope(s) / 2.d0
                leftdepth(s) = depth(s) - width(s) * transslope(s) / 2.d0
             else
-               Acs(s) = 0.5d0 * depth(s) ** 2.d0 / xmagtransslope
+               Acs(s) = 0.5d0 * depth(s) ** 2 / xmagtransslope
                if (curvature(s) .lt. 0.d0) then
                   rightdepth(s) = 0.d0
                   leftdepth(s) = 2.d0 * depth(s)
@@ -268,6 +272,7 @@ c
       real*8 delx(*), dely(*), dels(*), curvature(*), mag, sn, a, b, c,
      +       carg
       intrinsic acos
+      continue
 c
       do s = 2, stnserod - 1
          a = dels(s) 
@@ -327,18 +332,19 @@ c
      +       Acs(*), dels(*), deln(*), 
      +       forcefactor, xmagcurvep1, xmagcurve, latvel,
      +       delAcs
-      intrinsic cos
+      intrinsic abs, cos
+      continue
 c
       if (stations .ne. stnserod) then
          do s = 1, stations - 1
             if (width(s) .ne. 0.d0 .and. 
      +          width(s) .gt. 2.d0 * depth(s)) then
-               forcefactor = rho * vel(s) ** 2.d0 / depth(s) 
+               forcefactor = rho * vel(s) ** 2 / depth(s) 
      +              * (1.d0 - 2.d0 * depth(s) / width(s))
                latforce(s) = 0.d0
                lag(s) = 0.d0
-               xmagcurvep1 = sign(curvature(s + 1), 1.d0) 
-               xmagcurve = sign(curvature(s), 1.d0) 
+               xmagcurvep1 = abs(curvature(s + 1)) 
+               xmagcurve = abs(curvature(s)) 
                if ((curvature(s + 1) * curvature(s) .gt. 0.d0 .and.
      +           xmagcurvep1 .gt. xmagcurve .and.
      +           xmagcurvep1 * width(s) .le. 2.d0) .or.
@@ -370,12 +376,12 @@ c
       else
          do s = 1, stations - 1
             if (width(s) .ne. 0.d0) then
-               forcefactor = rho * vel(s) ** 2.d0 / depth(s) 
+               forcefactor = rho * vel(s) ** 2 / depth(s) 
      +              * (1.d0 - 2.d0 * depth(s) / width(s))
                latforce(s) = 0.d0
                lag(s) = 0.d0
-               xmagcurvep1 = sign(curvature(s + 1), 1.d0) 
-               xmagcurve = sign(curvature(s), 1.d0) 
+               xmagcurvep1 = abs(curvature(s + 1)) 
+               xmagcurve = abs(curvature(s)) 
                if ((curvature(s + 1) * curvature(s) .gt. 0.d0 .and.
      +           xmagcurvep1 .gt. xmagcurve .and.
      +           xmagcurvep1 * width(s) .le. 2.d0) .or.
@@ -424,7 +430,8 @@ C
      +       leftdepth(*), xs(*),
      +       tauwall(*), gaussfactor, xstrt,
      +       xdel, xdepth, gaussian, xdest, tenlambda, xtrmnt
-      intrinsic cos, sin, exp
+      intrinsic abs, cos, sin, exp
+      continue
 c
       do s = 1, stnserod
          tauwall(s) = 0.d0
@@ -449,10 +456,10 @@ c     increment and bank depth) lateral direction vectors:
             sp = s
             do while (xs(sp) .le. xtrmnt .and. sp .le. stnserod)
                if (xs(sp) .ge. xstrt) then
-                  xdel = sign(xdest - xs(sp), 1.d0)
+                  xdel = abs(xdest - xs(sp))
                   if (lambda(s) .ne. 0.d0) then
-                     gaussian = exp(-1.d0 * xdel ** 2.d0 / 2.d0 
-     +                    / lambda(s) ** 2.d0) / sqrt(2.d0 * 3.1416d0) 
+                     gaussian = exp(-1.d0 * xdel ** 2 / 2.d0 
+     +                    / lambda(s) ** 2) / sqrt(2.d0 * 3.1416d0) 
      +                    / lambda(s) 
                      gaussfactor = gaussian * latforce(s)
                   else
@@ -503,6 +510,7 @@ c
      +       spreaddelta_y(*), delx(*), dely(*), 
      +       depth(*), delta_x(*), delta_y(*), xcp
 c
+      continue
 c      print *,'CHANGE CHANNEL POSITION:'
       do s = 1, stnserod
 c        print *, 'ler ', lerody(s),'  rer',rerody(s)
@@ -527,6 +535,7 @@ c         print *,s,delta_x(s),delta_y(s)
       implicit none
       real*8 y, x
       intrinsic atan2
+      continue
       if (x .ne. 0.0d0 .or. y .ne. 0.0d0) then
          angle = atan2(y, x)
       else
