@@ -3,7 +3,7 @@
 /**************************************************************************/
 /**
  **  @file tList.h
- **  @brief Header file for classes tList, tListNode, and tListIter.
+ **  @brief Header file for classes tList, tListNodeXXX, and tListIter.
  **
  **  A tList is an object that implements a general linked list NodeType
  **  objects, where NodeType can be any type (double, int, other objects,
@@ -32,8 +32,9 @@
  **    - GT added currentItem member and routines FirstP and NextP to
  **      track position on list w/o an iterator, 1/22/99
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
+ **    - AD - March 2004: tListNode is a template argument.
  **
- **  $Id: tList.h,v 1.51 2004-03-25 12:14:47 childcvs Exp $
+ **  $Id: tList.h,v 1.52 2004-03-25 17:27:48 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -45,57 +46,61 @@
 
 /**************************************************************************/
 /**
- ** @class tListNode
+ ** @class tListNodeBasic
  **
- ** Class tListNode represents the items (or "nodes") on the list. Each
- ** tListNode object has two parts: the data (of type NodeType) and a
+ ** Class tListNodeBasic represents the items (or "nodes") on the list. Each
+ ** tListNodeBasic object has two parts: the data (of type NodeType) and a
  ** pointer to the next item on the list. Capabilities include copy
- ** construction (from either another tListNode or a NodeType),
- ** returning a pointer or reference to either the data or the tListNode
+ ** construction (from either another tListNodeBasic or a NodeType),
+ ** returning a pointer or reference to either the data or the tListNodeBasic
  ** itself, and assignment and equality/inequality operations.
  **
  */
 /**************************************************************************/
 template< class NodeType >
-class tListNode
+class tListNodeBasic
 {
-  friend class tList< NodeType >;
-  friend class tMeshList< NodeType >;
-  friend class tListIter< NodeType >;
-  friend class tMeshListIter< NodeType >;
+  friend class tList< NodeType, tListNodeBasic< NodeType > >;
+  friend class tMeshList< NodeType, tListNodeBasic< NodeType > >;
+  friend class tListIter< NodeType, tListNodeBasic< NodeType > >;
+  friend class tMeshListIter< NodeType, tListNodeBasic< NodeType > >;
 public:
-  inline tListNode();                                // default constructor
-  inline tListNode( const tListNode< NodeType > & ); // copy constructor #1
-  inline tListNode( const NodeType & );              // copy constructor #2
-  const tListNode< NodeType >
-  &operator=( const tListNode< NodeType > & );           // assignment
-  inline bool operator==( const tListNode< NodeType > & ) const; // equality
-  inline bool operator!=( const tListNode< NodeType > & ) const; // inequality
+  inline tListNodeBasic();                                // default constructor
+  inline tListNodeBasic( const tListNodeBasic< NodeType > & ); // copy constructor #1
+  inline tListNodeBasic( const NodeType & );              // copy constructor #2
+  const tListNodeBasic< NodeType >
+  &operator=( const tListNodeBasic< NodeType > & );           // assignment
+  inline bool operator==( const tListNodeBasic< NodeType > & ) const; // equality
+  inline bool operator!=( const tListNodeBasic< NodeType > & ) const; // inequality
   /*set*/
   inline NodeType getDataNC() const;               // returns copy of data item
   inline NodeType &getDataRefNC();                 // returns modifiable ref to data
   inline NodeType *getDataPtrNC();                 // returns modifiable ptr to data
-  inline tListNode< NodeType > * getNextNC() const;// returns ptr to next list node
+  inline tListNodeBasic< NodeType > * getNextNC() const;// returns ptr to next list node
   /*get*/
   inline NodeType getData() const;                     // returns const copy of data
   inline const NodeType &getDataRef() const;           // returns const ref to data
   inline const NodeType *getDataPtr() const;           // returns const ptr to data
-  inline const tListNode< NodeType > * getNext() const;// returns const ptr to next
-  inline const tListNode< NodeType > * getPrev() const;
+  inline const tListNodeBasic< NodeType > * getNext() const;// returns const ptr to next
+  inline const tListNodeBasic< NodeType > * getPrev() const;
+  static bool isListable() { return false; }
+  static tListNodeBasic< NodeType > *getListPtr( NodeType *ptr) {
+    return 0;
+  }
 
 protected:
   NodeType data_;               // data item
-  tListNode< NodeType > *next; // ptr to next node on list (=0 if end)
-  tListNode< NodeType > *prev;
+  tListNodeBasic< NodeType > *next; // ptr to next node on list (=0 if end)
+  tListNodeBasic< NodeType > *prev;
 };
 
 
 /**************************************************************************\
  **
- **         FUNCTIONS FOR CLASS tListNode< NodeType >
+ **         FUNCTIONS FOR CLASS tListNodeBasic< NodeType >
  **
- **         tListNodes contain a data item and a pointer to the next
- **         tListNode in the tList (or tMeshList). The data item may
+ **         tListNodeBasics contain a data item and a pointer to the next
+ **         tListNodeBasic in the tList (or tMeshList). The data item may
  **         be of any type, specified in the template brackets.
  **
  **         Some of the functions for retrieving the data are duplicated
@@ -107,35 +112,35 @@ protected:
 
 /**************************************************************************\
  **
- **  tListNode constructors:
+ **  tListNodeBasic constructors:
  **
  **  Default constructor: sets next to null
- **  Copy constructor #1: makes a copy of a given tListNode
+ **  Copy constructor #1: makes a copy of a given tListNodeBasic
  **  Copy constructor #2: fills in data item w/ copy of given NodeType
  **
 \**************************************************************************/
 
 //default constructor
-template< class NodeType >                     //tListNode
-inline tListNode< NodeType >::
-tListNode() :
+template< class NodeType >
+inline tListNodeBasic< NodeType >::
+tListNodeBasic() :
   next(0),
   prev(0)
 {}
 
 //copy constructor with data reference
-template< class NodeType >                     //tListNode
-inline tListNode< NodeType >::
-tListNode( const tListNode< NodeType > &original ) :
+template< class NodeType >
+inline tListNodeBasic< NodeType >::
+tListNodeBasic( const tListNodeBasic< NodeType > &original ) :
   data_(original.data_),
   next(original.next),
   prev(original.prev)
 {}
 
 //value (by reference) constructor
-template< class NodeType >                     //tListNode
-inline tListNode< NodeType >::
-tListNode( const NodeType &info ) :
+template< class NodeType >
+inline tListNodeBasic< NodeType >::
+tListNodeBasic( const NodeType &info ) :
   data_(info),
   next(0),
   prev(0)
@@ -144,7 +149,7 @@ tListNode( const NodeType &info ) :
 
 /**************************************************************************\
  **
- **  tListNode overloaded operators:
+ **  tListNodeBasic overloaded operators:
  **
  **  Assignment: makes a copy (including next ptr)
  **  Equality: compares both data contents and next ptr
@@ -153,9 +158,9 @@ tListNode( const NodeType &info ) :
 \**************************************************************************/
 
 //overloaded assignment operator
-template< class NodeType >                     //tListNode
-inline const tListNode< NodeType > &tListNode< NodeType >::
-operator=( const tListNode< NodeType > &right )
+template< class NodeType >
+inline const tListNodeBasic< NodeType > &tListNodeBasic< NodeType >::
+operator=( const tListNodeBasic< NodeType > &right )
 {
   if( &right != this )
     {
@@ -167,9 +172,9 @@ operator=( const tListNode< NodeType > &right )
 }
 
 //overloaded equality operator:
-template< class NodeType >                     //tListNode
-inline bool tListNode< NodeType >::
-operator==( const tListNode< NodeType > &right ) const
+template< class NodeType >
+inline bool tListNodeBasic< NodeType >::
+operator==( const tListNodeBasic< NodeType > &right ) const
 {
   if( next != right.next ) return false;
   if( prev != right.prev ) return false;
@@ -178,9 +183,9 @@ operator==( const tListNode< NodeType > &right ) const
 }
 
 //overloaded inequality operator:
-template< class NodeType >                     //tListNode
-inline bool tListNode< NodeType >::
-operator!=( const tListNode< NodeType > &right ) const
+template< class NodeType >
+inline bool tListNodeBasic< NodeType >::
+operator!=( const tListNodeBasic< NodeType > &right ) const
 {
   return ! operator==(right);
 }
@@ -188,7 +193,7 @@ operator!=( const tListNode< NodeType > &right ) const
 
 /**************************************************************************\
  **
- **  tListNode "get" functions:
+ **  tListNodeBasic "get" functions:
  **  (note: to "set" an item, use non-const "get")
  **
  **  getDataNC: returns a non-const (modifiable) copy of data
@@ -203,45 +208,45 @@ operator!=( const tListNode< NodeType > &right ) const
 \**************************************************************************/
 
 //set data by returning non-const
-template< class NodeType >                     //tListNode
-inline NodeType tListNode< NodeType >::
+template< class NodeType >
+inline NodeType tListNodeBasic< NodeType >::
 getDataNC() const {return data_;}
 
-template< class NodeType >                     //tListNode
-inline NodeType &tListNode< NodeType >::
+template< class NodeType >
+inline NodeType &tListNodeBasic< NodeType >::
 getDataRefNC() {return data_;}
 
-template< class NodeType >                     //tListNode
-inline NodeType *tListNode< NodeType >::
+template< class NodeType >
+inline NodeType *tListNodeBasic< NodeType >::
 getDataPtrNC() {return &data_;}
 
-template< class NodeType >                     //tListNode
-inline tListNode< NodeType > *tListNode< NodeType >::
+template< class NodeType >
+inline tListNodeBasic< NodeType > *tListNodeBasic< NodeType >::
 getNextNC() const {return next;}
 
 //return data by value
-template< class NodeType >                     //tListNode
-inline NodeType tListNode< NodeType >::
+template< class NodeType >
+inline NodeType tListNodeBasic< NodeType >::
 getData() const {return data_;}
 
 //return data by reference
-template< class NodeType >                     //tListNode
-inline const NodeType &tListNode< NodeType >::
+template< class NodeType >
+inline const NodeType &tListNodeBasic< NodeType >::
 getDataRef() const {return data_;}
 
 //return data by pointer
-template< class NodeType >                     //tListNode
-inline const NodeType *tListNode< NodeType >::
+template< class NodeType >
+inline const NodeType *tListNodeBasic< NodeType >::
 getDataPtr() const {return &data_;}
 
 //return next pointer
-template< class NodeType >                     //tListNode
-inline const tListNode< NodeType > *tListNode< NodeType >::
+template< class NodeType >
+inline const tListNodeBasic< NodeType > *tListNodeBasic< NodeType >::
 getNext() const {return next;}
 
 //return prev pointer
-template< class NodeType >                     //tListNode
-inline const tListNode< NodeType > *tListNode< NodeType >::
+template< class NodeType >
+inline const tListNodeBasic< NodeType > *tListNodeBasic< NodeType >::
 getPrev() const {return prev;}
 
 
@@ -250,46 +255,46 @@ getPrev() const {return prev;}
  ** @class tList
  **
  ** Class tList implements a linked list. The class includes pointers to
- ** the first, last, and current list nodes (see tListNode).
+ ** the first, last, and current list nodes (arg "ListNodeType").
  **
  */
 /**************************************************************************/
-template< class NodeType >
+template< class NodeType, class ListNodeType >
 class tList
 {
-  friend class tListIter< NodeType >;
-  friend class tMeshListIter< NodeType >;
+  friend class tListIter< NodeType, ListNodeType >;
+  friend class tMeshListIter< NodeType, ListNodeType >;
   tList(const tList&);
 public:
   inline tList();                     // default constructor
-  tList( const tList< NodeType > * ); // copy constructor
+  tList( const tList< NodeType, ListNodeType > * ); // copy constructor
   ~tList();                           // destructor
-  const tList< NodeType >
-  &operator=( const tList< NodeType > & );           // assignment
-  inline bool operator==( const tList< NodeType > & ) const; // equality
-  inline bool operator!=( const tList< NodeType > & ) const; // inequality
+  const tList< NodeType, ListNodeType >
+  &operator=( const tList< NodeType, ListNodeType > & );           // assignment
+  inline bool operator==( const tList< NodeType, ListNodeType > & ) const; // equality
+  inline bool operator!=( const tList< NodeType, ListNodeType > & ) const; // inequality
   inline void insertAtFront( const NodeType & ); // puts copy of item at list front
   inline void insertAtBack( const NodeType & );  // puts copy of item at list back
-  inline void insertAtNext( const NodeType &, tListNode< NodeType > * );
-  inline void insertAtPrev( const NodeType &, tListNode< NodeType > * );
+  inline void insertAtNext( const NodeType &, ListNodeType * );
+  inline void insertAtPrev( const NodeType &, ListNodeType * );
   inline int removeFromFront( NodeType & ); // removes 1st item, puts it in ref
   inline int removeFromBack( NodeType & );  // removes last item, puts it in ref
-  inline int removeNext( NodeType &, tListNode< NodeType > * );
-  inline int removePrev( NodeType &, tListNode< NodeType > * );
+  inline int removeNext( NodeType &, ListNodeType * );
+  inline int removePrev( NodeType &, ListNodeType * );
   void Flush();        // clears and reinitializes list
   inline bool isEmpty() const; // returns true is list is empty, false otherwise
 #ifndef NDEBUG
   void print() const;  // prints contents of list - DEBUG ONLY
 #endif
   inline int getSize() const; // returns # of items on list
-  inline tListNode< NodeType  > * getFirst() const; // returns ptr to 1st list node
-  inline tListNode< NodeType  > * getLast() const;  // returns ptr to last list node
+  inline ListNodeType * getFirst() const; // returns ptr to 1st list node
+  inline ListNodeType * getLast() const;  // returns ptr to last list node
   inline NodeType * FirstP();  // returns ptr to 1st data item & sets current to 1st
   inline NodeType * NextP();   // moves to next node and returns ptr to data item
-  inline void moveToBack( tListNode< NodeType > *  );  // move given node to back
-  inline void moveToFront( tListNode< NodeType > *  ); // move given node to front
-  inline void moveToBefore( tListNode< NodeType >*, tListNode< NodeType >* );
-  inline void moveToAfter( tListNode< NodeType >*, tListNode< NodeType >* );
+  inline void moveToBack( ListNodeType *  );  // move given node to back
+  inline void moveToFront( ListNodeType *  ); // move given node to front
+  inline void moveToBefore( ListNodeType *, ListNodeType * );
+  inline void moveToAfter( ListNodeType *, ListNodeType * );
   inline void makeCircular();   // makes list circular (last points to first)
   inline const NodeType getIthData( int ) const;     // rtns copy of given item #
   inline const NodeType *getIthDataPtr( int ) const; // rtns ptr to given item #
@@ -297,8 +302,8 @@ public:
   inline NodeType getIthDataNC( int ) const;     // rtns modifiable copy of item #
   inline NodeType *getIthDataPtrNC( int ) const; // rtns modifiable ptr to item #
   inline NodeType &getIthDataRefNC( int ) const; // rtns modifiable ref to item #
-  tListNode< NodeType > * getListNode( const NodeType * ); // rtns ptr to node #
-  tListNode< NodeType > * getIthListNode( int ) const;
+  ListNodeType * getListNode( const NodeType * ); // rtns ptr to node #
+  ListNodeType * getIthListNode( int ) const;
 
 #ifndef NDEBUG
   void DebugTellPtrs() const;
@@ -306,10 +311,10 @@ public:
 
 protected:
   int nNodes;                          // # of items on list
-  tListNode< NodeType > * first;       // ptr to first node
-  tListNode< NodeType > * last;        // ptr to last node
-  tListNode< NodeType > * currentItem; // ptr to current item
-  tListNode< NodeType > * getNewNode( const NodeType & ); // makes new node
+  ListNodeType * first;       // ptr to first node
+  ListNodeType * last;        // ptr to last node
+  ListNodeType * currentItem; // ptr to current item
+  ListNodeType * getNewNode( const NodeType & ); // makes new node
 };
 
 
@@ -338,21 +343,21 @@ protected:
 \**************************************************************************/
 
 //default constructor
-template< class NodeType >                         //tList
-inline tList< NodeType >::tList() :
+template< class NodeType, class ListNodeType >
+inline tList< NodeType, ListNodeType >::tList() :
   nNodes(0), first(0), last(0), currentItem(0)
 {}
 
 //copy constructor
-template< class NodeType >                         //tList
-tList< NodeType >::
-tList( const tList< NodeType > *original ) :
+template< class NodeType, class ListNodeType >
+tList< NodeType, ListNodeType >::
+tList( const tList< NodeType, ListNodeType > *original ) :
   nNodes(0), first(0), last(0), currentItem(0)
 {
   int i;
 
   assert( original != 0 );
-  tListNode<NodeType> * current = original->first;
+  ListNodeType * current = original->first;
   for( i=0; i<original->nNodes; ++i )
     {
       insertAtBack( current->getDataRef() );
@@ -366,15 +371,15 @@ tList( const tList< NodeType > *original ) :
 }
 
 //destructor
-template< class NodeType >                         //tList
-tList< NodeType >::
+template< class NodeType, class ListNodeType >
+tList< NodeType, ListNodeType >::
 ~tList()
 {
   if( !isEmpty() )
     {
       if (0) //DEBUG
 	cout<<"Destroying nodes ... "<<endl;
-      tListNode<NodeType > * current = first, * temp;
+      ListNodeType * current = first, * temp;
       while( current != 0 )
 	{
 	  temp = current;
@@ -400,15 +405,15 @@ tList< NodeType >::
 \**************************************************************************/
 
 //overloaded assignment operator
-template< class NodeType >                         //tList
-const tList< NodeType > &tList< NodeType >::
-operator=( const tList< NodeType > &right )
+template< class NodeType, class ListNodeType >
+const tList< NodeType, ListNodeType > &tList< NodeType, ListNodeType >::
+operator=( const tList< NodeType, ListNodeType > &right )
 {
   if( this != &right )
     {
       // create an equivalent object rather than pointers to the original
       Flush();
-      tListNode< NodeType > *cn = right.first;
+      ListNodeType *cn = right.first;
       if( cn != 0 )
 	{
           insertAtBack( cn->getDataRef() );
@@ -423,9 +428,9 @@ operator=( const tList< NodeType > &right )
 }
 
 //overloaded equality operator:
-template< class NodeType >                         //tList
-inline bool tList< NodeType >::
-operator==( const tList< NodeType > &right ) const
+template< class NodeType, class ListNodeType >
+inline bool tList< NodeType, ListNodeType >::
+operator==( const tList< NodeType, ListNodeType > &right ) const
 {
   if( nNodes != right.nNodes ) return false;
   if( first != right.first ) return false;
@@ -434,9 +439,9 @@ operator==( const tList< NodeType > &right ) const
 }
 
 //overloaded inequality operator:
-template< class NodeType >                         //tList
-inline bool tList< NodeType >::
-operator!=( const tList< NodeType > &right ) const
+template< class NodeType, class ListNodeType >
+inline bool tList< NodeType, ListNodeType >::
+operator!=( const tList< NodeType, ListNodeType > &right ) const
 {
   return ! operator==(right);
 }
@@ -446,16 +451,16 @@ operator!=( const tList< NodeType > &right ) const
  **
  **  tList::getNewNode
  **
- **  Creates a new tListNode and returns a pointer to it. Used by list
+ **  Creates a new ListNodeType and returns a pointer to it. Used by list
  **  insertion routines (see below); not publically accessible.
  **
 \**************************************************************************/
-template< class NodeType >                         //tList
-inline tListNode< NodeType > * tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline ListNodeType * tList< NodeType, ListNodeType >::
 getNewNode( const NodeType &value )
 {
-  tListNode< NodeType > * ptr =
-    new tListNode< NodeType >( value );
+  ListNodeType * ptr =
+    new ListNodeType( value );
   assert( ptr != 0 );
   ++nNodes;
   return ptr;
@@ -490,14 +495,14 @@ getNewNode( const NodeType &value )
 \**************************************************************************/
 
 //insert at front
-template< class NodeType >                         //tList
-inline void tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline void tList< NodeType, ListNodeType >::
 insertAtFront( const NodeType &value )
 {
   if (0) //DEBUG
     cout << "ADD NEW NODE TO LIST AT FRONT" << endl;
 
-  tListNode< NodeType > *newPtr = getNewNode( value );
+  ListNodeType *newPtr = getNewNode( value );
   if( isEmpty() )
     first = last = currentItem = newPtr;
   else
@@ -511,11 +516,11 @@ insertAtFront( const NodeType &value )
 }
 
 //insert at back
-template< class NodeType >                         //tList
-inline void tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline void tList< NodeType, ListNodeType >::
 insertAtBack( const NodeType &value )
 {
-  tListNode< NodeType > * newPtr = getNewNode( value );
+  ListNodeType * newPtr = getNewNode( value );
   if( isEmpty() )
     {
       first = last = currentItem = newPtr;
@@ -532,9 +537,9 @@ insertAtBack( const NodeType &value )
 }
 
 //insert at next spot in list
-template< class NodeType >                         //tList
-inline void tList< NodeType >::
-insertAtNext( const NodeType &value, tListNode< NodeType > * prev )
+template< class NodeType, class ListNodeType >
+inline void tList< NodeType, ListNodeType >::
+insertAtNext( const NodeType &value, ListNodeType * prev )
 {
   if( prev != 0 )
     {
@@ -543,7 +548,7 @@ insertAtNext( const NodeType &value, tListNode< NodeType > * prev )
 	  insertAtBack( value );
 	  return;
 	}
-      tListNode< NodeType > * newPtr = getNewNode( value );
+      ListNodeType * newPtr = getNewNode( value );
       newPtr->next = prev->next;
       newPtr->prev = prev;
       prev->next->prev = newPtr;
@@ -552,9 +557,9 @@ insertAtNext( const NodeType &value, tListNode< NodeType > * prev )
 }
 
 //insert at previous spot in list
-template< class NodeType >                         //tList
-inline void tList< NodeType >::
-insertAtPrev( const NodeType &value, tListNode< NodeType > * node )
+template< class NodeType, class ListNodeType >
+inline void tList< NodeType, ListNodeType >::
+insertAtPrev( const NodeType &value, ListNodeType * node )
 {
   if( node != 0 )
     {
@@ -563,7 +568,7 @@ insertAtPrev( const NodeType &value, tListNode< NodeType > * node )
 	  insertAtFront( value );
 	  return;
 	}
-      tListNode< NodeType > * newPtr = getNewNode( value );
+      ListNodeType * newPtr = getNewNode( value );
       newPtr->next = node;
       newPtr->prev = node->prev;
       node->prev->next = newPtr;
@@ -572,12 +577,12 @@ insertAtPrev( const NodeType &value, tListNode< NodeType > * node )
 }
 
 //delete from front
-template< class NodeType >                         //tList
-inline int tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tList< NodeType, ListNodeType >::
 removeFromFront( NodeType &value )
 {
   if( isEmpty() ) return 0;
-  tListNode< NodeType > * temp = first;
+  ListNodeType * temp = first;
   if( first == last ) first = last = currentItem = 0;
   else
     {
@@ -593,12 +598,12 @@ removeFromFront( NodeType &value )
 }
 
 //delete from back
-template< class NodeType >                         //tList
-inline int tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tList< NodeType, ListNodeType >::
 removeFromBack( NodeType &value )
 {
   if( isEmpty() ) return 0;
-  tListNode< NodeType > * temp = last;
+  ListNodeType * temp = last;
   if( first == last ) first = last = currentItem = 0;
   else
     {
@@ -614,15 +619,15 @@ removeFromBack( NodeType &value )
 }
 
 //delete next node
-template< class NodeType >                         //tList
-inline int tList< NodeType >::
-removeNext( NodeType &value, tListNode< NodeType > * ptr )
+template< class NodeType, class ListNodeType >
+inline int tList< NodeType, ListNodeType >::
+removeNext( NodeType &value, ListNodeType * ptr )
 {
   if( ptr == 0 ) return 0;
   if( ptr->next == 0 ) return 0;
   if( ptr->next == last ) return removeFromBack( value );
   if( ptr->next == first ) return removeFromFront( value );
-  tListNode< NodeType > * temp = ptr->next;
+  ListNodeType * temp = ptr->next;
   if( currentItem == temp ) currentItem = ptr->next->next;
   ptr->next = ptr->next->next;
   ptr->next->prev = ptr;
@@ -633,15 +638,15 @@ removeNext( NodeType &value, tListNode< NodeType > * ptr )
 }
 
 //delete previous node
-template< class NodeType >                         //tList
-inline int tList< NodeType >::
-removePrev( NodeType &value, tListNode< NodeType > * ptr )
+template< class NodeType, class ListNodeType >
+inline int tList< NodeType, ListNodeType >::
+removePrev( NodeType &value, ListNodeType * ptr )
 {
   if( ptr == 0 ) return 0;
   if( ptr->prev == 0 ) return 0;
   if( ptr->prev == last ) return removeFromBack( value );
   if( ptr->prev == first ) return removeFromFront( value );
-  tListNode< NodeType >* temp = ptr->prev;
+  ListNodeType* temp = ptr->prev;
   if( currentItem == ptr->prev ) currentItem = ptr->prev->prev;
   ptr->prev = ptr->prev->prev;
   ptr->prev->next = ptr;
@@ -659,11 +664,11 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
  **  Deletes all nodes on list.
  **
 \**************************************************************************/
-template< class NodeType >                         //tList
-void tList< NodeType >::
+template< class NodeType, class ListNodeType >
+void tList< NodeType, ListNodeType >::
 Flush()
 {
-  tListNode<NodeType > * current = first, * temp;
+  ListNodeType * current = first, * temp;
 
   if( !isEmpty() )
     {
@@ -687,8 +692,8 @@ Flush()
  **  Returns TRUE if first points to null; FALSE otherwise.
  **
 \**************************************************************************/
-template< class NodeType >                         //tList
-inline bool tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline bool tList< NodeType, ListNodeType >::
 isEmpty() const
 {
   return BOOL( first == 0 );
@@ -696,8 +701,8 @@ isEmpty() const
 
 //display list contents -- for debugging only
 
-template< class NodeType >                         //tList
-void tList< NodeType >::
+template< class NodeType, class ListNodeType >
+void tList< NodeType, ListNodeType >::
 print() const
 {
   if( isEmpty() )
@@ -705,7 +710,7 @@ print() const
       cout<<"The list is empty"<<endl<<endl;
       return;
     }
-  tListNode< NodeType > * current = first;
+  ListNodeType * current = first;
   cout<<"The list is: ";
   while( current != 0 )
     {
@@ -720,8 +725,8 @@ print() const
  **  tList "get" functions:
  **
  **  getSize: returns # of items on list
- **  getFirst: returns const ptr to first tListNode
- **  getLast: returns const ptr to last tListNode
+ **  getFirst: returns const ptr to first ListNodeType
+ **  getLast: returns const ptr to last ListNodeType
  **  FirstP: returns ptr to first data item and sets currentItem to first
  **  NextP: returns ptr to data item following currentItem and advances
  **         currentItem to the next one on the list
@@ -735,21 +740,21 @@ print() const
  **
 \**************************************************************************/
 
-template< class NodeType >                         //tList
-inline int tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tList< NodeType, ListNodeType >::
 getSize() const {return nNodes;}
 
-template< class NodeType >                         //tList
-inline tListNode< NodeType > * tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline ListNodeType * tList< NodeType, ListNodeType >::
 getFirst() const {return first;}
 
-template< class NodeType >                         //tList
-inline tListNode< NodeType > * tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline ListNodeType * tList< NodeType, ListNodeType >::
 getLast() const {return last;}
 
 // Added by gt 1/99
-template< class NodeType >                         //tList
-inline NodeType * tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType * tList< NodeType, ListNodeType >::
 FirstP()
 {
   assert( first!=0 );
@@ -758,8 +763,8 @@ FirstP()
 }
 
 // Added by gt 1/99
-template< class NodeType >                         //tList
-inline NodeType * tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType * tList< NodeType, ListNodeType >::
 NextP()
 {
   assert( currentItem!=0 );
@@ -769,24 +774,24 @@ NextP()
   else return 0;
 }
 
-template< class NodeType >                         //tList
-inline const NodeType tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline const NodeType tList< NodeType, ListNodeType >::
 getIthData( int num ) const
 {
   assert( num >= 0 && num < nNodes );
   return getIthListNode(num)->getData();
 }
 
-template< class NodeType >                         //tList
-inline const NodeType &tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline const NodeType &tList< NodeType, ListNodeType >::
 getIthDataRef( int num ) const
 {
   assert( num >= 0 && num < nNodes );
   return getIthListNode(num)->getDataRef();
 }
 
-template< class NodeType >                         //tList
-inline const NodeType *tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline const NodeType *tList< NodeType, ListNodeType >::
 getIthDataPtr( int num ) const
 {
   assert( num >= 0 && num < nNodes );
@@ -794,24 +799,24 @@ getIthDataPtr( int num ) const
 }
 
 //set
-template< class NodeType >                         //tList
-inline NodeType tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType tList< NodeType, ListNodeType >::
 getIthDataNC( int num ) const
 {
   assert( num >= 0 && num < nNodes );
   return getIthListNode(num)->getData();
 }
 
-template< class NodeType >                         //tList
-inline NodeType &tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType &tList< NodeType, ListNodeType >::
 getIthDataRefNC( int num ) const
 {
   assert( num >= 0 && num < nNodes );
   return getIthListNode(num)->getDataRefNC();
 }
 
-template< class NodeType >                         //tList
-inline NodeType *tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType *tList< NodeType, ListNodeType >::
 getIthDataPtrNC( int num ) const
 {
   assert( num >= 0 && num < nNodes );
@@ -827,17 +832,17 @@ getIthDataPtrNC( int num ) const
  **  desiredDatPtr, or zero if not found.
  **
  **  Parameters:  desiredDatPtr -- pointer to the data item sought after
- **  Returns:  pointer to the tListNode containing desiredDatPtr, or zero
+ **  Returns:  pointer to the ListNodeType containing desiredDatPtr, or zero
  **            if not found
  **  Notes: might be safer to implement with a const return type
  **  Created: 4/29/98 GT
  **
 \**************************************************************************/
-template< class NodeType >
-tListNode< NodeType > * tList< NodeType >::
+template< class NodeType, class ListNodeType >
+ListNodeType * tList< NodeType, ListNodeType >::
 getListNode( const NodeType * desiredDatPtr )
 {
-  tListNode< NodeType > * listnode = first;
+  ListNodeType * listnode = first;
 
   if( listnode==0 ) return 0;
   while( listnode->getDataPtr() != desiredDatPtr )
@@ -857,20 +862,20 @@ getListNode( const NodeType * desiredDatPtr )
  **  or zero if not found.
  **
  **  Parameters:  i -- number of item sought after
- **  Returns:  pointer to the ith tListNode, or zero
+ **  Returns:  pointer to the ith ListNodeType, or zero
  **            if not found
  **  Notes: might be safer to implement with a const return type
  **  Created: 4/29/98 GT
  **
 \**************************************************************************/
-template< class NodeType >
-tListNode< NodeType >* tList< NodeType >::
+template< class NodeType, class ListNodeType >
+ListNodeType* tList< NodeType, ListNodeType >::
 getIthListNode( int num ) const
 {
   if( num < 0 || num >= nNodes )
     return 0;
   int i;
-  tListNode< NodeType > * curPtr;
+  ListNodeType * curPtr;
   if( num > nNodes / 2 )
     for( curPtr = last, i = nNodes-1; i>num; curPtr = curPtr->prev, --i );
   else
@@ -888,9 +893,9 @@ getIthListNode( int num ) const
  **
 \**************************************************************************/
 
-template< class NodeType >                         //tList
-inline void tList< NodeType >::
-moveToBack( tListNode< NodeType > * mvnode )
+template< class NodeType, class ListNodeType >
+inline void tList< NodeType, ListNodeType >::
+moveToBack( ListNodeType * mvnode )
 {
   if( mvnode != last )
     {
@@ -912,9 +917,9 @@ moveToBack( tListNode< NodeType > * mvnode )
     }
 }
 
-template< class NodeType >                         //tList
-inline void tList< NodeType >::
-moveToFront( tListNode< NodeType > * mvnode )
+template< class NodeType, class ListNodeType >
+inline void tList< NodeType, ListNodeType >::
+moveToFront( ListNodeType * mvnode )
 {
   if( mvnode != first )
     {
@@ -936,10 +941,10 @@ moveToFront( tListNode< NodeType > * mvnode )
     }
 }
 
-template< class NodeType >
-inline void tList< NodeType >::
-moveToBefore( tListNode< NodeType >* mvnode,
-              tListNode< NodeType >* plcnode )
+template< class NodeType, class ListNodeType >
+inline void tList< NodeType, ListNodeType >::
+moveToBefore( ListNodeType* mvnode,
+              ListNodeType* plcnode )
 {
   if( mvnode == plcnode ) return;
   if( plcnode == first )
@@ -968,10 +973,10 @@ moveToBefore( tListNode< NodeType >* mvnode,
   plcnode->prev = mvnode;
 }
 
-template< class NodeType >
-inline void tList< NodeType >::
-moveToAfter( tListNode< NodeType >* mvnode,
-             tListNode< NodeType >* plcnode )
+template< class NodeType, class ListNodeType >
+inline void tList< NodeType, ListNodeType >::
+moveToAfter( ListNodeType* mvnode,
+             ListNodeType* plcnode )
 {
   if( mvnode == plcnode ) return;
   if( plcnode->next == mvnode ) return;
@@ -1009,8 +1014,8 @@ moveToAfter( tListNode< NodeType >* mvnode,
  **  to the first.
  **
 \**************************************************************************/
-template< class NodeType >                         //tList
-inline void tList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline void tList< NodeType, ListNodeType >::
 makeCircular()
 {
   assert( first != 0 && last != 0 );
@@ -1019,8 +1024,8 @@ makeCircular()
 }
 
 
-template< class NodeType >
-void tList< NodeType >::
+template< class NodeType, class ListNodeType >
+void tList< NodeType, ListNodeType >::
 DebugTellPtrs() const
 {
   cout << "first: " << first << endl;
@@ -1047,7 +1052,7 @@ DebugTellPtrs() const
  */
 /**************************************************************************/
 //TO DO: make Get, Where, GetP, refer to place in list rather than use getID()
-template< class NodeType >
+template< class NodeType, class ListNodeType >
 class tListIter
 {
   tListIter& operator=(const tListIter&);
@@ -1056,8 +1061,8 @@ class tListIter
 public:
   inline tListIter();               // default constructor
   tListIter(const tListIter&);      // copy constructor
-  tListIter( tList< NodeType > & ); // constructor: reference to list
-  tListIter( tList< NodeType > * ); // constructor: ptr to list
+  tListIter( tList< NodeType, ListNodeType > & ); // constructor: reference to list
+  tListIter( tList< NodeType, ListNodeType > * ); // constructor: ptr to list
   inline ~tListIter();   // destructor
   inline int First();    // sets position to 1st list item (rtns 0 on failure)
   inline int Last();     // sets position to last "    "     "
@@ -1068,8 +1073,8 @@ public:
   inline bool AtEnd() const;  // returns true if at end of the list
   inline NodeType &DatRef();  // returns ref to current data item
   inline NodeType *DatPtr();  // returns ptr to current data item
-  inline tListNode< NodeType > *NodePtr();  // returns ptr to current list node
-  inline void Reset( tList< NodeType > & ); // tells iterator to work on given list
+  inline ListNodeType *NodePtr();  // returns ptr to current list node
+  inline void Reset( tList< NodeType, ListNodeType > & ); // tells iterator to work on given list
   inline NodeType * FirstP();  // moves to 1st item and rtns ptr to it
   inline NodeType * LastP();   // moves to last  "   "
   inline NodeType * NextP();   // moves to next  "   "
@@ -1077,8 +1082,8 @@ public:
   inline NodeType * GetP( int num ); //use only if NodeType has member getID()!!
 
 protected:
-  tListNode< NodeType > * curnode;  // ptr to current list node
-  tList< NodeType > *listPtr;       // ptr to current list
+  ListNodeType * curnode;  // ptr to current list node
+  tList< NodeType, ListNodeType > *listPtr;       // ptr to current list
   int counter;                      // current position on list (first=0)
 };
 
@@ -1110,8 +1115,8 @@ protected:
  **
 \**************************************************************************/
 
-template< class NodeType >        //tListIter
-inline tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline tListIter< NodeType, ListNodeType >::
 tListIter() :
   curnode(0),
   listPtr(0),
@@ -1121,8 +1126,8 @@ tListIter() :
     cout << "tListIter()" << endl;
 }
 
-template< class NodeType >        //tListIter
-inline tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline tListIter< NodeType, ListNodeType >::
 tListIter(const tListIter& c) :
   curnode(c.curnode),
   listPtr(c.listPtr),
@@ -1132,9 +1137,9 @@ tListIter(const tListIter& c) :
     cout << "tListIter(const tListIter&)" << endl;
 }
 
-template< class NodeType >        //tListIter
-inline tListIter< NodeType >::
-tListIter( tList< NodeType > &list ) :
+template< class NodeType, class ListNodeType >
+inline tListIter< NodeType, ListNodeType >::
+tListIter( tList< NodeType, ListNodeType > &list ) :
   curnode(list.first),
   listPtr(&list),
   counter(0)
@@ -1144,9 +1149,9 @@ tListIter( tList< NodeType > &list ) :
     cout << "tListIter( list )" << endl;
 }
 
-template< class NodeType >        //tListIter
-inline tListIter< NodeType >::
-tListIter( tList< NodeType > *ptr ) :
+template< class NodeType, class ListNodeType >
+inline tListIter< NodeType, ListNodeType >::
+tListIter( tList< NodeType, ListNodeType > *ptr ) :
   curnode(0),
   listPtr(ptr),
   counter(0)
@@ -1155,8 +1160,8 @@ tListIter( tList< NodeType > *ptr ) :
   curnode = ptr->first;
 }
 
-template< class NodeType >        //tListIter
-inline tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline tListIter< NodeType, ListNodeType >::
 ~tListIter()
 {
   listPtr = 0;
@@ -1174,9 +1179,9 @@ inline tListIter< NodeType >::
  **  an iterator which list to work on).
  **
 \**************************************************************************/
-template< class NodeType >        //tListIter
-inline void tListIter< NodeType >::
-Reset( tList< NodeType > &list )
+template< class NodeType, class ListNodeType >
+inline void tListIter< NodeType, ListNodeType >::
+Reset( tList< NodeType, ListNodeType > &list )
 {
   listPtr = &list;
   curnode = list.first;
@@ -1192,8 +1197,8 @@ Reset( tList< NodeType > &list )
  **  pointing to a valid list item, FALSE otherwise.
  **
 \**************************************************************************/
-template< class NodeType >        //tListIter
-inline int tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tListIter< NodeType, ListNodeType >::
 First()
 {
   assert( listPtr != 0 );
@@ -1203,8 +1208,8 @@ First()
   return ( curnode == 0 && listPtr->isEmpty() ) ? 1:0;
 }
 
-template< class NodeType >       //tListIter
-inline int tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tListIter< NodeType, ListNodeType >::
 Last()
 {
   assert( listPtr != 0 );
@@ -1222,13 +1227,13 @@ Last()
  **  have a member function getID()! Returns 1 if found, 0 if not.
  **
 \**************************************************************************/
-template< class NodeType >     //tListIter
-int tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+int tListIter< NodeType, ListNodeType >::
 Get( int num )
 {
   assert( listPtr != 0 );
   if( num < 0 ) cout << "tListIter::Get(num): num < 0" << endl;
-  tListNode< NodeType > *tempnodeptr;
+  ListNodeType *tempnodeptr;
   for( tempnodeptr = listPtr->first, counter = 0;
        counter <= listPtr->nNodes && tempnodeptr != 0;
        tempnodeptr = tempnodeptr->next, ++counter )
@@ -1252,8 +1257,8 @@ Get( int num )
  **  respectively. Both assume we're working on a valid list.
  **
 \**************************************************************************/
-template< class NodeType >        //tListIter
-inline int tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tListIter< NodeType, ListNodeType >::
 Next()
 {
   if( likely(curnode != 0) )
@@ -1266,8 +1271,8 @@ Next()
   return NextIfNoCurrent();
 }
 
-template< class NodeType >        //tListIter
-int tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+int tListIter< NodeType, ListNodeType >::
 NextIfNoCurrent()
 {
   assert( listPtr != 0 );
@@ -1277,8 +1282,8 @@ NextIfNoCurrent()
   return curnode != 0 ? 1:0;
 }
 
-template< class NodeType >       //tListIter
-inline int tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tListIter< NodeType, ListNodeType >::
 Prev()
 {
   if( likely(curnode != 0) )
@@ -1291,8 +1296,8 @@ Prev()
   return PrevIfNoCurrent();
 }
 
-template< class NodeType >       //tListIter
-int tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+int tListIter< NodeType, ListNodeType >::
 PrevIfNoCurrent()
 {
   assert( listPtr != 0 );
@@ -1310,16 +1315,16 @@ PrevIfNoCurrent()
  **  data, or 0 if first/last item is empty.
  **
 \**************************************************************************/
-template< class NodeType >        //tListIter
-inline NodeType * tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType * tListIter< NodeType, ListNodeType >::
 FirstP()
 {
   return ( First() ) ?
     curnode->getDataPtrNC() : 0;
 }
 
-template< class NodeType >        //tListIter
-inline NodeType * tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType * tListIter< NodeType, ListNodeType >::
 LastP()
 {
   return ( Last() ) ?
@@ -1335,16 +1340,16 @@ LastP()
  **
 \**************************************************************************/
 
-template< class NodeType >        //tListIter
-inline NodeType * tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType * tListIter< NodeType, ListNodeType >::
 NextP()
 {
   return ( Next() ) ?
     curnode->getDataPtrNC() : 0;
 }
 
-template< class NodeType >       //tListIter
-inline NodeType *tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType *tListIter< NodeType, ListNodeType >::
 PrevP()
 {
   return ( Prev() ) ?
@@ -1360,8 +1365,8 @@ PrevP()
  **  0 if undefined).
  **
 \**************************************************************************/
-template< class NodeType >       //tListIter
-inline NodeType * tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType * tListIter< NodeType, ListNodeType >::
 GetP( int num )
 {
   return ( Get( num ) ) ?
@@ -1377,8 +1382,8 @@ GetP( int num )
  **  no current data item. Assumes data item has a getID() mbr function!
  **
 \**************************************************************************/
-template< class NodeType >       //tListIter
-inline int tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tListIter< NodeType, ListNodeType >::
 Where() const
 {
   return ( curnode == 0 ) ?
@@ -1398,8 +1403,8 @@ Where() const
  **     list and come back to the start)
  **
 \**************************************************************************/
-template< class NodeType >       //tListIter
-inline bool tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline bool tListIter< NodeType, ListNodeType >::
 AtEnd() const
 {
   if( listPtr->isEmpty() ) return true;
@@ -1416,23 +1421,23 @@ AtEnd() const
  **  or the current list node.
  **
 \**************************************************************************/
-template< class NodeType >       //tListIter
-inline NodeType &tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType &tListIter< NodeType, ListNodeType >::
 DatRef()
 {
   return curnode->getDataRefNC();
 }
 
-template< class NodeType >       //tListIter
-inline NodeType *tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline NodeType *tListIter< NodeType, ListNodeType >::
 DatPtr()
 {
   return ( curnode == 0 ) ?
     0 : curnode->getDataPtrNC();
 }
 
-template< class NodeType >       //tListIter
-inline tListNode< NodeType > *tListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline ListNodeType *tListIter< NodeType, ListNodeType >::
 NodePtr()
 {
   return curnode;

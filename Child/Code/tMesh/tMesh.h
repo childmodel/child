@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.76 2004-03-25 16:03:11 childcvs Exp $
+**  $Id: tMesh.h,v 1.77 2004-03-25 17:27:49 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -51,23 +51,25 @@
 /** @class tIdArray
     @brief Lookup table per Id for a tList
 */
-template< class T >
+template< class T, class LN  = tListNodeBasic<T> > class tIdArray;
+
+template< class T, class LN >
 class tIdArray
 {
   tArray< T* > e_;
 public:
-  tIdArray(tList< T >& List);
+  tIdArray(tList< T, LN >& List);
   T* operator[]( int subscript ) const {
     // return a value and not a reference, hence the "const".
     return e_[subscript];
   }
 };
 
-template< class T >
-tIdArray< T >::tIdArray(tList< T >& List) :
+template< class T, class LN >
+tIdArray< T, LN >::tIdArray(tList< T, LN >& List) :
   e_(List.getSize())
 {
-  tListIter< T > Iter( List );
+  tListIter< T, LN > Iter( List );
   T *c;
   for( c=Iter.FirstP(); !(Iter.AtEnd()); c=Iter.NextP() )
     e_[c->getID()] = c;
@@ -133,9 +135,9 @@ public:
    typedef tMeshListIter< tEdge > edgeListIter_t;
    typedef tListIter< tTriangle > triListIter_t;
 
-  // tListNode types
-   typedef tListNode< tSubNode > nodeListNode_t;
-   typedef tListNode< tEdge > edgeListNode_t;
+   // tListNode types
+   typedef tListNodeBasic< tSubNode > nodeListNode_t;
+   typedef tListNodeBasic< tEdge > edgeListNode_t;
 
    // tIdArray
    typedef tIdArray< tSubNode > tIdArrayNode_t;

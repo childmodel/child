@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.25 2004-03-22 12:20:16 childcvs Exp $
+**  $Id: tMeshList.h,v 1.26 2004-03-25 17:27:49 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -51,23 +51,23 @@
 **
 */
 /**************************************************************************/
-template< class NodeType >
-class tMeshList : public tList< NodeType >
+template< class NodeType, class ListNodeType >
+class tMeshList : public tList< NodeType, ListNodeType >
 {
-   friend class tListIter< NodeType  >;
-   friend class tMeshListIter< NodeType  >;
+   friend class tListIter< NodeType, ListNodeType  >;
+   friend class tMeshListIter< NodeType, ListNodeType  >;
 
-   tMeshList(const tMeshList< NodeType > &);
+   tMeshList(const tMeshList< NodeType, ListNodeType > &);
   public:
    tMeshList();
-   tMeshList( const tMeshList< NodeType > * );
+   tMeshList( const tMeshList< NodeType, ListNodeType > * );
    ~tMeshList();
-   const tMeshList< NodeType >
-       &operator=( const tMeshList< NodeType > & );
-   bool operator==( const tMeshList< NodeType > & ) const;
-   bool operator!=( const tMeshList< NodeType > & ) const;
+   const tMeshList< NodeType, ListNodeType >
+       &operator=( const tMeshList< NodeType, ListNodeType > & );
+   bool operator==( const tMeshList< NodeType, ListNodeType > & ) const;
+   bool operator!=( const tMeshList< NodeType, ListNodeType > & ) const;
    inline int getActiveSize() const;
-   inline tListNode< NodeType  > * getLastActive() const;
+   inline ListNodeType * getLastActive() const;
    int isActiveEmpty() const;
    int isBoundEmpty() const;
    void insertAtBoundFront( const NodeType & );
@@ -75,24 +75,24 @@ class tMeshList : public tList< NodeType >
    void insertAtActiveBack( const NodeType & );
    int removeFromActiveBack( NodeType & );
    inline void setNActiveNodes( int );
-   int removeNext( NodeType &value, tListNode< NodeType > * );
-   int removePrev( NodeType &value, tListNode< NodeType > * );
-   void moveToBack( tListNode< NodeType > * );
-   void moveToFront( tListNode< NodeType > * );
-   void moveToActiveBack( tListNode< NodeType > * );
-   void moveToBoundFront( tListNode< NodeType > * );
+   int removeNext( NodeType &value, ListNodeType * );
+   int removePrev( NodeType &value, ListNodeType * );
+   void moveToBack( ListNodeType * );
+   void moveToFront( ListNodeType * );
+   void moveToActiveBack( ListNodeType * );
+   void moveToBoundFront( ListNodeType * );
    void moveToBack( NodeType const * );
    void insertAtFront( const NodeType & );
    int removeFromFront( NodeType & );
-   void moveToBefore( tListNode< NodeType >*, tListNode< NodeType >* );
-   void moveToAfter( tListNode< NodeType >*, tListNode< NodeType >* );
-   int InActiveList( tListNode< NodeType > const * );
+   void moveToBefore( ListNodeType*, ListNodeType* );
+   void moveToAfter( ListNodeType*, ListNodeType* );
+   int InActiveList( ListNodeType const * );
    void Flush();
    int CheckConsistency( const char * );
 
   protected:
    int nActiveNodes;                    // # of active nodes on list
-   tListNode< NodeType > * lastactive;  // ptr to last active node
+   ListNodeType * lastactive;  // ptr to last active node
 };
 
 
@@ -108,8 +108,8 @@ class tMeshList : public tList< NodeType >
 **  Copy constructor: creates a copy of _original_
 **
 \**************************************************************************/
-template< class NodeType >                     //tMeshtList
-tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+tMeshList< NodeType, ListNodeType >::
 tMeshList() :
   nActiveNodes(0),
   lastactive(0)
@@ -118,10 +118,10 @@ tMeshList() :
     cout << "                  from tMeshList()" << this->first << endl;
 }
 
-template< class NodeType >                     //tMeshtList
-tMeshList< NodeType >::
-tMeshList( const tMeshList< NodeType > *original ) :
-  tList< NodeType >( original ),
+template< class NodeType, class ListNodeType >
+tMeshList< NodeType, ListNodeType >::
+tMeshList( const tMeshList< NodeType, ListNodeType > *original ) :
+  tList< NodeType, ListNodeType >( original ),
   nActiveNodes(original->nActiveNodes),
   lastactive(0)
 {
@@ -129,11 +129,11 @@ tMeshList( const tMeshList< NodeType > *original ) :
     cout << "                  from tMeshList( original )" << this->first
 	 << endl;
   if ( nActiveNodes > 0 )
-    lastactive = tList< NodeType >::getIthListNode( nActiveNodes - 1 );
+    lastactive = tList< NodeType, ListNodeType >::getIthListNode( nActiveNodes - 1 );
 }
 
-template< class NodeType >                     //tMeshtList
-tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+tMeshList< NodeType, ListNodeType >::
 ~tMeshList()
 {
   if (0) //DEBUG
@@ -157,36 +157,36 @@ tMeshList< NodeType >::
 \**************************************************************************/
 
 //overloaded assignment operator
-template< class NodeType >                     //tMeshList
-const tMeshList< NodeType > &tMeshList< NodeType >::
-operator=( const tMeshList< NodeType > &right )
+template< class NodeType, class ListNodeType >
+const tMeshList< NodeType, ListNodeType > &tMeshList< NodeType, ListNodeType >::
+operator=( const tMeshList< NodeType, ListNodeType > &right )
 {
    if( this != &right )
    {
-      tList< NodeType >::operator=( right );
+      tList< NodeType, ListNodeType >::operator=( right );
       nActiveNodes = right.nActiveNodes;
       lastactive = 0;
       if ( nActiveNodes > 0 )
-	lastactive = tList< NodeType >::getIthListNode( nActiveNodes - 1 );
+	lastactive = tList< NodeType, ListNodeType >::getIthListNode( nActiveNodes - 1 );
    }
    return *this;
 }
 
 //overloaded equality operator:
-template< class NodeType >                      //tMeshList
-bool tMeshList< NodeType >::
-operator==( const tMeshList< NodeType > &right ) const
+template< class NodeType, class ListNodeType >
+bool tMeshList< NodeType, ListNodeType >::
+operator==( const tMeshList< NodeType, ListNodeType > &right ) const
 {
-   if( tList< NodeType >::operator!=( right ) ) return false;
+   if( tList< NodeType, ListNodeType >::operator!=( right ) ) return false;
    if( nActiveNodes != right.nActiveNodes ) return false;
    if( lastactive != right.lastactive ) return false;
    return true;
 }
 
 //overloaded inequality operator:
-template< class NodeType >                      //tMeshList
-bool tMeshList< NodeType >::
-operator!=( const tMeshList< NodeType > &right ) const
+template< class NodeType, class ListNodeType >
+bool tMeshList< NodeType, ListNodeType >::
+operator!=( const tMeshList< NodeType, ListNodeType > &right ) const
 {
    return ! operator==(right);
 }
@@ -197,29 +197,29 @@ operator!=( const tMeshList< NodeType > &right ) const
 **
 \**************************************************************************/
 
-template< class NodeType >                      //tMeshList
-inline int tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tMeshList< NodeType, ListNodeType >::
 getActiveSize() const {return nActiveNodes;}
 
-template< class NodeType >                      //tMeshList
-inline tListNode< NodeType > *
-tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline ListNodeType *
+tMeshList< NodeType, ListNodeType >::
 getLastActive() const {return lastactive;}
 
-template< class NodeType >                     //tMeshtList
-inline void tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline void tMeshList< NodeType, ListNodeType >::
 setNActiveNodes( int val ) {nActiveNodes = ( val >= 0 ) ? val : 0;}
 
-template< class NodeType >                     //tMeshtList
-inline int tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tMeshList< NodeType, ListNodeType >::
 isActiveEmpty() const
 {
   if( lastactive == 0 ) return 1;
   else return 0;
 }
 
-template< class NodeType >                     //tMeshtList
-inline int tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tMeshList< NodeType, ListNodeType >::
 isBoundEmpty() const
 {
    if( lastactive == this->last ) return 1;
@@ -238,11 +238,11 @@ isBoundEmpty() const
 **
 \**************************************************************************/
 
-template< class NodeType >                         //tList
-void tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+void tMeshList< NodeType, ListNodeType >::
 insertAtFront( const NodeType &value )
 {
-   tList< NodeType >::insertAtFront( value );
+   tList< NodeType, ListNodeType >::insertAtFront( value );
    if( value.getBoundaryFlag() == kNonBoundary )
    {
      if( isActiveEmpty() ) lastactive = this->first;
@@ -250,14 +250,14 @@ insertAtFront( const NodeType &value )
    }
 }
 
-template< class NodeType >                     //tMeshtList
-void tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+void tMeshList< NodeType, ListNodeType >::
 insertAtBoundFront( const NodeType &value )
 {
    // Case list empty or active part of list empty:
    if( isEmpty() || lastactive==0 )
    {
-      tList< NodeType >::insertAtFront( value );
+      tList< NodeType, ListNodeType >::insertAtFront( value );
       return;
    }
    // Usual case: list and active part of list NOT empty:
@@ -265,8 +265,8 @@ insertAtBoundFront( const NodeType &value )
 }
 
 
-template< class NodeType >                     //tMeshtList
-int tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+int tMeshList< NodeType, ListNodeType >::
 removeFromBoundFront( NodeType &value )
 {
    if( lastactive == 0 ) return removeFromFront( value );
@@ -274,8 +274,8 @@ removeFromBoundFront( NodeType &value )
 }
 
 
-template< class NodeType >                     //tMeshtList
-void tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+void tMeshList< NodeType, ListNodeType >::
 insertAtActiveBack( const NodeType &value )
 {
    // Case list empty or active part of list empty:
@@ -285,13 +285,13 @@ insertAtActiveBack( const NodeType &value )
       return;
    }
    // Usual case: list and active part of list NOT empty:
-   tList< NodeType >::insertAtNext( value, lastactive );
+   tList< NodeType, ListNodeType >::insertAtNext( value, lastactive );
    lastactive = lastactive->next;
    ++nActiveNodes;
 }
 
-template< class NodeType >                     //tMeshtList
-int tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+int tMeshList< NodeType, ListNodeType >::
 removeFromActiveBack( NodeType &value )
 {
    if( lastactive == 0 ) return 0;
@@ -299,8 +299,8 @@ removeFromActiveBack( NodeType &value )
    return removeNext( value, lastactive->prev );
 }
 
-template< class NodeType >                         //tList
-int tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+int tMeshList< NodeType, ListNodeType >::
 removeFromFront( NodeType &value )
 {
    if( !isActiveEmpty() )
@@ -308,13 +308,13 @@ removeFromFront( NodeType &value )
       --nActiveNodes;
       if( lastactive == this->first ) lastactive = 0;
    }
-   return tList< NodeType >::removeFromFront( value );
+   return tList< NodeType, ListNodeType >::removeFromFront( value );
 }
 
 //delete next node
-template< class NodeType >                         //tList
-int tMeshList< NodeType >::
-removeNext( NodeType &value, tListNode< NodeType > * ptr )
+template< class NodeType, class ListNodeType >
+int tMeshList< NodeType, ListNodeType >::
+removeNext( NodeType &value, ListNodeType * ptr )
 {
    if( ptr == 0 ) return 0;
    if( ptr->next == 0 ) return 0;
@@ -324,13 +324,13 @@ removeNext( NodeType &value, tListNode< NodeType > * ptr )
       if( ptr->next == lastactive )
           lastactive = ptr;
    }
-   return tList< NodeType >::removeNext( value, ptr );
+   return tList< NodeType, ListNodeType >::removeNext( value, ptr );
 }
 
 //delete previous node
-template< class NodeType >                         //tList
-int tMeshList< NodeType >::
-removePrev( NodeType &value, tListNode< NodeType > * ptr )
+template< class NodeType, class ListNodeType >
+int tMeshList< NodeType, ListNodeType >::
+removePrev( NodeType &value, ListNodeType * ptr )
 {
    if( ptr == 0 ) return 0;
    if( ptr->prev == 0 ) return 0;
@@ -340,13 +340,13 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
       if( ptr->prev == lastactive )
           lastactive = lastactive->prev;
    }
-   return tList< NodeType >::removePrev( value, ptr );
+   return tList< NodeType, ListNodeType >::removePrev( value, ptr );
 }
 
 
 /**************************************************************************\
 **
-**  tMeshList::moveToBack ( tListNode * )
+**  tMeshList::moveToBack ( ListNodeType * )
 **
 **  Moves mvnode to the back of the list (the boundary portion).
 **  Handles case of moved node being the last active node, in which case
@@ -359,12 +359,12 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
 **      and nActiveNodes isn't updated. TODO)
 **
 \**************************************************************************/
-template< class NodeType >                         //tList
-void tMeshList< NodeType >::
-moveToBack( tListNode< NodeType > * mvnode )
+template< class NodeType, class ListNodeType >
+void tMeshList< NodeType, ListNodeType >::
+moveToBack( ListNodeType * mvnode )
 {
    if (0) //DEBUG
-     cout << "moveToBack( tListNode )\n";
+     cout << "moveToBack( ListNodeType )\n";
 
    assert( mvnode!=0 );
    if( mvnode != this->last )
@@ -380,7 +380,7 @@ moveToBack( tListNode< NodeType > * mvnode )
          }
          else lastactive = 0;
       }
-      tList< NodeType >::moveToBack( mvnode );
+      tList< NodeType, ListNodeType >::moveToBack( mvnode );
    }
 }
 
@@ -390,17 +390,17 @@ moveToBack( tListNode< NodeType > * mvnode )
 **  tMeshList::moveToBack ( NodeType * )
 **
 **  Finds the ListNode whose data are identical to mvnodedata and calls
-**  moveToBack( tListNode ) to move it to the back of the list.
+**  moveToBack( ListNodeType ) to move it to the back of the list.
 **
 **  Parameters: mvnodedata -- ptr to data in node to be moved
 **  Assumes: mvnodedata valid and contained in the list
 **
 \**************************************************************************/
-template< class NodeType >                         //tList
-void tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+void tMeshList< NodeType, ListNodeType >::
 moveToBack( NodeType const * mvnodedata )
 {
-   tListNode< NodeType > * mvnode = getListNode( mvnodedata );
+   ListNodeType * mvnode = getListNode( mvnodedata );
    assert( mvnode!=0 );  // failure: null or not on list
    moveToBack( mvnode );
 }
@@ -416,9 +416,9 @@ moveToBack( NodeType const * mvnodedata )
 **  doesn't update nActiveNodes...TODO)
 **
 \**************************************************************************/
-template< class NodeType >                         //tList
-void tMeshList< NodeType >::
-moveToFront( tListNode< NodeType > * mvnode )
+template< class NodeType, class ListNodeType >
+void tMeshList< NodeType, ListNodeType >::
+moveToFront( ListNodeType * mvnode )
 {
    if( mvnode != this->first )
    {
@@ -426,7 +426,7 @@ moveToFront( tListNode< NodeType > * mvnode )
       {
          lastactive = mvnode->prev;
       }
-      tList< NodeType >::moveToFront( mvnode );
+      tList< NodeType, ListNodeType >::moveToFront( mvnode );
    }
 }
 
@@ -439,9 +439,9 @@ moveToFront( tListNode< NodeType > * mvnode )
 **  (does not update nActiveNodes if the node happens to be inactive!)
 **
 \**************************************************************************/
-template< class NodeType >                         //tList
-void tMeshList< NodeType >::
-moveToActiveBack( tListNode< NodeType > * mvnode )
+template< class NodeType, class ListNodeType >
+void tMeshList< NodeType, ListNodeType >::
+moveToActiveBack( ListNodeType * mvnode )
 {
    if( !lastactive )
    {
@@ -489,9 +489,9 @@ moveToActiveBack( tListNode< NodeType > * mvnode )
 **  the active portion of the list.
 **
 \**************************************************************************/
-template< class NodeType >                         //tList
-void tMeshList< NodeType >::
-moveToBoundFront( tListNode< NodeType > * mvnode )
+template< class NodeType, class ListNodeType >
+void tMeshList< NodeType, ListNodeType >::
+moveToBoundFront( ListNodeType * mvnode )
 {
    if( !lastactive )
    {
@@ -526,23 +526,23 @@ moveToBoundFront( tListNode< NodeType > * mvnode )
 }
 
 
-template< class NodeType >
-inline void tMeshList< NodeType >::
-moveToBefore( tListNode< NodeType >* mvnode,
-              tListNode< NodeType >* plcnode )
+template< class NodeType, class ListNodeType >
+inline void tMeshList< NodeType, ListNodeType >::
+moveToBefore( ListNodeType* mvnode,
+              ListNodeType* plcnode )
 {
-  tList< NodeType >::moveToBefore( mvnode, plcnode );
+  tList< NodeType, ListNodeType >::moveToBefore( mvnode, plcnode );
   if( plcnode == lastactive->next
       && mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
     lastactive = mvnode;
 }
 
-template< class NodeType >
-inline void tMeshList< NodeType >::
-moveToAfter( tListNode< NodeType >* mvnode,
-	     tListNode< NodeType >* plcnode )
+template< class NodeType, class ListNodeType >
+inline void tMeshList< NodeType, ListNodeType >::
+moveToAfter( ListNodeType* mvnode,
+	     ListNodeType* plcnode )
 {
-  tList< NodeType >::moveToAfter( mvnode, plcnode );
+  tList< NodeType, ListNodeType >::moveToAfter( mvnode, plcnode );
   if( plcnode == lastactive
       && mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
     lastactive = mvnode;
@@ -555,11 +555,11 @@ moveToAfter( tListNode< NodeType >* mvnode,
 **  Also reinitializes lastactive and nActiveNodes
 **
 \**************************************************************************/
-template< class NodeType >                         //tList
-void tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+void tMeshList< NodeType, ListNodeType >::
 Flush()
 {
-   tList< NodeType >::Flush();
+   tList< NodeType, ListNodeType >::Flush();
    lastactive = 0;
    nActiveNodes = 0;
 }
@@ -577,11 +577,11 @@ Flush()
 **  Created:  4/29/98 GT
 **
 \**************************************************************************/
-template< class NodeType >                         //tList
-int tMeshList< NodeType >::
-InActiveList( tListNode< NodeType > const * theNode )
+template< class NodeType, class ListNodeType >
+int tMeshList< NodeType, ListNodeType >::
+InActiveList( ListNodeType const * theNode )
 {
-   tListNode< NodeType > * listnode = this->first;
+   ListNodeType * listnode = this->first;
 
    if( nActiveNodes==0 ) return 0;
    while( listnode!=lastactive && listnode!=theNode )
@@ -598,11 +598,11 @@ InActiveList( tListNode< NodeType > const * theNode )
 **  Internal consistency check
 **
 \**************************************************************************/
-template< class NodeType >
-int tMeshList< NodeType >::
+template< class NodeType, class ListNodeType >
+int tMeshList< NodeType, ListNodeType >::
 CheckConsistency( const char *ListName ){
   NodeType *cl;
-  tMeshListIter<NodeType> Iter( this );
+  tMeshListIter<NodeType, ListNodeType> Iter( this );
   int nactive = 0;
   for( cl=Iter.FirstP(); ; cl=Iter.NextP() ){
     if (!Iter.IsActive()){
@@ -648,58 +648,54 @@ CheckConsistency( const char *ListName ){
 **
 */
 /**************************************************************************/
-template< class NodeType >
+template< class NodeType, class ListNodeType >
 class tMeshListIter
-                : public tListIter< NodeType >
+                : public tListIter< NodeType, ListNodeType >
 {
   public:
    tMeshListIter();
-   tMeshListIter( tMeshList< NodeType > & );
-   tMeshListIter( tMeshList< NodeType > * );
+   tMeshListIter( tMeshList< NodeType, ListNodeType > & );
+   tMeshListIter( tMeshList< NodeType, ListNodeType > * );
    ~tMeshListIter();
    int LastActive();
    int FirstBoundary();
    inline int IsActive() const;
    NodeType * LastActiveP();
    NodeType * FirstBoundaryP();
-//   NodeType * FirstP();
-//   NodeType * NextP();
-  //private:
-   //tMeshList< NodeType > *meshlistPtr;
 };
 
 /**************************************************************************\
 **     FUNCTIONS FOR DERIVED CLASS tMeshListIter
 \**************************************************************************/
 
-template< class NodeType >   //tMeshListIter
-tMeshListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+tMeshListIter< NodeType, ListNodeType >::
 tMeshListIter()
 {
   if (0) //DEBUG
     cout << "    from tMeshListIter()" << endl;
 }
 
-template< class NodeType >   //tMeshListIter
-tMeshListIter< NodeType >::
-tMeshListIter( tMeshList< NodeType > &list )
-        : tListIter< NodeType >( list )
+template< class NodeType, class ListNodeType >
+tMeshListIter< NodeType, ListNodeType >::
+tMeshListIter( tMeshList< NodeType, ListNodeType > &list )
+        : tListIter< NodeType, ListNodeType >( list )
 {
    this->curnode = this->listPtr->first;
 }
 
-template< class NodeType >   //tMeshListIter
-tMeshListIter< NodeType >::
-tMeshListIter( tMeshList< NodeType > *ptr )
-        : tListIter< NodeType >( ptr )
+template< class NodeType, class ListNodeType >
+tMeshListIter< NodeType, ListNodeType >::
+tMeshListIter( tMeshList< NodeType, ListNodeType > *ptr )
+        : tListIter< NodeType, ListNodeType >( ptr )
 {
    assert( ptr != 0 );
    this->curnode = this->listPtr->first;
    assert( this->curnode != 0 );
 }
 
-template< class NodeType >   //tMeshListIter
-tMeshListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+tMeshListIter< NodeType, ListNodeType >::
 ~tMeshListIter()
 {}
 
@@ -711,12 +707,12 @@ tMeshListIter< NodeType >::
 **  Moves the iterator to the last active node.
 **
 \**************************************************************************/
-template< class NodeType >   //tMeshListIter
-int tMeshListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+int tMeshListIter< NodeType, ListNodeType >::
 LastActive()
 {
-   tMeshList< NodeType > *meshlistPtr =
-     static_cast< tMeshList< NodeType > * >(this->listPtr);
+   tMeshList< NodeType, ListNodeType > *meshlistPtr =
+     static_cast< tMeshList< NodeType, ListNodeType > * >(this->listPtr);
    assert( meshlistPtr != 0 );
    this->curnode = meshlistPtr->lastactive;
    this->counter = meshlistPtr->nActiveNodes-1;
@@ -732,12 +728,12 @@ LastActive()
 **  Moves the iterator to the first boundary node.
 **
 \**************************************************************************/
-template< class NodeType >   //tMeshListIter
-int tMeshListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+int tMeshListIter< NodeType, ListNodeType >::
 FirstBoundary()
 {
-   tMeshList< NodeType > *meshlistPtr =
-     static_cast< tMeshList< NodeType > * >(this->listPtr);
+   tMeshList< NodeType, ListNodeType > *meshlistPtr =
+     static_cast< tMeshList< NodeType, ListNodeType > * >(this->listPtr);
    assert( meshlistPtr != 0 );
    if( meshlistPtr->isActiveEmpty() ) this->curnode = this->listPtr->first;
    else if( meshlistPtr->isBoundEmpty() ) this->curnode = 0;
@@ -756,8 +752,8 @@ FirstBoundary()
 **  to the data at that location.
 **
 \**************************************************************************/
-template< class NodeType >   //tMeshListIter
-NodeType* tMeshListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+NodeType* tMeshListIter< NodeType, ListNodeType >::
 FirstBoundaryP()
 {
   if ( FirstBoundary() ) return this->curnode->getDataPtrNC();
@@ -773,8 +769,8 @@ FirstBoundaryP()
 **  to the data at that location.
 **
 \**************************************************************************/
-template< class NodeType >   //tMeshListIter
-NodeType *tMeshListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+NodeType *tMeshListIter< NodeType, ListNodeType >::
 LastActiveP()
 {
    if ( LastActive() ) return this->curnode->getDataPtrNC();
@@ -791,8 +787,8 @@ LastActiveP()
 **  function getBoundaryFlag.
 **
 \**************************************************************************/
-template< class NodeType >   //tMeshListIter
-inline int tMeshListIter< NodeType >::
+template< class NodeType, class ListNodeType >
+inline int tMeshListIter< NodeType, ListNodeType >::
 IsActive() const
 {
    if( this->curnode!=0 )
