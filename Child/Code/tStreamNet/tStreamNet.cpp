@@ -76,7 +76,7 @@ tInlet::~tInlet()
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.17 1998-03-06 23:18:29 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.18 1998-03-09 17:39:12 gtucker Exp $
 \**************************************************************************/
 
 
@@ -954,17 +954,17 @@ void tStreamNet::FillLakes()
          do
          {
             lowestNode = lakeIter.FirstP();
-            lowestElev = kVeryHigh; // Initialize lowest elev to a very high val.
+            lowestElev = kVeryHigh; // Initialize lowest elev to very high val.
             // Check the neighbors of every node on the lake-list
             for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
                  cln = lakeIter.NextP() )
             {
-               cout << "LAKE LIST:\n";
-               cln->TellAll();
-               // Check all the neighbors of the node
+               //Xcout << "LAKE LIST:\n";
+               //Xcln->TellAll();
                       //XspokIter.Reset( cln->getSpokeListNC() );
                    //Xfor( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
                    //Xce = spokIter.NextP() )
+               // Check all the neighbors of the node
                ce = cln->GetEdg();
                do
                {
@@ -1174,16 +1174,16 @@ void tStreamNet::SortNodesByNetOrder()
 {
    int nThisPass;                      // Number moved in current iteration
    int i;
-   int done;
+   int done=0;
    tLNode * cn;
    tGridList<tLNode> *nodeList = gridPtr->GetNodeList();
    int nUnsortedNodes = nodeList->getActiveSize();  // Number not yet sorted
    tGridListIter<tLNode> listIter( nodeList );
    
    //test
-   cout << "BEFORE: " << endl;
+   /*Xcout << "BEFORE: " << endl;
    for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
-       cout << cn->getID() << endl;
+       cout << cn->getID() << endl;*/
    
 #if TRACKFNS
    cout << "SortNodesByNetOrder" << endl;
@@ -1237,13 +1237,13 @@ void tStreamNet::SortNodesByNetOrder()
 
     } while( !done );
 
-  cout << "AFTER: " << endl;
+   /*Xcout << "AFTER: " << endl;
   cn = listIter.FirstP();
   cout << "First node:\n";
   cn->TellAll();
   for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
       cout << cn->getID() << " " << cn->GetQ() << endl;
-  cout << "Leaving Sort\n" << flush;
+  cout << "Leaving Sort\n" << flush;*/
   
  
 }
