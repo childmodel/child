@@ -12,15 +12,16 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.5 1998-02-27 22:57:16 stlancas Exp $
+**  $Id: tArray.h,v 1.6 1998-04-29 21:43:07 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TARRAY_H
 #define TARRAY_H
 
 #include <iostream.h>
-#include "../Classes.h"
-#include "../GlobalFns.h"
+//#include "../Classes.h"
+//#include "../GlobalFns.h"
+
 /** class tArray  **********************************************************/
 template< class T >
 class tArray
