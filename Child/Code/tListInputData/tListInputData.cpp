@@ -8,18 +8,12 @@
 **   - changed .tri file format from points-edges-triangles to
 **     points-triangles-edges, compatible with earlier format (gt 1/98)
 **
-**  $Id: tListInputData.cpp,v 1.1 1998-01-14 20:37:32 gtucker Exp $
+**  $Id: tListInputData.cpp,v 1.2 1998-01-21 19:41:52 gtucker Exp $
 \**************************************************************************/
 
-#include <iostream.h>
-#include <fstream.h>
 #include <assert.h>
-#include "../Definitions.h"
-#include "../Classes.h"
-#include "../tArray/tArray.h"
-#include "../tInputFile/tInputFile.h"
-
 #include "tListInputData.h"
+
 /**************************************************************************\
 **
 **         Utilities for classes tListIFStreams &  tListInputData
