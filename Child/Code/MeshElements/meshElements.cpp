@@ -12,7 +12,7 @@
 **     "gridElements", 1/20/98 gt
 **   - added tNode::AttachNewSpoke and tEdge::WelcomeCCWNeighbor gt 2/99
 **
-**  $Id: meshElements.cpp,v 1.30 1999-05-11 19:06:10 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.31 1999-08-31 21:50:37 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -54,7 +54,8 @@ tArray< double > FindIntersectionCoords( tArray< double > xy1,
    c = dxa * xy1[1] - dya * xy1[0];
    f = dyb;
    g = -dxb;
-   h = dxb * xy3[1] - dyb * xy4[0];
+   //h = dxb * xy3[1] - dyb * xy4[0];
+   h = dxb * xy3[1] - dyb * xy3[0];  // seems to be a bug above; fixed here?
    if( fabs(dxa) > 0 && fabs(dxb) > 0 )
    {
       if( fabs(f - g * a / b) > 0 )
@@ -522,7 +523,7 @@ double tNode::ComputeVoronoiArea()
    // the correct vertices. In some cases, we may need to delete an edge
    // to get the correct list of vertices; we don't want to delete the
    // spoke ptr, so we make a duplicate list.
-   //cout << "making list: ";
+   if( id==83 ) cout << "NODE 83: " << x << "," << y << endl;
    ce = edg;
    do
    {
@@ -532,6 +533,8 @@ double tNode::ComputeVoronoiArea()
       //cout << xy[0] << " " << xy[1] << "; " << flush;
       //xy = vedgList.getLast()->getPtrNC()->getRVtx();
       //cout << xy[0] << " " << xy[1] << endl << flush;
+      if( id==83) cout << " " << ce->getDestinationPtr()->getX() << ","
+                       << ce->getDestinationPtr()->getY() << endl;
       ce = ce->getCCWEdg();
    } while( ce != edg );
    vedgList.makeCircular();
@@ -665,7 +668,7 @@ double tNode::ComputeVoronoiArea()
          //wrong side of bndy edge...
          if( ce->getBoundaryFlag() && ne->getBoundaryFlag() )
          {
-            
+            if( id==83 ) cout << " CASE A\n";
             bn0 = ce->getDestinationPtrNC();
             bn1 = ne->getDestinationPtrNC();
             xy2 = bn0->get2DCoords();
@@ -674,6 +677,7 @@ double tNode::ComputeVoronoiArea()
             {
                //"cut off" portion of V. area outside bndy by finding intersections
                //of V. edges and bndy edge:
+               if( id==83 ) cout << " CASE B\n";
                xy = FindIntersectionCoords( ce->getRVtx(), xy1, xy2, xy3 );
                vcL.insertAtBack( xy );
                nne = ne->getCCWEdg();
@@ -692,6 +696,7 @@ double tNode::ComputeVoronoiArea()
       //cout << "find polygon area" << endl << flush;
       // coords of first vertex:
       xy = *(vcI.FirstP()); //ce = vtxIter.FirstP();
+      if( id==83 ) cout << "starting pt " << xy[0] << "," << xy[1] <<endl;
       //xy = ce->getRVtx(); 
       // Find out # of vertices in polygon:
       int nverts = vcL.getSize(); //vedgList.getSize(); 
@@ -699,40 +704,54 @@ double tNode::ComputeVoronoiArea()
       {
          xyn = *(vcI.NextP()); //xyn = vtxIter.NextP()->getRVtx();// Vertex i
          xynn = *(vcI.NextP());//vtxIter.ReportNextP()->getRVtx(); // Vertex i+1
+         if( id==83 ) cout << "other two: (" << xyn[0] << "," << xyn[1] << "), (" << 
+             xynn[0] << "," << xynn[1] << ")\n";
          dx = xyn[0] - xy[0];
          dy = xyn[1] - xy[1];
+         if( id==83 ) cout << "dx: " << dx << " dy: " << dy << endl;
          a = sqrt( dx*dx + dy*dy );
          dx = xynn[0] - xyn[0];
          dy = xynn[1] - xyn[1];
+         if( id==83 ) cout << "dx: " << dx << " dy: " << dy << endl;
          b = sqrt( dx*dx + dy*dy );
          dx = xynn[0] - xy[0];
          dy = xynn[1] - xy[1];
+         if( id==83 ) cout << "dx: " << dx << " dy: " << dy << endl;
          c = sqrt( dx*dx + dy*dy );
-           //cout<<"V_a 3: a "<<a<<", b "<<b<<", c "<<c<<endl<<flush;
+         //TODO: check for sqrt neg # w/ assert
          area += 0.25*sqrt( 4*a*a*b*b -
                             (c*c - (b*b + a*a))*(c*c - (b*b + a*a)));
+         if( id==83 ) {
+            cout<<"ND "<<id<<" V_a 3: a "<<a<<", b "<<b<<", c "<<c<<endl<<flush;
+            cout<<" Acum (1,"<<i<<","<<i+1<<") = " <<area<<endl;
+         }
          vcI.Prev();
       }
    }
    varea = area;
    varea_rcp = 1.0/varea;
-   /*cout << "reading list: ";
-   for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
-   {
-      xy = ce->getRVtx();
-      cout << xy[0] << " " << xy[1] << "; " << flush;
+
+   // debug
+   if( id==83 ) {
+      cout << " reading list: ";
+      for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
+      {
+         xy = ce->getRVtx();
+         cout << xy[0] << " " << xy[1] << "; " << flush;
+      }
+      cout << endl << flush;
+      cout << "reading spokes: ";
+      ce = edg;
+      do
+      {
+         assert( ce>0 );
+         xy = ce->getRVtx();
+         cout << xy[0] << " " << xy[1] << "; " << flush;
+         ce = ce->getCCWEdg();
+      } while( ce != edg );
+      cout << endl << flush;
    }
-   cout << endl << flush;
-   cout << "reading spokes: ";
-   ce = edg;
-   do
-   {
-      assert( ce>0 );
-      xy = ce->getRVtx();
-      cout << xy[0] << " " << xy[1] << "; " << flush;
-      ce = ce->getCCWEdg();
-   } while( ce != edg );
-   cout << endl << flush;*/
+   
    return area;
 }
 
