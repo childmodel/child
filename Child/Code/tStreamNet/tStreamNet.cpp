@@ -8,8 +8,10 @@
 **     - 2/00 added DensifyMeshDrArea plus modifications to tStreamNet
 **       constructor to implement dynamic node addition in regions of
 **       high drainage area (ie, main channels; see below) GT
+**     - 6/01 added functions to implement Parker-Paola self-formed
+**       channel model GT
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.69 2000-03-24 16:58:56 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.69.3.1 2001-06-24 10:05:12 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -154,22 +156,15 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    // Options related to stream meandering
    int itMeanders = infile.ReadItem( itMeanders, "OPTMNDR" );
 
-   // Read hydraulic geometry parameters
+   // Read hydraulic geometry parameters: first, those used (potentially)
+   // by both "regime" and "parker" hydraulic geometry models 
    bankfullevent = infile.ReadItem( bankfullevent, "BANKFULLEVENT" );
    bankfullevent *= kYearpersec;
    if( bankfullevent<=0.0 )
        ReportFatalError( 
            "Input error: BANKFULLEVENT must be greater than zero" );
-   kwds = infile.ReadItem( kwds, "HYDR_WID_COEFF_DS" );
-   //cout << "kwds: " << kwds << endl;
-   assert( kwds > 0 );
-   kdds = infile.ReadItem( kdds, "HYDR_DEP_COEFF_DS" );
-   ewds = infile.ReadItem( ewds, "HYDR_WID_EXP_DS" );
-   //cout << "ewds: " << ewds << endl;
-   edds = infile.ReadItem( edds, "HYDR_DEP_EXP_DS" );
+
    ewstn = infile.ReadItem( ewstn, "HYDR_WID_EXP_STN" );
-   //cout << "ewstn: " << ewstn << endl;
-   edstn = infile.ReadItem( ewstn, "HYDR_DEP_EXP_STN" );
    knds = infile.ReadItem( knds, "HYDR_ROUGH_COEFF_DS" );
    //cout << "knds: " << knds << endl;
    //assert( knds > 0 );
@@ -180,6 +175,32 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    klambda = infile.ReadItem( klambda, "BANK_ROUGH_COEFF" );
    elambda = infile.ReadItem( elambda, "BANK_ROUGH_EXP" );
 
+   // Read remaining hydraulic geometry parameters according to which
+   // (of currently 2) model is chosen
+   miChannelType = infile.ReadItem( miChannelType, "CHAN_GEOM_MODEL" );
+   if( miChannelType < 1 || miChannelType > kNumChanGeomModels )
+   {
+     cout << "You asked for channel geometry model number " << miChannelType;
+     cout << " but there is no such thing.\n";
+     cout << "Available models are:\n";
+     cout << " 1. Regime theory (empirical power-law scaling)\n";
+     cout << " 2. Parker-Paola self-formed channel theory\n";
+     ReportFatalError( "Unrecognized channel geometry model code.\n" );
+   }
+   if( miChannelType==kRegimeChannels )
+     {
+       kwds = infile.ReadItem( kwds, "HYDR_WID_COEFF_DS" );
+       //cout << "kwds: " << kwds << endl;
+       assert( kwds > 0 );
+       kdds = infile.ReadItem( kdds, "HYDR_DEP_COEFF_DS" );
+       ewds = infile.ReadItem( ewds, "HYDR_WID_EXP_DS" );
+       //cout << "ewds: " << ewds << endl;
+       edds = infile.ReadItem( edds, "HYDR_DEP_EXP_DS" );
+       edstn = infile.ReadItem( ewstn, "HYDR_DEP_EXP_STN" );
+     }
+   else // Parker Channels
+     mpParkerChannels = new tParkerChannels( infile );
+       
    // Option for 2D kinematic-wave overland flow routing
    int optKinWave = infile.ReadItem( optKinWave, "OPTKINWAVE" );
    if( optKinWave )
@@ -1645,10 +1666,19 @@ void tStreamNet::SortNodesByNetOrder( int optMultiFlow )
 **      Modified:
 **       - calculation of power terms modified to handle case of zeros
 **         GT 6/99
+**       - GT 6/01 -- added statement to call alternative ParkerChannels
+**         model instead of "regime" hydraulic geometry.
 **
 \*****************************************************************************/
 void tStreamNet::FindHydrGeom()
 {
+   if( miChannelType==kParkerChannels )
+     {
+       assert( mpParkerChannels != 0 );
+       mpParkerChannels->CalcChanGeom( meshPtr );
+       return;
+     }
+
    //Xint i, j, num;
    double kwdspow, kndspow, kddspow,
        widpow, deppow, npow, qpsec;
@@ -1756,11 +1786,15 @@ void tStreamNet::FindHydrGeom()
 **               magnitude of runoff which, when applied uniformly over
 **               catchment and allowed to come to steady state, will
 **               produce a bankfull event. GT
+**       - 6/01 GT: added statement at beginning to ignore this fn if
+**               alternative Parker-Paola models is used.
 **
 \*****************************************************************************/
 #define kSmallNum 0.0000000001
 void tStreamNet::FindChanGeom()
 {
+   if( miChannelType==kParkerChannels ) return;
+
    //Xint i, j, num;
    double qbf,      // Bankfull discharge in m3/s 
        width,       // Channel width, m
@@ -2313,3 +2347,125 @@ tLNode *tInlet::getInNodePtr() {return innode;}
 void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 
    
+/**************************************************************************\
+**  FUNCTIONS FOR CLASS tParkerChannels.
+\**************************************************************************/
+
+/**************************************************************************\
+**
+**  tParkerChannel Constructor
+**
+**  The constructor reads in necessary parameters to implement the
+**  Parker-Paola self-formed channel geometry model. A brief derivation
+**  is below:
+**
+**    hypothesis: taub / taucrit = P = 1.2 to 1.4
+**
+**  where taub is bankfull bed shear stress and taucrit is critical
+**  shear stress for motion of d50 bed material.
+**
+**    steady-uniform, wide-channel flow:  taub = kt (Qb/W)^alpha S^beta
+**
+**  Combining gives
+**
+**    W = Qb [ (kt S^beta) / (taucrit P) ] ^ alpha
+**
+**  From Shields' relation,
+**
+**    taucrit = thetac ( sigma - rho ) g d50   (see below for defs)
+**    thetac = constant for fully turbulent flow ~ 0.045
+**      (see Slingerland, Harbaugh, and Furlong, 1994)
+**
+**  Here, width is recalculated for any given (not necessarily bankfull)
+**  discharge. Multiplicative constant and exponent are then:
+**
+**    W = Q * uconv * mdPPfac * S^(beta/alpha)
+**
+**  "uconv" is unit conversion from dishcarge in m3/yr to m3/s, consistent
+**  with the use of SI units in kt and taucrit.
+**
+**      Created 6/01, GT
+**
+**    Modifications:
+**
+\**************************************************************************/
+tParkerChannels::tParkerChannels( tInputFile &infile )
+{
+  double kt,              // Shear-stress coefficient (SI units)
+    taucrit,              // Critical shear stress for d50 (Pa)
+    d50,                  // Median grain diameter (m)
+    alpha,                // Specific-discharge exponent in shear stress eqn
+    beta;                 // Slope exponent in shear stress eqn
+  int numg,               // Number of grain-size classes
+    i;                    // Counter
+  double thetac = 0.045,  // Critical shields stress
+    sigma = 2650.0,       // Sediment density
+    rho = 1000.0,         // Water density
+    grav = 9.81,          // Gravitational acceleration
+    P = 1.4,              // Parker-Paola constant (tau/taucrit ratio)
+    secPerYear=365.25*24*3600;  // # of seconds in one year
+  char astring[12];   // string var used in reading grain-size classes
+
+  //cout << "tParkerChannels::tParkerChannels\n";
+
+  //First, average over size-classes to estimate d50 (works only for numg<10 )
+  numg = infile.ReadItem( numg, "NUMGRNSIZE" );
+  d50 = 0.0;
+  strcpy( astring, "GRAINDIAM0\0" );
+  for( i=1; i<=numg; i++ )
+    {
+      astring[9]++;  // Next number (1, 2, etc.)
+      //strcpy( astring, "GRAINDIAM" );
+      //strcat( astring, nstr );
+      d50 = d50 + infile.ReadItem( d50, astring );
+      cout << "Reading " << astring << "; cum value = " << d50 << endl;
+    }
+  d50 = d50 / numg;
+
+  // Calculate coefficient and slope exponent for width equation (see above)
+  taucrit = thetac*(sigma-rho)*grav*d50;
+  kt = infile.ReadItem( kt, "KT" );
+  alpha = infile.ReadItem( alpha, "MF" );
+  beta = infile.ReadItem( beta, "NF" );
+  mdPPfac = ( 1.0 / secPerYear ) * pow( kt / ( taucrit * P ), 1.0 / alpha );
+  mdPPexp = beta / alpha;
+
+  // Depth is calculated from width plus Manning equation
+  mdRough = infile.ReadItem( mdRough, "HYDR_ROUGH_COEFF_DS" ); // Manning's n
+  mdDepthexp = 0.6;  // From Manning eqn; for Chezy / Darcy would be 2/3
+
+}
+
+/**************************************************************************\
+**
+**  tParkerChannels::CalcChanGeom
+**
+**  This function updates channel width and depth at each node according
+**  to the Parker-Paola self-formed channel hypothesis. See the constructor
+**  function for derivation.
+**
+**  Note: channels "self-form" for every discharge value in this
+**  implementation; this is not an ideal approximation.
+**
+**  Note: chanwidth and chandepth are not set. Side effects unknown.
+**
+**      Created 6/01, GT
+**
+**      Modifications:
+**
+\**************************************************************************/
+void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
+{
+  tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
+  tLNode *cn;
+
+  //cout << "tParkerChannels::CalcChanGeom\n";
+
+  for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+    {
+      cn->setHydrWidth( mdPPfac * cn->getQ() * pow(cn->getSlope(),mdPPexp ) );
+      cn->setHydrDepth( pow( ( cn->getQ() * mdRough ) 
+			     / ( cn->getChanWidth() * sqrt( cn->getSlope() ) ),
+			     mdDepthexp ) );
+    }
+}
