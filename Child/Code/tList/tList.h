@@ -29,7 +29,7 @@
 **    - GT added currentItem member and routines FirstP and NextP to
 **      track position on list w/o an iterator, 1/22/99
 **
-**  $Id: tList.h,v 1.15 1999-04-05 15:33:15 gtucker Exp $
+**  $Id: tList.h,v 1.16 1999-11-04 14:40:04 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -123,7 +123,7 @@ public:
     void moveToFront( tListNode< NodeType > *  ); // move given node to front
     void makeCircular();   // makes list circular (last points to first)
     //Xvoid setNNodes( int ); // ONLY sets nNodes -- danger Will Robinson!!
-    const NodeType getIthData( int ) const;     // rtns copy of given item #
+    NodeType getIthData( int ) const;     // rtns copy of given item #
     const NodeType *getIthDataPtr( int ) const; // rtns ptr to given item #
     const NodeType &getIthDataRef( int ) const; // rtns ref to given item #
     NodeType getIthDataNC( int ) const;     // rtns modifiable copy of item #
