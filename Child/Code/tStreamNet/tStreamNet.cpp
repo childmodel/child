@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.41 1998-07-15 15:43:59 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.42 1998-07-15 22:23:17 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1617,23 +1617,47 @@ tInlet::tInlet()
    gridPtr = 0;
 }
 
-tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
+/**************************************************************************\
+**
+**  tInlet Constructor #2
+**
+**  ...
+**
+**  Bug: if a new inlet node is added, using AddNodeAt won't assign
+**  correct variables for layers, regolith, etc. Fix: new node is assigned
+**  properties of the nearest neighbor (not elevation; that's done by
+**  interpolation). GT 7/98
+**
+\**************************************************************************/
+#define LARGE_DISTANCE 1e9
+tInlet::tInlet( tGrid< tLNode > *gPtr, tInputFile &infile )
 {
    int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" ),
        numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    int add = 1;
    char end, name[20];
-   double xin, yin, mindist, dist, x, y, zin = 0, suminvdist = 0;
+   double xin, yin,   // Coords of inlet node
+       mindist,       // Minimum distance above which new node will be added
+       dist,          // Distance btwn inlet and a nearby node
+       x, y,          // Location of a nearby node
+       zin = 0,       // Elevation of inlet
+       suminvdist = 0,// Sum of 1/dist for all nearby non-boundary nodes
+       minDistFound;  // Smallest distance to nearby node found so far
    double help;
    tArray< double > xyz(3);
    tTriangle *intri, *ntri;
-   tLNode *cn;
-   tPtrList< tLNode > nPL;
-   tPtrListIter< tLNode > itr( nPL );
-   gridPtr = Ptr;
+   tLNode *cn,
+       *closestNode;  // -> to closest nearby node found so far
+   tPtrList< tLNode > nPL;            // List of nearby non-boundary nodes
+   tPtrListIter< tLNode > itr( nPL ); // Iterator for the above list
+   
+   gridPtr = gPtr;
    assert( gridPtr != 0 );
    if( inletbc )
    {
+      // Read drainage area and sediment load at inlet. If more than one
+      // grain size is simulated, read in a sediment load for each size
+      // individually
       inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
       if(numg <= 1)
           inSedLoad = infile.ReadItem( inSedLoad, "INSEDLOAD" );
@@ -1652,11 +1676,15 @@ tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
             end++;
          }
       }
+
+      // Read in the location of the inlet node. If the specified coordinates
+      // are "close" to an existing non-boundary node, assign that node as
+      // the inlet; otherwise, create a new node. The elevation for the new
+      // node is found by interpolation.
       xin = infile.ReadItem( xin, "INLET_X" );
       yin = infile.ReadItem( yin, "INLET_Y" );
       intri = gridPtr->LocateTriangle( xin, yin );
       assert( intri > 0 );
-      mindist = 0.000001;
       for( i=0; i<3; i++ )
       {
          cn = (tLNode *) intri->pPtr(i);
@@ -1668,12 +1696,18 @@ tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
             if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
          }
       }
+      minDistFound = LARGE_DISTANCE;
+      mindist = 0.000001;
       for( cn = itr.FirstP(); !(itr.AtEnd()); cn = itr.NextP() )
       {
-         
          x = cn->getX();
          y = cn->getY();
          dist = sqrt( (xin - x) * (xin - x) + (yin - y) * (yin - y) );
+         if( dist < minDistFound )
+         {
+            minDistFound = dist;
+            closestNode = cn;
+         }
          if( dist > mindist )
          {
             zin += cn->getZ() / dist;
@@ -1692,13 +1726,31 @@ tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
             innode = cn;
          }*/
       }
-      if( add )
+      if( add ) // fix here:
       {
-         zin = zin / suminvdist;
-         xyz[0] = xin;
-         xyz[1] = yin;
-         xyz[2] = zin;
-         innode = gridPtr->AddNodeAt( xyz );
+         // NOTE: this leads to a new bug, as yet unfixed. For unknown
+         // reasons, the dgrade array of the top layer of closestNode becomes
+         // corrupted, but apparently not until after this routine... so it's
+         // an indirect effect. I suspect the problem lies in the copy
+         // constructor (or lack of one) in one of component objects that
+         // are being copied: tLNode -> tRegolith -> layerlist -> dgrade arr?
+         cout << "ADDING INLET: Closest node is:" << endl;
+         closestNode->TellAll();
+         cout << "DGRADE BEFORE: " << closestNode->getLayerDgrade(0,0);
+         tLNode newnode( *closestNode );
+         cout << " DGRADE AFTER: " << closestNode->getLayerDgrade(0,0) << endl << flush;
+         newnode.setZ( zin / suminvdist );
+         newnode.setX( xin );
+         newnode.setY( yin );
+         //zin = zin / suminvdist;
+         //xyz[0] = xin;
+         //xyz[1] = yin;
+         //xyz[2] = zin;
+         //innode = gridPtr->AddNodeAt( xyz );
+         innode = gridPtr->AddNode( newnode );
+         cout << " DGRADE AFTER AFTER: " << closestNode->getLayerDgrade(0,0) << endl << flush;
+         cout << "INLET NODE IS:\n";
+         innode->TellAll();
       }
    }
    else
