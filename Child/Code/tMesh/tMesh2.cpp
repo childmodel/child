@@ -1,29 +1,6 @@
 #include <stdlib.h>
 #include "TipperTriangulator.h"
 
-// tIdArray: lookup table per Id for a tList
-template< class T >
-class tIdArray
-{
-  tArray< T* > e_;
-public:
-  tIdArray(tList< T >& List);
-  T* operator[]( int subscript ) const {
-    // return a value and not a reference, hence the "const".
-    return e_[subscript];
-  }
-};
-
-template< class T >
-tIdArray< T >::tIdArray(tList< T >& List) :
-  e_(List.getSize())
-{
-  tListIter< T > Iter( List );
-  T *c;
-  for( c=Iter.FirstP(); !(Iter.AtEnd()); c=Iter.NextP() )
-    e_[c->getID()] = c;
-}
-
 /**************************************************************************\
 **
 **   tMesh::MakeMeshFromScratchTipper( infile )

@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.111 2002-07-23 16:55:05 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.112 2002-07-25 14:39:52 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -20,6 +20,29 @@
 #include <stdlib.h>
 
 #include "ParamMesh_t.h"
+
+// tIdArray: lookup table per Id for a tList
+template< class T >
+class tIdArray
+{
+  tArray< T* > e_;
+public:
+  tIdArray(tList< T >& List);
+  T* operator[]( int subscript ) const {
+    // return a value and not a reference, hence the "const".
+    return e_[subscript];
+  }
+};
+
+template< class T >
+tIdArray< T >::tIdArray(tList< T >& List) :
+  e_(List.getSize())
+{
+  tListIter< T > Iter( List );
+  T *c;
+  for( c=Iter.FirstP(); !(Iter.AtEnd()); c=Iter.NextP() )
+    e_[c->getID()] = c;
+}
 
 /***************************************************************************\
 **  Templated global functions used by tMesh here
@@ -476,7 +499,7 @@ MakeMeshFromInputData( tInputFile &infile )
    nedges = input.orgid.getSize();
    ntri = input.p0.getSize();
    if (0) //DEBUG
-     cout << "nnodes, nedges, ntri: " 
+     cout << "nnodes, nedges, ntri: "
 	  << nnodes << " " << nedges << " " << ntri << endl << flush;
    assert( nnodes > 0 );
    assert( nedges > 0 );
@@ -508,6 +531,7 @@ MakeMeshFromInputData( tInputFile &infile )
 	cout << nodeList.getLast()->getDataPtr()->getBoundaryFlag() << endl;
       }
    }
+   const tIdArray< tSubNode > NodeTable(nodeList); // for fast lookup per ID
    cout << "done.\n";
    
    // Create and initialize the edge list by creating two temporary edges
@@ -516,7 +540,6 @@ MakeMeshFromInputData( tInputFile &infile )
    // back of the edgeList
    cout << "Creating edge list..." << flush;
    {
-     tMeshListIter< tSubNode > nodIter( nodeList );
      tEdge tempedge1, tempedge2;
      int obnd, dbnd;
      for( miNextEdgID = 0; miNextEdgID < nedges-1; miNextEdgID+=2 )
@@ -527,23 +550,21 @@ MakeMeshFromInputData( tInputFile &infile )
 	 if (0) //DEBUG
 	   cout << input.orgid[miNextEdgID] << " " 
 		<< input.destid[miNextEdgID] << endl;
-	 //cout << nodIter.Get( input.orgid[i] ) << " ";
-	 //cout << nodIter.Get( input.destid[i] ) << endl;
 	 {
-	   nodIter.Get( input.orgid[miNextEdgID] );
-	   tempedge1.setOriginPtr( &(nodIter.DatRef()) );
-	   tempedge2.setDestinationPtr( &(nodIter.DatRef()) );
-	   obnd = nodIter.DatRef().getBoundaryFlag();
+	   tSubNode *nodPtr1 = NodeTable[ input.orgid[miNextEdgID] ];
+	   tempedge1.setOriginPtr( nodPtr1 );
+	   tempedge2.setDestinationPtr( nodPtr1 );
+	   obnd = (*nodPtr1).getBoundaryFlag();
 	   if (0) //DEBUG
-	     cout << nodIter.DatRef().getID() << "->";
+	     cout << (*nodPtr1).getID() << "->";
 	 }
 	 {
-	   nodIter.Get( input.destid[miNextEdgID] );
-	   tempedge1.setDestinationPtr( &(nodIter.DatRef()) );
-	   tempedge2.setOriginPtr( &(nodIter.DatRef()) );
-	   dbnd = nodIter.DatRef().getBoundaryFlag();
+	   tSubNode *nodPtr2 = NodeTable[ input.destid[miNextEdgID] ];
+	   tempedge1.setDestinationPtr( nodPtr2 );
+	   tempedge2.setOriginPtr( nodPtr2 );
+	   dbnd = (*nodPtr2).getBoundaryFlag();
 	   if (0) //DEBUG
-	     cout << nodIter.DatRef().getID() << endl;
+	     cout << (*nodPtr2).getID() << endl;
 	 }
 
 	 // set the "flowallowed" status (FALSE if either endpoint is a
@@ -578,6 +599,7 @@ MakeMeshFromInputData( tInputFile &infile )
 	   }
        }
    }
+   const tIdArray< tEdge > EdgeTable(edgeList); // for fast lookup per ID
    cout << "done.\n";
 
    //DEBUG
@@ -599,7 +621,6 @@ MakeMeshFromInputData( tInputFile &infile )
    cout << "setting up spoke lists..." << flush;
    {
      tMeshListIter< tSubNode > nodIter( nodeList );
-     tMeshListIter< tEdge > edgIter( edgeList );
      assert( nodIter.First() );
      do
        {
@@ -608,14 +629,12 @@ MakeMeshFromInputData( tInputFile &infile )
 	 const int e1 = input.edgid[curnode->getID()];  //fix of above error
 	 if (0) //DEBUG
 	   cout << "spokes for Node " << curnode->getID() << endl;
-	 if( edgIter.Get( e1 ) )
-	   {
-	     curnode->insertBackSpokeList( &(edgIter.DatRef()) );
-	     curnode->setEdg( edgIter.DatPtr() );
-	     if (0) //DEBUG
-	       cout << "Node " << curnode->getID() << " has edg "
-		    << (curnode->getEdg())->getID() << endl;
-	   }
+	 tEdge *edgPtr = EdgeTable[e1];
+	 curnode->insertBackSpokeList( edgPtr );
+	 curnode->setEdg( edgPtr );
+	 if (0) //DEBUG
+	   cout << "Node " << curnode->getID() << " has edg "
+		<< (curnode->getEdg())->getID() << endl;
 	 int ne;
 	 for( ne = input.nextid[e1]; ne != e1; ne = input.nextid[ne] )
 	   {
@@ -627,8 +646,8 @@ MakeMeshFromInputData( tInputFile &infile )
 		 cerr << "This is likely to be a problem in the edge input file"
 		      << endl;
 	       }
-	     if( edgIter.Get( ne ) )
-	       curnode->insertBackSpokeList( &(edgIter.DatRef()) );
+	     tEdge *edgPtr = EdgeTable[ne];
+	     curnode->insertBackSpokeList( edgPtr );
 	   }
        }
      while( nodIter.Next() );
@@ -641,13 +660,14 @@ MakeMeshFromInputData( tInputFile &infile )
    cout << "Setting up CCW edges..." << flush;
    {
      tMeshListIter< tEdge > edgIter( edgeList );
+     tMeshListIter< tSubNode > nodIter( nodeList );
      tEdge * curedg, * ccwedg;
      int ccwedgid;
      tMeshListIter<tEdge> ccwIter( edgeList ); // 2nd iter for performance
      for( i=0, curedg=edgIter.FirstP(); i<nedges; i++, curedg=edgIter.NextP() )
        {
 	 ccwedgid = input.nextid[i];
-	 ccwedg = ccwIter.GetP( ccwedgid ); //test
+	 ccwedg = EdgeTable[ccwedgid]; //test
 	 curedg->setCCWEdg( ccwedg );
 	 if (0) // DEBUG
 	   cout << "Edg " << ccwedgid
@@ -696,34 +716,32 @@ MakeMeshFromInputData( tInputFile &infile )
 	   cout << "TRI " << i << endl << flush;
 	 tTriangle newtri;
 	 newtri.setID( i );
-	 if( nodIter.Get( input.p0[i] ) )
-	   newtri.setPPtr( 0, &(nodIter.DatRef()) );
-	 if( nodIter.Get( input.p1[i] ) )
-	   newtri.setPPtr( 1, &(nodIter.DatRef()) );
-	 if( nodIter.Get( input.p2[i] ) )
-	   newtri.setPPtr( 2, &(nodIter.DatRef()) );
-	 if( edgIter.Get( input.e0[i] ) )
-	   newtri.setEPtr( 0, &(edgIter.DatRef()) );
-	 if( edgIter.Get( input.e1[i] ) )
-	   newtri.setEPtr( 1, &(edgIter.DatRef()) );
-	 if( edgIter.Get( input.e2[i] ) )
-	   newtri.setEPtr( 2, &(edgIter.DatRef()) );
+	 {
+	   newtri.setPPtr( 0, NodeTable[ input.p0[i] ] );
+	   newtri.setPPtr( 1, NodeTable[ input.p1[i] ] );
+	   newtri.setPPtr( 2, NodeTable[ input.p2[i] ] );
+	 }
+	 {
+	   newtri.setEPtr( 0, EdgeTable[ input.e0[i] ] );
+	   newtri.setEPtr( 1, EdgeTable[ input.e1[i] ] );
+	   newtri.setEPtr( 2, EdgeTable[ input.e2[i] ] );
+	 }
 	 triList.insertAtBack( newtri );
        }
-   
-     tListIter< tTriangle >
-       triIter( triList ), triIter2( triList );
+     const tIdArray< tTriangle > TriTable(triList); // for fast lookup per ID
+     
+     tListIter< tTriangle > triIter( triList );
      tTriangle * ct, * nbrtri;
      for( i=0, ct=triIter.FirstP(); i<ntri; ct=triIter.NextP(), i++ )
        {
-	 nbrtri = ( input.t0[i]>=0 ) ? triIter2.GetP( input.t0[i] ) : 0;
+	 nbrtri = ( input.t0[i]>=0 ) ? TriTable[ input.t0[i] ] : 0;
 	 ct->setTPtr( 0, nbrtri );
-	 nbrtri = ( input.t1[i]>=0 ) ? triIter2.GetP( input.t1[i] ) : 0;
+	 nbrtri = ( input.t1[i]>=0 ) ? TriTable[ input.t1[i] ] : 0;
 	 ct->setTPtr( 1, nbrtri );
-	 nbrtri = ( input.t2[i]>=0 ) ? triIter2.GetP( input.t2[i] ) : 0;
+	 nbrtri = ( input.t2[i]>=0 ) ? TriTable[ input.t2[i] ] : 0;
 	 ct->setTPtr( 2, nbrtri );
        }
-   }   
+   }
    cout<<"done.\n";
 
    // The user may wish to densify the starting mesh uniformly by adding
