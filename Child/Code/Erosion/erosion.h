@@ -47,8 +47,11 @@
 **     - added an erosion-rate-based adaptive mesh capability, with
 **       a new DensifyMesh function and supporting data member
 **       mdMeshAdaptMaxFlux (gt 2/2000)
+**     - 2/02 new class tSedTransPwrLawMulti to handle multi-size
+**       transport in power-law (excess-shear stress) formulation
+**       (GT)
 **
-**  $Id: erosion.h,v 1.31 2000-12-07 12:04:49 gtucker Exp $
+**  $Id: erosion.h,v 1.32 2002-02-11 09:19:09 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -63,11 +66,12 @@
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
 
-//#define tSedTrans tSedTransPwrLaw
+#define tSedTrans tSedTransPwrLawMulti
 //#define SEDTRANSOPTION "Power-law transport formula"
-#define tSedTrans tSedTransWilcock
-#define SEDTRANSOPTION "Wilcock sand-gravel formula"
+//#define tSedTrans tSedTransWilcock
+//#define SEDTRANSOPTION "Wilcock sand-gravel formula"
 //#define SEDTRANSOPTION "Willgoose/Riley mine tailings formula"
+#define SEDTRANSOPTION "Multi-size power-law formula"
 
 /***************************************************************************\
 **  class tEquilibCheck
@@ -135,6 +139,35 @@ class tSedTransPwrLaw
    double nf;  // Exponent on slope
    double pf;  // Excess shear exponent
    double tauc; // Entrainment threshold
+};
+
+
+/***************************************************************************\
+**  class tSedTransPwrLawMulti
+**
+**  Manages data and routines to compute sediment transport capacity for
+**  multiple grain size fractions, using an excess shear stress formulation
+**  a la Meyer-Peter & Mueller. Uses Komar-style hiding & protrusion
+**  function.
+**
+\***************************************************************************/
+class tSedTransPwrLawMulti
+{
+  public:
+   tSedTransPwrLawMulti( tInputFile &infile );
+   double TransCapacity( tLNode * n );
+   double TransCapacity( tLNode *n, int lyr, double weight );
+
+  private:
+   double kf;  // Transport capacity coefficient
+   double kt;  // Shear stress coefficient
+   double mf;  // Exponent on total discharge
+   double nf;  // Exponent on slope
+   double pf;  // Excess shear exponent
+   tArray<double> mdGrndiam;  // Grain diameters
+   tArray<double> mdTauc; // Entrainment threshold
+   int miNumgrnsizes;  // No. grain size classes
+   double mdHidingexp; // Hiding/protrusion exponent
 };
 
 
@@ -250,8 +283,8 @@ class tErosion
 {
 public:
     tErosion( tMesh< tLNode > *, tInputFile & );
-    void ErodeDetachLim( double dtg );
-    void ErodeDetachLim( double dtg, tUplift * );
+    void ErodeDetachLim( double dtg, tStreamNet * );
+    void ErodeDetachLim( double dtg, tStreamNet *, tUplift * );
     void StreamErode( double dtg, tStreamNet * );
     void StreamErodeMulti( double dtg, tStreamNet *, double time);
     void DetachErode( double dtg, tStreamNet *, double time);
