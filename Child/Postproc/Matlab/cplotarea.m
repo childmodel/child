@@ -1,4 +1,4 @@
-function m=cplotarea(basenm,nd,ts)
+function m=cplotarea(basenm,nd,ts,minarea)
 % CPLOTAREA: Plots network from Child simulation, with line thickness in 
 % proportion to drainage area. Call this after running CPLOTMESH.
 %  Usage: cplotareard( filename, nd, ts )
@@ -37,7 +37,7 @@ plot3([0 0],[0 0],[0 0])
 hold on
 for i=1:nn 
   if i==nbr(i),i,nbr(i),end
-  if a(i)>100000
+  if a(i)>minarea
     h=plot3( [nd(i,1) nd(nbr(i),1)], [nd(i,2) nd(nbr(i),2)], [nd(i,3) nd(nbr(i),3)]+2,'k' ); 
     set(h,'linewidth',[lw(i)]);
   end

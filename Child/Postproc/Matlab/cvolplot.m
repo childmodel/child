@@ -1,9 +1,10 @@
 function [t,v] = cvolplot( fname, n, area )
 %CVOLPLOT: Plots volume above base level versus time from a Child run. Run must
 %          have used OPTTSOUTPUT option.
-%    Usage: [t,v] = cvolplot( fname, n )
+%    Usage: [t,v] = cvolplot( fname, n, {area} )
 %      fname = file name (including path)
 %      n = number of lines in <fname>.storm and <fname>.vols files
+%      area = total area of simulation mesh (optional)
 %    Returns:
 %      t = time vector (x-axis)
 %      v = volume vector (y-axis)

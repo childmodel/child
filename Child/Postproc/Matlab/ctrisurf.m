@@ -38,7 +38,7 @@ end
 tri = [ rot90(t(1,:),3) rot90(t(2,:),3) rot90(t(3,:),3)]+1;
 x = n(1,:);
 y = n(2,:);
-if c==0, c=z; end
+if (nargin<3 | c==0), c=z; end
 if size(z,2)~=nn, error('Color index (c) must have same size as # nodes'),end
 trisurf(tri,x,y,z,c)
 rot90(meanElev,3);
