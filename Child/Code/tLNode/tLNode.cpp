@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.35 1998-04-22 22:43:59 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.36 1998-04-23 16:23:46 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1010,9 +1010,9 @@ double tLNode::getDrDt() {return drdt;}
 void tLNode::setXYZD( tArray< double > arr )
 {
    chan.migration.xyzd = ( arr.getSize() == 4 ) ? arr : tArray< double >(4);
-   cout << "setXYZD: " << chan.migration.xyzd[0] 
-        << " " << chan.migration.xyzd[1] << " " << chan.migration.xyzd[2]
-        << " " << chan.migration.xyzd[3] << endl;
+     //cout << "setXYZD: " << chan.migration.xyzd[0] 
+     //   << " " << chan.migration.xyzd[1] << " " << chan.migration.xyzd[2]
+     //   << " " << chan.migration.xyzd[3] << endl;
 }
 
 tArray< double >

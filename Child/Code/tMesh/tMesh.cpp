@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.29 1998-04-19 23:46:58 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.30 1998-04-23 16:23:21 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1197,7 +1197,7 @@ CheckMeshConsistency( void )
       }
 
    }
-   cout << "EDGES PASSED\n";
+     //cout << "EDGES PASSED\n";
 
    // Nodes: check for valid edg pointer, spoke connectivity, and connection
    // to at least one non-boundary or open boundary node
@@ -1254,7 +1254,7 @@ CheckMeshConsistency( void )
          }
       }
    }
-   cout << "NODES PASSED\n";
+     //cout << "NODES PASSED\n";
    
    // Triangles: check for valid points and connectivity
    for( ct=triIter.FirstP(); !(triIter.AtEnd()); ct=triIter.NextP() )
@@ -1320,8 +1320,8 @@ CheckMeshConsistency( void )
          }       
       }
    }
-   cout << "TRIANGLES PASSED\n";
-
+     //cout << "TRIANGLES PASSED\n";
+   cout << "MESH PASSED\n";
    return;
    
   error:
@@ -1769,7 +1769,7 @@ template< class tSubNode >
 tTriangle * tGrid< tSubNode >::
 LocateTriangle( double x, double y )
 {
-   cout << "LocateTriangle (" << x << "," << y << ")\n";
+     //cout << "LocateTriangle (" << x << "," << y << ")\n";
    int n, lv=0;
    tListIter< tTriangle > triIter( triList );  //lt
    tTriangle *lt = &(triIter.DatRef());
@@ -1811,8 +1811,12 @@ LocateTriangle( double x, double y )
       //cout << flush;
       assert( n < 3*ntri );
    }
-   cout << "FOUND point in:\n";
-   lt->TellAll();
+     //cout << "FOUND point in:\n";
+     //if( lt != 0 ) lt->TellAll(); //careful with this! TellAll() will crash
+                                    //if lt == 0, i.e., point is out of bounds,
+                                    //and we don't want that;
+                                    //calling code is built to deal with lt == 0.
+     //else cout << "location out of bounds\n";
    return(lt);
 }
 

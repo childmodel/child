@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.37 1998-04-22 00:14:57 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.38 1998-04-23 16:24:05 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -780,8 +780,8 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
             oldpos[0] = curnode->getX();
             oldpos[1] = curnode->getY();
             curnode->setXYZD( oldpos );
-            cout << "set old x,y to current coords for node "
-                 << curnode->getID() << endl;
+              //cout << "set old x,y to current coords for node "
+              //   << curnode->getID() << endl;
          }
            //newxy = curnode->getNew2DCoords();
            //cout << "init. new coords to " << newxy[0] << " " << newxy[1] << endl;
@@ -1190,8 +1190,8 @@ void tStreamMeander::AddChanBorder()
             //select for nodes far enough away from the old coords:
             if( cn->DistFromOldXY() > lvdist )
             {
-               cout << "node " << cn->getID()
-                    << " ready to drop new node" << endl;
+                 //cout << "node " << cn->getID()
+                 //   << " ready to drop new node" << endl;
                //just make sure new node will be
                //(a) not in a channel and
                //(b) on the same side of the channel:
