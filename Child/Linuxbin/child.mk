@@ -27,12 +27,18 @@ LDFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH)
 LIBS =
 EXENAME = child
 
-OBJECTS = childmain.o erosion.o meshElements.o mathutil.o \
- tInputFile.o tLNode.o tRunTimer.o tStreamMeander.o meander.o \
-tStorm.o tStreamNet.o tUplift.o errors.o tFloodplain.o \
-tEolian.o globalFns.o predicates.o tVegetation.o tListInputData.o \
-tTimeSeries.o \
-ParamMesh_t.o TipperTriangulator.o TipperTriangulatorError.o
+OBJEXT = o
+
+OBJECTS = \
+ childmain.$(OBJEXT) erosion.$(OBJEXT) \
+ meshElements.$(OBJEXT) mathutil.$(OBJEXT) \
+ tInputFile.$(OBJEXT) tLNode.$(OBJEXT) tRunTimer.$(OBJEXT) \
+ tStreamMeander.$(OBJEXT) meander.$(OBJEXT) \
+ tStorm.$(OBJEXT) tStreamNet.$(OBJEXT) tUplift.$(OBJEXT) errors.$(OBJEXT) \
+ tFloodplain.$(OBJEXT) tEolian.$(OBJEXT) globalFns.$(OBJEXT) \
+ predicates.$(OBJEXT) tVegetation.$(OBJEXT) tListInputData.$(OBJEXT) \
+ tTimeSeries.$(OBJEXT) ParamMesh_t.$(OBJEXT) TipperTriangulator.$(OBJEXT) \
+ TipperTriangulatorError.$(OBJEXT)
 
 all : $(EXENAME)
 .PHONY : all clean
@@ -40,78 +46,78 @@ all : $(EXENAME)
 $(EXENAME): $(OBJECTS)
 	$(CXX) $(LDFLAGS) $(OBJECTS) -o $@ $(LIBS)
 
-erosion.o: $(PT)/Erosion/erosion.cpp
+erosion.$(OBJEXT): $(PT)/Erosion/erosion.cpp
 	$(CXX) $(CFLAGS) $(PT)/Erosion/erosion.cpp
 
-meshElements.o: $(PT)/MeshElements/meshElements.cpp
+meshElements.$(OBJEXT): $(PT)/MeshElements/meshElements.cpp
 	$(CXX) $(CFLAGS) $(PT)/MeshElements/meshElements.cpp
 
-mathutil.o: $(PT)/Mathutil/mathutil.cpp
+mathutil.$(OBJEXT): $(PT)/Mathutil/mathutil.cpp
 	$(CXX) $(CFLAGS) $(PT)/Mathutil/mathutil.cpp
 
-tInputFile.o: $(PT)/tInputFile/tInputFile.cpp
+tInputFile.$(OBJEXT): $(PT)/tInputFile/tInputFile.cpp
 	$(CXX) $(CFLAGS) $(PT)/tInputFile/tInputFile.cpp
 
-tLNode.o: $(PT)/tLNode/tLNode.cpp
+tLNode.$(OBJEXT): $(PT)/tLNode/tLNode.cpp
 	$(CXX) $(CFLAGS) $(PT)/tLNode/tLNode.cpp
 
-tListInputData.o: $(PT)/tListInputData/tListInputData.cpp
+tListInputData.$(OBJEXT): $(PT)/tListInputData/tListInputData.cpp
 	$(CXX) $(CFLAGS) $(PT)/tListInputData/tListInputData.cpp
 
-tRunTimer.o: $(PT)/tRunTimer/tRunTimer.cpp
+tRunTimer.$(OBJEXT): $(PT)/tRunTimer/tRunTimer.cpp
 	$(CXX) $(CFLAGS) $(PT)/tRunTimer/tRunTimer.cpp
 
-tStorm.o: $(PT)/tStorm/tStorm.cpp
+tStorm.$(OBJEXT): $(PT)/tStorm/tStorm.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStorm/tStorm.cpp
 
-tTimeSeries.o:  $(PT)/tTimeSeries/tTimeSeries.cpp
+tTimeSeries.$(OBJEXT):  $(PT)/tTimeSeries/tTimeSeries.cpp
 	$(CXX) $(CFLAGS) $(PT)/tTimeSeries/tTimeSeries.cpp
 
-tStreamNet.o: $(PT)/tStreamNet/tStreamNet.cpp
+tStreamNet.$(OBJEXT): $(PT)/tStreamNet/tStreamNet.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamNet/tStreamNet.cpp
 
-tUplift.o: $(PT)/tUplift/tUplift.cpp
+tUplift.$(OBJEXT): $(PT)/tUplift/tUplift.cpp
 	$(CXX) $(CFLAGS) $(PT)/tUplift/tUplift.cpp
 
-errors.o: $(PT)/errors/errors.cpp
+errors.$(OBJEXT): $(PT)/errors/errors.cpp
 	$(CXX) $(CFLAGS) $(PT)/errors/errors.cpp
 
-tFloodplain.o: $(PT)/tFloodplain/tFloodplain.cpp
+tFloodplain.$(OBJEXT): $(PT)/tFloodplain/tFloodplain.cpp
 	$(CXX) $(CFLAGS) $(PT)/tFloodplain/tFloodplain.cpp
 
-tEolian.o: $(PT)/tEolian/tEolian.cpp
+tEolian.$(OBJEXT): $(PT)/tEolian/tEolian.cpp
 	$(CXX) $(CFLAGS) $(PT)/tEolian/tEolian.cpp
 
-ParamMesh_t.o: $(PT)/tMesh/ParamMesh_t.cpp
+ParamMesh_t.$(OBJEXT): $(PT)/tMesh/ParamMesh_t.cpp
 	$(CXX) $(CFLAGS) $(PT)/tMesh/ParamMesh_t.cpp
 
-TipperTriangulator.o: $(PT)/tMesh/TipperTriangulator.cpp
+TipperTriangulator.$(OBJEXT): $(PT)/tMesh/TipperTriangulator.cpp
 	$(CXX) $(CFLAGS) $(PT)/tMesh/TipperTriangulator.cpp
 
-TipperTriangulatorError.o: $(PT)/tMesh/TipperTriangulatorError.cpp
+TipperTriangulatorError.$(OBJEXT): $(PT)/tMesh/TipperTriangulatorError.cpp
 	$(CXX) $(CFLAGS) $(PT)/tMesh/TipperTriangulatorError.cpp
 
-globalFns.o: $(PT)/globalFns.cpp
+globalFns.$(OBJEXT): $(PT)/globalFns.cpp
 	$(CXX) $(CFLAGS) $(PT)/globalFns.cpp
 
-predicates.o: $(PT)/Predicates/predicates.cpp
+predicates.$(OBJEXT): $(PT)/Predicates/predicates.cpp
 	$(CXX) $(CFLAGS) $(PT)/Predicates/predicates.cpp
 
-tVegetation.o: $(PT)/tVegetation/tVegetation.cpp
+tVegetation.$(OBJEXT): $(PT)/tVegetation/tVegetation.cpp
 	$(CXX) $(CFLAGS) $(PT)/tVegetation/tVegetation.cpp
 
-tStreamMeander.o: $(PT)/tStreamMeander/tStreamMeander.cpp
+tStreamMeander.$(OBJEXT): $(PT)/tStreamMeander/tStreamMeander.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/tStreamMeander.cpp
 
-meander.o: $(PT)/tStreamMeander/meander.cpp
+meander.$(OBJEXT): $(PT)/tStreamMeander/meander.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/meander.cpp
 
-childmain.o: $(PT)/childmain.cpp
+childmain.$(OBJEXT): $(PT)/childmain.cpp
 	$(CXX) $(CFLAGS) $(PT)/childmain.cpp
 
 clean::
 	rm -f $(EXENAME)
-	rm -f *.o
+	rm -f *.$(OBJEXT)
 
 # dependencies: headers and template implementation files.
 # use, for instance:
@@ -157,26 +163,26 @@ HFILES = \
 	$(PT)/tVegetation/tVegetation.h \
 	$(PT)/trapfpe.h
 
-ParamMesh_t.o: $(HFILES)
-TipperTriangulator.o : $(HFILES)
-TipperTriangulatorError.o : $(HFILES)
-childmain.o : $(HFILES)
-erosion.o: $(HFILES)
-errors.o: $(HFILES)
-globalFns.o: $(HFILES)
-mathutil.o: $(HFILES)
-meander.o: $(HFILES)
-meshElements.o: $(HFILES)
-predicates.o: $(HFILES)
-tEolian.o: $(HFILES)
-tFloodplain.o: $(HFILES)
-tInputFile.o: $(HFILES)
-tLNode.o: $(HFILES)
-tListInputData.o: $(HFILES)
-tRunTimer.o: $(HFILES)
-tStorm.o : $(HFILES)
-tStreamMeander.o: $(HFILES)
-tStreamNet.o: $(HFILES)
-tTimeSeries.o : $(HFILES)
-tUplift.o: $(HFILES)
-tVegetation.o: $(HFILES)
+ParamMesh_t.$(OBJEXT): $(HFILES)
+TipperTriangulator.$(OBJEXT) : $(HFILES)
+TipperTriangulatorError.$(OBJEXT) : $(HFILES)
+childmain.$(OBJEXT) : $(HFILES)
+erosion.$(OBJEXT): $(HFILES)
+errors.$(OBJEXT): $(HFILES)
+globalFns.$(OBJEXT): $(HFILES)
+mathutil.$(OBJEXT): $(HFILES)
+meander.$(OBJEXT): $(HFILES)
+meshElements.$(OBJEXT): $(HFILES)
+predicates.$(OBJEXT): $(HFILES)
+tEolian.$(OBJEXT): $(HFILES)
+tFloodplain.$(OBJEXT): $(HFILES)
+tInputFile.$(OBJEXT): $(HFILES)
+tLNode.$(OBJEXT): $(HFILES)
+tListInputData.$(OBJEXT): $(HFILES)
+tRunTimer.$(OBJEXT): $(HFILES)
+tStorm.$(OBJEXT) : $(HFILES)
+tStreamMeander.$(OBJEXT): $(HFILES)
+tStreamNet.$(OBJEXT): $(HFILES)
+tTimeSeries.$(OBJEXT) : $(HFILES)
+tUplift.$(OBJEXT): $(HFILES)
+tVegetation.$(OBJEXT): $(HFILES)
