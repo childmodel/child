@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.12 1998-03-20 15:42:31 gtucker Exp $
+**  $Id: erosion.cpp,v 1.13 1998-03-23 23:16:00 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -434,60 +434,87 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 }
 
 
-void tErosion::Diffuse( double dt, int noDepoFlag )
+#define VERYSMALL 1e-6
+#define EPSOVER2 0.1
+void tErosion::Diffuse( double rt, int noDepoFlag )
 {
    tLNode * cn;
    tEdge * ce;
-   double fluxout;
+   double volout,  // Sediment volume output from a node (neg=input)
+       denom,      // Denominator in Courant number (=Kd*Lve)
+       delt,       // Max local step size
+       dtmax;      // Max global step size (initially equal to total time rt)
    tGridListIter<tLNode> nodIter( gridPtr->GetNodeList() );
    tGridListIter<tEdge> edgIter( gridPtr->GetEdgeList() );
 
-#if TRACKFNS
-   cout << "Diffuse" << endl << flush;
-#endif
+//#if TRACKFNS
+   cout << "**Diffuse" << endl << flush;
+//#endif
    
-   //printf( "IN DIFFUSE1: dt %f  nt %d  kd %f\n",dt,nt,kd);
-   
-   // Reset sed input for each node for the new time step
-   for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
-       cn->setQsin( 0 );
-   
-   // Compute sediment volume transfer along each edge
+   // Compute maximum stable time-step size based on Courant condition
+   // (Note: for a fixed mesh, this calculation only needs to be done once;
+   // performance could be improved by having this block only called if
+   // mesh has changed since last time through)
+   dtmax = rt;  // Initialize dtmax to total time rt
    for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
+       if( (denom=kd*ce->getVEdgLen() ) > VERYSMALL )
+       {
+          delt = EPSOVER2*(ce->getLength()/denom);
+          if( delt < dtmax )
+          {
+             dtmax = delt;
+             /*cout << "TIME STEP CONSTRAINED TO " << dtmax << " AT EDGE:\n";
+             ce->TellCoords();*/
+          }
+       }
+
+   // Loop until we've used up the entire time interval rt
+   do
    {
-      cout << "EDG " << ce->getID() << "  bnd: " << ce->getBoundaryFlag()
-           << endl;
-      fluxout = kd*ce->CalcSlope()*ce->getVEdgLen()*dt;
-      // Record outgoing flux from origin
-      cn = (tLNode *)ce->getOriginPtrNC();
-      cn->AddQsin( -fluxout );
-      // Record incoming flux to dest'n
-      cn = (tLNode *)ce->getDestinationPtrNC();
-      cn->AddQsin( fluxout );
-      /*if( ce->org->id==700 || ce->dest->id==700 ) {*/
-      cout << fluxout << " mass exch. from " << ce->getOriginPtr()->getID()
-           << " to "
-           << ce->getDestinationPtr()->getID()
-           << " on slp " << ce->getSlope() << " ve " << ce->getVEdgLen()
-           << "  vp " << ce->getRVtx()[0] << " " << ce->getRVtx()[1] << endl;
-      ((tLNode*)ce->getOriginPtr())->TellAll();
-      ((tLNode*)ce->getDestinationPtr())->TellAll();
-      ce = edgIter.NextP();  // Skip complementary edge
-   }
+      // Reset sed input for each node for the new iteration
+      for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+          cn->setQsin( 0 );
+
+      // Compute sediment volume transfer along each edge
+      for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
+      {
+         volout = kd*ce->CalcSlope()*ce->getVEdgLen()*dtmax;
+         // Record outgoing flux from origin
+         cn = (tLNode *)ce->getOriginPtrNC();
+         cn->AddQsin( -volout );
+         // Record incoming flux to dest'n
+         cn = (tLNode *)ce->getDestinationPtrNC();
+         cn->AddQsin( volout );
+         /*if( ce->org->id==700 || ce->dest->id==700 ) {*/
+         /*cout << volout << " mass exch. from " << ce->getOriginPtr()->getID()
+              << " to "
+              << ce->getDestinationPtr()->getID()
+              << " on slp " << ce->getSlope() << " ve " << ce->getVEdgLen()
+              << "\nvp " << ce->getRVtx()[0] << " " << ce->getRVtx()[1] << endl;
+         ((tLNode*)ce->getOriginPtr())->TellAll();
+         ((tLNode*)ce->getDestinationPtr())->TellAll();*/
+         ce = edgIter.NextP();  // Skip complementary edge
+      }
    
-   // Compute erosion/deposition for each node
-   for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
-   {
-      //cout << "Node " << cn->id << " " << cn->z << " --> ";
-      if( noDepoFlag )
-          if( cn->getQsin() > 0.0 )
-              cn->setQsin( 0.0 );
-      cn->ChangeZ( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area
-      //cout << cn->z << "Q: " << cn->q << "VA " << cn->varea << endl;
-      /*if( cn->id==700 ) {
-        cn->TellAll();
-        }*/
-   }
+      // Compute erosion/deposition for each node
+      for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+      {
+         //cout << "Node " << cn->id << " " << cn->z << " --> ";
+         if( noDepoFlag )
+             if( cn->getQsin() > 0.0 )
+                 cn->setQsin( 0.0 );
+         cn->ChangeZ( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area
+         //cout << cn->z << "Q: " << cn->q << "VA " << cn->varea << endl;
+         /*if( cn->id==700 ) {
+           cn->TellAll();
+           }*/
+      }
+
+      rt -= dtmax;
+      if( dtmax>rt ) dtmax=rt;
+      
+   } while( rt>0.0 );
+   
    
 }
 
