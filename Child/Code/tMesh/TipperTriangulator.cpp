@@ -152,17 +152,19 @@ int tt_swap(int tint, edge e[], const point p[]){
       e[let].lef=ret;
       e[let].let=tint;
     }
-    //change the end-points for the current edge
-    to=rightp;
-    from=leftp;
-    //re-jig the edges
-    const int rf=ref;
-    ref=lef;
-    int rt=ret;
-    ret=rf;
-    const int lt=let;
-    let=rt;
-    lef=lt;
+    {
+      //change the end-points for the current edge
+      to=rightp;
+      from=leftp;
+      //re-jig the edges
+      const int rf=ref;
+      ref=lef;
+      int rt=ret;
+      ret=rf;
+      const int lt=let;
+      let=rt;
+      lef=lt;
+    }
     //examine the neighbouring edges for delauniness recursively - this is
     //a lot more efficient than trying to swap all edges right at the end.
     tt_swap(lef,e,p);
