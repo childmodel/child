@@ -84,6 +84,19 @@ static const doublereal c_b7 = 1.;
 
 /*     "mndropt2.f" */
 
+/*     version 6/9/2003 (SL): Updated code to 1999 version used in */
+/*    Lancaster & Bras, 2002: */
+/*       -curvature calculation had already been fixed; */
+/*       -removed vertical flow momentum from force calc. (Jim Pizzuto */
+/*        pointed out we shouldn't add perpendicular vectors!); */
+/*       -removed multiplication of force by cosine of half the change */
+/*        in angle (difficult to explain and physically justify); */
+/*       -changed bank shear stress's depth divisor to the average */
+/*        depth rather than the deeper bank depth (again, difficult */
+/*        to explain and justify why we should always divide by the */
+/*        "outer" bank depth; instead, just keep it simple and use */
+/*        the avg. value); */
+
 /*     version 5/12/97: convert program to subroutine called from */
 /*     'child'. */
 /* 	changes: */
@@ -126,7 +139,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.14 2003-10-15 09:22:46 childcvs Exp $ */
+/*     $Id: meander.cpp,v 1.15 2004-01-13 16:23:51 childcvs Exp $ */
 
 void meander_(const integer *stations, const integer *stnserod, 
 	      const doublereal *x, const doublereal *y,
@@ -554,8 +567,8 @@ void forcelag_(const integer *stnserod, const integer *stations,
 	    if (width[s] != 0. && width[s] > depth[s] * 2.) {
 /* Computing 2nd power */
 		d__1 = vel[s];
-		forcefactor = *rho * (d__1 * d__1) / depth[s] * (1. - depth[s]
-			 * 2. / width[s]);
+		forcefactor = *rho * (d__1 * d__1) / depth[s];
+/* * (1. - depth[s] * 2. / width[s]);*/
 		latforce[s] = 0.;
 		lag[s] = 0.;
 		xmagcurvep1 = fabs(curvature[s + 1]);
@@ -572,7 +585,7 @@ void forcelag_(const integer *stnserod, const integer *stations,
 		}
 		d__1 = -curvature[s + 1];
 		latforce[s] = forcefactor * delacs * delacs / dels[s] * 
-			d_sign(&c_b7, &d__1) * cos(dels[s] * xmagcurve / 2.);
+        d_sign(&c_b7, &d__1); /* * cos(dels[s] * xmagcurve / 2.); */
 		latvel = vel[s] * -1. * delacs / depth[s] / dels[s];
 		if (latvel > 0.) {
 		    lag[s] = vel[s] * (deln[s + 1] + deln[s]) / 2. / latvel;
@@ -591,8 +604,8 @@ void forcelag_(const integer *stnserod, const integer *stations,
 	    if (width[s] != 0.) {
 /* Computing 2nd power */
 		d__1 = vel[s];
-		forcefactor = *rho * (d__1 * d__1) / depth[s] * (1. - depth[s]
-			 * 2. / width[s]);
+		forcefactor = *rho * (d__1 * d__1) / depth[s];
+/* * (1. - depth[s] * 2. / width[s]); */
 		latforce[s] = 0.;
 		lag[s] = 0.;
 		xmagcurvep1 = fabs(curvature[s + 1]);
@@ -609,7 +622,7 @@ void forcelag_(const integer *stnserod, const integer *stations,
 		}
 		d__1 = -curvature[s + 1];
 		latforce[s] = forcefactor * delacs * delacs / dels[s] * 
-			d_sign(&c_b7, &d__1) * cos(dels[s] * xmagcurve / 2.);
+        d_sign(&c_b7, &d__1); /* * cos(dels[s] * xmagcurve / 2.); */
 		latvel = vel[s] * -1. * delacs / depth[s] / dels[s];
 		if (latvel > 0.) {
 		    lag[s] = vel[s] * (deln[s + 1] + deln[s]) / 2. / latvel;
@@ -633,7 +646,7 @@ void forcedist_(const integer *stnserod, const integer *stations,
 		const doublereal *lambda, const doublereal */*width*/,
 		const doublereal *lag, const doublereal *latforce,
 		const doublereal */*dels*/, const doublereal *phi,
-		const doublereal *curvature, const doublereal */*depth*/,
+		const doublereal *curvature, const doublereal *depth,
 		doublereal *spreaddelta_x__, doublereal *spreaddelta_y__,
 		const doublereal *rightdepth, const doublereal *leftdepth, 
 		const doublereal *xs, doublereal *tauwall)
@@ -647,7 +660,7 @@ void forcedist_(const integer *stnserod, const integer *stations,
     integer s;
     doublereal tenlambda;
     integer sp;
-    doublereal gaussfactor, xdel, xdest, xstrt, xdepth, xtrmnt;
+    doublereal gaussfactor, xdel, xdest, xstrt, /*xdepth,*/ xtrmnt;
 
 
     /* Parameter adjustments */
@@ -657,7 +670,7 @@ void forcedist_(const integer *stnserod, const integer *stations,
     --rightdepth;
     --spreaddelta_y__;
     --spreaddelta_x__;
-    //--depth;
+    --depth;
     --curvature;
     --phi;
     //--dels;
@@ -717,19 +730,21 @@ void forcedist_(const integer *stnserod, const integer *stations,
     }
     i__1 = *stnserod;
     for (s = 1; s <= i__1; ++s) {
-	xdepth = rightdepth[s];
-	if (curvature[s] < 0.) {
-	    xdepth = leftdepth[s];
-	}
-	if (xdepth != 0.) {
-	    tauwall[s] /= xdepth;
-	    spreaddelta_x__[s] = tauwall[s] * -1. * sin(phi[s]);
-	    spreaddelta_y__[s] = tauwall[s] * cos(phi[s]);
-	} else {
-	    tauwall[s] = 0.;
-	    spreaddelta_x__[s] = 0.;
-	    spreaddelta_y__[s] = 0.;
-	}
+       /*xdepth = rightdepth[s];*/
+       /*if (curvature[s] < 0.) {*/
+       /*xdepth = leftdepth[s];*/
+       /*}*/
+       /*if (xdepth != 0.) */
+       if(depth[s] != 0.){
+          /*tauwall[s] /= xdepth;*/
+          tauwall[s] /= depth[s];
+          spreaddelta_x__[s] = tauwall[s] * -1. * sin(phi[s]);
+          spreaddelta_y__[s] = tauwall[s] * cos(phi[s]);
+       } else {
+          tauwall[s] = 0.;
+          spreaddelta_x__[s] = 0.;
+          spreaddelta_y__[s] = 0.;
+       }
 /*         print *,s,tauwall(s),spreaddelta_x(s),spreaddelta_y(s) */
     }
     return;

@@ -1,4 +1,4 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /**************************************************************************/
 /**
@@ -20,7 +20,7 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.34 2003-10-15 09:22:20 childcvs Exp $
+**  $Id: tStreamMeander.h,v 1.35 2004-01-13 16:23:53 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -66,33 +66,40 @@ public:
    //sets up reach lists; does not add points to interpolate channel:
    void FindReaches();
    //calls FindMeander, FindReaches, and InterpChannel;
-   //loops while points added: 
+   //loops while points added:
    //MakeReaches is sent the current time
-   void MakeReaches( double ); 
+   void MakeReaches( double );
    //interpolates/adds points along channel; returns 1 if points added, else 0
    //time is passed to it
+   const tArray< double > FindInterpCoords( tLNode*, tLNode* );
+   tLNode* FindShortcutNode( tLNode*, tLNode* );
+   tLNode* BlockShortcut( tLNode*, tLNode*, tLNode&, const tArray<double>&, double );
    int InterpChannel( double );
    //routines that add nodes on the floodplain;
    //Make... called before nodes are actually moved; Add... called after:
-   void MakeChanBorder( /*tList< tArray< double > > &*/ );
-   void AddChanBorder( /*tList< tArray< double > > &*/ double time);
+   void MakeChanBorder();
+   void AddChanBorder( double );
+   void FindBankCoords( tLNode*, tArray< double >& ); // carved from Make...
+   void ResetEffNbrCoords( tLNode * );
    //finds the erodibility of each bank, returns an array [right, left]:
    tArray< double > FindBankErody( tLNode * ) const;
    //CheckBanksTooClose, CheckFlowedgCross, and CheckBrokenFlowedg are to check
    //for 'violations' peculiar to moving channels.
    int InChannel( tLNode *, tLNode const * ); //called by CheckBanksTooClose()
-    void CheckBndyTooClose();
+   tLNode* getUpstreamMeander(tLNode*);
+   void CheckBndyTooClose();
    void CheckBanksTooClose();
    void CheckFlowedgCross();
-   void CheckBrokenFlowedg();
+   tLNode* FixBrokenFlowedg( tLNode*, tLNode*, double );
+   void CheckBrokenFlowedg( double );
    //calls meander_; pass it the running time, storm duration, and cum. mvmt.:
-   void CalcMigration( double &, double const &, double & ); 
+   void CalcMigration( double &, double const &, double & );
    //calls CalcMigration, routines to keep the mesh and net happy,
    //routines to add nodes;
    //only routine you need to make meandering happen for you:
    //Migrate is sent the current time
-   void Migrate( double ); 
-    
+   void Migrate( double );
+
 protected:
       //ptrs and list stuff:
     tMesh< tLNode > *meshPtr;//ptr to tMesh obj. containing meandering reaches
@@ -107,7 +114,7 @@ protected:
     double meddiam;   //median grain diameter, if optdiamvar = 0
     double kwds, ewds, ewstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width
     double knds, ends, enstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. roughness
-    double kdds, edds, edstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width   
+    double kdds, edds, edstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width
    double klambda, elambda; //coeff & exp for downstrm bank roughness length
     double dscrtwids; //nominal channel discretization in channel widths
     double allowfrac; //maximum channel point mvmt. in channel widths
