@@ -43,12 +43,14 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.3 1998-01-29 18:49:13 gtucker Exp $
+**  $Id: erosion.h,v 1.4 1998-01-29 18:53:51 stlancas Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
 #define EROSION_H
 
+#include "../Definitions.h"
+#include "../Classes.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tLNode/tLNode.h"
 
