@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.5 1998-01-29 20:11:28 stlancas Exp $
+**  $Id: erosion.cpp,v 1.6 1998-02-20 23:02:41 stlancas Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -61,6 +61,23 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
    double slp = n->GetSlope();
    return( kb*pow( n->GetQ(), mb )*pow( slp, nb )*dt );
+}
+
+/***************************************************************************\
+**  tBedErode::DetachCapacity
+**
+**  Computes the rate of erosion  = kb Q^mb S^nb
+**
+**  Input: n -- node at which to compute detachment capacity
+** 
+**  Returns: the detachment rate
+**  Assumptions: n->GetSlope() does not return a negative value; kb, mb,
+**               and nb all >=0.
+\***************************************************************************/
+double tBedErodePwrLaw::DetachCapacity( tLNode * n )
+{
+   double slp = n->GetSlope();
+   return( kb*pow( n->GetQ(), mb )*pow( slp, nb ) );
 }
 
 /***************************************************************************\
