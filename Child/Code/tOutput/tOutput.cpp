@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.21 1999-04-05 15:08:18 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.22 1999-05-11 19:06:50 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -176,8 +176,8 @@ void tOutput<tSubNode>::WriteNodeData( double time )
 **
 \*************************************************************************/
 template< class tSubNode >
-tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *m, tInputFile &infile ) 
-        : tOutput<tSubNode>( m, infile )  // call base-class constructor
+tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) 
+        : tOutput<tSubNode>( meshPtr, infile )  // call base-class constructor
 {
    CreateAndOpenFile( &drareaofs, ".area" );
    CreateAndOpenFile( &netofs, ".net" );
