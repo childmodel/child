@@ -8,21 +8,21 @@
 		(isLibrarianMapped =cxBoolean cx_false)
 	    }
 	)
-	(numModules 4)
+	(numModules 5)
 	(modules @0)
-	(numConnects 4)
+	(numConnects 6)
 	(connects @1)
 	(numInputs 0)
 	(numOutputs 0)
 	(startupScript NULL)
     }
 )
-(@0 =cxNRModule [4]
-    {	(name "ReadChild")
-	(instanceName "ReadChild")
+(@0 =cxNRModule [5]
+    {	(name "DisplacePyr")
+	(instanceName "DisplacePyr")
 	(parent "netRoot")
 	(host "localhost")
-	(path "/miami/academic/arnaud/ForGreg/Child/module")
+	(path "${EXPLORERHOME}/modules")
 	(isSelected =cxBoolean cx_false)
 	(isEnabled =cxBoolean cx_true)
 	(openedGroup =cxBoolean cx_true)
@@ -78,30 +78,23 @@
 	(numOutAliases 0)
 	(numPFuncs 0)
     }
+    {	(name "ReadChild")
+	(instanceName "ReadChild<2>")
+	(parent "netRoot")
+	(host "localhost")
+	(path "/miami/academic/arnaud/ForGreg/Child/module")
+	(isSelected =cxBoolean cx_false)
+	(isEnabled =cxBoolean cx_true)
+	(openedGroup =cxBoolean cx_true)
+	(isLoopController =cxBoolean cx_false)
+	(numPanels 1)
+	(panelState @6)
+	(numInAliases 0)
+	(numOutAliases 0)
+	(numPFuncs 0)
+    }
 )
-(@1 =cxNRConnect [4]
-    {	(source =cxNRDest
-	    {	(module "ReadChild")
-		(port "Output")
-	    }
-	)
-	(destination =cxNRDest
-	    {	(module "PyrToGeom")
-		(port "Input")
-	    }
-	)
-    }
-    {	(source =cxNRDest
-	    {	(module "ReadChild")
-		(port "Output")
-	    }
-	)
-	(destination =cxNRDest
-	    {	(module "GenerateColormap")
-		(port "Data In Pyr")
-	    }
-	)
-    }
+(@1 =cxNRConnect [6]
     {	(source =cxNRDest
 	    {	(module "GenerateColormap")
 		(port "Colormap")
@@ -124,105 +117,172 @@
 	    }
 	)
     }
+    {	(source =cxNRDest
+	    {	(module "ReadChild<2>")
+		(port "Output")
+	    }
+	)
+	(destination =cxNRDest
+	    {	(module "GenerateColormap")
+		(port "Data In Pyr")
+	    }
+	)
+    }
+    {	(source =cxNRDest
+	    {	(module "ReadChild<2>")
+		(port "Output")
+	    }
+	)
+	(destination =cxNRDest
+	    {	(module "DisplacePyr")
+		(port "PyramidIn")
+	    }
+	)
+    }
+    {	(source =cxNRDest
+	    {	(module "DisplacePyr")
+		(port "PyramidOut")
+	    }
+	)
+	(destination =cxNRDest
+	    {	(module "PyrToGeom")
+		(port "Input")
+	    }
+	)
+    }
+    {	(source =cxNRDest
+	    {	(module "GenerateColormap")
+		(port "Channel")
+	    }
+	)
+	(destination =cxNRDest
+	    {	(module "PyrToGeom")
+		(port "Component")
+	    }
+	)
+    }
 )
 (@2 =cxNRPanel [1]
-    {	(title "ReadChild")
+    {	(title "DisplacePyr")
 	(maxiSize =cxWidgetSize
-	    {	(width 337)
-		(height 147)
+	    {	(width 197)
+		(height 172)
 	    }
 	)
 	(maxiPosition =cxWidgetPos
-	    {	(x 0)
-		(y 0)
+	    {	(x -191)
+		(y 30)
 	    }
 	)
 	(isMaxiMapped =cxBoolean cx_false)
 	(miniPosition =cxWidgetPos
-	    {	(x 16)
+	    {	(x 199)
 		(y 16)
 	    }
 	)
-	(isMicro =cxBoolean cx_false)
-	(numWidgets 3)
-	(widgets @6)
+	(isMicro =cxBoolean cx_true)
+	(numWidgets 2)
+	(widgets @7)
     }
 )
 (@3 =cxNRPanel [1]
     {	(title "PyrToGeom")
 	(maxiSize =cxWidgetSize
 	    {	(width 244)
-		(height 232)
+		(height 262)
 	    }
 	)
 	(maxiPosition =cxWidgetPos
-	    {	(x 0)
-		(y 0)
+	    {	(x -374)
+		(y 30)
 	    }
 	)
 	(isMaxiMapped =cxBoolean cx_false)
 	(miniPosition =cxWidgetPos
-	    {	(x 225)
+	    {	(x 382)
 		(y 16)
 	    }
 	)
-	(isMicro =cxBoolean cx_true)
+	(isMicro =cxBoolean cx_false)
 	(numWidgets 5)
-	(widgets @7)
+	(widgets @8)
     }
 )
 (@4 =cxNRPanel [1]
     {	(title "GenerateColormap")
 	(maxiSize =cxWidgetSize
 	    {	(width 278)
-		(height 502)
+		(height 532)
 	    }
 	)
 	(maxiPosition =cxWidgetPos
-	    {	(x 0)
-		(y 0)
+	    {	(x -139)
+		(y 18)
 	    }
 	)
 	(isMaxiMapped =cxBoolean cx_false)
 	(miniPosition =cxWidgetPos
-	    {	(x 176)
-		(y 194)
+	    {	(x 155)
+		(y 74)
 	    }
 	)
 	(isMicro =cxBoolean cx_false)
 	(numWidgets 11)
-	(widgets @8)
+	(widgets @9)
     }
 )
 (@5 =cxNRPanel [1]
     {	(title "Render")
 	(maxiSize =cxWidgetSize
 	    {	(width 272)
-		(height 272)
+		(height 288)
 	    }
 	)
 	(maxiPosition =cxWidgetPos
-	    {	(x 0)
-		(y 0)
+	    {	(x -540)
+		(y 7)
 	    }
 	)
 	(isMaxiMapped =cxBoolean cx_false)
 	(miniPosition =cxWidgetPos
-	    {	(x 423)
+	    {	(x 544)
 		(y 16)
 	    }
 	)
 	(isMicro =cxBoolean cx_false)
 	(numWidgets 8)
-	(widgets @9)
+	(widgets @10)
     }
 )
-(@6 =cxWidgetRes [3]
+(@6 =cxNRPanel [1]
+    {	(title "ReadChild<2>")
+	(maxiSize =cxWidgetSize
+	    {	(width 337)
+		(height 177)
+	    }
+	)
+	(maxiPosition =cxWidgetPos
+	    {	(x 6)
+		(y 82)
+	    }
+	)
+	(isMaxiMapped =cxBoolean cx_false)
+	(miniPosition =cxWidgetPos
+	    {	(x 10)
+		(y 10)
+	    }
+	)
+	(isMicro =cxBoolean cx_true)
+	(numWidgets 3)
+	(widgets @11)
+    }
+)
+(@7 =cxWidgetRes [2]
     {	(name NULL)
-	(port "Variable")
+	(port "Scale")
 	(pfunc NULL)
 	(direction cx_widget_input)
-	(type =cxWidgetType cx_widget_option_menu)
+	(type =cxWidgetType cx_widget_dial)
 	(label NULL)
 	(fgColor NULL)
 	(bgColor NULL)
@@ -242,7 +302,7 @@
 		    }
 		)
 		(position =cxWidgetPos
-		    {	(x 97)
+		    {	(x 42)
 			(y 5)
 		    }
 		)
@@ -256,27 +316,36 @@
 		    }
 		)
 		(position =cxWidgetPos
-		    {	(x 195)
+		    {	(x 85)
 			(y 10)
 		    }
 		)
 	    }
 	)
-	(t cx_widget_option_menu
-	    {	(d =cxWidgetOptionMenu
-		    {	(nMembers 8)
-			(members @10)
-			(initVal 0)
+	(t cx_widget_dial
+	    {	(d =cxWidgetScalar
+		    {	(discrete =cxBoolean cx_false)
+			(boundedMin =cxBoolean cx_false)
+			(boundedMax =cxBoolean cx_false)
+			(dataType =cxPrimType cx_prim_double)
+			(t cx_prim_double
+			    {	(minVal -10)
+				(maxVal 10)
+				(step 0)
+				(initVal 4.69889)
+			    }
+			)
+			(orientation =cxOrientation cx_horizontal)
 		    }
 		)
 	    }
 	)
     }
     {	(name NULL)
-	(port "File Name")
+	(port "Channel")
 	(pfunc NULL)
 	(direction cx_widget_input)
-	(type =cxWidgetType cx_widget_text)
+	(type =cxWidgetType cx_widget_slider)
 	(label NULL)
 	(fgColor NULL)
 	(bgColor NULL)
@@ -297,7 +366,7 @@
 		)
 		(position =cxWidgetPos
 		    {	(x 5)
-			(y 5)
+			(y 7)
 		    }
 		)
 	    }
@@ -311,67 +380,32 @@
 		)
 		(position =cxWidgetPos
 		    {	(x 10)
-			(y 10)
+			(y 15)
 		    }
 		)
 	    }
 	)
-	(t cx_widget_text
-	    {	(initVal "")
-	    }
-	)
-    }
-    {	(name NULL)
-	(port "Time Step")
-	(pfunc NULL)
-	(direction cx_widget_input)
-	(type =cxWidgetType cx_widget_text)
-	(label NULL)
-	(fgColor NULL)
-	(bgColor NULL)
-	(textColor NULL)
-	(font NULL)
-	(continuous =cxBoolean cx_false)
-	(honorWidth =cxTriStateBoolean cx_unspecified)
-	(honorHeight =cxTriStateBoolean cx_unspecified)
-	(fixedWidth =cxTriStateBoolean cx_unspecified)
-	(fixedHeight =cxTriStateBoolean cx_unspecified)
-	(stackingOrder 0)
-	(dimin
-	    {	(isMapped =cxBoolean cx_false)
-		(size =cxWidgetSize
-		    {	(width 0)
-			(height 0)
+	(t cx_widget_slider
+	    {	(d =cxWidgetScalar
+		    {	(discrete =cxBoolean cx_false)
+			(boundedMin =cxBoolean cx_false)
+			(boundedMax =cxBoolean cx_false)
+			(dataType =cxPrimType cx_prim_long)
+			(t cx_prim_long
+			    {	(minVal 1)
+				(maxVal 2)
+				(step 0)
+				(initVal 1)
+			    }
+			)
+			(orientation =cxOrientation cx_horizontal)
 		    }
 		)
-		(position =cxWidgetPos
-		    {	(x 5)
-			(y 37)
-		    }
-		)
-	    }
-	)
-	(full
-	    {	(isMapped =cxBoolean cx_false)
-		(size =cxWidgetSize
-		    {	(width 0)
-			(height 0)
-		    }
-		)
-		(position =cxWidgetPos
-		    {	(x 10)
-			(y 75)
-		    }
-		)
-	    }
-	)
-	(t cx_widget_text
-	    {	(initVal "1")
 	    }
 	)
     }
 )
-(@7 =cxWidgetRes [5]
+(@8 =cxWidgetRes [5]
     {	(name NULL)
 	(port "Component")
 	(pfunc NULL)
@@ -426,7 +460,7 @@
 			    {	(minVal 1)
 				(maxVal 2)
 				(step 0)
-				(initVal 1)
+				(initVal 2)
 			    }
 			)
 			(orientation =cxOrientation cx_horizontal)
@@ -536,8 +570,8 @@
 	(t cx_widget_option_menu
 	    {	(d =cxWidgetOptionMenu
 		    {	(nMembers 4)
-			(members @11)
-			(initVal 0)
+			(members @12)
+			(initVal 2)
 		    }
 		)
 	    }
@@ -653,7 +687,7 @@
 	(t cx_widget_option_menu
 	    {	(d =cxWidgetOptionMenu
 		    {	(nMembers 3)
-			(members @12)
+			(members @13)
 			(initVal 0)
 		    }
 		)
@@ -661,7 +695,7 @@
 	)
     }
 )
-(@8 =cxWidgetRes [11]
+(@9 =cxWidgetRes [11]
     {	(name NULL)
 	(port "Channel")
 	(pfunc NULL)
@@ -714,9 +748,9 @@
 			(dataType =cxPrimType cx_prim_long)
 			(t cx_prim_long
 			    {	(minVal 1)
-				(maxVal 5)
+				(maxVal 2)
 				(step 0)
-				(initVal 1)
+				(initVal 2)
 			    }
 			)
 			(orientation =cxOrientation cx_horizontal)
@@ -772,7 +806,7 @@
 	(t cx_widget_option_menu
 	    {	(d =cxWidgetOptionMenu
 		    {	(nMembers 3)
-			(members @13)
+			(members @14)
 			(initVal 0)
 		    }
 		)
@@ -826,7 +860,7 @@
 	(t cx_widget_option_menu
 	    {	(d =cxWidgetOptionMenu
 		    {	(nMembers 2)
-			(members @14)
+			(members @15)
 			(initVal 1)
 		    }
 		)
@@ -884,8 +918,8 @@
 			(boundedMax =cxBoolean cx_false)
 			(dataType =cxPrimType cx_prim_double)
 			(t cx_prim_double
-			    {	(minVal -100)
-				(maxVal 100)
+			    {	(minVal 0)
+				(maxVal 100.017)
 				(step 0)
 				(initVal 0)
 			    }
@@ -995,7 +1029,7 @@
 			(dataType =cxPrimType cx_prim_long)
 			(t cx_prim_long
 			    {	(minVal 0)
-				(maxVal 0)
+				(maxVal 2)
 				(step 0)
 				(initVal 0)
 			    }
@@ -1100,7 +1134,7 @@
 	(t cx_widget_option_menu
 	    {	(d =cxWidgetOptionMenu
 		    {	(nMembers 4)
-			(members @15)
+			(members @16)
 			(initVal 0)
 		    }
 		)
@@ -1254,10 +1288,10 @@
 			(boundedMax =cxBoolean cx_false)
 			(dataType =cxPrimType cx_prim_double)
 			(t cx_prim_double
-			    {	(minVal -100)
-				(maxVal 100)
+			    {	(minVal 0)
+				(maxVal 100.017)
 				(step 0)
-				(initVal 1)
+				(initVal 100.017)
 			    }
 			)
 			(orientation =cxOrientation cx_horizontal)
@@ -1267,7 +1301,7 @@
 	)
     }
 )
-(@9 =cxWidgetRes [8]
+(@10 =cxWidgetRes [8]
     {	(name NULL)
 	(port "Window")
 	(pfunc NULL)
@@ -1652,15 +1686,169 @@
 	    }
 	)
 	(t cx_widget_text
-	    {	(initVal "#Inventor V2.1 ascii\n\n\nPerspectiveCamera {\n  position 0 0 2.41421\n  nearDistance 1.41421\n  farDistance 3.41421\n  focalDistance 2.41421\n}\n")
+	    {	(initVal "#Inventor V2.1 ascii\n\n\nPerspectiveCamera {\n  position -2743.45 19807.1 3494.53\n  orientation 0.124706 -0.634324 -0.762942  2.69748\n  nearDistance 10359.6\n  farDistance 23699.7\n  focalDistance 17071.1\n}\n")
 	    }
 	)
     }
 )
-(@10 [8] "elevation" "slope" "drainage area" "voronoi area" "discharge"
+(@11 =cxWidgetRes [3]
+    {	(name NULL)
+	(port "Variable")
+	(pfunc NULL)
+	(direction cx_widget_input)
+	(type =cxWidgetType cx_widget_option_menu)
+	(label NULL)
+	(fgColor NULL)
+	(bgColor NULL)
+	(textColor NULL)
+	(font NULL)
+	(continuous =cxBoolean cx_false)
+	(honorWidth =cxTriStateBoolean cx_unspecified)
+	(honorHeight =cxTriStateBoolean cx_unspecified)
+	(fixedWidth =cxTriStateBoolean cx_unspecified)
+	(fixedHeight =cxTriStateBoolean cx_unspecified)
+	(stackingOrder 0)
+	(dimin
+	    {	(isMapped =cxBoolean cx_false)
+		(size =cxWidgetSize
+		    {	(width 0)
+			(height 0)
+		    }
+		)
+		(position =cxWidgetPos
+		    {	(x 97)
+			(y 5)
+		    }
+		)
+	    }
+	)
+	(full
+	    {	(isMapped =cxBoolean cx_false)
+		(size =cxWidgetSize
+		    {	(width 0)
+			(height 0)
+		    }
+		)
+		(position =cxWidgetPos
+		    {	(x 195)
+			(y 10)
+		    }
+		)
+	    }
+	)
+	(t cx_widget_option_menu
+	    {	(d =cxWidgetOptionMenu
+		    {	(nMembers 8)
+			(members @17)
+			(initVal 0)
+		    }
+		)
+	    }
+	)
+    }
+    {	(name NULL)
+	(port "File Name")
+	(pfunc NULL)
+	(direction cx_widget_input)
+	(type =cxWidgetType cx_widget_text)
+	(label NULL)
+	(fgColor NULL)
+	(bgColor NULL)
+	(textColor NULL)
+	(font NULL)
+	(continuous =cxBoolean cx_false)
+	(honorWidth =cxTriStateBoolean cx_unspecified)
+	(honorHeight =cxTriStateBoolean cx_unspecified)
+	(fixedWidth =cxTriStateBoolean cx_unspecified)
+	(fixedHeight =cxTriStateBoolean cx_unspecified)
+	(stackingOrder 0)
+	(dimin
+	    {	(isMapped =cxBoolean cx_false)
+		(size =cxWidgetSize
+		    {	(width 0)
+			(height 0)
+		    }
+		)
+		(position =cxWidgetPos
+		    {	(x 5)
+			(y 5)
+		    }
+		)
+	    }
+	)
+	(full
+	    {	(isMapped =cxBoolean cx_false)
+		(size =cxWidgetSize
+		    {	(width 0)
+			(height 0)
+		    }
+		)
+		(position =cxWidgetPos
+		    {	(x 10)
+			(y 10)
+		    }
+		)
+	    }
+	)
+	(t cx_widget_text
+	    {	(initVal "")
+	    }
+	)
+    }
+    {	(name NULL)
+	(port "Time Step")
+	(pfunc NULL)
+	(direction cx_widget_input)
+	(type =cxWidgetType cx_widget_text)
+	(label NULL)
+	(fgColor NULL)
+	(bgColor NULL)
+	(textColor NULL)
+	(font NULL)
+	(continuous =cxBoolean cx_false)
+	(honorWidth =cxTriStateBoolean cx_unspecified)
+	(honorHeight =cxTriStateBoolean cx_unspecified)
+	(fixedWidth =cxTriStateBoolean cx_unspecified)
+	(fixedHeight =cxTriStateBoolean cx_unspecified)
+	(stackingOrder 0)
+	(dimin
+	    {	(isMapped =cxBoolean cx_false)
+		(size =cxWidgetSize
+		    {	(width 0)
+			(height 0)
+		    }
+		)
+		(position =cxWidgetPos
+		    {	(x 5)
+			(y 37)
+		    }
+		)
+	    }
+	)
+	(full
+	    {	(isMapped =cxBoolean cx_false)
+		(size =cxWidgetSize
+		    {	(width 0)
+			(height 0)
+		    }
+		)
+		(position =cxWidgetPos
+		    {	(x 10)
+			(y 75)
+		    }
+		)
+	    }
+	)
+	(t cx_widget_text
+	    {	(initVal "1")
+	    }
+	)
+    }
+)
+(@12 [4] "0" "1" "2" "3")
+(@13 [3] "Colormap" "R-G-B" "Texture")
+(@14 [3] "Move" "Insert" "Delete")
+(@15 [2] "R-G-B" "H-S-V")
+(@16 [4] "Hue" "Saturation" "Value" "Opacity")
+(@17 [8] "elevation" "slope" "drainage area" "voronoi area" "discharge"
 "sediment flux" "shear stress" "grain size")
-(@11 [4] "0" "1" "2" "3")
-(@12 [3] "Colormap" "R-G-B" "Texture")
-(@13 [3] "Move" "Insert" "Delete")
-(@14 [2] "R-G-B" "H-S-V")
-(@15 [4] "Hue" "Saturation" "Value" "Opacity")
