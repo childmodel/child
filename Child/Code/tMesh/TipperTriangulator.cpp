@@ -447,123 +447,214 @@ void sort_triangulate(int npoints, point *p, int *pnedges, edge** edges_ret){
 #endif
 }
 
-class edge_visit {
+// Auxilary class used when building the element to node connectivity
+// table
+class edge_auxi_t {
 public:
-  edge_visit() : left_visited_(false), right_visited_(false) {};
+  edge_auxi_t()
+    :
+    left_visited_(false), right_visited_(false),
+    ie_left(-2), ie_right(-2)
+  {};
   bool left_visited() const { return left_visited_; }
   bool right_visited() const { return right_visited_; }
-  void mark_left() { left_visited_ = true; } 
-  void mark_right() { right_visited_ = true; } 
+  int ielem_left() const;
+  int ielem_right() const;
+  void mark_left(int ielem);
+  void mark_right(int ielem);
 private:
   bool left_visited_, right_visited_;
+  // element on the right and left side
+  int ie_left, ie_right;
 };
+
+void edge_auxi_t::mark_left(int ielem) { 
+  left_visited_ = true;
+  ie_left = ielem;
+}
+void edge_auxi_t::mark_right(int ielem) { 
+  right_visited_ = true;
+  ie_right = ielem;
+} 
+int edge_auxi_t::ielem_left() const { assert(ie_left!=-2); return ie_left; }
+int edge_auxi_t::ielem_right() const { assert(ie_right!=-2); return ie_right; }
 
 // mark as visited the side of iedge_markable that points to
 // iedge_orig
 void mark_as_visited(int iedge_markable, int iedge_orig,
-		     const edge* edges, edge_visit* edges_visit){
+		     const edge* edges, edge_auxi_t* edges_visit,
+		     int ielem){
   if (edges[iedge_markable].lef == iedge_orig ||
       edges[iedge_markable].let == iedge_orig){
-    edges_visit[iedge_markable].mark_left();
+    edges_visit[iedge_markable].mark_left(ielem);
   } else {
     assert(edges[iedge_markable].ref == iedge_orig ||
 	   edges[iedge_markable].ret == iedge_orig);
-    edges_visit[iedge_markable].mark_right();
+    edges_visit[iedge_markable].mark_right(ielem);
   }
 }
 
+// build connectivity table element to node and edges
+// build pelem, pelems_ret
 void build_elem_table(int npoints, const point *p, int nedges, const edge* edges,
 		      int *pnelem, elem** pelems_ret){
   // Euler invariant for a triangulation:
   const int nelem = 1 + nedges - npoints;
   elem *elems = new elem[nelem]; 
-  edge_visit *edges_visit = new edge_visit[nedges];
-
+  edge_auxi_t *edges_visit = new edge_auxi_t[nedges];
   { 
+    // build non oriented edges for each element
+    // scan all edges. Assign element to right and left
+    // and mark the visited sides for each edges
+
     // build edges per element
     int ielem = 0;
     for(int iedge=0;iedge<nedges;iedge++) {
       // left
       if (! edges_visit[iedge].left_visited()) {
+	int ielem_current = -1;
 	if (edges[iedge].lef == -1) {
 	  assert(edges[iedge].let == -1);
 	} else {
       // don't bother with orientation at the moment
+	  ielem_current = ielem;
 	  elems[ielem].e1 = iedge;
 	  elems[ielem].e2 = edges[iedge].lef;
-	  mark_as_visited(edges[iedge].lef,iedge,edges, edges_visit);
+	  mark_as_visited(edges[iedge].lef,iedge,edges, edges_visit, ielem_current);
 	  elems[ielem].e3 = edges[iedge].let;
-	  mark_as_visited(edges[iedge].let,iedge,edges, edges_visit);
+	  mark_as_visited(edges[iedge].let,iedge,edges, edges_visit, ielem_current);
 	  ielem++;
 	}
-	edges_visit[iedge].mark_left();
+	edges_visit[iedge].mark_left(ielem_current);
       }
       // right
       if (! edges_visit[iedge].right_visited()) {
+	int ielem_current = -1;
 	if (edges[iedge].ref == -1) {
 	  assert(edges[iedge].ref == -1);
 	} else {
       // don't bother with orientation at the moment
+	  ielem_current = ielem;
 	  elems[ielem].e1 = iedge;
 	  elems[ielem].e2 = edges[iedge].ref;
-	  mark_as_visited(edges[iedge].ref,iedge,edges, edges_visit);
+	  mark_as_visited(edges[iedge].ref,iedge,edges, edges_visit, ielem_current);
 	  elems[ielem].e3 = edges[iedge].ret;
-	  mark_as_visited(edges[iedge].ret,iedge,edges, edges_visit);
+	  mark_as_visited(edges[iedge].ret,iedge,edges, edges_visit, ielem_current);
 	  ielem++;
 	}
-	edges_visit[iedge].mark_right();
+	edges_visit[iedge].mark_right(ielem_current);
       }
     }
     assert(ielem == nelem);
   }
-  {
-    // build vertices per element
-    for(int ielem=0;ielem<nelem;ielem++){
-      elems[ielem].p1 = edges[elems[ielem].e1].to;
-      elems[ielem].p2 = edges[elems[ielem].e1].from;
-      int itemp = edges[elems[ielem].e2].from;
+  for(int ielem=0;ielem<nelem;ielem++){
+    {
+      // build vertices per element
+#define SWAP_E(EI,EJ) \
+	  int etemp = elems[ielem].EI; \
+	  elems[ielem].EI = elems[ielem].EJ; \
+	  elems[ielem].EJ = etemp
+      
+      elems[ielem].p1 = edges[elems[ielem].e2].to;
+      elems[ielem].p2 = edges[elems[ielem].e2].from;
+      // using e3
+      int itemp = edges[elems[ielem].e3].from;
       if (itemp == elems[ielem].p1 || itemp == elems[ielem].p2){
-	elems[ielem].p3 = edges[elems[ielem].e2].to;
+	elems[ielem].p3 = edges[elems[ielem].e3].to;
+	if (itemp == elems[ielem].p1) { // e3 joins p1-p3
+          SWAP_E(e1,e3);
+	}
       } else {
 	elems[ielem].p3 = itemp;
+	if (edges[elems[ielem].e3].to == elems[ielem].p1){ // e3 joins p1-p3
+          SWAP_E(e1,e3);
+	}
       }
       // orientation: counter clockwise
-      // angle(p2p1.p2p3) must be positive
-      // <=> sine(p2p1.p2p3) >= 0 <=> vect_prod(p2p1,p2p3) >=0
+      // angle(p2p1.p2p3) must be negative (counter clockwise)
+      // <=> sine(p2p1.p2p3) <= 0 <=> vect_prod(p2p1,p2p3) <=0
       double v=
 	(p[elems[ielem].p1].x-p[elems[ielem].p2].x)*
 	(p[elems[ielem].p3].y-p[elems[ielem].p2].y)
 	-(p[elems[ielem].p1].y-p[elems[ielem].p2].y)*
 	(p[elems[ielem].p3].x-p[elems[ielem].p2].x);
-      if (v<0) { // swap p1, p3
+      if (v>0) {
+	// swap p1, p3
 	int ptemp = elems[ielem].p1;
 	elems[ielem].p1 = elems[ielem].p3;
 	elems[ielem].p3 = ptemp;
+	// swap e2, e3
+	SWAP_E(e2,e3);
       }
+      // edges orientations
+      elems[ielem].eo2 = (edges[elems[ielem].e2].from == elems[ielem].p2);
+      elems[ielem].eo3 = (edges[elems[ielem].e3].from == elems[ielem].p3);
+      elems[ielem].eo1 = (edges[elems[ielem].e1].from == elems[ielem].p1);
+#undef SWAP_E
+    }
 #if 1
-      assert(
-	     (
-	      (p[elems[ielem].p1].x-p[elems[ielem].p2].x)*
-	      (p[elems[ielem].p3].y-p[elems[ielem].p2].y)
-	      -(p[elems[ielem].p1].y-p[elems[ielem].p2].y)*
-	      (p[elems[ielem].p3].x-p[elems[ielem].p2].x)
-	      ) >= 0);
+    if (1) { // verifications
+      if (elems[ielem].eo2){
+ 	assert(edges[elems[ielem].e2].from == elems[ielem].p2);
+ 	assert(edges[elems[ielem].e2].to == elems[ielem].p1);
+	assert(edges_visit[elems[ielem].e2].ielem_right() == ielem);
+      } else {
+ 	assert(edges[elems[ielem].e2].from == elems[ielem].p1);
+ 	assert(edges[elems[ielem].e2].to == elems[ielem].p2);
+	assert(edges_visit[elems[ielem].e2].ielem_left() == ielem);
+      }
+      if (elems[ielem].eo1){
+ 	assert(edges[elems[ielem].e1].from == elems[ielem].p1);
+ 	assert(edges[elems[ielem].e1].to == elems[ielem].p3);
+	assert(edges_visit[elems[ielem].e1].ielem_right() == ielem);
+      } else {
+ 	assert(edges[elems[ielem].e1].from == elems[ielem].p3);
+ 	assert(edges[elems[ielem].e1].to == elems[ielem].p1);
+	assert(edges_visit[elems[ielem].e1].ielem_left() == ielem);
+      }
+      if (elems[ielem].eo3){
+ 	assert(edges[elems[ielem].e3].from == elems[ielem].p3);
+ 	assert(edges[elems[ielem].e3].to == elems[ielem].p2);
+	assert(edges_visit[elems[ielem].e3].ielem_right() == ielem);
+      } else {
+ 	assert(edges[elems[ielem].e3].from == elems[ielem].p2);
+ 	assert(edges[elems[ielem].e3].to == elems[ielem].p3);
+	assert(edges_visit[elems[ielem].e3].ielem_left() == ielem);
+      }
+    }
 #endif
+    {
+      // build t1, t2, t3
+      if (elems[ielem].eo2){
+	elems[ielem].t3 = edges_visit[elems[ielem].e2].ielem_left();
+      } else {
+	elems[ielem].t3 = edges_visit[elems[ielem].e2].ielem_right();
+      }
+      if (elems[ielem].eo1){
+	elems[ielem].t2 = edges_visit[elems[ielem].e1].ielem_left();
+      } else {
+	elems[ielem].t2 = edges_visit[elems[ielem].e1].ielem_right();
+      }
+      if (elems[ielem].eo3){
+	elems[ielem].t1 = edges_visit[elems[ielem].e3].ielem_left();
+      } else {
+	elems[ielem].t1 = edges_visit[elems[ielem].e3].ielem_right();
+      }
+
     }
   }
 #if 0
   {
     for(int ielem=0;ielem<nelem;ielem++){
 	cout << "elem=" << ielem
-	     << " p1=" << elems[ielem].p1
-	     << " p2=" << elems[ielem].p2
-	     << " p3=" << elems[ielem].p3
-	     << endl;
+	     << " p1=" << elems[ielem].p1 << " (" << p[elems[ielem].p1].x <<"," << p[elems[ielem].p1].y << ")"
+	     << " p2=" << elems[ielem].p2 << " (" << p[elems[ielem].p2].x <<"," << p[elems[ielem].p2].y << ")"
+	     << " p3=" << elems[ielem].p3 << " (" << p[elems[ielem].p3].x <<"," << p[elems[ielem].p3].y << ")"
     }
   }
 #endif
 
-  delete [] edges_visit;
+  delete [] edges_visit; edges_visit = NULL;
   *pnelem = nelem;
   *pelems_ret = elems;
 }
