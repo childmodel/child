@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.20 1998-04-21 00:28:14 stlancas Exp $
+**  $Id: tLNode.h,v 1.21 1998-04-22 22:44:22 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -232,6 +232,7 @@ public:
     void EroDep( double dz );
     void setAlluvThickness( double );
     double getAlluvThickness() const;
+   tArray< double > getAlluvThicknessm( ) const;
     void setVegErody( double );
     double getVegErody() const;
     void setBedErody( double );
@@ -239,10 +240,15 @@ public:
     void setReachMember( int );
     int getReachMember() const;
     void setQs( double );
+    void setQs( int, double );
     double getQs() const;
+    tArray< double > getQsm( ) const;
     void setQsin( double );
+   void setQsin( int, double );
     void AddQsin( double );
+   void AddQsinm( tArray< double > );
     double getQsin() const;
+   tArray< double > getQsinm( ) const;
     void setXYZD( tArray< double > );
     tArray< double > getXYZD() const;
     double DistFromOldXY() const;
