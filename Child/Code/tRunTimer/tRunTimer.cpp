@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.10 2000-06-05 19:09:12 daniel Exp $
+**  $Id: tRunTimer.cpp,v 1.11 2000-06-05 22:13:27 daniel Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -60,7 +60,7 @@ tRunTimer::tRunTimer()
 	notifyInterval = 1000;
 	nextNotify = 0;
 	TSOutputInterval = 1;
-	nextTSOutpueTime = 0;
+	nextTSOutputTime = 0;
 }
 
 tRunTimer::tRunTimer( double duration, double opint, int optprint )
@@ -72,7 +72,7 @@ tRunTimer::tRunTimer( double duration, double opint, int optprint )
 	optPrintEachTime = optprint;
 	notifyInterval = 1000;
 	nextNotify = 0;
-	nextTSOutput = 999999999
+	nextTSOutputTime = 999999999
 }
 
 tRunTimer::tRunTimer( tInputFile &infile, int optprint )
