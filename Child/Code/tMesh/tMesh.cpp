@@ -9,7 +9,7 @@
 **      initial value of mSearchOriginTriPtr, and modified ExtricateTri...
 **      to avoid dangling ptr. GT, 1/2000
 **
-**  $Id: tMesh.cpp,v 1.84 2000-01-24 22:49:01 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.85 2000-02-17 23:28:22 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -1022,6 +1022,7 @@ MakeMeshFromScratch( tInputFile &infile )
      //  3 = all sides
      //  4 = specify outlet coordinates
    int boundType = infile.ReadItem( boundType, "TYP_BOUND" );
+      
    int kSloped = 0;
    //ng 12/99 added so that the initial surface could be sloped
    //with one side open bndry cndtn if kSloped = 1.
@@ -1475,6 +1476,8 @@ MakeMeshFromPoints( tInputFile &infile )
    tSubNode tempnode( infile ),     // temporary node used in creating new pts
        *stp1, *stp2, *stp3;         // supertriangle vertices
 
+   cout<<"MakeMeshFromPoints"<<endl<<flush;
+   
    // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
    infile.ReadItem( pointFilenm, "POINTFILENAME" );
@@ -1562,6 +1565,8 @@ MakeMeshFromPoints( tInputFile &infile )
       //Xtempnode.setID( miNextNodeID );
       tempnode.set3DCoords( x[i],y[i],z[i] );
       tempnode.setBoundaryFlag( bnd[i] );
+      //if(bnd[i]==kNonBoundary && z[i]<0)
+      //  cout<<"problem at x "<<x[i]<<" y "<<y[i]<<endl<<flush;
       AddNode( tempnode );
    }
 
