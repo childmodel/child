@@ -24,7 +24,7 @@
 **  Recent modifications:
 **    - 1/00: GT added vegofs for output of vegetation cover
 **
-**  $Id: tOutput.h,v 1.12 2000-06-05 19:37:55 daniel Exp $
+**  $Id: tOutput.h,v 1.13 2000-06-05 21:03:50 daniel Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -61,6 +61,7 @@ class tOutput
 public:
     tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
     void WriteOutput( double time );
+    void WriteTSOutput( double time );
     virtual void WriteNodeData( double time );
     void CreateAndOpenFile( ofstream * theOFStream, char * extension );
 
