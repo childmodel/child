@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.50 2003-05-12 10:13:17 childcvs Exp $
+**  $Id: tMesh.h,v 1.51 2003-05-12 11:50:15 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -161,6 +161,9 @@ public:
    void ResetNodeID(); // reset node IDs in list order
    void ResetEdgeID(); // reset edge IDs in list order
    void ResetTriangleID(); // reset triangle IDs in list order
+   void SetmiNextNodeID(int);
+   void SetmiNextEdgID(int);
+   void SetmiNextTriID(int);
 
 #ifndef NDEBUG
    /*'dump' routines for debugging*/

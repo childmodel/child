@@ -99,7 +99,8 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
       tSubNode tempnode( infile );  // temporary node used to create node list
       tempnode.set3DCoords( x, y, z);
       tempnode.setBoundaryFlag( bnd );
-      tempnode.setID( i );
+      miNextNodeID = i;
+      tempnode.setID( miNextNodeID );
       if( bnd<0 || bnd>3 ){
 	ReportFatalError("Invalid boundary code.");
       }
@@ -359,9 +360,9 @@ BuildDelaunayMeshTipper()
    delete [] elems;
 
    // set Maximum IDs
-   miNextNodeID = nodeList.getSize();
-   miNextEdgID = edgeList.getSize();
-   miNextTriID = triList.getSize();
+   SetmiNextNodeID( nodeList.getSize() );
+   SetmiNextEdgID( edgeList.getSize() );
+   SetmiNextTriID( triList.getSize() );
 
    // assertions
    assert( edgeList.getSize() == 2*nedgesl );

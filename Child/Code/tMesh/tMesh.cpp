@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.145 2003-05-12 10:13:14 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.146 2003-05-12 11:50:13 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -448,7 +448,8 @@ MeshDensification( tInputFile &infile )
 	 for( int i=0; i<nnewpoints; i++ )
 	   {
 	     tempnode.set3DCoords( newx[i], newy[i], newz[i] );  // assign them
-	     tempnode.setID( nnodes+i );
+	     miNextNodeID = nnodes+i;
+	     tempnode.setID( miNextNodeID );
 	     AddNode( tempnode );        // Add the new node
 	   }
        }
@@ -504,7 +505,8 @@ MakeMeshFromInputData( tInputFile &infile )
    for( i = 0; i< nnodes; i++ )
    {
       tempnode.set3DCoords( input.x[i], input.y[i], input.z[i] );
-      tempnode.setID( i );
+      miNextNodeID = i;
+      tempnode.setID( miNextNodeID );
       bound = input.boundflag[i];
       assert( bound >= 0 && bound <= 2 );
       tempnode.setBoundaryFlag( bound );
@@ -2136,7 +2138,20 @@ CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
                << " must be followed by its complement in the list\n";
           goto error;
       }
-
+      if( ce->getComplementEdge() != cne
+          || ce != cne->getComplementEdge() )
+	{
+          cerr << "EDGE #" << ce->getID() << " EDGE #" << cne->getID()
+               << " do not point to each other\n";
+          goto error;
+	}
+      if( ce->getID()%2 != 0 || cne->getID()%2 != 1 )
+	{
+          cerr << "EDGE #" << ce->getID()
+	       << " and EDGE #" << cne->getID()
+	       << " should have respectively an even and odd ID.\n";
+          goto error;
+	}
    }
 
    // Edges: check for valid origin, destination, and ccwedg
@@ -4844,6 +4859,45 @@ ResetTriangleID()
     {
       ct->setID( miNextTriID );
     }
+}
+
+/*****************************************************************************\
+**
+**      SetmiNextNodeID(): set miNextNodeID
+**      Created: AD 5/2003
+**
+\*****************************************************************************/
+template<class tSubNode>
+void tMesh<tSubNode>::
+SetmiNextNodeID(int n_)
+{
+  miNextNodeID = n_;
+}
+
+/*****************************************************************************\
+**
+**      SetmiNextEdgID(): set miNextEdgID
+**      Created: AD 5/2003
+**
+\*****************************************************************************/
+template<class tSubNode>
+void tMesh<tSubNode>::
+SetmiNextEdgID(int n_)
+{
+  miNextEdgID = n_;
+}
+
+/*****************************************************************************\
+**
+**      SetmiNextTriID(): set miNextTriID
+**      Created: AD 5/2003
+**
+\*****************************************************************************/
+template<class tSubNode>
+void tMesh<tSubNode>::
+SetmiNextTriID(int n_)
+{
+  miNextTriID = n_;
 }
 
 #include "tMesh2.cpp"
