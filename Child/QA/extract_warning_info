@@ -1,0 +1,18 @@
+#! /bin/sh -u
+
+if [ $# -lt 1 ]; then
+  echo "Usage: `basename $0` <logfile>." 1>&2
+  exit 1
+fi
+
+LOG=$1
+
+XX='Warning '
+echo "-- ${XX}"
+cat ${LOG} | grep ${XX} | sed -e 's%^.*'"${XX}"'%%' | sort -n -u
+
+echo
+
+XX='Info '
+echo "-- ${XX}"
+cat ${LOG} | grep ${XX} | sed -e 's%^.*'"${XX}"'%%' | sort -n -u
