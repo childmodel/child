@@ -92,7 +92,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.2 2002-08-14 13:30:27 arnaud Exp $ */
+/*     $Id: meander.cpp,v 1.3 2002-09-11 10:06:36 arnaud Exp $ */
 
 void meander_(integer *stations, integer *stnserod, 
 	doublereal *x, doublereal *y, doublereal *xs, doublereal *dels, 
@@ -213,12 +213,13 @@ void initialize_(integer *stnserod, doublereal *phi,
 
 
 void channel_(integer *stnserod, integer *stations, 
-	doublereal *flow, doublereal *slope, doublereal *diam, doublereal *
-	width, doublereal *rho, doublereal *grav, doublereal *phi, doublereal 
-	*curvature, doublereal *dels, doublereal *acs, doublereal *deln, 
-	doublereal *rightdepth, doublereal *leftdepth, doublereal *depth, 
-	doublereal *vel, doublereal *delx, doublereal *dely, doublereal *
-	transfactor, doublereal *transslope)
+	      doublereal *flow, doublereal *slope, doublereal *diam,
+	      doublereal *width, doublereal * /*rho*/, doublereal * /*grav*/,
+	      doublereal *phi, doublereal *curvature, doublereal *dels, 
+	      doublereal *acs, doublereal *deln, doublereal *rightdepth,
+	      doublereal *leftdepth, doublereal *depth, 
+	      doublereal *vel, doublereal *delx, doublereal *dely,
+	      doublereal *transfactor, doublereal *transslope)
 {
     /* System generated locals */
     integer i__1;
@@ -374,9 +375,9 @@ void channel_(integer *stnserod, integer *stations,
 
 
 
-void getcurv_(integer *stnserod, integer *stations, 
-	doublereal *delx, doublereal *dely, doublereal *dels, doublereal *
-	curvature)
+void getcurv_(integer *stnserod, integer * /*stations*/, 
+	      doublereal *delx, doublereal *dely,
+	      doublereal *dels, doublereal *curvature)
 {
     /* System generated locals */
     integer i__1;
@@ -671,10 +672,11 @@ void forcedist_(integer *stnserod, integer *stations,
 /*  bank erosion (perpendicular to the flow direction); the sign tells */
 /*  you whether to use right or left bank erodibility. */
 
-void changeposition_(integer *stnserod, integer *stations, 
-	doublereal *lerody, doublereal *rerody, doublereal *spreaddelta_x__, 
-	doublereal *spreaddelta_y__, doublereal *delx, doublereal *dely, 
-	doublereal *depth, doublereal *delta_x__, doublereal *delta_y__)
+void changeposition_(integer *stnserod, integer * /*stations*/, 
+		     doublereal *lerody, doublereal *rerody,
+		     doublereal *spreaddelta_x__, doublereal *spreaddelta_y__,
+		     doublereal *delx, doublereal *dely, doublereal *depth,
+		     doublereal *delta_x__, doublereal *delta_y__)
 {
     /* System generated locals */
     integer i__1;
