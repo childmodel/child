@@ -59,7 +59,7 @@
 **     - Added codes to go along with erosion & transport options, to
 **       enable checking against user-specified options (GT 7/02)
 **
-**  $Id: erosion.h,v 1.39 2002-07-26 10:16:16 gtucker Exp $
+**  $Id: erosion.h,v 1.40 2002-08-07 11:16:04 arnaud Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -84,8 +84,6 @@ enum {
   NoTransportLaw
 };
 
-#define NUMBER_OF_TRANSPORT_LAWS 6
-
 const char * const TransportLaw[] =
 {
   "Power-law transport formula",
@@ -96,6 +94,9 @@ const char * const TransportLaw[] =
   "Willgoose/Riley mine tailings formula",
   "(Invalid transport law)"
 };
+
+const int NUMBER_OF_TRANSPORT_LAWS = 
+sizeof(TransportLaw)/sizeof(TransportLaw[0]) - 1;
 
 #define tSedTrans tSedTransPwrLaw
 #define TRANSPORT_CODE PowerLaw1
@@ -117,14 +118,15 @@ enum {
   NoDetachmentLaw
 };
 
-#define NUMBER_OF_DETACHMENT_LAWS 2
-
 const char * const DetachmentLaw[] =
 {
   "Power law, form 1",
   "Power law, form 2",
   "(Invalid detachment law)"
 };
+
+const int NUMBER_OF_DETACHMENT_LAWS =
+sizeof(DetachmentLaw)/sizeof(DetachmentLaw[0]) - 1;
 
 #define tBedErode tBedErodePwrLaw
 #define DETACHMENT_CODE DetachPwrLaw1
