@@ -3,7 +3,7 @@
 **  tList.cpp:  Functions for class tList and related classes tListNode
 **              and tListIter.
 **
-**  $Id: tList.cpp,v 1.7 1998-03-16 18:54:57 gtucker Exp $
+**  $Id: tList.cpp,v 1.8 1998-04-29 21:37:30 gtucker Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -630,8 +630,41 @@ getIthDataPtrNC( int num ) const
    return curPtr->getDataPtrNC();
 }
 
-/*
-**  Code for tListIter objects.
+
+/**************************************************************************\
+**
+**  tList::getListNode
+**
+**  Finds and returns the list node containing the data pointed to by
+**  desiredDatPtr, or zero if not found.
+**
+**  Parameters:  desiredDatPtr -- pointer to the data item sought after
+**  Returns:  pointer to the tListNode containing desiredDatPtr, or zero
+**            if not found
+**  Notes: might be safer to implement with a const return type
+**  Created: 4/29/98 GT
+**
+\**************************************************************************/
+template< class NodeType >
+tListNode< NodeType > * tList< NodeType >::
+getListNode( NodeType * desiredDatPtr )
+{
+   tListNode< NodeType > * listnode = first;
+
+   if( listnode==0 ) return 0;
+   while( &(listnode->data) != desiredDatPtr )
+   {
+      listnode = listnode->next;
+      if( listnode==0 ) return 0;
+   }
+   return listnode;
+   
+}
+
+
+/**************************************************************************\
+**
+**  CODE FOR tListIter OBJECTS.
 **
 **  A tListIter is an iterator for the linked list tList objects (and their
 **  descendants). Its services include fetching data from the current entry
