@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.14 2003-05-06 16:51:38 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.15 2003-05-08 09:52:39 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -330,7 +330,7 @@ tMainChannelDriver::tMainChannelDriver( tInputFile &infile )
 void tMainChannelDriver::UpdateMainChannelElevation( double tm, 
 						     tLNode * inletNode )
 {
-  double newInletElevation,
+  double newInletElevation=0,
     elev,
     chanslp;
   tEdge * fe;    // Ptr to flow edge of current node
@@ -344,6 +344,8 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
     case SINEWAVE:
       newInletElevation = drop + amplitude*sin( period*tm );
       break;
+    default:
+      assert(0);  // We should never get here!
     }
 
   // Compute length and slope of channel
