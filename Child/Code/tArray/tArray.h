@@ -13,7 +13,7 @@
  **  argument passed to the constructor or by assignment of one array
  **  to another.
  **
- **  $Id: tArray.h,v 1.24 2003-09-02 13:55:57 childcvs Exp $
+ **  $Id: tArray.h,v 1.25 2004-02-27 17:27:25 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -55,6 +55,8 @@ public:
   int operator!=( const tArray< T > & ) const;    // memberwise comparison
   inline T &operator[]( int );   // overloaded array index operator
   inline const T &operator[]( int ) const;
+  inline T & at( int );
+  inline const T & at( int ) const;
   int getSize() const {       // returns the number of elements in the array
     return npts;
   }
@@ -142,6 +144,19 @@ inline const T &tArray< T >::operator[]( int subscript ) const
 {
   if ( unlikely(0 > subscript || subscript >= npts) )
     fatalReport( subscript );
+  return avalue[subscript];
+}
+
+// likewise with no check
+template< class T >
+inline T &tArray< T >::at( int subscript )
+{
+  return avalue[subscript];
+}
+
+template< class T >
+inline const T &tArray< T >::at( int subscript ) const
+{
   return avalue[subscript];
 }
 
