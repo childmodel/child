@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.75 1999-12-09 20:26:38 gtucker Exp $
+**  $Id: erosion.cpp,v 1.76 2000-01-25 17:09:29 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -782,6 +782,12 @@ void tErosion::ErodeDetachLim( double dtg )
          //tArray<double> valgrd;
          //valgrd.setSize(1);
          valgrd[0]=cn->getQs() * dtmax;
+
+         //Debug prints below are qc's
+         //cout<<"x= "<<cn->getX()<<endl;
+         //cout<<"y= "<<cn->getY()<<endl;
+         //end debug,qc
+
          cn->EroDep( 0, valgrd, 0);
          //cn->EroDep( cn->getQs() * dtmax );
       }
