@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.48 1999-01-04 23:45:49 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.49 1999-01-08 22:29:23 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -422,7 +422,7 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
   sand range and grain size 2 is in the gravel range.  The sediment
   transport rate of both grain sizes is calculated, and the sum of
   these two rates is returned. (rate here is in m^3/yr)
-/***********************************************************************/
+\***********************************************************************/
 
 double tSedTransWilcock::TransCapacity( tLNode *nd )
 {
@@ -513,7 +513,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
   was initialized to zero and you just add to it in this function.
   It is VERY IMPORTANT that qs is reset to zero before you use this
   funtion in a loop.
-/***********************************************************************/
+\***********************************************************************/
 
 double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 {
@@ -957,7 +957,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
   limited.  If there is less than a critical amount of sediment on the
   bed, the bedrock is eroded and added to the load.
 
-/***************************************************************************/
+\***************************************************************************/
 
 void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 {
@@ -1280,7 +1280,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
   Algorithm for eroding sediment and bedrock.  Material is only detached
   if the stream has the capacity to carry it.
 
-/************************************************************************/
+\************************************************************************/
 
 void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 {
