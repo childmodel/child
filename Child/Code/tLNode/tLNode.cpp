@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.70 1999-03-11 17:37:33 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.71 1999-03-12 23:13:59 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -249,11 +249,11 @@ tErode::~tErode()                                                   //tErode
 const tErode &tErode::operator=( const tErode &right )     //tErode
 {
    if( &right != this )
-   {                                         
+   {
       sedinput = right.sedinput;             
       zp = right.zp;                         
       qs = right.qs;                         
-      qsp = right.qsp;                       
+      qsp = right.qsp;            
       qsin = right.qsin;                     
       qsinp = right.qsinp;                   
       tau = right.tau;                       
@@ -262,8 +262,8 @@ const tErode &tErode::operator=( const tErode &right )     //tErode
       smooth = right.smooth;                 
    }                                         
    return *this;                             
-}                                            
-       
+}
+     
 
 tMeander::tMeander()                                              //tMeander
         : xyzd(4)
@@ -997,8 +997,10 @@ double tLNode::getSlope()
    int ctr;
    double rlen, curlen, slp, delz, downz;
    tLNode *dn, *on, *tn;
+
    assert( flowedge != 0 );
    assert( flowedge->getLength()>0 ); // failure means lengths not init'd
+
    if( Meanders() )
    {
       rlen = 10.0 * chan.chanwidth;
@@ -1028,6 +1030,7 @@ double tLNode::getSlope()
       if(curlen <= 0){
          cout<<"going to die in getSlope(), curlen is "<<curlen<<endl;
          TellAll();
+         assert(curlen>0.0);
       }
       
       assert( curlen > 0 );
@@ -1177,7 +1180,7 @@ void tLNode::TellAll()
          //cout<<"  ccwedge of flowedge is "<<flowedge->getCCWEdg()->getID();
          //cout<<" originates at "<<flowedge->getCCWEdg()->getOriginPtrNC()->getID()<<endl;
          cout << "  qs: " << qs << "  qsin: " << qsin << "  slp: "
-              << getSlope() << "  reg: " << reg.thickness << endl;
+              << flowedge->getSlope() << "  reg: " << reg.thickness << endl;
          for(i=0; i<numg; i++)
              cout<<"  qsi "<<i<<" "<<qsm[i];
          cout<<endl;
