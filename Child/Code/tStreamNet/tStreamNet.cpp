@@ -140,7 +140,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.24 1998-03-26 01:39:08 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.25 1998-03-31 23:52:14 stlancas Exp $
 \**************************************************************************/
 
 
@@ -193,6 +193,9 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
       infilt = infile.ReadItem( infilt, "INFILTRATION" );
    }
    rainrate = stormPtr->GetRainrate();
+   int itMeanders = infile.ReadItem( itMeanders, "OPTMNDR" );
+   if( itMeanders ) mndrDirChngProb = infile.ReadItem( mndrDirChngProb, "CHNGPROB" );
+   else mndrDirChngProb = 1.0;
    CalcSlopes();  // TODO: should be in tGrid
    InitFlowDirs(); // TODO: should all be done in call to updatenet
    FlowDirs();
@@ -249,6 +252,8 @@ double tStreamNet::getInSedLoad() const {return inlet.inSedLoad;}
 tLNode *tStreamNet::getInletNodePtr() const {return inlet.innode;}
 tLNode *tStreamNet::getInletNodePtrNC() {return inlet.innode;}
 
+double tStreamNet::getMndrDirChngProb() const {return mndrDirChngProb;}
+
 // TODO: the value checks are nice, but will hurt performance. Should
 // probably be removed.
 void tStreamNet::setFlowGenOpt( int val )
@@ -274,6 +279,8 @@ void tStreamNet::setInSedLoad( double val )
 void tStreamNet::setInletNodePtr( tLNode *Ptr )
 {inlet.innode = ( Ptr > 0 ) ? Ptr : 0;}
 
+void tStreamNet::setMndrDirChngProb( double val )
+{mndrDirChngProb = ( val >= 0.0 && val <= 1.0 ) ? val : 1.0;}
 
 
 
@@ -545,10 +552,13 @@ void tStreamNet::FlowDirs()
    tGridListIter<tLNode> i( gridPtr->GetNodeList() );  // Gets nodes from the list
    double slp;        // steepest slope found so far
    tLNode *curnode;  // ptr to the current node
+   tLNode *newnode;  // ptr to new downstream node
    tEdge * firstedg; // ptr to first edg
    tEdge * curedg;   // pointer to current edge
    tEdge * nbredg;   // steepest neighbouring edge so far
-
+   long seed = 91324;
+   double chngnum;
+   
 //#if TRACKFNS
    //cout << "FlowDirs" << endl;
 //#endif
@@ -582,9 +592,28 @@ void tStreamNet::FlowDirs()
             }
             curedg = curedg->GetCCWEdg();
          }
+     //add a wrinkle: if node is a meander node and presently flows
+     //to another meander node and the new 'nbredg' does not lead to a
+     //meander node, then choose a random number and
+     //compare it to the probability that a meander node will change
+     //flow direction to a non-meander node
+           /*if( mndrDirChngProb != 1.0 )
+         {
+            newnode = (tLNode *) nbredg->getDestinationPtrNC();
+            if( curnode->GetDownstrmNbr()->Meanders() &&
+                curnode->GetDownstrmNbr()->getZ() < curnode->getZ() &&
+                !(newnode->Meanders()) )
+            {
+               chngnum = ran3( &seed );
+               if( chngnum <= mndrDirChngProb ) curnode->SetFlowEdg( nbredg );
+            }
+            else curnode->SetFlowEdg( nbredg );
+         }
+         else curnode->SetFlowEdg( nbredg );*/
       
          curnode->SetFlowEdg( nbredg );
-         /*if( slp < 0 )
+
+           /*if( slp < 0 )
          {
             if( DamBypass( curnode ) )
             {
