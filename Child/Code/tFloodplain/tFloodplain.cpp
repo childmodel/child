@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.11 2003-01-17 17:30:27 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.12 2003-02-10 16:37:05 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -143,7 +143,6 @@ tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
 **    Notes:
 **
 \**************************************************************************/
-#define kYearpersec 3.171e-8 // 1/SecondsPerYear
 void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 {
    if( precip < event_min ) return;
@@ -172,7 +171,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
       {
          floodNode.nodePtr = cn;
          floodNode.wsh = kdb*pow( drarea, mqbmqs )
-             *pow( cn->getQ()*kYearpersec, mqs )
+             *pow( cn->getQ()/SECPERYEAR, mqs )
              + cn->getZ();
          //cout << "flood depth " << cn->getID() << " = " << floodNode.wsh-cn->getZ() << endl;
          if( floodNode.wsh > maxWSH )

@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.24 2003-02-07 17:01:52 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.25 2003-02-10 16:37:05 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -115,7 +115,6 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 **       - GT commented out mndrchngprob, which appears to be unused, 6/99
 \**************************************************************************/
 
-#define kYearpersec 3.1688e-8 // 1/SecondsPerYear
 tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
                         tInputFile &infile )
   :
@@ -152,7 +151,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    if( miOptFlowgen == k2DKinematicWave )
    {
        mdKinWaveExp = infile.ReadItem( mdKinWaveExp, "KINWAVE_HQEXP" );
-       mdKinWaveRough = knds * kYearpersec;
+       mdKinWaveRough = knds / SECPERYEAR;
        cout << "mdKinWaveRough " << mdKinWaveRough << endl;
    }
    else mdKinWaveExp = mdKinWaveRough = 0.0;
@@ -174,7 +173,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    // Read hydraulic geometry parameters: first, those used (potentially)
    // by both "regime" and "parker" hydraulic geometry models
    bankfullevent = infile.ReadItem( bankfullevent, "BANKFULLEVENT" );
-   bankfullevent *= kYearpersec;
+   bankfullevent /= SECPERYEAR;
    if( bankfullevent<=0.0 )
        ReportFatalError(
            "Input error: BANKFULLEVENT must be greater than zero" );
