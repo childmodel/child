@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.53 2003-05-30 12:54:02 childcvs Exp $
+**  $Id: meshElements.h,v 1.54 2003-07-16 12:24:05 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -147,6 +147,10 @@ public:
   virtual tArray< double > FuturePosn();
   virtual void UpdateCoords() {}
   virtual bool isMobile() const { return false;}
+
+  virtual void PrepForAddition( tTriangle const *, double ) {}
+  virtual void PrepForMovement( tTriangle const *, double ) {}
+
 #ifndef NDEBUG
    void TellAll();  // Debugging routine that outputs node data
 #endif

@@ -26,7 +26,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.66 2003-05-30 12:54:54 childcvs Exp $
+**  $Id: tLNode.h,v 1.67 2003-07-16 12:24:12 childcvs Exp $
 */
 /************************************************************************/
 
@@ -545,6 +545,9 @@ public:
    virtual void InitializeNode();
    virtual tArray< double > FuturePosn();
    virtual bool isMobile() const { return Meanders();}
+
+   virtual void PrepForAddition( tTriangle const *, double );
+   virtual void PrepForMovement( tTriangle const *, double );
 
    void CopyLayerList( tLNode const * ); // Copy layerlist from another node (gt 12/99)
 

@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.109 2003-06-23 10:36:22 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.110 2003-07-16 12:24:09 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1351,6 +1351,25 @@ void tLNode::setLayerDgrade( int i, int g, double val)
     }
 
     hlp->setDgrade(g, val );
+}
+
+/************************************************************************\
+  tLNode::PrepForAddition
+
+  7/2003 AD after SL
+\*************************************************************************/
+void tLNode::PrepForAddition( tTriangle const* tri, double time ){
+  LayerInterpolation( tri, getX(), getY(), time );
+}
+
+/************************************************************************\
+  tLNode::PrepForMovement
+
+  7/2003 AD after SL
+\*************************************************************************/
+void tLNode::PrepForMovement( tTriangle const* tri, double time ){
+  const tArray<double> newxy = getNew2DCoords();
+  LayerInterpolation( tri, newxy[0], newxy[1], time );
 }
 
 /************************************************************************\

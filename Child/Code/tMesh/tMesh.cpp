@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.169 2003-07-15 17:25:06 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.170 2003-07-16 12:24:14 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3670,7 +3670,7 @@ CheckTrianglesAt( tSubNode* nPtr )
 \*****************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeDelaunay( tPtrList< tTriangle > &triPtrList)
+MakeDelaunay( tPtrList< tTriangle > &triPtrList )
 {
   tTriangle *at;
   int ctr = 0;
@@ -3731,7 +3731,7 @@ InsertNode( tSubNode* newNodePtr, double time )
       return 0;
    }
    if( layerflag && time > 0. )
-       newNodePtr->LayerInterpolation( tri, newNodePtr->getX(), newNodePtr->getY(), time );
+       newNodePtr->PrepForAddition( tri, time );
 
    // Insert and retrieve a pointer to the new node
    tSubNode *cn = AddToList(*newNodePtr);
@@ -3917,7 +3917,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    tSubNode tempNode;
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );
    if( layerflag && time > 0. )
-     tempNode.LayerInterpolation( tri, xyz[0], xyz[1], time );
+     tempNode.PrepForAddition( tri, time );
    if( xyz.getSize() != 3 ) tempNode.setNew2DCoords( xyz[0], xyz[1] );
    tempNode.setBoundaryFlag( kNonBoundary );
 
@@ -4306,7 +4306,7 @@ CheckLocallyDelaunay()
   }
 
   // re-triangulate to fix mesh (make it Delaunay)
-  MakeDelaunay( triPtrList);
+  MakeDelaunay( triPtrList );
 }
 
 /*****************************************************************************\
@@ -4561,8 +4561,7 @@ MoveNodes( double time, bool interpFlag )
 	 //the triangle.
 	 //cout<<"a point will be moved in MoveNodes"<<endl;
 	 tTriangle *tri = LocateTriangle( newxy[0], newxy[1] );
-	 cn->LayerInterpolation( tri, newxy[0], newxy[1], time );
-	 // TODO: is there a way to make this general, e.g. virtual fn?
+	 cn->PrepForMovement( tri, time );
        }
      }
    }
