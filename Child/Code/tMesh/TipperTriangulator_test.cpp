@@ -14,6 +14,24 @@
 #include "hulltr_e.h"
 #include "hulltr_test.h"
 
+void test_ccwedge(int nedges, edge* edges){
+  // test ccw edge code
+  for(int iedge=0; iedge<nedges; iedge++){
+    const oriented_edge e1(iedge,true);
+    const oriented_edge ccw_to = e1.ccw_edge_around_to(edges);
+    const oriented_edge e2(iedge,false);
+    const oriented_edge ccw_from = e2.ccw_edge_around_to(edges);
+#if 0
+    cout << "edge=" << iedge
+	 << " ret=" << edges[iedge].ret 
+	 << " lef=" << edges[iedge].lef
+	 << " ccw_to=" << ccw_to.e()
+	 << " ccw_from=" << ccw_from.e()
+	 << endl;
+#endif
+  }
+}
+
 void sanity_check_edge(edge *edges){
   // some sanity check
   int i=0;
@@ -107,6 +125,7 @@ void test_sort_triangulate(int npoints, point *p){
 #endif
 
   sanity_check_edge(edges);
+  test_ccwedge(nedges, edges);
 
   int nelem;
   elem* elems = NULL;
