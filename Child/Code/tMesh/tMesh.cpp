@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.46 1998-08-03 00:46:26 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.47 1998-08-14 19:49:14 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -3916,9 +3916,23 @@ template< class tSubNode >
 void tGrid< tSubNode >::
 MoveNodes()
 {
+
    //cout << "MoveNodes()..." << flush << endl;
    tSubNode * cn;  
    tGridListIter< tSubNode > nodIter( nodeList );
+   //Before any edges and triangles are changed, layer interpolation
+   //must be performed.
+   tTriangle *tri;
+   tArray<double> newxy(2);
+   for(cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP()){
+      newxy=cn->getNew2DCoords();
+      if( (cn->getX()==newxy[0]) && (cn->getY()==newxy[1]) ){
+         //Nic - there may be some issues if boundary nodes make up
+         //the triangle.
+         tri = LocateTriangle( newxy[0], newxy[1] );
+         cn->LayerInterpolation( tri, nodeList );
+      }
+   }
    //check for triangles with edges which intersect (an)other edge(s)
    CheckTriEdgeIntersect(); //calls tLNode::UpdateCoords() for each node
    //resolve any remaining problems after points moved
