@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.33 2003-05-23 11:49:32 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.34 2003-05-23 17:49:37 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -129,6 +129,8 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    assert( stormPtr != 0 );
 
    // Read option for runoff generation/routing and get relevant parameters
+   knds = infile.ReadItem( knds, "HYDR_ROUGH_COEFF_DS" );
+
    miOptFlowgen = infile.ReadItem( miOptFlowgen, "FLOWGEN" );
    filllakes = infile.ReadItem( filllakes, "LAKEFILL" );
    if( miOptFlowgen == kSaturatedFlow1 || miOptFlowgen==kSaturatedFlow2 )
@@ -180,7 +182,6 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
            "Input error: BANKFULLEVENT must be greater than zero" );
 
    ewstn = infile.ReadItem( ewstn, "HYDR_WID_EXP_STN" );
-   knds = infile.ReadItem( knds, "HYDR_ROUGH_COEFF_DS" );
    //cout << "knds: " << knds << endl;
    //assert( knds > 0 );
    ends = infile.ReadItem( ends, "HYDR_ROUGH_EXP_DS" );
@@ -2189,6 +2190,7 @@ tInlet::tInlet() :
 #define LARGE_DISTANCE 1e9
 tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
   :
+  innode(0), inDrArea(0.),
   inSedLoad(0.),
   meshPtr(gPtr)
 {
@@ -2330,13 +2332,6 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
          //innode->TellAll();
       }
    }
-
-   else
-   {
-      inDrArea = 0.;
-      innode = 0;
-   }
-
 }
 
 tInlet::~tInlet()
