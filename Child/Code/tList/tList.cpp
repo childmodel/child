@@ -3,7 +3,11 @@
 **  tList.cpp:  Functions for class tList and related classes tListNode
 **              and tListIter.
 **
-**  $Id: tList.cpp,v 1.13 1999-01-05 22:33:50 stlancas Exp $
+**  Changes:
+**    - GT added currentItem, FirstP(), and NextP(), plus modifications
+**      to prevent currentItem from getting corrupted (1/22/99)
+**
+**  $Id: tList.cpp,v 1.14 1999-01-22 23:32:37 gtucker Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -143,7 +147,7 @@ getNext() const {return next;}
 template< class NodeType >                         //tList
 tList< NodeType >::tList()
 {
-   first = last = 0;
+   first = last = currentItem = 0;
    nNodes = 0;
      //cout << "list instantiated" << first << endl;
 }
@@ -152,17 +156,20 @@ tList< NodeType >::
 tList( const tList< NodeType > *original )
 {
    int i;
+
    assert( original != 0 );
    nNodes = 0;
      //nNodes = original->nNodes;
-   tListNode< NodeType > * current = original->first;
+   tListNode<NodeType> * current = original->first;
    for( i=0; i<original->nNodes; i++ )
    {
       insertAtBack( current->data );
       current = current->next;
    }
    assert( nNodes == original->nNodes );
-     cout << "list copy instantiated" << first << endl;
+   cout << "list copy instantiated" << first << endl;
+   current = first;
+   
 }
 
 
@@ -252,7 +259,7 @@ insertAtFront( const NodeType &value )
    //cout << "ADD NEW NODE TO LIST AT FRONT" << endl;
    
    tListNode< NodeType > *newPtr = getNewNode( value );
-   if( isEmpty() ) first = last = newPtr;
+   if( isEmpty() ) first = last = currentItem = newPtr;
    else
    {
       newPtr->next = first;
@@ -273,7 +280,7 @@ insertAtBack( const NodeType &value )
    assert( this != 0 );
    if( isEmpty() )
    {
-      first = last = newPtr;
+      first = last = currentItem = newPtr;
    }
    else
    {
@@ -337,10 +344,11 @@ removeFromFront( NodeType &value )
    else
    {
       tListNode< NodeType > * temp = first;
-      if( first == last ) first = last = 0;
+      if( first == last ) first = last = currentItem = 0;
       else
       {
          if( last->next == first ) last->next = first->next;
+         if( currentItem==first ) currentItem = first->next;
          first = first->next;
       }
       value = temp->data;
@@ -359,13 +367,14 @@ removeFromBack( NodeType &value )
    else
    {
       tListNode< NodeType > * temp = last;
-      if( first == last ) first = last = 0;
+      if( first == last ) first = last = currentItem = 0;
       else
       {
-         tListNode< NodeType > * current = first;
-         while( current->next != last ) current = current->next;
-         current->next = last->next;
-         last = current;
+         tListNode< NodeType > * nexttolast = first;
+         while( nexttolast->next != last ) nexttolast = nexttolast->next;
+         nexttolast->next = last->next;
+         if( currentItem==last ) currentItem = nexttolast;
+         last = nexttolast;
       }
       value = temp->data;
       delete temp;
@@ -385,6 +394,7 @@ removeNext( NodeType &value, tListNode< NodeType > * ptr )
    else if( ptr->next == first ) return removeFromFront( value );
    //if( ptr == last ) return 0;
    tListNode< NodeType > * temp = ptr->next;
+   if( currentItem == temp ) currentItem = ptr;
    ptr->next = ptr->next->next;
    value = temp->data;
    delete temp;
@@ -407,6 +417,7 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
    if( temp == first ) return removeFromFront( value );
    prev->next = prev->next->next;
    value = temp->data;
+   if( currentItem == temp ) currentItem = prev;
    delete temp;
    nNodes--;
    return 1;
@@ -418,6 +429,7 @@ void tList< NodeType >::
 Flush()
 {
    tListNode<NodeType > * current = first,* temp;
+
    //while( !isEmpty() ) removeFromBack( temp );
    
    if( !isEmpty() )
@@ -431,7 +443,7 @@ Flush()
          current = current->next;
          delete temp;
       }
-      first = last = 0;
+      first = last = currentItem = 0;
    }
    assert( isEmpty() );
    nNodes = 0;
@@ -506,6 +518,20 @@ getFirst() const {return first;}
 template< class NodeType >                         //tList
 tListNode< NodeType > * tList< NodeType >::
 getLast() const {return last;}
+
+// Added by gt 1/99
+template< class NodeType >                         //tList
+NodeType * tList< NodeType >::
+FirstP() {return &first->data;}
+
+// Added by gt 1/99
+template< class NodeType >                         //tList
+NodeType * tList< NodeType >::
+NextP() 
+{
+   if( currentItem!=0 ) currentItem = currentItem->next;
+   return &currentItem->data;
+}
 
 //'move' utilities
 template< class NodeType >                         //tList

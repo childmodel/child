@@ -4,7 +4,10 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.38 1999-01-05 22:04:12 stlancas Exp $
+**  Changes:
+**    - GT commented out inclusion of run timer, 1/99
+**
+**  $Id: tLNode.h,v 1.39 1999-01-22 23:29:57 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -18,7 +21,7 @@
 #include "../tList/tList.h"
 #include "../tInputFile/tInputFile.h"
 #include "../globalFns.h"
-#include "../tRunTimer/tRunTimer.h"
+//#include "../tRunTimer/tRunTimer.h" //doesn't seem to be needed (gt 1/99)
 
 #define kSink        3  // ...or a dry sink (unfilled depression).
 #define kVeryHigh 100000  // Used in FillLakes

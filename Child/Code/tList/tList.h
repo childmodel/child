@@ -23,7 +23,11 @@
 **  descendants). Its services include fetching data from the current entry
 **  on the list, advancing to the next or previous item on the list, etc.
 **
-**  $Id: tList.h,v 1.11 1998-10-02 20:55:09 stlancas Exp $
+**  Changes:
+**    - GT added currentItem member and routines FirstP and NextP to
+**      track position on list w/o an iterator, 1/22/99
+**
+**  $Id: tList.h,v 1.12 1999-01-22 23:31:29 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -98,6 +102,8 @@ class tList
    int getSize() const;
    tListNode< NodeType  > * getFirst() const;
    tListNode< NodeType  > * getLast() const;
+   NodeType * FirstP();
+   NodeType * NextP();
    void moveToBack( tListNode< NodeType > *  );
    void moveToFront( tListNode< NodeType > *  );
    void makeCircular();
@@ -114,6 +120,7 @@ class tList
    int nNodes;
    tListNode< NodeType > * first;
    tListNode< NodeType > * last;
+   tListNode< NodeType > * currentItem;
    tListNode< NodeType > * getNewNode( const NodeType & );
 };
 
