@@ -5,7 +5,6 @@
 **  tMeshList.h
 **
 **  Header file for derived classes tMeshList and tMeshListIter.
-**  (formerly tGridList)
 **
 **  A tMeshList is derived from the generic linked list class tList.
 **  It is used in CHILD to store lists of mesh elements (nodes and edges),
@@ -31,7 +30,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.h,v 1.12 2002-09-05 11:27:45 arnaud Exp $
+**  $Id: tMeshList.h,v 1.13 2002-09-06 11:21:43 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TMESHLIST_H
@@ -109,7 +108,8 @@ tMeshList() :
   nActiveNodes(0),
   lastactive(0)
 {
-     //cout << "                  from tMeshList()" << first << endl;
+  if (0) //DEBUG
+    cout << "                  from tMeshList()" << first << endl;
 }
 
 template< class NodeType >                     //tMeshtList
@@ -117,16 +117,20 @@ tMeshList< NodeType >::
 tMeshList( const tMeshList< NodeType > *original ) :
   tList< NodeType >( original ),
   nActiveNodes(original->nActiveNodes),
-  lastactive(original->lastactive)
+  lastactive(0)
 {
-     //cout << "                  from tMeshList( original )" << first << endl;
+  if (0) //DEBUG
+    cout << "                  from tMeshList( original )" << first << endl;
+  if ( nActiveNodes > 0 )
+    lastactive = tList< NodeType >::getIthListNode( nActiveNodes - 1 );
 }
 
 template< class NodeType >                     //tMeshtList
 tMeshList< NodeType >::
 ~tMeshList()
 {
-     //cout << "                  from ~tMeshList()" << first << endl;
+  if (0) //DEBUG
+    cout << "                  from ~tMeshList()" << first << endl;
 }
 
 
@@ -153,11 +157,10 @@ operator=( const tMeshList< NodeType > &right )
    {
       tList< NodeType >::operator=( right );
       nActiveNodes = right.nActiveNodes;
-      lastactive = first;
-      int i;
-      for( i=1; i<nActiveNodes; i++ ) lastactive = lastactive->next;
+      lastactive = 0;
+      if ( nActiveNodes > 0 )
+	lastactive = tList< NodeType >::getIthListNode( nActiveNodes - 1 );
    }
-     //cout << "tMeshList assigned" << first << endl;
    return *this;
 }
 
@@ -420,7 +423,8 @@ template< class NodeType >                         //tList
 void tMeshList< NodeType >::
 moveToBack( tListNode< NodeType > * mvnode ) 
 {
-   //cout << "moveToBack( tListNode )\n";
+   if (0) //DEBUG
+     cout << "moveToBack( tListNode )\n";
    
    assert( mvnode>0 );
    tListNode< NodeType > * prev;
@@ -650,7 +654,8 @@ template< class NodeType >   //tMeshListIter
 tMeshListIter< NodeType >::
 tMeshListIter()
 {
-     //cout << "    from tMeshListIter()" << endl;
+   if (0) //DEBUG
+     cout << "    from tMeshListIter()" << endl;
 }
 
 template< class NodeType >   //tMeshListIter
@@ -659,10 +664,7 @@ tMeshListIter( tMeshList< NodeType > &list )
         : tListIter< NodeType >( list )
 {
    assert( &list != 0 );
-     //gridlistPtr = &list;
-   curnode = /*grid*/listPtr->first;
-     //if( listPtr->first != 0 ) assert( curnode != 0 );
-     //cout << "    from tMeshListIter( list )" << endl;
+   curnode = listPtr->first;
 }
 
 template< class NodeType >   //tMeshListIter
@@ -671,18 +673,14 @@ tMeshListIter( tMeshList< NodeType > *ptr )
         : tListIter< NodeType >( ptr )
 {
    assert( ptr != 0 );
-     //gridlistPtr = &list;
-   curnode = /*grid*/listPtr->first;
+   curnode = listPtr->first;
    assert( curnode != 0 );
-     //cout << "    from tMeshListIter( ptr )" << endl;
 }
 
 template< class NodeType >   //tMeshListIter
 tMeshListIter< NodeType >::
 ~tMeshListIter()
-{
-     //cout << "    from ~tMeshListIter()" << endl;
-}
+{}
 
 
 /**************************************************************************\
@@ -696,11 +694,11 @@ template< class NodeType >   //tMeshListIter
 int tMeshListIter< NodeType >::
 LastActive()
 {
-   tMeshList< NodeType > *meshlistPtr;
-
-   meshlistPtr = static_cast< tMeshList< NodeType > * >(listPtr);
+   tMeshList< NodeType > *meshlistPtr =
+     static_cast< tMeshList< NodeType > * >(listPtr);
    assert( meshlistPtr != 0 );
    curnode = meshlistPtr->lastactive;
+   counter = meshlistPtr->nActiveNodes-1;
    if( curnode != 0 ) return 1;
    else return 0;
 }
@@ -717,12 +715,13 @@ template< class NodeType >   //tMeshListIter
 int tMeshListIter< NodeType >::
 FirstBoundary()
 {
-   tMeshList< NodeType > *meshlistPtr;
-   meshlistPtr = static_cast< tMeshList< NodeType > * >(listPtr);
+   tMeshList< NodeType > *meshlistPtr =
+     static_cast< tMeshList< NodeType > * >(listPtr);
    assert( meshlistPtr != 0 );
    if( meshlistPtr->isActiveEmpty() ) curnode = listPtr->first;
    else if( meshlistPtr->isBoundEmpty() ) curnode = 0;
    else curnode = meshlistPtr->lastactive->next;
+   counter = meshlistPtr->nActiveNodes;
    if( curnode != 0 ) return 1;
    else return 0;
 }
