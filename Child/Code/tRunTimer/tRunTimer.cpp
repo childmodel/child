@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.14 2000-06-05 22:39:21 daniel Exp $
+**  $Id: tRunTimer.cpp,v 1.15 2002-04-17 16:50:18 arnaud Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -77,6 +77,7 @@ tRunTimer::tRunTimer( double duration, double opint, int optprint )
 
 tRunTimer::tRunTimer( tInputFile &infile, int optprint )
 {
+        currentTime = 0;
 	endTime = infile.ReadItem( endTime, "RUNTIME" );
 	outputInterval = infile.ReadItem( outputInterval, "OPINTRVL" );
 	optPrintEachTime = optprint;
@@ -85,24 +86,23 @@ tRunTimer::tRunTimer( tInputFile &infile, int optprint )
 	if( optTSOutput )
 	  TSOutputInterval = infile.ReadItem( TSOutputInterval, "TSOPINTRVL" );
 	
-  double help;
-
   //If you are reading in layering information, the timer should
   //be set to the time in which the layers were output, since
   //time is tracked in the layers and restarting at time zero
   //would make the layer times non-sensical.
-  help = infile.ReadItem( help, "OPTREADINPUT" );
-  if(help>0){
-     help = infile.ReadItem( help, "INPUTTIME" );
+  int tmp;
+  int optReadInput = infile.ReadItem( tmp, "OPTREADINPUT" );
+  if( optReadInput==1 ) /* If reading existing mesh file, eg from restart */ 
+  {
+     double help = infile.ReadItem( help, "INPUTTIME" );
      currentTime = help;
      endTime += help;
-     nextOutputTime = help;
+     nextOutputTime = help + outputInterval;
      nextNotify = help;
   }
   else{
-     nextOutputTime = 0;
+     nextOutputTime = outputInterval;
      nextNotify = 0;
-     currentTime = 0;
   }
 
 }
