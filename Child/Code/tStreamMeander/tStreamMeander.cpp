@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.104 2004-03-24 14:54:40 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.105 2004-04-05 10:06:47 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1691,9 +1691,7 @@ void tStreamMeander::CheckBanksTooClose()
       // channel and placed them on the delPtrList, we now delete them
       if( !delPtrList.isEmpty() )
       {
-         tPtrListIter< tLNode > cIter( chanPtrList );
-         for( tLNode *dn = dIter.FirstP(), *cn = cIter.FirstP(); !(dIter.AtEnd());
-              dn = dIter.FirstP(), cn = cIter.FirstP() )
+         for( tLNode *dn = dIter.FirstP(); !(dIter.AtEnd()); dn = dIter.FirstP())
          {
             if (0) //DEBUG
                 cout << "CBTC: delete node " << dn->getID() << " at "

@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.92 2004-03-24 17:05:46 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.93 2004-04-05 10:07:11 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -1061,7 +1061,7 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
 {
   // Surfer style file containing stratnodes x,y,z, mindist to meander
   // and toplayer's Ct, Rt, and Thickn.
-  double depth,previous_depth;
+  double depth;
   double mbelt_Ytop;
   double mbelt_Ybase;
 
@@ -1118,7 +1118,6 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
 
       tStratNode const &sn = (*StratNodeMatrix)(i,j);
       const int numlayers = sn.getNumLayer();
-      previous_depth =0.0;
       depth = 0.0;
 
       // FIXME could be a loop on tStratNode::layerlist
@@ -1129,7 +1128,6 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
 
 	  const double timeslicebase = stratGrid->getOutputTime(ts-1);
 	  const double timeslicetop  = stratGrid->getOutputTime(ts);
-	  previous_depth = depth;
 	  depth += sn.getLayerDepth(l);     // maximum real depth of the current layer under the grass...
 
 	  //There are 3 options here, as stratigraphic layers are not always
