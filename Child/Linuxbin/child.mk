@@ -7,6 +7,9 @@ WARNINGFLAGS = -pedantic -Wall -W \
 	-Wwrite-strings \
 	-Wpointer-arith -Wcast-qual -Wcast-align
 
+# recent versions of Linux use new style casts in their headers
+WARNINGFLAGS += -Wold-style-cast
+
 # gcc 2.x does not put the standard C++ headers in the namespace "std"
 # In such a case, remove the comment of the following line.
 #WARNINGFLAGS += -DHAVE_NO_NAMESPACE
