@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.123 2003-02-13 16:57:06 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.124 2003-03-07 10:40:35 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -70,7 +70,7 @@ int Next3Delaunay( tPtrList< tSubNode > &nbrList,
    static int ncalls = 0;
    ncalls++;
    tSubNode *cn, *nbrnd;
-   
+
    assert( (&nbrList != 0) && (&nbrIter != 0) );
 
    nbrnd = nbrIter.DatPtr();
@@ -115,7 +115,7 @@ int Next3Delaunay( tPtrList< tSubNode > &nbrList,
 //default constructor
 template< class tSubNode >     //tMesh
 tMesh< tSubNode >::
-tMesh() 
+tMesh()
   :
   nnodes(0),
   nedges(0),
@@ -124,7 +124,7 @@ tMesh()
   layerflag(FALSE),
   miNextNodeID(0),
   miNextEdgID(0),
-  miNextTriID(0),   
+  miNextTriID(0),
   mSearchOriginTriPtr(0)
 {
    cout<<"tMesh()"<<endl;
@@ -145,7 +145,7 @@ tMesh<tSubNode>::tMesh( tMesh *originalMesh )
   triList(originalMesh->triList),
   miNextNodeID(originalMesh->miNextNodeID),
   miNextEdgID(originalMesh->miEdgNodeID),
-  miNextTriID(originalMesh->miNextTriID),   
+  miNextTriID(originalMesh->miNextTriID),
   seed(originalMesh->seed),
   layerflag(originalMesh->layerflag),
   mSearchOriginTriPtr(0)
@@ -169,12 +169,12 @@ tMesh<tSubNode>::tMesh( tMesh *originalMesh )
 **                         if needed, these are in separate files
 **   Notes: needs to find 0, 1 or 2 under the heading of "OPTREADINPUT"
 **               in infile.
-**   Modifications: 
+**   Modifications:
 **    - 4/98 GT added MakeMeshFromPoints function
 **    - Added 7/98 - will read in layering information from a Child output
 **         file if OPTREADLAYER is set to 1 (NMG).
 **    - new variable mSearchOriginTriPtr initialized, first to zero,
-**      then to center of domain. GT 1/2000  
+**      then to center of domain. GT 1/2000
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -187,7 +187,7 @@ tMesh( tInputFile &infile )
   nodeList(),
   miNextNodeID(0),
   miNextEdgID(0),
-  miNextTriID(0),   
+  miNextTriID(0),
   seed(0),
   layerflag(FALSE),
   mSearchOriginTriPtr(0)
@@ -301,7 +301,7 @@ MakeLayersFromInputData( tInputFile &infile )
    infile.ReadItem( thestring, "INPUTDATAFILE" );
 
    //cout<<"in MakeLayersFromInputData..."<<endl;
-   
+
    strcpy( inname, thestring );
    strcat( inname, ".lay" );
    layerinfile.open(inname); /* Layer input file pointer */
@@ -362,20 +362,20 @@ MakeLayersFromInputData( tInputFile &infile )
          }
          cn->InsertLayerBack( layhelp );
       }
-          
+
    }
 
-   tArray<double> dgradebrhelp( numg );   
+   tArray<double> dgradebrhelp( numg );
    double sumbr = 0;
    i=0;
    char add='1';
    char name[20];
    double help;
-   
+
    while ( i<numg ){
       // Reading in proportions for intital regolith and bedrock
       strcpy( name, "BRPROPORTION");
-      strcat( name, &add ); 
+      strcat( name, &add );
       help = infile.ReadItem( help, name);
       dgradebrhelp[i]=help;
       sumbr += help;
@@ -384,7 +384,7 @@ MakeLayersFromInputData( tInputFile &infile )
    }
 
    assert(sumbr>0.999 & sumbr<1.001);
-   
+
    layhelp.setCtime(0);
    layhelp.setRtime(0);
    //layhelp.setFlag(0);
@@ -393,14 +393,89 @@ MakeLayersFromInputData( tInputFile &infile )
    ditem=layhelp.getDepth();
    for(g=0; g<numg; g++){
       layhelp.setDgrade(g, ditem*dgradebrhelp[g]);
-   }   
-   
+   }
+
    for( cn = cn; !(ni.AtEnd()); cn=ni.NextP() ){
       cn->InsertLayerBack( layhelp );
    }
-   
+
 }
 
+
+/**************************************************************************\
+**
+**   tMesh::MeshDensification
+**
+**   The user may wish to densify the starting mesh uniformly by adding
+**   a new node at the circumcenter of every triangle. That option is
+**   implemented here. We simply iterate through the list of triangles
+**   and add a node at the circumcenter of each. In doing so we take
+**   advantage of the fact that the circumcenter is also a Voronoi vertex,
+**   and is pointed to by each of the clockwise-directed edges in the
+**   triangle. The z value of each new node is obtained by linear (plane)
+**   interpolation from the 3 triangle vertices.
+**     "initMeshDensLevel" serves as both a flag indicating whether the
+**   user wants densification, and as an indicator of the number of passes
+**   (the "level") to make -- ie, the number of times we sweep through
+**   adding a node in each triangle.
+**     Added Sept. 2000, GT
+**
+\**************************************************************************/
+template< class tSubNode >
+void tMesh< tSubNode >::
+MeshDensification( tInputFile &infile )
+{
+   int initMeshDensLevel;
+   initMeshDensLevel = infile.ReadItem( initMeshDensLevel, "OPTINITMESHDENS" );
+   if( initMeshDensLevel)
+   {
+     tSubNode tempnode( infile );
+     int j;  // Level counter
+     int nnewpoints;  // No. of new points added in a given pass
+     tArray<double> newx, newy, newz;   // Lists of new coords
+     tArray<double> zvals(3);   // z values of a triangle's 3 nodes
+     tempnode.setBoundaryFlag( 0 );  // assumed all interior points
+     tListIter< tTriangle > triIter( triList );
+     tTriangle * ct;
+     for( j=1; j<=initMeshDensLevel; j++ )
+     {
+       // Set up for this pass
+       cout << "Densifying initial mesh (level " << j << ")\n";
+       UpdateMesh();
+       nnewpoints = ntri = triList.getSize();  // no. of triangles in the list
+       newx.setSize( nnewpoints );
+       newy.setSize( nnewpoints );
+       newz.setSize( nnewpoints );
+
+       // Compute and store the x,y,z coordinates of the points to be added
+       ct = triIter.FirstP();     // start with the first triangle
+       for( int i=0; i<ntri; i++ )    // loop through the triangles
+       {
+	 assert( ct!=0 );
+	 tArray<double> xy = ct->ePtr(0)->getRVtx();  // get the coords
+	 newx[i] = xy[0];
+	 newy[i] = xy[1];
+
+	 // Now find the z coordinate using interpolation
+	 zvals[0] = ct->pPtr(0)->getZ();
+	 zvals[1] = ct->pPtr(1)->getZ();
+	 zvals[2] = ct->pPtr(2)->getZ();
+	 newz[i] = PlaneFit( xy[0], xy[1], ct->pPtr(0)->get2DCoords(),
+			       ct->pPtr(1)->get2DCoords(),
+			       ct->pPtr(2)->get2DCoords(), zvals );
+	 ct = triIter.NextP();
+       }
+
+       // Now loop through and add the nodes
+       for( int i=0; i<nnewpoints; i++ )
+       {
+	 tempnode.set3DCoords( newx[i], newy[i], newz[i] );  // assign them
+	 tempnode.setID( nnodes+i );
+	 AddNode( tempnode );        // Add the new node
+       }
+     }  // end of current densification level
+   } // end of optional mesh densification
+}
 
 /**************************************************************************\
 **
@@ -408,7 +483,7 @@ MakeLayersFromInputData( tInputFile &infile )
 **
 **   Formerly tMesh( tListInputData &, tlnodflag ). Constructs
 **   tListInputData obj., makes mesh from data in that object.
-**                    
+**
 **
 **   Created: 2/11/98, SL
 **   Calls: tListInputData( infile ), UpdateMesh(), CheckMeshConsistency()
@@ -469,7 +544,7 @@ MakeMeshFromInputData( tInputFile &infile )
    }
    const tIdArray< tSubNode > NodeTable(nodeList); // for fast lookup per ID
    cout << "done.\n";
-   
+
    // Create and initialize the edge list by creating two temporary edges
    // (which are complementary, ie share the same endpoints) and then
    // iteratively assigning values to the pair and inserting them onto the
@@ -484,7 +559,7 @@ MakeMeshFromInputData( tInputFile &infile )
 	 tempedge1.setID( miNextEdgID );
 	 tempedge2.setID( miNextEdgID + 1 );
 	 if (0) //DEBUG
-	   cout << input.orgid[miNextEdgID] << " " 
+	   cout << input.orgid[miNextEdgID] << " "
 		<< input.destid[miNextEdgID] << endl;
 	 {
 	   tSubNode *nodPtr1 = NodeTable[ input.orgid[miNextEdgID] ];
@@ -504,7 +579,7 @@ MakeMeshFromInputData( tInputFile &infile )
 	 }
 
 	 // set the "flowallowed" status (FALSE if either endpoint is a
-	 // closed boundary, or both are open boundaries) 
+	 // closed boundary, or both are open boundaries)
 	 // and insert edge pair onto the list --- active
 	 // part of list if flow is allowed, inactive if not
 	 if (0) //DEBUG
@@ -543,7 +618,7 @@ MakeMeshFromInputData( tInputFile &infile )
      cout << "JUST ADDED EDGES:\n";
      tMeshListIter< tEdge > ei( edgeList );
      tEdge * ce;
-     
+
      for( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
        {
 	 ce->TellCoords();
@@ -576,7 +651,7 @@ MakeMeshFromInputData( tInputFile &infile )
 	   {
 	     if( ne>=nedges )
 	       {
-		 cerr << "Warning: edge " << e1 
+		 cerr << "Warning: edge " << e1
 		      << " has non-existant ccw edge "
 		      << ne << endl;
 		 cerr << "This is likely to be a problem in the edge input file"
@@ -608,7 +683,7 @@ MakeMeshFromInputData( tInputFile &infile )
 	 if (0) // DEBUG
 	   cout << "Edg " << ccwedgid
 		<< " (" << ccwedg->getOriginPtr()->getID()
-		<< " " << ccwedg->getDestinationPtr()->getID() 
+		<< " " << ccwedg->getDestinationPtr()->getID()
 		<< ") is ccw from "
 		<< curedg->getID() << " ("
 		<< curedg->getOriginPtr()->getID()
@@ -616,7 +691,7 @@ MakeMeshFromInputData( tInputFile &infile )
        }
    }
    cout << "done.\n";
-   
+
    if (0) { //DEBUG DEADCODE
      cout << "doing something else w/ spokes\n" << flush;
      tPtrListIter< tEdge > spokIter;
@@ -665,7 +740,7 @@ MakeMeshFromInputData( tInputFile &infile )
 	 triList.insertAtBack( newtri );
        }
      const tIdArray< tTriangle > TriTable(triList); // for fast lookup per ID
-     
+
      tListIter< tTriangle > triIter( triList );
      tTriangle * ct, * nbrtri;
      for( i=0, ct=triIter.FirstP(); i<ntri; ct=triIter.NextP(), i++ )
@@ -680,68 +755,7 @@ MakeMeshFromInputData( tInputFile &infile )
    }
    cout<<"done.\n";
 
-   // The user may wish to densify the starting mesh uniformly by adding
-   // a new node at the circumcenter of every triangle. That option is
-   // implemented here. We simply iterate through the list of triangles
-   // and add a node at the circumcenter of each. In doing so we take
-   // advantage of the fact that the circumcenter is also a Voronoi vertex,
-   // and is pointed to by each of the clockwise-directed edges in the
-   // triangle. The z value of each new node is obtained by linear (plane)
-   // interpolation from the 3 triangle vertices.
-   //   "initMeshDensLevel" serves as both a flag indicating whether the
-   // user wants densification, and as an indicator of the number of passes
-   // (the "level") to make -- ie, the number of times we sweep through
-   // adding a node in each triangle.
-   //   Added Sept. 2000, GT
-   int initMeshDensLevel;
-   initMeshDensLevel = infile.ReadItem( initMeshDensLevel, "OPTINITMESHDENS" );
-   if( initMeshDensLevel)
-   {
-     int j;  // Level counter
-     int nnewpoints;  // No. of new points added in a given pass
-     tArray<double> newx, newy, newz;   // Lists of new coords
-     tArray<double> zvals(3);   // z values of a triangle's 3 nodes
-     tempnode.setBoundaryFlag( 0 );  // assumed all interior points
-     tListIter< tTriangle > triIter( triList );
-     tTriangle * ct;
-     for( j=1; j<=initMeshDensLevel; j++ )
-     {
-       // Set up for this pass
-       cout << "Densifying initial mesh (level " << j << ")\n";
-       UpdateMesh();
-       nnewpoints = ntri = triList.getSize();  // no. of triangles in the list
-       newx.setSize( nnewpoints );
-       newy.setSize( nnewpoints );
-       newz.setSize( nnewpoints );
-
-       // Compute and store the x,y,z coordinates of the points to be added
-       ct = triIter.FirstP();     // start with the first triangle
-       for( i=0; i<ntri; i++ )    // loop through the triangles
-       {
-	 assert( ct!=0 );
-	 tArray<double> xy = ct->ePtr(0)->getRVtx();  // get the coords
-	 newx[i] = xy[0];
-	 newy[i] = xy[1];
-
-	 // Now find the z coordinate using interpolation
-	 zvals[0] = ct->pPtr(0)->getZ();
-	 zvals[1] = ct->pPtr(1)->getZ();
-	 zvals[2] = ct->pPtr(2)->getZ();
-	 newz[i] = PlaneFit( xy[0], xy[1], ct->pPtr(0)->get2DCoords(), 
-			       ct->pPtr(1)->get2DCoords(), 
-			       ct->pPtr(2)->get2DCoords(), zvals );
-	 ct = triIter.NextP();
-       }
-
-       // Now loop through and add the nodes
-       for( i=0; i<nnewpoints; i++ )
-       {
-	 tempnode.set3DCoords( newx[i], newy[i], newz[i] );  // assign them
-	 tempnode.setID( nnodes+i );
-	 AddNode( tempnode );        // Add the new node
-       }
-     }  // end of current densification level
-   } // end of optional mesh densification  
+   MeshDensification( infile ); // optional mesh densification
 
    if (0) { // DEBUG
      tMeshListIter< tEdge > ei( edgeList );
@@ -804,7 +818,7 @@ MakeMeshFromInputData( tInputFile &infile )
 **     (9) remove nodes of triangle formed in (8) that are not endpoints
 **           of any boundary edge;
 **    (10) when boundary edge list is empty, we're done!
-**                    
+**
 **
 **   Created: 10/98, SL
 **
@@ -815,7 +829,7 @@ MakeMeshFromInputData( tInputFile &infile )
 **   with edges in the working boundary list. Du [1996] indicates that
 **   such a limited check is sufficient as long as the list of possible
 **   connecting nodes is correct, i.e., on the working boundary or contained
-**   within the space defined by the working boundary.            
+**   within the space defined by the working boundary.
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -867,7 +881,7 @@ BatchAddNodes()
    for( cn = nI.FirstP(); !( nI.AtEnd() ); cn = nI.NextP() )
        tmpnodList.insertAtBack( cn );
    while( tmpbndList.removeFromFront( ce ) ) // current bndy edge removed from list
-   {      
+   {
       n0 = static_cast< tSubNode* >(ce->getOriginPtrNC());
       n1 = static_cast< tSubNode* >(ce->getDestinationPtrNC());
       //cout << "bndy edge " << ce->getID() << ", endpts at "
@@ -887,10 +901,10 @@ BatchAddNodes()
                      tempedge.setOriginPtr( n0 );
                      tempedge.setDestinationPtr( n2 );
                      // would new edge intersect others?
-                     if( IntersectsAnyEdgeInList( &tempedge, tmpbndList ) == 0 ) 
-                     {                                         
+                     if( IntersectsAnyEdgeInList( &tempedge, tmpbndList ) == 0 )
+                     {
                         // if not, already other edge to test node?
-                        if( n1->EdgToNod( n2 ) == 0 ) 
+                        if( n1->EdgToNod( n2 ) == 0 )
                         {
                            //  if not, if new edge would not intersect any others
                            tempedge.setOriginPtr( n1 );
@@ -902,7 +916,7 @@ BatchAddNodes()
                      }
                   }
                   // already other edge to test node?
-                  else if( n1->EdgToNod( n2 ) == 0 ) 
+                  else if( n1->EdgToNod( n2 ) == 0 )
                   {
                      // if not, if new edge would not intersect any others
                      tempedge.setOriginPtr( n1 );
@@ -923,7 +937,7 @@ BatchAddNodes()
       for( ntest = tnI.NextP(); !( tnI.AtEnd() ); ntest = tnI.NextP() )
       {
          // check that test node isn't one of other three:
-         if( ntest != n0 && ntest != n1 && ntest != n2 ) 
+         if( ntest != n0 && ntest != n1 && ntest != n2 )
          {
             // check that edge endpoint nodes and test node are CCW:
             if( PointsCCW( n0->get2DCoords(),
@@ -936,9 +950,9 @@ BatchAddNodes()
                                                   n1->get2DCoords(),
                                                   ntest->get2DCoords() );
                //if( !TriPasses( ntest->get2DCoords(),
-               //            n0->get2DCoords(), 
+               //            n0->get2DCoords(),
                //            n1->get2DCoords(),
-               //            n2->get2DCoords() ) ) 
+               //            n2->get2DCoords() ) )
                if( testcosine < mincosine )
                {
                   // Node ntest passed the angle test; now make sure new edges won't
@@ -947,15 +961,15 @@ BatchAddNodes()
                   // new edges would intersect any old ones, set n2 = ntest
                   // (i.e., choose ntest):
                   // already edge to test node? if not...
-                  if( n0->EdgToNod( ntest ) == 0 ) 
+                  if( n0->EdgToNod( ntest ) == 0 )
                   {
                      tempedge.setOriginPtr( n0 );
                      tempedge.setDestinationPtr( ntest );
                      // would new edge intersect others?
-                     if( IntersectsAnyEdgeInList( &tempedge, tmpbndList ) == 0 ) 
+                     if( IntersectsAnyEdgeInList( &tempedge, tmpbndList ) == 0 )
                      {                                         // if not...
                         // already other edge to test node? if not...
-                        if( n1->EdgToNod( ntest ) == 0 ) 
+                        if( n1->EdgToNod( ntest ) == 0 )
                         {
                            tempedge.setOriginPtr( n1 );
                            tempedge.setDestinationPtr( ntest );
@@ -974,7 +988,7 @@ BatchAddNodes()
                      }
                   }
                   // already other edge to test node? if not...
-                  else if( n1->EdgToNod( ntest ) == 0 ) 
+                  else if( n1->EdgToNod( ntest ) == 0 )
                   {
                      tempedge.setOriginPtr( n1 );
                      tempedge.setDestinationPtr( ntest );
@@ -1059,7 +1073,7 @@ BatchAddNodes()
             }
             else cerr << "node " << cn->getID() << " was not in temp list\n";
          }
-      }  
+      }
       cout << tmpbndList.getSize() << " edges in current boundary list\n";
       cout << tmpnodList.getSize() << " nodes in current temp list\n";
       ce = bI.FirstP(); // not sure why (or whether still) this line is necessary,
@@ -1106,7 +1120,7 @@ void tMesh< tSubNode >::
 MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
 		   tPtrList< tSubNode > &bndList)
 {
-   int i,                        // counters 
+   int i,                        // counters
        n;                        // no. of nodes along a side
    double dist;                  // current distance along boundary
    tSubNode tempnode( infile );  // temporary node used to create node list
@@ -1384,13 +1398,13 @@ void tMesh< tSubNode >::
 MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
 		   bool makeMesh )
 {
-   int i, j,                     // counters 
+   int i, j,                     // counters
        nx, ny;                   // no. of nodes along a side
    double slope;
    tArray< double > xyz(3);
    tSubNode tempnode( infile );  // temporary node used to create node list
 
-   // Add the interior points. 
+   // Add the interior points.
    // Variations on the theme are these:
    // 1 - If points are uniform, set up a staggered mesh (alternate rows
    //     are offset by + or - 25% of Param.delGrid, respectively)
@@ -1461,7 +1475,7 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
    // now (unless the outlet is right along one of the boundaries, in which
    // case it will already have been created during boundary setup)
    // Added by GT, 5/14/99
-   // Note: potential gotcha is that we don't check to see if there's 
+   // Note: potential gotcha is that we don't check to see if there's
    // already another point at the same location. TODO (see tInlet)
    if( Param.boundType==kSpecifyOutlet && Param.xout!=0 && Param.yout!=0 )
    {
@@ -1494,7 +1508,7 @@ MakeMeshFromScratch( tInputFile &infile )
    MakePointBoundary(Param, infile, bndList);
    bndList.makeCircular();
    cout << "made points; now adding edges\n";
-   
+
    // Add edges
    tPtrListIter< tSubNode > bndIter( bndList );
    for( node0 = bndIter.FirstP(); !( bndIter.AtEnd() ); node0 = bndIter.NextP() )
@@ -1556,7 +1570,7 @@ MakeMeshFromScratch( tInputFile &infile )
 **   Parameters: infile -- main parameter input file
 **   Assumes: infile is valid and open
 **   Created: 4/98 GT
-**   Modified: 
+**   Modified:
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -1566,17 +1580,17 @@ MakeMeshFromPoints( tInputFile &infile )
    int i;                           // loop counter
    int numpts;                      // no. of points in mesh
    tArray<double> x, y, z;          // arrays of x, y, and z coordinates
-   tArray<int> bnd;                 // array of boundary codes 
+   tArray<int> bnd;                 // array of boundary codes
    char pointFilenm[80];            // name of file containing (x,y,z,b) data
    ifstream pointfile;              // the file (stream) itself
    double minx = 1e12, miny = 1e12, // minimum x and y coords
-       maxx = 0, maxy=0,            // maximum x and y coords 
+       maxx = 0, maxy=0,            // maximum x and y coords
        dx, dy;                      // max width and height of region
    tSubNode tempnode( infile ),     // temporary node used in creating new pts
        *stp1, *stp2, *stp3;         // supertriangle vertices
 
    cout<<"MakeMeshFromPoints"<<endl<<flush;
-   
+
    // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
    infile.ReadItem( pointFilenm, "POINTFILENAME" );
@@ -1601,7 +1615,7 @@ MakeMeshFromPoints( tInputFile &infile )
           ReportFatalError( "Reached end-of-file while reading points." );
       pointfile >> x[i] >> y[i] >> z[i] >> bnd[i];
       if( pointfile.fail() ) {
-	cerr << "\nPoint file name: '" << pointFilenm 
+	cerr << "\nPoint file name: '" << pointFilenm
 	     << "' - point " << i << endl;
 	ReportFatalError( "I can't read the point above." );
       }
@@ -1611,7 +1625,7 @@ MakeMeshFromPoints( tInputFile &infile )
       if( x[i]>maxx ) maxx = x[i];
       if( y[i]<miny ) miny = y[i];
       if( y[i]>maxy ) maxy = y[i];
-      
+
    }
    pointfile.close();
    cout << "finished reading in points"<< endl;
@@ -1625,7 +1639,7 @@ MakeMeshFromPoints( tInputFile &infile )
    // points.) Assigning the IDs allows us to retrieve and delete these
    // nodes when we're done creating the mesh.
    cout << "creating supertri: min & max are (" << minx << "," << miny << ") (" << maxx << "," << maxy << ")\n";
-   
+
    tempnode.set3DCoords( minx-3*dx, miny-3*dy, 0.0 );
    tempnode.setBoundaryFlag( kClosedBoundary );
    tempnode.setID( -1 );
@@ -1687,9 +1701,11 @@ MakeMeshFromPoints( tInputFile &infile )
    DeleteNode( stp1, kNoRepair );
    DeleteNode( stp2, kNoRepair );
    DeleteNode( stp3, kNoRepair );
-   
+
    cout << "3 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: " << nedges << " NT: " << ntri << endl << flush;
-   
+
+   MeshDensification( infile ); // optional mesh densification
+
    // Update Voronoi areas, edge lengths, etc., and test the consistency
    // of the new mesh.
    UpdateMesh();
@@ -1699,19 +1715,19 @@ MakeMeshFromPoints( tInputFile &infile )
    supertriptlist.Flush();
 
    //XPtrListDebug::TellAll();
-   
+
 }
 
 /**************************************************************************\
 **
 **   tMesh::MakeRandomPointsFromArcGrid
 **
-**		Routine to make irregular mesh from regular Arc grid by randomly 
+**		Routine to make irregular mesh from regular Arc grid by randomly
 **		sampling the grid such that the average resolution of the irregular
 **    mesh is equal to that of the Arc grid.
 **
 **    Not quite random: before a node is added, it is checked for its
-**    proximity to existing nodes. If it is as close or closer than 1/10th 
+**    proximity to existing nodes. If it is as close or closer than 1/10th
 **    the nominal discretization to an existing node, it is not added.
 **
 **		Designed to read from a grid containing points either within an
@@ -1724,7 +1740,7 @@ MakeMeshFromPoints( tInputFile &infile )
 **   Parameters: infile -- main parameter input file
 **   Assumes: infile is valid and open
 **   Created: 10/98 SL
-**   Modified: 
+**   Modified:
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -1736,15 +1752,15 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    //int updatemesh;                  // flag to indicate whether AddNode
                                     // should call UpdateMesh
    int numrows, numcols, numpts;    // no. of rows, cols, points in mesh
-   int delgrid,                     // arc grid cell size (side, meters) 
+   int delgrid,                     // arc grid cell size (side, meters)
        nodata;                      // value signifying and no. w/ "no data"
    int numActNbrs;
    double x, y;                     // x, y coordinates
-   tArray<int> bnd;                 // array of boundary codes 
+   tArray<int> bnd;                 // array of boundary codes
    char arcgridFilenm[80];          // name of file containing arc grid data
    ifstream gridfile;               // the file (stream) itself
    double minx = 1e12, miny = 1e12, // minimum x and y coords
-       maxx = 0, maxy=0,            // maximum x and y coords 
+       maxx = 0, maxy=0,            // maximum x and y coords
        minz= 1e12, /*maxz = 0,*/    // min. and max. elevs.
        //minzx, minzy,            // x and y coords of min. elevation
        dx, dy,                      // max width and height of region (meters)
@@ -1764,7 +1780,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    tPtrList<tSubNode> supertriptlist, deletelist;
    tPtrListIter<tSubNode> stpIter( supertriptlist ), dI( deletelist );
    tPtrListIter< tEdge > sI;
- 
+
    // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
    infile.ReadItem( arcgridFilenm, "ARCGRIDFILENAME" );
@@ -1774,14 +1790,14 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
       cerr << "Arc grid file name: '" << arcgridFilenm << "'\n";
       ReportFatalError( "I can't find a file by this name." );
    }
-   gridfile >> dumhead >> numcols >> dumhead >> numrows >> dumhead 
-            >> minx >> dumhead >> miny >> dumhead >> delgrid 
+   gridfile >> dumhead >> numcols >> dumhead >> numrows >> dumhead
+            >> minx >> dumhead >> miny >> dumhead >> delgrid
             >> dumhead >> nodata;
    cout << "Arc grid with: " << numcols << " cols; " << numrows
         << " rows; LL x " << minx << "; LL y " << miny
         << "; grid spacing (m) " << delgrid << "; nodata value "
         << nodata << endl;
-   
+
    maxx = minx + ( numcols - 1 ) * delgrid;
    maxy = miny + ( numrows - 1 ) * delgrid;
    dx = maxx - minx;
@@ -1857,7 +1873,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
       ygen = drand48() * (dj - 1.0);
 
       zinterp = InterpSquareGrid( xgen, ygen, elev, nodata );
-      
+   
       // reset to "real" coords and add node:
       if( zinterp != nodata )
           tempnode.setBoundaryFlag( kNonBoundary );
@@ -1886,7 +1902,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
          }
       }
       else --i; // otherwise, decrement i and try again
-   }      
+   }   
    cout << "finished interpolation:";
    cout << "\n2 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: "
         << nedges << " NT: " << ntri << endl;
@@ -1895,7 +1911,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    assert( minzPtr != 0 );
    minzPtr->setBoundaryFlag( kOpenBoundary );
    nI.Get( minzPtr->getID() );
-   nodeList.moveToBoundFront( nI.NodePtr() );   
+   nodeList.moveToBoundFront( nI.NodePtr() );
    cout << "created open boundary outlet: " << nI.FirstBoundaryP()->getID() << "\n";
    cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: "
         << nedges << " NT: " << ntri << endl;
@@ -1909,7 +1925,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
           if( ce->getDestinationPtr()->getBoundaryFlag() == kNonBoundary )
               ++numActNbrs;
       if( numActNbrs ) cn->setZ( minz );
-      else deletelist.insertAtBack( cn ); 
+      else deletelist.insertAtBack( cn );
    }
    for( cn = dI.FirstP(); !( dI.AtEnd() ); cn = dI.FirstP() )
    {
@@ -1930,7 +1946,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
 **
 **   tMesh::MakeHexMeshFromArcGrid
 **
-**		Routine to make irregular mesh from regular Arc grid by randomly 
+**		Routine to make irregular mesh from regular Arc grid by randomly
 **		sampling the grid such that the average resolution of the irregular
 **    mesh is equal to that of the Arc grid.
 **
@@ -1945,7 +1961,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
 **   Parameters: infile -- main parameter input file
 **   Assumes: infile is valid and open
 **   Created: 9/98 SL
-**   Modified: 
+**   Modified:
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -1958,15 +1974,15 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    //int updatemesh;                  // flag to indicate whether AddNode
                                     // should call UpdateMesh
    int numrows, numcols;            // no. of rows, cols, points in mesh
-   int delgrid,                     // arc grid cell size (side, meters) 
+   int delgrid,                     // arc grid cell size (side, meters)
        nodata;                      // value signifying and no. w/ "no data"
    int numActNbrs;
    double x, y;                     // x, y coordinates
-   tArray<int> bnd;                 // array of boundary codes 
+   tArray<int> bnd;                 // array of boundary codes
    char arcgridFilenm[80];          // name of file containing arc grid data
    ifstream gridfile;               // the file (stream) itself
    double minx = 1e12, miny = 1e12, // minimum x and y coords
-       maxx = 0, maxy=0,            // maximum x and y coords 
+       maxx = 0, maxy=0,            // maximum x and y coords
        minz= 1e12, /*maxz = 0,*/        // min. and max. elevs.
        /*minzx, minzy,*/                // x and y coords of min. elevation
        dx, dy,                      // max width and height of region (meters)
@@ -1983,7 +1999,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    tPtrList<tSubNode> supertriptlist, deletelist;
    tPtrListIter<tSubNode> stpIter( supertriptlist ), dI( deletelist );
    tPtrListIter< tEdge > sI;
- 
+
    // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
    infile.ReadItem( arcgridFilenm, "ARCGRIDFILENAME" );
@@ -1993,14 +2009,14 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
       cerr << "Arc grid file name: '" << arcgridFilenm << "'\n";
       ReportFatalError( "I can't find a file by this name." );
    }
-   gridfile >> dumhead >> numcols >> dumhead >> numrows >> dumhead 
-            >> minx >> dumhead >> miny >> dumhead >> delgrid 
+   gridfile >> dumhead >> numcols >> dumhead >> numrows >> dumhead
+            >> minx >> dumhead >> miny >> dumhead >> delgrid
             >> dumhead >> nodata;
    cout << "Arc grid with: " << numcols << " cols; " << numrows
         << " rows; LL x " << minx << "; LL y " << miny
         << "; grid spacing (m) " << delgrid << "; nodata value "
         << nodata << endl;
-   
+
    maxx = minx + ( numcols - 1 ) * delgrid;
    maxy = miny + ( numrows - 1 ) * delgrid;
    dx = maxx - minx;
@@ -2070,7 +2086,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    while( keepgoing )
    {
       zinterp = InterpSquareGrid( xgen, ygen, elev, nodata );
-      
+   
       // reset to "real" coords and add node:
       if( zinterp != nodata )
           tempnode.setBoundaryFlag( kNonBoundary );
@@ -2092,7 +2108,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
          if( ( j%2 == 0 && xgen < di - 1.0 ) || ( j%2 == 1 && xgen < di - 2.0 ) )
              ++xgen;
          // at end of row, start odd row:
-         else 
+         else
          {
             ++j;
             xgen = 0.5 * (j%2);
@@ -2109,7 +2125,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    assert( minzPtr != 0 );
    minzPtr->setBoundaryFlag( kOpenBoundary );
    nI.Get( minzPtr->getID() );
-   nodeList.moveToBoundFront( nI.NodePtr() );   
+   nodeList.moveToBoundFront( nI.NodePtr() );
    cout << "created open boundary outlet: " << nI.FirstBoundaryP()->getID() << "\n";
    cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: "
         << nedges << " NT: " << ntri << endl;
@@ -2123,7 +2139,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
           if( ce->getDestinationPtr()->getBoundaryFlag() == kNonBoundary )
               ++numActNbrs;
       if( numActNbrs ) cn->setZ( minz );
-      else deletelist.insertAtBack( cn ); 
+      else deletelist.insertAtBack( cn );
    }
    for( cn = dI.FirstP(); !( dI.AtEnd() ); cn = dI.FirstP() )
    {
@@ -2179,11 +2195,11 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
 **                                        node connection to open node or
 **                                        open boundary isn't tested
 **      Data members updated: none
-**      Called by: 
+**      Called by:
 **      Calls:
 **      Notes: does not check whether ID's are within the valid range;
 **             that's assumed to be taken care of by the input routines
-**        
+**     
 **      Created: GT 1/98
 **      Modifications:
 **        - 4/98 GT added boundaryCheckFlag with default TRUE, so that
@@ -2219,7 +2235,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
                << " must be followed by its complement in the list\n";
           goto error;
       }
-      
+   
    }
 
    // Edges: check for valid origin, destination, and ccwedg
@@ -2261,7 +2277,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
               << " has the same origin and destination nodes\n";
          goto error;
       }
-      
+   
    }
    //cout << "EDGES PASSED\n";
 
@@ -2298,7 +2314,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
       // Loop around the spokes until we're back at the beginning
       do
       {
-         
+      
          if( ce->getDestinationPtrNC()->getBoundaryFlag()!=kClosedBoundary )
              boundary_check_ok = 1;  // OK, there's at least one open nbr
          i++;
@@ -2326,8 +2342,8 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
                  << " is in the spoke chain of NODE " << cn->getID()
                  << " but has the node as its destination\n";
             goto error;
-         }   
-         
+         }
+      
       } while( (ce=ce->getCCWEdg())!=cn->getEdg() );
       if( !boundary_check_ok )
       {
@@ -2335,7 +2351,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
               << " is surrounded by closed boundary nodes\n";
          goto error;
       }
-      
+   
       //make sure node coords are consistent with edge endpoint coords:
       sIter.Reset( cn->getSpokeListNC() );
       for( ce = sIter.FirstP(); !(sIter.AtEnd()); ce = sIter.NextP() )
@@ -2348,7 +2364,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
             goto error;
          }
       }
-      
+   
    }
      //cout << "NODES PASSED\n";
 
@@ -2423,16 +2439,16 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
                     << "is a non-boundary point\n";
                goto error;
             }
-         }       
+         }    
       }
    }
      //cout << "TRIANGLES PASSED\n";
    //cout << "MESH PASSED\n";
    return;
-   
+
   error:
    ReportFatalError( "Error in mesh consistency." );
-   
+
 }
 #undef kMaxSpokes
 
@@ -2467,11 +2483,11 @@ MakeCCWEdges()
 **  are used in computing the area of each Voronoi cell. The Voronoi
 **  vertex associated with each triangle is the circumcenter of the
 **  triangle. This routine finds the Voronoi vertex associated with
-**  each triangle by finding the triangle's circumcenter. 
+**  each triangle by finding the triangle's circumcenter.
 **
 **  The vertex coordinates are stored in the three clockwise-
-**  oriented tEdge objects associated with each triangle. This is a 
-**  space-for-time tradeoff: the coordinates could be stored in the triangles, 
+**  oriented tEdge objects associated with each triangle. This is a
+**  space-for-time tradeoff: the coordinates could be stored in the triangles,
 **  saving redundancy (3 copies of each point are stored here), but in
 **  that case each tEdge would have to point back to a triangle, and an
 **  additional level of indirection would be needed in accessing the Voronoi
@@ -2509,9 +2525,9 @@ void tMesh<tSubNode>::setVoronoiVertices()
    // Find the Voronoi vertex associated with each Delaunay triangle
    for( ct = triIter.FirstP(); !(triIter.AtEnd()); ct = triIter.NextP() )
    {
-      xy = ct->FindCircumcenter();    
+      xy = ct->FindCircumcenter(); 
       //cout << "setVoronoiVertices(): " << xy[0] << " " << xy[1];
-      // Assign the Voronoi point as the left-hand point of the three edges 
+      // Assign the Voronoi point as the left-hand point of the three edges
       // associated with the current triangle
       ct->ePtr(0)->setRVtx( xy );
       ct->ePtr(1)->setRVtx( xy );
@@ -2583,12 +2599,12 @@ template <class tSubNode>
    //cout << "CalcVAreas()..." << endl << flush;
    tSubNode* curnode;
    tMeshListIter< tSubNode > nodIter( nodeList );
-   
+
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
    {
       curnode->ComputeVoronoiArea();
-      
+   
    }
    //cout << "CalcVAreas() finished" << endl;
 }
@@ -2606,7 +2622,7 @@ DeleteNode( tListNode< tSubNode > *nodPtr, int repairFlag )
 {
    //cout << "DeleteNode: " << nodPtr->getDataPtr()->getID() << endl;
    if( !DeleteNode( nodPtr->getDataPtrNC(), repairFlag ) ) return 0;
-   return 1;   
+   return 1;
 }
 
 
@@ -2636,7 +2652,7 @@ DeleteNode( tListNode< tSubNode > *nodPtr, int repairFlag )
 **               UpdateMesh)
 **  Returns:  error code: 0 if either ExtricateNode or RepairMesh fails,
 **            1 otherwise.
-**  Assumes:  
+**  Assumes:
 **  Notes:
 **    - repairFlag defaults to TRUE if not specified
 **    - if node is on the hull and repairFlag is TRUE, the result can be
@@ -2655,11 +2671,11 @@ DeleteNode( tSubNode *node, int repairFlag )
    tMeshListIter< tSubNode > nodIter( nodeList );
    nodIter.Get( node->getID() );
    tSubNode nodeVal;
-   
+
    //cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
    //<< node->getY() << " " << node->getZ() << endl;
    //assert( repairFlag || node->getBoundaryFlag()==kClosedBoundary );
-   
+
    nodPtr = nodIter.NodePtr();
    if( !( ExtricateNode( node, nbrList ) ) ) return 0;
    if( node->getBoundaryFlag() )
@@ -2672,14 +2688,14 @@ DeleteNode( tSubNode *node, int repairFlag )
       nodeList.moveToFront( nodPtr );
       nodeList.removeFromFront( nodeVal );
    }
-   
+
    //cout << "Removed node " << nodeVal.getID() << " at x, y "
    // << nodeVal.getX() << ", " << nodeVal.getY() << "; " << endl;
    nnodes = nodeList.getSize();
    nedges = edgeList.getSize();
    ntri = triList.getSize();
    //cout << "nn " << nnodes << "  ne " << nedges << "  nt " << ntri << endl;
-   
+
    if (0) { //DEBUG
      int i;
      tPtrListIter< tSubNode > nbrIter( nbrList );
@@ -2698,7 +2714,7 @@ DeleteNode( tSubNode *node, int repairFlag )
       nbrList.makeCircular();
       if( !RepairMesh( nbrList ) ) return 0;
    }
-   
+
    //reset node id's
    assert( nodIter.First() );
    miNextNodeID = 0;
@@ -2740,7 +2756,7 @@ DeleteNode( tSubNode *node, int repairFlag )
 **  Output:  list of node's (former) neighbors, in nbrList
 **  Returns:  1 if all edges successfully deleted, 0 if not
 **  Calls: DeleteEdge
-**  Assumes:  
+**  Assumes:
 **  Notes:
 **  Created: SL fall, '97
 **  Modifications: if node is a closed boundary, any of its neighbors that
@@ -2758,7 +2774,7 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
    tPtrListIter< tEdge > spokIter( node->getSpokeListNC() );
    tEdge edgeVal1, edgeVal2, *ce;
    tSubNode *nbrPtr;
-   
+
      //cout << "Removing spokes: " << endl;
      //assert( ExtricateEdge( edgptrIter.DatPtr() ) );
    for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.FirstP() )
@@ -2772,7 +2788,7 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
          nodeList.moveToBack( nbrPtr );
       }
       if( !DeleteEdge( ce ) ) return 0;
-   }  
+   }
 
    //cout<<"nnodes decremented now "<<nnodes<<endl;
    if( node->getSpokeList().isEmpty() ) return 1;
@@ -2790,7 +2806,7 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
 **
 **  Inputs:  edgePtr -- ptr to the edge to be deleted
 **  Returns:  1 if successful, 0 if not
-**  Calls: ExtricateEdge 
+**  Calls: ExtricateEdge
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -2823,7 +2839,7 @@ DeleteEdge( tEdge * edgePtr )
    //         <<  edgeVal2.getID() << " between nodes "
    //         << edgeVal1.getOriginPtr()->getID() << " and "
    //         << edgeVal2.getOriginPtr()->getID() << " removed" << endl;
-   
+
    if( &edgeVal1 == 0 || &edgeVal2 == 0 ) return 0;
    return 1;
 }
@@ -2833,7 +2849,7 @@ DeleteEdge( tEdge * edgePtr )
 **
 **  tMesh::ExtricateEdge
 **
-**  Here we detach an edge and its complement from the surrounding mesh 
+**  Here we detach an edge and its complement from the surrounding mesh
 **  elements prior to deletion. Adjacent triangle(s) are also deleted
 **  via a call to DeleteTriangle. Calls the virtual node function
 **  WarnSpokeLeaving to signal the affected nodes to take appropriate
@@ -2880,11 +2896,11 @@ ExtricateEdge( tEdge * edgePtr )
 
    // Find the triangle that points to the edge
    //cout << "find triangle; " << flush;
-   triPtrArr[0] = TriWithEdgePtr( edgePtr ); 
+   triPtrArr[0] = TriWithEdgePtr( edgePtr );
    // Find the edge's complement
    listnodePtr = edgIter.NodePtr();
    assert( listnodePtr != 0 );
-   
+
    //cout << "find complement; " << flush;
    if( edgePtr->getID()%2 == 0 ) cce = edgIter.NextP();
    else if( edgePtr->getID()%2 == 1 ) cce = edgIter.PrevP();
@@ -2914,7 +2930,7 @@ ExtricateEdge( tEdge * edgePtr )
    //to one of the edges that will be removed.  Also, may be implications
    //for some types of subnodes, so take care of that also.
    tSubNode * nodece = static_cast<tSubNode *>(ce->getOriginPtrNC());
-   nodece->WarnSpokeLeaving( ce ); 
+   nodece->WarnSpokeLeaving( ce );
    tSubNode * nodecce = static_cast<tSubNode *>(cce->getOriginPtrNC());
    nodecce->WarnSpokeLeaving( cce );
 
@@ -2926,7 +2942,7 @@ ExtricateEdge( tEdge * edgePtr )
    }while(tempedgePtr->getCCWEdg() != ce);
    //set tempedgeptrs ccwedge to ceccw
    tempedgePtr->setCCWEdg( ceccw);
-   
+
    cceccw=cce->getCCWEdg();
    tempedgePtr=cceccw;
    do{
@@ -2936,7 +2952,7 @@ ExtricateEdge( tEdge * edgePtr )
    tempedgePtr->setCCWEdg(cceccw);
 
    //Since WarnSpokeLeaving can set a node to a boundary node if
-   //There is no longer a legit place to flow, we need to check 
+   //There is no longer a legit place to flow, we need to check
    //to see if nodece and nodecce are now boundaries, and take proper action.
 
    if( ce->getBoundaryFlag() )
@@ -2998,8 +3014,8 @@ LocateTriangle( double x, double y )
    double a, b, c;
    int online = -1;
    tArray< double > xy1, xy2;
-   
-   /* it starts from the first triangle, 
+
+   /* it starts from the first triangle,
       searches through the triangles until the point is on
       the same side of all the edges of a triangle.
       "lt" is the current triangle and "lv" is the edge number. */
@@ -3014,7 +3030,7 @@ LocateTriangle( double x, double y )
       //  << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;
       // lt->TellAll();
         cout << flush;
-      
+   
       if ( c > 0.0 )
       {
          //cout << "    Moving on...\n";
@@ -3028,7 +3044,7 @@ LocateTriangle( double x, double y )
          if( c == 0.0 ) online = lv;
          lv++;
       }
-      
+   
       /*if( n >= ntri + 20 )
         {
         DumpTriangles();
@@ -3070,9 +3086,9 @@ LocateNewTriangle( double x, double y )
    tListIter< tTriangle > triIter( triList );  //lt
    tTriangle *lt = triIter.FirstP();
    tSubNode *p1, *p2;
-   
+
    tArray< double > xy1, xy2;
-   /* it starts from the first triangle, 
+   /* it starts from the first triangle,
       searches through the triangles until the point is on
       the same side of all the edges of a triangle.
       "lt" is the current triangle and "lv" is the edge number.
@@ -3130,7 +3146,7 @@ TriWithEdgePtr( tEdge *edgPtr )
 **
 **  tMesh::DeleteTriangle
 **
-**  Deletes a triangle from the mesh. Starts off with a call to 
+**  Deletes a triangle from the mesh. Starts off with a call to
 **  ExtricateTriangle to detach the triangle from other mesh elements,
 **  after which the triangle is at the front of the triangle list,
 **  from whence it is then deleted.
@@ -3191,7 +3207,7 @@ ExtricateTriangle( tTriangle *triPtr )
    int i, j;
    for( i=0; i<3; i++ ) for( j=0; j<3; j++ )
        if( triPtr->tPtr(i) != 0 )
-           if( triPtr->tPtr(i)->tPtr(j) == triPtr ) 
+           if( triPtr->tPtr(i)->tPtr(j) == triPtr )
                triPtr->tPtr(i)->setTPtr( j, 0 );
 
    // Move the triangle to the head of the list where it can be deleted
@@ -3249,7 +3265,7 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    tSubNode * meshnodePtr = 0;
    nbrList.makeCircular();
    tPtrListIter< tSubNode > nbrIter( nbrList );
-   
+
    // Keep stitching until only 3 nodes are left
    while( nbrList.getSize() > 3 )
    {
@@ -3263,7 +3279,7 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
          nbrList.removeNext( meshnodePtr, nbrIter.NodePtr() );
       }
         //else cout << "Not delaun\n";
-      
+   
       nbrIter.Next();                    //step forward once in nbrList
    }
    assert( nbrList.getSize() == 3 );
@@ -3302,10 +3318,10 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
 //TODO: comment/document this fn
 template< class tSubNode >
 int tMesh< tSubNode >::
-AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 ) 
+AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
 {
    assert( node1 != 0 && node2 != 0 && node3 != 0 );
-   /*cout << "AddEdge" << 
+   /*cout << "AddEdge" <<
      "between nodes " << node1->getID()
      << " and " << node2->getID() << " w/ ref to node " << node3->getID() << endl;*/
    int flowflag = 1;  // Boundary code for new edges
@@ -3326,7 +3342,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    if( node1->getBoundaryFlag()==kOpenBoundary     // Also no-flow if both
        && node2->getBoundaryFlag()==kOpenBoundary ) //  nodes are open bnds
        flowflag = 0;
-   
+
    // Set boundary status and ID
    /*Xif( !( edgeList.isEmpty() ) )
        newid = edgIter.LastP()->getID() + 1;
@@ -3449,11 +3465,11 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
       assert( ce!=0 );
       ce->WelcomeCCWNeighbor( le );  // Tell node it has a new neighbor!
    }
-   
+
    nedges+=2;
 
    // Reset edge id's
-   for( ce = edgIter.FirstP(), miNextEdgID = 0; !( edgIter.AtEnd() ); 
+   for( ce = edgIter.FirstP(), miNextEdgID = 0; !( edgIter.AtEnd() );
         ce = edgIter.NextP(), miNextEdgID++ )
    {
       ce->setID( miNextEdgID );
@@ -3467,7 +3483,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
 
 /**************************************************************************\
 **
-**  tMesh::AddEdgeAndMakeTriangle 
+**  tMesh::AddEdgeAndMakeTriangle
 **
 **  Function to add the "missing" edge and make
 **  the triangle. Formerly more complicated than AddEdge() and
@@ -3508,7 +3524,7 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
 
 
 /**************************************************************************\
-**  
+**
 **  tMesh::MakeTriangle
 **
 **   Function to make triangle and add it to mesh; called
@@ -3581,7 +3597,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    // Here, the triangle constructor takes care of setting pointers to
    // the 3 vertices and 3 edges. The neighboring triangle pointers are
    // initialized to zero.
-   triList.insertAtBack( tTriangle( miNextTriID++, cn, cnn, cnnn ) );//put 
+   triList.insertAtBack( tTriangle( miNextTriID++, cn, cnn, cnnn ) );//put
 
    ct = triIter.LastP();            //ct now points to our new triangle
    assert( cn == ct->pPtr(0) );     //make sure we're where we think we are
@@ -3591,10 +3607,10 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    // The idea here is that there's a good chance that the next point
    // to be added will be close to the current location. (added 1/2000)
    mSearchOriginTriPtr = ct;
-   
+
    /*cout << "IN MT, created triangle:\n";
    ct->TellAll();*/
-   
+
    // Now we assign the neighbor triangle pointers. The loop successively
    // gets the spokelist for (p0,p1,p2) and sets cn to the next ccw point
    // (p1,p2,p0). It then finds the edge (spoke) that joins the two points
@@ -3627,7 +3643,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
          p0 = cn->get2DCoords();
          p1 = cnn->get2DCoords();
          p2 = cnnn->get2DCoords();
-         
+      
          if( PointsCCW( p0, p1, p2 ) )
              cerr << "something FUNNY going on";
          else cerr << "tri not CCW: " << nbrtriPtr->getID() << endl;
@@ -3641,11 +3657,11 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
       if( nbrtriPtr )
           nbrtriPtr->TellAll();
       else cout << "(none)\n";*/
-         
+      
       ct->setTPtr( (j+2)%3, nbrtriPtr );      //set tri TRI ptr (j+2)%3
 
       //cout << "This is our nbr #" << (j+2)%3 << endl << endl;
-      
+   
       // If a neighboring triangle was found, tell it that the current
       // new triangle is its neighbor too. We need to tell it which
       // neighbor we are (0, 1, or 2), and the mapping is like this:
@@ -3662,9 +3678,9 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
          assert( i < 3 );
          nbrtriPtr->setTPtr( (i+1)%3, ct );  //set NBR TRI ptr to tri
       }
-   }   
+   }
    ntri++;
-   
+
    //reset triangle id's (why needed??) because when we make a new item of any kind we
      //give it an id; how do we know what id to use (i.e., what's large enough but not
      //too large)? we find the id of the last item in the list and add one; if the items
@@ -3679,7 +3695,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    {
       ct->setID( miNextTriID );
    }
-   
+
    return 1;
 }
 
@@ -3732,9 +3748,9 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
       cerr << "tMesh::AddNode(...): node coords out of bounds: " << xyz[0] << " " << xyz[1] << endl;
       return 0;
    }
-   if( layerflag && time > 0 ) 
+   if( layerflag && time > 0 )
        nodeRef.LayerInterpolation( tri, xyz[0], xyz[1], time );
-   
+
    // Assign ID to the new node and insert it at the back of either the active
    // portion of the node list (if it's not a boundary) or the boundary
    // portion (if it is)
@@ -3757,7 +3773,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
 
    //assert( nodeList.getSize() == nnodes + 1 );
    nnodes++;
-   
+
    // Retrieve a pointer to the new node and flush its spoke list
    if( nodeRef.getBoundaryFlag() == kNonBoundary )
        cn = nodIter.LastActiveP();
@@ -3767,7 +3783,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
        cn = nodIter.LastP();
    assert( cn!=0 );
    cn->getSpokeListNC().Flush();
-   
+
    //make ptr list of triangle's vertices:
    tPtrList< tSubNode > bndyList;
    tSubNode *tmpPtr;
@@ -3808,7 +3824,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
       if( node1->Meanders() ) p1 = node1->getNew2DCoords();
       if( node2->Meanders() ) p2 = node2->getNew2DCoords();
       if( node3->Meanders() ) p3 = node3->getNew2DCoords();
-      if( node4->Meanders() ) p4 = node4->getNew2DCoords();  
+      if( node4->Meanders() ) p4 = node4->getNew2DCoords();
       /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
            << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
       if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
@@ -3873,7 +3889,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
             ReportFatalError( "Bailing out of AddNode()" );
          }
          ct = triptrIter.FirstP();
-         
+      
          for( i=0; i<3; i++ )
          {
             if( ct->tPtr(i) != 0 )
@@ -3947,7 +3963,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
    else tri = LocateNewTriangle( xyz[0], xyz[1] );
    if( tri == 0 )      return 0;
-   
+
    int i, ctr;
    tMeshListIter< tSubNode > nodIter( nodeList );
    tSubNode tempNode, *cn;
@@ -3965,7 +3981,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    nodeList.insertAtActiveBack( tempNode );
    assert( nodeList.getSize() == nnodes + 1 );
    nnodes++;
-   
+
      //make ptr list of triangle's vertices:
    tPtrList< tSubNode > bndyList;
    tSubNode *tmpPtr;
@@ -3999,13 +4015,13 @@ AddNodeAt( tArray< double > &xyz, double time )
       if( node1->Meanders() ) p1 = node1->getNew2DCoords();
       if( node2->Meanders() ) p2 = node2->getNew2DCoords();
       if( node3->Meanders() ) p3 = node3->getNew2DCoords();
-      if( node4->Meanders() ) p4 = node4->getNew2DCoords();  
+      if( node4->Meanders() ) p4 = node4->getNew2DCoords();
       //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
       //   << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
       if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
           cout << "new tri not CCW" << endl;
    }
-   
+
    assert( node1 != 0 && node2 != 0 && node3 != 0 );
    AddEdge( node1, node2, node3 );  //add edge between node1 and node2
    tPtrList< tSubNode > tmpList;
@@ -4076,7 +4092,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    //nmg uncommented line below and added initialize line
    node2->makeCCWEdges();
    node2->InitializeNode();
-   
+
    UpdateMesh();
 
    tEdge *ce, *fe;
@@ -4123,8 +4139,8 @@ getTriList() {return &triList;}
 **
 **  Returns the complement of _edge_ (i.e., the edge that shares the same
 **  endpoints but points in the opposite direction). To find the complement,
-**  it exploits the fact that complementary pairs of edges are stored 
-**  together on the edge list, with the first of each pair having an 
+**  it exploits the fact that complementary pairs of edges are stored
+**  together on the edge list, with the first of each pair having an
 **  even-numbered ID and the second having an odd-numbered ID.
 **
 **  Modifications: gt replaced 2nd IF with ELSE to avoid compiler warning
@@ -4169,13 +4185,13 @@ void tMesh<tSubNode>::
 UpdateMesh()
 {
    //cout << "UpdateMesh()" << endl << flush;
-   
+
    //tListIter<tTriangle> tlist( triList );
    tMeshListIter<tEdge> elist( edgeList );
    //tMeshListIter<tSubNode> nlist( nodeList );
    tEdge * curedg = 0;
    double len;
-   
+
    // Edge lengths
    curedg = elist.FirstP();
    do
@@ -4232,10 +4248,10 @@ UpdateMesh()
 **      Called by: AddNode, AddNodeAt, CheckLocallyDelaunay,
 **                 tStreamMeander::CheckBrokenFlowedge
 **      Calls: PointsCCW, FlipEdge, TriPasses
-**        
+**     
 **      Created: 8/28/97 SL
-**      Modified: 12/16/97 SL                                               
-**                                                  
+**      Modified: 12/16/97 SL                                            
+**                                               
 \*****************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
@@ -4281,7 +4297,7 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
    // node isn't a moving node (ie "flip" is true)
    if( flip )                     //and make sure there isn't already an edge?
    {
-      if( !PointsCCW( p0, p1, ptest ) || !PointsCCW( p0, ptest, p2 ) ) 
+      if( !PointsCCW( p0, p1, ptest ) || !PointsCCW( p0, ptest, p2 ) )
           return 0;
       //cout << "calling Flip edge from cff" << endl;
       FlipEdge( tri, triop, nv, nvop );
@@ -4384,7 +4400,7 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
 **     are now at the back of the master triangle list; add these two to
 **     the triPtrList to be rechecked, and break out of the vertex loop.
 **  4. Remove the triangle in question from the head of the triPtrList
-**     (regardless of whether it was flipped or not; if it was, its a 
+**     (regardless of whether it was flipped or not; if it was, its a
 **     dangling pointer; if not, it is Delaunay and we no longer need
 **     worry about it)
 **  5. Continue until there are no more triangles to be checked.
@@ -4393,7 +4409,7 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
 **      Called by: MoveNodes
 **      Calls: CheckForFlip
 **      Created: SL fall, '97
-**        
+**     
 \*****************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
@@ -4456,7 +4472,7 @@ CheckLocallyDelaunay()
                // acts as a flag here
                tn = duptriPtrIter.ReportNextP();
             }
-            
+         
             /*if( at->tPtr(0) != 0 ) id0 = at->tPtr(0)->getID();
             else id0 = -1;
             if( at->tPtr(1) != 0 ) id1 = at->tPtr(1)->getID();
@@ -4465,7 +4481,7 @@ CheckLocallyDelaunay()
             else id2 = -1;
             cout << "check tri " << at->getID() << " with nbrs "
                  << id0 << ", " << id1
-                 << ", and " << id2;  
+                 << ", and " << id2;
                  if( tp->tPtr(0) != 0 ) id0 = tp->tPtr(0)->getID();
             else id0 = -1;
             if( tp->tPtr(1) != 0 ) id1 = tp->tPtr(1)->getID();
@@ -4577,7 +4593,7 @@ CheckTriEdgeIntersect()
    int i, j, nv, nvopp;
    int flipped = TRUE;
    int crossed;
-   tSubNode *subnodePtr, tempNode, newNode;  
+   tSubNode *subnodePtr, tempNode, newNode;
    tEdge * cedg, *ce;
    tTriangle * ct, * ctop, *rmtri/* *tri*/;
    tListIter< tTriangle > triIter( triList );
@@ -4631,7 +4647,7 @@ CheckTriEdgeIntersect()
                }
             }
             else
-            {   
+            {
                crossed = FALSE;
                for( i=0; i<3; i++ )
                {
@@ -4670,7 +4686,7 @@ CheckTriEdgeIntersect()
                                  {
                                     tpListNode = tpIter.NodePtr();
                                     triptrList.removeNext( rmtri, tpListNode );
-                                 }                           
+                                 }                        
                                  nv = ct->nVOp( ctop );
                                  nvopp = ctop->nVOp( ct );
                                  //cout << "call FlipEdge from CTEI for edge between nodes "
@@ -4689,7 +4705,7 @@ CheckTriEdgeIntersect()
                               {
                                  if( LocateTriangle( xy[0], xy[1] ) != 0 )
                                  {
-                              
+                           
                                       //tempNode = *cn;
                                       //find spoke tri's in tri ptr list and remove them
                                     for( ce = spokIter.FirstP(); !(spokIter.AtEnd());
@@ -4726,11 +4742,11 @@ CheckTriEdgeIntersect()
                   }
                   if( crossed ) break;
                }
-            }      
+            }   
          }
       }
    }
-   
+
    // Update coordinates of moving nodes. TODO: make general
    for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
        if ( cn->Meanders() ) cn->UpdateCoords();//Nic, here is where x&y change
@@ -4743,7 +4759,7 @@ CheckTriEdgeIntersect()
       cn = AddNode( *cn );
       assert( cn!=0 );
    }
-   
+
 /*   for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
    {
       if( ct->tPtr(0) != 0 ) id0 = ct->tPtr(0)->getID();
@@ -4759,17 +4775,17 @@ CheckTriEdgeIntersect()
 
 }//end CheckTriEdgeIntersect()
 
-               
+            
 /*****************************************************************************\
 **
 **  tMesh::MoveNodes (formerly PreApply)
 **
 **  Once the new coordinates for moving nodes have been established, this
-**  function is called to update the node coordinates, modify the 
+**  function is called to update the node coordinates, modify the
 **  triangulation as needed, and update the mesh geometry (Voronoi areas,
 **  edge lengths, etc) through a series of calls to helper functions.
-**  
-**  Interpolation is performed on nodes with layering (3D vertical 
+**
+**  Interpolation is performed on nodes with layering (3D vertical
 **  component) here. TODO: make interpolation general, perhaps by
 **  defining a virtual tNode function called "AlertNodeMoving" or
 **  some such.
@@ -4784,7 +4800,7 @@ CheckTriEdgeIntersect()
 **      Created: SL
 **      Modifications:
 **       - added interpFlag parameter to make layer interpolation optional,
-**         so it needn't be called for tectonic motions (GT 4/00)     
+**         so it needn't be called for tectonic motions (GT 4/00)  
 **
 \*****************************************************************************/
 template< class tSubNode >
@@ -4792,12 +4808,12 @@ void tMesh< tSubNode >::
 MoveNodes( double time, int interpFlag )
 {
    cout << "MoveNodes()... time " << time <<flush << endl;
-   tSubNode * cn;  
+   tSubNode * cn;
    tMeshListIter< tSubNode > nodIter( nodeList );
 
    //Before any edges and triangles are changed, layer interpolation
    //must be performed.
-   if( layerflag && time > 0.0 ) {   
+   if( layerflag && time > 0.0 ) {
       tTriangle *tri;
       tArray<double> newxy(2);
       for(cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP()){
@@ -4841,7 +4857,7 @@ MoveNodes( double time, int interpFlag )
 **      Called by:  called outside of tMesh by routines that handle
 **                  adaptive meshing
 **      Calls: AddNode, UpdateMesh, tNode::getVoronoiVertexXYZList
-**      Created: GT, for dynamic mesh updating, Feb 2000  
+**      Created: GT, for dynamic mesh updating, Feb 2000
 **
 \*****************************************************************************/
 template<class tSubNode>
