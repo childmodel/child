@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.125 2003-03-07 15:17:38 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.126 2003-03-18 12:23:29 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -449,29 +449,33 @@ MeshDensification( tInputFile &infile )
 
        // Compute and store the x,y,z coordinates of the points to be added
        ct = triIter.FirstP();     // start with the first triangle
-       for( int i=0; i<ntri; i++ )    // loop through the triangles
        {
-	 assert( ct!=0 );
-	 tArray<double> xy = ct->ePtr(0)->getRVtx();  // get the coords
-	 newx[i] = xy[0];
-	 newy[i] = xy[1];
+	 for( int i=0; i<ntri; i++ )    // loop through the triangles
+	   {
+	     assert( ct!=0 );
+	     tArray<double> xy = ct->ePtr(0)->getRVtx();  // get the coords
+	     newx[i] = xy[0];
+	     newy[i] = xy[1];
 
-	 // Now find the z coordinate using interpolation
-	 zvals[0] = ct->pPtr(0)->getZ();
-	 zvals[1] = ct->pPtr(1)->getZ();
-	 zvals[2] = ct->pPtr(2)->getZ();
-	 newz[i] = PlaneFit( xy[0], xy[1], ct->pPtr(0)->get2DCoords(),
-			       ct->pPtr(1)->get2DCoords(),
-			       ct->pPtr(2)->get2DCoords(), zvals );
-	 ct = triIter.NextP();
+	     // Now find the z coordinate using interpolation
+	     zvals[0] = ct->pPtr(0)->getZ();
+	     zvals[1] = ct->pPtr(1)->getZ();
+	     zvals[2] = ct->pPtr(2)->getZ();
+	     newz[i] = PlaneFit( xy[0], xy[1], ct->pPtr(0)->get2DCoords(),
+				 ct->pPtr(1)->get2DCoords(),
+				 ct->pPtr(2)->get2DCoords(), zvals );
+	     ct = triIter.NextP();
+	   }
        }
 
        // Now loop through and add the nodes
-       for( int i=0; i<nnewpoints; i++ )
        {
-	 tempnode.set3DCoords( newx[i], newy[i], newz[i] );  // assign them
-	 tempnode.setID( nnodes+i );
-	 AddNode( tempnode );        // Add the new node
+	 for( int i=0; i<nnewpoints; i++ )
+	   {
+	     tempnode.set3DCoords( newx[i], newy[i], newz[i] );  // assign them
+	     tempnode.setID( nnodes+i );
+	     AddNode( tempnode );        // Add the new node
+	   }
        }
      }  // end of current densification level
    } // end of optional mesh densification
