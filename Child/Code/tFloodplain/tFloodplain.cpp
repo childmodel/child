@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.2 1999-03-13 22:20:30 gtucker Exp $
+**  $Id: tFloodplain.cpp,v 1.3 1999-03-21 19:28:57 gtucker Exp $
 \**************************************************************************/
 
 #include "tFloodplain.h"
@@ -94,6 +94,8 @@ tFloodplain::tFloodplain( tInputFile &infile, tGrid<tLNode> *gp )
    fplamda = infile.ReadItem( fplamda, "FP_LAMBDA" );
    
    kdb = kdb*pow( event_min, mqbmqs );
+
+   cout << "kdb: " << kdb << "  mqbmqs " << mqbmqs << endl;
 
    numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    deparr.setSize(numg); // dimension & init to 0 the deparr array
@@ -188,7 +190,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
          // recording its distance and wsh
          for( fn=floodList.FirstP(); fn!=0; fn=floodList.NextP() )
          {
-            cout << "  check fn " << fn->nodePtr->getID() << endl << flush;
+            //cout << "  check fn " << fn->nodePtr->getID() << endl << flush;
             dx = cn->getX() - fn->nodePtr->getX();
             dy = cn->getY() - fn->nodePtr->getY();
             dist = sqrt( dx*dx + dy*dy );
@@ -213,8 +215,8 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
             deparr[0] = floodDepth*fpmu*exp( -minDist/fplamda )*delt;
             //Xcn->ChangeZ( depo ); // (note: use layering-TODO)
             cn->EroDep( 0, deparr, ctime );
-            /*cout << " OBDep " << depo << " at (" << cn->getX()
-              << "," << cn->getY() << ")\n";*/
+            cout << " OBDep " << deparr[0] << " at (" << cn->getX()
+              << "," << cn->getY() << ")\n";
          }
       }
    }
