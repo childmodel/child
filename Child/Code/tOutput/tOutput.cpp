@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.33 2000-06-05 21:21:34 daniel Exp $
+**  $Id: tOutput.cpp,v 1.34 2000-06-07 19:04:39 daniel Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -307,4 +307,3 @@ void tOutput<tSubNode>::WriteTSOutput( double time )
    volsofs << volume << endl;
    
 }
-
