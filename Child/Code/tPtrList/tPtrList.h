@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.40 2003-09-18 15:24:30 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.41 2003-10-15 14:02:45 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -120,20 +120,20 @@ class tPtrListNode
   friend class tPtrList< NodeType >;
   friend class tPtrListIter< NodeType >;
 public:
-  tPtrListNode();                                    // default constructor
-  tPtrListNode( const tPtrListNode< NodeType > & );  // copy constr #1
-  tPtrListNode( NodeType * );                        // copy constr #2
-  ~tPtrListNode();                                   // destructor
+  inline tPtrListNode();                                    // default constructor
+  inline tPtrListNode( const tPtrListNode< NodeType > & );  // copy constr #1
+  inline tPtrListNode( NodeType * );                        // copy constr #2
+  inline ~tPtrListNode();                            // destructor
   const tPtrListNode< NodeType >
   &operator=( const tPtrListNode< NodeType > & );          // assignment
-  bool operator==( const tPtrListNode< NodeType > & ) const;  // equality
-  bool operator!=( const tPtrListNode< NodeType > & ) const;  // inequality
-  NodeType *getPtrNC();                              // return data ptr
-  const NodeType *getPtr() const;                    // return const data ptr
-  tPtrListNode< NodeType > *getNextNC();             // return next item
-  const tPtrListNode< NodeType > * getNext() const;  // return next as const
-  tPtrListNode< NodeType > *getPrevNC();
-  const tPtrListNode< NodeType > * getPrev() const;
+  inline bool operator==( const tPtrListNode< NodeType > & ) const;  // equality
+  inline bool operator!=( const tPtrListNode< NodeType > & ) const;  // inequality
+  inline NodeType *getPtrNC();                       // return data ptr
+  inline const NodeType *getPtr() const;             // return const data ptr
+  inline tPtrListNode< NodeType > *getNextNC();             // return next item
+  inline const tPtrListNode< NodeType > * getNext() const;  // return next as const
+  inline tPtrListNode< NodeType > *getPrevNC();
+  inline const tPtrListNode< NodeType > * getPrev() const;
 private:
   NodeType * Ptr;                   // ptr to data
   tPtrListNode< NodeType > * next;  // ptr to next list item
@@ -156,45 +156,45 @@ class tPtrList
 {
   friend class tPtrListIter< NodeType >;
 public:
-  tPtrList();                               // default constructor
+  inline tPtrList();                        // default constructor
   tPtrList( const tPtrList< NodeType > & ); // copy constructor
   tPtrList( const tPtrList< NodeType > * ); // copy constructor
   ~tPtrList();                              // destructor
   const tPtrList< NodeType >
   &operator=( const tPtrList< NodeType > & );  // assignment
-  void insertAtFront( NodeType * ); // puts ptr at list front
-  void insertAtBack( NodeType * );  // puts ptr at list back
-  void insertAtNext( NodeType *, tPtrListNode< NodeType > * );
-  void insertAtPrev( NodeType *, tPtrListNode< NodeType > * );
+  inline void insertAtFront( NodeType * ); // puts ptr at list front
+  inline void insertAtBack( NodeType * );  // puts ptr at list back
+  inline void insertAtNext( NodeType *, tPtrListNode< NodeType > * );
+  inline void insertAtPrev( NodeType *, tPtrListNode< NodeType > * );
 #if defined(SUPPORT_DEPRECATED)
   int removeFromFront( NodeType * );  // removes 1st item, puts in ptr
 #endif
-  NodeType * removeFromFront();       // removes & returns 1st item
+  inline NodeType * removeFromFront();       // removes & returns 1st item
 #if defined(SUPPORT_DEPRECATED)
   int removeFromBack( NodeType * );   // removes last item, puts in ptr
 #endif
-  NodeType * removeFromBack();        // removes & returns last item
+  inline NodeType * removeFromBack();        // removes & returns last item
 #if defined(SUPPORT_DEPRECATED)
   int removeNext( NodeType *, tPtrListNode< NodeType > * );
 #endif
-  NodeType* removeNext(tPtrListNode< NodeType > * );
+  inline NodeType* removeNext(tPtrListNode< NodeType > * );
 #if defined(SUPPORT_DEPRECATED)
   int removePrev( NodeType *, tPtrListNode< NodeType > * );
 #endif
-  NodeType* removePrev( tPtrListNode< NodeType > * );
+  inline NodeType* removePrev( tPtrListNode< NodeType > * );
   void Flush();         // clears & reinitializes list
-  bool isEmpty() const;  // returns true if list empty, false otherwise
+  inline bool isEmpty() const;  // returns true if list empty, false otherwise
   void print() const;   // prints list contents -- DEBUG ONLY
-  int getSize() const;  // returns size of list
-  tPtrListNode< NodeType > * getFirstNC();  // returns ptr to 1st list node
-  const tPtrListNode< NodeType > * getFirst() const;  // return const "
-  void moveToBack( tPtrListNode< NodeType > *  );   // moves item to back
-  void moveToFront( tPtrListNode< NodeType > *  );  // moves item to front
-  tPtrListNode< NodeType > * getLast() const;
-  void makeCircular();
-  const NodeType *getIthPtr( int ) const;
-  NodeType *getIthPtrNC( int ) const;
-  const tPtrListNode< NodeType >* getIth( int ) const;
+  inline int getSize() const;  // returns size of list
+  inline tPtrListNode< NodeType > * getFirstNC();  // returns ptr to 1st list node
+  inline const tPtrListNode< NodeType > * getFirst() const;  // return const "
+  inline void moveToBack( tPtrListNode< NodeType > *  );   // moves item to back
+  inline void moveToFront( tPtrListNode< NodeType > *  );  // moves item to front
+  inline tPtrListNode< NodeType > * getLast() const;
+  inline void makeCircular();
+  inline const NodeType *getIthPtr( int ) const;
+  inline NodeType *getIthPtrNC( int ) const;
+  inline const tPtrListNode< NodeType >* getIth( int ) const;
   tPtrListNode< NodeType >* getIthNC( int ) const;
 
 private:
@@ -233,31 +233,31 @@ class tPtrListIter
   int NextIfNoCurrent();  // set 1st as current undefined
   int PrevIfNoCurrent();  // set last as current undefined
 public:
-  tPtrListIter();
-  tPtrListIter( const tPtrListIter< NodeType > & );
-  tPtrListIter( tPtrList< NodeType > & );
-  tPtrListIter( tPtrList< NodeType > * );
-  ~tPtrListIter();
-  int First();
-  int Last();
+  inline tPtrListIter();
+  inline tPtrListIter( const tPtrListIter< NodeType > & );
+  inline tPtrListIter( tPtrList< NodeType > & );
+  inline tPtrListIter( tPtrList< NodeType > * );
+  inline ~tPtrListIter();
+  inline int First();
+  inline int Last();
   int Get( int );
   int Get( const NodeType * );
-  int Where() const;
-  NodeType *DatPtr() const;
-  tPtrListNode< NodeType > *NodePtr();
-  int Next();
-  int Prev();
-  int NextIsNotFirst() const;
-  void Reset( tPtrList< NodeType > & );
-  NodeType *NextP();
-  NodeType *GetP( int ); //use only if NodeType has member getID()!!
-  NodeType* GetP( NodeType* );
-  NodeType *FirstP();
-  NodeType *LastP();
-  NodeType *PrevP();
-  NodeType *ReportNextP() const;
-  NodeType *ReportPrevP() const;
-  bool AtEnd() const;
+  inline int Where() const;
+  inline NodeType *DatPtr() const;
+  inline tPtrListNode< NodeType > *NodePtr();
+  inline int Next();
+  inline int Prev();
+  inline int NextIsNotFirst() const;
+  inline void Reset( tPtrList< NodeType > & );
+  inline NodeType *NextP();
+  inline NodeType *GetP( int ); //use only if NodeType has member getID()!!
+  inline NodeType* GetP( NodeType* );
+  inline NodeType *FirstP();
+  inline NodeType *LastP();
+  inline NodeType *PrevP();
+  inline NodeType *ReportNextP() const;
+  inline NodeType *ReportPrevP() const;
+  inline bool AtEnd() const;
 private:
   tPtrList< NodeType > * ptrlistPtr;
   tPtrListNode< NodeType > * curptrnode;

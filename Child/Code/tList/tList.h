@@ -33,7 +33,7 @@
  **      track position on list w/o an iterator, 1/22/99
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **
- **  $Id: tList.h,v 1.46 2003-09-01 13:57:09 childcvs Exp $
+ **  $Id: tList.h,v 1.47 2003-10-15 14:02:44 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -68,24 +68,24 @@ class tListNode
   friend class tListIter< NodeType >;
   friend class tMeshListIter< NodeType >;
 public:
-  tListNode();                                // default constructor
-  tListNode( const tListNode< NodeType > & ); // copy constructor #1
-  tListNode( const NodeType & );              // copy constructor #2
+  inline tListNode();                                // default constructor
+  inline tListNode( const tListNode< NodeType > & ); // copy constructor #1
+  inline tListNode( const NodeType & );              // copy constructor #2
   const tListNode< NodeType >
   &operator=( const tListNode< NodeType > & );           // assignment
-  int operator==( const tListNode< NodeType > & ) const; // equality
-  int operator!=( const tListNode< NodeType > & ) const; // inequality
+  inline int operator==( const tListNode< NodeType > & ) const; // equality
+  inline int operator!=( const tListNode< NodeType > & ) const; // inequality
   /*set*/
-  NodeType getDataNC() const;               // returns copy of data item
-  NodeType &getDataRefNC();                 // returns modifiable ref to data
-  NodeType *getDataPtrNC();                 // returns modifiable ptr to data
-  tListNode< NodeType > * getNextNC() const;// returns ptr to next list node
+  inline NodeType getDataNC() const;               // returns copy of data item
+  inline NodeType &getDataRefNC();                 // returns modifiable ref to data
+  inline NodeType *getDataPtrNC();                 // returns modifiable ptr to data
+  inline tListNode< NodeType > * getNextNC() const;// returns ptr to next list node
   /*get*/
-  NodeType getData() const;                     // returns const copy of data
-  const NodeType &getDataRef() const;           // returns const ref to data
-  const NodeType *getDataPtr() const;           // returns const ptr to data
-  const tListNode< NodeType > * getNext() const;// returns const ptr to next
-  const tListNode< NodeType > * getPrev() const;
+  inline NodeType getData() const;                     // returns const copy of data
+  inline const NodeType &getDataRef() const;           // returns const ref to data
+  inline const NodeType *getDataPtr() const;           // returns const ptr to data
+  inline const tListNode< NodeType > * getNext() const;// returns const ptr to next
+  inline const tListNode< NodeType > * getPrev() const;
 
 protected:
   NodeType data;               // data item
@@ -266,43 +266,43 @@ class tList
   friend class tMeshListIter< NodeType >;
   tList(const tList&);
 public:
-  tList();                            // default constructor
+  inline tList();                     // default constructor
   tList( const tList< NodeType > * ); // copy constructor
   ~tList();                           // destructor
   const tList< NodeType >
   &operator=( const tList< NodeType > & );           // assignment
-  bool operator==( const tList< NodeType > & ) const; // equality
-  bool operator!=( const tList< NodeType > & ) const; // inequality
-  void insertAtFront( const NodeType & ); // puts copy of item at list front
-  void insertAtBack( const NodeType & );  // puts copy of item at list back
-  void insertAtNext( const NodeType &, tListNode< NodeType > * );
-  void insertAtPrev( const NodeType &, tListNode< NodeType > * );
-  int removeFromFront( NodeType & ); // removes 1st item, puts it in ref
-  int removeFromBack( NodeType & );  // removes last item, puts it in ref
-  int removeNext( NodeType &, tListNode< NodeType > * );
-  int removePrev( NodeType &, tListNode< NodeType > * );
+  inline bool operator==( const tList< NodeType > & ) const; // equality
+  inline bool operator!=( const tList< NodeType > & ) const; // inequality
+  inline void insertAtFront( const NodeType & ); // puts copy of item at list front
+  inline void insertAtBack( const NodeType & );  // puts copy of item at list back
+  inline void insertAtNext( const NodeType &, tListNode< NodeType > * );
+  inline void insertAtPrev( const NodeType &, tListNode< NodeType > * );
+  inline int removeFromFront( NodeType & ); // removes 1st item, puts it in ref
+  inline int removeFromBack( NodeType & );  // removes last item, puts it in ref
+  inline int removeNext( NodeType &, tListNode< NodeType > * );
+  inline int removePrev( NodeType &, tListNode< NodeType > * );
   void Flush();        // clears and reinitializes list
-  bool isEmpty() const; // returns true is list is empty, false otherwise
+  inline bool isEmpty() const; // returns true is list is empty, false otherwise
 #ifndef NDEBUG
   void print() const;  // prints contents of list - DEBUG ONLY
 #endif
-  int getSize() const; // returns # of items on list
-  tListNode< NodeType  > * getFirst() const; // returns ptr to 1st list node
-  tListNode< NodeType  > * getLast() const;  // returns ptr to last list node
-  NodeType * FirstP();  // returns ptr to 1st data item & sets current to 1st
-  NodeType * NextP();   // moves to next node and returns ptr to data item
-  void moveToBack( tListNode< NodeType > *  );  // move given node to back
-  void moveToFront( tListNode< NodeType > *  ); // move given node to front
-  void moveToBefore( tListNode< NodeType >*, tListNode< NodeType >* );
-  void moveToAfter( tListNode< NodeType >*, tListNode< NodeType >* );
-  void makeCircular();   // makes list circular (last points to first)
-  const NodeType getIthData( int ) const;     // rtns copy of given item #
-  const NodeType *getIthDataPtr( int ) const; // rtns ptr to given item #
-  const NodeType &getIthDataRef( int ) const; // rtns ref to given item #
-  NodeType getIthDataNC( int ) const;     // rtns modifiable copy of item #
-  NodeType *getIthDataPtrNC( int ) const; // rtns modifiable ptr to item #
-  NodeType &getIthDataRefNC( int ) const; // rtns modifiable ref to item #
-  tListNode< NodeType > * getListNode( const NodeType * ); // rtns ptr to node #
+  inline int getSize() const; // returns # of items on list
+  inline tListNode< NodeType  > * getFirst() const; // returns ptr to 1st list node
+  inline tListNode< NodeType  > * getLast() const;  // returns ptr to last list node
+  inline NodeType * FirstP();  // returns ptr to 1st data item & sets current to 1st
+  inline NodeType * NextP();   // moves to next node and returns ptr to data item
+  inline void moveToBack( tListNode< NodeType > *  );  // move given node to back
+  inline void moveToFront( tListNode< NodeType > *  ); // move given node to front
+  inline void moveToBefore( tListNode< NodeType >*, tListNode< NodeType >* );
+  inline void moveToAfter( tListNode< NodeType >*, tListNode< NodeType >* );
+  inline void makeCircular();   // makes list circular (last points to first)
+  inline const NodeType getIthData( int ) const;     // rtns copy of given item #
+  inline const NodeType *getIthDataPtr( int ) const; // rtns ptr to given item #
+  inline const NodeType &getIthDataRef( int ) const; // rtns ref to given item #
+  inline NodeType getIthDataNC( int ) const;     // rtns modifiable copy of item #
+  inline NodeType *getIthDataPtrNC( int ) const; // rtns modifiable ptr to item #
+  inline NodeType &getIthDataRefNC( int ) const; // rtns modifiable ref to item #
+  inline tListNode< NodeType > * getListNode( const NodeType * ); // rtns ptr to node #
   tListNode< NodeType > * getIthListNode( int ) const;
 
 #ifndef NDEBUG
@@ -1026,7 +1026,7 @@ makeCircular()
 
 
 template< class NodeType >
-inline void tList< NodeType >::
+void tList< NodeType >::
 DebugTellPtrs() const
 {
   cout << "first: " << first << endl;
@@ -1060,27 +1060,27 @@ class tListIter
   int NextIfNoCurrent();  // set 1st as current undefined
   int PrevIfNoCurrent();  // set last as current undefined
 public:
-  tListIter();                      // default constructor
+  inline tListIter();               // default constructor
   tListIter(const tListIter&);      // copy constructor
   tListIter( tList< NodeType > & ); // constructor: reference to list
   tListIter( tList< NodeType > * ); // constructor: ptr to list
-  ~tListIter();   // destructor
-  int First();    // sets position to 1st list item (rtns 0 on failure)
-  int Last();     // sets position to last "    "     "
+  inline ~tListIter();   // destructor
+  inline int First();    // sets position to 1st list item (rtns 0 on failure)
+  inline int Last();     // sets position to last "    "     "
   int Get( int ); // use only if NodeType has member getID()!!
-  int Next();     // advances to next item (or 1st if current undefined)
-  int Prev();     // moves to previous item (or last if current undef'd)
-  int Where() const;  // use only if NodeType has member getID()!!
-  bool AtEnd() const;  // returns true if at end of the list
-  NodeType &DatRef();  // returns ref to current data item
-  NodeType *DatPtr();  // returns ptr to current data item
-  tListNode< NodeType > *NodePtr();  // returns ptr to current list node
-  void Reset( tList< NodeType > & ); // tells iterator to work on given list
-  NodeType * FirstP();  // moves to 1st item and rtns ptr to it
-  NodeType * LastP();   // moves to last  "   "
-  NodeType * NextP();   // moves to next  "   "
-  NodeType * PrevP();   // moves to previous " "
-  NodeType * GetP( int num ); //use only if NodeType has member getID()!!
+  inline int Next();     // advances to next item (or 1st if current undefined)
+  inline int Prev();     // moves to previous item (or last if current undef'd)
+  inline int Where() const;  // use only if NodeType has member getID()!!
+  inline bool AtEnd() const;  // returns true if at end of the list
+  inline NodeType &DatRef();  // returns ref to current data item
+  inline NodeType *DatPtr();  // returns ptr to current data item
+  inline tListNode< NodeType > *NodePtr();  // returns ptr to current list node
+  inline void Reset( tList< NodeType > & ); // tells iterator to work on given list
+  inline NodeType * FirstP();  // moves to 1st item and rtns ptr to it
+  inline NodeType * LastP();   // moves to last  "   "
+  inline NodeType * NextP();   // moves to next  "   "
+  inline NodeType * PrevP();   // moves to previous " "
+  inline NodeType * GetP( int num ); //use only if NodeType has member getID()!!
 
 protected:
   tListNode< NodeType > * curnode;  // ptr to current list node

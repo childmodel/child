@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.23 2003-08-05 12:29:48 childcvs Exp $
+**  $Id: tMeshList.h,v 1.24 2003-10-15 14:02:45 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -66,15 +66,15 @@ class tMeshList : public tList< NodeType >
        &operator=( const tMeshList< NodeType > & );
    int operator==( const tMeshList< NodeType > & ) const;
    int operator!=( const tMeshList< NodeType > & ) const;
-   int getActiveSize() const;
-   tListNode< NodeType  > * getLastActive() const;
+   inline int getActiveSize() const;
+   inline tListNode< NodeType  > * getLastActive() const;
    int isActiveEmpty() const;
    int isBoundEmpty() const;
    void insertAtBoundFront( const NodeType & );
    int removeFromBoundFront( NodeType & );
    void insertAtActiveBack( const NodeType & );
    int removeFromActiveBack( NodeType & );
-   void setNActiveNodes( int );
+   inline void setNActiveNodes( int );
    int removeNext( NodeType &value, tListNode< NodeType > * );
    int removePrev( NodeType &value, tListNode< NodeType > * );
    void moveToBack( tListNode< NodeType > * );
@@ -659,7 +659,7 @@ class tMeshListIter
    ~tMeshListIter();
    int LastActive();
    int FirstBoundary();
-   int IsActive() const;
+   inline int IsActive() const;
    NodeType * LastActiveP();
    NodeType * FirstBoundaryP();
 //   NodeType * FirstP();
