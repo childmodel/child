@@ -105,14 +105,14 @@ MakeMeshFromPointsTipper( const tInputFile &infile ){
 	ReportFatalError("Invalid boundary code.");
       }
 
-      switch(bnd){
+      switch(IntToBound(bnd)){
       case kNonBoundary:
 	nodeList.insertAtActiveBack( tempnode );
 	break;
       case kOpenBoundary:
 	nodeList.insertAtBoundFront( tempnode );
 	break;
-      default:
+      case kClosedBoundary:
 	nodeList.insertAtBack( tempnode );
 	break;
       }
