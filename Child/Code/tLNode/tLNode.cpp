@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.67 1999-02-22 20:05:11 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.68 1999-02-22 23:02:30 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1175,6 +1175,7 @@ void tLNode::TellAll()
               << nbr->getID() << " at (" << nbr->getX() << ","
               << nbr->getY() << "," << nbr->getZ() << ")\n    with vedglen "
               << flowedge->getVEdgLen() << endl;
+         flowedge->TellCoords();
          cout << "  qs: " << qs << "  qsin: " << qsin << "  slp: "
               << getSlope() << "  reg: " << reg.thickness << endl;
          for(i=0; i<numg; i++)
@@ -2060,7 +2061,7 @@ void tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
  ** A virtual function.  Used when nodes are creating during the evolution
  ** process, not at the start of a run.  
  ** - Assigns one of the spokes as the flow edge.
- ** - sets size of Qsi and Qsini inc case not properly set.
+ ** - sets size of Qsi and Qsini in case not properly set.
  ** 
  **
  ** Called from tGrid::AddNode
@@ -2069,12 +2070,22 @@ void tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
  ***********************************************************************/
 void tLNode::InitializeNode()
 {
-   flowedge=getEdg();
-   do{
+   int debugcount=0;
+   
+   // If we're not a boundary node, make sure we have a valid flowedge
+   if( boundary==kNonBoundary )
+   {
+      flowedge=edg;
+      do {
          flowedge = flowedge->getCCWEdg();
-   }while( (flowedge->getBoundaryFlag()==kClosedBoundary) );
-
-   if( qsm.getSize()!=numg ){
+         debugcount++;
+         assert( debugcount<10000 );
+      } 
+      while( (flowedge->getBoundaryFlag()==kClosedBoundary) && flowedge!=edg );
+   }
+   
+   // Set size of sediment influx and outflux arrays to number of grain sizes
+   if( qsm.getSize()!=numg ) {
       qsm.setSize( numg );
       qsinm.setSize( numg );
    }

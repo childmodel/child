@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.60 1999-02-22 17:58:29 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.61 1999-02-22 23:01:57 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -556,7 +556,7 @@ MakeGridFromInputData( tInputFile &infile )
 **     on checked points.
 **
 **   BatchAddNodes():
-**       A nicer way (who wants to code it? oo-oo! stephen does, stephen does!):
+**      A nicer way (who wants to code it? oo-oo! stephen does, stephen does!):
 **        1) make boundary nodes and edges between them;
 **        2) add all other nodes at once;
 **        3) do triangulation once by making a temporary list of boundary
@@ -565,33 +565,33 @@ MakeGridFromInputData( tInputFile &infile )
 **           from temp. list, make new edge(s) and triangle; add new edge(s)
 **           to temp. list. (from Du)
 **
-**    Algorithm in more detail (modified from Du, C., 1996. An algorithm for automatic
-**    Delaunay triangulation of arbitrary planar domains, _Adv. in Eng. Software_,
-**    2, 21-26.):
-**       (1) add existing edges to boundary list in CCW order, and ONLY the edges
-**           pointing from node to next CCW node in boundary (complement not
-**           added);
-**       (2) add all nodes to temporary list for triangulation;
-**       (3) at each iteration, remove first edge from boundary list;
-**       (4) find 1st candidate node for triangulation with endpoints of
-**           latter boundary edge such that candidate node is (a) not one of
-**           other two, (b) CCW with other two, and (c) edges connecting it
-**           to other two would not intersect any existing edges (only perform
-**           this last check if node passed TriPasses(...) test in (5) because
-**           the intersection check is most costly);
-**       (5) check 1st candidate against others that meet the above conditions
-**           to find node that forms the largest possible angle between the
-**           boundary edge endpoints (in TriPasses(...));
-**       (6) add new edges to node found in (5) if necessary both to mesh
-**           and to boundary edge list (for latter, only those directed in
-**           CCW direction around current working boundary);
-**       (7) remove any already existing edge to node found in (5) from
-**           boundary list;
-**       (8) make new triangle from boundary edge endpoints and node found
-**           in (5);
-**       (9) remove nodes of triangle formed in (8) that are not endpoints
+**  Algorithm in more detail (modified from Du, C., 1996. An algorithm for
+**  automatic Delaunay triangulation of arbitrary planar domains, _Adv. in
+**  Eng. Software, v. 2, p. 21-26.):
+**     (1) add existing edges to boundary list in CCW order, and ONLY the edges
+**         pointing from node to next CCW node in boundary (complement not
+**         added);
+**     (2) add all nodes to temporary list for triangulation;
+**     (3) at each iteration, remove first edge from boundary list;
+**     (4) find 1st candidate node for triangulation with endpoints of
+**         latter boundary edge such that candidate node is (a) not one of
+**         other two, (b) CCW with other two, and (c) edges connecting it
+**         to other two would not intersect any existing edges (only perform
+**         this last check if node passed TriPasses(...) test in (5) because
+**         the intersection check is most costly);
+**     (5) check 1st candidate against others that meet the above conditions
+**         to find node that forms the largest possible angle between the
+**         boundary edge endpoints (in TriPasses(...));
+**     (6) add new edges to node found in (5) if necessary both to mesh
+**         and to boundary edge list (for latter, only those directed in
+**         CCW direction around current working boundary);
+**     (7) remove any already existing edge to node found in (5) from
+**         boundary list;
+**     (8) make new triangle from boundary edge endpoints and node found
+**         in (5);
+**     (9) remove nodes of triangle formed in (8) that are not endpoints
 **           of any boundary edge;
-**      (10) when boundary edge list is empty, we're done!
+**    (10) when boundary edge list is empty, we're done!
 **                    
 **
 **   Created: 10/98, SL
@@ -603,8 +603,7 @@ MakeGridFromInputData( tInputFile &infile )
 **   with edges in the working boundary list. Du [1996] indicates that
 **   such a limited check is sufficient as long as the list of possible
 **   connecting nodes is correct, i.e., on the working boundary or contained
-**   within the space defined by the working boundary. 
-**               
+**   within the space defined by the working boundary.            
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -1346,18 +1345,19 @@ MakeGridFromPoints( tInputFile &infile )
 
    // Create the 3 nodes that form the supertriangle and place them on the
    // node list in counter-clockwise order. (Note that the base and height
-   // of the supertriangle are 5 times the
+   // of the supertriangle are 7 times the
    // width and height, respectively, of the rectangle that encloses the
    // points.) Assigning the IDs allows us to retrieve and delete these
    // nodes when we're done creating the mesh.
-   tempnode.set3DCoords( minx-2*dx, miny-2*dy, 0.0 );
+   cout << "creating supertri: max & min are " << maxx << "," << maxy << endl;
+   tempnode.set3DCoords( minx-3*dx, miny-3*dy, 0.0 );
    tempnode.setBoundaryFlag( kClosedBoundary );
    tempnode.setID( -1 );
    nodeList.insertAtBack( tempnode );
-   tempnode.set3DCoords( maxx+2*dx, miny-2*dy, 0.0 );
+   tempnode.set3DCoords( maxx+3*dx, miny-3*dy, 0.0 );
    tempnode.setID( -2 );
    nodeList.insertAtBack( tempnode );
-   tempnode.set3DCoords( minx+0.5*dx, maxy+2*dy, 0.0 );
+   tempnode.set3DCoords( minx+0.5*dx, maxy+3*dy, 0.0 );
    tempnode.setID( -3 );
    nodeList.insertAtBack( tempnode );
 
@@ -1387,7 +1387,7 @@ MakeGridFromPoints( tInputFile &infile )
    tPtrListIter<tSubNode> stpIter( supertriptlist );
    MakeTriangle( supertriptlist, stpIter );
 
-   //cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: " << nedges << " NT: " << ntri << endl;
+   cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: " << nedges << " NT: " << ntri << endl << flush;
 
    // Now add the points one by one to construct the mesh.
    for( i=0; i<numpts; i++ )
@@ -1399,7 +1399,7 @@ MakeGridFromPoints( tInputFile &infile )
       AddNode( tempnode );
    }
 
-   //cout << "\n2 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: " << nedges << " NT: " << ntri << endl;
+   cout << "\n2 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: " << nedges << " NT: " << ntri << endl << flush;
 
    // We no longer need the supertriangle, so remove it by deleting its
    // vertices.
@@ -1407,7 +1407,7 @@ MakeGridFromPoints( tInputFile &infile )
    DeleteNode( stp2, kNoRepair );
    DeleteNode( stp3, kNoRepair );
    
-   //cout << "3 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: " << nedges << " NT: " << ntri << endl;
+   cout << "3 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: " << nedges << " NT: " << ntri << endl << flush;
    
    // Update Voronoi areas, edge lengths, etc., and test the consistency
    // of the new mesh.
@@ -2889,7 +2889,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    assert( node1 != 0 && node2 != 0 && node3 != 0 );
    /*cout << "AddEdge" << 
      "between nodes " << node1->getID()
-        << " and " << node2->getID() << " w/ ref to node " << node3->getID() << endl;*/
+     << " and " << node2->getID() << " w/ ref to node " << node3->getID() << endl;*/
    int flowflag = 1;
    int i, j, newid;
    tEdge tempEdge1, tempEdge2;
@@ -3054,8 +3054,10 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
       /*cout << "    Edg " << i << " (" << ce->getOriginPtr()->getID() << "->"
            << ce->getDestinationPtr()->getID() << ")\n";*/
    }
+   //cout << "AddEdge() done\n" << flush;
    return 1;
 }
+
 
 /**************************************************************************\
 **  AddEdgeAndMakeTriangle(): function to add the "missing" edge and make
@@ -3077,7 +3079,7 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
                         tPtrListIter< tSubNode > &nbrIter )
 {
    assert( (&nbrList != 0) && (&nbrIter != 0) );
-   //cout << "AddEdgeAndMakeTriangle" << endl;
+   //cout << "AddEdgeAndMakeTriangle" << endl << flush;
      //cout << "aemt 0\n" << flush;
    int flowflag = 1;
      //cout << "aemt 0.1\n" << flush;
@@ -3121,7 +3123,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
 {
    assert( (&nbrList != 0) && (&nbrIter != 0) );
    assert( nbrList.getSize() == 3 );
-   //cout << "MakeTriangle" << endl;
+   //cout << "MakeTriangle" << endl << flush;
    int i, j;
    int newid;                          // ID of new triangle
    tTriangle tempTri;
@@ -3352,7 +3354,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
 
    //cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << " time "<<time<<endl;
 
-   //cout << "locate tri" << endl << flush;
+   //cout << "locate tri & layer interp" << endl << flush;
    tri = LocateTriangle( xyz[0], xyz[1] );
    //assert( tri != 0 );
    if( tri == 0 )
@@ -3360,12 +3362,13 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
       cerr << "tGrid::AddNode(...): node coords out of bounds: " << xyz[0] << " " << xyz[1] << endl;
       return 0;
    }
-   if( layerflag && time > 0 ) nodeRef.LayerInterpolation( tri, xyz[0], xyz[1], time );
-   
+   if( layerflag && time > 0 ) 
+       nodeRef.LayerInterpolation( tri, xyz[0], xyz[1], time );
    
    // Assign ID to the new node and insert it at the back of either the active
    // portion of the node list (if it's not a boundary) or the boundary
    // portion (if it is)
+   //cout << "inserting node on list\n";
    int newid = nodIter.LastP()->getID() + 1;
    nodeRef.setID( newid );
    if( nodeRef.getBoundaryFlag()==kNonBoundary ){
@@ -3406,12 +3409,11 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
 
 
    // Delete the triangle in which the node falls
-   //Xcout << "deleting tri in which new node falls\n";
    i = DeleteTriangle( tri );
    assert( i != 0 );  //if ( !DeleteTriangle( tri ) ) return 0;
 
-
    //make 3 new triangles
+   //cout << "creating new triangles\n" << flush;
    tPtrListIter< tSubNode > bndyIter( bndyList );
    tSubNode *node3 = bndyIter.FirstP();     // p0 in original triangle
    //XtSubNode *node2 = nodIter.LastActiveP(); // new node
@@ -3442,8 +3444,6 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
           cout << "new tri not CCW" << endl;
    }
 
-  
-
    // Here's how the following works. Let the old triangle vertices be A,B,C
    // and the new node N. The task is to create 3 new triangles ABN, NBC, and
    // NCA, and 3 new edge-pairs AN, BN, and CN.
@@ -3451,6 +3451,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    // ABN and edge pair AN. AEMT is called again to create tri NBC and edge
    // pair CN. With all the edge pairs created, it remains only to call
    // MakeTriangle to create tri NCA.
+   //cout << "calling AE, AEMT, AEMT, and MT\n" << flush;
    assert( node1 != 0 && node2 != 0 && node3 != 0 );
    AddEdge( node1, node2, node3 );  //add edge between node1 and node2
    tPtrList< tSubNode > tmpList;
@@ -3475,6 +3476,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
 
    //hasn't changed yet
    //put 3 resulting triangles in ptr list
+   //cout << "Putting tri's on list\n" << flush;
    if( xyz.getSize() == 3 )
    {
       //Xcout << "flip checking in addnode" << endl;
@@ -3520,6 +3522,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    
 
    //reset node id's
+   //cout << "resetting ids\n" << flush;
    for( cn = nodIter.FirstP(), i=0; !( nodIter.AtEnd() ); cn = nodIter.NextP(), i++ )
    {
       cn->setID( i );
@@ -3531,7 +3534,8 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    //cout << "AddNode finished" << endl;
 
    tEdge *ce, *fe;
-   fe = node2->getFlowEdg();
+   //fe = node2->getFlowEdg(); GT changed to Edg 'cus was crashing
+   fe = node2->getEdg();
    ce = fe;
 
    int hlp=0;
@@ -3563,7 +3567,7 @@ tSubNode *tGrid< tSubNode >::
 AddNodeAt( tArray< double > &xyz, double time )
 {
    assert( &xyz != 0 );
-   //cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] <<" time "<<time<< endl;
+   cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] <<" time "<<time<< endl;
    tTriangle *tri;
    //cout << "locate tri" << endl << flush;
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
@@ -3770,7 +3774,7 @@ template <class tSubNode>
 void tGrid<tSubNode>::
 UpdateMesh()
 {
-   //cout << "UpdateMesh()" << endl;
+   //cout << "UpdateMesh()" << endl << flush;
    
    //tListIter<tTriangle> tlist( triList );
    tGridListIter<tEdge> elist( edgeList );
