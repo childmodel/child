@@ -39,32 +39,32 @@ void sanity_check_ccwedge(int nedges, const edge* edges){
 }
 
 static
-void sanity_check_edge(edge *edges){
+void sanity_check_edge(const edge *edges){
   // some sanity checks
   int i=0;
   while(edges[i].from != -1 ) {
     int leftp = -1,rightp = -1;
     {
-      const int from = edges[i].from;
-      const int lef = edges[i].lef;
-      const int ref = edges[i].ref;
+      const int& from = edges[i].from;
+      const int& lef = edges[i].lef;
+      const int& ref = edges[i].ref;
       if (lef != -1) {
-	if (edges[lef].from==from) leftp=edges[lef].to; else leftp=edges[lef].from;
+	leftp = (edges[lef].from==from) ? edges[lef].to : edges[lef].from;
       }
       if (ref != -1) {
-	if (edges[ref].from==from) rightp=edges[ref].to; else rightp=edges[ref].from;
+	rightp = (edges[ref].from==from) ? rightp=edges[ref].to : edges[ref].from;
       }
     }
     int leftp2 = -1,rightp2 = -1;
     {
-      const int to = edges[i].to;
-      const int let = edges[i].let;
-      const int ret = edges[i].ret;
+      const int& to = edges[i].to;
+      const int& let = edges[i].let;
+      const int& ret = edges[i].ret;
       if (let != -1) {
-	if (edges[let].to==to) leftp2=edges[let].from; else leftp2=edges[let].to;
+	leftp2 = (edges[let].to==to) ? edges[let].from : edges[let].to;
       }
       if (ret != -1) {
-	if (edges[ret].to==to) rightp2=edges[ret].from; else rightp2=edges[ret].to;
+	rightp2 = (edges[ret].to==to) ? edges[ret].from : edges[ret].to;
       }
     }
     assert(leftp==leftp2);
@@ -82,7 +82,7 @@ void sanity_check_edge(edge *edges){
 }
 
 static
-void write_point(int npoints, point* p)
+void write_point(int npoints, const point* p)
 {
   ofstream file("points_sorted");
   file.precision(10);
@@ -92,7 +92,7 @@ void write_point(int npoints, point* p)
   }
 }
 static
-void write_edge(edge *edges, point* p)
+void write_edge(const edge *edges, const point* p)
 {
   ofstream file("triggy");
   file.precision(10);
