@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.29 1998-03-26 01:38:03 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.30 1998-03-31 23:52:46 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -834,13 +834,14 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
          curnode->setNew2DCoords( newxy[0], newxy[1] );
            //newxy = curnode->getNew2DCoords();
            //cout << "new coords set to " << newxy[0] << " " << newxy[1] << endl;
-           //do 'uplift' on old z-values:
-         oldpos = curnode->getXYZD();
+           //XXXdo 'uplift' on old z-values:
+           //uplift creates spikes if points are added after a long time
+           /*oldpos = curnode->getXYZD();
          if( oldpos[3] != 0.0 )
          {
             oldpos[2] += curnode->getUplift() * dtm;
             curnode->setXYZD( oldpos );
-         }
+         }*/
       }
    }
    time += dtm;
