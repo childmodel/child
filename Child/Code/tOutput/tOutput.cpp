@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.72 2003-05-19 13:30:09 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.73 2003-05-23 11:38:58 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -446,6 +446,7 @@ void tOutput<tSubNode>::WriteNodeData( double /* time */ )
 template< class tSubNode >
 tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
   tOutput<tSubNode>( meshPtr, infile ),  // call base-class constructor
+  optTSOutput(0),
   counter(0)
 {
    int opOpt;  // Optional modules: only output stuff when needed
