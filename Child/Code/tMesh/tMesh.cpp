@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.52 1999-01-05 21:53:32 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.53 1999-01-08 22:29:08 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2522,7 +2522,7 @@ ExtricateEdge( tEdge * edgePtr )
    //cout << "ExtricateEdge: " << edgePtr->getID() << endl;
    assert( edgePtr != 0 );
      //temporary objects:
-   tEdge *tempedgePtr, *ce, *cce, *spk;
+   tEdge *tempedgePtr=0, *ce, *cce, *spk;
    tGridListIter< tEdge > edgIter( edgeList );
    tPtrListIter< tEdge > spokIter;
    tPtrList< tEdge > *spkLPtr;
@@ -3835,6 +3835,7 @@ AddNodeAt( tArray< double > &xyz )
 }
 #undef kLargeNumber
 
+
 template <class tSubNode>
 tGridList<tEdge> * tGrid<tSubNode>::
 getEdgeList() {return &edgeList;}
@@ -3847,21 +3848,37 @@ template <class tSubNode>
 tList< tTriangle > * tGrid<tSubNode>::
 getTriList() {return &triList;}
 
+
+/**************************************************************************\
+**  tGrid::getEdgeComplement
+**
+**  Returns the complement of _edge_ (i.e., the edge that shares the same
+**  endpoints but points in the opposite direction). To find the complement,
+**  it exploits the fact that complementary pairs of edges are stored 
+**  together on the edge list, with the first of each pair having an 
+**  even-numbered ID and the second having an odd-numbered ID.
+**
+**  Modifications: gt replaced 2nd IF with ELSE to avoid compiler warning
+\**************************************************************************/
 template< class tSubNode >
 tEdge *tGrid< tSubNode >::
 getEdgeComplement( tEdge *edge )
 {
    tGridListIter< tEdge > edgIter( edgeList );
    int edgid = edge->getID();
+
    assert( edgIter.Get( edgid ) );
-   edgIter.Get( edgid );
+   edgIter.Get( edgid ); // TODO: why necessary?
    if( edgid%2 == 0 ) return edgIter.GetP( edgid + 1 );
-   if( edgid%2 == 1 ) return edgIter.GetP( edgid - 1 );
+   else /*if( edgid%2 == 1 )*/ return edgIter.GetP( edgid - 1 );
 }
 
+
 /**************************************************************************\
-**  UpdateMesh(): Master clean-up routine to update quantities inherent
-**   to mesh data structure.
+**  tGrid::UpdateMesh()
+**
+**  Master clean-up routine to update quantities inherent
+**  to mesh data structure.
 **
 **  Calls: MakeCCWEdges(), setVoronoiVertices(), CalcVoronoiEdgeLengths(),
 **   CalcVAreas(), CheckMeshConsistency()
