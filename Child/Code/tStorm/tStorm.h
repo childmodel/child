@@ -21,7 +21,7 @@
 **  for other random processes such as river flows, etc.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.h,v 1.11 1998-10-02 20:52:22 stlancas Exp $
+**  $Id: tStorm.h,v 1.12 1999-01-05 22:14:15 stlancas Exp $
 */
 
 #ifndef TSTORM_H
@@ -46,6 +46,8 @@ class tStorm
    double getMeanStormDur() const;
    double getMeanInterstormDur() const;
    double getMeanPrecip() const;
+
+   double getOptVar() const;
    
   private:
     double ExpDev( long * );
@@ -69,5 +71,7 @@ class tStorm
     long  seed;        // Random seed
 };
 
+
+inline double tStorm::getOptVar() const {return optVariable;}
 
 #endif
