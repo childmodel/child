@@ -43,11 +43,11 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.1 1998-01-14 20:50:01 gtucker Exp $
+**  $Id: erosion.h,v 1.2 1998-01-15 19:38:10 gtucker Exp $
 \***************************************************************************/
 
-#ifndef TSEDTRANS_H
-#define TSEDTRANS_H
+#ifndef EROSION_H
+#define EROSION_H
 
 
 /***************************************************************************\
@@ -72,7 +72,7 @@ class tSedTransPwrLaw
 
 
 /***************************************************************************\
-**  class tBedrockPwrLaw
+**  class tBedErodePwrLaw
 **
 **  Assumes bedrock detachment proportional to a power function of slope
 **  and total discharge. Regolith is considered infinitely detachable, so
@@ -80,11 +80,14 @@ class tSedTransPwrLaw
 **  equal to the thickness of any regolith (alluvium) present plus
 **    Dc = kb Q^mb S^nb dt
 \***************************************************************************/
-class tBedrockPwrLaw
+class tBedErodePwrLaw
 {
   public:
-   tBedrockPwrLaw( tInputFile &infile );
-   float DetachCapcity( tLNode * n );
+   tBedErodePwrLaw( tInputFile &infile );
+     //Computes depth of potential erosion at node n over time interval dt
+   float DetachCapacity( tLNode * n, float dt );
+     //Returns an estimate of maximum stable & accurate time step size
+   float SetTimeStep( tLNode * n );
 
   private:
    float kb;  // Erosion coefficient
