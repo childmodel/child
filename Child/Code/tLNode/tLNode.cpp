@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.73 1999-04-05 23:58:49 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.74 1999-04-06 18:28:49 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -421,33 +421,6 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
   int i;
   char add, name[20];
   double help, sum, numg;
-
-//   cout << "tRegolith(infile)\n";
-//   thickness = infile.ReadItem( thickness, "REGINIT" );
-//   numg = infile.ReadItem( numg, "NUMGRNSIZE" );
-
-//   if( numg>1 )
-//   {
-//      dgrade.setSize( numg );
-//      sum = 0;
-//      i=0;
-//      add='1';
-//      while ( i<numg ){
-//        strcpy( name, "REGPROPORTION");
-//        strcat( name, &add ); 
-//        help = infile.ReadItem( help, name);
-//        dgrade[i] = help*thickness;
-//        sum += dgrade[i];
-//        i++;
-//        add++;
-//      }
-//      if(fabs(sum-thickness)>0.01)
-//          ReportFatalError("Problem with the proportion of grain sizes in input file");
-     
-//    }
-
-//    cout << "end tRegolith(infile)\n" << flush;
-   
 }
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
@@ -604,10 +577,6 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
 
    if(i!=1){
       
-//    cout << "regolith depth is " << help << endl;
-      
-//    cout << "1 grain size is "<<grade[0]<<" 2 grain size is "<<grade[1] << endl;
-
       dgradehelp.setSize( numg );
       dgradebrhelp.setSize( numg );   
       sum = 0;
@@ -722,19 +691,6 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       cout << layerlist.getSize() << " layers created " << endl;
    }
 
-//     i=0;
-//     while(i<layerlist.getSize()){
-//        cout << "layer " << i+1 << " now from the getlayer func" << endl;
-//        cout << "layer creation time is " << getLayerCtime(i) << endl;
-//        cout << "layer recent time is " << getLayerRtime(i) << endl;
-//        cout << "layer depth is " << getLayerDepth(i) << endl;
-//        cout << "layer erodibility is " << getLayerErody(i) << endl;
-//        cout << "is layer sediment? " << getLayerSed(i) << endl;
-//        cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
-//        if( numg>1 ) cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
-//        i++;
-//     }
-   
 }
 
 tLNode::tLNode( const tLNode &orig )                               //tLNode
@@ -976,6 +932,9 @@ double tLNode::getQ()
 **  GetSlope: Computes and returns the slope of the node's flowedg, or
 **  zero if the slope is less than zero.
 **
+**  The name of this function makes NG cringe.
+**  TODO Change to CALCSLOPE!!!!
+**
 **  Assumptions: edge lengths up to date and nonzero, flowedg's up to
 **    date.
 **  Modified, 2/19/98: to return a reach slope over some distance
@@ -1056,14 +1015,6 @@ double tLNode::getSlope()
    }
    else{
       slp = (z - getDownstrmNbr()->z ) / flowedge->getLength();
-//        if(getID() == 240 ){
-//           cout<<"nonmeandering node "<<getID();
-//           cout<<"z "<<z<<endl<<flush;
-//           cout<<"z dwnstrm "<<getDownstrmNbr()->z<<endl<<flush;
-//           cout<<"flowedgeLength "<<flowedge->getLength()<<endl<<flush;
-//           cout<<"node z "<<z<<" DS z "<<getDownstrmNbr()->z<<" edge "<<flowedge->getLength()<<endl;
-//        }
-      
    }
    
    if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
@@ -1254,6 +1205,7 @@ int tLNode::NoMoreTracers()
 **
 **  Note: as of now, just changes elev. Should also change alluvial
 **  thickness and set to zero if negative (bedrock erosion).
+**  Alluvial thickness is outdated - just use other EroDep.
 **
 **  1/15/98 gt
 \**************************************************************************/
@@ -1450,7 +1402,6 @@ tLNode::getGrade( ) const
 double tLNode::getLayerCtime( int i ) const
 {
    tLayer hlp;
-//   cout << "in get layer ctime " << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getCtime();
 }
@@ -1474,7 +1425,6 @@ void tLNode::setLayerCtime( int i, double tt)
 double tLNode::getLayerRtime( int i ) const
 {
    tLayer hlp;
-//   cout << "in get layer rtime " << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getRtime();
 }
@@ -1498,7 +1448,6 @@ void tLNode::setLayerRtime( int i, double tt)
 double tLNode::getLayerEtime( int i ) const
 {
    tLayer hlp;
-//   cout << "in get layer etime " << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getEtime();
 }
@@ -1538,8 +1487,6 @@ void tLNode::addLayerEtime( int i, double tt)
 double tLNode::getLayerDepth( int i ) const
 {
    tLayer hlp;
-//   cout << "in get layer depth " << endl;
-   
    hlp = layerlist.getIthData(i);
    return hlp.getDepth();
 }
@@ -1563,7 +1510,6 @@ void tLNode::setLayerDepth( int i, double dep)
 double tLNode::getLayerErody( int i ) const
 {
    tLayer hlp;
-//   cout << " in get layer erody " << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getErody();
 }
@@ -1588,7 +1534,6 @@ void tLNode::setLayerErody( int i, double ero)
 int tLNode::getLayerSed( int i ) const
 {
    tLayer hlp;
-//   cout << "in get layer sed" << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getSed();
 }
@@ -1612,7 +1557,6 @@ void tLNode::setLayerSed( int i, int s)
 double tLNode::getLayerDgrade( int i, int num ) const
 {
    tLayer hlp;
-//   cout << "in get layer dgrade " << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getDgrade(num);
 }
@@ -1656,8 +1600,9 @@ void tLNode::setLayerDgrade( int i, int g, double val)
 
   LayerInterpolation now checks to make sure that you are interpolating
   only between non-boundary nodes.  
+  4/1999 Makes sure that top layer depth = maxregdep
 
-  Designed by GT, Coded by NG, last update 3/1999 
+  Designed by GT, Coded by NG, last update 4/1999 
 \*************************************************************************/
 
 #define kAncient -999
@@ -2092,7 +2037,51 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
       }  
    }
 
-   if(helplist.FirstP()->getRtime()<0){
+   if(maxregdep-helplist.FirstP()->getDepth()>0.001){
+      //top layer is too small, want to maintain maxregdep for erosion reasons
+      //Because NG doesn't really know how to manipulate lists,
+      //this is probably done in a cockeyed way.  First remove
+      //top layer from list, update it, then add it back to front of list.
+      tLayer firstlay;
+      helplist.removeFromFront(firstlay);
+      double diff=maxregdep-firstlay.getDepth();      
+      double newerody=firstlay.getErody()*firstlay.getDepth();
+      double newetime=firstlay.getEtime()*firstlay.getDepth();
+      double newrtime=firstlay.getRtime()*firstlay.getDepth();
+      do{
+         tLayer * nextlay=helplist.FirstP();
+         if(nextlay->getDepth()<diff){
+            //add entire contents of layer below to top layer
+            for(i=0; i<numg; i++)
+                firstlay.addDgrade(i,nextlay->getDgrade(i));
+            newerody+=nextlay->getErody()*nextlay->getDepth();
+            newetime+=nextlay->getEtime()*nextlay->getDepth();
+            newrtime+=nextlay->getRtime()*nextlay->getDepth();
+            diff-=nextlay->getDepth();
+            helplist.removeFromFront(*nextlay);
+         }
+         else{
+            //don't remove entire layer below, only take some material
+            double prevdep = nextlay->getDepth();
+            for(i=0; i<numg; i++){
+               double moving = diff*nextlay->getDgrade(i)/prevdep;
+               firstlay.addDgrade(i,moving);
+               nextlay->addDgrade(i,-1*moving);
+            }
+            newerody+=nextlay->getErody()*diff;
+            newetime+=nextlay->getEtime()*diff;
+            //don't want to include negative exposure time flag
+            if(nextlay->getRtime()>0)
+                newrtime+=nextlay->getRtime()*diff;
+            diff=0;
+         }
+      }while(diff>0.001);
+      firstlay.setErody(newerody/firstlay.getDepth());
+      firstlay.setEtime(newetime/firstlay.getDepth());
+      firstlay.setRtime(newrtime/firstlay.getDepth());
+      helplist.insertAtFront(firstlay);
+   }
+   else if(helplist.FirstP()->getRtime()<0){
       //top layer is the deep sediment layer.  This messes up things 
       //for layering in general.  Form a new top layer with material from
       //the bottom layer.
@@ -2150,7 +2139,8 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
          if( numg>1 ) cout << " " << nicn->getLayerDgrade(i,1) << endl;
          i++;
       }
-      }*/  
+      }*/ 
+   
 }
 #undef kAncient
 
@@ -2180,18 +2170,13 @@ void tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
       do{
          flowedge = flowedge->getCCWEdg();
       }while( (flowedge->getBoundaryFlag()==kClosedBoundary) && (flowedge != edglvingptr) );
-      
-      //There has been a problem with some flowedges not have a correct CCWedg
-      //NG added this stupid fix - problem originates elsewhere
-      //if ( flowedge->getOriginPtr() != this ){
-      //   flowedge = edg;
-      //}
       assert( flowedge->getOriginPtr() == this );
       
       //After looping around edges, if flow is along a non-flow edge,
       //make this a closedboundary node.  This is potentially a bad
-      //thing to do since a node will be marked as a boundary node
+      //thing to do since a node will be marked as a boundary node 
       //but not put at the end of the node list.  For now we ignore this
+      //TODO fix this - probably in tGrid::ExtricateEdge
 //        if(flowedge->getBoundaryFlag()==kClosedBoundary){
 //           boundary = kClosedBoundary;
 //           cout<<"node "<<getID()<<" x "<<getX()<<" y "<<getY()<<" set to boundary in WarnSpokeLeaving"<<endl<<flush;         
@@ -2287,7 +2272,6 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    before=getLayerDepth(i);
    tArray<double> helper=valgrd;
    int numlay=getNumLayer();
-
    int h;
 
    //cout<<"ERODEP x "<<x<<" y "<<y<<endl;
@@ -2799,23 +2783,6 @@ void tLNode::makeNewLayerBelow(int i, int sd, double erd, tArray<double> sz, dou
    else{
       layerlist.insertAtFront(hlp);
    }
-   
-
-//    cout << "new layers are now : " << endl;
-//    n=0;
-//    while(n<layerlist.getSize()){
-//       cout << "layer " << n+1 << endl;
-//       niclay = layerlist.getIthData(n);
-//       cout << "layer creation time is " << getLayerCtime(n) << endl;
-//       cout << "layer recent time is " << getLayerRtime(n) << endl;
-//       cout << "layer depth is " << getLayerDepth(n) << endl;
-//       cout << "layer erodibility is " << getLayerErody(n) << endl;
-//       cout << "is layer sediment? " << getLayerSed(n) << endl;
-//       cout << "dgrade 1 is " << getLayerDgrade(n,0) << endl;
-//       cout << "dgrade 2 is " << getLayerDgrade(n,1) << endl;
-//       n++;  
-//    }   
-   
 }
 
 int tLNode::getNumLayer() const
