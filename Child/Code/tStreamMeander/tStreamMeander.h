@@ -20,7 +20,7 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.32 2003-08-01 17:15:01 childcvs Exp $
+**  $Id: tStreamMeander.h,v 1.33 2003-09-18 16:34:39 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -69,13 +69,6 @@ public:
    //loops while points added: 
    //MakeReaches is sent the current time
    void MakeReaches( double ); 
-   //find hydraulic and channel geometries, respectively;
-   //FindHydrGeom is contingent upon current storm conditions
-   //and storm variability;
-   //FindChanGeom is based on the 1.5-yr storm event,
-   //or the mean rainrate if no variability:
-   void FindHydrGeom();
-   void FindChanGeom();
    //interpolates/adds points along channel; returns 1 if points added, else 0
    //time is passed to it
    int InterpChannel( double );

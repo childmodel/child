@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.46 2003-09-01 13:08:29 childcvs Exp $
+ **  $Id: tOutput.h,v 1.47 2003-09-18 16:34:37 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -243,7 +243,7 @@ inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
 template< class tSubNode >
 inline void tLOutput<tSubNode>::WriteAllNodeData( tSubNode *cn )
 {
-  slpofs << (cn->getBoundaryFlag() == kNonBoundary ? cn->getSlope():0.) << '\n';
+  slpofs << (cn->getBoundaryFlag() == kNonBoundary ? cn->calcSlope():0.) << '\n';
   qofs << cn->getQ() << '\n';
   if( vegofs.good() ) vegofs << cn->getVegCover().getVeg() << '\n';
   if( flowdepofs.good() )

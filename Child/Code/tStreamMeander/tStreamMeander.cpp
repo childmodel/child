@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.93 2003-09-02 14:01:46 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.94 2003-09-18 16:34:38 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -190,166 +190,6 @@ void tStreamMeander::FindMeander()
 }
 
 
-/*****************************************************************************\
-**
-**       FindHydrGeom: goes through reach nodes and calculates/assigns
-**                     values for hydraulic geometry.
-**
-**
-**		  Parameters: kwds, ewds, ewstn, knds, ends, enstn, optrainvar
-**      Data members updated: tLNode->chan.hydrwidth, hydrnrough, hydrdepth
-**      Called by: FindReaches (needs to know how long to make reach "tails"
-**      Calls: no "major" functions
-**
-**      Created: SL 1/98
-**
-**
-\*****************************************************************************/
-void tStreamMeander::FindHydrGeom()
-{
-  double hradius, kwdspow, kndspow, widpow, npow, radfactor, qpsec;
-  double width, depth, rough, slope;
-  tLNode *cn;
-
-  if (0) //DEBUG
-    cout << "FindHydrGeom()...";
-
-  kwdspow = pow(kwds, ewstn / ewds);
-  kndspow = pow(knds, enstn / ends);
-  widpow = 1.0 - ewstn / ewds;
-  npow = 1.0 - enstn / ends;
-
-  tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
-  for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
-    {
-      if( cn->Meanders() )
-	{
-	  //if rainfall varies, find hydraulic width "at-a-station"
-	  //based on the channel width "downstream":
-	  if( optrainvar)
-	    {
-	      qpsec = cn->getQ()/SECPERYEAR;
-	      width = pow(cn->getChanWidth(), widpow) * kwdspow * pow(qpsec, ewstn);
-	      cn->setHydrWidth( width );
-	      //depth = pow(cn->getChanDepth(), deppow) * kddspow * pow(qpsec, edstn);
-	      //cn->setHydrDepth( depth );
-	      rough = pow(cn->getChanRough(), npow) * kndspow * pow(qpsec, enstn);
-	      cn->setHydrRough( rough );
-	      slope = cn->getChanSlope();
-	      assert( slope > 0 );
-	      radfactor = qpsec * rough / width / sqrt(slope);
-	      hradius = pow(radfactor, 0.6);
-	      depth = width / ( width / hradius - 2.0 );
-	      cn->setHydrSlope( slope );
-	      cn->setHydrDepth( depth );
-	    }
-	  //if rainfall does not vary, set hydraulic geom. = channel geom.
-	  else
-	    {
-	      width = cn->getChanWidth();
-	      rough = cn->getChanRough();
-	      depth = cn->getChanDepth();
-	      slope = cn->getChanSlope();
-	      cn->setHydrWidth( width );
-	      cn->setHydrRough( rough );
-	      cn->setHydrSlope( slope );
-	      cn->setHydrDepth( depth );
-	    }
-	}
-    }
-  if (0) //DEBUG
-    cout << "done tStreamMeaner::FindHydrGeom" << endl;
-}
-
-
-/*****************************************************************************\
-**
-**       FindChanGeom: goes through reach nodes and calculates/assigns
-**                     values for channel geometry.
-**
-**
-**		  Parameters: kwds, ewds, ewstn, knds, ends, enstn
-**      Data members updated: tLNode->chan.hydrwidth, hydrnrough, hydrdepth
-**      Called by: FindReaches (needs to know how long to make reach "tails"
-**      Calls: no "major" functions
-**
-**      Created: SL 1/98
-**
-**
-\*****************************************************************************/
-void tStreamMeander::FindChanGeom()
-{
-  double qbf, hradius, qbffactor=0, radfactor, width, depth, rough, slope;
-  double lambda;
-  double critS;
-  tLNode *cn;
-  tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
-  tStorm *sPtr = netPtr->getStormPtrNC();
-  double isdmn = sPtr->getMeanInterstormDur();
-  double pmn = sPtr->getMeanPrecip();
-
-  if (0) //DEBUG
-    cout << "tStreamMeander::FindChanGeom()...";
-
-  if (isdmn > 0 )  qbffactor = pmn * log(1.5 / isdmn);
-  for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
-    {
-      if( cn->Meanders() )
-	{
-	  // qbffactor is now in m^3/s
-	  qbf = cn->getDrArea() * qbffactor;
-	  if( !qbf ) qbf = cn->getQ()/SECPERYEAR;  // q is now in m^3/s
-	  width = kwds * pow(qbf, ewds);
-	  //       depth = kdds * pow(qbf, edds);
-	  rough = knds * pow(qbf, ends);
-	  lambda = klambda * pow(qbf, elambda);
-	  cn->setChanWidth( width );
-	  cn->setChanRough( rough );
-	  cn->setBankRough( lambda );
-	  slope = cn->getSlope();
-	  //       cn->setChanDepth( depth );
-	  //make sure slope will produce a positive depth:
-	  critS = qbf * qbf * rough * rough * 8.0 * pow( 2.0, 0.333 )/
-	    ( width * width * width * width * width * pow( width, 0.333 ) );
-	  if (0) {//DEBUG
-
-	    cout<<"node "<<cn->getID()<<" slope "<<slope<<" crits "<<critS<<endl;
-	    cout<<" downstream neighbor is "<<cn->getDownstrmNbr()->getID()<<endl;
-	    cout<<"node z "<<cn->getZ()<<" DS z "<<cn->getDownstrmNbr()->getZ()<<" edge "<<cn->getFlowEdg()->getLength()<<endl;
-	  }
-	  if( slope > critS ) //should also catch negative slope flag
-	    {
-	      if (0) //DEBUG
-		cout << "in tSM::FindChanGeom, slope = " << slope << endl;
-	      cn->setChanSlope( slope );
-	      radfactor = qbf * rough / width / sqrt(slope);
-	      if (0) //DEBUG
-		cout<<"radfactor is "<<radfactor<<endl;
-	      hradius = pow(radfactor, 0.6);
-	      //depth = hradius;
-	      depth = width / (width / hradius - 2.0);
-	      cn->setChanDepth( depth );
-	    }
-	  else cn->setMeanderStatus( kNonMeanderNode );
-	  if( slope <= 0.0 )
-	    {
-	      cout << "negative slope,"
-		   << " probably from infinite loop in tLNode::GetSlope()" << endl;
-	      ReportFatalError("negative slope in tStreamMeander::FindChanGeom");
-	    }
-	}
-      //else{
-      // cout<<"nonmeandering node "<<cn->getID()<<" slp "<<cn->getSlope();
-      // cout<<"node z "<<cn->getZ()<<" DS z "<<cn->getDownstrmNbr()->getZ()<<" edge "<<cn->getFlowEdg()->getLength()<<endl;
-      //}
-
-    }
-
-  if (0) //DEBUG
-    cout << "done tStreamMeander::FindChanGeom" << endl;
-
-}
-
 /****************************************************************\
 **
 **	InterpChannel: Fill in points between widely spaced
@@ -428,7 +268,7 @@ int tStreamMeander::InterpChannel( double time )
 	  //an infinite loop, it returns a negative number (-1) as an alarm
 	  //flag instead of generating a fatal error; in such case, bail out of
 	  //these loops through the nodes and call UpdateNet():
-	  slope = crn->getSlope();
+	  slope = crn->calcSlope();
 	  if( slope < 0.0 )
 	    {
 	      change = true;
@@ -672,7 +512,7 @@ void tStreamMeander::FindReaches()
 	      rnodList.Flush();
 	      rnodList.insertAtFront( cn );
 	      if (0){ //DEBUG
-		if(cn->getSlope()<=0) cout<<"bad node "<<cn->getID()<<" with slope "<<cn->getSlope()<<" added to reachlist"<<endl;
+		if(cn->calcSlope()<=0) cout<<"bad node "<<cn->getID()<<" with slope "<<cn->calcSlope()<<" added to reachlist"<<endl;
 	      }
 	      reachList.insertAtBack( rnodList );
 	      cn->setReachMember( true );
@@ -719,7 +559,7 @@ void tStreamMeander::FindReaches()
 	{
 	  //assert( cn->GetFlowEdg()->getLength() > 0 );
 	  if (0){ //DEBUG
-	    if(cn->getSlope()<=0) cout<<"bad node "<<cn->getID()<<" with slope "<<cn->getSlope()<<" added to reachlist"<<endl;
+	    if(cn->calcSlope()<=0) cout<<"bad node "<<cn->getID()<<" with slope "<<cn->calcSlope()<<" added to reachlist"<<endl;
 	  }
 	  nrnodes[i]++;
 	  reachlen[i] += cn->getFlowEdg()->getLength();

@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.58 2003-09-03 11:39:29 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.59 2003-09-18 16:34:39 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -459,10 +459,10 @@ void tStreamNet::CheckNetConsistency()
       }
       if( cn->Meanders() )
 	{
-	  if( cn->getSlope() < 0.0 )
+	  if( cn->calcSlope() < 0.0 )
 	    {
 	      cerr << "NODE #" << cn->getID()
-		   << " meanders and returns negative getSlope\n";
+		   << " meanders and returns negative calcSlope\n";
 	      goto error;
 	    }
 	}
@@ -1324,10 +1324,10 @@ void tStreamNet::FlowSaturated2()
      if( infiltExRunoff<0 ) infiltExRunoff = 0;
      else nhort++;
      sd = (rainrate - infiltExRunoff)*stormDur;
-     if( curnode->getSlope()>0 )
+     if( curnode->calcSlope()>0 )
      {
          asRatio = curnode->getDrArea() /
-             ( curnode->getSlope() * curnode->getFlowEdg()->getVEdgLen() );
+             ( curnode->calcSlope() * curnode->getFlowEdg()->getVEdgLen() );
          assert( asRatio>0 );
          if( asRatio < trans  ) // if true, then NOT saturated => deficit
          {
@@ -2125,7 +2125,7 @@ void tStreamNet::FindChanGeom()
       cn->setChanDepth( depth );
       cn->setChanRough( rough );
       cn->setBankRough( lambda );
-      slope = cn->getSlope();
+      slope = cn->calcSlope();
       cn->setChanSlope( slope );
       //cout<<"FCG node "<<cn->getID()<<" new dep "<<depth;
 
@@ -2803,9 +2803,9 @@ void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
   if( miNumGrainSizeClasses==1 )
     for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
       {
-	cn->setChanWidth( mdPPfac * cn->getQ() * pow(cn->getSlope(),mdPPexp1 ) );
+	cn->setChanWidth( mdPPfac * cn->getQ() * pow(cn->calcSlope(),mdPPexp1 ) );
 	/* double denom;
-	   if( ( denom = cn->getHydrWidth() * sqrt( cn->getSlope() ) ) > 0.0 )
+	   if( ( denom = cn->getHydrWidth() * sqrt( cn->calcSlope() ) ) > 0.0 )
 	   cn->setHydrDepth( pow( ( cn->getQ() * mdRough ) / denom,
 	   mdDepthexp ) );
 	   else
@@ -2825,10 +2825,10 @@ void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
 	assert( cn->getLayerDepth(0)>0. );
 	d50 = d50 / cn->getLayerDepth(0);
 	assert( d50>0. );
-	cn->setChanWidth( mdPPfac * cn->getQ() * pow(cn->getSlope(),mdPPexp1 )
+	cn->setChanWidth( mdPPfac * cn->getQ() * pow(cn->calcSlope(),mdPPexp1 )
 			  * pow( d50, mdPPexp2 ) );
 	if(0) { // debug
-	  cout << mdPPfac << " " << cn->getQ() << " " << cn->getSlope()
+	  cout << mdPPfac << " " << cn->getQ() << " " << cn->calcSlope()
 	     << " " << mdPPexp1 << " " << d50 << " " << mdPPexp2 << endl;
 	}
 	cn->setHydrDepth( 1. );

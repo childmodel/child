@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.79 2003-09-05 14:23:05 childcvs Exp $
+ **  $Id: tLNode.h,v 1.80 2003-09-18 16:34:37 childcvs Exp $
  */
 /************************************************************************/
 
@@ -412,7 +412,7 @@ public:
   inline tLNode * getDownstrmNbr();
   inline double getQ() const;  // Gets total discharge from embedded chan obj
   // fluvial discharge is in now in m^3/YR
-  inline double getSlope();    // Computes and returns slope in flow direction
+  inline double calcSlope();    // Computes and returns slope in flow direction
   inline double getDSlopeDt();
   inline bool Meanders() const;
   inline void setMeanderStatus( bool );
@@ -638,16 +638,16 @@ inline double tLNode::getQ() const
 }
 
 /************************************************************************\
- **  GetSlope: Computes and returns the slope of the node's flowedg, or
+ **  calcSlope: Computes and returns the slope of the node's flowedg, or
  **  zero if the slope is less than zero.
  **
- **  The name of this function makes NG cringe.
- **  TODO Change to CALCSLOPE!!!!
+ **  The name of this function ("getSlope") makes NG cringe.
+ **  Change to CALCSLOPE!!!! Done AD 09/2003
  **
  **  Assumptions: edge lengths up to date and nonzero, flowedg's up to
  **    date.
 \************************************************************************/
-inline double tLNode::getSlope()
+inline double tLNode::calcSlope()
 {
   assert( flowedge->getLength()>0 ); // failure means lengths not init'd
 
