@@ -63,6 +63,22 @@ bool edge::visible(const point p[],int i) const {
   return true;
 }
 
+static
+bool needswap(int i1, int i2, int i3, int i4, const point p[]){
+  const point 
+    p1(p[i1]-p[i4]), p2(p[i1]-p[i3]), 
+    p3(p[i2]-p[i4]), p4(p[i2]-p[i3]);
+  double dt1=p1.dot(p2); double dt2=p3.dot(p4);
+  //only do the square roots if we really need to - saves a bit of time
+  if (dt1<0 || dt2<0){
+    dt1 /= sqrt(p1.dot(p1)*p2.dot(p2));
+    dt2 /= sqrt(p3.dot(p3)*p4.dot(p4));
+    if ((dt1+dt2)<0)
+      return true;
+  }
+  return false;
+}
+
 int edge::swap(int tint,edge e[],const point p[]){
   
   //edge swapping routine - each edge has four neighbour edges
@@ -74,67 +90,57 @@ int edge::swap(int tint,edge e[],const point p[]){
   if (ref==-1 || lef==-1 || let==-1 || ret==-1)return 0;
   //test orientation of left and right edges - store the indices of
   //points that are not part of the current edge
-  int leftp,rightp;
-  if (e[lef].from==from)leftp=e[lef].to; else leftp=e[lef].from;
-  if (e[ref].from==from)rightp=e[ref].to; else rightp=e[ref].from;
-  const point 
-    p1(p[leftp]-p[from]), p2(p[leftp]-p[to]), 
-    p3(p[rightp]-p[from]), p4(p[rightp]-p[to]);
-  double dt1=p1.dot(p2);double dt2=p3.dot(p4);
-  //only do the square roots if we really need to - saves a bit of time
-  if (dt1<0 || dt2<0){
-    dt1=dt1/sqrt(p1.dot(p1)*p2.dot(p2));
-    dt2=dt2/sqrt(p3.dot(p3)*p4.dot(p4));
-    if ((dt1+dt2)<0){
-      //now swap the left and right edges of neighbouring edges
-      //taking into account orientation
-      if (e[ref].from == from){
-	e[ref].lef=lef;
-	e[ref].let=tint;
-      }else{
-	e[ref].ref=tint;
-	e[ref].ret=lef;
-      }
-      if (e[lef].from==from){
-	e[lef].ref=ref;
-	e[lef].ret=tint;
-      }else{
-	e[lef].lef=tint;
-	e[lef].let=ref;
-      }
-      if (e[ret].to==to){
-	e[ret].lef=tint;
-	e[ret].let=let;
-      }else{
-	e[ret].ref=let;
-	e[ret].ret=tint;
-      }
-      if (e[let].to==to){
-	e[let].ref=tint;
-	e[let].ret=ret;
-      }else{
-	e[let].lef=ret;
-	e[let].let=tint;
-      }
-      //change the end-points for the current edge
-      to=rightp;
-      from=leftp;
-      //re-jig the edges
-      int rf=ref;
-      ref=lef;
-      int rt=ret;
-      ret=rf;
-      int lt=let;
-      let=rt;
-      lef=lt;
-      //examine the neighbouring edges for delauniness recursively - this is
-      //a lot more efficient than trying to swap all edges right at the end.
-      e[lef].swap(lef,e,p);
-      e[let].swap(let,e,p);
-      e[ref].swap(ref,e,p);
-      e[ret].swap(ret,e,p);
-      return 1;
+  const int leftp  = (e[lef].from==from) ? e[lef].to : e[lef].from;
+  const int rightp = (e[ref].from==from) ? e[ref].to : e[ref].from;
+  if (needswap(leftp, rightp, to, from, p)){
+    //now swap the left and right edges of neighbouring edges
+    //taking into account orientation
+    if (e[ref].from == from){
+      e[ref].lef=lef;
+      e[ref].let=tint;
+    }else{
+      e[ref].ref=tint;
+      e[ref].ret=lef;
     }
+    if (e[lef].from==from){
+      e[lef].ref=ref;
+      e[lef].ret=tint;
+    }else{
+      e[lef].lef=tint;
+      e[lef].let=ref;
+    }
+    if (e[ret].to==to){
+      e[ret].lef=tint;
+      e[ret].let=let;
+    }else{
+      e[ret].ref=let;
+      e[ret].ret=tint;
+    }
+    if (e[let].to==to){
+      e[let].ref=tint;
+      e[let].ret=ret;
+    }else{
+      e[let].lef=ret;
+      e[let].let=tint;
+    }
+    //change the end-points for the current edge
+    to=rightp;
+    from=leftp;
+    //re-jig the edges
+    int rf=ref;
+    ref=lef;
+    int rt=ret;
+    ret=rf;
+    int lt=let;
+    let=rt;
+    lef=lt;
+    //examine the neighbouring edges for delauniness recursively - this is
+    //a lot more efficient than trying to swap all edges right at the end.
+    e[lef].swap(lef,e,p);
+    e[let].swap(let,e,p);
+    e[ref].swap(ref,e,p);
+    e[ret].swap(ret,e,p);
+    return 1;
   }
   return 0;
 }
@@ -637,7 +643,7 @@ void tt_sort_triangulate(int npoints, point *p,
     time_t t2 = time(NULL);
     clock_t tick2 = clock();
     cout << "elapsed time (time)= " << difftime(t2,t1) << " s"
-	 << " (clock)= " << (double)(tick2-tick1)/CLOCKS_PER_SEC << " s"
+	 << " (clock)= " << static_cast<double>(tick2-tick1)/CLOCKS_PER_SEC << " s"
 	 << endl;
   }
 #endif
