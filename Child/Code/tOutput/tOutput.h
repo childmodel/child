@@ -1,4 +1,4 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /*************************************************************************/
 /**
@@ -29,7 +29,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.34 2003-04-23 10:44:27 childcvs Exp $
+**  $Id: tOutput.h,v 1.35 2003-04-28 14:19:44 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -94,8 +94,16 @@ protected:
     ofstream tareaofs;            // total voronoi area of catchment
     double mdLastVolume;   // these 4 SHOULD BE MOVED TO ANOTHER CLASS!!
 
+  bool CanonicalNumbering; // Output in canonical order
+
   // renumber in list order
   void RenumberIDInListOrder();
+  // use to ensure a canonical ordering
+  static int orderRNode(const void*, const void*);
+  static int orderREdge(const void*, const void*);
+  static int orderRTriangle(const void*, const void*);
+  void RenumberIDCanonically();
+  static void SetTriangleIndex(tTriangle *, int[3]);
   // write an individual record
   inline void WriteNodeRecord( tNode * );
   inline void WriteEdgeRecord( tEdge * );

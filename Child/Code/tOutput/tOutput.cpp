@@ -9,8 +9,9 @@
 **     - 6/01 GT added optional output of channel widths to file
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
+**     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.62 2003-04-23 10:44:27 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.63 2003-04-28 14:19:43 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -34,12 +35,12 @@
 template< class tSubNode >
 tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
   m(meshPtr),
-  mdLastVolume(0.)
+  mdLastVolume(0.),
+  CanonicalNumbering(false)
 {
    assert( meshPtr > 0 );
 
    infile.ReadItem( baseName, "OUTFILENAME" );
-
    CreateAndOpenFile( &nodeofs, SNODES );
    nodeofs.precision( 8 );
    CreateAndOpenFile( &edgofs, SEDGES );
@@ -115,30 +116,51 @@ void tOutput<tSubNode>::WriteOutput( double time )
      cout << "tOutput::WriteOutput()" << endl;
 
    // Renumber IDs in order by position on list
-   RenumberIDInListOrder();
+   if (!CanonicalNumbering)
+     RenumberIDInListOrder();
+   else
+     RenumberIDCanonically();
 
    // Write node file, z file, and varea file
    nodeofs << ' ' << time << '\n' << nnodes << '\n';
    zofs << ' ' << time << '\n' << nnodes << '\n';
    vaofs << ' ' << time << '\n' << nnodes << '\n';
-   {
+   if (!CanonicalNumbering) {
      for( tNode *cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
        WriteNodeRecord( cn );
+   } else {
+     // write nodes in ID order
+     tIdArray< tSubNode > RNode(*(m->getNodeList()));
+     for( int i=0; i<nnodes; ++i )
+       WriteNodeRecord( RNode[i] );
    }
 
    // Write edge file
    edgofs << ' ' << time << '\n' << nedges << '\n';
-   {
+   if (!CanonicalNumbering) {
      for( tEdge *ce=eiter.FirstP(); !(eiter.AtEnd()); ce=eiter.NextP() )
        WriteEdgeRecord( ce );
+   } else {
+     // write edges in ID order
+     tIdArray< tEdge > REdge(*(m->getEdgeList()));
+     for( int i=0; i<nedges; ++i )
+       WriteEdgeRecord( REdge[i] );
    }
 
    // Write triangle file
    triofs << ' ' << time << '\n' << ntri << '\n';
-   {
+   if (!CanonicalNumbering) {
      const int index[] = { 0, 1, 2 };
      for( tTriangle *ct=titer.FirstP(); !(titer.AtEnd()); ct=titer.NextP() )
        WriteTriangleRecord(ct, index);
+   } else {
+     // write triangles in ID order
+     tIdArray< tTriangle > RTri(*(m->getTriList()));
+     for( int i=0; i<ntri; ++i ) {
+       int index[3];
+       SetTriangleIndex(RTri[i], index);
+       WriteTriangleRecord(RTri[i], index);
+     }
    }
 
    nodeofs << flush;
@@ -213,6 +235,184 @@ void tOutput<tSubNode>::RenumberIDInListOrder()
      ct->setID( id );
 }
 
+/*************************************************************************\
+**
+**  tOutput::RenumberIDCanonically
+**
+**  Set IDs in a canonical ordering independent of the list ordering
+**  As well, set tNode.edg to the spoke with the lowest destination node ID
+**
+**  AD, April 2003
+\*************************************************************************/
+template< class tSubNode >
+void tOutput<tSubNode>::RenumberIDCanonically()
+{
+   tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
+   tMeshListIter<tEdge> eiter( m->getEdgeList() );    // edge list iterator
+   tListIter<tTriangle> titer( m->getTriList() );     // tri list iterator
+   const int nnodes = m->getNodeList()->getSize();  // # of nodes on list
+   const int nedges = m->getEdgeList()->getSize();  // "    edges "
+   const int ntri = m->getTriList()->getSize();     // "    triangles "
+
+   {
+     // First we set the Nodes Id in the order defined below
+     // b1 <= b2 then x1 <= x2 then y1<=y2
+     tArray< tNode* > RNode(nnodes);
+     int i;
+     tNode *cn;
+     for( cn=niter.FirstP(), i=0; i<nnodes; cn=niter.NextP(), ++i )
+       RNode[i] = cn;
+
+     qsort(RNode.getArrayPtr(), RNode.getSize(), sizeof(RNode[0]),
+	   orderRNode
+	   );
+     for(i=0; i<RNode.getSize(); ++i)
+       RNode[i]->setID(i);
+   }
+   {
+     // Set tNode.edg to the spoke that links to the destination node with the
+     // lowest ID
+     tNode *cn;
+     for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
+       tPtrListIter< tEdge > sI( cn->getSpokeListNC() );
+       tEdge *thece = cn->getEdg();
+       tEdge *ce;
+       for( ce = sI.FirstP(); !( sI.AtEnd() ); ce = sI.NextP() ) {
+	 if (ce->getDestinationPtr()->getID() <
+	     thece->getDestinationPtr()->getID())
+	   thece = ce;
+       }
+       cn->setEdg(thece);
+     }
+   }
+   {
+     // Set Edge ID with respect to Node ID
+     // #1 The pair edge-complement is ordered so that
+     // (IDorig IDdest) (IDdest IDorig) with IDorig < IDdest
+     // #2 Then pairs are ordered with IDorig1 < IDorig2 and
+     // if IDorig1 == IDorig2 IDdest1 < IDdest2
+     tArray< tEdge* > REdge2(nedges/2);
+     tEdge *ce = eiter.FirstP();
+     int i;
+     for(i=0; i<nedges; i+=2, ce=eiter.NextP()) {
+       tEdge *ce1=ce;
+       tEdge *ce2=eiter.NextP();
+       REdge2[i/2] =
+	 ce1->getOriginPtr()->getID() < ce1->getDestinationPtr()->getID() ?
+	 ce1:ce2;
+     }
+     qsort(REdge2.getArrayPtr(), REdge2.getSize(), sizeof(REdge2[0]),
+	   orderREdge
+	   );
+     for(i=0; i<REdge2.getSize()*2; i+=2) {
+       assert (REdge2[i/2]->getOriginPtr()->getID() <
+	       REdge2[i/2]->getDestinationPtr()->getID() );
+       REdge2[i/2]->setID(i);
+       REdge2[i/2]->getComplementEdge()->setID(i+1);
+     }
+   }
+   {
+     // Set Triangle Id so that the vertexes are ordered
+     tArray< tTriangle* > RTri(ntri);
+     int i;
+     tTriangle *ct;
+     for( ct=titer.FirstP(), i=0; i<ntri; ct=titer.NextP(), ++i )
+       RTri[i] = ct;
+     qsort(RTri.getArrayPtr(), RTri.getSize(), sizeof(RTri[0]),
+	   orderRTriangle
+	   );
+     for(i=0; i<RTri.getSize(); ++i)
+       RTri[i]->setID(i);
+   }
+}
+
+// qsort comparison function for canonical nodes ordering
+template< class tSubNode >
+int tOutput<tSubNode>::orderRNode( const void *a_, const void *b_ )
+{
+  const tNode *N1 = *static_cast<tNode const *const *>(a_);
+  const tNode *N2 = *static_cast<tNode const *const *>(b_);
+
+  const int N1B = N1->getBoundaryFlag();
+  const int N2B = N2->getBoundaryFlag();
+  if (N1B < N2B)
+    return -1;
+  if (N1B > N2B)
+    return 1;
+
+  const double N1X = N1->getX();
+  const double N2X = N2->getX();
+  if (N1X < N2X)
+    return -1;
+  if (N1X > N2X)
+    return 1;
+  const double N1Y = N1->getY();
+  const double N2Y = N2->getY();
+  if (N1Y < N2Y)
+    return -1;
+  if (N1Y > N2Y)
+    return 1;
+  return 0;
+}
+
+// qsort comparison function for canonical edges ordering
+template< class tSubNode >
+int tOutput<tSubNode>::orderREdge( const void *a_, const void *b_ )
+{
+  const tEdge *E1 = *static_cast<tEdge const *const *>(a_);
+  const tEdge *E2 = *static_cast<tEdge const *const *>(b_);
+
+  const int o1 = E1->getOriginPtr()->getID();
+  const int o2 = E2->getOriginPtr()->getID();
+  if (o1 < o2) return -1;
+  if (o1 > o2) return 1;
+  const int d1 = E1->getDestinationPtr()->getID();
+  const int d2 = E2->getDestinationPtr()->getID();
+  if (d1 < d2) return -1;
+  if (d1 > d2) return 1;
+  assert(0);
+  abort();
+}
+
+// Build a circular array so that ct->pPtr(index[0])->getID() is the lowest
+template< class tSubNode >
+void tOutput<tSubNode>::SetTriangleIndex( tTriangle *ct, int index[3] )
+{
+  const int ID[] = { ct->pPtr(0)->getID(),
+		     ct->pPtr(1)->getID(),
+		     ct->pPtr(2)->getID() };
+  // find the vertex with the lowest ID, can be 0 or 1 or 2
+  int ID_;
+  index[0] = 0; ID_ = ID[0];
+  if (ID[1] < ID_ ) { index[0] = 1; ID_ = ID[1]; }
+  if (ID[2] < ID_ ) { index[0] = 2; }
+  // complete the sequence
+  index[1] = (index[0]+1)%3;
+  index[2] = (index[1]+1)%3;
+}
+
+// qsort comparison function for canonical triangles ordering
+template< class tSubNode >
+int tOutput<tSubNode>::orderRTriangle( const void *a_, const void *b_ )
+{
+  tTriangle *T1 = *static_cast<tTriangle *const *>(a_);
+  tTriangle *T2 = *static_cast<tTriangle *const *>(b_);
+
+  int iT1[3];
+  SetTriangleIndex(T1,iT1);
+  int iT2[3];
+  SetTriangleIndex(T2,iT2);
+
+  // The comparison itself related to vertexes ID
+  for(int i=0;i<3;++i) {
+    const int i1 = T1->pPtr(iT1[i])->getID();
+    const int i2 = T2->pPtr(iT2[i])->getID();
+    if (i1 < i2) return -1;
+    if (i1 > i2) return 1;
+  }
+  assert(0);
+  abort();
+}
 
 /*************************************************************************\
 **
@@ -347,12 +547,20 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
      qsofs << ' ' << time << '\n' << nnodes << '\n';
 
    // Write data
-   {
+   if (!CanonicalNumbering) {
      tSubNode *cn;   // current node
      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
        WriteActiveNodeData( cn );
      for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() )
        WriteAllNodeData( cn );
+   } else {
+     // write in node ID order
+     tIdArray< tSubNode > RNode(*(m->getNodeList()));
+     int i;
+     for( i=0; i<nActiveNodes; ++i )
+       WriteActiveNodeData( RNode[i] );
+     for( i=0; i<nnodes; ++i )
+       WriteAllNodeData( RNode[i] );
    }
 
    drareaofs << flush;
