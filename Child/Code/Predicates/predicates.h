@@ -17,7 +17,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.h,v 1.8 2003-03-14 15:54:52 childcvs Exp $
+//  $Id: predicates.h,v 1.9 2003-07-18 17:49:55 childcvs Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -138,7 +138,6 @@
 
 #include <stdio.h> 
 #include <math.h> 
-#include <sys/time.h> 
 
 
 
