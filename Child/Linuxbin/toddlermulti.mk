@@ -7,7 +7,7 @@ WARNINGFLAGS = -pedantic -Wall -W \
 	-Wwrite-strings \
 	-Wpointer-arith -Wcast-qual -Wcast-align
 
-CFLAGS = $(WARNINGFLAGS) -g -O2 -c -g
+CFLAGS = $(WARNINGFLAGS) -g -O2 -c
 LDFLAGS = $(WARNINGFLAGS) -g -O2
 LIBS = -lm
 EXENAME = toddlermulti
