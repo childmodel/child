@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.63 1999-03-11 17:39:05 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.64 1999-03-30 17:29:45 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -243,8 +243,8 @@ MakeLayersFromInputData( tInputFile &infile )
          layhelp.setCtime(ditem);
          layerinfile >> ditem;
          layhelp.setRtime(ditem);
-         layerinfile >> item;
-         layhelp.setFlag(item);
+         //layerinfile >> item;
+         //layhelp.setFlag(item);
          layerinfile >> ditem;
          layhelp.setDepth(ditem);
          layerinfile >> ditem;
@@ -282,7 +282,7 @@ MakeLayersFromInputData( tInputFile &infile )
    
    layhelp.setCtime(0);
    layhelp.setRtime(0);
-   layhelp.setFlag(0);
+   //layhelp.setFlag(0);
    layhelp.setErody(0);
    layhelp.setSed(0);
    ditem=layhelp.getDepth();
