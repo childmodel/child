@@ -12,7 +12,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.cpp,v 1.1 2000-01-25 18:58:17 gtucker Exp $
+**  $Id: tVegetation.cpp,v 1.2 2000-06-11 20:45:38 daniel Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -49,10 +49,13 @@ tVegetation::tVegetation( tMesh<tLNode> * meshPtr, tInputFile &infile )
    // (for now, assume constant; later need to add restart capability)
    // Note: assumes initially 100% cover.
    tMeshListIter<tLNode> niter( meshPtr->getNodeList() );
-   tLNode * cn;
+   tLNode * cn;   
+
+   intlVegCover = infile.ReadItem( intlVegCover, "INTLVEGCOV" );
+
    for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
    {
-       cn->getVegCover().mdVeg = 1.0;
+       cn->getVegCover().mdVeg = intlVegCover;
        cn->setTauCrit( mdTauCritBare + mdTauCritVeg );
    }
    
