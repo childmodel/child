@@ -11,7 +11,7 @@
 **   - changed .tri file format from points-edges-triangles to
 **     points-triangles-edges, compatible with earlier format (gt 1/98)
 **
-**  $Id: tListInputData.h,v 1.5 1998-02-12 01:45:55 stlancas Exp $
+**  $Id: tListInputData.h,v 1.6 1998-10-02 20:56:09 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TLISTINPUTDATA_H
@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <iostream.h>
 #include <string.h>
+#include "../Classes.h"
 #include "../Definitions.h"
 #include "../errors/errors.h"
 #include "../tArray/tArray.h"

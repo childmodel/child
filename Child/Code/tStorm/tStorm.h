@@ -21,12 +21,13 @@
 **  for other random processes such as river flows, etc.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.h,v 1.10 1998-07-20 21:40:23 gtucker Exp $
+**  $Id: tStorm.h,v 1.11 1998-10-02 20:52:22 stlancas Exp $
 */
 
 #ifndef TSTORM_H
 #define TSTORM_H
 
+#include <stdlib.h>
 /*#include "../tRunTimer/tRunTimer.h"*/
 #include "../tInputFile/tInputFile.h"
 

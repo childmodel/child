@@ -23,7 +23,7 @@
 **  descendants). Its services include fetching data from the current entry
 **  on the list, advancing to the next or previous item on the list, etc.
 **
-**  $Id: tList.h,v 1.10 1998-04-29 21:37:55 gtucker Exp $
+**  $Id: tList.h,v 1.11 1998-10-02 20:55:09 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -33,7 +33,7 @@
 template< class T > class tArray< T >;*/
 /*template<class NodeType> class tGridList<NodeType>;
 template<class NodeType> class tGridListIter<NodeType>;*/
-//#include "../Classes.h"
+#include "../Classes.h"
 
 
 /** class tListNode  ********************************************************/
