@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.28 1998-07-03 19:53:00 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.29 1998-07-15 22:27:36 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -53,10 +53,6 @@ class tLayer
    double getDgrade( int );
    tArray< double > getDgrade() const;
    void addDgrade(int, double);
-   void setDrDtsize( int );
-   int getDrDtsize();
-   void setDrDt( int, double );
-   double getDrDt( int );
    
   protected:
    double ctime; // time of creation of layer
@@ -69,7 +65,6 @@ class tLayer
    // into, not what is there on the bed.
    // Later sed may be used as a flag for alluvium vs. regolith, etc.
    tArray< double > dgrade; // depth of each size if multi size
-   tArray< double > drdt; //detachment rate of each grain size
    int flag; // put in to see if last change was erosion or deposition
    // 1=erosion, 2=deposition - testing purposes only
 };
@@ -280,9 +275,12 @@ public:
     tArray< double > getQsm( ) const;
     void setQsin( double );
    void setQsin( int, double );
-    void AddQsin( double );
-   void AddQsin( int, double );
-   void AddQsinm( tArray< double > );
+   void addQs( double );
+   void addQs( int, double );
+   void addQs( tArray< double > );
+   void addQsin( double );
+   void addQsin( int, double );
+   void addQsin( tArray< double > );
     double getQsin() const;
    double getQsin( int );
    tArray< double > getQsinm( ) const;
@@ -320,7 +318,6 @@ public:
    int getLayerFlag(int) const;   
    double getLayerDgrade(int, int) const;  // first int is layer index
    // second int is grade index - see note above for indexing directions
-   double getLayerDrDt(int, int) const;
    int getNumLayer() const;
    void setLayerCtime(int, double);
    void setLayerRtime(int, double);
@@ -329,7 +326,6 @@ public:
    void setLayerSed(int, int);
    void setLayerFlag(int, int);
    void setLayerDgrade(int, int, double); 
-   void setLayerDrDt(int, int, double);
    tArray<double> EroDep(int, tArray<double>, double);
    // returns the depth of of each size that was actually deposited or
    // eroded.  Important in case less can be eroded than planned.
