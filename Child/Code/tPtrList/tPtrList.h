@@ -33,7 +33,7 @@
 **    - 3/31/00 bug fix to tPtrList copy constructors (GT)
 **    - 5/10/00 typo fix in DataCopy (GT)
 **
-**  $Id: tPtrList.h,v 1.22 2002-08-30 08:51:57 arnaud Exp $
+**  $Id: tPtrList.h,v 1.23 2002-09-04 11:39:47 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
@@ -153,7 +153,6 @@ public:
     void Flush();         // clears & reinitializes list
     int isEmpty() const;  // returns 1 if list empty, 0 otherwise
     void print() const;   // prints list contents -- DEBUG ONLY
-    /*void input( int, tList< NodeType > * );*/
     int getSize() const;  // returns size of list
     tPtrListNode< NodeType > * getFirstNC();  // returns ptr to 1st list node
     const tPtrListNode< NodeType > * getFirst() const;  // return const "
@@ -185,7 +184,7 @@ private:
 ** Note that in the current implementation, list items are fetched by
 ** ID number, which presupposes that the list items have a member function
 ** getID. This restricts the generality of tPtrList, and should be moved
-** to tGridList. (TODO)
+** to tMeshList. (TODO)
 **
 ** Modifications:
 **  - added 2nd copy constructor, GT, 1/2000
@@ -198,7 +197,7 @@ class tPtrListIter
   tPtrListIter& operator=( const tPtrListIter& );
   public:
    tPtrListIter();
-  tPtrListIter( const tPtrListIter& );
+  tPtrListIter( const tPtrListIter< NodeType > & );
    tPtrListIter( tPtrList< NodeType > & );
    tPtrListIter( tPtrList< NodeType > * );
    ~tPtrListIter();
@@ -214,7 +213,7 @@ class tPtrListIter
    int NextIsNotFirst();
    void Reset( tPtrList< NodeType > & );
    NodeType *NextP();
-   NodeType *GetP( int );
+   NodeType *GetP( int ); //use only if NodeType has member getID()!!
    NodeType *FirstP();
    NodeType *LastP();
    NodeType *PrevP();
@@ -225,7 +224,6 @@ class tPtrListIter
    tPtrList< NodeType > * ptrlistPtr;
    tPtrListNode< NodeType > * curptrnode;
    int counter;
-   
 };
 
 
@@ -292,7 +290,6 @@ operator=( const tPtrListNode< NodeType > &right )
 {
    if( &right != this )
    {
-      assert( &right != 0 );
       Ptr = right.Ptr;
       next = right.next;
    }
@@ -373,14 +370,15 @@ inline tPtrList< NodeType >::
 tPtrList() :
   nNodes(0), first(0), last(0)
 {
-     //cout << "tPtrList() instantiated" << endl;
+  if (0) //DEBUG
+    cout << "tPtrList() instantiated" << endl;
 }
 
 //copy constructor
 template< class NodeType >                      //tPtrList
 inline tPtrList< NodeType >::
 tPtrList( const tPtrList< NodeType > & orig ) :
-  first(0), last(0)
+  nNodes(0), first(0), last(0)
 {
    tPtrListNode< NodeType > *curNode = orig.first;
 
@@ -397,7 +395,7 @@ tPtrList( const tPtrList< NodeType > & orig ) :
 template< class NodeType >
 inline tPtrList< NodeType >::
 tPtrList( const tPtrList< NodeType > * origptr ) :
-  first(0), last(0)
+  nNodes(0), first(0), last(0)
 {
    tPtrListNode< NodeType > *curNode = origptr->first;
 
@@ -423,7 +421,6 @@ inline tPtrList< NodeType >::
       while( last != 0 )
       {
          temp = current;
-         //cout<<temp->data<<endl;
          if( current != last ) current = current->next;
          else
          {
@@ -504,14 +501,14 @@ inline void tPtrList< NodeType >::
 insertAtFront( NodeType *NTPtr )
 {
    tPtrListNode< NodeType > *newPtr = getNewNode( NTPtr );
-   if( isEmpty() ) first = last = newPtr;
+   if( isEmpty() )
+       first = last = newPtr;
    else
    {
       newPtr->next = first;
       if( last->next == first ) last->next = newPtr;
       first = newPtr;
    }
-   //nNodes++;
 }
 
 template< class NodeType >                      //tPtrList
@@ -519,7 +516,6 @@ inline void tPtrList< NodeType >::
 insertAtBack( NodeType *NTPtr )
 {
    tPtrListNode< NodeType > * newPtr = getNewNode( NTPtr );
-     //cout << "add new node to tPtrList" << endl;
    assert( this != 0 );
    if( isEmpty() )
       first = last = newPtr;
@@ -529,7 +525,6 @@ insertAtBack( NodeType *NTPtr )
       last->next = newPtr;
       last = newPtr;
    }
-
 }
 
 template< class NodeType >                      //tPtrList
@@ -553,8 +548,6 @@ template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 insertAtPrev( NodeType *NTPtr, tPtrListNode< NodeType > * node )
 {
-   //PtrListDebug::dbgIAP++;
-   
    tPtrListNode< NodeType > * prev;
    if( node != 0 )
    {
@@ -567,7 +560,6 @@ insertAtPrev( NodeType *NTPtr, tPtrListNode< NodeType > * node )
       for( prev = first; prev->next != node; prev = prev->next ); 
       newPtr->next = prev->next;
       prev->next = newPtr;
-      //nNodes++;
    }
 }
 
@@ -606,14 +598,14 @@ removeFromFront( NodeType *NTPtr )
       }
       NTPtr = temp->Ptr;
       delete temp;
-      nNodes--;
+      --nNodes;
       return 1;
    }
 }
 
 template< class NodeType >                      //tPtrList
 inline NodeType* tPtrList< NodeType >::
-removeFromFront( )
+removeFromFront()
 {
    NodeType *NTPtr;
    if( isEmpty() ) return 0;
@@ -628,7 +620,7 @@ removeFromFront( )
       }
       NTPtr = temp->Ptr;
       delete temp;
-      nNodes--;
+      --nNodes;
       return NTPtr;
    }
 }
@@ -663,7 +655,7 @@ removeFromBack( NodeType *NTPtr )
       }
       NTPtr = temp->Ptr;
       delete temp;
-      nNodes--;
+      --nNodes;
       return 1;
    }
 }
@@ -681,15 +673,15 @@ template< class NodeType >                      //tPtrList
 inline int tPtrList< NodeType >::
 removeNext( NodeType *NTPtr, tPtrListNode< NodeType > * ptr )
 {
-   if( ptr->next == 0 ) return 0;
    if( ptr == 0 ) return 0;
+   if( ptr->next == 0 ) return 0;
    if( ptr->next == last ) return removeFromBack( NTPtr );
-   else if( ptr->next == first ) return removeFromFront( NTPtr );
+   if( ptr->next == first ) return removeFromFront( NTPtr );
    tPtrListNode< NodeType > * temp = ptr->next;
    ptr->next = ptr->next->next;
    NTPtr = temp->Ptr;
    delete temp;
-   nNodes--;
+   --nNodes;
    return 1;
 }
 
@@ -706,8 +698,6 @@ template< class NodeType >                      //tPtrList
 inline int tPtrList< NodeType >::
 removePrev( NodeType *NTPtr, tPtrListNode< NodeType > * ptr )
 {
-   //PtrListDebug::dbgRP ++;
-   
    if( ptr == 0 ) return 0;
    if( ptr == first && last->next == 0 ) return 0;
    if( ptr == first ) return removeFromBack( NTPtr );
@@ -719,7 +709,7 @@ removePrev( NodeType *NTPtr, tPtrListNode< NodeType > * ptr )
    prev->next = prev->next->next;
    NTPtr = temp->Ptr;
    delete temp;
-   nNodes--;
+   --nNodes;
    return 1;
 }
 
@@ -737,8 +727,6 @@ template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 moveToBack( tPtrListNode< NodeType > * mvnode ) 
 {
-   //PtrListDebug::dbgMTB++;
-   
    tPtrListNode< NodeType > *prev;
    if( mvnode != last )
    {  
@@ -761,8 +749,6 @@ template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 moveToFront( tPtrListNode< NodeType > * mvnode ) 
 {
-   //PtrListDebug::dbgMTF++;
-   
    tPtrListNode< NodeType > *prev;
    if( mvnode != first )
    {
@@ -793,13 +779,11 @@ Flush()
    assert( this!=0 );
    if( !isEmpty() )
    {
-        //cout<<"Destroying nodes ... "<<endl;
       tPtrListNode<NodeType > * current = first, * temp;
       first = 0;
       while( last != 0 )
       {
          temp = current;
-         //cout<<temp->data<<endl;
          if( current != last ) current = current->next;
          else
          {
@@ -825,17 +809,8 @@ template< class NodeType >                      //tPtrList
 inline int tPtrList< NodeType >::
 isEmpty() const
 {
-   //cout << "checking if tPtrList empty" << endl << flush;
-   if( first == 0 )
-   {
-      //cout << "tPtrList is empty" << endl << flush;
-      return 1;
-   }
-   else
-   {
-      //cout << "tPtrList is not empty" << endl << flush;
-      return 0;
-   }
+  return 
+    ( first == 0 ) ? 1 : 0;
 }
 
 
@@ -858,11 +833,7 @@ template< class NodeType >                      //tPtrList
 inline int tPtrList< NodeType >::
 getSize() const
 {
-   /*int i;
-   tPtrListNode< NodeType > *temp;
-   for( i = 1, temp = first;
-        temp != last; i++, temp = temp->next );*/
-   return nNodes; //i;
+   return nNodes;
 }
 
 template< class NodeType >                      //tPtrList
@@ -994,7 +965,7 @@ tPtrListIter() :
 
 template< class NodeType >     //tPtrListIter
 inline tPtrListIter< NodeType >::
-tPtrListIter(const tPtrListIter& c) :
+tPtrListIter(const tPtrListIter< NodeType >& c) :
   ptrlistPtr(c.ptrlistPtr),
   curptrnode(c.curptrnode),
   counter(c.counter)
@@ -1010,18 +981,19 @@ tPtrListIter( tPtrList< NodeType > &ptrlist ) :
   curptrnode(ptrlist.first),
   counter(0)
 {
-   assert( &ptrlist != 0 );
-     //cout << "tPtrListIter( ptrlist )" << endl;
+  if (0) //DEBUG
+    cout << "tPtrListIter( ptrlist )" << endl;
 }
 
 template< class NodeType >    //tPtrListIter
 inline tPtrListIter< NodeType >::
 tPtrListIter( tPtrList< NodeType > * ptrlist ) :
   ptrlistPtr(ptrlist),
-  curptrnode(ptrlist->first),
+  curptrnode(0),
   counter(0)
 {
    assert( ptrlist != 0 );
+   curptrnode = ptrlist->first;
 }
 
 template< class NodeType >    //tPtrListIter
@@ -1030,7 +1002,8 @@ inline tPtrListIter< NodeType >::
 {
    ptrlistPtr = 0;
    curptrnode = 0;
-     //cout << "    ~tPtrListIter()" << endl;
+   if (0) //DEBUG
+     cout << "    ~tPtrListIter()" << endl;
 }
 
 /**************************************************************************\
@@ -1050,7 +1023,6 @@ Reset( tPtrList< NodeType > &ptrlist )
    assert( ptrlistPtr != 0 );
    curptrnode = ptrlistPtr->first;
    counter = 0;
-   //assert( curptrnode != 0 );
 }
 
 /**************************************************************************\
@@ -1069,7 +1041,7 @@ First()
    curptrnode = ptrlistPtr->first;
    counter = 0;
    if( curptrnode != 0 ) return 1;
-   else return 0;
+   return 0;
 }
 
 template< class NodeType >     //tPtrListIter
@@ -1080,7 +1052,7 @@ Last()
    curptrnode = ptrlistPtr->last;
    counter = -1;
    if( curptrnode != 0 ) return 1;
-   else return 0;
+   return 0;
 }
 
 
@@ -1099,23 +1071,15 @@ template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 Get( int num )
 {
-     //cout << "Get: num " << num << "; ";
    assert( ptrlistPtr != 0 );
-   //if( num < 0 ) return 0;
-   tPtrListNode< NodeType > *tempnodeptr;// = ptrlistPtr->first;
-     //counter = 0;
+   tPtrListNode< NodeType > *tempnodeptr;
    for( tempnodeptr = ptrlistPtr->first, counter = 0;
         counter <= ptrlistPtr->getSize() && tempnodeptr != 0;
-        tempnodeptr = tempnodeptr->next, counter++ )
-         //while( tempnodeptr != 0 )
+        tempnodeptr = tempnodeptr->next, ++counter )
    {
-        //cout << "Get: tempnodeptr->id " << tempnodeptr->getPtr()->getID()
-        //   << "; ";
-        //tempnodeptr = tempnodeptr->next;
-        //if( tempnodeptr != 0 ) counter++;
-      if( tempnodeptr->getPtr()->getID() == num ) break;
+      if( tempnodeptr->getPtr()->getID() == num )
+	break;
    }
-     //cout << endl;
    if( tempnodeptr == 0 ) return 0;
    if( tempnodeptr->getPtr()->getID() != num ) return 0;
    curptrnode = tempnodeptr;
@@ -1126,19 +1090,17 @@ template< class NodeType >
 inline int tPtrListIter< NodeType >::
 Get( NodeType *desiredItemPtr )
 {
-   tPtrListNode<NodeType> *cln = 0;
-   int listSize = ptrListPtr->getSize();
-
-   // Go down the list looking for a node that points to desiredItemPtr
-   // If found, move to it and return 1; otherwise return 0
-   for( cln=ptrListPtr->first, ctr=0; ctr<listSize; cln=cln->next, ctr++ )
-       if( cln->Ptr == desiredItemPtr )
-       {
-          curptrnode = cln;
-          return 1;
-       }
-   return 0;
-   
+   assert( ptrlistPtr != 0 );
+   tPtrListNode<NodeType> *tempnodeptr;
+   for( tempnodeptr=ptrListPtr->first, counter = 0;
+	counter <= ptrListPtr->getSize() && tempnodeptr != 0;
+	tempnodeptr=tempnodeptr->next, ++counter )
+       if( tempnodeptr->Ptr == desiredItemPtr )
+	 break;
+   if( tempnodeptr == 0 ) return 0;
+   if( tempnodeptr->Ptr != nPtr ) return 0;
+   curptrnode = tempnodeptr;
+   return 1;
 }       
 
 
@@ -1174,8 +1136,6 @@ template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 Prev()
 {
-   //PtrListDebug::dbgPRV++;
-   
    assert( ptrlistPtr != 0 );
    if( curptrnode == 0 )
    {
@@ -1286,22 +1246,18 @@ template< class NodeType >        //tListIter
 inline NodeType * tPtrListIter< NodeType >::
 FirstP()
 {
-   assert( ptrlistPtr != 0 );
-   curptrnode = ptrlistPtr->first;
-   counter = 0;
-   if( curptrnode != 0 ) return curptrnode->Ptr;
-   else return 0;
+   if( First() ) 
+       return curptrnode->Ptr;
+   return 0;
 }
    
 template< class NodeType >        //tListIter
 inline NodeType * tPtrListIter< NodeType >::
 LastP()
 {
-   assert( ptrlistPtr != 0 );
-   curptrnode = ptrlistPtr->last;
-   counter = 0;
-   if( curptrnode != 0 ) return curptrnode->Ptr;
-   else return 0;
+   if( Last() ) 
+       return curptrnode->Ptr;
+   return 0;
 }
 
   
@@ -1317,53 +1273,18 @@ template< class NodeType >       //tPtrListIter
 inline NodeType *tPtrListIter< NodeType >::
 PrevP()
 {
-   //PtrListDebug::dbgPRP++;
-   
-   assert( ptrlistPtr != 0 );
-   if( curptrnode == 0 )
-   {
-      curptrnode = ptrlistPtr->last;
-      counter = -1;
-      if( curptrnode != 0 ) return curptrnode->Ptr;
-      else return 0;
-   }
-   if( curptrnode == ptrlistPtr->first )
-   {
-      if( ptrlistPtr->last->next == 0 ) return 0;
-      else
-      {
-         assert( curptrnode == ptrlistPtr->last->next );
-         curptrnode = ptrlistPtr->last;
-         counter = -1;
-         return curptrnode->Ptr;
-      }
-   }
-   tPtrListNode< NodeType > *tempnode;
-   for( tempnode = ptrlistPtr->first;
-        tempnode->next->Ptr != curptrnode->Ptr;
-        tempnode = tempnode->next );
-   curptrnode = tempnode;
-   assert( curptrnode != 0 );
-   counter--;
-   return curptrnode->Ptr;
+   if( Prev() ) 
+       return curptrnode->Ptr;
+   return 0;
 }
 
 template< class NodeType >        //tListIter
 inline NodeType * tPtrListIter< NodeType >::
 NextP()
 {
-   assert( ptrlistPtr != 0 );
-   if( curptrnode == 0 )
-   {
-      curptrnode = ptrlistPtr->first;
-      counter = 0;
-      if( curptrnode != 0 ) return curptrnode->Ptr;
-      else return 0;
-   }
-   curptrnode = curptrnode->next;
-   counter++;
-   if( curptrnode != 0 ) return curptrnode->Ptr;
-   else return 0;
+   if( Next() ) 
+       return curptrnode->Ptr;
+   return 0;
 }
 
 
@@ -1379,12 +1300,9 @@ template< class NodeType >       //tListIter
 inline NodeType * tPtrListIter< NodeType >::
 GetP( int num )
 {
-   assert( ptrlistPtr != 0 );
-   //if( num < 0 ) return 0;
-   //cout << "Get: num " << num << "; ";
-
-   return
-     (Get(num) != 0 ? curptrnode->getDataPtrNC() : 0 );
+   if( Get( num ) ) 
+       return curptrnode->Ptr;
+   return 0;
 }
 
 
@@ -1448,7 +1366,7 @@ AtEnd()
 {
    if( ptrlistPtr->last == 0 ) return 1;
    if( ptrlistPtr->last->next == 0 ) return ( curptrnode==0 );
-   else return ( curptrnode == ptrlistPtr->first && counter != 0 );
+   return ( curptrnode == ptrlistPtr->first && counter != 0 );
 }
 
 #endif
