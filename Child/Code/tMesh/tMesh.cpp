@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.192 2004-01-07 15:39:26 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.193 2004-02-18 15:59:21 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -508,9 +508,8 @@ MakeMeshFromInputData( const tInputFile &infile )
       tempnode.set3DCoords( input.x[i], input.y[i], input.z[i] );
       miNextNodeID = i;
       tempnode.setID( miNextNodeID );
-      tBoundary_t bound;
       assert( input.boundflag[i] >= 0 && input.boundflag[i] <= 2 );
-      bound = INT_TO_ENUM(tBoundary_t, input.boundflag[i]);
+      tBoundary_t bound = INT_TO_ENUM(tBoundary_t, input.boundflag[i]);
       tempnode.setBoundaryFlag( bound );
       switch (bound){
       case kNonBoundary:
@@ -3348,6 +3347,18 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode const *node3 )
 	  << "between nodes " << node1->getID()
 	  << " and " << node2->getID() << " w/ ref to node "
 	  << node3->getID() << endl;
+
+   // error check
+   const tArray< double > p0( node1->get2DCoords() ), p1( node2->get2DCoords() ),
+       p2( node3->get2DCoords() );
+   if( !PointsCCW( p0, p1, p2 ) )
+   {
+      cerr << "in AE nodes not CCW: " << node1->getID() << ", "
+           << node2->getID() << ", " << node3->getID()
+	   << "; nor are new coords CCW " << endl;
+      return 0;
+   }
+
    tEdge *ce, *nle, *le;
 
    {
@@ -3895,7 +3906,8 @@ InsertNode( tSubNode* newNodePtr, double time )
 
 /**************************************************************************\
 ** AddToList( tNode* newNodePtr ): adds new node to appropriate place in
-**   nodeList.
+**   nodeList. (note: makes a copy of tSubNode const & newNode and returns
+**   a pointer to that copy)
 ** SL 3/99
 ** AD 4/2003
 \**************************************************************************/
@@ -3925,6 +3937,41 @@ AddToList( tSubNode const & newNode )
   assert( nodeList.getSize() == nnodes + 1 );
   ++nnodes;
   return cn;
+}
+
+/**************************************************************************\
+** RemoveFromList( tNode* newNodePtr ): undoes AddToList. Note that this
+**   function assumes that the node needing removing was the last one added.
+** Called from InsertNode
+**
+** SL 12/03
+\**************************************************************************/
+template< class tSubNode >
+void tMesh< tSubNode >::
+RemoveFromList( tSubNode * nPtr )
+{
+  // remove node from the back of either the
+  // active portion of the node list (if it's not a boundary) or the
+  // boundary portion (if it is)
+  tMeshListIter< tSubNode > nodIter( nodeList );
+  tSubNode rmnode;
+  switch (nPtr->getBoundaryFlag()){
+     case kNonBoundary:
+         assert( nPtr == nodIter.LastActiveP() );
+         nodeList.removeFromActiveBack( rmnode );
+         break;
+     case kOpenBoundary:
+         assert( nPtr == nodIter.FirstBoundaryP() );
+         nodeList.removeFromBoundFront( rmnode );
+         break;
+     default:
+         assert( nPtr == nodIter.LastP() );
+         nodeList.removeFromBack( rmnode );
+         break;
+  }
+  assert( nodeList.getSize() == nnodes - 1 );
+  --nnodes;
+  nPtr = NULL;
 }
 
 /**************************************************************************\
