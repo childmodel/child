@@ -361,7 +361,7 @@ int tTokList::size() const
  * 26/01/2000, pwb                                                     *
  *                                                                     *
 \*********************************************************************/
-
+static
 char *strclean(const char *s)
 {
   static char s2[1024];     // new cleansed, string
