@@ -10,8 +10,9 @@
  **       *.chanwid. Activated if Parker-Paola width model used.
  **       If so, channel depths are also output.
  **     - 4/03 AD added canonical output
+ **     - 7/03 AD added tOutputBase and tTSOutputImp
  **
- **  $Id: tOutput.cpp,v 1.80 2003-07-25 09:29:13 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.81 2003-07-25 12:04:03 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -32,13 +33,40 @@ using namespace std;
 #include "../tStreamNet/tStreamNet.h" // For k2DKinematicWave and kHydrographPeakMethod
 
 
+/**************************************************************************/
+/**
+ ** @class tTSOutputImp
+ **
+ ** Handles application-specific time-series data for the CHILD model.
+ **
+ ** Modifications:
+ ** - 07/03 moved from tLOutput (AD)
+ **
+ */
+/**************************************************************************/
+template< class tSubNode >
+class tTSOutputImp : public tOutputBase<tSubNode>
+{
+  tTSOutputImp(const tTSOutputImp&);
+  tTSOutputImp& operator=(const tTSOutputImp&);
+public:
+  tTSOutputImp( tMesh<tSubNode> * meshPtr, tInputFile &infile );
+  void WriteTSOutput();
+private:
+  ofstream volsofs;    // catchment volume
+  ofstream dvolsofs;
+  ofstream tareaofs;   // total voronoi area of catchment
+  ofstream vegcovofs;  // Catchment vegetation cover %
+  double mdLastVolume;
+};
+
 /*************************************************************************\
  **
  **  Constructor
  **
  **  The constructor takes two arguments, a pointer to the mesh and
  **  a reference to an open input file. It reads the base name for the
- **  output files from the input file, and opens and initializes these.
+ **  output files from the input file.
  **
  **  Input: meshPtr -- pointer to a tMesh object (or descendant), assumed
  **                    valid
@@ -46,24 +74,17 @@ using namespace std;
  **
 \*************************************************************************/
 template< class tSubNode >
-tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
-  m(meshPtr),
-  CanonicalNumbering(true)
+tOutputBase<tSubNode>::tOutputBase( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
+  m(meshPtr)
 {
   assert( meshPtr != 0 );
 
   infile.ReadItem( baseName, sizeof(baseName), "OUTFILENAME" );
-  CreateAndOpenFile( &nodeofs, SNODES );
-  CreateAndOpenFile( &edgofs, SEDGES );
-  CreateAndOpenFile( &triofs, STRI );
-  CreateAndOpenFile( &zofs, SZ );
-  CreateAndOpenFile( &vaofs, SVAREA );
 }
-
 
 /*************************************************************************\
  **
- **  tOutput::CreateAndOpenFile
+ **  tOutputBase::CreateAndOpenFile
  **
  **  Opens the output file stream pointed to by theOFStream, giving it the
  **  name <baseName><extension>, and checks to make sure that the ofstream
@@ -78,8 +99,8 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
  **
 \*************************************************************************/
 template< class tSubNode >
-void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
-                                           const char *extension ) const
+void tOutputBase<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
+					       const char *extension ) const
 {
   char fullName[kMaxNameSize+6];  // name of file to be created
 
@@ -96,6 +117,44 @@ void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
     ReportFatalError(
 		     "I can't create files for output. Storage space may be exhausted.");
   theOFStream->precision( 12 );
+}
+
+/*************************************************************************\
+ **
+ **  tBaseOutput::WriteTimeNumberElements
+ **
+ **  write time and number of elements
+\*************************************************************************/
+template< class tSubNode >
+void tOutputBase<tSubNode>::WriteTimeNumberElements( ofstream &fs,
+						     double time, int n )
+{
+  fs << ' ' << time << '\n' << n << '\n';
+}
+
+/*************************************************************************\
+ **
+ **  Constructor
+ **
+ **  The constructor takes two arguments, a pointer to the mesh and
+ **  a reference to an open input file. It opens and initializes the
+ **  output files.
+ **
+ **  Input: meshPtr -- pointer to a tMesh object (or descendant), assumed
+ **                    valid
+ **         infile -- reference to an open input file, assumed valid
+ **
+\*************************************************************************/
+template< class tSubNode >
+tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
+  tOutputBase<tSubNode>( meshPtr, infile ),  // call base-class constructor
+  CanonicalNumbering(true)
+{
+  CreateAndOpenFile( &nodeofs, SNODES );
+  CreateAndOpenFile( &edgofs, SEDGES );
+  CreateAndOpenFile( &triofs, STRI );
+  CreateAndOpenFile( &zofs, SZ );
+  CreateAndOpenFile( &vaofs, SVAREA );
 }
 
 
@@ -189,14 +248,6 @@ void tOutput<tSubNode>::WriteOutput( double time )
 
   if (0)//DEBUG
     cout << "tOutput::WriteOutput() Output done" << endl;
-}
-
-// write time and number of elements
-template< class tSubNode >
-void tOutput<tSubNode>::WriteTimeNumberElements( ofstream &fs,
-						 double time, int n )
-{
-  fs << ' ' << time << '\n' << n << '\n';
 }
 
 template< class tSubNode >
@@ -466,8 +517,7 @@ void tOutput<tSubNode>::WriteNodeData( double /* time */ )
 template< class tSubNode >
 tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
   tOutput<tSubNode>( meshPtr, infile ),  // call base-class constructor
-  mdLastVolume(0.),
-  optTSOutput(false),
+  TSOutput(0),
   counter(0)
 {
   int opOpt;  // Optional modules: only output stuff when needed
@@ -491,12 +541,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
 
   // Time-series output: if requested
   if( (opOpt = infile.ReadItem( opOpt, "OPTTSOUTPUT" ) ) != 0) {
-    optTSOutput = true;
-    CreateAndOpenFile( &this->volsofs, ".vols" );
-    CreateAndOpenFile( &this->dvolsofs, ".dvols" );
-    if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) != 0)
-      CreateAndOpenFile( &vegcovofs, ".vcov" );
-    CreateAndOpenFile( &this->tareaofs, ".tarea" );
+    TSOutput = new tTSOutputImp< tSubNode >(meshPtr, infile);
   }
 
   // Channel width output: if the channel geometry model is other
@@ -514,6 +559,22 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
     CreateAndOpenFile( &qsofs, ".qs" );
 }
 
+/*************************************************************************\
+ **
+ **  tLOutput constructor
+ **
+ **  Creates and opens a series of files for drainage areas, slopes, etc.
+ **
+ **  Modifications:
+ **    - 1/00 added "opOpt" and creation of veg output file (GT)
+ **    - added flow depth output file (GT 1/00)
+ **    - added
+\*************************************************************************/
+template< class tSubNode >
+tLOutput<tSubNode>::~tLOutput()
+{
+  delete TSOutput;
+}
 
 /*************************************************************************\
  **
@@ -537,9 +598,9 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   //for writing out layer info to different files at each time
   const char* const nums("0123456789");
 
-  tMeshListIter<tSubNode> ni( this->m->getNodeList() ); // node list iterator
-  const int nActiveNodes = this->m->getNodeList()->getActiveSize(); // # active nodes
-  const int nnodes = this->m->getNodeList()->getSize(); // total # nodes
+  tMeshListIter<tSubNode> ni( m->getNodeList() ); // node list iterator
+  const int nActiveNodes = m->getNodeList()->getActiveSize(); // # active nodes
+  const int nnodes = m->getNodeList()->getSize(); // total # nodes
 
   //taking care of layer file, since new one each time step
   char ext[7];
@@ -664,7 +725,48 @@ inline void tLOutput<tSubNode>::WriteAllNodeData( tSubNode *cn )
 template< class tSubNode >
 void tLOutput<tSubNode>::WriteTSOutput()
 {
-  tMeshListIter<tSubNode> niter( this->m->getNodeList() ); // node list iterator
+  if (TSOutput) TSOutput->WriteTSOutput();
+}
+
+
+template< class tSubNode >
+bool tLOutput<tSubNode>::OptTSOutput() const { return BOOL(TSOutput!=0); }
+
+/*************************************************************************\
+ **
+ **  tTSOutputImp constructor
+ **
+ **  Creates and opens a series of files for time series
+ **
+ **  Modifications:
+\*************************************************************************/
+template< class tSubNode >
+tTSOutputImp<tSubNode>::tTSOutputImp( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
+  tOutputBase<tSubNode>( meshPtr, infile ),  // call base-class constructor
+  mdLastVolume(0.)
+{
+  int opOpt;  // Optional modules: only output stuff when needed
+
+  CreateAndOpenFile( &volsofs, ".vols" );
+  CreateAndOpenFile( &dvolsofs, ".dvols" );
+  if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) != 0)
+    CreateAndOpenFile( &vegcovofs, ".vcov" );
+  CreateAndOpenFile( &tareaofs, ".tarea" );
+}
+
+/*************************************************************************\
+ **
+ **  tTSOutputImp::WriteTSOutput
+ **  This function writes the total volume of the DEM above the datum to
+ **  a file called name.vols, where "name" is a name that the user has
+ **  specified in the input file and which is stored in the data member
+ **  baseName.
+ **
+\*************************************************************************/
+template< class tSubNode >
+void tTSOutputImp<tSubNode>::WriteTSOutput()
+{
+  tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
 
   tSubNode * cn;       // current node
 
@@ -673,28 +775,22 @@ void tLOutput<tSubNode>::WriteTSOutput()
     cover = 0.;
 
   if (0)//DEBUG
-    cout << "tLOutput::WriteTSOutput()" << endl;
+    cout << "tTSOutputImp::WriteTSOutput()" << endl;
 
   for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
     volume += cn->getZ()*cn->getVArea();
     area += cn->getVArea();
   }
 
-  this->volsofs << volume << endl;
-  if( this->mdLastVolume > 0.0 )
-    this->dvolsofs << volume - this->mdLastVolume << endl;
-  this->mdLastVolume = volume;
+  volsofs << volume << endl;
+  if( mdLastVolume > 0.0 )
+    dvolsofs << volume - mdLastVolume << endl;
+  mdLastVolume = volume;
   //tareaofs << area << endl;
 
-  if( vegofs.good() ) {
+  if( vegcovofs.good() ) {
     for( cn = niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
       cover += cn->getVegCover().getVeg()*cn->getVArea();
     vegcovofs << cover/area << endl;
   }
-
 }
-
-
-template< class tSubNode >
-bool tLOutput<tSubNode>::OptTSOutput() const { return optTSOutput; }
-

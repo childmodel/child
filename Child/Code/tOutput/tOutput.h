@@ -28,8 +28,9 @@
  **    - 1/00: GT added vegofs for output of vegetation cover
  **    - 6/01: GT added chanwidthofs for output of channel widths
  **      (only when non-regime hydraulic geometry model used)
+ **    - 7/03: AD added tOutputBase and tTSOutputImp
  **
- **  $Id: tOutput.h,v 1.42 2003-07-25 09:29:14 childcvs Exp $
+ **  $Id: tOutput.h,v 1.43 2003-07-25 12:04:04 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -49,6 +50,34 @@ using namespace std;
 
 /**************************************************************************/
 /**
+ ** @class tOutputBase
+ **
+ ** Class tOutputBase is use to as base class. It contains common utilities.
+ ** The constructor is protected so that the class cannot be used directly.
+ **
+ */
+/**************************************************************************/
+template< class tSubNode >
+class tOutputBase
+{
+  tOutputBase(const tOutputBase&);
+  tOutputBase& operator=(const tOutputBase&);
+protected:
+  tOutputBase( tMesh<tSubNode> * meshPtr, tInputFile &infile );
+  virtual ~tOutputBase() {}
+
+protected:
+  enum{ kMaxNameSize = 80 };
+  tMesh<tSubNode> * m;          // ptr to mesh (for access to nodes, etc)
+  char baseName[kMaxNameSize];  // name of output files
+
+  void CreateAndOpenFile( ofstream * theOFStream, const char * extension ) const;
+  // write time/number of element
+  static void WriteTimeNumberElements( ofstream &, double, int );
+};
+
+/**************************************************************************/
+/**
  ** @class tOutput
  **
  ** Class tOutput handles output of mesh data (nodes, edges, and
@@ -60,32 +89,27 @@ using namespace std;
  */
 /**************************************************************************/
 template< class tSubNode >
-class tOutput
+class tOutput : public tOutputBase<tSubNode>
 {
   tOutput(const tOutput&);
   tOutput& operator=(const tOutput&);
 public:
   tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
-  virtual ~tOutput() {}
   void WriteOutput( double time );
 
-protected:
-  enum{
-    kMaxNameSize = 80
-      };
-
-  tMesh<tSubNode> * m;          // ptr to mesh (for access to nodes, etc)
-  char baseName[kMaxNameSize];  // name of output files
+private:
   ofstream nodeofs;             // output file for node data
   ofstream edgofs;              // output file for edge data
   ofstream triofs;              // output file for triangle data
   ofstream zofs;                // output file for node "z" data
   ofstream vaofs;               // output file for Voronoi areas
 
-  bool CanonicalNumbering; // Output in canonical order
+protected:
+  bool CanonicalNumbering;      // Output in canonical order
 
-  void CreateAndOpenFile( ofstream * theOFStream, const char * extension ) const;
   virtual void WriteNodeData( double time );
+
+private:
   // renumber in list order
   void RenumberIDInListOrder();
   // use to ensure a canonical ordering
@@ -98,8 +122,6 @@ protected:
   inline void WriteNodeRecord( tNode * );
   inline void WriteEdgeRecord( tEdge * );
   inline void WriteTriangleRecord( tTriangle const *, const int[3]);
-  // write time/number of element
-  static void WriteTimeNumberElements( ofstream &, double, int );
 };
 
 
@@ -115,9 +137,12 @@ protected:
  ** Modifications:
  **  - 2/02 added output streams tauofs and qsofs for shear stress and
  **    sed flux, resp. (GT)
+ **  - 7/03 added tTSOutputImp to separate time series output (AD)
  **
  */
 /**************************************************************************/
+template< class tSubNode > class tTSOutputImp;
+
 template< class tSubNode >
 class tLOutput : public tOutput<tSubNode>
 {
@@ -125,17 +150,13 @@ class tLOutput : public tOutput<tSubNode>
   tLOutput& operator=(const tLOutput&);
 public:
   tLOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
+  virtual ~tLOutput();
   void WriteTSOutput();
   bool OptTSOutput() const;
 
 protected:
   virtual void WriteNodeData( double time );
 private:
-  ofstream volsofs;             // catchment volume
-  ofstream dvolsofs;
-  ofstream tareaofs;            // total voronoi area of catchment
-  double mdLastVolume;
-
   ofstream drareaofs;  // Drainage areas
   ofstream netofs;     // Downstream neighbor IDs
   ofstream slpofs;     // Slopes in the direction of flow
@@ -144,19 +165,18 @@ private:
   ofstream texofs;     // Texture info
   ofstream vegofs;     // Vegetation cover %
   ofstream flowdepofs; // Flow depth
-  ofstream vegcovofs;  // Catchment vegetation cover %
   ofstream chanwidthofs; // Channel width
   ofstream flowpathlenofs;  // Flow path length
   ofstream tauofs;     // Shear stress
   ofstream qsofs;      // Sed flux
-  bool optTSOutput;     // temp
+
+  tTSOutputImp<tSubNode> *TSOutput;  // Time Series output
 
   int counter;
 
   inline void WriteActiveNodeData( tSubNode * );
   inline void WriteAllNodeData( tSubNode * );
 };
-
 
 /*
 ** The following is designed to allow for compiling under the Borland-style
