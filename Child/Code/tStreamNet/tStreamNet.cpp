@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.20 2002-07-23 09:08:37 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.21 2002-09-30 17:20:54 arnaud Exp $
 \**************************************************************************/
 
 #include "../tAssert.h"
@@ -699,7 +699,6 @@ void tStreamNet::InitFlowDirs()
 **      Updated: 12/19/97 SL; 12/30/97 GT
 **
 \****************************************************************************/
-#define kLargeNegative -1000
 #define kMaxSpokes 100
 void tStreamNet::FlowDirs()
 {
@@ -809,7 +808,6 @@ void tStreamNet::FlowDirs()
    //cout << "FlowDirs() finished" << endl << flush;
    
 }
-#undef kLargeNegative
 #undef kMaxSpokes
 
 
@@ -1890,7 +1888,6 @@ void tStreamNet::FindHydrGeom()
 **               alternative Parker-Paola models is used.
 **
 \*****************************************************************************/
-#define kSmallNum 0.0000000001
 void tStreamNet::FindChanGeom()
 {
    if( miChannelType==kParkerChannels ) return;
@@ -1964,7 +1961,6 @@ void tStreamNet::FindChanGeom()
    }
    //cout << "done tStreamNet::FindChanGeom" << endl;
 }
-#undef kSmallNum
 
 
 /**************************************************************************\
