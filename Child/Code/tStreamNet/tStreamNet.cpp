@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.13 2002-04-12 08:39:22 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.14 2002-04-23 10:29:44 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2155,13 +2155,9 @@ void tStreamNet::DensifyMeshDrArea( double time )
 **
 \**************************************************************************/
 
-tInlet::tInlet()
-        :inSedLoadm()
-{
-   innode = 0;
-   inDrArea = 0;
-   meshPtr = 0;
-}
+tInlet::tInlet() :
+  innode(0), inDrArea(0.), inSedLoadm(), meshPtr(0)
+{}
 
 #define LARGE_DISTANCE 1e9
 tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
@@ -2177,7 +2173,6 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
        zin = 0,       // Elevation of inlet
        suminvdist = 0,// Sum of 1/dist for all nearby non-boundary nodes
        minDistFound;  // Smallest distance to nearby node found so far
-   double help;
    tArray< double > xyz(3);
    tTriangle *intri, *ntri;
    tLNode *cn,
@@ -2195,8 +2190,8 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
      /*std::string taglinebase = "INSEDLOAD";
      std::string digits = "123456789";
      std::string tagline;*/
-     char tagline[10], lastdigit;
-     strcpy( tagline, "INSEDLOAD0\0" );
+     char tagline[11], lastdigit;
+     strcpy( tagline, "INSEDLOAD0" );
      lastdigit = '0';
       inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
       if(numg <= 1)
@@ -2210,6 +2205,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
          //i=1;
          //end='1';
          for( i=0; i<numg; i++ ) {
+	   double help;
 	   /*strcpy( name, "INSEDLOAD");
             strcat( name, &end ); 
             help = infile.ReadItem( help, name);*/
@@ -2308,7 +2304,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
    
    else
    {
-      inDrArea = 0;
+      inDrArea = 0.;
       innode = 0;
    }
 
@@ -2532,7 +2528,7 @@ tParkerChannels::tParkerChannels( tInputFile &infile )
   //First, average over size-classes to estimate d50 (works only for numg<10 )
   numg = infile.ReadItem( numg, "NUMGRNSIZE" );
   d50 = 0.0;
-  strcpy( astring, "GRAINDIAM0\0" );
+  strcpy( astring, "GRAINDIAM0" );
   for( i=1; i<=numg; i++ )
     {
       astring[9]++;  // Next number (1, 2, etc.)
