@@ -1,4 +1,4 @@
-PT = /miami/academic/gtucker/Dev2/Child/Code
+PT = $(CHILDCODE)
 CC = g++
 WARNINGFLAGS = -pedantic -Wall -W \
 	-Wwrite-strings \
@@ -11,7 +11,8 @@ LIBS = -lm
 OBJECTS = toddlermain.o erosion.o meshElements.o mathutil.o \
  tInputFile.o tLNode.o tRunTimer.o \
 tPtrList.o tStorm.o tStreamNet.o tUplift.o errors.o tFloodplain.o \
-tEolian.o globalFns.o predicates.o tVegetation.o
+tEolian.o globalFns.o predicates.o tVegetation.o \
+ParamMesh_t.o
 
 toddler: $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o toddler $(LIBS)
@@ -56,6 +57,9 @@ $(PT)/tFloodplain/tFloodplain.h
 
 tEolian.o: $(PT)/tEolian/tEolian.cpp $(PT)/tEolian/tEolian.h
 	$(CC) $(CFLAGS) $(PT)/tEolian/tEolian.cpp
+
+ParamMesh_t.o: $(PT)/tMesh/ParamMesh_t.cpp $(PT)/tMesh/ParamMesh_t.h
+	$(CC) $(CFLAGS) $(PT)/tMesh/ParamMesh_t.cpp
 
 globalFns.o: $(PT)/globalFns.cpp $(PT)/globalFns.h
 	$(CC) $(CFLAGS) $(PT)/globalFns.cpp
