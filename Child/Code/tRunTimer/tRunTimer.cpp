@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.4 1998-08-04 20:46:18 nmgaspar Exp $
+**  $Id: tRunTimer.cpp,v 1.5 1998-08-04 20:49:45 nmgaspar Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -36,6 +36,14 @@
 //   if desired sets the option
 //   to print time steps to stdout; default is 1,
 //   see header file)
+//   NG changed this constructor so that if layering
+//   info is read in, the start time is set to the
+//   time which layers are read in.  Must have this
+//   for the layering to make sense, but might also
+//   want this if reading in any type of input.
+//   Wasn't changed because I don't know how other
+//   people want this handled.  Bad practice to have
+//   something about layering in here though.
 //
 // Note that the notifyInterval is always initialized
 // at 1000, but of course this could be changed.
