@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.80 2004-04-27 13:19:29 childcvs Exp $
+**  $Id: meshElements.h,v 1.81 2004-05-27 09:37:00 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -231,6 +231,8 @@ public:
     case kFlowNotAllowed:
       return "0-NonAllowed";
     }
+    /*NOTREACHED*/
+    abort();
   }
 
   tEdge();                // default constructor
