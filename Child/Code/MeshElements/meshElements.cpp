@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.7 1998-02-04 00:34:25 stlancas Exp $
+**  $Id: meshElements.cpp,v 1.8 1998-02-12 23:23:09 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -311,7 +311,7 @@ double tNode::ComputeVoronoiArea()
    double a, b, c, dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
    double vx, vy, x0, y0, x1, y1, x2, y2, m1, m2;
    tEdge * ce, *edgptr;
-   tPtrList< tEdge > vedgList/*( centre->getSpokeListNC() )*/;
+   tPtrList< tEdge > vedgList /*= spokeList*/;
    tPtrListIter< tEdge > //spokIter( spokeList ),
        vtxIter( vedgList );
    tArray< double > xy, xyn, xynn, xynnn, xy1, xy2;
@@ -327,20 +327,26 @@ double tNode::ComputeVoronoiArea()
      //the correct vertices. In some cases, we may need to delete an edge
      //to get the correct list of vertices; we don't want to delete the
      //spoke ptr, so we make a duplicate list.
+   //cout << "making list: ";
    ce = edg;
    do
    {
       assert( ce>0 );
       vedgList.insertAtBack( ce );
+      //xy = ce->getRVtx();
+      //cout << xy[0] << " " << xy[1] << "; " << flush;
+      //xy = vedgList.getLast()->getPtrNC()->getRVtx();
+      //cout << xy[0] << " " << xy[1] << endl << flush;
       ce = ce->GetCCWEdg();
    } while( ce != edg );
    vedgList.makeCircular();
-
+   //cout << endl << flush;
    // Check boundary status: Voronoi area only defined for non-boundary nodes
    if( boundary == kNonBoundary )
    {
       CalcSpokeVEdgLengths();
       cw = TRUE;
+      //cout << "find clockwise loops" << endl << flush;
       do
       {
            //go through the list; we want the vertex list to run CCW;
@@ -378,8 +384,8 @@ double tNode::ComputeVoronoiArea()
                   x0 = x; //node.x
                   y0 = y; //node.y
                   xy1 = ce->getDestinationPtr()->get2DCoords();
-                  assert( vtxIter.Prev() );
-                  xy2 = vtxIter.DatPtr()->getDestinationPtr()->get2DCoords();
+                  //vtxIter.Prev();
+                  xy2 = vtxIter.PrevP()->getDestinationPtr()->get2DCoords();
                   x1 = ( x0 + xy1[0] ) / 2;
                   y1 = ( y0 + xy1[1] ) / 2;
                   x2 = ( x0 + xy2[0] ) / 2;
@@ -402,32 +408,34 @@ double tNode::ComputeVoronoiArea()
                      vy=(m1*y1+x1-m2*y2-x2)/(m1-m2);
                      vx= -vy*m1+m1*y1+x1;
                   }
-                  assert( vtxIter.Prev() );
+                  edgptr = vtxIter.PrevP();
                   xyn[0] = vx;
                   xyn[1] = vy;
                   dx = xy[0] - vx;
                   dy = xy[1] - vy;
                   cout << "reset vedglen and rvtx for edge "
-                       << vtxIter.DatPtr()->getID() << " to len "
+                       << edgptr->getID() << " to len "
                        << sqrt( dx*dx + dy*dy )
-                       << ", x, y, " << xyn[0] << ", " << xyn[1] << endl;
+                       << ", x, y, " << xyn[0] << ", " << xyn[1] << endl << flush;
                     //reset 'next' edge's vertex to newly found intersection,
                     //length adjusted accordingly
-                  vtxIter.DatPtr()->setVEdgLen( sqrt( dx*dx + dy*dy ) );
-                  vtxIter.DatPtr()->setRVtx( xyn );
+                  edgptr->setVEdgLen( sqrt( dx*dx + dy*dy ) );
+                  edgptr->setRVtx( xyn );
+                  edgptr = vtxIter.ReportNextP();
                   cout << "reset vedglen and rvtx for edge "
-                       << vtxIter.ReportNextP()->getID()
+                       << edgptr->getID()
                        << " to len 0.0, x, y, " << xynnn[0] << ", "
-                       << xynnn[1] << endl;
+                       << xynnn[1] << endl << flush;
                     //reset 'next-next' edge's vertex to the coordinates
                     //of the 'next-next-next' edge's vertex; length to zero
-                  vtxIter.ReportNextP()->setVEdgLen(0.0);
-                  vtxIter.ReportNextP()->setRVtx( xynnn );
+                  edgptr->setVEdgLen(0.0);
+                  edgptr->setRVtx( xynnn );
+                  edgptr = 0;
                     //delete the offending vertex's edge from list
-                  assert( vedgList.removeNext( edgptr, vtxIter.NodePtr() ) );
+                  vedgList.removeNext( edgptr, vtxIter.NodePtr() );
                }
             }
-            assert( vtxIter.Get( ce->getID() ) );
+            vtxIter.Get( ce->getID() );
          }
       } while( cw ); //while we're still finding loops in the polygon
 
@@ -435,6 +443,7 @@ double tNode::ComputeVoronoiArea()
       // fill the polygon; the sum of the tri areas is the v. area.
       // For a convex polygon, we can compute the total area as the
       // sum of the area of triangles [P(1) P(i) P(i+1)] for i=2,3...N-1.
+      //cout << "find polygon area" << endl << flush;
       ce = vtxIter.FirstP();
       xy = ce->getRVtx(); // coords of first vertex
       int nverts = vedgList.getSize(); // Find out # of vertices in polygon
@@ -456,9 +465,25 @@ double tNode::ComputeVoronoiArea()
                             (c*c - (b*b + a*a))*(c*c - (b*b + a*a)));
       }
    }
-
    varea = area;
    varea_rcp = 1.0/varea;
+   /*cout << "reading list: ";
+   for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
+   {
+      xy = ce->getRVtx();
+      cout << xy[0] << " " << xy[1] << "; " << flush;
+   }
+   cout << endl << flush;
+   cout << "reading spokes: ";
+   ce = edg;
+   do
+   {
+      assert( ce>0 );
+      xy = ce->getRVtx();
+      cout << xy[0] << " " << xy[1] << "; " << flush;
+      ce = ce->GetCCWEdg();
+   } while( ce != edg );
+   cout << endl << flush;*/
    return area;
 }
 
@@ -499,11 +524,14 @@ void tNode::makeCCWEdges()
 
 //default constructor
 tEdge::tEdge()                                                       //tEdge
+        : rvtx(2)
 {
    id = 0;
    len = 0;
    slope = 0;
+   vedglen = 0;
    org = dest = 0;
+   ccwedg = 0;
    flowAllowed = 0;
      //cout << "tEdge()" << endl;
 }
@@ -653,8 +681,10 @@ ostream &operator<<( ostream &output, const tEdge &edge )            //'tEdge'
 tArray< double >
 tEdge::getRVtx() const
 {
-   tArray< double >  xy( rvtx );
-   return xy;
+   //tArray< double >  xy( rvtx );
+   //return xy;
+   //cout << "getRVtx: ";
+   return rvtx;
 }
 
 double tEdge::getVEdgLen() const {return vedglen;}
@@ -662,6 +692,7 @@ double tEdge::getVEdgLen() const {return vedglen;}
 void tEdge::setRVtx( tArray< double > arr )
 {
    assert( &arr != 0 );
+   assert( arr.getSize() == 2 );
      //cout << "setRVtx for edge " << id
      //   << " to x, y, " << arr[0] << ", " << arr[1] << endl;
    rvtx = arr;
@@ -849,56 +880,56 @@ tTriangle::FindCircumcenter()
    xyd1 = pPtr(1)->get2DCoords();
    xyd2 = pPtr(2)->get2DCoords();
 
-      // Find the midpoints of the two sides (p0,p1) and (p0,p2) and store in 
-      // (x1,y1) & (x2,y2), then get the distance between p0 and the 
-      // midpoints of each side
-      x1 = (xyo[0] + xyd1[0]) / 2;
-      y1 = (xyo[1] + xyd1[1]) / 2;
-      x2 = (xyo[0] + xyd2[0]) / 2;
-      y2 = (xyo[1] + xyd2[1]) / 2;
-      dx1 = x1-xyo[0];
-      dy1 = y1-xyo[1];
-      dx2 = x2-xyo[0];
-      dy2 = y2-xyo[1];
+   // Find the midpoints of the two sides (p0,p1) and (p0,p2) and store in 
+   // (x1,y1) & (x2,y2), then get the distance between p0 and the 
+   // midpoints of each side
+   x1 = (xyo[0] + xyd1[0]) / 2;
+   y1 = (xyo[1] + xyd1[1]) / 2;
+   x2 = (xyo[0] + xyd2[0]) / 2;
+   y2 = (xyo[1] + xyd2[1]) / 2;
+   dx1 = x1-xyo[0];
+   dy1 = y1-xyo[1];
+   dx2 = x2-xyo[0];
+   dy2 = y2-xyo[1];
 
-      // Compute the intercept of the bisectors of the two sides:
-      // Case: neither spoke is horizontal (ok to divide by dy1 and dy2)
-      if( fabs(dy1)>0 && fabs(dy2)>0 )
+   // Compute the intercept of the bisectors of the two sides:
+   // Case: neither spoke is horizontal (ok to divide by dy1 and dy2)
+   if( fabs(dy1)>0 && fabs(dy2)>0 )
+   {
+      assert( dy1!=0 && dy2!=0 );
+      m1= -dx1/dy1;
+      m2 = -dx2/dy2;
+      assert( m1!=m2 ); // should never happen; means edges are parallel
+      xy[0] = (y2 - m2 * x2 - y1 + m1 * x1) / (m1 - m2);
+      xy[1] = m1 * (xy[0] - x1) + y1;
+   }
+   // Case: one spoke is horizontal, but neither are vertical
+   else if( dx1!=0 && dx2!=0 )
+   {
+      assert( dx1!=0 && dx2!=0 );
+      m1 = dy1/dx1;
+      m2 = dy2/dx2;
+      assert( m1!=m2 );
+      xy[1] = (m1 * y1 + x1 - m2 * y2 - x2) / (m1 - m2);
+      xy[0] = -xy[1] * m1 + m1 * y1 + x1;
+   }
+   // Special case: one is vertical, the other horizontal
+   else
+   {
+      if( dx1!=0 )
       {
-         assert( dy1!=0 && dy2!=0 );
-         m1= -dx1/dy1;
-         m2 = -dx2/dy2;
-         assert( m1!=m2 ); // should never happen; means edges are parallel
-         xy[0] = (y2 - m2 * x2 - y1 + m1 * x1) / (m1 - m2);
-         xy[1] = m1 * (xy[0] - x1) + y1;
+         xy[0] = xyo[0] + dx1;
+         xy[1] = xyo[1] + dy2;
+         assert( dx2==0 && dy1==0 );
       }
-      // Case: one spoke is horizontal, but neither are vertical
-      else if( dx1!=0 && dx2!=0 )
-      {
-         assert( dx1!=0 && dx2!=0 );
-         m1 = dy1/dx1;
-         m2 = dy2/dx2;
-         assert( m1!=m2 );
-         xy[1] = (m1 * y1 + x1 - m2 * y2 - x2) / (m1 - m2);
-         xy[0] = -xy[1] * m1 + m1 * y1 + x1;
-      }
-      // Special case: one is vertical, the other horizontal
       else
       {
-         if( dx1!=0 )
-         {
-            xy[0] = xyo[0] + dx1;
-            xy[1] = xyo[1] + dy2;
-            assert( dx2==0 && dy1==0 );
-         }
-         else
-         {
-            xy[0] = xyo[0] + dx2;
-            xy[1] = xyo[1] + dy1;
-            assert( dx1==0 && dy2==0 );
-         }
+         xy[0] = xyo[0] + dx2;
+         xy[1] = xyo[1] + dy1;
+         assert( dx1==0 && dy2==0 );
       }
-      assert( &xy != 0 );
+   }
+   assert( &xy != 0 );
 
    return xy;
 }

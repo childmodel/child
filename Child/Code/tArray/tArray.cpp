@@ -4,7 +4,7 @@
 **
 **  Functions for class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.2 1998-01-20 14:23:57 stlancas Exp $
+**  $Id: tArray.cpp,v 1.3 1998-02-12 23:24:08 stlancas Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -51,9 +51,18 @@ template< class T >                                               //tArray
 tArray< T >::
 tArray( const tArray< T > &original )
 {
+   int i;
    if( &original != 0 )
    {
+      cout << flush;
+      /*for( i = 0; i < original.npts; i++ )
+      {
+         cout << original.avalue[i] << " ";
+      }
+      cout << endl << flush;*/
+      
       npts = original.npts;
+      assert( npts > 0 );
       avalue = new T[npts];
       assert( avalue != 0 );
       for( int i = 0; i < npts; i++ )
