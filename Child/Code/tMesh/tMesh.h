@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.10 1998-06-04 21:26:14 gtucker Exp $
+**  $Id: tMesh.h,v 1.11 1998-07-15 22:24:56 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -81,7 +81,7 @@ public:
                       tPtrListIter< tSubNode > & );
     int AddEdge( tSubNode *, tSubNode *, tSubNode * );
      //add a node with referenced value/properties, update mesh connectivity
-    int AddNode( tSubNode & );
+    tSubNode *AddNode( tSubNode & );
      //add a generic node at the referenced coordinates
     tSubNode *AddNodeAt( tArray< double > & );
     tGridList<tEdge> * getEdgeList();
