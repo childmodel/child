@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.122 2003-09-05 14:24:13 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.123 2003-09-05 17:03:51 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -2098,7 +2098,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 	//  cout<<"93 is active"<<endl;
 	cn->setQsin(0.0); //totals are for ts calculation
 	cn->setQs(0.0);
-	cn->setQsin( zero );
+	cn->setQsin( sedzero );
 	for( i=0; i<cn->getNumg(); i++ ){
 	  cn->setQs(i,0.0);
 	}
@@ -2227,7 +2227,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
       // interaction it may be modified; if inlet, give it strmNet->inlet.inSedLoad
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
 	cn->setQsin(0.0);
-	cn->setQsin( zero );
+	cn->setQsin( sedzero );
       }
 
 
