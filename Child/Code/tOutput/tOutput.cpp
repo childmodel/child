@@ -9,7 +9,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.52 2002-04-23 14:44:42 arnaud Exp $
+**  $Id: tOutput.cpp,v 1.53 2002-04-24 12:05:08 arnaud Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -190,14 +190,11 @@ void tOutput<tSubNode>::WriteNodeData( double /* time */ )
 \*************************************************************************/
 template< class tSubNode >
 tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
-        tOutput<tSubNode>( meshPtr, infile ),  // call base-class constructor
-  nums("0123456789")
+  tOutput<tSubNode>( meshPtr, infile ),  // call base-class constructor
+  counter(0);
 {
    int opOpt;  // Optional modules: only output stuff when needed
-   //int optTSOutput;
    
-   counter=0;
-
    CreateAndOpenFile( &drareaofs, ".area" );
    CreateAndOpenFile( &netofs, ".net" );
    CreateAndOpenFile( &slpofs, ".slp" );
@@ -261,6 +258,9 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
 template< class tSubNode >
 void tLOutput<tSubNode>::WriteNodeData( double time )
 {
+   //for writing out layer info to different files at each time
+   const char* const nums("0123456789");
+
    tMeshListIter<tSubNode> ni( m->getNodeList() ); // node list iterator
    tSubNode *cn;   // current node
    int nActiveNodes = m->getNodeList()->getActiveSize(); // # active nodes

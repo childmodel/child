@@ -26,7 +26,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.27 2002-04-23 14:44:43 arnaud Exp $
+**  $Id: tOutput.h,v 1.28 2002-04-24 12:05:08 arnaud Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -129,7 +129,6 @@ private:
     int optTSOutput;     // temp
 
    int counter;
-   const char* const nums; //for writing out layer info to different files at each time
 };
 
 
