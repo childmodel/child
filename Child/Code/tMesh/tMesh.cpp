@@ -2,13 +2,9 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.7 1998-01-30 19:12:46 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.8 1998-01-31 19:12:48 stlancas Exp $
 \***************************************************************************/
 
-#include <assert.h>
-#include <math.h>
-#include "../tLNode/tLNode.h"
-#include "../Mathutil/mathutil.h"
 #include "tGrid.h"
 
 
@@ -101,9 +97,10 @@ int NewTriCCW( tTriangle *ct )
 //global function; determines whether coords are in "new" triangle
 int InNewTri( tArray< double > &xy, tTriangle *ct )
 {
+   int j;
    tLNode *vtx;
    tArray< double > xy1, xy2;
-   for( int j=0; j<3; j++ )
+   for( j=0; j<3; j++ )
    {
       vtx = (tLNode *) ct->pPtr(j);
       if( vtx->Meanders() ) xy1 = vtx->getNew2DCoords();
@@ -229,13 +226,13 @@ int Intersect( tEdge * ae, tEdge * be )
    if( !ae || !be )
    {
       cout<<"Intersect: Warning: invalid edge(s)"<<endl<<flush;
-      return( NULL );
+      return( 0 );
    }
    if( !ae->getOriginPtr() || !ae->getDestinationPtr() ||
        !be->getOriginPtr() || !be->getOriginPtr() )
    {
       cout<<"Intersect: Warning: invalid org or dest"<<endl<<flush;
-      return( NULL );
+      return( 0 );
    }
    lnode = (tLNode *) ae->getOriginPtrNC();
    tArray< double > aoc( lnode->get2DCoords() );
@@ -348,6 +345,7 @@ template< class tSubNode >
 tGrid< tSubNode >::
 tGrid( tListInputData< tSubNode > &input )                           //tGrid
 {
+   int i;
    seed = 0;
    // Assign number of nodes, edges, and triangles
    nnodes = input.x.getSize();
@@ -362,7 +360,7 @@ tGrid( tListInputData< tSubNode > &input )                           //tGrid
    // the back of the node list.
    // TODO: insertion position should depend on boundary flag
    tSubNode tempnode;
-   for( int i = 0; i< nnodes; i++ )
+   for( i = 0; i< nnodes; i++ )
    {
       tempnode.set3DCoords( input.x[i], input.y[i], input.z[i] );
       tempnode.setID( i );
@@ -487,6 +485,7 @@ tGrid( tListInputData< tSubNode > &input )                           //tGrid
 tGrid< tLNode >::
 tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                                         //tGrid
 {
+   int i;
    seed = 0;
    // Set the number of nodes, edges, and triangles in the grid mesh
    assert( lnodflag );
@@ -503,7 +502,7 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
    // the back of the node list.
    tLNode tempnode;
    int bound;
-   for( int i = 0; i< nnodes; i++ )
+   for( i = 0; i< nnodes; i++ )
    {
       tempnode.set3DCoords( input.x[i], input.y[i], input.z[i] );
       tempnode.setID( i );
