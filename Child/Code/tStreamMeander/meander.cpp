@@ -6,16 +6,12 @@
 #include <stdlib.h>
 
 #include <iostream.h>
+
+#include "meander.h"
+
 #define integer int
 #define doublereal double
 
-    extern void meander_(integer *stations, integer *stnserod, 
-	doublereal *x, doublereal *y, doublereal *xs, doublereal *dels, 
-	doublereal *flow, doublereal *rerody, doublereal *lerody, 
-        doublereal *slope, doublereal *width, doublereal *depth,
-        doublereal *diam, 
-	doublereal *delta_x__, doublereal *delta_y__, doublereal *rightdepth, 
-	doublereal *leftdepth, doublereal *lambda);
     static void forcelag_(integer *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
@@ -96,7 +92,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.1 2002-08-14 11:40:39 arnaud Exp $ */
+/*     $Id: meander.cpp,v 1.2 2002-08-14 13:30:27 arnaud Exp $ */
 
 void meander_(integer *stations, integer *stnserod, 
 	doublereal *x, doublereal *y, doublereal *xs, doublereal *dels, 
