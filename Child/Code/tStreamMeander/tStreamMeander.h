@@ -20,7 +20,7 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.33 2003-09-18 16:34:39 childcvs Exp $
+**  $Id: tStreamMeander.h,v 1.34 2003-10-15 09:22:20 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -120,7 +120,6 @@ protected:
     tArray< double > reachlen; // " , length of active reach in reach list
     tArray< double > taillen;  // " , length of inactive "tail" in reach list
     tRand *rand;
-  long seed;
 };
 
 #endif
