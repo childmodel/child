@@ -117,9 +117,9 @@ int point::operator < (const point& p) const {
 }
 
 #if defined(DEBUG_PRINT)
-void point::print () const {cout << x() << ' '<< y() <<endl;}
+void point::print () const {cout << x() << ' '<< y() << '\n';}
 #endif
-void point::write(ofstream& f) const {f<<x()<<' '<<y()<<endl;}
+void point::write(ofstream& f) const {f<<x()<<' '<<y()<< '\n';}
 
 
 #if defined(DEBUG_PRINT)

@@ -52,10 +52,10 @@ void sanity_check_ccwedge(int nedges, const edge* edges){
       assert( edges[iedge].to == edges[ccw_to.e()].from);
     else
       assert( edges[iedge].to == edges[ccw_to.e()].to);
-    
+
     if (0) //DEBUG
       cout << "edge=" << iedge
-	   << " ret=" << edges[iedge].ret 
+	   << " ret=" << edges[iedge].ret
 	   << " lef=" << edges[iedge].lef
 	   << " ccw_from=" << ccw_from.e()
 	   << " ccw_to=" << ccw_to.e()
@@ -102,7 +102,7 @@ void sanity_check_edge(const edge *edges){
     }
     assert(rightp==rightp2);
 
-    i++;      
+    i++;
   }
 }
 
@@ -111,10 +111,11 @@ void write_point(int npoints, const point* p)
 {
   ofstream file("points_sorted");
   file.precision(10);
-  file << npoints << endl;
+  file << npoints << '\n';
   for(int i=0;i<npoints;++i){
     p[i].write(file);
   }
+  file << flush;
 }
 static
 void write_edge(const edge *edges, const point* p)
@@ -124,13 +125,14 @@ void write_edge(const edge *edges, const point* p)
   int i=0;
   while(edges[i].from != edge::end ){
     edges[i].write(file,p);
-    file << "edge=" << i 
+    file << "edge=" << i
 	 << " pfrom=" << edges[i].from << " pto=" << edges[i].to
-	 << " let=" << edges[i].let << " lef=" << edges[i].lef 
-	 << " ret=" << edges[i].ret << " ref=" << edges[i].ref 
-	 << endl; 
+	 << " let=" << edges[i].let << " lef=" << edges[i].lef
+	 << " ret=" << edges[i].ret << " ref=" << edges[i].ref
+	 << '\n';
     i++;
   }
+  file << flush;
 }
 
 static
@@ -167,15 +169,16 @@ void generate_dataset(int n,point* p){
     for(int j=0;j<n;j++){
       p[i+j*n] = point(double(i)+double(rand())/RAND_MAX*n*1.e-3,
 		       double(j)+double(rand())/RAND_MAX*n*1.e-3);
-    } 
+    }
   }
   if (WRITE_FILES) {
     const long npoints=n*n;
     ofstream file("points_res");
-    file << npoints << endl;
+    file << npoints << '\n';
     for(int i=0;i<npoints;++i){
       p[i].write(file);
     }
+    file << flush;
   }
 }
 
