@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.186 2003-10-17 14:22:35 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.187 2003-11-14 16:38:36 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3898,7 +3898,7 @@ AddToList( tSubNode const & newNode )
   // active portion of the node list (if it's not a boundary) or the
   // boundary portion (if it is)
   tMeshListIter< tSubNode > nodIter( nodeList );
-  tSubNode *cn;
+  tSubNode *cn = 0;
   switch (newNode.getBoundaryFlag()){
   case kNonBoundary:
     nodeList.insertAtActiveBack( newNode );
