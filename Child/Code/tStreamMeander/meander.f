@@ -42,12 +42,13 @@ c     version 1.6: eliminated erroneous division by dels in shear
 c     stress calculation
 c                 1.7  8/11: debugged version SL
 c
-c     $Id: meander.f,v 1.2 1999-05-11 15:27:47 gtucker Exp $
+c     $Id: meander.f,v 1.3 2002-04-18 09:41:55 arnaud Exp $
 c
       subroutine meander (stations, stnserod, x, y, xs, dels, flow,  
      +                    rerody, lerody, slope, width, depth, 
      +                    diam, delta_x, delta_y, rightdepth, leftdepth,
      +                    lambda)
+      implicit none
       integer stnserod, stations, dmnsn
       parameter (dmnsn = 6000)
       real*8 dels(*),
@@ -104,10 +105,13 @@ c      print *, 'last reach node K = ', transfactor
 *
       subroutine initialize (stnserod, phi, x, y, 
      +                       delx, dely, rho, grav, width, lambda) 
+      implicit none
       integer stnserod, s
       real*8 phi(*), x(*), y(*), 
      +       delx(*), dely(*), 
      +       rho, grav, width(*), lambda(*)
+      real*8 angle
+      external angle
 c
 c     print *, 'stnserod in initialize:', stnserod
       rho = 1000.d0
@@ -137,6 +141,7 @@ c     print *, 'stnserod in initialize:', stnserod
      +                    curvature, dels, Acs, deln,
      +                    rightdepth, leftdepth, depth, vel, 
      +                    delx, dely, transfactor, transslope)
+      implicit none
 C
 C  xmagtransslope is the absolute value of the transverse bedslope (transslope)
 C  Acs is cross-sectional area of the half-channel at the inside of the bend
@@ -151,6 +156,7 @@ C
      +       grainshields, corner, delx(*), 
      +       dely(*), transfactor, rectchan, radh, 
      +       xmagtransslope
+      intrinsic log10, log
 C
       call getcurv (stnserod, stations, delx, dely, dels, curvature)
 c     print *, 'stnserod in channel:', stnserod
@@ -167,40 +173,44 @@ c          go back to H ~= R approx.
             end if
             vel(s) = flow(s) / depth(s) / width(s)
             shields = radh * slope(s) / 1.65d0 / diam(s) 
-            if (diam(s) .lt. 0.00015) critshields = 0.080d0	! s*=1.01
-            if (diam(s) .ge. 0.00015 .and. 
-     +          diam(s) .lt. 0.00025) critshields = 0.052d0	! s*=2.84
-            if (diam(s) .ge. 0.00025 .and. 
-     +          diam(s) .lt. 0.00035) critshields = 0.039d0	! s*=5.22
-            if (diam(s) .ge. 0.00035 .and. 
-     +          diam(s) .lt. 0.00045) critshields = 0.035d0	! s*=8.04
-            if (diam(s) .ge. 0.00045 .and. 
-     +          diam(s) .lt. 0.00055) critshields = 0.034d0	! s*=11.2
-            if (diam(s) .ge. 0.00055 .and. 
-     +          diam(s) .lt. 0.00065) critshields = 0.033d0	! s*=14.8
-            if (diam(s) .ge. 0.00065 .and. 
-     +          diam(s) .lt. 0.00075) critshields = 0.034d0	! s*=18.6
-            if (diam(s) .ge. 0.00075 .and. 
-     +          diam(s) .lt. 0.00085) critshields = 0.034d0	! s*=22.7
-            if (diam(s) .ge. 0.00085 .and.
-     +          diam(s) .lt. 0.00095) critshields = 0.034d0	! s*=27.1
-            if (diam(s) .ge. 0.00095 .and. 
-     +          diam(s) .lt. 0.0015) critshields = 0.035d0 	! s*=31.8
-            if (diam(s) .ge. 0.0015 .and.
-     +          diam(s) .lt. 0.0025) critshields = 0.045d0 	! s*=89.9
-            if (diam(s) .ge. 0.0025 .and.
-     +          diam(s) .lt. 0.0035) critshields = 0.050d0 	! s*=165.
-            if (diam(s) .ge. 0.0035 .and.
-     +          diam(s) .lt. 0.0045) critshields = 0.055d0      ! s*=254.
-            if (diam(s) .ge. 0.0045) critshields = 0.056d0      ! s*>=355
+            if (diam(s) .lt. 0.00015) then
+               critshields = 0.080d0 ! s*=1.01
+            else if (diam(s) .lt. 0.00025) then
+               critshields = 0.052d0 ! s*=2.84
+            else if (diam(s) .lt. 0.00035) then
+               critshields = 0.039d0 ! s*=5.22
+            else if (diam(s) .lt. 0.00045) then
+               critshields = 0.035d0 ! s*=8.04
+            else if (diam(s) .lt. 0.00055) then
+               critshields = 0.034d0 ! s*=11.2
+            else if (diam(s) .lt. 0.00065) then
+               critshields = 0.033d0 ! s*=14.8
+            else if (diam(s) .lt. 0.00075) then
+               critshields = 0.034d0 ! s*=18.6
+            else if (diam(s) .lt. 0.00085) then
+               critshields = 0.034d0 ! s*=22.7
+            else if (diam(s) .lt. 0.00095) then
+               critshields = 0.034d0 ! s*=27.1
+            else if (diam(s) .lt. 0.0015) then
+               critshields = 0.035d0 ! s*=31.8
+            else if (diam(s) .lt. 0.0025) then
+               critshields = 0.045d0 ! s*=89.9
+            else if (diam(s) .lt. 0.0035) then
+               critshields = 0.050d0 ! s*=165.
+            else if (diam(s) .lt. 0.0045) then
+               critshields = 0.055d0 ! s*=254.
+            else
+               critshields = 0.056d0 ! s*>=355
+            end if
 c           approximate Engelund diagram for subcritical flow:
-            if (shields .lt. 1.0 .and. shields .ge. 0.1) then
+            if (shields .ge. 0.1 .and. shields .lt. 1.0 ) then
                grainshields = 10.d0 ** (0.74d0 
      +                        * (log10(shields) + 1.03d0) ** 2.d0
      +                        - 1.18d0)
             else if (shields .ge. 1.0 .and. shields .lt. 2.0) then
                grainshields = 0.4d0 * shields ** 2.d0
-            else if (shields .ge. 2.0 .or. shields .lt. 0.1) then
+            else
+               ! if (shields .ge. 2.0 .or. shields .lt. 0.1) then
                grainshields = shields
             end if
             corner = 2.d0 * depth(s) / width(s)
@@ -249,12 +259,14 @@ c      transfactor = transfactor / depth(s)
 *
       subroutine getcurv (stnserod, stations, delx, dely, dels, 
      +                    curvature)
+      implicit none
 c     use law of cosines to find magnitude of angle, use cross 
 c     product to find sign of curvature
 c
       integer stnserod, stations, s
       real*8 delx(*), dely(*), dels(*), curvature(*), mag, sn, a, b, c,
      +       carg
+      intrinsic acos
 c
       do s = 2, stnserod - 1
          a = dels(s) 
@@ -304,6 +316,7 @@ c      curvature(stnserod - 1) = 0.d0
 *
       subroutine forcelag (stnserod, stations, rho, vel, depth, width, 
      +                     latforce, lag, curvature, Acs, dels, deln)
+      implicit none
 c
 C     calculate lateral force and downstream lag:
 c
@@ -313,6 +326,7 @@ c
      +       Acs(*), dels(*), deln(*), 
      +       forcefactor, xmagcurvep1, xmagcurve, latvel,
      +       delAcs
+      intrinsic cos
 c
       if (stations .ne. stnserod) then
          do s = 1, stations - 1
@@ -399,15 +413,17 @@ c
      +                      lag, latforce, dels, phi, curvature, 
      +                      depth, spreaddelta_x, spreaddelta_y,
      +                      rightdepth, leftdepth, xs, tauwall)
+      implicit none
 C
-      integer stnserod, stations, s
+      integer stnserod, stations, s, sp
       real*8 lambda(*), width(*), lag(*), 
      +       latforce(*), dels(*), phi(*), 
      +       curvature(*), depth(*), spreaddelta_x(*), 
      +       spreaddelta_y(*), rightdepth(*),
      +       leftdepth(*), xs(*),
      +       tauwall(*), gaussfactor, xstrt,
-     +       xdel, xdepth, gaussian, xdest, tenlambda
+     +       xdel, xdepth, gaussian, xdest, tenlambda, xtrmnt
+      intrinsic cos, sin, exp
 c
       do s = 1, stnserod
          tauwall(s) = 0.d0
@@ -477,6 +493,7 @@ C
       subroutine changeposition (stnserod, stations, lerody, rerody,  
      +                     spreaddelta_x, spreaddelta_y, delx, dely, 
      +                     depth, delta_x, delta_y)
+      implicit none
 c
 C     change channel position:
 c
@@ -505,9 +522,11 @@ c         print *,s,delta_x(s),delta_y(s)
 *
 *
 *
-      real function angle (y, x)
+      real*8 function angle (y, x)
+      implicit none
       real*8 y, x
-      if (x .ne. 0.0 .or. y .ne. 0.0) then
+      intrinsic atan2
+      if (x .ne. 0.0d0 .or. y .ne. 0.0d0) then
          angle = atan2(y, x)
       else
          angle = 0.0
