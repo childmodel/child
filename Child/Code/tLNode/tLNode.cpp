@@ -4,11 +4,12 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.31 1998-04-09 21:33:20 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.32 1998-04-09 22:39:17 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
 #include <math.h>
+#include "../errors/errors.h"
 #include "tLNode.h"
 
 /*************************************************************************
@@ -665,10 +666,12 @@ double tLNode::GetQ()
 **   use a reach slope everywhere, then we need to also calculate the
 **   hydraulic geometry everywhere.
 \************************************************************************/
+#define kLargeNumber 10000000
 double tLNode::GetSlope()
 {
+   int ctr;
    double rlen, curlen, slp;
-   tLNode *dn, *on;
+   tLNode *dn, *on, *tn;
    assert( flowedge != 0 );
    assert( flowedge->getLength()>0 ); // failure means lengths not init'd
    if( Meanders() )
@@ -676,16 +679,30 @@ double tLNode::GetSlope()
       rlen = 10.0 * chan.chanwidth;
       curlen = 0.0;
       dn = this;
-      while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary )
+      ctr = 0;
+      while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary &&
+             dn->flowedge->getLength() > 0 )
       {
+         ctr++;
+         if( ctr > kLargeNumber )
+         {
+            ReportFatalError("infinite loop in tLNode::GetSlope(), 1st loop");
+         }
          curlen += dn->flowedge->getLength();
          dn = dn->GetDownstrmNbr();
       }
       assert( curlen > 0 );
       slp = (z - dn->z) / curlen;
       on = dn;
-      while( on->getBoundaryFlag() == kNonBoundary )
+      ctr = 0;
+      while( on->getBoundaryFlag() == kNonBoundary &&
+             on->flowedge->getLength() > 0 )
       {
+         ctr++;
+         if( ctr > kLargeNumber )
+         {
+            ReportFatalError("infinite loop in tLNode::GetSlope(), 2nd loop");
+         }
          on = on->GetDownstrmNbr();
       }
       if( z - on->z < 0.0 ) slp = 0.0;
@@ -694,6 +711,7 @@ double tLNode::GetSlope()
    if( slp>=0.0 ) return slp;
    else return 0.0;
 }
+#undef kLargeNumber
 
 double tLNode::GetDSlopeDt()
 {

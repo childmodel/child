@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.27 1998-03-26 01:38:20 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.28 1998-04-09 22:41:49 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2610,7 +2610,15 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    
    ntri++;
    
-   //reset triangle id's (why needed??)
+   //reset triangle id's (why needed??) because when we make a new item of any kind we
+     //give it an id; how do we know what id to use (i.e., what's large enough but not
+     //too large)? we find the id of the last item in the list and add one; if the items
+     //in the list have been "mixed up", then we could assign an id already in use;
+     //also, if for some reason numbers are systematically skipped, the id could blow up;
+     //this step
+     //may not be strictly necessary for triangles (it is for nodes and edges where
+     //we have active and inactive members), but I'm sure it doesn't hurt; better safe
+     //than sorry...
    for( ct = triIter.FirstP(), i=0; !( triIter.AtEnd() );
         ct = triIter.NextP(), i++ )
    {
@@ -2621,6 +2629,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
 }
 
 /*  AddNode: add a node with value/properties of referenced node   */
+#define kLargeNumber 1000000000
 template< class tSubNode >
 int tGrid< tSubNode >::
 AddNode( tSubNode &nodeRef )
@@ -2632,7 +2641,7 @@ AddNode( tSubNode &nodeRef )
    //cout << "locate tri" << endl << flush;
    tri = LocateTriangle( xyz[0], xyz[1] );
    assert( tri != 0 );  //if( tri == 0 ) return 0;
-   int i, j, k;
+   int i, j, k, ctr;
    tGridListIter< tSubNode > nodIter( nodeList );
    tSubNode *cn;
 
@@ -2672,7 +2681,8 @@ AddNode( tSubNode &nodeRef )
    tArray< double > p1( node1->get2DCoords() ),
        p2( node2->get2DCoords() ), p3( node3->get2DCoords() ),
        p4( node4->get2DCoords() );
-   if( xyz.getSize() == 3) //why would this ever not be the case?
+   if( xyz.getSize() == 3) //why would this ever not be the case? If we need to access new coords:
+                           //size of xyz is basically the flag; the 4th element is never used o.w.
    {
       cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
            << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
@@ -2733,8 +2743,17 @@ AddNode( tSubNode &nodeRef )
       triptrList.insertAtBack( triIter.PrevP() );
         //check list for flips; if flip, put new triangles at end of list
       int flip = 1;
+      ctr = 0;
       while( !( triptrList.isEmpty() ) )
       {
+         ctr++;
+         if( ctr > kLargeNumber ) // Make sure to prevent endless loops
+         {
+            cerr << "Mesh error: adding node " << node2->getID()
+                 << " flip checking forever"
+                 << endl;
+            ReportFatalError( "Bailing out of AddNode()" );
+         }
          ct = triptrIter.FirstP();
          for( i=0; i<3; i++ )
          {
@@ -2776,7 +2795,7 @@ AddNodeAt( tArray< double > &xyz )
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
    else tri = LocateNewTriangle( xyz[0], xyz[1] );
    if( tri == 0 ) return 0;
-   int i, j, k;
+   int i, j, k, ctr;
    tGridListIter< tSubNode > nodIter( nodeList );
    tSubNode tempNode, *cn;
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );
@@ -2862,8 +2881,17 @@ AddNodeAt( tArray< double > &xyz )
       triptrList.insertAtBack( triIter.PrevP() );
         //check list for flips; if flip, put new triangles at end of list
       int flip = 1;
+      ctr = 0;
       while( !( triptrList.isEmpty() ) )
       {
+         ctr++;
+         if( ctr > kLargeNumber ) // Make sure to prevent endless loops
+         {
+            cerr << "Mesh error: adding node " << node2->getID()
+                 << " flip checking forever"
+                 << endl;
+            ReportFatalError( "Bailing out of AddNodeAt()" );
+         }
          ct = triptrIter.FirstP();
          for( i=0; i<3; i++ )
          {
@@ -2890,7 +2918,7 @@ AddNodeAt( tArray< double > &xyz )
    //cout << "AddNodeAt finished, " << nnodes << endl;
    return node2;
 }
-
+#undef kLargeNumber
 
 template <class tSubNode>
 tGridList<tEdge> * tGrid<tSubNode>::
