@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 **
-**  $Id: tLNode.cpp,v 1.112 2003-07-18 17:51:49 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.113 2003-08-05 13:14:07 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -564,13 +564,6 @@ void tLNode::setRock( const tBedrock & val ) {rock = val;}
 void tLNode::setReg( const tRegolith & val ) {reg = val;}
 void tLNode::setChan( const tChannel & val ) {chan = val;}
 
-int tLNode::getFloodStatus() const { return flood; }
-
-void tLNode::setFloodStatus( int status )
-{
-   flood = status;
-}
-
 tEdge * tLNode::getFlowEdg()
 {
    return flowedge;
@@ -585,13 +578,6 @@ void tLNode::setFlowEdg( tEdge * newflowedge )
 void tLNode::setDrArea( double val ) {chan.drarea = val;}
 void tLNode::AddDrArea( double val ) {chan.drarea += val;}
 void tLNode::AddDischarge( double val ) {chan.q += val;}
-
-tLNode * tLNode::getDownstrmNbr()
-{
-   //assert( flowedge!=0 );
-   if( flowedge == 0 ) return 0;
-   return static_cast<tLNode *>(flowedge->getDestinationPtrNC());
-}
 
 bool tLNode::Meanders() const {return chan.migration.meander;}
 void tLNode::setMeanderStatus( bool val )

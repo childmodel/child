@@ -26,7 +26,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.67 2003-07-16 12:24:12 childcvs Exp $
+**  $Id: tLNode.h,v 1.68 2003-08-05 13:14:09 childcvs Exp $
 */
 /************************************************************************/
 
@@ -386,20 +386,20 @@ public:
    //tLNode *newnode = new tLNode( *oldtLNode );
     ~tLNode();
     const tLNode &operator=( const tLNode & );
-    tVegCover &getVegCover();
+    inline tVegCover &getVegCover();
     const tBedrock &getRock() const;
     const tRegolith &getReg() const;
     const tChannel &getChan() const;
-    int getFloodStatus() const;
-    void setFloodStatus( int status );
+    inline int getFloodStatus() const;
+    inline void setFloodStatus( int status );
     tEdge * getFlowEdg();
     void setFlowEdg( tEdge * );
     void setDrArea( double );
-    void setFlowPathLength( double );
-    double getFlowPathLength() const;
+    inline void setFlowPathLength( double );
+    inline double getFlowPathLength() const;
     void AddDrArea( double );
     void AddDischarge( double );
-    tLNode * getDownstrmNbr();
+    inline tLNode * getDownstrmNbr();
     double getQ() const;  // Gets total discharge from embedded chan obj
    // fluvial discharge is in now in m^3/YR 
     double getSlope();    // Computes and returns slope in flow direction
@@ -435,7 +435,7 @@ public:
     void setLatDisplace( double, double );      //        "
     void addLatDisplace( double, double );      //        "
     void setRock( const tBedrock & );
-    void setVegCover( const tLNode * );
+    inline void setVegCover( const tLNode * );
     void setReg( const tRegolith & );
     void setChan( const tChannel & );
     void setDischarge( double );
@@ -488,9 +488,9 @@ public:
    double getDrDt() const;
    void setDrDt( double );
    double getTau() const;
-   void setTau( double );
-   double getTauCrit() const;
-   void setTauCrit( double );
+   inline void setTau( double );
+   inline double getTauCrit() const;
+   inline void setTauCrit( double );
    void setUplift( double );
    double getUplift() const;
    int getNumg() const;
@@ -584,16 +584,30 @@ protected:
    static double KRnew;
 };
 
+inline int tLNode::getFloodStatus() const { return flood; }
+
+inline void tLNode::setFloodStatus( int status )
+{
+   flood = status;
+}
+
+inline tLNode * tLNode::getDownstrmNbr()
+{
+   return ( flowedge != 0 ) ?
+     static_cast<tLNode *>(flowedge->getDestinationPtrNC()):
+     0;
+}
+
 inline double tLNode::getTau() const { return tau; }
 
-inline void tLNode::setTau( double newtau ) 
+inline void tLNode::setTau( double newtau )
 {
    tau = newtau;
 }
 
 inline double tLNode::getTauCrit() const { return tauc; }
 
-inline void tLNode::setTauCrit( double newtauc ) 
+inline void tLNode::setTauCrit( double newtauc )
 {
    tauc = newtauc;
 }
