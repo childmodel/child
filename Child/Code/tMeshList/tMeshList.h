@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.27 2004-04-19 13:01:08 childcvs Exp $
+**  $Id: tMeshList.h,v 1.28 2004-04-22 14:42:43 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -255,7 +255,7 @@ void tMeshList< NodeType, ListNodeType >::
 insertAtBoundFront( const NodeType &value )
 {
    // Case list empty or active part of list empty:
-   if( isEmpty() || lastactive==0 )
+   if( this->isEmpty() || lastactive==0 )
    {
       tList< NodeType, ListNodeType >::insertAtFront( value );
       return;
@@ -458,13 +458,13 @@ moveToActiveBack( ListNodeType * mvnode )
       if( mvnode->getDataPtr()->getBoundaryFlag() != kNonBoundary )
           ++nActiveNodes;
       // Detach mvnode from its position on the list:
-      if( mvnode == first ) {
-	assert( first->next );
-	first = first->next;
+      if( mvnode == this->first ) {
+	assert( this->first->next );
+	this->first =this-> first->next;
       }
-      if( mvnode == last ) {
-	assert( last->prev );
-	last = last->prev;
+      if( mvnode == this->last ) {
+	assert( this->last->prev );
+	this->last = this->last->prev;
       }
       if( mvnode->prev ) mvnode->prev->next = mvnode->next;
       if( mvnode->next ) mvnode->next->prev = mvnode->prev;
@@ -474,7 +474,7 @@ moveToActiveBack( ListNodeType * mvnode )
       if( lastactive->next ) lastactive->next->prev = mvnode;
       lastactive->next = mvnode;
       // set lastactive and, if necessary last
-      if( lastactive == last ) last = mvnode;
+      if( lastactive == this->last ) this->last = mvnode;
       lastactive = mvnode;
    }
 }
@@ -506,13 +506,13 @@ moveToBoundFront( ListNodeType * mvnode )
       if( mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
           --nActiveNodes;
       // Detach mvnode from its position on the list:
-      if( mvnode == first ) {
-         assert( first->next );
-	 first = first->next;
+      if( mvnode == this->first ) {
+         assert( this->first->next );
+	 this->first = this->first->next;
       }
-      if( mvnode == last ) {
-         assert( last->prev );
-	 last = last->prev;
+      if( mvnode == this->last ) {
+         assert( this->last->prev );
+	 this->last = this->last->prev;
       }
       if( mvnode->prev ) mvnode->prev->next = mvnode->next;
       if( mvnode->next ) mvnode->next->prev = mvnode->prev;
@@ -521,7 +521,7 @@ moveToBoundFront( ListNodeType * mvnode )
       mvnode->prev = lastactive;
       if( lastactive->next ) lastactive->next->prev = mvnode;
       lastactive->next = mvnode;
-      if( lastactive == last ) last = mvnode;
+      if( lastactive == this->last ) this->last = mvnode;
    }
 }
 

@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.96 2004-04-19 16:23:47 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.97 2004-04-22 14:43:01 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -209,11 +209,11 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr,
   tOutputBase<tSubNode>( meshPtr, infile ),  // call base-class constructor
   CanonicalNumbering(true)
 {
-  CreateAndOpenFile( &nodeofs, SNODES );
-  CreateAndOpenFile( &edgofs, SEDGES );
-  CreateAndOpenFile( &triofs, STRI );
-  CreateAndOpenFile( &zofs, SZ );
-  CreateAndOpenFile( &vaofs, SVAREA );
+  this->CreateAndOpenFile( &nodeofs, SNODES );
+  this->CreateAndOpenFile( &edgofs, SEDGES );
+  this->CreateAndOpenFile( &triofs, STRI );
+  this->CreateAndOpenFile( &zofs, SZ );
+  this->CreateAndOpenFile( &vaofs, SVAREA );
 }
 
 
@@ -238,12 +238,12 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr,
 template< class tSubNode >
 void tOutput<tSubNode>::WriteOutput( double time )
 {
-  typename tMesh< tSubNode >::nodeListIter_t niter( m->getNodeList() ); // node list iterator
-  typename tMesh< tSubNode >::edgeListIter_t eiter( m->getEdgeList() ); // edge list iterator
-  typename tMesh< tSubNode >::triListIter_t titer( m->getTriList() );   // tri list iterator
-  const int nnodes = m->getNodeList()->getSize();  // # of nodes on list
-  const int nedges = m->getEdgeList()->getSize();  // "    edges "
-  const int ntri = m->getTriList()->getSize();     // "    triangles "
+  typename tMesh< tSubNode >::nodeListIter_t niter( this->m->getNodeList() ); // node list iterator
+  typename tMesh< tSubNode >::edgeListIter_t eiter( this->m->getEdgeList() ); // edge list iterator
+  typename tMesh< tSubNode >::triListIter_t titer( this->m->getTriList() );   // tri list iterator
+  const int nnodes = this->m->getNodeList()->getSize();  // # of nodes on list
+  const int nedges = this->m->getEdgeList()->getSize();  // "    edges "
+  const int ntri = this->m->getTriList()->getSize();     // "    triangles "
 
   if (1)//DEBUG
     cout << "tOutput::WriteOutput() time=" << time << endl;
@@ -252,42 +252,42 @@ void tOutput<tSubNode>::WriteOutput( double time )
   if (!CanonicalNumbering)
     RenumberIDInListOrder();
   else
-    m->RenumberIDCanonically();
+    this->m->RenumberIDCanonically();
 
   // Write node file, z file, and varea file
-  WriteTimeNumberElements( nodeofs, time, nnodes);
-  WriteTimeNumberElements( zofs, time, nnodes);
-  WriteTimeNumberElements( vaofs, time, nnodes);
+  this->WriteTimeNumberElements( nodeofs, time, nnodes);
+  this->WriteTimeNumberElements( zofs, time, nnodes);
+  this->WriteTimeNumberElements( vaofs, time, nnodes);
   if (!CanonicalNumbering) {
     for( tNode *cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
       WriteNodeRecord( cn );
   } else {
     // write nodes in ID order
-    typename tMesh< tSubNode >::tIdArrayNode_t  RNode(*(m->getNodeList()));
+    typename tMesh< tSubNode >::tIdArrayNode_t  RNode(*(this->m->getNodeList()));
     for( int i=0; i<nnodes; ++i )
       WriteNodeRecord( RNode[i] );
   }
 
   // Write edge file
-  WriteTimeNumberElements( edgofs, time, nedges);
+  this->WriteTimeNumberElements( edgofs, time, nedges);
   if (!CanonicalNumbering) {
     for( tEdge *ce=eiter.FirstP(); !(eiter.AtEnd()); ce=eiter.NextP() )
       WriteEdgeRecord( ce );
   } else {
     // write edges in ID order
-    typename tMesh< tSubNode >::tIdArrayEdge_t REdge(*(m->getEdgeList()));
+    typename tMesh< tSubNode >::tIdArrayEdge_t REdge(*(this->m->getEdgeList()));
     for( int i=0; i<nedges; ++i )
       WriteEdgeRecord( REdge[i] );
   }
 
   // Write triangle file
-  WriteTimeNumberElements( triofs, time, ntri);
+  this->WriteTimeNumberElements( triofs, time, ntri);
   if (!CanonicalNumbering) {
     for( tTriangle *ct=titer.FirstP(); !(titer.AtEnd()); ct=titer.NextP() )
       WriteTriangleRecord( ct );
   } else {
     // write triangles in ID order
-    typename tMesh< tSubNode >::tIdArrayTri_t RTri(*(m->getTriList()));
+    typename tMesh< tSubNode >::tIdArrayTri_t RTri(*(this->m->getTriList()));
     for( int i=0; i<ntri; ++i ) {
       assert( RTri[i]->isIndexIDOrdered() );
       WriteTriangleRecord( RTri[i] );
@@ -318,9 +318,9 @@ void tOutput<tSubNode>::WriteOutput( double time )
 template< class tSubNode >
 void tOutput<tSubNode>::RenumberIDInListOrder()
 {
-  m->ResetNodeID();
-  m->ResetEdgeID();
-  m->ResetTriangleID();
+  this->m->ResetNodeID();
+  this->m->ResetEdgeID();
+  this->m->ResetTriangleID();
 }
 
 /*************************************************************************\
@@ -358,24 +358,24 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
   Surfer(false)
 {
   int opOpt;  // Optional modules: only output stuff when needed
-  CreateAndOpenFile( &randomofs, SRANDOM );
-  CreateAndOpenFile( &drareaofs, ".area" );
-  CreateAndOpenFile( &netofs, ".net" );
-  CreateAndOpenFile( &slpofs, ".slp" );
-  CreateAndOpenFile( &qofs, ".q" );
-  CreateAndOpenFile( &texofs, ".tx" );
-  CreateAndOpenFile( &tauofs, ".tau" );
+  this->CreateAndOpenFile( &randomofs, SRANDOM );
+  this->CreateAndOpenFile( &drareaofs, ".area" );
+  this->CreateAndOpenFile( &netofs, ".net" );
+  this->CreateAndOpenFile( &slpofs, ".slp" );
+  this->CreateAndOpenFile( &qofs, ".q" );
+  this->CreateAndOpenFile( &texofs, ".tx" );
+  this->CreateAndOpenFile( &tauofs, ".tau" );
 
   // Vegetation cover: if dynamic vegetation option selected
   if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) != 0)
-    CreateAndOpenFile( &vegofs, SVEG );
+    this->CreateAndOpenFile( &vegofs, SVEG );
 
   // Flow depth: if kinematic wave option used OR if channel geometry
   // model other than "regime" used
   if( (static_cast<kFlowGen_t>(opOpt = infile.ReadItem( opOpt, "FLOWGEN" ))
        == k2DKinematicWave )
       || (opOpt = infile.ReadItem( opOpt, "CHAN_GEOM_MODEL"))>1 )
-    CreateAndOpenFile( &flowdepofs, ".dep" );
+    this->CreateAndOpenFile( &flowdepofs, ".dep" );
 
   // Time-series output: if requested
   if( (opOpt = infile.ReadItem( opOpt, "OPTTSOUTPUT" ) ) != 0) {
@@ -385,17 +385,17 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
   // Channel width output: if the channel geometry model is other
   // than 1 (code for empirical regime channels)
   if( (opOpt = infile.ReadItem( opOpt, "CHAN_GEOM_MODEL" ) ) > 1 )
-    CreateAndOpenFile( &chanwidthofs, ".chanwid" );
+    this->CreateAndOpenFile( &chanwidthofs, ".chanwid" );
 
   // Flow path length output: if using hydrograph peak method for
   // computing discharge
   if( static_cast<kFlowGen_t>(opOpt = infile.ReadItem( opOpt, "FLOWGEN" ))
       == kHydrographPeakMethod )
-    CreateAndOpenFile( &flowpathlenofs, ".fplen" );
+    this->CreateAndOpenFile( &flowpathlenofs, ".fplen" );
 
   // Sediment flux: if not using detachment-limited option
   if( (opOpt = infile.ReadItem( opOpt, "OPTDETACHLIM" ) ) == 0)
-    CreateAndOpenFile( &qsofs, ".qs" );
+    this->CreateAndOpenFile( &qsofs, ".qs" );
 
   // If Rectangular Stratigraphy Grid, open several files
   // for writing the stratigraphy at fixed positions
@@ -447,9 +447,9 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   //for writing out layer info to different files at each time
   const char* const nums("0123456789");
 
-  typename tMesh< tSubNode >::nodeListIter_t ni( m->getNodeList() ); // node list iterator
-  const int nActiveNodes = m->getNodeList()->getActiveSize(); // # active nodes
-  const int nnodes = m->getNodeList()->getSize(); // total # nodes
+  typename tMesh< tSubNode >::nodeListIter_t ni( this->m->getNodeList() ); // node list iterator
+  const int nActiveNodes = this->m->getNodeList()->getActiveSize(); // # active nodes
+  const int nnodes = this->m->getNodeList()->getSize(); // total # nodes
 
   //taking care of layer and x,y,z file, since new one each time step
   char ext[7];
@@ -460,7 +460,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
     strncat(ext, &nums[counter/10], 1);
     strncat(ext, &nums[static_cast<int>( fmod(static_cast<double>(counter),10.0) )], 1);
   }
-  CreateAndOpenFile( &layofs, ext );
+  this->CreateAndOpenFile( &layofs, ext );
 #define MY_EXT ".surf"
   char extt[sizeof(MY_EXT)+10];  // name of file to be created
 
@@ -468,38 +468,38 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
 #undef MY_EXT
 
   if(Surfer)
-    CreateAndOpenFile( &surfofs, extt );
+    this->CreateAndOpenFile( &surfofs, extt );
 
   // *Counter that counts the number of write timesteps* 
   counter++;
 
   // Write current time in each file
-  WriteTimeNumberElements( randomofs, time, rand->numberRecords());
-  WriteTimeNumberElements( drareaofs, time, nActiveNodes);
-  WriteTimeNumberElements( netofs, time, nActiveNodes);
-  WriteTimeNumberElements( slpofs, time, nnodes);
-  WriteTimeNumberElements( qofs, time, nnodes);
-  WriteTimeNumberElements( layofs, time, nActiveNodes);
-  WriteTimeNumberElements( texofs, time, nnodes);
+  this->WriteTimeNumberElements( randomofs, time, rand->numberRecords());
+  this->WriteTimeNumberElements( drareaofs, time, nActiveNodes);
+  this->WriteTimeNumberElements( netofs, time, nActiveNodes);
+  this->WriteTimeNumberElements( slpofs, time, nnodes);
+  this->WriteTimeNumberElements( qofs, time, nnodes);
+  this->WriteTimeNumberElements( layofs, time, nActiveNodes);
+  this->WriteTimeNumberElements( texofs, time, nnodes);
   if( surfofs.good() )
-    WriteTimeNumberElements( surfofs, time, nActiveNodes);
+    this->WriteTimeNumberElements( surfofs, time, nActiveNodes);
 
-  WriteTimeNumberElements( tauofs, time, nnodes);
+  this->WriteTimeNumberElements( tauofs, time, nnodes);
   if( vegofs.good() )
-    WriteTimeNumberElements( vegofs, time, nnodes);
+    this->WriteTimeNumberElements( vegofs, time, nnodes);
   if( flowdepofs.good() )
-    WriteTimeNumberElements( flowdepofs, time, nnodes);
+    this->WriteTimeNumberElements( flowdepofs, time, nnodes);
   if( chanwidthofs.good() )
-    WriteTimeNumberElements( chanwidthofs, time, nnodes);
+    this->WriteTimeNumberElements( chanwidthofs, time, nnodes);
   if( flowpathlenofs.good() )
-    WriteTimeNumberElements( flowpathlenofs, time, nnodes);
+    this->WriteTimeNumberElements( flowpathlenofs, time, nnodes);
   if( qsofs.good() )
-    WriteTimeNumberElements( qsofs, time, nnodes);
+    this->WriteTimeNumberElements( qsofs, time, nnodes);
 
   // Write Random number generator state
   rand->dumpToFile( randomofs );
   // Write data
-  if (!CanonicalNumbering) {
+  if (!this->CanonicalNumbering) {
     tSubNode *cn;   // current node
     for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       WriteActiveNodeData( cn );
@@ -507,7 +507,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       WriteAllNodeData( cn );
   } else {
     // write in node ID order
-    typename tMesh< tSubNode >::tIdArrayNode_t RNode(*(m->getNodeList()));
+    typename tMesh< tSubNode >::tIdArrayNode_t RNode(*(this->m->getNodeList()));
     int i;
     for( i=0; i<nActiveNodes; ++i )
       WriteActiveNodeData( RNode[i] );
@@ -587,11 +587,11 @@ tTSOutputImp<tSubNode>::tTSOutputImp( tMesh<tSubNode> *meshPtr,
 {
   int opOpt;  // Optional modules: only output stuff when needed
 
-  CreateAndOpenFile( &volsofs, ".vols" );
-  CreateAndOpenFile( &dvolsofs, ".dvols" );
+  this->CreateAndOpenFile( &volsofs, ".vols" );
+  this->CreateAndOpenFile( &dvolsofs, ".dvols" );
   if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) != 0)
-    CreateAndOpenFile( &vegcovofs, ".vcov" );
-  CreateAndOpenFile( &tareaofs, ".tarea" );
+    this->CreateAndOpenFile( &vegcovofs, ".vcov" );
+  this->CreateAndOpenFile( &tareaofs, ".tarea" );
 }
 
 /*************************************************************************\
@@ -606,7 +606,7 @@ tTSOutputImp<tSubNode>::tTSOutputImp( tMesh<tSubNode> *meshPtr,
 template< class tSubNode >
 void tTSOutputImp<tSubNode>::WriteTSOutput()
 {
-  typename tMesh< tSubNode >::nodeListIter_t niter( m->getNodeList() ); // node list iterator
+  typename tMesh< tSubNode >::nodeListIter_t niter( this->m->getNodeList() ); // node list iterator
 
   tSubNode * cn;       // current node
 
@@ -663,7 +663,7 @@ tStratOutputImp<tSubNode>::tStratOutputImp(tMesh<tSubNode> * meshPtr,
     for(int s=0; s<nSections;++s){
       char prefix[10];
       sprintf(prefix, ".xyz%d", s+1);
-      CreateAndOpenFile( &xyzofs[s], prefix );
+      this->CreateAndOpenFile( &xyzofs[s], prefix );
     }
   }
 
@@ -672,7 +672,7 @@ tStratOutputImp<tSubNode>::tStratOutputImp(tMesh<tSubNode> * meshPtr,
     for(int s=0; s<nSections;++s){
       char prefix[10];
       sprintf(prefix, ".layt3%d", s+1);
-      CreateAndOpenFile( &layt3ofs[s], prefix );
+      this->CreateAndOpenFile( &layt3ofs[s], prefix );
     }
   }
 
@@ -681,18 +681,18 @@ tStratOutputImp<tSubNode>::tStratOutputImp(tMesh<tSubNode> * meshPtr,
     for(int s=0; s<nSections;++s){
       char prefix[10];
       sprintf(prefix, ".layt4%d", s+1);
-      CreateAndOpenFile( &layt4ofs[s], prefix );
+      this->CreateAndOpenFile( &layt4ofs[s], prefix );
     }
   }
 
   // Subsurface gravel bodies xyz and layers
-  CreateAndOpenFile( &grxyzofs, ".xyz");
-  CreateAndOpenFile( &gravofs, ".grav");
+  this->CreateAndOpenFile( &grxyzofs, ".xyz");
+  this->CreateAndOpenFile( &gravofs, ".grav");
 
   //Preservation potential files
-  CreateAndOpenFile( &psurfofs,".presSurface");
-  CreateAndOpenFile( &pssurfofs,".presSubsurface");
-  CreateAndOpenFile( &pssurf2ofs,".presSubsurface2");
+  this->CreateAndOpenFile( &psurfofs,".presSurface");
+  this->CreateAndOpenFile( &pssurfofs,".presSubsurface");
+  this->CreateAndOpenFile( &pssurf2ofs,".presSubsurface2");
 }
 
 /***********************************************************************\
@@ -734,13 +734,13 @@ void tStratOutputImp<tSubNode>::WriteSingleSection(double time,
   // in every file, the Matlab routine
   // needs to know this
   //-------------------------------
-  WriteTimeNumberElements(xyzofs, time, vmax);
+  this->WriteTimeNumberElements(xyzofs, time, vmax);
 
   // Texture sections
-  WriteTimeNumberElements(layt3ofs, time, vmax);
+  this->WriteTimeNumberElements(layt3ofs, time, vmax);
 
   // Facies sections
-  WriteTimeNumberElements(layt4ofs, time, vmax);
+  this->WriteTimeNumberElements(layt4ofs, time, vmax);
 
   //---------------------------------------------------------------------
   // Section 'section'
@@ -807,7 +807,7 @@ void tStratOutputImp<tSubNode>::WriteGravelBodies(double time, int counter_)
 
   sprintf( ext, "%s%d", MY_EXT, counter_ );
 #undef MY_EXT
-  CreateAndOpenFile( &gravelmapofs, ext );
+  this->CreateAndOpenFile( &gravelmapofs, ext );
 
   const int imax = stratGrid->getImax();
   const int jmax = stratGrid->getJmax();
@@ -1080,7 +1080,7 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
 
   sprintf( ext, "%s%d", MY_EXT, counter_ );
 #undef MY_EXT
-  CreateAndOpenFile( &topofs, ext );
+  this->CreateAndOpenFile( &topofs, ext );
 
   //File header, time and what's in the column below
   topofs<<time<<'\n';
@@ -1324,7 +1324,7 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
    //				   -Timeslice3  -preservation .....
   \************************************************************************/
   pssurf2ofs.close();					    // close the existing pssurf2ofs file
-  CreateAndOpenFile( &pssurf2ofs,".presSubsurface2");       // overwrites the existing file (emty & rewrite)
+  this->CreateAndOpenFile( &pssurf2ofs,".presSubsurface2");       // overwrites the existing file (emty & rewrite)
 
   pssurf2ofs<<time<<'\n';
   pssurf2ofs<<"T_unit"<<' '<<"p_fldpl"<<' '<<"vol_fldpl"<<' '<<"p_mbelt"<<' '<<"vol_mbelt"<<'\n';       // file header
