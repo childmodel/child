@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.20 1999-03-18 23:39:57 nmgaspar Exp $
+**  $Id: erosion.h,v 1.21 1999-04-01 20:55:50 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -104,6 +104,7 @@ private:
     double shortRate;
 };
 
+
 /***************************************************************************\
 **  class tSedTransPwrLaw
 **
@@ -124,6 +125,7 @@ class tSedTransPwrLaw
    double mf;  // Exponent on total discharge
    double nf;  // Exponent on slope
 };
+
 
 /**************************************************************************\
 **  class tSedTransWilcock
@@ -201,17 +203,17 @@ public:
     void ErodeDetachLim( double dtg );
     void ErodeDetachLim( double dtg, tUplift * );
     void StreamErode( double dtg, tStreamNet * );
-   void StreamErodeMulti( double dtg, tStreamNet *, double time);
-   void DetachErode( double dtg, tStreamNet *, double time);
-   double TransportCapacity(tLNode * n );
+    void StreamErodeMulti( double dtg, tStreamNet *, double time);
+    void DetachErode( double dtg, tStreamNet *, double time);
+    double TransportCapacity(tLNode * n );
     void Diffuse( double dtg, int detach );
-   void UpdateExposureTime( double dtg);
+    void UpdateExposureTime( double dtg);
 
 private:
-   tGrid<tLNode> *gridPtr;
-   tBedErodePwrLaw bedErode;
-   tSedTransWilcock sedTrans;  
-    double kd;                // Hillslope transport (diffusion) coef
+    tGrid<tLNode> *gridPtr;    // ptr to mesh
+    tBedErodePwrLaw bedErode;  // bed erosion object
+    tSedTransWilcock sedTrans; // sediment transport object 
+    double kd;                 // Hillslope transport (diffusion) coef
 
 };
 
