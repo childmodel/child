@@ -12,8 +12,9 @@
  **   - Bug fix in constructor: nnodes was being read from edge and
  **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
  **   - Remove dead code. Add findRightTime (AD 07/03)
+ **   - Add Random number generator handling. (AD 08/03)
  **
- **  $Id: tListInputData.cpp,v 1.17 2003-08-01 13:17:14 childcvs Exp $
+ **  $Id: tListInputData.cpp,v 1.18 2003-08-01 17:14:55 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -73,9 +74,9 @@ ReportIOError(IOErrorType t, const char *filename,
 \**************************************************************************/
 template< class tSubNode >
 tListInputData< tSubNode >::
-tListInputData( tInputFile &infile )                   //tListInputData
+tListInputData( tInputFile &infile, tRand &rand )          //tListInputData
 {
-  double intime;                   // current & desired time
+  double intime;                   // desired time
   char basename[80],               // base name of input files
     inname[80];                  // full name of an input file
 
@@ -99,16 +100,20 @@ tListInputData( tInputFile &infile )                   //tListInputData
   strcat( inname, SZ );
   zinfile.open( inname );     // Elevations input file pointer
   //assert( zinfile.good() );
+  strcpy( inname, basename );
+  strcat( inname, SRANDOM );
+  randominfile.open( inname );// Random number generator input file pointer
 
   // Make sure we found them
   if( !nodeinfile.good() || !edgeinfile.good() || !triinfile.good()
-      || !zinfile.good() )
+      || !zinfile.good() || !randominfile.good() )
     {
       cerr << "Error: I can't find one or more of the following files:\n"
            << "\t" << basename << SNODES "\n"
            << "\t" << basename << SEDGES "\n"
            << "\t" << basename << STRI "\n"
-           << "\t" << basename << SZ "\n";
+           << "\t" << basename << SZ "\n"
+           << "\t" << basename << SRANDOM "\n";
       ReportFatalError( "Unable to open triangulation input file(s)." );
     }
 
@@ -131,6 +136,10 @@ tListInputData( tInputFile &infile )                   //tListInputData
   // And finally, triangles:
   findRightTime( triinfile, ntri, intime,
 		 basename, STRI, "triangle");
+ // And finally, random number generator:
+  int nrandom;
+  findRightTime( randominfile, nrandom, intime,
+		 basename, SRANDOM, "random number generator");
 
   // Dimension the arrays accordingly
   x.setSize( nnodes );
@@ -152,14 +161,14 @@ tListInputData( tInputFile &infile )                   //tListInputData
   t2.setSize( ntri );
 
   // Read in data from file
-  GetFileEntry();
+  GetFileEntry(rand);
 
   // Close the files
   nodeinfile.close();
   edgeinfile.close();
   triinfile.close();
   zinfile.close();
-
+  randominfile.close();
 }
 
 
@@ -234,7 +243,7 @@ findRightTime( ifstream &infile, int &nn, double intime,
 \**************************************************************************/
 template< class tSubNode >
 void tListInputData< tSubNode >::
-GetFileEntry()                  //tListInputData
+GetFileEntry(tRand &rand)                  //tListInputData
 {
   char const * const  basename = "<file>";
   int i;
@@ -259,6 +268,7 @@ GetFileEntry()                  //tListInputData
     if (triinfile.fail())
       ReportIOError(IORecord, basename, STRI, i);
   }
+  rand.readFromFile( randominfile );
 }
 
 

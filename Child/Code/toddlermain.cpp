@@ -35,7 +35,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.13 2003-05-26 17:44:50 childcvs Exp $
+**  $Id: toddlermain.cpp,v 1.14 2003-08-01 17:14:54 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -50,7 +50,7 @@ Predicates predicate;
 
 int main( int argc, char **argv )
 {
-   bool silent_mode;       // Option for silent mode (no time output to stdout)
+   bool silent_mode;      // Option for silent mode (no time output to stdout)
    int optDetachLim,      // Option for detachment-limited erosion only
        optFloodplainDep,  // Option for floodplain (overbank) deposition
        optLoessDep,       // Option for eolian deposition
@@ -95,19 +95,21 @@ int main( int argc, char **argv )
    // Open main input file
    tInputFile inputFile( argv[1] );
 
+   // Create a random number generator for the simulation itself
+   tRand rand( inputFile );
    // Create and initialize objects:
    cout << "Creating mesh...\n";
-   tMesh<tLNode> mesh( inputFile );
+   tMesh<tLNode> mesh( inputFile, rand );
    cout << "Creating output files...\n";
-   tLOutput<tLNode> output( &mesh, inputFile );
-   tStorm storm( inputFile );
+   tLOutput<tLNode> output( &mesh, inputFile, &rand );
+   tStorm storm( inputFile, &rand );
    cout << "Creating stream network...\n";
    tStreamNet strmNet( mesh, storm, inputFile );
    tErosion erosion( &mesh, inputFile );
    tUplift uplift( inputFile );
    cout << "Writing data for time zero...\n";
    tRunTimer time( inputFile, BOOL(!silent_mode) );
-   output.WriteOutput( 0 );
+   output.WriteOutput( 0. );
    cout << "Initialization done.\n";
 
    // Get various options
@@ -203,8 +205,10 @@ OptTSOutput." );
       // Do storm...
       storm.GenerateStorm( time.getCurrentTime(),
                            strmNet.getInfilt(), strmNet.getSoilStore() );
-      cout << storm.getRainrate() << " " << storm.getStormDuration() << " "
-           << storm.interstormDur() << endl;
+      cout
+	<< "Storm: "
+	<< storm.getRainrate() << " " << storm.getStormDuration() << " "
+	<< storm.interstormDur() << endl;
 
       strmNet.UpdateNet( time.getCurrentTime(), storm );
       
@@ -214,14 +218,15 @@ OptTSOutput." );
           erosion.DetachErode( storm.getStormDuration(), &strmNet,
                                time.getCurrentTime() );
 
-      if( optVegetation )
-	  vegetation->UpdateVegetation( &mesh, storm.getStormDuration(),
-					storm.interstormDur() );
-
       if( optFloodplainDep )
           floodplain->DepositOverbank( storm.getRainrate(),
                                        storm.getStormDuration(),
                                        time.getCurrentTime() );
+
+      if( optVegetation )
+	  vegetation->UpdateVegetation( &mesh, storm.getStormDuration(),
+					storm.interstormDur() );
+
 
       // Do interstorm...
       erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),

@@ -29,8 +29,9 @@
  **    - 6/01: GT added chanwidthofs for output of channel widths
  **      (only when non-regime hydraulic geometry model used)
  **    - 7/03: AD added tOutputBase and tTSOutputImp
+ **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.43 2003-07-25 12:04:04 childcvs Exp $
+ **  $Id: tOutput.h,v 1.44 2003-08-01 17:14:58 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -94,7 +95,7 @@ class tOutput : public tOutputBase<tSubNode>
   tOutput(const tOutput&);
   tOutput& operator=(const tOutput&);
 public:
-  tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
+  tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile);
   void WriteOutput( double time );
 
 private:
@@ -149,7 +150,7 @@ class tLOutput : public tOutput<tSubNode>
   tLOutput(const tLOutput&);
   tLOutput& operator=(const tLOutput&);
 public:
-  tLOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
+  tLOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile, tRand *);
   virtual ~tLOutput();
   void WriteTSOutput();
   bool OptTSOutput() const;
@@ -157,6 +158,7 @@ public:
 protected:
   virtual void WriteNodeData( double time );
 private:
+  ofstream randomofs;  // Random number generator state
   ofstream drareaofs;  // Drainage areas
   ofstream netofs;     // Downstream neighbor IDs
   ofstream slpofs;     // Slopes in the direction of flow
@@ -171,6 +173,7 @@ private:
   ofstream qsofs;      // Sed flux
 
   tTSOutputImp<tSubNode> *TSOutput;  // Time Series output
+  tRand *rand;
 
   int counter;
 

@@ -11,8 +11,9 @@
  **       If so, channel depths are also output.
  **     - 4/03 AD added canonical output
  **     - 7/03 AD added tOutputBase and tTSOutputImp
+ **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.81 2003-07-25 12:04:03 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.82 2003-08-01 17:14:58 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -515,13 +516,15 @@ void tOutput<tSubNode>::WriteNodeData( double /* time */ )
  **    - added
 \*************************************************************************/
 template< class tSubNode >
-tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
+tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile,
+			      tRand *rand_) :
   tOutput<tSubNode>( meshPtr, infile ),  // call base-class constructor
   TSOutput(0),
+  rand(rand_),
   counter(0)
 {
   int opOpt;  // Optional modules: only output stuff when needed
-
+  CreateAndOpenFile( &randomofs, SRANDOM );
   CreateAndOpenFile( &drareaofs, ".area" );
   CreateAndOpenFile( &netofs, ".net" );
   CreateAndOpenFile( &slpofs, ".slp" );
@@ -615,6 +618,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   counter++;
 
   // Write current time in each file
+  WriteTimeNumberElements( randomofs, time, rand->numberRecords());
   WriteTimeNumberElements( drareaofs, time, nActiveNodes);
   WriteTimeNumberElements( netofs, time, nActiveNodes);
   WriteTimeNumberElements( slpofs, time, nnodes);
@@ -633,6 +637,8 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   if( qsofs.good() )
     WriteTimeNumberElements( qsofs, time, nnodes);
 
+  // Write Random number generator state
+  rand->dumpToFile( randomofs );
   // Write data
   if (!CanonicalNumbering) {
     tSubNode *cn;   // current node
@@ -650,6 +656,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       WriteAllNodeData( RNode[i] );
   }
 
+  randomofs << flush;
   drareaofs << flush;
   netofs << flush;
   slpofs << flush;

@@ -20,7 +20,7 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.31 2003-06-23 10:36:25 childcvs Exp $
+**  $Id: tStreamMeander.h,v 1.32 2003-08-01 17:15:01 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -58,7 +58,7 @@ public:
    //what should be called, after tStreamNet obj. is done
    //(will crash if ptr to tStreamNet obj. is zero);
    //does not call MakeReaches():
-   tStreamMeander( tStreamNet &, tMesh< tLNode > &, tInputFile & );
+   tStreamMeander( tStreamNet &, tMesh< tLNode > &, tInputFile &, tRand *rand );
    ~tStreamMeander();
    //finds "meanderability" and calls tLNode::setMeanderStatus
    //for each active node:
@@ -126,7 +126,8 @@ protected:
     tArray< int > nrnodes; //array w/ #elements=#reaches, # "active" reach nodes
     tArray< double > reachlen; // " , length of active reach in reach list
     tArray< double > taillen;  // " , length of inactive "tail" in reach list
-    long seed;
+    tRand *rand;
+  long seed;
 };
 
 #endif

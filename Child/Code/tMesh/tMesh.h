@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.58 2003-06-23 10:36:23 childcvs Exp $
+**  $Id: tMesh.h,v 1.59 2003-08-01 17:14:57 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -73,25 +73,26 @@ class tMesh
    tMesh(const tMesh&);
    tMesh& operator=(const tMesh&);
 
-   void MakePointBoundary( const ParamMMFS_t &, tInputFile &, tPtrList< tSubNode > & );
+   void MakePointBoundary( const ParamMMFS_t &, tInputFile &,
+			   tPtrList< tSubNode > &, tRand &);
    void MakePointInterior( const ParamMMFS_t &, tInputFile &,
-			   bool makeMesh);
+			   bool makeMesh, tRand &);
    void BuildDelaunayMeshTipper();
    void MeshDensification( tInputFile & );
    void MakeDelaunay( tPtrList< tTriangle > &);
 public:
    tMesh();
-   tMesh( tInputFile & );
+   tMesh( tInputFile &, tRand & );
    tMesh( tMesh const * );
    ~tMesh();
    void BatchAddNodes(); // quickly adds many nodes when starting w/ dense mesh
-   void MakeMeshFromScratch( tInputFile & );   // creates a new mesh
-   void MakeMeshFromScratchTipper( tInputFile & );   // creates a new mesh
-   void MakeMeshFromInputData( tInputFile & ); // reads in an existing mesh
+   void MakeMeshFromScratch( tInputFile &, tRand & ); // creates a new mesh
+   void MakeMeshFromScratchTipper( tInputFile &, tRand & );   // creates a new mesh
+   void MakeMeshFromInputData( tInputFile &, tRand & ); // reads in an existing mesh
    void MakeMeshFromPoints( tInputFile & );    // creates mesh from list of pts
    void MakeMeshFromPointsTipper( tInputFile & ); // creates mesh from list of pts
    void MakeRandomPointsFromArcGrid( tInputFile & ); // mesh from arc (rand)
-   void MakeHexMeshFromArcGrid( tInputFile &infile );// mesh from arc (hex)
+   void MakeHexMeshFromArcGrid( tInputFile & );// mesh from arc (hex)
    void MakeLayersFromInputData( tInputFile & );
    void Print() const;
    void setVoronoiVertices();
@@ -181,7 +182,6 @@ protected:
    int miNextNodeID;                   // next ID for added node
    int miNextEdgID;                    // next ID for added edge
    int miNextTriID;                    // next ID for added triangle
-   long seed;                      // random seed
    bool layerflag;                 // flag indicating whether nodes have layers
    tTriangle* mSearchOriginTriPtr; // ptr to tri. from which to start searches
 

@@ -24,11 +24,9 @@
 
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeMeshFromScratchTipper( tInputFile &infile )
+MakeMeshFromScratchTipper( tInputFile &infile, tRand &rand )
 {
    //cout << "In MGFS, calling node constr w/ infile\n";
-
-   seed = infile.ReadItem( seed, "SEED" );
 
    // Parameters defined in Input File
    ParamMMFS_t Param(infile);
@@ -36,8 +34,8 @@ MakeMeshFromScratchTipper( tInputFile &infile )
    // Generate points
    {
      tPtrList< tSubNode > bndList;
-     MakePointBoundary(Param, infile, bndList);
-     MakePointInterior(Param, infile, false);
+     MakePointBoundary(Param, infile, bndList, rand);
+     MakePointInterior(Param, infile, false, rand);
      nnodes = nodeList.getSize();
    }
 

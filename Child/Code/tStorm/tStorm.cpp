@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.28 2003-07-21 09:58:29 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.29 2003-08-01 17:14:58 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -54,7 +54,7 @@ tStorm::tStorm( bool optvar )
   stdurdev(-1.),
   istdurdev(-1.),
   twoPiLam(-1.),
-  seed(0),      // default seed
+  rand(0),
   endtm(1.0e9)
 {
    //srand( 0 );
@@ -71,7 +71,7 @@ tStorm::tStorm( bool optvar )
 **                   variation in means).
 **
 \**************************************************************************/
-tStorm::tStorm( double mp, double ms, double mis, unsigned sd, bool optvar, double et )
+tStorm::tStorm( double mp, double ms, double mis, tRand *rand_, bool optvar, double et )
   :
   optVariable(optvar),
   optSinVar(false),
@@ -88,10 +88,9 @@ tStorm::tStorm( double mp, double ms, double mis, unsigned sd, bool optvar, doub
   stdurdev(-1.),
   istdurdev(-1.),
   twoPiLam(-1.),
-  seed(sd),
+  rand(rand_),
   endtm(et)
 {
-   //srand( seed );
 }
 
 
@@ -115,7 +114,8 @@ tStorm::tStorm( double mp, double ms, double mis, unsigned sd, bool optvar, doub
 **     history (GT)
 **
 \**************************************************************************/
-tStorm::tStorm( tInputFile &infile )
+tStorm::tStorm( tInputFile &infile, tRand *rand_ ) :
+  rand(rand_)
 {
    // Read + set parameters for storm intensity, duration, and spacing
    {
@@ -177,10 +177,6 @@ tStorm::tStorm( tInputFile &infile )
           cerr << "Warning: unable to create storm data file '" 
                << fname << "'\n";
    }
-
-   // Read and initialize seed for random number generation
-   seed = infile.ReadItem( seed, "SEED" );
-   //srand( seed );
 }
 
 
@@ -237,15 +233,14 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
       istdur = 0;
       do
       {
-         p = pMean*ExpDev( &seed );
-         istdur += istdurMean*ExpDev( &seed ) + stdur;
-         stdur = stdurMean*ExpDev( &seed );
+         p = pMean*ExpDev();
+         istdur += istdurMean*ExpDev() + stdur;
+         stdur = stdurMean*ExpDev();
 	 if(0) { // Debug
 	   cout << "P " << p << "  ST " << stdur << "  IST " << istdur
 		<< "  DP " << p*stdur << " minp " << minp << " mind " <<mind <<
 	     endl;
 	 }
-         //srand( seed );
       } while( (p<=minp || (p*stdur)<=mind) && (tm+istdur+stdur<endtm) );
       stormfile << istdur << " " << p << " " << stdur << endl;
    }
@@ -258,12 +253,12 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
 **                   (adapted from Numerical Recipes).
 **
 \**************************************************************************/
-double tStorm::ExpDev( long *idum ) const
+double tStorm::ExpDev() const
 {
     double dum;
 
     do
-        dum = ran3( idum );
+        dum = rand->ran3();
     while( dum==0.0 );
     return -log(dum);
 }
@@ -291,7 +286,7 @@ double tStorm::getMeanPrecip() const {return pMean;}
 **  (Note: not actually called; provided for future use).
 **
 \**************************************************************************/
-double tStorm::GammaDev(double m, long * idum) const
+double tStorm::GammaDev(double m) const
 {
   double x, y,z, c,t,b,u,w,v;
   
@@ -303,8 +298,8 @@ double tStorm::GammaDev(double m, long * idum) const
       int accept = 0;
       while (accept == 0)
         {
-          u = ran3(idum);
-          w = ran3(idum);
+          u = rand->ran3();
+          w = rand->ran3();
           v = b *u;
           if (v<=1)
             {
@@ -326,7 +321,7 @@ double tStorm::GammaDev(double m, long * idum) const
       int accept = 0;
       while (accept == 0)
         {
-          u = ran3(idum); v = ran3(idum);
+          u = rand->ran3(); v = rand->ran3();
           w = u* ( 1-u);
           y = sqrt(c/w) * (u - 0.5);
           x = b + y;

@@ -53,7 +53,7 @@
 #define TWIST(u,v) ((MIXBITS(u,v) >> 1) ^ ((v)&1UL ? MATRIX_A : 0UL))
 
 static unsigned long state[N]; /* the array for the state vector  */
-static int left = 1;
+static int left_ = 1;
 static int initf = 0;
 static unsigned long *next;
 
@@ -70,7 +70,7 @@ void init_genrand(unsigned long s)
         /* 2002/01/09 modified by Makoto Matsumoto             */
         state[j] &= 0xffffffffUL;  /* for >32 bit machines */
     }
-    left = 1; initf = 1;
+    left_ = 1; initf = 1;
 }
 
 /* initialize by an array with array-length */
@@ -99,7 +99,7 @@ void init_by_array(unsigned long init_key[], int key_length)
     }
 
     state[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */ 
-    left = 1; initf = 1;
+    left_ = 1; initf = 1;
 }
 
 static void next_state(void)
@@ -111,7 +111,7 @@ static void next_state(void)
     /* a default initial seed is used         */
     if (initf==0) init_genrand(5489UL);
 
-    left = N;
+    left_ = N;
     next = state;
     
     for (j=N-M+1; --j; p++) 
@@ -128,7 +128,7 @@ unsigned long genrand_int32(void)
 {
     unsigned long y;
 
-    if (--left == 0) next_state();
+    if (--left_ == 0) next_state();
     y = *next++;
 
     /* Tempering */
@@ -145,7 +145,7 @@ long genrand_int31(void)
 {
     unsigned long y;
 
-    if (--left == 0) next_state();
+    if (--left_ == 0) next_state();
     y = *next++;
 
     /* Tempering */
@@ -162,7 +162,7 @@ double genrand_real1(void)
 {
     unsigned long y;
 
-    if (--left == 0) next_state();
+    if (--left_ == 0) next_state();
     y = *next++;
 
     /* Tempering */
@@ -180,7 +180,7 @@ double genrand_real2(void)
 {
     unsigned long y;
 
-    if (--left == 0) next_state();
+    if (--left_ == 0) next_state();
     y = *next++;
 
     /* Tempering */
@@ -198,7 +198,7 @@ double genrand_real3(void)
 {
     unsigned long y;
 
-    if (--left == 0) next_state();
+    if (--left_ == 0) next_state();
     y = *next++;
 
     /* Tempering */

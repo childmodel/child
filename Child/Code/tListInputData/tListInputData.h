@@ -16,7 +16,7 @@
  **     to avoid multiple definition errors resulting from mixing
  **     template & non-template classes (1/99)
  **
- **  $Id: tListInputData.h,v 1.20 2003-08-01 13:13:29 childcvs Exp $
+ **  $Id: tListInputData.h,v 1.21 2003-08-01 17:14:55 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -127,24 +127,21 @@ class tListInputData
   friend class tMesh< tSubNode >;  // gives tMesh direct access
 
 public:
-  //tListInputData();
-  //tListInputData( tListIFStreams & );
-  tListInputData( tInputFile & ); // Read filename & time from main inp file
-  //~tListInputData();
+  tListInputData( tInputFile &, tRand & ); // Read filename & time from main inp file
 
 private:
   static void findRightTime(ifstream &, int &, double,
 			    const char *, const char *, const char *);
   void GetKeyEntry();        // not currently supported
-  void GetFileEntry();       // read data from files
+  void GetFileEntry(tRand &);       // read data from files
 
   int nnodes, nedges, ntri;  // # nodes, edges, & triangles
-  //double time, intime;
   ifstream nodeinfile;   // node input file
   ifstream edgeinfile;   // edge input file
   ifstream triinfile;    // triangle input file
   ifstream zinfile;      // "z" input file
-  //   tListIFStreams inchan;
+  ifstream randominfile; // random generator input file
+
   tArray< double > x;      // node x coords
   tArray< double > y;      // node y coords
   tArray< double > z;      // node z values

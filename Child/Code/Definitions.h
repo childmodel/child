@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.34 2003-05-26 17:42:27 childcvs Exp $
+**   $Id: Definitions.h,v 1.35 2003-08-01 17:14:53 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -62,6 +62,7 @@ typedef enum { false=0, true } bool;
 #define SEDGES ".edges" 
 #define STRI ".tri"
 #define SZ ".z"
+#define SRANDOM ".random"
 #define SVAREA ".varea"
 
 #endif

@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.91 2003-07-31 11:58:16 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.92 2003-08-01 17:14:59 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -69,14 +69,14 @@ tStreamMeander::tStreamMeander():
   klambda(0), elambda(0), dscrtwids(0),
   allowfrac(0), leavefrac(0), /*vegerod(0), */
   rockerod(0), /*latadjust(0), */ Pdz(0),
-  seed(0) // seed already set in tMesh
+  rand(0)
 {
 }
 
 tStreamMeander::tStreamMeander( tStreamNet &netRef, tMesh< tLNode > &mRef,
-                                tInputFile &infile ) :
+                                tInputFile &infile, tRand *rand_ ) :
   reachList(), rlIter(reachList),
-  seed(0) // seed already set in tMesh
+  rand(rand_) // seed already set in tMesh
 {
   //if( netPtr != 0 ) netPtr = new tStreamNet( gRef );
   netPtr = &netRef;
@@ -135,6 +135,7 @@ tStreamMeander::~tStreamMeander()
   meshPtr = 0;
   netPtr = 0;
   infilePtr = 0;
+  rand = 0;
 }
 
 
@@ -460,10 +461,10 @@ int tStreamMeander::InterpChannel( double time )
 	      //(for Delaunay mesh, avoid precisely co-linear points):
 	      if( curseglen <= bigseglen )
 		{
-		  const double val1 = ran3(&seed) - 0.5;
+		  const double val1 = rand->ran3() - 0.5;
 		  const double x = x0 + curseglen * cos(phi) /
 		    2.0 + 0.01 * val1 * defseglen;//pow(defseglen, 2.0);
-		  const double val2 = ran3(&seed) - 0.5;
+		  const double val2 = rand->ran3() - 0.5;
 		  const double y = y0 + curseglen * sin(phi) /
 		    2.0 + 0.01 * val2 * defseglen;//pow(defseglen, 2.0);
 		  const double z = z0 - curseglen / 2.0 * slope;
@@ -487,7 +488,7 @@ int tStreamMeander::InterpChannel( double time )
 		  for(int i=1; i<npts; i++ )
 		    {
 		      xp[i] = static_cast<double>(i) * defseglen;
-		      const double val = ran3(&seed) - 0.5;
+		      const double val = rand->ran3() - 0.5;
 		      yp[i] = yp[i-1] + 0.01 * val * exp(-yp[i-1] * val)
 			* defseglen;//pow(defseglen, 2.0);
 		      zp[i] = xp[i] * slope;
@@ -1023,7 +1024,7 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
       }
 
       //arbitrary change for simple debugging:
-      //( 0.1, 0.01*(ran3(&seed)-.5)
+      //( 0.1, 0.01*(rand->ran3()-.5)
       //go through and set the elevations at the right and left banks:
       {
 	const int num = nrnodes[i];

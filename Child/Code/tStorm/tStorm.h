@@ -28,7 +28,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.24 2003-07-18 17:48:56 childcvs Exp $
+**  $Id: tStorm.h,v 1.25 2003-08-01 17:14:59 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -48,8 +48,8 @@ class tStorm
 {
 public:
     tStorm( bool optVariable = true );
-    tStorm( double, double, double, unsigned, bool optvar=true, double et=1.0e9 );
-    tStorm( tInputFile & );
+    tStorm( double, double, double, tRand *, bool optvar=true, double et=1.0e9 );
+    tStorm( tInputFile &, tRand *);
     void  GenerateStorm( double tm, double minp=0.0, double mind=0.0);
     double getStormDuration() const;
     double interstormDur() const;
@@ -60,8 +60,8 @@ public:
     double getOptVar() const;
    
 private:
-    double ExpDev( long * ) const;
-    double GammaDev(double, long*) const;
+    double ExpDev() const;
+    double GammaDev(double) const;
    
     bool optVariable;   // Flag indicating whether storms are random or not
     bool optSinVar;     // Option for sinusoidal variation in storm params
@@ -71,15 +71,15 @@ private:
     double p;           // Actual rainfall intensity for the current storm
     double stdur;       // Actual storm duration
     double istdur;      // Actual time between storms
-    double p0;         // Climatological mean: the "weather" means can 
+    double p0;         // Climatological mean: the "weather" means can
     double stdur0;     //  themselves vary over geologic time; p0, etc, are
     double istdur0;    //  the means of the means so to speak.
     double pdev;       // Absolute magnitude of deviation from p0, etc, under
     double stdurdev;   //  sinusoidal variation.
     double istdurdev;
     double twoPiLam;   // Parameter for sinusoidal variation: 2pi / period
-    long  seed;        // Random seed
-    double endtm;       // The end time of the run, just in case a big enough 
+    tRand *rand;       // Random number generator
+    double endtm;      // The end time of the run, just in case a big enough
                        // storm is never generated
     ofstream stormfile; // File containing history of storm events
 };

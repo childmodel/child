@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.9 2003-06-04 10:15:58 childcvs Exp $
+**  $Id: childmain.cpp,v 1.10 2003-08-01 17:14:54 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -46,8 +46,8 @@ Predicates predicate;
 
 int main( int argc, char **argv )
 {
-   int silent_mode,       // Option for silent mode (no time output to stdout)
-       optDetachLim,      // Option for detachment-limited erosion only
+   bool silent_mode;      // Option for silent mode (no time output to stdout)
+   int optDetachLim,      // Option for detachment-limited erosion only
        optFloodplainDep,  // Option for floodplain (overbank) deposition
        optLoessDep,       // Option for eolian deposition
        optVegetation,     // Option for dynamic vegetation cover
@@ -83,22 +83,26 @@ int main( int argc, char **argv )
    }
 
    // Check whether we're in silent mode
-   silent_mode = ( argc>2 && argv[2][1]=='s' );
-   
+   silent_mode = BOOL( argc>2 && argv[2][1]=='s' );
+
    // Say hello
    cout << "\nThis is TODDLER, version " << VERSION
 	<< " (compiled " __DATE__ " " __TIME__ ")"
 	<< endl << endl;
-   
+
    // Open main input file
    tInputFile inputFile( argv[1] );
 
+   // Create a random number generator for the simulation itself
+   tRand rand( inputFile );
    // Create and initialize objects:
    cout << "Creating mesh...\n";
-   tMesh<tLNode> mesh( inputFile );
+   tMesh<tLNode> mesh( inputFile, rand );
+
    cout << "Creating output files...\n";
-   tLOutput<tLNode> output( &mesh, inputFile );
-   tStorm storm( inputFile );
+   tLOutput<tLNode> output( &mesh, inputFile, &rand );
+
+   tStorm storm( inputFile, &rand );
    cout << "Creating stream network...\n";
    tStreamNet strmNet( mesh, storm, inputFile );
    tErosion erosion( &mesh, inputFile );
@@ -130,7 +134,7 @@ int main( int argc, char **argv )
 
    // If applicable, create Stream Meander object
    if( optMeander )
-     strmMeander = new tStreamMeander( strmNet, mesh, inputFile );
+     strmMeander = new tStreamMeander( strmNet, mesh, inputFile, &rand );
 
    // Option for time series output (IN PROGRESS)
    /*   switch( optTSOutput ){

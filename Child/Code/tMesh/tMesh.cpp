@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.173 2003-07-31 10:23:54 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.174 2003-08-01 17:14:55 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -87,7 +87,6 @@ tMesh()
   miNextNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),
-  seed(0),
   layerflag(false),
   mSearchOriginTriPtr(0)
 {
@@ -111,7 +110,6 @@ tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
   miNextNodeID(originalMesh->miNextNodeID),
   miNextEdgID(originalMesh->miNextEdgID),
   miNextTriID(originalMesh->miNextTriID),
-  seed(originalMesh->seed),
   layerflag(originalMesh->layerflag),
   mSearchOriginTriPtr(0)
 {}
@@ -123,6 +121,8 @@ tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
 **                    from input, construct a mesh from a list of (x,y,z,b)
 **                    points (b=boundary code), or construct a mesh from
 **                    scratch, given parameters in infile.
+**                    randS is initialised if a mesh is built from a previous
+**                    computation.
 **
 **   Created: 2/11/98, SL
 **   Calls: tInputFile::ReadItem,
@@ -144,7 +144,7 @@ tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
 \**************************************************************************/
 template< class tSubNode >
 tMesh< tSubNode >::
-tMesh( tInputFile &infile )
+tMesh( tInputFile &infile, tRand &randS)
   :
   nnodes(0),
   nedges(0),
@@ -153,7 +153,6 @@ tMesh( tInputFile &infile )
   miNextNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),
-  seed(0),
   layerflag(false),
   mSearchOriginTriPtr(0)
 {
@@ -172,15 +171,23 @@ tMesh( tInputFile &infile )
    read = infile.ReadItem( read, "OPTREADINPUT" );
    switch (read){
    case 0:
-     MakeMeshFromScratch( infile ); //create new mesh with parameters
-     break;
    case 10:
-     MakeMeshFromScratchTipper( infile ); //create new mesh with parameters
+     {
+       // Random number generator used for mesh generation.
+       // Its seed is initialized with the appropriate keyword.
+       tRand randM( infile );
+       //create new mesh with parameters
+       if (read == 0)
+	 MakeMeshFromScratch( infile, randM );
+       else
+	 MakeMeshFromScratchTipper( infile, randM );
+     }
      break;
    case 1:
      {
        int lay;  // option for reading layer info
-       MakeMeshFromInputData( infile ); //create mesh by reading data files
+       //create mesh by reading data files. randS will be initialised as well.
+       MakeMeshFromInputData( infile, randS );
        lay = infile.ReadItem( lay, "OPTREADLAYER" );
        if( lay == 1 )
 	 MakeLayersFromInputData( infile );
@@ -473,11 +480,10 @@ MeshDensification( tInputFile &infile )
 \**************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeMeshFromInputData( tInputFile &infile )
+MakeMeshFromInputData( tInputFile &infile, tRand &randS )
 {
    int i;
-   tListInputData< tSubNode > input( infile );
-   seed = 0;
+   tListInputData< tSubNode > input( infile, randS );
    // set the number of nodes, edges, and triangles in the mesh
    //assert( lnodflag );
    nnodes = input.x.getSize();
@@ -1022,7 +1028,7 @@ BatchAddNodes()
 template< class tSubNode >
 void tMesh< tSubNode >::
 MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
-		   tPtrList< tSubNode > &bndList)
+		   tPtrList< tSubNode > &bndList, tRand &rand)
 {
    int i,                        // counters
        n;                        // no. of nodes along a side
@@ -1044,7 +1050,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       tempnode.setBoundaryFlag( kClosedBoundary );
       for( i=1, miNextNodeID++; i<n; i++, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( dist, 0., 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1053,7 +1059,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.yGrid / Param.delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( Param.xGrid, dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1062,7 +1068,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.xGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( dist, Param.yGrid, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1071,7 +1077,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.yGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( 0., dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1085,7 +1091,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( dist, 0., 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1095,7 +1101,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.yGrid / Param.delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( Param.xGrid, dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1104,7 +1110,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.xGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( dist, Param.yGrid, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1113,7 +1119,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.yGrid / Param.delGrid );
       for( i=n; i>=0; i--, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( 0., dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1126,7 +1132,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( dist, 0., 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1136,7 +1142,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.yGrid / Param.delGrid );
       for( i=0; i<=n; i++, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( Param.xGrid, dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1146,7 +1152,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.xGrid / Param.delGrid );
       for( i=n-1; i>0; i--, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( dist, Param.yGrid, Param.upperZ );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBoundFront( tempnode );
@@ -1156,7 +1162,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.yGrid / Param.delGrid );
       for( i=n; i>=0; i--, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( 0., dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1170,7 +1176,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( dist, 0., 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1179,7 +1185,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.yGrid / Param.delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( Param.xGrid, dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1188,7 +1194,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.xGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( dist, Param.yGrid, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1197,7 +1203,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.yGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( 0., dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1212,7 +1218,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=0, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
          // Assign node coords to tempnode and add tempnode to list
-         dist = i * Param.delGrid + 0.01 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.01 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( dist, 0., 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1236,7 +1242,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.yGrid / Param.delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( Param.xGrid, dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1257,7 +1263,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.xGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( dist, Param.yGrid, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1278,7 +1284,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       n = ROUND( Param.yGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
          tempnode.set3DCoords( 0., dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1300,7 +1306,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
 template< class tSubNode >
 void tMesh< tSubNode >::
 MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
-		   bool makeMesh )
+		   bool makeMesh, tRand &rand )
 {
    int i, j,                     // counters
        nx, ny;                   // no. of nodes along a side
@@ -1336,10 +1342,10 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
             xyz[1] = j * Param.delGrid;
             if( Param.ptPlace == kPerturbedMesh )
             {
-               xyz[0] += 0.5 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-               xyz[1] += 0.5 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+               xyz[0] += 0.5 * Param.delGrid * ( rand.ran3() - 0.5 );
+               xyz[1] += 0.5 * Param.delGrid * ( rand.ran3() - 0.5 );
             }
-            xyz[2] = Param.mElev + Param.randElev * ( ran3( &seed ) - 0.5 );
+            xyz[2] = Param.mElev + Param.randElev * ( rand.ran3() - 0.5 );
             if( Param.boundType == kOppositeSidesOpen || Param.kSloped)
             {
                slope = Param.upperZ / Param.yGrid;
@@ -1359,9 +1365,9 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=0; i<Param.numPts; i++ )
       {
          // Randomize x,y, and z coordinates
-         xyz[0] = ran3(&seed) * Param.xGrid;
-         xyz[1] = ran3(&seed) * Param.yGrid;
-         xyz[2] = Param.mElev + Param.randElev * ( ran3( &seed ) - 0.5 );
+         xyz[0] = rand.ran3() * Param.xGrid;
+         xyz[1] = rand.ran3() * Param.yGrid;
+         xyz[2] = Param.mElev + Param.randElev * ( rand.ran3() - 0.5 );
          if( xyz[0] != 0 && xyz[0] != Param.xGrid && xyz[1] != 0 && xyz[1] != Param.yGrid )
          {
             tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
@@ -1396,7 +1402,7 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
 
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeMeshFromScratch( tInputFile &infile )
+MakeMeshFromScratch( tInputFile &infile, tRand &rand )
 {
    if (0) //DEBUG
      cout << "In MGFS, calling node constr w/ infile\n";
@@ -1404,13 +1410,11 @@ MakeMeshFromScratch( tInputFile &infile )
    tSubNode *node0, *node1, *node2;
    tPtrList< tSubNode > bndList;
 
-   seed = infile.ReadItem( seed, "SEED" );
-
    // Parameters defined in Input File
    ParamMMFS_t Param(infile);
 
    // Make Boundary
-   MakePointBoundary(Param, infile, bndList);
+   MakePointBoundary(Param, infile, bndList, rand);
    bndList.makeCircular();
    cout << "made points; now adding edges\n";
 
@@ -1441,7 +1445,7 @@ MakeMeshFromScratch( tInputFile &infile )
 
    // Add the interior points.
    cout << "filling in points\n";
-   MakePointInterior(Param, infile, true);
+   MakePointInterior(Param, infile, true, rand);
 
    // Now finalize the initialization by updating mesh properties
    UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
@@ -1764,8 +1768,9 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
 
    cout << "begin interpolation\n";
    // Read and initialize seed for random number generation
-   seed = infile.ReadItem( seed, "SEED" );
-   init_genrand( seed );
+   int seed_;
+   seed_ = infile.ReadItem( seed_, "SEED" );
+   init_genrand( seed_ );
    numpts = numcols * numrows;
    tempnode.setBoundaryFlag( kNonBoundary );
    //Xn = 0;
