@@ -16,7 +16,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.36 2000-03-09 19:52:13 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.37 2000-03-24 17:01:28 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -526,7 +526,7 @@ void tNode::getVoronoiVertexList( tList<Point2D> * vertexList )
       vtxarr = ce->getRVtx();
       vtx.x = vtxarr[0];
       vtx.y = vtxarr[1];
-      cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << endl;
+      //cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << endl;
       vertexList->insertAtBack( vtx );
       ce = ce->getCCWEdg();
    }
