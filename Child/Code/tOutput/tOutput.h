@@ -29,7 +29,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.39 2003-06-04 13:46:33 childcvs Exp $
+**  $Id: tOutput.h,v 1.40 2003-06-23 10:36:24 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -43,7 +43,7 @@ using namespace std;
 # include <iostream.h>
 #endif
 #include <string.h>
-#include "../tAssert.h"
+#include <assert.h>
 #include "../errors/errors.h"
 #include "../tMeshList/tMeshList.h"
 #include "../MeshElements/meshElements.h"

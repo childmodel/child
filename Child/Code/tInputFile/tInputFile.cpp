@@ -7,11 +7,11 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.22 2003-05-23 17:48:49 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.23 2003-06-23 10:36:21 childcvs Exp $
 */
 /****************************************************************************/
 
-#include "../tAssert.h"
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>

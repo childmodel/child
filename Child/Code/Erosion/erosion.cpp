@@ -45,12 +45,12 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.114 2003-05-23 11:45:27 childcvs Exp $
+**  $Id: erosion.cpp,v 1.115 2003-06-23 10:36:18 childcvs Exp $
 */
 /***************************************************************************/
 
 #include <math.h>
-#include "../tAssert.h"
+#include <assert.h>
 #if !defined(HAVE_NO_NAMESPACE)
 # include <iomanip>
 using namespace std;

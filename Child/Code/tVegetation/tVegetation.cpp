@@ -13,11 +13,11 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.cpp,v 1.9 2003-05-16 16:18:13 childcvs Exp $
+**  $Id: tVegetation.cpp,v 1.10 2003-06-23 10:36:27 childcvs Exp $
 */
 /**************************************************************************/
 
-#include "../tAssert.h"
+#include <assert.h>
 #include "tVegetation.h"
 #include "../tMesh/tMesh.h"
 #include "../tMeshList/tMeshList.h"

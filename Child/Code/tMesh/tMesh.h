@@ -22,14 +22,14 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.57 2003-05-29 16:04:11 childcvs Exp $
+**  $Id: tMesh.h,v 1.58 2003-06-23 10:36:23 childcvs Exp $
 */
 /***************************************************************************/
 
 #ifndef TMESH_H
 #define TMESH_H
 
-#include "../tAssert.h"
+#include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include "../Classes.h"

@@ -14,7 +14,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.22 2003-05-23 11:47:13 childcvs Exp $
+**  $Id: tRunTimer.cpp,v 1.23 2003-06-23 10:36:25 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -26,7 +26,7 @@ using namespace std;
 # include <iostream.h>
 # include <fstream.h>
 #endif
-#include "../tAssert.h"
+#include <assert.h>
 
 #include "../tInputFile/tInputFile.h"
 #include "tRunTimer.h"

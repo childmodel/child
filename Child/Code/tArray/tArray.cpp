@@ -3,7 +3,7 @@
 **  @file tArray.cpp
 **  @brief Functions for template class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.18 2003-05-26 17:43:26 childcvs Exp $
+**  $Id: tArray.cpp,v 1.19 2003-06-23 10:36:20 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -13,7 +13,7 @@ using namespace std;
 #else
 # include <fstream.h>
 #endif
-#include "../tAssert.h"
+#include <assert.h>
 #include "tArray.h"
 
 /**************************************************************************\

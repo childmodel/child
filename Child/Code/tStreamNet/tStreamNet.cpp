@@ -11,11 +11,11 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.35 2003-05-29 17:57:03 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.36 2003-06-23 10:36:26 childcvs Exp $
 */
 /**************************************************************************/
 
-#include "../tAssert.h"
+#include <assert.h>
 //#include <string>
 #include "../errors/errors.h"
 #include "tStreamNet.h"

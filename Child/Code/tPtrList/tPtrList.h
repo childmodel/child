@@ -38,7 +38,7 @@
 **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
 **      9/02: (AD)merge in main Child version
 **
-**  $Id: tPtrList.h,v 1.32 2003-05-23 11:39:26 childcvs Exp $
+**  $Id: tPtrList.h,v 1.33 2003-06-23 10:36:24 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -54,7 +54,7 @@ using namespace std;
 # include <iostream.h>
 # include <fstream.h>
 #endif
-#include "../tAssert.h"
+#include <assert.h>
 //#include "../Classes.h" // TODO: include only needed stuff
 
 // do not support these ill-defined functions

@@ -101,7 +101,6 @@ HFILES = \
 	$(PT)/globalFns.h \
 	$(PT)/tArray/tArray.cpp \
 	$(PT)/tArray/tArray.h \
-	$(PT)/tAssert.h \
 	$(PT)/tEolian/tEolian.h \
 	$(PT)/tFloodplain/tFloodplain.h \
 	$(PT)/tInputFile/tInputFile.h \

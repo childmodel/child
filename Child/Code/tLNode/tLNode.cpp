@@ -13,11 +13,11 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.108 2003-05-30 12:54:53 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.109 2003-06-23 10:36:22 childcvs Exp $
 */
 /**************************************************************************/
 
-#include "../tAssert.h"
+#include <assert.h>
 #include <math.h>
 #include "../errors/errors.h"
 #include "tLNode.h"

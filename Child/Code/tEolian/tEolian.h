@@ -20,14 +20,14 @@
 **
 **  (Created 2/99 by GT)
 **
-**  $Id: tEolian.h,v 1.6 2003-01-17 17:30:27 childcvs Exp $
+**  $Id: tEolian.h,v 1.7 2003-06-23 10:36:20 childcvs Exp $
 */
 /**************************************************************************/
 
 #ifndef TEOLIAN_H
 #define TEOLIAN_H
 
-#include "../tAssert.h"
+#include <assert.h>
 #include "../tMesh/tMesh.h"
 #include "../tMeshList/tMeshList.h"
 #include "../tLNode/tLNode.h"

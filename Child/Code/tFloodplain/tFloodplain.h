@@ -18,14 +18,14 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.12 2003-05-23 11:46:33 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.13 2003-06-23 10:36:21 childcvs Exp $
 */
 /**************************************************************************/
 
 #ifndef TFLOODPLAIN_H
 #define TFLOODPLAIN_H
 
-#include "../tAssert.h"
+#include <assert.h>
 #include "../tMesh/tMesh.h"
 #include "../tMeshList/tMeshList.h"
 #include "../tLNode/tLNode.h"

@@ -16,14 +16,14 @@
 **     to avoid multiple definition errors resulting from mixing
 **     template & non-template classes (1/99)
 **
-**  $Id: tListInputData.h,v 1.16 2003-05-16 14:01:07 childcvs Exp $
+**  $Id: tListInputData.h,v 1.17 2003-06-23 10:36:23 childcvs Exp $
 */
 /**************************************************************************/
 
 #ifndef TLISTINPUTDATA_H
 #define TLISTINPUTDATA_H
 
-#include "../tAssert.h"
+#include <assert.h>
 #include <string.h>
 #include "../Classes.h"
 #include "../Definitions.h"
