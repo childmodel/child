@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.100 2003-05-16 13:02:34 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.101 2003-05-16 14:02:54 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -548,7 +548,7 @@ void tLNode::setRock( const tBedrock & val ) {rock = val;}
 void tLNode::setReg( const tRegolith & val ) {reg = val;}
 void tLNode::setChan( const tChannel & val ) {chan = val;}
 
-int tLNode::getFloodStatus() {   return flood; }
+int tLNode::getFloodStatus() const { return flood; }
 
 void tLNode::setFloodStatus( int status )
 {
@@ -709,7 +709,7 @@ void tLNode::UpdateCoords()
 }
 
 // nb: if channel is integrated into node, change this
-double tLNode::getQ()
+double tLNode::getQ() const
 {
    return chan.q;
 }
@@ -862,7 +862,7 @@ double tLNode::getDSlopeDt()
 **        
 **
 \*****************************************************************************/
-double tLNode::DistNew(tLNode * p0,tLNode * p1 )
+double tLNode::DistNew(tLNode * p0,tLNode * p1 ) const
 {
   double a,b,c,res, xp, yp, x0, y0, x1, y1;
 
@@ -968,7 +968,7 @@ void tLNode::EroDep( double dz )
    if( reg.thickness < 0 ) reg.thickness = 0.0;
 }
 
-void tLNode::InsertLayerBack( tLayer lyr )
+void tLNode::InsertLayerBack( tLayer const & lyr )
 {
    layerlist.insertAtBack( lyr );
 }
@@ -1114,7 +1114,7 @@ tLNode::getQsinm( ) const
    return qsinm;
 }
 
-void tLNode::setGrade( int i, double size )
+void tLNode::setGrade( int i, double size ) const
 {
    if(i>=numg)
        ReportFatalError("Trying to set a grain size for an index which is too large");
@@ -1131,12 +1131,12 @@ int tLNode::getNumg() const
    return numg;
 }
 
-void tLNode::setNumg( int size )
+void tLNode::setNumg( int size ) const
 {
    numg = size;
 }
 
-double tLNode::getGrade( int i )
+double tLNode::getGrade( int i ) const
 {
    return grade[i];
 }
@@ -1238,8 +1238,8 @@ double tLNode::getLayerDepth( int i ) const
    if( layerlist.isEmpty() )
      {
        cout << "** WARNING lyr list empty\n";
-   cout << " NODE " << id << ":\n";
-   cout << "  x=" << x << " y=" << y << " z=" << z;
+       cout << " NODE " << id << ":\n";
+       cout << "  x=" << x << " y=" << y << " z=" << z;
        
      }
    hlp = layerlist.getIthData(i);
@@ -2680,7 +2680,7 @@ double tLNode::getTotalLayerDepth() const
 
 void tLNode::setDzDt( double val ) {dzdt = val;}
 
-double tLNode::getDzDt() {return dzdt;}
+double tLNode::getDzDt() const {return dzdt;}
 
 void tLNode::setDrDt( double val ) {drdt = val;}
 
@@ -2689,9 +2689,9 @@ void tLNode::addDrDt( double val )
    drdt += val;
 }
 
-double tLNode::getDrDt() {return drdt;}
+double tLNode::getDrDt() const {return drdt;}
 
-void tLNode::setXYZD( tArray< double > arr )
+void tLNode::setXYZD( tArray< double > const &arr )
 {
    chan.migration.xyzd = ( arr.getSize() == 4 ) ? arr : tArray< double >(4);
 }
@@ -2712,7 +2712,7 @@ double tLNode::DistFromOldXY() const
 }
 
 // Tests whether bedrock is exposed at a node
-int tLNode::OnBedrock()
+int tLNode::OnBedrock() const
 {
    // For multi-size model, criterion might be active layer thickness less
    // than a nominal thickness; here, it's just an arbitrary alluvial depth

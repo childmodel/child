@@ -26,7 +26,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.58 2003-05-15 16:07:11 childcvs Exp $
+**  $Id: tLNode.h,v 1.59 2003-05-16 14:02:55 childcvs Exp $
 */
 /************************************************************************/
 
@@ -382,12 +382,12 @@ public:
    //Syntax for calling copy constructor
    //tLNode *newnode = new tLNode( *oldtLNode );
     ~tLNode();
-    const tLNode &operator=( const tLNode & );   
+    const tLNode &operator=( const tLNode & );
     tVegCover &getVegCover();
     const tBedrock &getRock() const;
     const tRegolith &getReg() const;
     const tChannel &getChan() const;
-    int getFloodStatus();
+    int getFloodStatus() const;
     void setFloodStatus( int status );
     tEdge * getFlowEdg();
     void setFlowEdg( tEdge * );
@@ -397,7 +397,7 @@ public:
     void AddDrArea( double );
     void AddDischarge( double );
     tLNode * getDownstrmNbr();
-    double getQ();        // Gets total discharge from embedded chan obj
+    double getQ() const;  // Gets total discharge from embedded chan obj
    // fluvial discharge is in now in m^3/YR 
     double getSlope();    // Computes and returns slope in flow direction
     double getDSlopeDt();
@@ -440,7 +440,7 @@ public:
     void setZOld( double, double );
     void RevertToOldCoords();
     void UpdateCoords();
-    double DistNew( tLNode *, tLNode * );
+    double DistNew( tLNode *, tLNode * ) const;
     void ActivateSortTracer();
     void DeactivateSortTracer();
     void MoveSortTracerDownstream();
@@ -473,26 +473,26 @@ public:
     double getQsin() const;
    double getQsin( int );
    tArray< double > getQsinm( ) const;
-   void setGrade( int, double );
-   double getGrade( int );
+   void setGrade( int, double ) const;
+   double getGrade( int ) const;
    tArray< double > getGrade( ) const;
-    void setXYZD( tArray< double > );
-    tArray< double > getXYZD() const;
-    double DistFromOldXY() const;
-    int OnBedrock();
-    double getDzDt();
-    void setDzDt( double );
+   void setXYZD( tArray< double > const &);
+   tArray< double > getXYZD() const;
+   double DistFromOldXY() const;
+   int OnBedrock() const;
+   double getDzDt() const;
+   void setDzDt( double );
    void addDrDt(double);
-    double getDrDt();
-    void setDrDt( double );
-    double getTau() const;
-    void setTau( double );
-    double getTauCrit() const;
-    void setTauCrit( double );
-    void setUplift( double );
-    double getUplift() const;
+   double getDrDt() const;
+   void setDrDt( double );
+   double getTau() const;
+   void setTau( double );
+   double getTauCrit() const;
+   void setTauCrit( double );
+   void setUplift( double );
+   double getUplift() const;
    int getNumg() const;
-   void setNumg( int );
+   void setNumg( int ) const;
    double getMaxregdep() const;
    // NOTE for the get and set functions which involve the layerlist
    // the top layer is layer 0 and indexes go from 0 to (getNumLayer-1)
@@ -537,7 +537,7 @@ public:
    // to be done first - also used for erosion from the surface layer
    void makeNewLayerBelow(int, int, double, tArray<double>, double);
    void removeLayer(int);
-   void InsertLayerBack( tLayer );
+   void InsertLayerBack( tLayer const & );
    void LayerInterpolation( tTriangle *, double, double, double );
    virtual void WarnSpokeLeaving(tEdge *);
    virtual void InitializeNode();
