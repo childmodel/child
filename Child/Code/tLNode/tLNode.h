@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.29 1998-07-15 22:27:36 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.30 1998-07-17 22:55:02 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -332,7 +332,7 @@ public:
    // Can be used for erosion of bedrock.
    // Algorithm assumes that the material being deposited is the
    // Same material as that in the layer you are depositing into.
-   tArray<double> addtoLayer(int, double, double);
+   tArray<double> addtoLayer(int, double);
    // Used if removing material from lower layers -
    // only called from EroDep
    // because appropriate checking needs to be done first.
