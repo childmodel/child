@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.84 2004-01-07 13:51:47 childcvs Exp $
+ **  $Id: tLNode.h,v 1.85 2004-01-07 14:10:09 childcvs Exp $
  */
 /************************************************************************/
 
@@ -411,6 +411,7 @@ public:
   inline void AddDrArea( double );
   inline void AddDischarge( double );
   inline tLNode * getDownstrmNbr();
+  tLNode* getUpstrmNbr();
   inline double getQ() const;  // Gets total discharge from embedded chan obj
   // fluvial discharge is in now in m^3/YR
   inline double calcSlope();    // Computes and returns slope in flow direction
@@ -537,6 +538,9 @@ public:
   inline void setLayerErody(int, double);
   inline void setLayerSed(int, int);
   inline void setLayerDgrade(int, int, double);
+  void FindInitFlowDir(); // was tStreamNet::
+  bool FindFlowDir(); // was tStreamNet::
+  bool FindDynamicFlowDir();
   tArray<double> EroDep(int, tArray<double>, double);
   // returns the depth of of each size that was actually deposited or
   // eroded.  Important in case less can be eroded than planned.
@@ -562,13 +566,14 @@ public:
   virtual bool isMobile() const { return Meanders();}
   inline virtual bool flowThrough( tEdge const *e) const;
   virtual tNode *splitFlowEdge();
-  virtual void setDownstrmNbr( tNode *dest );
+  inline virtual void setDownstrmNbr( tNode* ); // overrides tNode
 
   virtual void PrepForAddition( tTriangle const *, double );
   virtual void PrepForMovement( tTriangle const *, double );
 
   void CopyLayerList( tLNode const * ); // Copy layerlist from another node (gt 12/99)
 
+   virtual void ChangeZ( double ); // overrides tNode::ChangeZ
 #ifndef NDEBUG
   void TellAll() const;
 #endif
@@ -793,6 +798,18 @@ inline void tLNode::UpdateCoords()
 inline bool tLNode::flowThrough( tEdge const *e) const {
   return
     e == flowedge;
+}
+
+/***********************************************************************\
+  tLNode::setDownstrmNbr
+  Set flowedge to flow to node "ptr".
+  09/2003 AD/QC
+  SL, 10/03: replaces new flowTo; I've been using this function
+             in my version of CHILD since ca. 1998.
+\***********************************************************************/
+void tLNode::setDownstrmNbr( tNode *ptr ){
+  // New node flows to the next meander node downstream (ptr)
+  setFlowEdg( EdgToNod( ptr ) );
 }
 
 inline void tLNode::setBedErody( double val )
@@ -1180,6 +1197,21 @@ inline bool tLNode::NoMoreTracers() const
 {
   assert( tracer>=0 );
   return BOOL( tracer==0 );
+}
+
+// SL, 9/2003: Version to override tNode version. ChangeZ is only used
+//  by tUplift functions, so this version will cause uplift to be applied
+//  to "old" elevations so that, if a long time elapses between setting
+//  the coordinates for node dropping and the dropping itself, the new
+//  node will be at an appropriate elevation.
+inline void tLNode::ChangeZ( double val )
+{
+   tNode::ChangeZ( val );
+   if( Meanders() ){
+      if( chan.migration.xyzd[3] != 0.0 ){
+         chan.migration.xyzd[2] += val;
+      }
+   }
 }
 
 #endif

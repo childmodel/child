@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.128 2004-01-07 13:51:45 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.129 2004-01-07 14:10:08 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -666,12 +666,213 @@ tLNode *tLNode::getDSlopeDtMeander( double &curlen )
   return dn;
 }
 
+/****************************************************************************\
+**
+**  tLNode::FindInitFlowDir
+**
+**  Initialize flow directions such that each active (non-boundary) node
+**  flows to another active node (or open boundary node). This initialization
+**  process allows the FlowDirs function to assume that the previous flowedg
+**  is always valid in the sense that it doesn't point to a closed boundary
+**  (which otherwise could happen when the mesh is first read in).
+**
+**  Modifies: node flow directions (flowedge)
+**  Written 12/1/97 gt.
+**  Modified: 1/5/99 SL -- guts moved from tStreamNet::InitFlowDirs()
+**  Updated for Oxford CHILD, 9/2003 SL.
+**
+\****************************************************************************/
+#define kMaxSpokes 100
+void tLNode::FindInitFlowDir() // overrides tNode; was tStreamNet::
+{
+   int ctr = 0;
+   assert( this > 0 );
+   // Start with the node's default edge
+   tEdge* flowedg = getEdg();
+   assert( flowedg>0 );
 
-//void tLNode::insertFrontSpokeList( tEdge *eptr )             //tNode
-//{spokeList.insertAtFront( eptr );}
+   // As long as the current edge is a no-flow edge, advance to the next one
+   // counter-clockwise
+   while( !flowedg->FlowAllowed() )
+   {
+      flowedg = flowedg->getCCWEdg();
+      assert( flowedg>0 );
+      if( ++ctr > kMaxSpokes ) // Make sure to prevent endless loops
+      {
+         cerr << "Mesh error: node " << getID()
+              << " appears to be surrounded by closed boundary nodes"
+              << endl;
+         ReportFatalError( "Bailing out of InitFlowDirs()" );
+      }
+   }
+   setFlowEdg( flowedg );
+   assert( getFlowEdg() != 0 );
+}
 
-//void tLNode::insertBackSpokeList( tEdge *eptr )              //tNode
-//{spokeList.insertAtBack( eptr );}
+/****************************************************************************\
+**
+**  tLNode::FindFlowDir
+**
+**  Computes flow directions for each node using a
+**  steepest-direction routing algorithm. Flow proceeds along the
+**  steepest of the directed edges (spokes) around a given node.
+**  This edge is assigned as the node's flowedg. Nodes at which
+**  the steepest slope is negative (uphill) are flagged as sinks.
+**  (If the lake-fill option is active, sink nodes are processed
+**  in order to find an outlet; otherwise, all runoff reaching a
+**  sink node is assumed to evaporate and/or infiltrate).
+**
+**      Parameters:     none
+**      Called by: tStreamNet::FlowDirs()
+**      Modifies: node flow directions and flood status
+**      Assumes:
+**       - each node points to a valid flow edge (returned by getFlowEdg())
+**       - each edge has a valid counter-clockwise edge
+**       - edge slopes are up to date
+**      Returns: false if flow direction unchanged, true otherwise.
+**      Updated: 12/19/97 SL; 12/30/97 GT
+**  Modified: 1/5/99 SL -- guts moved from tStreamNet::FlowDirs()
+**      Updated for Oxford CHILD, 9/2003 SL.
+**
+\****************************************************************************/
+bool tLNode::FindFlowDir() // was tStreamNet::
+{
+   setFloodStatus( kNotFlooded );  // Init flood status flag
+   tEdge* firstedg = flowedge;
+      if( unlikely(firstedg == 0) ) {
+          TellAll();
+	  assert( 0 );
+      }
+   double slp = firstedg->getSlope();
+   tEdge* nbredg = firstedg;
+   tEdge* curedg = firstedg->getCCWEdg();
+   int ctr = 0;
+   
+   // Check each of the various "spokes", stopping when we've gotten
+   // back to the beginning
+   while( curedg!=firstedg )
+   {
+      assert( curedg != 0 );
+      if ( curedg->getSlope() > slp && curedg->FlowAllowed() )
+      {
+         slp = curedg->getSlope();
+         nbredg = curedg;
+      }
+      curedg = curedg->getCCWEdg();
+      ++ctr;
+      if( unlikely( ctr > kMaxSpokes ) ) // Make sure to prevent endless loops
+      {
+         cerr << "Mesh error: node " << getID()
+              << " going round and round" << endl;
+         ReportFatalError( "Bailing out of FlowDirs()" );
+      }
+   }
+   setFlowEdg( nbredg );
+   //Nicole changed the line below which is commented out, replaced
+   //it with the new if because of the new function WarnSpokeLeaving
+   //which can set a node as a boundary node.
+   //curnode->setFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );// (NB: opt branch pred?)
+   if( slp > 0 && getBoundaryFlag() != kClosedBoundary )
+       setFloodStatus( kNotFlooded );
+   else
+       setFloodStatus( kSink );
+   assert( getFlowEdg() != 0 );
+   if( nbredg == firstedg ) return false;
+   return true;
+}
+
+/****************************************************************************\
+**
+**  tLNode::FindDynamicFlowDir
+**
+**  Computes flow directions for each node using a
+**  steepest-direction routing algorithm. Flow proceeds along the
+**  steepest of the directed edges (spokes) around a given node.
+**  This edge is assigned as the node's flowedg. Nodes at which
+**  the steepest slope is negative (uphill) are flagged as sinks.
+**  (If the lake-fill option is active, sink nodes are processed
+**  in order to find an outlet; otherwise, all runoff reaching a
+**  sink node is assumed to evaporate and/or infiltrate).
+**
+**      Parameters:     none
+**      Called by: tStreamNet::FlowDirs()
+**      Modifies: node flow directions and flood status
+**      Assumes:
+**       - each node points to a valid flow edge (returned by getFlowEdg())
+**       - each edge has a valid counter-clockwise edge
+**       - edge slopes are up to date
+**      Updated: 12/19/97 SL; 12/30/97 GT
+**  Modified: 1/5/99 SL -- guts moved from tStreamNet::FlowDirs()
+**
+**  Only difference from FindFlowDir() is that this calls CalcSlope()
+**  for spokes instead of getSlope() the first time.
+**  7/2002, SL:
+**  9/2003 SL: Also calculates edge length so that UpdateMesh is not needed
+**    to redetermine flowedges
+**    Also checks that flowedge originates at node and, if not, sets
+**    flowedge temporarily to edg. This problem can arise because this
+**    function is often called right after node addition or deletion,
+**    and the edge that was the flowedge may no longer be connected
+**    to this edge!
+\****************************************************************************/
+bool tLNode::FindDynamicFlowDir() // overrides tNode; was tStreamNet::
+{
+   bool fechng = false;
+   setFloodStatus( kNotFlooded );  // Init flood status flag
+   // make sure flowedge starts at "this" node
+   if( unlikely( flowedge->getOriginPtr() != this ) ){
+      fechng = true;
+      FindInitFlowDir();
+   }
+
+   tEdge* firstedg = flowedge;
+   if( unlikely(firstedg == 0) ) {
+      TellAll();
+      assert( 0 );
+   }
+   firstedg->CalcLength();
+   double slp = firstedg->CalcSlope();
+   tEdge* nbredg = firstedg;
+   tEdge* curedg = firstedg->getCCWEdg();
+   int ctr = 0;
+
+   // Check each of the various "spokes", stopping when we've gotten
+   // back to the beginning
+   while( curedg!=firstedg )
+   {
+      assert( curedg != 0 );
+      curedg->CalcLength();
+      if ( curedg->CalcSlope() > slp && curedg->FlowAllowed() )
+      {
+         slp = curedg->getSlope();
+         nbredg = curedg;
+         fechng = true;
+      }
+      curedg = curedg->getCCWEdg();
+      ++ctr;
+      if( unlikely( ctr > kMaxSpokes ) ) // Make sure to prevent endless loops
+      {
+         cerr << "Mesh error: node " << getID()
+              << " going round and round" << endl;
+         ReportFatalError( "Bailing out of FlowDirs()" );
+      }
+   }
+   setFlowEdg( nbredg );
+   //Nicole changed the line below which is commented out, replaced
+   //it with the new if because of the new function WarnSpokeLeaving
+   //which can set a node as a boundary node.
+   //curnode->setFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );// (NB: opt branch pred?)
+   if( slp > 0 && getBoundaryFlag() != kClosedBoundary )
+       setFloodStatus( kNotFlooded );
+   else
+       setFloodStatus( kSink );
+   assert( getFlowEdg() != 0 );
+   //if( nbredg == firstedg ) return false;
+   //return true;
+   return fechng;
+}
+
+#undef kMaxSpokes
 
 /*****************************************************************************\
  **
@@ -1495,19 +1696,11 @@ void tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
  ***********************************************************************/
 void tLNode::InitializeNode()
 {
-  int debugcount=0;
-
   // If we're not a boundary node, make sure we have a valid flowedge
   if( boundary==kNonBoundary )
     {
-      flowedge=getEdg();
-      do {
-	flowedge = flowedge->getCCWEdg();
-	debugcount++;
-	assert( debugcount<10000 );
-      }
-      while( (flowedge->getBoundaryFlag()==kClosedBoundary)
-	     && flowedge!=getEdg() );
+       // SL 9/2003: call new FindInitFlowDir():
+       FindInitFlowDir();
     }
 
   // Set size of sediment influx and outflux arrays to number of grain sizes
@@ -1579,21 +1772,33 @@ tNode *tLNode::splitFlowEdge() {
   return nn;
 }
 
-
 /***********************************************************************\
-  tLNode::setDownstrmNbr
-  Set flowedge to flow to node "dest".
-  09/2003 AD/QC
+  tLNode::getUpstrmNbr
+  SL, 10/03:
 \***********************************************************************/
-void tLNode::setDownstrmNbr( tNode *dest ){
-  // New node flows to the next meander node downstream (nPtr)
-  tEdge *theEdg = EdgToNod( dest );
-  if (theEdg == 0) {
-    ReportFatalError("setDownstrmNbr(): cannot find an edge between nodes.");
-  }
-  setFlowEdg( theEdg );
+tLNode* tLNode::getUpstrmNbr()
+{
+   tSpkIter spI( this );
+   double maxarea = 0.0;
+   tLNode* mn = NULL;
+   for( tEdge* ce = spI.FirstP(); !spI.AtEnd(); ce = spI.NextP() )
+   {
+      if( ce != flowedge && ce->FlowAllowed() )
+      {
+         tLNode* un = static_cast<tLNode*>( ce->getDestinationPtrNC() );
+         if( un->getDownstrmNbr() == this )
+         {
+            double curarea = un->getDrArea();
+            if( curarea > maxarea )
+            {
+               mn = un;
+               maxarea = curarea;
+            }
+         }
+      }
+   }
+   return mn;
 }
-
 
 /***********************************************************************\
   tArray<double> tLNode::EroDep
