@@ -17,7 +17,7 @@
 **  for other random processes such as river flows, etc.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.h,v 1.4 1998-01-27 23:34:12 stlancas Exp $
+**  $Id: tStorm.h,v 1.5 1998-01-29 19:47:59 gtucker Exp $
 */
 
 #ifndef TSTORM_H
@@ -31,27 +31,27 @@ class tStorm
 {
   public:
    tStorm( int optVariable=1 );
-   tStorm( float, float, float, unsigned, int optvar=1 );
+   tStorm( double, double, double, unsigned, int optvar=1 );
    tStorm( tInputFile & );
    void  GenerateStorm();
-   float GetStormDuration();
-   float InterstormDur();
-   float GetRainrate();
-   float getMeanStormDur() const;
-   float getMeanInterstormDur() const;
-   float getMeanPrecip() const;
+   double GetStormDuration();
+   double InterstormDur();
+   double GetRainrate();
+   double getMeanStormDur() const;
+   double getMeanInterstormDur() const;
+   double getMeanPrecip() const;
    
   private:
-   float ExpDev( long * );
+   double ExpDev( long * );
    double GammaDev(double, long*);
    
    int optVariable;   // Flag indicating whether storms are random or not
-   float stdurMean;   // Mean duration
-   float istdurMean;  // Mean time between storms
-   float pMean;       // Mean rainfall intensity
-   float p;           // Actual rainfall intensity for the current storm
-   float stdur;       // Actual storm duration
-   float istdur;      // Actual time between storms
+   double stdurMean;   // Mean duration
+   double istdurMean;  // Mean time between storms
+   double pMean;       // Mean rainfall intensity
+   double p;           // Actual rainfall intensity for the current storm
+   double stdur;       // Actual storm duration
+   double istdur;      // Actual time between storms
    long  seed;        // Random seed
 };
 
