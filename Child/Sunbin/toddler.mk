@@ -1,4 +1,4 @@
-PT = $(CHILDCODE)
+PT = ..
 CXX = CC
 WARNINGFLAGS = -DHAVE_NO_NAMESPACE
 CFLAGS = $(WARNINGFLAGS) -c -O
@@ -76,6 +76,7 @@ clean::
 	rm -f $(EXENAME)
 	rm -f *.o
 	rm -fr Templates.DB
+	rm -fr SunWS_cache
 
 # dependencies: headers and template implementation files.
 # use, for instance:
