@@ -21,7 +21,7 @@
 **  Major modifications:
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **
-**  $Id: tUplift.h,v 1.8 2000-06-15 17:43:32 gtucker Exp $
+**  $Id: tUplift.h,v 1.9 2000-06-19 17:39:54 gtucker Exp $
 \************************************************************************/
 
 #ifndef TUPLIFT_H
@@ -51,6 +51,7 @@ private:
     double duration;       // Duration of uplift
     double rate;           // Rate of uplift
     double faultPosition;  // Position of fault (y-location)
+    double positionParam1; // Another position parameter
     double slipRate;       // Slip rate for strike-slip motion and fault prop
     double foldParam;      // Parameter used in folding calculation
     double foldParam2;     // Another one
