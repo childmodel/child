@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.75 2004-04-05 10:04:34 childcvs Exp $
+**  $Id: meshElements.h,v 1.76 2004-04-14 11:20:50 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -550,8 +550,8 @@ tNode::get2DCoords() const
 inline void tNode::get2DCoords( tArray< double >& xy ) const
 {
    if( xy.getSize() != 2 ) xy.setSize(2);
-   xy[0] = x;
-   xy[1] = y;
+   xy.at(0) = x;
+   xy.at(1) = y;
 }
 
 inline int tNode::getID() const {return id;}
@@ -971,7 +971,7 @@ inline void tEdge::setRVtx( tArray< double > const & arr )
    assert( arr.getSize() == 2 );
    if (0)//DEBUG
      cout << "setRVtx for edge " << id
-	  << " to x, y, " << arr[0] << ", " << arr[1] << endl;
+	  << " to x, y, " << arr.at(0) << ", " << arr.at(1) << endl;
    rvtx.at(0) = arr.at(0);
    rvtx.at(1) = arr.at(1);
 }
@@ -1020,6 +1020,26 @@ inline double tEdge::CalcSlope()
 
    slope = ( org->getZ() - dest->getZ() ) / len;
    return slope;
+}
+
+
+/**************************************************************************\
+**
+**  tEdge::CalcLength
+**
+**  Computes the edge length and returns it. (Length is the projected
+**  on the x,y plane). Assumes org and dest are valid.
+**
+\**************************************************************************/
+inline double tEdge::CalcLength()
+{
+   assert( org!=0 );  // Failure = edge has no origin and/or destination node
+   assert( dest!=0 );
+
+   double dx = org->getX() - dest->getX();
+   double dy = org->getY() - dest->getY();
+   len = sqrt( dx*dx + dy*dy );
+   return len;
 }
 
 

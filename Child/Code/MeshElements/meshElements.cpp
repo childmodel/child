@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.69 2004-04-13 16:58:54 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.70 2004-04-14 11:20:48 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -44,26 +44,26 @@ tArray< double > FindIntersectionCoords( tArray< double > const &xy1,
                                          tArray< double > const &xy3,
                                          tArray< double > const &xy4 )
 {
-   double dxa, dxb, dya, dyb, a, b, c, f, g, h;
    tArray< double > intxy(2);
 
-   dxa = xy2[0] - xy1[0];
-   dxb = xy4[0] - xy3[0];
-   dya = xy2[1] - xy1[1];
-   dyb = xy4[1] - xy3[1];
-   a = dya;
-   b = -dxa;
-   c = dxa * xy1[1] - dya * xy1[0];
-   f = dyb;
-   g = -dxb;
-   //h = dxb * xy3[1] - dyb * xy4[0];
-   h = dxb * xy3[1] - dyb * xy3[0];  // seems to be a bug above; fixed here?
+   const double dxa = xy2.at(0) - xy1.at(0);
+   const double dxb = xy4.at(0) - xy3.at(0);
+   const double dya = xy2.at(1) - xy1.at(1);
+   const double dyb = xy4.at(1) - xy3.at(1);
+   const double &a = dya;
+   const double b = -dxa;
+   const double c = dxa * xy1.at(1) - dya * xy1.at(0);
+   const double &f = dyb;
+   const double g = -dxb;
+   //const double h = dxb * xy3.at(1) - dyb * xy4.at(0);
+   // seems to be a bug above; fixed here?
+   const double h = dxb * xy3.at(1) - dyb * xy3.at(0);
    if( fabs(dxa) > 0 && fabs(dxb) > 0 )
    {
       if( fabs(f - g * a / b) > 0 )
       {
-         intxy[0] = (g * c / b - h) / (f - g * a / b);
-         intxy[1] = (-c - a * intxy[0]) / b;
+         intxy.at(0) = (g * c / b - h) / (f - g * a / b);
+         intxy.at(1) = (-c - a * intxy.at(0)) / b;
       }
    }
    else
@@ -72,21 +72,21 @@ tArray< double > FindIntersectionCoords( tArray< double > const &xy1,
       {
          if( fabs(g - f * b / a) > 0 )
          {
-            intxy[1] = (f * c / a - h) / (g - f * b / a);
-            intxy[0] = (-c - b * intxy[1]) / a;
+            intxy.at(1) = (f * c / a - h) / (g - f * b / a);
+            intxy.at(0) = (-c - b * intxy.at(1)) / a;
          }
       }
       else //one horiz. line and one vert. line:
       {
          if( fabs(dya) == 0 )
          {
-            intxy[0] = xy3[0];
-            intxy[1] = xy1[1];
+            intxy.at(0) = xy3.at(0);
+            intxy.at(1) = xy1.at(1);
          }
          else
          {
-            intxy[0] = xy1[0];
-            intxy[1] = xy3[1];
+            intxy.at(0) = xy1.at(0);
+            intxy.at(1) = xy3.at(1);
          }
       }
    }
@@ -303,7 +303,6 @@ double tNode::ComputeVoronoiArea()
 			      }
 			  }
 			edgptr = vtxIter.PrevP();
-			const tArray< double > xyn( vx, vy );
 			dx = xy.at(0) - vx;
 			dy = xy.at(1) - vy;
 			//cout << "reset vedglen and rvtx for edge "
@@ -313,7 +312,7 @@ double tNode::ComputeVoronoiArea()
 			//reset 'next' edge's vertex to newly found intersection,
 			//length adjusted accordingly
 			edgptr->setVEdgLen( sqrt( dx*dx + dy*dy ) );
-			edgptr->setRVtx( xyn );
+			edgptr->setRVtx( tArray<double>( vx, vy ) );
 			edgptr = vtxIter.ReportNextP();
 			//cout << "reset vedglen and rvtx for edge "
 			//     << edgptr->getID()
@@ -364,13 +363,15 @@ double tNode::ComputeVoronoiArea()
 		    //"cut off" portion of V. area outside bndy by finding intersections
 		    //of V. edges and bndy edge:
 		    //if( id==83 ) cout << " CASE B\n";
-		    const tArray< double > xy_1 =
-		      FindIntersectionCoords( ce->getRVtx(), xy1, xy2, xy3 );
-		    vcL.insertAtBack( xy_1 );
+		    vcL.insertAtBack(
+				     FindIntersectionCoords( ce->getRVtx(),
+							     xy1, xy2, xy3 )
+				     );
 		    nne = ne->getCCWEdg();
-		    const tArray< double > xy_2 =
-		      FindIntersectionCoords( xy1, nne->getRVtx(), xy2, xy3 );
-		    vcL.insertAtBack( xy_2 );
+		    vcL.insertAtBack(
+				     FindIntersectionCoords( xy1,
+							     nne->getRVtx(), xy2, xy3 )
+				     );
 		  }
 		else vcL.insertAtBack( xy1 );
 	      }
@@ -603,26 +604,6 @@ void tNode::TellAll() const
 
 /**************************************************************************\
 \***  Functions for class tEdge  ******************************************/
-
-/**************************************************************************\
-**
-**  tEdge::CalcLength
-**
-**  Computes the edge length and returns it. (Length is the projected
-**  on the x,y plane). Assumes org and dest are valid.
-**
-\**************************************************************************/
-double tEdge::CalcLength()
-{
-   assert( org!=0 );  // Failure = edge has no origin and/or destination node
-   assert( dest!=0 );
-
-   double dx = org->getX() - dest->getX();
-   double dy = org->getY() - dest->getY();
-   len = sqrt( dx*dx + dy*dy );
-   return len;
-}
-
 
 /**************************************************************************\
 **
@@ -932,7 +913,7 @@ tTriangle::FindCircumcenter() const
    if( fabs(dy1)>0 && fabs(dy2)>0 )
    {
       assert( dy1!=0 && dy2!=0 );
-      const double m1= -dx1/dy1;
+      const double m1 = -dx1/dy1;
       const double m2 = -dx2/dy2;
       assert( m1!=m2 ); // should never happen; means edges are parallel
       XX = (y2 - m2 * x2 - y1 + m1 * x1) / (m1 - m2);
