@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.1 1998-01-14 20:48:05 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2 1998-01-15 19:35:50 gtucker Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -32,6 +32,7 @@
 #include "../tGrid/tGrid.h"
 #include "../tStorm/tStorm.h"
 #include "../errors/errors.h"
+#include "../Erosion/erosion.h"
 
 #include "tStreamNet.h"
 
@@ -51,17 +52,19 @@
 **     flow directions, drainage areas, etc.
 **
 \**************************************************************************/
-tStreamNet::tStreamNet()
+/*tStreamNet::tStreamNet()
+        : bedErode()
 {
    cout << "tStreamNet()...";
    gridPtr = 0;
    flowgen = filllakes = 0;
    rainrate = trans = infilt = 0;
    cout << "finished" << endl;	
-}
+}*/
 
 tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
                         tInputFile &infile )
+        : bedErode( infile )
 {
    cout << "tStreamNet(...)...";
    assert( &gridRef != 0 );
@@ -1134,3 +1137,55 @@ cur = firstnode;
   */  
  
 }
+
+
+/*****************************************************************************\
+**
+**  ErodeDetachLim
+**
+**  Solves for erosion and deposition during a time interval dtg, for the
+**  case in which any sediment detached from the landscape is assumed to
+**  be carried away. This might be appropriate, for example, in a bedrock
+**  channel system in which deposition is negligible. This case is handled
+**  separately from the more general case in which transport capacity and
+**  deposition are taken into account, because the numerical solutions
+**  to detachment-limited erosion equations tend to be considerably more
+**  stable than the general case.
+**
+**  The function will solve the erosion equation(s) over one or more time
+**  intervals within the total "global" time period dtg. First, the
+**  maximum time step size dt is computed. Then erosion is computed
+**  iteratively in increments of dt until the total time dtg has been used.
+**
+\*****************************************************************************/
+void tStreamNet::ErodeDetachLim( float dtg )
+{
+   float dt,
+       dtmax = 1000000.0; // time increment: initialize to arbitrary large val
+   int i;
+   tLNode * cn;
+   int nActNodes = gridPtr->GetNodeList()->getActiveSize();
+   tGridListIter<tLNode> ni( gridPtr->GetNodeList() );
+   tArray<float> dz( nActNodes ); // Erosion depth @ each node
+
+   // First, estimate maximum stable/accurate time step size
+   for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+       if( (dt=bedErode.SetTimeStep( cn )) < dtmax )
+           dtmax = dt;
+
+   // Iterate until total time dtg has been consumed
+   do
+   {
+      if( dt > dtg ) dt = dtg; // dt shouldn't exceed remaining time
+        // Compute erosion depths
+      for( i=0, cn=ni.FirstP(); i<nActNodes; i++, cn=ni.NextP() )
+          dz[i] = bedErode.DetachCapacity( cn, dt );
+        // Apply erosion depths
+      for( i=0, cn=ni.FirstP(); i<nActNodes; i++, cn=ni.NextP() )
+          cn->EroDep( dz[i] );
+      dtg -= dt;  // decrease remaining time
+   } while( dtg>0 );
+   
+}
+
+   
