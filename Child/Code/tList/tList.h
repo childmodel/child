@@ -30,7 +30,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.19 2000-03-09 20:10:56 gtucker Exp $
+**  $Id: tList.h,v 1.20 2001-06-19 15:47:47 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -791,12 +791,12 @@ getIthData( int num ) const
 {
    int i;
    tListNode< NodeType > * curPtr;
-//     if(num>= nNodes)
-//         {
-//            cout<<"using an index which is too large"<<endl;
-//            cout<<"you have "<<nNodes<<endl;
-//            cout<<"you wanted list member number "<<num<<endl;
-//         }
+     if(num>= nNodes)
+         {
+            cout<<"using an index which is too large"<<endl;
+            cout<<"you have "<<nNodes<<endl;
+            cout<<"you wanted list member number "<<num<<endl;
+         }
 //     if(num<0)
 //     {
 //        cout<<"using a negative index"<<endl;
