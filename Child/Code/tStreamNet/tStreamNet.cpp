@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.19 2002-05-02 09:23:37 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.20 2002-07-23 09:08:37 gtucker Exp $
 \**************************************************************************/
 
 #include "../tAssert.h"
@@ -211,7 +211,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
        ewds = infile.ReadItem( ewds, "HYDR_WID_EXP_DS" );
        //cout << "ewds: " << ewds << endl;
        edds = infile.ReadItem( edds, "HYDR_DEP_EXP_DS" );
-       edstn = infile.ReadItem( ewstn, "HYDR_DEP_EXP_STN" );
+       edstn = infile.ReadItem( edstn, "HYDR_DEP_EXP_STN" );
      }
    else // Parker Channels
      mpParkerChannels = new tParkerChannels( infile );
@@ -1916,6 +1916,9 @@ void tStreamNet::FindChanGeom()
    {
       //took out an if cn->Meanders() so stuff will be calculated at all nodes
       //gt3/99 qbf = cn->getDrArea() * qbffactor;
+      // Here we compute bankfull discharge and use it to compute width, depth,
+      // etc. Note that if the user enters 0 for BANKFULLEVENT, the actual
+      // current discharge will be used instead.
       qbf = cn->getDrArea()*bankfullevent;
       if( !qbf ) qbf = cn->getQ()/SECPERYEAR;  // q is now in m^3/s
       width = kwds * pow(qbf, ewds);
