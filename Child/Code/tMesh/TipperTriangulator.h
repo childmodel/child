@@ -15,6 +15,7 @@ void tt_build_elem_table(int npoints, const point *p,
 			 int *pnelem, elem** pelems_ret);
 void tt_build_spoke(int npoints, int nedges, const edge* edges,
 		    oriented_edge** poedge);
+void tt_error_handler(void);
 
 class point{
 public:

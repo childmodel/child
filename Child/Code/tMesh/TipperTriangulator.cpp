@@ -311,7 +311,7 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edg
   if (orient == 0){
     cout << "All nodes aligned. Ill-conditioned problem. Bailing out." 
 	 << endl;
-    exit(1);
+    tt_error_handler();
   }
   // if orient > 0, build edge from 0 to j-1
   // if orient < 0, build edge from j-1 to 0
@@ -515,7 +515,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 	}else{
 	  //or else its an error!
 	  cout<<"Triangulate: Can't see the hull from the new point!? number is "<<i<<endl;
-	  exit(1);
+	  tt_error_handler();
 	}
       }
       const int hlow = hull.getEdge(lower_hull_pos);
