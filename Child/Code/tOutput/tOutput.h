@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.49 2004-03-05 17:07:43 childcvs Exp $
+ **  $Id: tOutput.h,v 1.50 2004-03-24 14:54:40 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -116,11 +116,6 @@ protected:
 private:
   // renumber in list order
   void RenumberIDInListOrder();
-  // use to ensure a canonical ordering
-  static int orderRNode(const void*, const void*);
-  static int orderREdge(const void*, const void*);
-  static int orderRTriangle(const void*, const void*);
-  void RenumberIDCanonically();
   // write an individual record
   inline void WriteNodeRecord( tNode * );
   inline void WriteEdgeRecord( tEdge * );

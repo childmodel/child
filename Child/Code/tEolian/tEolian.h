@@ -20,7 +20,7 @@
 **
 **  (Created 2/99 by GT)
 **
-**  $Id: tEolian.h,v 1.8 2003-10-15 09:24:26 childcvs Exp $
+**  $Id: tEolian.h,v 1.9 2004-03-24 14:54:34 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -29,7 +29,6 @@
 
 #include <assert.h>
 #include "../tMesh/tMesh.h"
-#include "../tMeshList/tMeshList.h"
 #include "../tLNode/tLNode.h"
 #include "../tInputFile/tInputFile.h"
 
@@ -50,7 +49,7 @@ class tEolian
 public:
     tEolian( const tInputFile &infile );
     void DepositLoess( tMesh<tLNode> *mp, double delt, double ctime );
-    
+
 private:
     double loessDepRate;
     tArray<double> depositDepth;

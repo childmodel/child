@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.199 2004-03-22 11:03:36 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.200 2004-03-24 14:54:35 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -227,7 +227,7 @@ tMesh( const tInputFile &infile )
    double cy = 0.0;
    double sumarea = 0.0;
    double carea;
-   tMeshListIter< tSubNode > nI( getNodeList() );
+   nodeListIter_t nI( getNodeList() );
    tNode* cn;
    for( cn = nI.FirstP(); !nI.AtEnd(); cn = nI.NextP() )
    {
@@ -318,7 +318,7 @@ MakeLayersFromInputData( const tInputFile &infile )
    tLNode * cn;
    //int nActNodes = getNodeList()->getActiveSize();
    //int NNodes = getNodeList()->get
-   tMeshListIter<tLNode> ni( getNodeList() );
+   nodeListIter_t ni( getNodeList() );
 
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
    {
@@ -414,7 +414,7 @@ MeshDensification( const tInputFile &infile )
      int nnewpoints;  // No. of new points added in a given pass
      tArray<double> newx, newy, newz;   // Lists of new coords
      tempnode.setBoundaryFlag( kNonBoundary );  // assumed all interior points
-     tListIter< tTriangle > triIter( triList );
+     triListIter_t triIter( triList );
      tTriangle * ct;
      for( j=1; j<=initMeshDensLevel; j++ )
      {
@@ -591,7 +591,7 @@ MakeMeshFromInputData( const tInputFile &infile )
      //DEBUG
      if (0) {
        cout << "JUST ADDED EDGES:\n";
-       tMeshListIter< tEdge > ei( edgeList );
+       edgeListIter_t ei( edgeList );
        for( tEdge *ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
 	 {
 	   ce->TellCoords();
@@ -606,7 +606,7 @@ MakeMeshFromInputData( const tInputFile &infile )
      // (no real lists: "insert" functions simply set appropriate ccwedg's and
      // cwedg's)
      {
-       tMeshListIter< tSubNode > nodIter( nodeList );
+       nodeListIter_t nodIter( nodeList );
        int ret = nodIter.First();
        assert( ret != 0 );
        tSubNode * curnode;
@@ -672,7 +672,7 @@ MakeMeshFromInputData( const tInputFile &infile )
    MeshDensification( infile ); // optional mesh densification
 
    if (0) { // DEBUG
-     tMeshListIter< tEdge > ei( edgeList );
+     edgeListIter_t ei( edgeList );
      tEdge * ce;
      cout << "JUST BEFORE UPDATEMESH\n";
      for( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
@@ -754,9 +754,9 @@ BatchAddNodes()
    double mincosine, testcosine;
    tPtrList< tSubNode > tmpnodList, tmpnbrList;
    tPtrList< tEdge > tmpbndList;
-   tMeshListIter< tSubNode > nI( nodeList );
-   tMeshListIter< tEdge > eI( edgeList );
-   tListIter< tTriangle > tI( triList );
+   nodeListIter_t nI( nodeList );
+   edgeListIter_t eI( edgeList );
+   triListIter_t tI( triList );
    tPtrListIter< tEdge > bI( tmpbndList );
    tPtrListIter< tSubNode > tnI( tmpnodList ), nbrI;
    tEdge* ce;
@@ -1038,7 +1038,7 @@ MakePointBoundary( const ParamMMFS_t &Param, const tInputFile &infile,
        n;                        // no. of nodes along a side
    double dist;                  // current distance along boundary
    tSubNode tempnode( infile );  // temporary node used to create node list
-   tMeshListIter< tSubNode > nodIter( nodeList );
+   nodeListIter_t nodIter( nodeList );
 
    //MAKE BOUNDARY
    switch( Param.boundType ) {
@@ -1483,7 +1483,7 @@ MakeMeshFromScratch( const tInputFile &infile, tRand &rand )
 
    //DumpEdges:
    /*cout << "edges:" << endl;
-   tMeshListIter< tEdge > edgIter( edgeList );
+   edgeListIter_t edgIter( edgeList );
    for( ce = edgIter.FirstP(); !( edgIter.AtEnd() ); ce = edgIter.NextP() )
    {
       cout << ce->getID() << " from " << ce->getOriginPtrNC()->getID()
@@ -1619,7 +1619,7 @@ MakeMeshFromPoints( const tInputFile &infile )
    // Create the edges that connect the supertriangle vertices and place
    // them on the edge list.
    // (To do this we need to retrieve pointers from the nodeList)
-   tMeshListIter<tSubNode> nodIter( nodeList );
+   nodeListIter_t nodIter( nodeList );
    stp1 = nodIter.FirstP();
    stp2 = nodIter.NextP();
    stp3 = nodIter.NextP();
@@ -1735,7 +1735,7 @@ MakeRandomPointsFromArcGrid( const tInputFile &infile )
    char dumhead[3];
    tSubNode *cn, *minzPtr(0);
    tEdge* ce;
-   tMeshListIter< tSubNode > nI( nodeList );
+   nodeListIter_t nI( nodeList );
    tPtrList<tSubNode> supertriptlist, deletelist;
    tPtrListIter<tSubNode> stpIter( supertriptlist ), dI( deletelist );
 
@@ -1954,7 +1954,7 @@ MakeHexMeshFromArcGrid( const tInputFile &infile )
    char dumhead[3];
    tSubNode *cn, *minzPtr(0);
    tEdge* ce;
-   tMeshListIter< tSubNode > nI( nodeList );
+   nodeListIter_t nI( nodeList );
    tPtrList<tSubNode> supertriptlist, deletelist;
    tPtrListIter<tSubNode> stpIter( supertriptlist ), dI( deletelist );
 
@@ -2174,9 +2174,9 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
    if (!runCheckMeshConsistency)
      return;
 
-   tMeshListIter<tSubNode> nodIter( nodeList );
-   tMeshListIter<tEdge> edgIter( edgeList );
-   tListIter<tTriangle> triIter( triList );
+   nodeListIter_t nodIter( nodeList );
+   edgeListIter_t edgIter( edgeList );
+   triListIter_t triIter( triList );
    tNode * cn, * org, * dest;
    tEdge * ce, * cne, * ccwedg;
    tTriangle * ct, * optr;
@@ -2548,7 +2548,7 @@ void tMesh<tSubNode>::setVoronoiVertices()
 {
    if (0) //DEBUG
      cout << "setVoronoiVertices()..." << endl;
-   tListIter< tTriangle > triIter( triList );
+   triListIter_t triIter( triList );
    tTriangle * ct;
 
    // Find the Voronoi vertex associated with each Delaunay triangle
@@ -2602,7 +2602,7 @@ void tMesh<tSubNode>::CalcVoronoiEdgeLengths()
 {
 	tEdge *ce;
 	double vedglen;
-	tMeshListIter<tEdge> edgIter( edgeList );
+	edgeListIter_t edgIter( edgeList );
 
 	for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
 	{
@@ -2628,7 +2628,7 @@ template <class tSubNode>
    if (0) //DEBUG
      cout << "CalcVAreas()..." << endl;
    tSubNode* curnode;
-   tMeshListIter< tSubNode > nodIter( nodeList );
+   nodeListIter_t nodIter( nodeList );
 
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
@@ -2644,7 +2644,7 @@ template <class tSubNode>
 **
 **  tMesh::DeleteNode( tSubNode *, kRepairMesh_t=kRepairMesh,
 **                     kUpdateMesh_t=kUpdateMesh )
-**    (see DeleteNode( tListNode<tSubNode> *, kRepairMesh_t,kUpdateMesh_t)
+**    (see DeleteNode( nodeListIter_t *, kRepairMesh_t,kUpdateMesh_t)
 **     below)
 **
 \**************************************************************************/
@@ -2654,7 +2654,7 @@ DeleteNode( tSubNode const *node, kRepairMesh_t repairFlag,
 	    kUpdateMesh_t updateFlag,
 	    bool allowMobileDeletion )
 {
-  tMeshListIter< tSubNode > nodIter( nodeList );
+  nodeListIter_t nodIter( nodeList );
   if( nodIter.Get( node->getID() ) )
     return DeleteNode( nodIter.NodePtr(), repairFlag, updateFlag,
 		       allowMobileDeletion );
@@ -2663,7 +2663,7 @@ DeleteNode( tSubNode const *node, kRepairMesh_t repairFlag,
 
 /**************************************************************************\
 **
-**  tMesh::DeleteNode( tListNode<tSubNode> *, kRepairMesh_t=kRepairMesh,
+**  tMesh::DeleteNode( nodeListIter_t *, kRepairMesh_t=kRepairMesh,
 **                     kUpdateMesh_t=kUpdateMesh )
 **
 **  Deletes a node from the mesh. This is done by first calling
@@ -2702,7 +2702,7 @@ DeleteNode( tSubNode const *node, kRepairMesh_t repairFlag,
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-DeleteNode( tListNode< tSubNode >* nodPtr, kRepairMesh_t repairFlag,
+DeleteNode( nodeListNode_t *nodPtr, kRepairMesh_t repairFlag,
 	    kUpdateMesh_t updateFlag,
 	    bool allowMobileDeletion )
 {
@@ -2770,7 +2770,7 @@ DeleteNode( tListNode< tSubNode >* nodPtr, kRepairMesh_t repairFlag,
 
    if (0) { //DEBUG
      cout << "Mesh repaired" << endl;
-     tMeshListIter< tSubNode > nodIter( nodeList );
+     nodeListIter_t nodIter( nodeList );
      tSubNode *cn;
      for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
        {
@@ -2921,9 +2921,9 @@ ExtricateEdge( tEdge * edgePtr )
    assert( edgePtr != 0 );
    //temporary objects:
    tEdge *ce, *cce;
-   tMeshListIter< tEdge > edgIter( edgeList );
+   edgeListIter_t edgIter( edgeList );
    tSpkIter spokIter;
-   tListNode< tEdge > *listnodePtr1, *listnodePtr2;
+   edgeListNode_t *listnodePtr1, *listnodePtr2;
    tTriangle* triPtr0, * triPtr1;
 
    //cout << "find edge in list; " << flush;
@@ -3105,7 +3105,7 @@ LocateTriangle( double x, double y, bool useFuturePosn)
 {
    if (0) //DEBUG
      cout << "\nLocateTriangle (" << x << "," << y << ")\n";
-   tListIter< tTriangle > triIter( triList );  //lt
+   triListIter_t triIter( triList );  //lt
    tTriangle *lt = ( mSearchOriginTriPtr != 0 ) ? mSearchOriginTriPtr
        : triIter.FirstP();
    int online = -1;
@@ -3268,7 +3268,7 @@ ExtricateTriangle( tTriangle const *triPtr )
 {
    if (0) //DEBUG
      cout << "ExtricateTriangle" << endl;
-   tListIter< tTriangle > triIter( triList );
+   triListIter_t triIter( triList );
    tTriangle *ct;
 
    // Find the triangle on the list
@@ -3616,7 +3616,7 @@ MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
    // the 3 vertices and 3 edges. The neighboring triangle pointers are
    // initialized to zero.
    triList.insertAtBack( tTriangle( miNextTriID++, cn, cnn, cnnn ) );//put
-   tListIter< tTriangle > triIter( triList );
+   triListIter_t triIter( triList );
    tTriangle *ct;
    ct = triIter.LastP();            //ct now points to our new triangle
    assert( cn == ct->pPtr(0) );     //make sure we're where we think we are
@@ -3979,7 +3979,7 @@ AddToList( tSubNode const & newNode )
   // insert node at the back of either the
   // active portion of the node list (if it's not a boundary) or the
   // boundary portion (if it is)
-  tMeshListIter< tSubNode > nodIter( nodeList );
+  nodeListIter_t nodIter( nodeList );
   tSubNode *cn = 0;
   switch (newNode.getBoundaryFlag()){
   case kNonBoundary:
@@ -4014,7 +4014,7 @@ RemoveFromList( tSubNode * nPtr )
   // remove node from the back of either the
   // active portion of the node list (if it's not a boundary) or the
   // boundary portion (if it is)
-  tMeshListIter< tSubNode > nodIter( nodeList );
+  nodeListIter_t nodIter( nodeList );
   tSubNode rmnode;
   switch (nPtr->getBoundaryFlag()){
      case kNonBoundary:
@@ -4032,7 +4032,6 @@ RemoveFromList( tSubNode * nPtr )
   }
   assert( nodeList.getSize() == nnodes - 1 );
   --nnodes;
-  nPtr = NULL;
 }
 
 /**************************************************************************\
@@ -4234,25 +4233,6 @@ AddNodeAt( tArray< double > &xyz, double time )
 
 /**************************************************************************\
 **
-**  tMesh "get" functions
-**
-\**************************************************************************/
-
-template <class tSubNode>
-tMeshList<tEdge> * tMesh<tSubNode>::
-getEdgeList() {return &edgeList;}
-
-template <class tSubNode>
-tMeshList<tSubNode> * tMesh<tSubNode>::
-getNodeList() {return &nodeList;}
-
-template <class tSubNode>
-tList< tTriangle > * tMesh<tSubNode>::
-getTriList() {return &triList;}
-
-
-/**************************************************************************\
-**
 **  tMesh::getEdgeComplement
 **
 **  Returns the complement of _edge_ (i.e., the edge that shares the same
@@ -4299,9 +4279,7 @@ UpdateMesh()
    if (0) //DEBUG
      cout << "UpdateMesh()" << endl;
 
-   //tListIter<tTriangle> tlist( triList );
-   tMeshListIter<tEdge> elist( edgeList );
-   //tMeshListIter<tSubNode> nlist( nodeList );
+   edgeListIter_t elist( edgeList );
    double len;
 
    // Edge lengths
@@ -4323,16 +4301,6 @@ UpdateMesh()
    CalcVoronoiEdgeLengths();
    CalcVAreas();
    CheckMeshConsistency( false );  // debug only -- remove for release
-
-// Triangle areas
-/*   for( tlist.First(); !tlist.AtEnd(); tlist.Next() )
-   {
-      curtri = tlist.DatPtr();
-      curtri->length_sides();
-      curtri->CalcArea();
-      curtri = curtri->next;
-   }
-   */
 }
 
 
@@ -4499,8 +4467,8 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop,
 	  tEdge::isFlowAllowed(na, nc) != tEdge::isFlowAllowed(nb, nd)
 	  );
 
-   tListNode< tEdge >* enodePtr1=0;
-   tListNode< tEdge >* enodePtr2=0;
+   edgeListNode_t *enodePtr1=0;
+   edgeListNode_t *enodePtr2=0;
    if( move )
    {
       if( edg->getID()%2 == 0 )
@@ -4592,7 +4560,7 @@ CheckLocallyDelaunay( double time )
   // moving vertex, and put these on triPtrList
   //put each triangle into the stack
   {
-    tListIter< tTriangle > triIter( triList );
+   triListIter_t triIter( triList );
     tSubNode *nodPtr;
     for( tTriangle *at = triIter.FirstP(); !( triIter.AtEnd() );
 	 at = triIter.NextP() )
@@ -4665,10 +4633,10 @@ CheckTriEdgeIntersect()
    tSubNode *subnodePtr;
    tEdge *cedg, *ce;
    tTriangle *ct, *ctop, *rmtri;
-   tListIter< tTriangle > triIter( triList );
-   tMeshListIter< tSubNode > nodIter( nodeList );
-   tMeshList< tSubNode > tmpNodeList;
-   tMeshListIter< tSubNode > tmpIter( tmpNodeList );
+   triListIter_t triIter( triList );
+   nodeListIter_t nodIter( nodeList );
+   nodeList_t tmpNodeList;
+   nodeListIter_t tmpIter( tmpNodeList );
    tSubNode *cn;
    tPtrList< tTriangle > triptrList;
    tPtrListNode< tTriangle > *tpListNode;
@@ -4902,7 +4870,7 @@ MoveNodes( double time, bool interpFlag )
    if( interpFlag &&
        layerflag && time > 0. ) {
      tSubNode * cn;
-     tMeshListIter< tSubNode > nodIter( nodeList );
+     nodeListIter_t nodIter( nodeList );
      for(cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP()){
        const tArray<double> newxy = cn->getNew2DCoords();
        if( (cn->getX()!=newxy[0]) || (cn->getY()!=newxy[1]) ){
@@ -4994,7 +4962,7 @@ template<class tSubNode>
 void tMesh<tSubNode>::
 DumpEdges()
 {
-   tMeshListIter< tEdge > edgIter( edgeList );
+   edgeListIter_t edgIter( edgeList );
    tEdge *ce;
    tTriangle *ct;
    int tid;
@@ -5030,7 +4998,7 @@ template<class tSubNode>
 void tMesh<tSubNode>::
 DumpTriangles()
 {
-   tListIter< tTriangle > triIter( triList );
+   triListIter_t triIter( triList );
    tTriangle *ct, *nt;
    int tid0, tid1, tid2;
    cout << "triangles:" << endl;
@@ -5059,7 +5027,7 @@ template<class tSubNode>
 void tMesh<tSubNode>::
 DumpNodes()
 {
-   tMeshListIter< tSubNode > nodIter( nodeList );
+   nodeListIter_t nodIter( nodeList );
    tSubNode *cn;
    cout << "nodes: " << endl;
    for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
@@ -5137,7 +5105,7 @@ void tMesh<tSubNode>::
 ResetNodeID()
 {
   tSubNode *cn;
-  tMeshListIter< tSubNode > nodIter( nodeList );
+  nodeListIter_t nodIter( nodeList );
   int i;
   for( cn = nodIter.FirstP(), i=0; !( nodIter.AtEnd() );
        cn = nodIter.NextP(), ++i )
@@ -5156,7 +5124,7 @@ void tMesh<tSubNode>::
 ResetEdgeID()
 {
   tEdge *ce;
-  tMeshListIter< tEdge > edgIter( edgeList );
+  edgeListIter_t edgIter( edgeList );
   int i;
   for( ce = edgIter.FirstP(), i = 0; !( edgIter.AtEnd() );
        ce = edgIter.NextP(), ++i )
@@ -5176,7 +5144,7 @@ void tMesh<tSubNode>::
 ResetTriangleID()
 {
   tTriangle *ct;
-  tListIter< tTriangle > triIter( triList );
+  triListIter_t triIter( triList );
   int i;
   for( ct = triIter.FirstP(), i=0; !( triIter.AtEnd() );
        ct = triIter.NextP(), ++i )
@@ -5221,6 +5189,182 @@ void tMesh<tSubNode>::
 SetmiNextTriID(int n_)
 {
   miNextTriID = n_;
+}
+
+/*************************************************************************\
+ **
+ **  tMesh::RenumberIDCanonically
+ **
+ **  Set IDs in a canonical ordering independent of the list ordering
+ **  As well, set tNode.edg to the spoke with the lowest destination node ID
+ **
+ **  AD, April-May 2003 - moved to tMesh March 2004
+\*************************************************************************/
+template< class tSubNode >
+void tMesh<tSubNode>::RenumberIDCanonically()
+{
+  nodeListIter_t niter( getNodeList() ); // node list iterator
+  edgeListIter_t eiter( getEdgeList() );    // edge list iterator
+  triListIter_t  titer( getTriList() );     // tri list iterator
+  const int nnodes = getNodeList()->getSize();  // # of nodes on list
+  const int nedges = getEdgeList()->getSize();  // "    edges "
+  const int ntri = getTriList()->getSize();     // "    triangles "
+
+  {
+    // First we set the Nodes Id in the order defined below
+    // b1 <= b2 then x1 <= x2 then y1<=y2
+    tArray< tNode* > RNode(nnodes);
+    int i;
+    tNode *cn;
+    for( cn=niter.FirstP(), i=0; i<nnodes; cn=niter.NextP(), ++i )
+      RNode[i] = cn;
+
+    qsort(RNode.getArrayPtr(), RNode.getSize(), sizeof(RNode[0]),
+	  orderRNode
+	  );
+    const int s_ = RNode.getSize();
+    for(i=0; i<s_; ++i)
+      RNode[i]->setID(i);
+    SetmiNextNodeID( RNode.getSize() );
+  }
+  {
+    // Set tNode.edg to the spoke that links to the destination node with the
+    // lowest ID
+    tNode *cn;
+    for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
+      tSpkIter sI( cn );
+      tEdge *thece = cn->getEdg();
+      tEdge *ce;
+      for( ce = sI.FirstP(); !( sI.AtEnd() ); ce = sI.NextP() ) {
+	if (ce->getDestinationPtr()->getID() <
+	    thece->getDestinationPtr()->getID())
+	  thece = ce;
+      }
+      cn->setEdg(thece);
+    }
+  }
+  // Set Edge ID with respect to Node ID
+  // #1 The pair edge-complement is ordered so that
+  // (IDorig IDdest) (IDdest IDorig) with IDorig < IDdest
+  {
+    tEdge *ce;
+    for( ce=eiter.FirstP(); !(eiter.AtEnd()); ce=eiter.NextP() ) {
+      typename tMesh< tSubNode >::edgeListNode_t *edgePtr1 = eiter.NodePtr();
+      eiter.Next();
+      typename tMesh< tSubNode >::edgeListNode_t *edgePtr2 = eiter.NodePtr();
+      if (ce->getOriginPtr()->getID() > ce->getDestinationPtr()->getID()) {
+	// swap edges
+	getEdgeList()->moveToAfter(edgePtr1, edgePtr2);
+	eiter.Next();
+      }
+    }
+  }
+  // #2 Then pairs are ordered with IDorig1 < IDorig2 and
+  // if IDorig1 == IDorig2 IDdest1 < IDdest2
+  {
+    tArray< tEdge* > REdge2(nedges/2);
+    tEdge *ce;
+    int i;
+    for( ce=eiter.FirstP(), i=0; !(eiter.AtEnd()); ce=eiter.NextP(), ++i ) {
+      REdge2[i] = ce;
+      eiter.Next();
+    }
+    qsort(REdge2.getArrayPtr(), REdge2.getSize(), sizeof(REdge2[0]),
+	  orderREdge
+	  );
+    const int s_ = REdge2.getSize();
+    for(i=0; i<s_; ++i) {
+      assert (REdge2[i]->getOriginPtr()->getID() <
+	      REdge2[i]->getDestinationPtr()->getID() );
+      REdge2[i]->setID(2*i);
+      REdge2[i]->getComplementEdge()->setID(2*i+1);
+    }
+    SetmiNextEdgID( 2*REdge2.getSize() );
+  }
+  {
+    // Set Triangle Id so that the vertexes are ordered
+    tArray< tTriangle* > RTri(ntri);
+    int i;
+    tTriangle *ct;
+    for( ct=titer.FirstP(), i=0; i<ntri; ct=titer.NextP(), ++i ){
+      ct->SetIndexIDOrdered(); // set ct->index_ in ID order
+      RTri[i] = ct;
+    }
+    qsort(RTri.getArrayPtr(), RTri.getSize(), sizeof(RTri[0]),
+	  orderRTriangle
+	  );
+    const int s_ = RTri.getSize();
+    for(i=0; i<s_; ++i)
+      RTri[i]->setID(i);
+    SetmiNextTriID( RTri.getSize() );
+  }
+}
+
+// qsort comparison function for canonical nodes ordering
+template< class tSubNode >
+int tMesh<tSubNode>::orderRNode( const void *a_, const void *b_ )
+{
+  const tNode *N1 = *static_cast<tNode const *const *>(a_);
+  const tNode *N2 = *static_cast<tNode const *const *>(b_);
+
+  const int N1B = static_cast<int>(N1->getBoundaryFlag());
+  const int N2B = static_cast<int>(N2->getBoundaryFlag());
+  if (N1B < N2B)
+    return -1;
+  if (N1B > N2B)
+    return 1;
+
+  const double N1X = N1->getX();
+  const double N2X = N2->getX();
+  if (N1X < N2X)
+    return -1;
+  if (N1X > N2X)
+    return 1;
+  const double N1Y = N1->getY();
+  const double N2Y = N2->getY();
+  if (N1Y < N2Y)
+    return -1;
+  if (N1Y > N2Y)
+    return 1;
+  return 0;
+}
+
+// qsort comparison function for canonical edges ordering
+template< class tSubNode >
+int tMesh<tSubNode>::orderREdge( const void *a_, const void *b_ )
+{
+  const tEdge *E1 = *static_cast<tEdge const *const *>(a_);
+  const tEdge *E2 = *static_cast<tEdge const *const *>(b_);
+
+  const int o1 = E1->getOriginPtr()->getID();
+  const int o2 = E2->getOriginPtr()->getID();
+  if (o1 < o2) return -1;
+  if (o1 > o2) return 1;
+  const int d1 = E1->getDestinationPtr()->getID();
+  const int d2 = E2->getDestinationPtr()->getID();
+  if (d1 < d2) return -1;
+  if (d1 > d2) return 1;
+  assert(0); /*NOTREACHED*/
+  abort();
+}
+
+// qsort comparison function for canonical triangles ordering
+template< class tSubNode >
+int tMesh<tSubNode>::orderRTriangle( const void *a_, const void *b_ )
+{
+  tTriangle *T1 = *static_cast<tTriangle *const *>(a_);
+  tTriangle *T2 = *static_cast<tTriangle *const *>(b_);
+
+  assert(T1 && T2);
+  // The comparison itself related to vertexes ID
+  for(int i=0;i<3;++i) {
+    const int i1 = T1->pPtr(T1->index()[i])->getID();
+    const int i2 = T2->pPtr(T2->index()[i])->getID();
+    if (i1 < i2) return -1;
+    if (i1 > i2) return 1;
+  }
+  assert(0); /*NOTREACHED*/
+  abort();
 }
 
 /*****************************************************************************\

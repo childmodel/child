@@ -20,7 +20,7 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.35 2004-01-13 16:23:53 childcvs Exp $
+**  $Id: tStreamMeander.h,v 1.36 2004-03-24 14:54:42 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -35,7 +35,6 @@
 #include "../Mathutil/mathutil.h"
 #include "../tArray/tArray.h"
 #include "../tPtrList/tPtrList.h"
-#include "../tMeshList/tMeshList.h"
 #include "../tList/tList.h"
 #include "../tStorm/tStorm.h"
 #include "../tStreamNet/tStreamNet.h"
@@ -105,6 +104,8 @@ protected:
     tMesh< tLNode > *meshPtr;//ptr to tMesh obj. containing meandering reaches
     tStreamNet *netPtr;      //ptr to tStreamNet obj., just to make sure it exists
     tInputFile *infilePtr;   //ptr to tInputFile obj. containing parameters
+
+    typedef tListNode< tPtrList< tLNode > >  rlListNode_t;
     tList< tPtrList< tLNode > > reachList; //list of tPtrLists of reach node ptrs
     tListIter< tPtrList< tLNode > > rlIter;//iterator for reachList
       //data items/parameters

@@ -5,7 +5,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tEolian.cpp,v 1.6 2003-10-15 09:24:24 childcvs Exp $
+**  $Id: tEolian.cpp,v 1.7 2004-03-24 14:54:34 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -53,9 +53,9 @@ tEolian::tEolian( const tInputFile &infile )
 \**************************************************************************/
 void tEolian::DepositLoess( tMesh<tLNode> *mp, double delt, double ctime )
 {
-   tMeshListIter<tLNode> ni( mp->getNodeList() ); // iterator for nodes
+   tMesh< tLNode >::nodeListIter_t ni( mp->getNodeList() ); // iterator for nodes
    tLNode *cn;
-   
+
    depositDepth[0] = loessDepRate*delt;
    //cout << "Depositing " << depositDepth[0] << " meters of loess...\n";
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )

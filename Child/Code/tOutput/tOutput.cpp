@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.90 2004-03-05 17:07:41 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.91 2004-03-24 14:54:38 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -236,9 +236,9 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr,
 template< class tSubNode >
 void tOutput<tSubNode>::WriteOutput( double time )
 {
-  tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
-  tMeshListIter<tEdge> eiter( m->getEdgeList() );    // edge list iterator
-  tListIter<tTriangle> titer( m->getTriList() );     // tri list iterator
+  typename tMesh< tSubNode >::nodeListIter_t niter( m->getNodeList() ); // node list iterator
+  typename tMesh< tSubNode >::edgeListIter_t eiter( m->getEdgeList() ); // edge list iterator
+  typename tMesh< tSubNode >::triListIter_t titer( m->getTriList() );   // tri list iterator
   const int nnodes = m->getNodeList()->getSize();  // # of nodes on list
   const int nedges = m->getEdgeList()->getSize();  // "    edges "
   const int ntri = m->getTriList()->getSize();     // "    triangles "
@@ -250,7 +250,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
   if (!CanonicalNumbering)
     RenumberIDInListOrder();
   else
-    RenumberIDCanonically();
+    m->RenumberIDCanonically();
 
   // Write node file, z file, and varea file
   WriteTimeNumberElements( nodeofs, time, nnodes);
@@ -319,182 +319,6 @@ void tOutput<tSubNode>::RenumberIDInListOrder()
   m->ResetNodeID();
   m->ResetEdgeID();
   m->ResetTriangleID();
-}
-
-/*************************************************************************\
- **
- **  tOutput::RenumberIDCanonically
- **
- **  Set IDs in a canonical ordering independent of the list ordering
- **  As well, set tNode.edg to the spoke with the lowest destination node ID
- **
- **  AD, April-May 2003
-\*************************************************************************/
-template< class tSubNode >
-void tOutput<tSubNode>::RenumberIDCanonically()
-{
-  tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
-  tMeshListIter<tEdge> eiter( m->getEdgeList() );    // edge list iterator
-  tListIter<tTriangle> titer( m->getTriList() );     // tri list iterator
-  const int nnodes = m->getNodeList()->getSize();  // # of nodes on list
-  const int nedges = m->getEdgeList()->getSize();  // "    edges "
-  const int ntri = m->getTriList()->getSize();     // "    triangles "
-
-  {
-    // First we set the Nodes Id in the order defined below
-    // b1 <= b2 then x1 <= x2 then y1<=y2
-    tArray< tNode* > RNode(nnodes);
-    int i;
-    tNode *cn;
-    for( cn=niter.FirstP(), i=0; i<nnodes; cn=niter.NextP(), ++i )
-      RNode[i] = cn;
-
-    qsort(RNode.getArrayPtr(), RNode.getSize(), sizeof(RNode[0]),
-	  orderRNode
-	  );
-    const int s_ = RNode.getSize();
-    for(i=0; i<s_; ++i)
-      RNode[i]->setID(i);
-    m->SetmiNextNodeID( RNode.getSize() );
-  }
-  {
-    // Set tNode.edg to the spoke that links to the destination node with the
-    // lowest ID
-    tNode *cn;
-    for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
-      tSpkIter sI( cn );
-      tEdge *thece = cn->getEdg();
-      tEdge *ce;
-      for( ce = sI.FirstP(); !( sI.AtEnd() ); ce = sI.NextP() ) {
-	if (ce->getDestinationPtr()->getID() <
-	    thece->getDestinationPtr()->getID())
-	  thece = ce;
-      }
-      cn->setEdg(thece);
-    }
-  }
-  // Set Edge ID with respect to Node ID
-  // #1 The pair edge-complement is ordered so that
-  // (IDorig IDdest) (IDdest IDorig) with IDorig < IDdest
-  {
-    tEdge *ce;
-    for( ce=eiter.FirstP(); !(eiter.AtEnd()); ce=eiter.NextP() ) {
-      tListNode< tEdge >* enodePtr1 = eiter.NodePtr();
-      eiter.Next();
-      tListNode< tEdge >* enodePtr2 = eiter.NodePtr();
-      if (ce->getOriginPtr()->getID() > ce->getDestinationPtr()->getID()) {
-	// swap edges
-	m->getEdgeList()->moveToAfter(enodePtr1, enodePtr2);
-	eiter.Next();
-      }
-    }
-  }
-  // #2 Then pairs are ordered with IDorig1 < IDorig2 and
-  // if IDorig1 == IDorig2 IDdest1 < IDdest2
-  {
-    tArray< tEdge* > REdge2(nedges/2);
-    tEdge *ce;
-    int i;
-    for( ce=eiter.FirstP(), i=0; !(eiter.AtEnd()); ce=eiter.NextP(), ++i ) {
-      REdge2[i] = ce;
-      eiter.Next();
-    }
-    qsort(REdge2.getArrayPtr(), REdge2.getSize(), sizeof(REdge2[0]),
-	  orderREdge
-	  );
-    const int s_ = REdge2.getSize();
-    for(i=0; i<s_; ++i) {
-      assert (REdge2[i]->getOriginPtr()->getID() <
-	      REdge2[i]->getDestinationPtr()->getID() );
-      REdge2[i]->setID(2*i);
-      REdge2[i]->getComplementEdge()->setID(2*i+1);
-    }
-    m->SetmiNextEdgID( 2*REdge2.getSize() );
-  }
-  {
-    // Set Triangle Id so that the vertexes are ordered
-    tArray< tTriangle* > RTri(ntri);
-    int i;
-    tTriangle *ct;
-    for( ct=titer.FirstP(), i=0; i<ntri; ct=titer.NextP(), ++i ){
-      ct->SetIndexIDOrdered(); // set ct->index_ in ID order
-      RTri[i] = ct;
-    }
-    qsort(RTri.getArrayPtr(), RTri.getSize(), sizeof(RTri[0]),
-	  orderRTriangle
-	  );
-    const int s_ = RTri.getSize();
-    for(i=0; i<s_; ++i)
-      RTri[i]->setID(i);
-    m->SetmiNextTriID( RTri.getSize() );
-  }
-}
-
-// qsort comparison function for canonical nodes ordering
-template< class tSubNode >
-int tOutput<tSubNode>::orderRNode( const void *a_, const void *b_ )
-{
-  const tNode *N1 = *static_cast<tNode const *const *>(a_);
-  const tNode *N2 = *static_cast<tNode const *const *>(b_);
-
-  const int N1B = static_cast<int>(N1->getBoundaryFlag());
-  const int N2B = static_cast<int>(N2->getBoundaryFlag());
-  if (N1B < N2B)
-    return -1;
-  if (N1B > N2B)
-    return 1;
-
-  const double N1X = N1->getX();
-  const double N2X = N2->getX();
-  if (N1X < N2X)
-    return -1;
-  if (N1X > N2X)
-    return 1;
-  const double N1Y = N1->getY();
-  const double N2Y = N2->getY();
-  if (N1Y < N2Y)
-    return -1;
-  if (N1Y > N2Y)
-    return 1;
-  return 0;
-}
-
-// qsort comparison function for canonical edges ordering
-template< class tSubNode >
-int tOutput<tSubNode>::orderREdge( const void *a_, const void *b_ )
-{
-  const tEdge *E1 = *static_cast<tEdge const *const *>(a_);
-  const tEdge *E2 = *static_cast<tEdge const *const *>(b_);
-
-  const int o1 = E1->getOriginPtr()->getID();
-  const int o2 = E2->getOriginPtr()->getID();
-  if (o1 < o2) return -1;
-  if (o1 > o2) return 1;
-  const int d1 = E1->getDestinationPtr()->getID();
-  const int d2 = E2->getDestinationPtr()->getID();
-  if (d1 < d2) return -1;
-  if (d1 > d2) return 1;
-  assert(0); /*NOTREACHED*/
-  abort();
-}
-
-// qsort comparison function for canonical triangles ordering
-template< class tSubNode >
-int tOutput<tSubNode>::orderRTriangle( const void *a_, const void *b_ )
-{
-  tTriangle *T1 = *static_cast<tTriangle *const *>(a_);
-  tTriangle *T2 = *static_cast<tTriangle *const *>(b_);
-
-  assert(T1 && T2);
-  // The comparison itself related to vertexes ID
-  for(int i=0;i<3;++i) {
-    const int i1 = T1->pPtr(T1->index()[i])->getID();
-    const int i2 = T2->pPtr(T2->index()[i])->getID();
-    if (i1 < i2) return -1;
-    if (i1 > i2) return 1;
-  }
-  assert(0); /*NOTREACHED*/
-  abort();
 }
 
 /*************************************************************************\
@@ -619,7 +443,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   //for writing out layer info to different files at each time
   const char* const nums("0123456789");
 
-  tMeshListIter<tSubNode> ni( m->getNodeList() ); // node list iterator
+  typename tMesh< tSubNode >::nodeListIter_t ni( m->getNodeList() ); // node list iterator
   const int nActiveNodes = m->getNodeList()->getActiveSize(); // # active nodes
   const int nnodes = m->getNodeList()->getSize(); // total # nodes
 
@@ -778,7 +602,7 @@ tTSOutputImp<tSubNode>::tTSOutputImp( tMesh<tSubNode> *meshPtr,
 template< class tSubNode >
 void tTSOutputImp<tSubNode>::WriteTSOutput()
 {
-  tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
+  typename tMesh< tSubNode >::nodeListIter_t niter( m->getNodeList() ); // node list iterator
 
   tSubNode * cn;       // current node
 

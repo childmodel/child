@@ -154,7 +154,7 @@ BuildDelaunayMeshTipper()
 {
    point *p = new point[nnodes];   // for Tipper triangulator
    {
-     tMeshListIter< tSubNode > nodIter(nodeList);
+     nodeListIter_t nodIter(nodeList);
      tSubNode* cn;
      int inode = 0;
      for( cn=nodIter.FirstP(); !(nodIter.AtEnd()); cn=nodIter.NextP()){
@@ -252,7 +252,7 @@ BuildDelaunayMeshTipper()
 
      if (0) { //DEBUG
        cout << "JUST ADDED EDGES:\n";
-       tMeshListIter< tEdge > ei( edgeList );
+       edgeListIter_t ei( edgeList );
        for( tEdge *ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() ){
 	 ce->TellCoords();
 	 cout << ce->FlowAllowed() << endl;
@@ -271,7 +271,7 @@ BuildDelaunayMeshTipper()
        oriented_edge *oedge;
        tt_build_spoke(nnodes, nedgesl, edges, &oedge);
 
-       tMeshListIter< tSubNode > nodIter(nodeList);
+       nodeListIter_t nodIter(nodeList);
        tSubNode * cn;
        for( cn=nodIter.FirstP(); !(nodIter.AtEnd()); cn=nodIter.NextP()){
 	 tEdge *edgPtr = EdgeTable[ e_t2c(oedge[p2sp[cn->getID()]]) ];

@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.17 2004-03-05 17:12:33 childcvs Exp $
+**  $Id: childmain.cpp,v 1.18 2004-03-24 14:54:32 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -310,7 +310,7 @@ break;
 ReportFatalError( "The input file contains an invalid value for OptTSOutput."
 */
 
-     /*tMeshListIter<tLNode> ni( mesh.getNodeList() );
+     /*tMesh< tLNode >::nodeListIter_t ni( mesh.getNodeList() );
       tLNode *cn;
       for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
 	{

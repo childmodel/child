@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.2 2004-03-05 17:22:19 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.3 2004-03-24 14:54:40 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -22,7 +22,6 @@
 #include "../errors/errors.h"
 #include "tStratGrid.h"
 #include "../tLNode/tLNode.h"
-#include "../tMeshList/tMeshList.h"
 #include "../tMesh/tMesh.h"
 
 #if !defined(HAVE_NO_NAMESPACE)
@@ -65,7 +64,7 @@ tStratGrid::tStratGrid( tInputFile &infile, tMesh<tLNode> *mp_)
   int i,j,k;					  // x and y position indices (-)
   double x,y;					  // x and y coordinates (m)
   int stepx,stepy;
-  tMeshListIter<tLNode> ni( mp->getNodeList() ); // iterator for tLNodes
+  tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() ); // iterator for tLNodes
 
   i=0;
   x=y=0.;
@@ -210,10 +209,8 @@ void tStratGrid::updateConnect()
 	(*StratConnect)(i,j) = NULL;
   }
   //
-  tList< tTriangle > *triList =  mp->getTriList();
-
   tTriangle *ct;
-  tListIter< tTriangle > triIter( *triList );
+  tMesh< tLNode >::triListIter_t triIter( mp->getTriList() );
   for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() ) {
     // Find box containing the current triangle
     double
@@ -350,7 +347,7 @@ void tStratGrid::UpdateStratGrid(int mode, double time)
  \*************************************************************************/
 void tStratGrid::ResetAccummulatedDh()
 {
-  tMeshListIter<tLNode> ni( mp->getNodeList() );         // iterator for tMesh nodes
+  tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );         // iterator for tMesh nodes
   tLNode *cn;
 
   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )

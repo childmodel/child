@@ -14,14 +14,13 @@
 **  Created January, 2000, GT
 **  State read back from file if needed - November 2003, AD
 **
-**  $Id: tVegetation.cpp,v 1.13 2003-11-18 15:46:02 childcvs Exp $
+**  $Id: tVegetation.cpp,v 1.14 2004-03-24 14:54:45 childcvs Exp $
 */
 /**************************************************************************/
 
 #include <assert.h>
 #include "tVegetation.h"
 #include "../tMesh/tMesh.h"
-#include "../tMeshList/tMeshList.h"
 
 /**************************************************************************\
 **                 FUNCTIONS FOR CLASS tVegetation
@@ -56,7 +55,7 @@ tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, const tInputFile &infil
    // Loop through nodes and set initial vegetation cover & threshold
    // (for now, assume constant; later need to add restart capability)
    // Note: assumes initially 100% cover.
-   tMeshListIter<tLNode> niter( meshPtr->getNodeList() );
+   tMesh<tLNode>::nodeListIter_t niter( meshPtr->getNodeList() );
 
    // unused
    // intlVegCover = infile.ReadItem( intlVegCover, "INTLVEGCOV" );
@@ -132,7 +131,7 @@ void tVegetation::UpdateVegetation( tMesh<class tLNode> *meshPtr,
 void tVegetation::ErodeVegetation(  tMesh<class tLNode> *meshPtr,
 				    double dt ) const
 {
-   tMeshListIter< tLNode > niter( meshPtr->getNodeList() ); // Node iterator
+   tMesh<tLNode>::nodeListIter_t niter( meshPtr->getNodeList() ); // Node iterator
    tLNode * cn;   // Ptr to current node
    double tauex,  // Excess shear stress
        veg;       // Fractional vegetation cover
@@ -166,7 +165,7 @@ void tVegetation::ErodeVegetation(  tMesh<class tLNode> *meshPtr,
 void tVegetation::GrowVegetation(  tMesh<class tLNode> *meshPtr,
 				    double interstormdur ) const
 {
-   tMeshListIter< tLNode > niter( meshPtr->getNodeList() ); // Node iterator
+   tMesh<tLNode>::nodeListIter_t niter( meshPtr->getNodeList() ); // Node iterator
    tLNode * cn;   // Ptr to current node
    double veg;       // Fractional vegetation cover
    

@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.23 2004-01-29 15:05:39 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.24 2004-03-24 14:54:44 childcvs Exp $
 */
 /************************************************************************/
 
@@ -178,7 +178,7 @@ void tUplift::UpliftUniform( tMesh<tLNode> *mp, double delt )
 {
    assert( mp!=0 );
    tLNode *cn;
-   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
    const double rise = rate*delt;
 
    if (0) //DEBUG
@@ -211,7 +211,7 @@ void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt )
 {
    assert( mp!=0 );
    tLNode *cn;
-   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
    const double rise = rate*delt,
      sink = rate2*delt;
 
@@ -247,7 +247,7 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt ) const
 {
    assert( mp!=0 );
    tLNode *cn;
-   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
    double slip = slipRate*delt;
 
    cout << "StrikeSlip by " << slip << endl;
@@ -289,7 +289,7 @@ void tUplift::FoldPropErf( tMesh<tLNode> *mp, double delt )
 {
    assert( mp!=0 );
    tLNode *cn;
-   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
    double uprate;
 
    // For each node, the uplift rate is the maximum rate ("rate") times
@@ -321,7 +321,7 @@ void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
 {
    assert( mp!=0 );
    tLNode *cn;
-   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
    double uprate;
    static double elapsedTime = 0;
 
@@ -396,7 +396,7 @@ void tUplift::PropagatingFold( tMesh<tLNode> *mp, double delt ) const
 {
    assert( mp!=0 );
    tLNode *cn;
-   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
    double uprate;
    const double northEdge = foldParam2 + 0.5*foldParam;
    const double southEdge = northEdge - foldParam;
@@ -464,7 +464,7 @@ void tUplift::PropagatingFold( tMesh<tLNode> *mp, double delt ) const
 \************************************************************************/
 void tUplift::TwoSideDifferential( tMesh<tLNode> *mp, double delt ) const
 {
-  tMeshListIter<tLNode> ni( mp->getNodeList() );
+  tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
   tLNode *cn;
   double landraise = rate*delt,
     boundaryupdown = rate2*delt;
@@ -504,7 +504,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
 {
    assert( mp!=0 );
    tLNode *cn;
-   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
    double slip = slipRate*delt;
    static double elapsedTime = delt;
 
@@ -630,7 +630,7 @@ void tUplift::FaultBendFold2( tMesh<tLNode> *mp, double delt ) const
 {
    assert( mp!=0 );
    tLNode *cn;
-   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
    double slip = slipRate*delt;
    static double elapsedTime = delt;
    /* Redefinitions so faultPosition and flatDepth are measured with respect

@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.68 2004-03-17 14:54:07 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.69 2004-03-24 14:54:42 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -422,7 +422,7 @@ void tStreamNet::UpdateNet( double time, tStorm &storm )
 void tStreamNet::CheckNetConsistency()
 {
    tLNode *cn, *dn;
-   tMeshListIter< tLNode > nI( meshPtr->getNodeList() ),
+   tMesh< tLNode >::nodeListIter_t nI( meshPtr->getNodeList() ),
        tI( meshPtr->getNodeList() );
    enum{
      expensive_test = false
@@ -505,7 +505,7 @@ void tStreamNet::CheckNetConsistency()
 int tStreamNet::CheckNetConsistencyFlowPath( tLNode **pcn )
 {
    tLNode *cn;
-   tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t nI( meshPtr->getNodeList() );
    const long nodesInMesh = meshPtr->getNodeList()->getSize();
    enum{ notdone, valid };
 
@@ -815,7 +815,7 @@ void tStreamNet::CalcSlopes()
 {
   assert( meshPtr != 0 );
   tEdge *curedg;
-  tMeshListIter<tEdge> i( meshPtr->getEdgeList() );
+  tMesh< tLNode >::edgeListIter_t i( meshPtr->getEdgeList() );
 
   if (0) //DEBUG
     cout << "CalcSlopes()...";
@@ -862,7 +862,7 @@ void tStreamNet::CalcSlopes()
 #define kMaxSpokes 100
 void tStreamNet::InitFlowDirs()
 {
-   tMeshListIter<tLNode> i( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t i( meshPtr->getNodeList() );
    tLNode * curnode;
    tEdge * flowedg;
    int ctr;
@@ -929,7 +929,7 @@ void tStreamNet::ReInitFlowDirs()
      cout << "ReInitFlowDirs()...\n";
    // For every active (non-boundary) node, initialize it to flow to a
    // non-boundary node (ie, along a "flowAllowed" edge)
-   tMeshListIter<tLNode> i( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t i( meshPtr->getNodeList() );
    tLNode * curnode = i.FirstP();
    while( i.IsActive() )
    {
@@ -1070,7 +1070,7 @@ void tStreamNet::ReInitFlowDirs()
 #define kMaxSpokes 100
 void tStreamNet::FlowDirs()
 {
-   tMeshListIter<tLNode> i( meshPtr->getNodeList() );  // gets nodes from the list
+   tMesh< tLNode >::nodeListIter_t i( meshPtr->getNodeList() );  // gets nodes from the list
    double slp;                          // steepest slope found so far
    double meanderslp = 0;		// steepest meander slope found so far
    double selectslope;			// value of the selected slope
@@ -1309,7 +1309,7 @@ void tStreamNet::DrainAreaVoronoi()
      cout << "DrainAreaVoronoi()..." << endl;
 
    tLNode * curnode;
-   tMeshListIter<tLNode> nodIter( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
 
    // Reset drainage areas to zero
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
@@ -1360,7 +1360,7 @@ void tStreamNet::FlowPathLength()
   double localPathLength;  // Potential flow path length to downstream nbr
 
   // Get list of nodes and node iterator
-  tMeshListIter<tLNode> nodeIter( meshPtr->getNodeList() );
+  tMesh< tLNode >::nodeListIter_t nodeIter( meshPtr->getNodeList() );
 
   // Sort nodes in upstream-to-downstream order
   SortNodesByNetOrder( false );
@@ -1413,7 +1413,7 @@ void tStreamNet::RouteFlowHydrographPeak()
     Qp;               // Peak discharge
 
   // Get iterator for list of nodes
-  tMeshListIter<tLNode> nodeIter( meshPtr->getNodeList() );
+  tMesh< tLNode >::nodeListIter_t nodeIter( meshPtr->getNodeList() );
 
   // Set peak discharge for each node
   for( curnode=nodeIter.FirstP(); nodeIter.IsActive(); curnode=nodeIter.NextP() )
@@ -1601,7 +1601,7 @@ void tStreamNet::FlowUniform()
 {
    if (0) //DEBUG
      cout << "FlowUniform..." << endl;
-   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
    tLNode *curnode;
    double runoff = rainrate - infilt;
    double discharge;
@@ -1635,8 +1635,6 @@ void tStreamNet::FlowUniform()
 **  times depth. To get a volume discharge, we must multiply the
 **  transmissivity by the Voronoi edge length for the flow edge.
 **
-**  Parameters:  none
-**  Calls:  various utilities of tMeshListIter and tLNode
 **  Called by:  main
 **  Modifies: node discharge
 **  Modifications:
@@ -1648,7 +1646,7 @@ void tStreamNet::FlowSaturated1()
 {
    if (0) //DEBUG
      cout << "FlowSaturated1...";
-   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
    tLNode *curnode;
    tEdge *fedg;
    double total_discharge, surface_discharge, subsurf_discharge;
@@ -1692,7 +1690,7 @@ void tStreamNet::FlowSaturated1()
 \*****************************************************************************/
 void tStreamNet::FlowSaturated2()
 {
-   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
    tLNode *curnode;
    //XtEdge *fedg;
    //Xdouble discharge;
@@ -1791,7 +1789,7 @@ void tStreamNet::FlowBucket()
    assert( stormPtr!=0 );
    if (0) //DEBUG
      cout << "FlowBucket..." << endl;
-   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
    tLNode *curnode;
    double infiltEx=0.0,  /* infiltration excess runoff (L/T) */
        satEx=0.0,        /* saturation excess runoff (L/T) */
@@ -1865,7 +1863,7 @@ void tStreamNet::FillLakes()
    if (0) //DEBUG
      cout << "FillLakes()..." << endl;
 
-   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() ); // node iterator
+   tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() ); // node iterator
 
    // Check each active node to see whether it is a sink
    for( tLNode *cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
@@ -2209,9 +2207,9 @@ void tStreamNet::SortNodesByNetOrder( bool optMultiFlow )
    int i;
    bool done;
    tLNode * cn;
-   tMeshList<tLNode> *nodeList = meshPtr->getNodeList();
+   tMesh< tLNode >::nodeList_t *nodeList = meshPtr->getNodeList();
    int nUnsortedNodes = nodeList->getActiveSize();  // Number not yet sorted
-   tMeshListIter<tLNode> listIter( nodeList );
+   tMesh< tLNode >::nodeListIter_t listIter( nodeList );
 
    //cout << "SortNodesByNetOrder, optMultiFlow=" << optMultiFlow << endl;
 
@@ -2243,7 +2241,7 @@ void tStreamNet::SortNodesByNetOrder( bool optMultiFlow )
 
          // Scan for any nodes that have no tracers, and move them to the
          // bottom of the list.
-         tListNode< tLNode > * nodeToMove;
+         tMesh<tLNode>::nodeListNode_t  *nodeToMove;
          nThisPass = 0;
          done = true;
          cn = listIter.FirstP();
@@ -2296,7 +2294,7 @@ void tStreamNet::SortNodesByNetOrder( bool optMultiFlow )
 
           // Scan for any nodes that are unflagged, and move them to the
           // bottom of the list.
-          tListNode< tLNode > * nodeToMove;
+          tMesh<tLNode>::nodeListNode_t *nodeToMove;
           nThisPass = 0;
           done = true;
           cn = listIter.FirstP();
@@ -2367,7 +2365,7 @@ void tStreamNet::FindHydrGeom()
        widpow, deppow, npow, qpsec;
    double width, depth, rough=0.0, slope;
    tLNode *cn;
-   tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t nIter( meshPtr->getNodeList() );
 
    // If rainfall and hence discharge varies in time, set flow width, depth
    // and roughness using power law functions of their bankfull values
@@ -2504,7 +2502,7 @@ void tStreamNet::FindChanGeom()
    double slope;
    double lambda;
    tLNode *cn;
-   tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t nIter( meshPtr->getNodeList() );
 
    // the following modification made by gt, 3/99, to avoid hydraulic geom
    // errors during runs w/ long storms:
@@ -2625,7 +2623,7 @@ void tStreamNet::RouteFlowKinWave( double rainrate_ )
 {
    tLNode * cn;
    tEdge * ce;
-   tMeshListIter<tLNode> niter( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t niter( meshPtr->getNodeList() );
    double sum;                         // Sum used in to apportion flow
    double runoff = rainrate_ - infilt;  // Local runoff rate at node
 
@@ -2720,7 +2718,7 @@ void tStreamNet::RouteFlowKinWave( double rainrate_ )
 \*****************************************************************************/
 void tStreamNet::DensifyMeshDrArea( double time )
 {
-   tMeshListIter<tLNode> niter( meshPtr->getNodeList() );  // node list iter.
+   tMesh< tLNode >::nodeListIter_t niter( meshPtr->getNodeList() );  // node list iter.
    tLNode *cn;              // Current node being checked
 
    // Check all active nodes
@@ -2963,7 +2961,7 @@ void tInlet::FindNewInlet()
    tLNode *cn, *newinnode, *mn;
    tNode *bn0(0), *bn1(0), *mnn;
    tEdge *ce, *me;
-   tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t nI( meshPtr->getNodeList() );
    int n;
      //tPtrList< tLNode > bList;
      //tPtrListIter< tLNode > bI( bList );
@@ -3227,7 +3225,7 @@ tParkerChannels::tParkerChannels( const tInputFile &infile )
 \**************************************************************************/
 void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
 {
-  tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
+  tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() );
   tLNode *cn;
 
   if (0) //DEBUG

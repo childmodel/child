@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.128 2003-11-03 12:30:46 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.129 2004-03-24 14:54:32 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -220,7 +220,7 @@ double tEquilibCheck::FindIterChngRate()
   assert( timePtr != 0 && meshPtr != 0 );
   tArray< double > tmp(2);
   tmp[0] = timePtr->getCurrentTime();
-  tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
+  tMesh< tLNode >::nodeListIter_t nI( meshPtr->getNodeList() );
   tListIter< tArray< double > > mI( massList );
   tLNode *cn;
   double mass = 0.0;
@@ -1702,7 +1702,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet,
   const double frac = 0.9; //fraction of time to zero slope
   tLNode *cn, *dn;
   //int nActNodes = meshPtr->getNodeList()->getActiveSize();
-  tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
+  tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() );
 
   strmNet->FindChanGeom();
   strmNet->FindHydrGeom();
@@ -1776,7 +1776,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift const *U
   //Xint i;
   tLNode * cn, *dn;
   //int nActNodes = meshPtr->getNodeList()->getActiveSize();
-  tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
+  tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() );
   double ratediff;
   //Xdouble dslpdt;
   double dtmin = dtg * 0.0001;
@@ -1858,7 +1858,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
     dtmax;         // time increment: initialize to arbitrary large val
   double frac = 0.3; // fraction of time to zero slope
   tLNode * cn, *dn;
-  tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
+  tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() );
   double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
     cap,          // Transport capacity
     pedr,         // Potential erosion/deposition rate
@@ -2073,7 +2073,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
   int i;
   tLNode * cn, *dn;
   // int nActNodes = meshPtr->getNodeList()->getActiveSize();
-  tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
+  tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() );
   double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
     cap,
     pedr,
@@ -2403,7 +2403,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
     int i,j, flag;
     tLNode * cn, *dn;
     // int nActNodes = meshPtr->getNodeList()->getActiveSize();
-    tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
+    tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() );
     double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
       drdt,
       dz,
@@ -2764,8 +2764,8 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
   double volout,  // Sediment volume output from a node (neg=input)
     delt,       // Max local step size
     dtmax;      // Max global step size (initially equal to total time rt)
-  tMeshListIter<tLNode> nodIter( meshPtr->getNodeList() );
-  tMeshListIter<tEdge> edgIter( meshPtr->getEdgeList() );
+  tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
+  tMesh< tLNode >::edgeListIter_t edgIter( meshPtr->getEdgeList() );
 
 #ifdef TRACKFNS
   cout << "tErosion::Diffuse()" << endl << flush;
@@ -2872,7 +2872,7 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
 void tErosion::UpdateExposureTime( double dtg)
 {
   tLNode * cn;
-  tMeshListIter<tLNode> nodIter( meshPtr->getNodeList() );
+  tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
 
 #ifdef TRACKFNS
   cout << "tErosion::UpdateExposureTime()" << endl << flush;
@@ -2906,7 +2906,7 @@ void tErosion::UpdateExposureTime( double dtg)
  **********************************************************************/
 void tErosion::DensifyMesh( double time )
 {
-  tMeshListIter<tLNode> niter( meshPtr->getNodeList() );  // node list iter.
+  tMesh< tLNode >::nodeListIter_t niter( meshPtr->getNodeList() );  // node list iter.
   tLNode *cn;              // Current node being checked
 
   double dbgnf, dbgmax=0;

@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.103 2004-03-05 17:24:28 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.104 2004-03-24 14:54:40 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -157,7 +157,7 @@ tStreamMeander::~tStreamMeander()
 void tStreamMeander::FindMeander()
 {
   tLNode * cn;
-  tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
+  tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
 
   if (0) //DEBUG
     cout << "FindMeander...()";
@@ -574,10 +574,10 @@ void tStreamMeander::FindReaches()
    int i;
    double rdrop;
    tLNode *cn, *frn, *lrn, *nxn, *ln;
-   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
    tPtrListIter< tLNode > rnIter;
    tPtrList< tLNode > rnodList, *plPtr, listtodelete;
-   tListNode< tPtrList< tLNode > > *tempnode;
+   rlListNode_t *tempnode;
 
    if (0) //DEBUG
        cout<<"tStreamMeander::FindReaches()"<<endl;
@@ -1539,7 +1539,7 @@ tStreamMeander::FindBankErody( tLNode *nPtr ) const
 \*****************************************************************************/
 void tStreamMeander::CheckBndyTooClose()
 {
-   tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
+   tMesh< tLNode >::nodeListIter_t nI( meshPtr->getNodeList() );
    tLNode *cn, *mn;
    tNode *nn, *bn0(0), *bn1(0);
    tEdge *ce;
@@ -1969,8 +1969,8 @@ int tStreamMeander::InChannel( tLNode *mnode, tLNode const *bnode )
    const double b = mnode->getChanWidth();  // GT changed to ChanWidth, 6/99
    if( b == 0. ) return 0;
 
-   tMeshListIter< tLNode > dI( meshPtr->getNodeList() );
-   tMeshListIter< tEdge > eI( meshPtr->getEdgeList() );
+   tMesh< tLNode >::nodeListIter_t dI( meshPtr->getNodeList() );
+   tMesh< tLNode >::edgeListIter_t eI( meshPtr->getEdgeList() );
    tLNode *dnode = mnode->getDownstrmNbr();
    tEdge *fe = mnode->getFlowEdg();
 

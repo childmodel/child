@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.72 2004-03-22 11:03:37 childcvs Exp $
+**  $Id: tMesh.h,v 1.73 2004-03-24 14:54:37 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -100,6 +100,20 @@ class tMesh
    void MakeDelaunay( tPtrList< tTriangle > &, double time );
    void SplitNonFlippableEdge( tPtrList< tEdge > &, double time );
 public:
+   // list types
+   typedef tMeshList< tSubNode > nodeList_t;
+   typedef tMeshList< tEdge > edgeList_t;
+   typedef tList< tTriangle > triList_t;
+
+   // iterators types
+   typedef tMeshListIter< tSubNode > nodeListIter_t;
+   typedef tMeshListIter< tEdge > edgeListIter_t;
+   typedef tListIter< tTriangle > triListIter_t;
+
+  // tListNode types
+   typedef tListNode< tSubNode > nodeListNode_t;
+   typedef tListNode< tEdge > edgeListNode_t;
+
    tMesh();
    tMesh( const tInputFile & );
    tMesh( tMesh const * );
@@ -122,7 +136,7 @@ public:
    /*returns ptr to triangle which points to edge, or zero if none:*/
    tTriangle *TriWithEdgePtr( tEdge * ) const;
    /*only routine needed to delete node; calls ExNode, RepairMesh:*/
-   int DeleteNode( tListNode< tSubNode > *, kRepairMesh_t repairFlag=kRepairMesh,
+   int DeleteNode( nodeListNode_t *, kRepairMesh_t repairFlag=kRepairMesh,
 		   kUpdateMesh_t updateFlag=kUpdateMesh,
 		   bool allowMobileDeletion = false );
    int DeleteNode( tSubNode const *, kRepairMesh_t repairFlag=kRepairMesh,
@@ -157,9 +171,9 @@ public:
    //add a generic node at the referenced coordinates
    tSubNode *AddNodeAt( tArray< double > &, double time = 0.0 );
    tSubNode* AttachNode( tSubNode*, tTriangle* );
-   tMeshList<tEdge> * getEdgeList();
-   tMeshList<tSubNode> * getNodeList();
-   tList< tTriangle > * getTriList();
+   edgeList_t * getEdgeList() { return &edgeList; }
+   nodeList_t * getNodeList() { return &nodeList; }
+   triList_t * getTriList() { return &triList; }
    tEdge *getEdgeComplement( tEdge * ) const;
    /* Tests consistency of a user-defined mesh */
    void CheckMeshConsistency( bool boundaryCheckFlag=true );
@@ -191,6 +205,7 @@ public:
    void ResetNodeID(); // reset node IDs in list order
    void ResetEdgeID(); // reset edge IDs in list order
    void ResetTriangleID(); // reset triangle IDs in list order
+   void RenumberIDCanonically(); // reset IDs in canonical order
    void SetmiNextNodeID(int);
    void SetmiNextEdgID(int);
    void SetmiNextTriID(int);
@@ -206,10 +221,17 @@ public:
    void DumpNodes();
 #endif
 
+
+private:
+   static int orderRNode(const void*, const void*);
+   static int orderREdge(const void*, const void*);
+   static int orderRTriangle(const void*, const void*);
+
 protected:
-   tMeshList< tSubNode > nodeList; // list of nodes
-   tMeshList< tEdge > edgeList;    // list of directed edges
-   tList< tTriangle > triList;  // list of ptrs to triangles
+   nodeList_t nodeList; // list of nodes
+   edgeList_t edgeList;    // list of directed edges
+   triList_t triList;  // list of ptrs to triangles
+
    tTriangle* mSearchOriginTriPtr; // ptr to tri. from which to start searches
    int nnodes, nedges, ntri;       // # of nodes, edges, and tri's (obsolete?)
    int miNextNodeID;                   // next ID for added node

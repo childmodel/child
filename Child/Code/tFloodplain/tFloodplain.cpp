@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.23 2004-03-05 16:11:50 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.24 2004-03-24 14:54:35 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -176,7 +176,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 {
    if( precip < event_min ) return;
 
-   tMeshListIter<tLNode> ni( meshPtr->getNodeList() ); // iterator for nodes
+   tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() ); // iterator for nodes
    tList<tFloodNode> floodList;    // list of "flood nodes"
    tFloodNode *fn;       // ptr to current flood node
    tLNode *cn,           // current landscape node

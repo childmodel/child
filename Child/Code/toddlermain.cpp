@@ -35,7 +35,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.17 2004-01-07 15:10:40 childcvs Exp $
+**  $Id: toddlermain.cpp,v 1.18 2004-03-24 14:54:32 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -166,7 +166,7 @@ OptTSOutput." );
        for( int i=1; i<=optFoldDens; i++ )
 	 {
 	   tPtrList<tLNode> foldPoints;
-	   tMeshListIter<tLNode> ni( mesh.getNodeList() );
+	   tMesh<tLNode>::nodeListIter_t ni( mesh.getNodeList() );
 	   tLNode *cn;
 	   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
 	     {
@@ -272,7 +272,7 @@ break;
 ReportFatalError( "The input file contains an invalid value for OptTSOutput." 
 */ 
 
-     /*tMeshListIter<tLNode> ni( mesh.getNodeList() );
+     /*nodeListIter_t ni( mesh.getNodeList() );
       tLNode *cn;
       for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
 	{
