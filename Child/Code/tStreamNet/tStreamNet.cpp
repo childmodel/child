@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.60 1999-04-05 15:18:56 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.61 1999-04-06 20:48:26 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -148,21 +148,16 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    // Options related to stream meandering
    int itMeanders = infile.ReadItem( itMeanders, "OPTMNDR" );
    if( itMeanders )
-   {
        mndrDirChngProb = infile.ReadItem( mndrDirChngProb, "CHNGPROB" );
-       bankfullevent = infile.ReadItem( bankfullevent, "BANKFULLEVENT" );
-       bankfullevent *= kYearpersec;
-       if( bankfullevent<=0.0 )
-           ReportFatalError( 
-               "Input error: FP_BANKFULLEVENT must be greater than zero" );
-   }
    else 
-   {
       mndrDirChngProb = 1.0;
-      bankfullevent = 1.0;
-   }
 
    // Read hydraulic geometry parameters
+   bankfullevent = infile.ReadItem( bankfullevent, "BANKFULLEVENT" );
+   bankfullevent *= kYearpersec;
+   if( bankfullevent<=0.0 )
+       ReportFatalError( 
+           "Input error: BANKFULLEVENT must be greater than zero" );
    kwds = infile.ReadItem( kwds, "HYDR_WID_COEFF_DS" );
    //cout << "kwds: " << kwds << endl;
    assert( kwds > 0 );
