@@ -36,7 +36,7 @@
 **     neighboring triangle 1, and so on. Node 1 is also the origin for
 **     edge 1, etc.
 **   
-**  $Id: meshElements.h,v 1.22 1999-04-04 21:32:41 gtucker Exp $
+**  $Id: meshElements.h,v 1.23 2000-01-13 23:55:29 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -276,6 +276,7 @@ class tTriangle
 public:
   tTriangle();                    // default constructor
   tTriangle( const tTriangle & ); // copy constructor
+  tTriangle( int, tNode *, tNode *, tNode * );
   ~tTriangle();                   // destructor
 
   const tTriangle &operator=( const tTriangle & ); // assignment operator
