@@ -3,18 +3,30 @@
 **  tGridList.cpp
 **
 **  Functions for derived classes tGridList and tGridListIter. The classes
-**  are declared in tGridList.h.
+**  are declared in tGridList.h (q.v.).
 **
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.cpp,v 1.6 1999-01-05 22:45:36 stlancas Exp $
+**  $Id: tMeshList.cpp,v 1.7 1999-04-02 22:17:38 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
 #include "tGridList.h"
 
 
+/**************************************************************************\
+**  FUNCTIONS FOR CLASS tGridList
+\**************************************************************************/
+
+/**************************************************************************\
+**
+**  Constructors
+**
+**  Default: sets values to zero (empty list)
+**  Copy constructor: creates a copy of _original_
+**
+\**************************************************************************/
 template< class NodeType >                     //tGridtList
 tGridList< NodeType >::
 tGridList()
@@ -41,6 +53,17 @@ tGridList< NodeType >::
 {
      //cout << "                  from ~tGridList()" << first << endl;
 }
+
+
+/**************************************************************************\
+**
+**  tGridList overloaded operators
+**
+**  Assignment: creates a copy of right-hand list
+**  Equality and inequality: adds test of # of active items and lastactive
+**                           to basic tList operations
+**
+\**************************************************************************/
 
 //overloaded assignment operator
 template< class NodeType >                     //tGridList
@@ -79,6 +102,12 @@ operator!=( const tGridList< NodeType > &right ) const
    return 0;
 }
 
+/**************************************************************************\
+**
+**  tGridList "get" functions
+**
+\**************************************************************************/
+
 template< class NodeType >                      //tGridList
 int tGridList< NodeType >::
 getActiveSize() const {return nActiveNodes;}
@@ -115,6 +144,27 @@ isBoundEmpty() const
 {
    if( lastactive == last ) return 1;
    else return 0;
+}
+
+
+/**************************************************************************\
+**
+**  tGridList insertion and removal functions
+**
+**  Adds and removes items to/from the list. Supplements tList
+**  functionality by adding capability to add items to front of
+**  "boundary" section or rear of "active" section. Updates
+**  nActiveNodes as appropriate.
+**
+\**************************************************************************/
+
+template< class NodeType >                         //tList
+void tGridList< NodeType >::
+insertAtFront( const NodeType &value )
+{
+   tList< NodeType >::insertAtFront( value );
+   if( isActiveEmpty() ) lastactive = first;
+   nActiveNodes++;
 }
 
 template< class NodeType >                     //tGridtList
@@ -236,6 +286,18 @@ removeFromActiveBack( NodeType &value )
    }
 }
 
+template< class NodeType >                         //tList
+int tGridList< NodeType >::
+removeFromFront( NodeType &value )
+{
+   if( !( isActiveEmpty() ) )
+   {
+      nActiveNodes--;
+      if( lastactive == first ) lastactive = 0;
+   }
+   return tList< NodeType >::removeFromFront( value );
+}
+
 //delete next node
 template< class NodeType >                         //tList
 int tGridList< NodeType >::
@@ -270,9 +332,8 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
 }
 
 
-//'move' utilities
-
-/*
+/**************************************************************************\
+**
 **  tGridList::moveToBack ( tListNode * )
 **
 **  Moves mvnode to the back of the list (the boundary portion).
@@ -284,7 +345,8 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
 **        (note: does not properly handle the case of list w/ only one node
 **      that's active -- in this case, node is not moved (it's already last)
 **      and nActiveNodes isn't updated. TODO) 
-*/
+**
+\**************************************************************************/
 template< class NodeType >                         //tList
 void tGridList< NodeType >::
 moveToBack( tListNode< NodeType > * mvnode ) 
@@ -312,7 +374,8 @@ moveToBack( tListNode< NodeType > * mvnode )
 }
 
 
-/*
+/**************************************************************************\
+**
 **  tGridList::moveToBack ( NodeType * )
 **
 **  Finds the ListNode whose data are identical to mvnodedata and calls
@@ -320,7 +383,8 @@ moveToBack( tListNode< NodeType > * mvnode )
 **
 **  Parameters: mvnodedata -- ptr to data in node to be moved
 **  Assumes: mvnodedata valid and contained in the list
-*/
+**
+\**************************************************************************/
 template< class NodeType >                         //tList
 void tGridList< NodeType >::
 moveToBack( NodeType * mvnodedata ) 
@@ -330,6 +394,16 @@ moveToBack( NodeType * mvnodedata )
 }
 
 
+/**************************************************************************\
+**
+**  tGridList::moveToFront
+**
+**  Moves mvnode to the front of the list, taking care to handle the case
+**  in which the node being moved is the last on the active section
+**  (doesn't check whether node is active or inactive however, and thus
+**  doesn't update nActiveNodes...TODO)
+**
+\**************************************************************************/
 template< class NodeType >                         //tList
 void tGridList< NodeType >::
 moveToFront( tListNode< NodeType > * mvnode ) 
@@ -346,6 +420,15 @@ moveToFront( tListNode< NodeType > * mvnode )
    }
 }
 
+
+/**************************************************************************\
+**
+**  tGridList::moveToActiveBack
+**
+**  Moves mvnode to the back of the "active" portion of the list
+**  (does not update nActiveNodes if the node happens to be inactive!)
+**
+\**************************************************************************/
 template< class NodeType >                         //tList
 void tGridList< NodeType >::
 moveToActiveBack( tListNode< NodeType > * mvnode ) 
@@ -375,6 +458,16 @@ moveToActiveBack( tListNode< NodeType > * mvnode )
    }
 }
 
+
+/**************************************************************************\
+**
+**  tGridList::moveToBoundFront
+**
+**  Moves mvnode to the front of the "boundary" portion of the list,
+**  making sure to update nActiveNodes is the node was previously on
+**  the active portion of the list.
+**
+\**************************************************************************/
 template< class NodeType >                         //tList
 void tGridList< NodeType >::
 moveToBoundFront( tListNode< NodeType > * mvnode ) 
@@ -405,27 +498,14 @@ moveToBoundFront( tListNode< NodeType > * mvnode )
    }
 }
 
-template< class NodeType >                         //tList
-void tGridList< NodeType >::
-insertAtFront( const NodeType &value )
-{
-   tList< NodeType >::insertAtFront( value );
-   if( isActiveEmpty() ) lastactive = first;
-   nActiveNodes++;
-}
 
-template< class NodeType >                         //tList
-int tGridList< NodeType >::
-removeFromFront( NodeType &value )
-{
-   if( !( isActiveEmpty() ) )
-   {
-      nActiveNodes--;
-      if( lastactive == first ) lastactive = 0;
-   }
-   return tList< NodeType >::removeFromFront( value );
-}
-
+/**************************************************************************\
+**
+**  tGridList::Flush
+**
+**  Also reinitializes lastactive and nActiveNodes
+**
+\**************************************************************************/
 template< class NodeType >                         //tList
 void tGridList< NodeType >::
 Flush()
@@ -436,7 +516,8 @@ Flush()
 }
 
 
-/*
+/**************************************************************************\
+**
 **  tGridList::InActiveList
 **
 **  Reports whether a given list node is in the active portion of the list.
@@ -445,7 +526,8 @@ Flush()
 **  Returns:  1 if theNode is present in the active portion of the list,
 **            0 otherwise.
 **  Created:  4/29/98 GT
-*/
+**
+\**************************************************************************/
 template< class NodeType >                         //tList
 int tGridList< NodeType >::
 InActiveList( tListNode< NodeType > * theNode )
@@ -463,9 +545,7 @@ InActiveList( tListNode< NodeType > * theNode )
 
 
 /**************************************************************************\
-**
-**         Utilities for derived class tGridListIter
-**
+**     FUNCTIONS FOR DERIVED CLASS tGridListIter
 \**************************************************************************/
 
 template< class NodeType >   //tGridListIter
@@ -506,11 +586,20 @@ tGridListIter< NodeType >::
      //cout << "    from ~tGridListIter()" << endl;
 }
 
+
+/**************************************************************************\
+**
+**  tGridListIter::LastActive
+**
+**  Moves the iterator to the last active node.
+**
+\**************************************************************************/
 template< class NodeType >   //tGridListIter
 int tGridListIter< NodeType >::
 LastActive()
 {
-     tGridList< NodeType > *gridlistPtr;
+   tGridList< NodeType > *gridlistPtr;
+
    gridlistPtr = ( tGridList< NodeType > * ) listPtr;
    assert( gridlistPtr != 0 );
    curnode = gridlistPtr->lastactive;
@@ -518,6 +607,14 @@ LastActive()
    else return 0;
 }
 
+
+/**************************************************************************\
+**
+**  tGridListIter::FirstBoundary
+**
+**  Moves the iterator to the first boundary node.
+**
+\**************************************************************************/
 template< class NodeType >   //tGridListIter
 int tGridListIter< NodeType >::
 FirstBoundary()
@@ -532,6 +629,15 @@ FirstBoundary()
    else return 0;
 }
 
+
+/**************************************************************************\
+**
+**  tGridListIter::FirstBoundaryP
+**
+**  Moves the iterator to the first boundary node and returns a pointer
+**  to the data at that location.
+**
+\**************************************************************************/
 template< class NodeType >   //tGridListIter
 NodeType* tGridListIter< NodeType >::
 FirstBoundaryP()
@@ -546,6 +652,37 @@ FirstBoundaryP()
    else return 0;
 }
 
+
+/**************************************************************************\
+**
+**  tGridListIter::LastActiveP
+**
+**  Moves the iterator to the last active node and returns a pointer
+**  to the data at that location.
+**
+\**************************************************************************/
+template< class NodeType >   //tGridListIter
+NodeType *tGridListIter< NodeType >::
+LastActiveP()
+{
+   tGridList< NodeType > *gridlistPtr;
+   gridlistPtr = ( tGridList< NodeType > * ) listPtr;
+   assert( gridlistPtr != 0 );
+   curnode = gridlistPtr->lastactive;
+   if( curnode != 0 ) return curnode->getDataPtrNC();
+   else return 0;
+}
+
+
+/**************************************************************************\
+**
+**  tGridListIter::IsActive
+**
+**  Indicates whether the current item is on the active portion of the
+**  list, returning 1 if so, 0 if not. Assumes NodeType has a member
+**  function getBoundaryFlag.
+**
+\**************************************************************************/
 template< class NodeType >   //tGridListIter
 int tGridListIter< NodeType >::
 IsActive()
@@ -560,42 +697,3 @@ IsActive()
    return 0;
 }
 
-template< class NodeType >   //tGridListIter
-NodeType *tGridListIter< NodeType >::
-LastActiveP()
-{
-   tGridList< NodeType > *gridlistPtr;
-   gridlistPtr = ( tGridList< NodeType > * ) listPtr;
-   assert( gridlistPtr != 0 );
-   curnode = gridlistPtr->lastactive;
-   if( curnode != 0 ) return curnode->getDataPtrNC();
-   else return 0;
-}
-
-/* (transferred to base class tListIter)
-template< class NodeType >        //tGridListIter
-NodeType * tGridListIter< NodeType >::
-FirstP()
-{
-   assert( listPtr != 0 );
-   curnode = listPtr->getFirst();
-   if( curnode != 0 ) return curnode->getDataPtrNC();
-   else return 0;
-}
-   
-template< class NodeType >        //tGridListIter
-NodeType * tGridListIter< NodeType >::
-NextP()
-{
-   assert( listPtr != 0 );
-   if( curnode == 0 )
-   {
-      curnode = listPtr->getFirst();
-      if( curnode != 0 ) return curnode->getDataPtrNC();
-      else return 0;
-   }
-   curnode = curnode->getNextNC();
-   if( curnode != 0 ) return curnode->getDataPtrNC();
-   else return 0;
-}
-*/
