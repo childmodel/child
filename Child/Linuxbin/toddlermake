@@ -1,7 +1,11 @@
-PT = /miami/academic/gtucker/Dev/Child/Code
+PT = /miami/academic/gtucker/Dev2/Child/Code
 CC = g++
-CFLAGS = -Wall -W -Wwrite-strings -c -g
-LDFLAGS = -g
+WARNINGFLAGS = -pedantic -Wall -W \
+	-Wwrite-strings \
+	-Wpointer-arith -Wcast-qual -Wcast-align
+# -O is necessary for -Wuninitialized to be on
+CFLAGS = $(WARNINGFLAGS) -O -c -g
+LDFLAGS = $(WARNINGFLAGS) -O -g
 LIBS = -L/usr/local/lib -lm -lstdc++
 
 OBJECTS = toddlermain.o erosion.o meshElements.o mathutil.o \
