@@ -32,10 +32,8 @@
 **    #define tSedTrans tSedTransNewImproved
 **
 **  The only requirements are that each transport object must include a
-**  constructor that reads in all the relevant parameters and a
-**  TransportCapacity() function that returns the total transport capacity;
-**  for detachment objects, a constructor and a DetachCapacity() function
-**  must be provided.
+**  constructor that reads in all the relevant parameters and a constructor
+**  and a DetachCapacity() function must be provided.
 **
 **  Note that these functions assume that each tLNode includes both
 **  an elevation and a "potential change in elevation", dz, that
@@ -59,7 +57,7 @@
 **     - Added codes to go along with erosion & transport options, to
 **       enable checking against user-specified options (GT 7/02)
 **
-**  $Id: erosion.h,v 1.47 2003-05-23 11:45:28 childcvs Exp $
+**  $Id: erosion.h,v 1.48 2003-05-23 15:04:11 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -437,7 +435,6 @@ public:
     void StreamErode( double dtg, tStreamNet * );
     void StreamErodeMulti( double dtg, tStreamNet *, double time);
     void DetachErode( double dtg, tStreamNet *, double time);
-    double TransportCapacity(tLNode * n );
     void Diffuse( double dtg, int detach );
     void UpdateExposureTime( double dtg);
     void DensifyMesh( double time );

@@ -26,7 +26,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.61 2003-05-19 14:54:01 childcvs Exp $
+**  $Id: tLNode.h,v 1.62 2003-05-23 15:03:53 childcvs Exp $
 */
 /************************************************************************/
 
@@ -436,7 +436,6 @@ public:
     void setReg( const tRegolith & );
     void setChan( const tChannel & );
     void setDischarge( double );
-    void setDiam( double );
     void setZOld( double, double );
     void RevertToOldCoords();
     virtual void UpdateCoords();
