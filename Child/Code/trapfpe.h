@@ -6,7 +6,7 @@
 ** Enable traps on invalid, div/0 and overflow exception
 ** This code is specific to glibc 2.2 and later.
 ** Use before any other declaration otherwise _GNU_SOURCE
-** will be overridden. Link with -lm.
+** will be overridden. Link with -lm (done by default by g++).
 */
 /***************************************************************************/
 
@@ -21,6 +21,13 @@ static void __attribute__ ((constructor)) trapfpe(void)
   /* Enable some exceptions.  At startup all exceptions are masked. */
   feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
 }
+#elif defined(i386) && defined(__CYGWIN__)
+static void __attribute__ ((constructor)) trapfpe(void)
+{
+  /* x86 specific */
+  unsigned int cw = 0x037f & ~(0x01 | 0x04 | 0x08);
+  __asm__ ("fldcw %0" : : "m" (*&cw));
+}
 #endif
 
 
@@ -31,12 +38,12 @@ static void __attribute__ ((constructor)) trapfpe(void)
 #include <fpu_control.h>
 static void __attribute__ ((constructor)) trapfpe(void)
 {
-  fpu_control_t cw = 
+  fpu_control_t cw =
   _FPU_DEFAULT & ~(_FPU_MASK_IM | _FPU_MASK_ZM | _FPU_MASK_OM);
   _FPU_SETCW(cw);
   /* On x86, this expands to: */
   /* unsigned int cw = 0x037f & ~(0x01 | 0x04 | 0x08); */
-  /* __asm__ ("fldcw %0" : : "m" (*&cw));              */ 
+  /* __asm__ ("fldcw %0" : : "m" (*&cw));              */
 }
 
 #endif
