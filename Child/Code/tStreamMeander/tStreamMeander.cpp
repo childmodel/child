@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.5 1998-01-21 23:23:39 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.6 1998-01-26 22:59:33 stlancas Exp $
 \**************************************************************************/
 
 #include "Inclusions.h"
@@ -834,62 +834,260 @@ void tStreamMeander::AddChanBorder( tList< tArray< float > > &bList )
 **		Created: 5/1/97 SL
 **
 \*****************************************************************************/
-   tArray< float > FindBankErody( tLNode * );
-void tNode::GetErodibility( float rerody, float lerody, float erody )
+tArray< float > tStreamMeander::FindBankErody( tLNode *nPtr )
 {
    float x1, y1, x2, y2, dx, dy, dx1, dy1, a, b, c, d, dmin, dlast,
-       dzleft, dzright;
-   tEdge * curedg, * ledg, * redg;
-//simplest thing: find point on left which has smallest distance 
-//to the perpendicular; once that distance starts getting larger 
-//again, find other (right bank) point:
-   x1=x;
-   y1=y;
-   dx = flowedg->dest->x - x;
-   dy = flowedg->dest->y - y;
-   dx1 = -dy;
-   dy1 = dx;
-   a = dy1;
-   b = -dx1;
-   c = dx1 * y1 - dy1 * x1;
-   dmin = 1000.0;
-   dlast = dmin;
-   d = dmin - 1.;
-   curedg = flowedg;
-   do 
+       dzleft, dzright, depth, dfactor, dtotal, erody;
+   tArray< float > xy, xyz1, xy2, dxy, rlerody(2);
+   tEdge * curedg, * ledg, * redg, *ce;
+   tLNode *cn, *dn, *rn, *ln;
+   tPtrListIter< tEdge > spokIter( nPtr->getSpokeListNC() );
+   tPtrList< tLNode > rList, lList;
+   tPtrListIter< tLNode > rIter( rList ), lIter( lList );
+
+     //erody = nPtr->getErodibility();
+   
+//simplest thing: find points on right and left which have smallest distance 
+//to the perpendicular; those determine right and left erodibility, resp.
+//(another way: weighted average according to distance from perpendicular.)
+   xyz1 = nPtr->get3DCoords();
+   dn = nPtr->GetDownstrmNbr();
+   xy2 = dn->get2DCoords();
+   for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
    {
-      curedg = curedg->nextedg;
-      dlast = d;
-      x2 = curedg->dest->x;
-      y2 = curedg->dest->y;
-      d = fabs( a * x2 + b * y2 + c );
+      cn = ce->getDestinationPtrNC();
+      if( cn != dn && cn->GetDownstrmNbr() != nPtr )
+      {
+         xy = cn->get2DCoords();
+         a = (xyz1[1] - xy[1]) * (xy2[0] - xy[0]);
+         b = (xyz1[0] - xy[0]) * (xy2[1] - xy[1]);
+         c = a - b;
+         if( c > 0.0 ) rList.insertAtBack( cn );
+         else lList.insertAtBack( cn );
+      }
+   }
+   dxy[0] = xy2[0] - xyz1[0];
+   dxy[1] = xy2[1] - xyz1[1];
+   a = dxy[0];
+   b = dxy[1];
+   c = -dxy[1] * xyz1[1] - cxy[0] * xyz1[0];
+   dmin = 100000.0;
+   for( cn = rIter.FirstP(); !(rIter.AtEnd()); cn = rIter.NextP() )
+   {
+      xy = cn->get2DCoords();
+      d = fabs( a * xy[0] + b * xy[1] + c );
       if( d < dmin )
       {
          dmin = d;
-         ledg = curedg;
+         rn = cn;
       }
-   } while( d < dlast );
-   dmin = 1000.0;
-   do
+   }
+   dmin = 100000.0;
+   for( cn = lIter.FirstP(); !(lIter.AtEnd()); cn = lIter.NextP() )
    {
-      x2 = curedg->dest->x;
-      y2 = curedg->dest->y;
-      d = fabs( a * x2 + b * y2 + c );
+      xy = cn->get2DCoords();
+      d = fabs( a * xy[0] + b * xy[1] + c );
       if( d < dmin )
       {
          dmin = d;
-         redg = curedg;
+         ln = cn;
       }
-      curedg = curedg->nextedg;
-   } while( curedg != flowedg );
-   dzleft = ledg->dest->z - z;
-   dzright = redg->dest->z - z;
-   if( dzleft > hydrdepth ) lerody = erody * hydrdepth / dzleft;
-   else lerody = erody;
-   if( dzright > hydrdepth ) rerody = erody * hydrdepth / dzright;
-   else rerody = erody;
+   }
+   dzright = rn->getZ() - xyz1[2];
+   dzleft = ln->getZ() = - xyz1[2];
+     //bank erodibility is the nominal erodibility X depth / dz
+   depth = nPtr->getHydrDepth();
+   if( dzright <= 0.0 ) dfactor = 2.0;
+   else dfactor = depth / dzright;
+   rlerody[0] = dfactor * erody;
+   if( dzleft <= 0.0 ) dfactor = 2.0;
+   else dfactor = depth / dzleft;
+   rlerody[1] = dfactor * erody;
+   return rlerody;
 }
 
+/*****************************************************************************\
+**
+**        CheckBanksTooClose()
+**
+**		Parameters:	
+**		Called by:	
+**		Created: 1/98 SL
+**
+**
+\*****************************************************************************/
+void tStreamMeander::CheckBanksTooClose()
+{
+   cout << "CheckBanksTooClose()..." << flush << endl;
+   int tooclose;
+   tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
+   tPtrListIter< tEdge > spokIter;
+   tLNode * cn, *pointtodelete;
+   tEdge *ce;
+     //check for proximity to channel:
+   tooclose = TRUE;
+   do
+   {
+      tooclose = FALSE;
+        //nodIter.First();
+      for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
+      {
+         pointtodelete = 0;
+         if( cn->Meanders() )
+         {
+            spokIter.Reset( cn->getSpokeListNC() );
+            for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
+                 ce = spokIter.NextP() )
+            {
+               if( ce->getLength() < cn->getHydrWidth()/2.0 )
+               {
+                  cout<<"too close: cn, cn->hydrwidth "<<cn->getID()<<" "
+                      <<cn->getHydrWidth()<<endl<<flush;
+                  tooclose = TRUE;
+                  pointtodelete = (tLNode *) ce->getDestinationPtrNC();
+                  if( pointtodelete->getDrArea() > cn->getDrArea() )
+                      pointtodelete = cn;
+                  break;
+               }
+            }
+         }
+         if( pointtodelete != 0 ) DeleteNode( pointtodelete );
+      }
+   } while( tooclose );
+   cout << "finished" << endl;
+}
+
+/*****************************************************************************\
+**
+**       CheckFlowedgCross(): checks to see whether any nodes have been
+**          crossed/swept over by flowedges; i.e., whether the channel has
+**          eroded the node away.
+**          -finds tri's with !NewTriCCW;
+**          -are two vtcs. connected by a flowedg?
+**          -if so, is >1 nbr tri !NewTriCCW, or does a spoke of the 3rd vtx.
+**           cross the flowedg?
+**          -if so, mark the 3rd node for deletion;
+**          -if a point is to be deleted, is it a meandering node with greater
+**           drainage area than the upstream node of the found flowedg?
+**          -if so, mark the upstream node of the flowedg for deletion instead.
+**          -if a point is to be deleted, is it a boundary node?
+**          -if so, if either/both of the other nodes have moved outside the
+**           boundaries, revert it/them to the old coords., and assert that
+**           one or the other is indeed outside the boundary, o.w., exit w/err.
+**          -if the point to be deleted is not a boundary node, delete it. 
+**
+**		Parameters:	
+**		Called by:	Migrate
+**		Created: 1/98 SL; moved/modified from tGrid routine
+**
+\*****************************************************************************/
+void tStreamMeander::CheckFlowedgCross()
+{
+   cout << "CheckFlowedgCross()..." << flush << endl;
+   int i, j, nv, nvopp, id0, id1;
+   int ft;
+   int flipped;
+   int crossed;
+   tArray< float > p0, p1, p2, xy0, xy1;
+   tLNode *pointtodelete, *lnodePtr, *nod, *cn, *dscn;  
+   tEdge * fedg, * cedg, * ccedg, *ce;
+   tTriangle * ct, *nt;
+   tListIter< tTriangle > triIter( gridPtr->GetTriList() );
+   tPtrListIter< tEdge > spokIter;
+     //delete node crossed by flowedg:
+     //if a new triangle is !CCW and two vtcs. are connected by a flowedg AND
+     //  a spoke of the third vtx. intersects the flowedg OR
+     //  more than one nbr. tri. is also !CCW
+     //then delete third vtx. because it has been "crossed" by the flowedg
+   crossed = 1;
+   do
+   {
+      crossed = 0;
+      for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
+      {
+         if( !NewTriCCW( ct ) )
+         {
+            ft = 0;
+            pointtodelete = 0;
+            for( i=0; i<3; i++ )
+            {
+               cn = (tLNode *) ct->pPtr(i);
+               dscn = cn->GetDownstrmNbr();
+               for( j=1; j<3; j++ )
+               {
+                  nod = (tLNode *) ct->pPtr( (i+j)%3 );
+                    //if another vtx is cn's downstream nbr
+                  if( nod == dscn )
+                  {
+                     ft = 1;
+                     if( j == 1 ) nod = (tLNode *) ct->pPtr( (i+2)%3 );
+                     else nod = (tLNode *) ct->pPtr( (i+1)%3 );
+                  }
+                  if( ft ) break;
+               }
+               if( ft ) break;
+            }
+            for( i=0, j=0; i<3; i++ )
+            {
+               nt = ct->tPtr(i);
+               if( nt != 0 )
+                   if( !NewTriCCW( nt ) )
+                       j++;
+            }
+              //if >1 nbr tri !CCW
+            if( j>1 )
+            {
+               pointtodelete = nod;
+            }
+            else
+            {
+               spokIter.Reset( nod->getSpokeListNC() );
+               fedg = cn->GetFlowEdg();
+               for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
+                    ce = spokIter.NextP() )
+               {
+                    //if flowedg crossed by spoke(s) of the third vtx.
+                  if( Intersect( ce, fedg ) )
+                  {
+                     pointtodelete = nod;
+                     break;
+                  }
+               }
+            }
+            if( pointtodelete != 0 )
+            {
+               crossed = 1;
+               if( pointtodelete->Meanders() &&
+                   cn->getDrArea() < pointtodelete->getDrArea() )
+               {
+                  pointtodelete = cn;
+               }
+               else if( pointtodelete->getBoundaryFlag() )
+               {
+                  pointtodelete = 0;
+               }
+               if( pointtodelete != 0 )
+               {
+                  DeleteNode( pointtodelete );
+               }
+               else
+               {
+                  xy0 = cn->getNew2DCoords();
+                  if( LocateTriangle( xy0[0], xy0[1] ) == 0 )
+                      cn->RevertToOldCoords();
+                  xy1 = dscn->getNew2DCoords();
+                  if( LocateTriangle( xy1[0], xy1[1] ) == 0 )
+                      dscn->RevertToOldCoords();
+                  assert( LocateTriangle( xy0[0], xy0[1] ) == 0 ||
+                          LocateTriangle( xy1[0], xy1[1] ) == 0 );
+               }
+            }
+         }
+      }
+   } while( flipped );
+   cout << "finished" << endl;
+}
+      
 
 /****************************************************************\
 **	
