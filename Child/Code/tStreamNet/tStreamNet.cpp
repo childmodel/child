@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.43 2003-08-05 13:08:50 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.44 2003-08-05 15:36:07 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -410,6 +410,9 @@ void tStreamNet::CheckNetConsistency()
    tMeshListIter< tLNode > nI( meshPtr->getNodeList() ),
        tI( meshPtr->getNodeList() );
    const long nodesInMesh = meshPtr->getNodeList()->getSize();
+   enum{
+     expensive_test = false
+   };
 
    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
    {
@@ -424,32 +427,33 @@ void tStreamNet::CheckNetConsistency()
          cerr<< "NODE #" << cn->getID() << " flows to itself!\n";
          goto error;
       }
-      tLNode *ln;
-      if( ( ln = tI.GetP( dn->getID() ) ) != NULL )
-      {
-         if( ln != dn )
-         {
-            cerr << "NODE #" << cn->getID()
-                 << " downstrm nbr not id. to node in nodeList with same ID\n";
-            goto error;
-         }
-      }
-      else
-      {
-         cerr << "NODE #" << cn->getID()
-              << " downstrm nbr is not in nodeList\n";
-         goto error;
+      if (expensive_test) { // This is a O(nnodes^2) loop.
+	tLNode *ln;
+	if( ( ln = tI.GetP( dn->getID() ) ) != NULL )
+	  {
+	    if( ln != dn )
+	      {
+		cerr << "NODE #" << cn->getID()
+		     << " downstrm nbr not id. to node in nodeList with same ID\n";
+		goto error;
+	      }
+	  }
+	else
+	  {
+	    cerr << "NODE #" << cn->getID()
+		 << " downstrm nbr is not in nodeList\n";
+	    goto error;
+	  }
       }
       if( cn->Meanders() )
-      {
-         if( cn->getSlope() < 0.0 )
-         {
-            cerr << "NODE #" << cn->getID()
-                 << " meanders and returns negative getSlope\n";
-            goto error;
-         }
-      }
-
+	{
+	  if( cn->getSlope() < 0.0 )
+	    {
+	      cerr << "NODE #" << cn->getID()
+		   << " meanders and returns negative getSlope\n";
+	      goto error;
+	    }
+	}
    }
 
    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
