@@ -59,7 +59,7 @@
 **     - Added codes to go along with erosion & transport options, to
 **       enable checking against user-specified options (GT 7/02)
 **
-**  $Id: erosion.h,v 1.42 2002-08-13 14:16:28 gtucker Exp $
+**  $Id: erosion.h,v 1.43 2002-08-13 17:03:22 arnaud Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -118,7 +118,8 @@ sizeof(TransportLaw)/sizeof(TransportLaw[0]) - 1;
 //#define TRANSPORT_CODE PowerLawMulti
 //#define tSedTrans tSedTransMineTailings
 //#define TRANSPORT_CODE MineTailings
-#define SEDTRANSOPTION TransportLaw[ TRANSPORT_CODE ]
+
+const char * const SEDTRANSOPTION = TransportLaw[ TRANSPORT_CODE ];
 
 #define DETACHMENT_LAW_TABLE \
 X(DetachPwrLaw1,"Power law, form 1"), \
@@ -142,9 +143,9 @@ const int NUMBER_OF_DETACHMENT_LAWS =
 sizeof(DetachmentLaw)/sizeof(DetachmentLaw[0]) - 1;
 
 #define tBedErode tBedErodePwrLaw2
-#define DETACHMENTOPTION DetachmentLaw[ DetachPwrLaw2 ]
 #define DETACHMENT_CODE DetachPwrLaw2
 
+const char * const DETACHMENTOPTION = DetachmentLaw[ DETACHMENT_CODE ];
 
 /***************************************************************************\
 **  class tEquilibCheck
