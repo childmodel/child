@@ -55,7 +55,6 @@ public:
 #endif
   void write(ofstream& f,const point p[]) const;
   bool visible(const point p[],int i) const;
-  int swap(int tint,edge e[],const point p[]);
 public:
   int from,to;
   int lef,let,ref,ret;

@@ -79,8 +79,16 @@ bool needswap(int i1, int i2, int i3, int i4, const point p[]){
   return false;
 }
 
-int edge::swap(int tint,edge e[],const point p[]){
+static
+int tt_swap(int tint, edge e[], const point p[]){
   
+  int& to = e[tint].to;
+  int& from = e[tint].from;
+  int& ret = e[tint].ret;
+  int& ref = e[tint].ref;
+  int& let = e[tint].let;
+  int& lef = e[tint].lef;
+
   //edge swapping routine - each edge has four neighbour edges
   //left and attached to from node (lef) right attached to to node (ret) etc.
   //these edges may be oriented so that their from node is that of 
@@ -136,10 +144,10 @@ int edge::swap(int tint,edge e[],const point p[]){
     lef=lt;
     //examine the neighbouring edges for delauniness recursively - this is
     //a lot more efficient than trying to swap all edges right at the end.
-    e[lef].swap(lef,e,p);
-    e[let].swap(let,e,p);
-    e[ref].swap(ref,e,p);
-    e[ret].swap(ret,e,p);
+    tt_swap(lef,e,p);
+    tt_swap(let,e,p);
+    tt_swap(ref,e,p);
+    tt_swap(ret,e,p);
     return 1;
   }
   return 0;
@@ -555,7 +563,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
       edges[next_edge].let=hup;
       edges[next_edge].lef=next_edge-1;
       //check the hull edge's delauniness
-      edges[hup].swap(hup,edges,p);
+      tt_swap(hup,edges,p);
       next_edge++;
       //delete upper edge from the hull
       //and go round the hull in the positive direction
@@ -584,7 +592,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
       edges[next_edge].lef=hlow;
       edges[next_edge].let=saved_edge;
       //swap it if it needs it
-      edges[hlow].swap(hlow,edges,p);
+      tt_swap(hlow,edges,p);
       //keep the edge for below - this is necessary in case the upper hull wasn't visible
       saved_edge=next_edge;
       next_edge++;
