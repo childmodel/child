@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.64 2004-01-28 16:02:08 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.65 2004-01-29 14:24:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1009,7 +1009,7 @@ void tStreamNet::FlowDirs()
 {
    tMeshListIter<tLNode> i( meshPtr->getNodeList() );  // gets nodes from the list
    double slp;                          // steepest slope found so far
-   double meanderslp;			// steepest meander slope found so far
+   double meanderslp = 0;		// steepest meander slope found so far
    double selectslope;			// value of the selected slope
    tLNode *curnode;                     // ptr to the current node
    //XtLNode *newnode;  // ptr to new downstream node
@@ -1017,7 +1017,7 @@ void tStreamNet::FlowDirs()
    tEdge * firstedg;   // ptr to first edg
    tEdge * curedg;     // pointer to current edge
    tEdge * nbredg;     // steepest neighbouring edge so far
-   tEdge * meanderedg;  // steepest meander edge so far
+   tEdge * meanderedg = NULL;  // steepest meander edge so far
   
    int ctr;
 
@@ -1056,13 +1056,11 @@ void tStreamNet::FlowDirs()
       	// (should be..)
       	tLNode *NodeAlongEdge =
 		static_cast<tLNode *>(firstedg->getDestinationPtrNC());
+	meanderslp = 0.0;
+	meanderedg = NULL;
       	if( NodeAlongEdge->Meanders()){
-      	 meanderslp = firstedg->getSlope();
-      	 meanderedg = firstedg;	
-      	}
-      	else{
-      	 meanderslp = 0.0;
-      	 meanderedg = NULL;
+	  meanderslp = firstedg->getSlope();
+	  meanderedg = firstedg;
       	}
       }
       
