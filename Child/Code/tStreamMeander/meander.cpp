@@ -124,7 +124,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.7 2003-05-09 17:06:07 childcvs Exp $ */
+/*     $Id: meander.cpp,v 1.8 2003-05-13 15:05:01 childcvs Exp $ */
 
 void meander_(const integer *stations, const integer *stnserod, 
 	      const doublereal *x, const doublereal *y,
@@ -136,13 +136,22 @@ void meander_(const integer *stations, const integer *stnserod,
 	      doublereal *rightdepth, doublereal *leftdepth,
 	      doublereal *lambda)
 {
-    doublereal latforce[6000];
-    doublereal curvature[6000];
-    doublereal transslope[6000], lag[6000], acs[6000], phi[6000], vel[6000], 
-	    rho, transfactor, deln[6000], delx[6000], dely[6000], grav, 
-	    spreaddelta_x__[6000], spreaddelta_y__[6000];
-    doublereal tauwall[6000];
+    doublereal rho, transfactor, grav;
 
+    doublereal
+      *delx = new doublereal[*stnserod],
+      *dely = new doublereal[*stnserod],
+      *phi  = new doublereal[*stnserod],
+      *tauwall = new doublereal[*stnserod],
+      *spreaddelta_x__ = new doublereal[*stnserod],
+      *spreaddelta_y__ = new doublereal[*stnserod],
+      *curvature = new doublereal[*stnserod],
+      *vel = new doublereal[*stnserod-1],
+      *transslope = new doublereal[*stnserod-1],
+      *acs = new doublereal[*stnserod],
+      *deln = new doublereal[*stnserod],
+      *latforce = new doublereal[*stations],
+      *lag = new doublereal[*stations];
 
     /* Parameter adjustments */
     --lambda;
@@ -195,6 +204,21 @@ void meander_(const integer *stations, const integer *stnserod,
 	    spreaddelta_x__, spreaddelta_y__, delx, dely, &depth[1], &
 	    delta_x__[1], &delta_y__[1]);
 /*      print *, 'last reach node K = ', transfactor */
+
+    delete [] delx;
+    delete [] dely;
+    delete [] phi ;
+    delete [] tauwall;
+    delete [] spreaddelta_x__;
+    delete [] spreaddelta_y__;
+    delete [] curvature;
+    delete [] vel;
+    delete [] transslope;
+    delete [] acs;
+    delete [] deln;
+    delete [] latforce;
+    delete [] lag;
+
     return;
 } /* meander_ */
 
