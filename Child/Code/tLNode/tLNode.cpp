@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.48 1998-07-03 19:52:32 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.49 1998-07-12 23:18:27 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -206,6 +206,7 @@ void tLayer::addDgrade( int i, double size )
 
 double tLayer::getDgrade( int i)
 {
+   assert( i<dgrade.getSize() );
    if(i>=dgrade.getSize())
       ReportFatalError( "Trying to get sediment sizes in dgrade of layer that don't exist");
    return dgrade[i];
@@ -770,7 +771,7 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       cout << "layer erodibility is " << getLayerErody(i) << endl;
       cout << "is layer sediment? " << getLayerSed(i) << endl;
       cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
-      cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
+      if( numg>1 ) cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
       i++;
       
    }
