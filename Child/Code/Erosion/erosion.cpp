@@ -28,7 +28,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.83 2000-04-19 22:02:32 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.84 2000-04-26 20:18:33 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -916,12 +916,11 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
    //NIC check to see what taudim is -> probably right but U R anal
    tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
 
-   //cout << "channel rough is " << nd->getChanRough() << endl;
-   //cout << "channel width is " << nd->getChanWidth() << endl;
-   
-   //cout << "q is " << nd->getQ() << endl;
-   //cout << "slope is " << nd->getSlope() << endl;
-   //cout << "taudim is " << taudim << endl;
+   /*cout << "Q is " << nd->getQ() << endl;
+   cout << "slope is " << nd->getSlope() << endl;
+   cout << "taudim is " << taudim << endl;
+   cout << "persand is " << persand << endl;
+   cout << "weight is " << weight << endl;*/
 
    //Calculate Sand transport rates first
    
@@ -934,16 +933,24 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
        taucrit=hightaucs;
 
    //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
+   
    //remember tau is in units of sec, so compute everything in seconds
    //and transfer back to years in the end.
+   //Nic, notice what you did, the commented out qss is what you originally,
+   //and still kind of think is right.  Just testing.  Difference is that
+   //you aren't multiply by the percentage that is there.
+   //now original equation, but multiply by 10 to speed things up.
    if(tau>taucrit){
+      //qss=(0.0541/RHOSED)*weight*SECPERYEAR*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit);
       qss=(0.0541/RHOSED)*weight*SECPERYEAR*persand*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit);
        nd->addQs(0, qss);
        //cout << "nic sand transport rate is " << qss << endl;
    }
-   else 
-       qss=0 ;
-
+   else{
+      //cout <<"NO SAND TRANSPORT"<<endl;
+      qss=0 ;
+   }
+   
    //Now calculate Gravel transport rates
    if(nd->getNumg()==2){
       if(persand<.10)
@@ -956,12 +963,16 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
       //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
       
       if(tau>taucrit){
+         //qsg=(0.0541/RHOSED)*weight*SECPERYEAR*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit);
          qsg=(0.0541/RHOSED)*weight*SECPERYEAR*(1-persand)*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit);
          nd->addQs(1,qsg);
-         //cout << "nic nic nic gravel transport is happening" << endl;
+         //cout << "gravel transport is happening at a rate of " << qsg << endl;
       }
-      else
-          qsg=0;
+      else{
+         //cout<<"NO GRAVEL TRANSPORT"<<endl;
+         qsg=0;
+      }
+      
    }
    
    //NOTE - don't need to update total qs cause this gets updates
