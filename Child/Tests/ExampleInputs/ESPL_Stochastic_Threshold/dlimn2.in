@@ -1,0 +1,300 @@
+#-------------------------------------------------------------------
+#
+# dlimn2.in
+#
+# This test file is a version of an input file used to generate
+# results published in Tucker (2003), ESPL, in press.
+# It has been modified for consistency with the latest version
+# of CHILD (ver 20030715).
+# 
+# It simulates a rising block with stochastic rainfall. 
+# A detachment-limited erosion law ("form 2") as outlined in that
+# paper is used. The results correspond to Figure 4, middle curve
+# (tau crit * = 0.1).
+# 
+# Caveat emptor: I have not re-tested these runs with the updated
+# code; I have merely tested them to make sure they have all the
+# parameters needed and start successfully.
+#
+# -GT July 2003
+#
+#-------------------------------------------------------------------
+#
+# Run control parameters
+#
+# The following parameters control the name and duration of the run along
+# with a couple of other general settings.
+# 
+OUTFILENAME: name of the run
+dlimn2
+RUNTIME: Duration of run (years)
+1320000
+OPINTRVL: Output interval (years)
+132000
+SEED: Random seed used to generate storm sequence & mesh, etc (as applicable)
+2
+#
+# Mesh setup parameters
+#
+# These parameters control the initial configuration of the mesh. Here you
+# specify whether a new or existing mesh is to be used; the geometry and
+# resolution of a new mesh (if applicable); the boundary settings; etc.
+#
+#  Notes:
+#
+#    OPTREADINPUT - controls the source of the initial mesh setup:
+#                    0 = create a new mesh in a rectangular domain
+#                    1 = read in an existing triangulation (eg, earlier run)
+#                    2 = create a new mesh by triangulating a given set
+#                        of (x,y,z,b) points
+#    INPUTDATAFILE - use this only if you want to read in an existing
+#                    triangulation, either from an earlier run or from
+#                    a dataset.
+#    INPUTTIME - if reading in a mesh from an earlier run, this specifies
+#                    the time slice number
+#
+OPTREADINPUT: 0=create new mesh; 1=read existing run/file; 2=read point file
+10
+INPUTDATAFILE: name of file to read input data from (only if reading mesh)
+testrunt2
+POINTFILENAME
+cos500.xyzb2
+INPUTTIME: the time which you want data from (needed only if reading mesh)
+0
+OPTINITMESHDENS
+0
+X_GRID_SIZE: "length" of grid, meters
+10000
+Y_GRID_SIZE: "width" of grid, meters
+10000
+OPT_PT_PLACE: type of point placement; 0=unif, 1=pert, 2=rand
+1
+GRID_SPACING: mean distance between grid nodes, meters
+200
+NUM_PTS: for random grid, number of points to place
+16
+TYP_BOUND: open boundary;0=corner,1=side,2= sides,3=4 sides,4=specify
+1
+MEAN_ELEV: initial elevation
+0
+RAND_ELEV: amplitude of random noise on initial surface
+1.
+SLOPED_SURF: Option for sloping initial surface
+0
+UPPER_BOUND_Z: elevation along upper boundary
+0.0
+#
+#   Climate parameters
+#
+OPTVAR: Option for rainfall variation
+1
+PMEAN: Mean rainfall intensity (m/yr) (16.4 m/yr = Atlanta, GA)
+1
+# STDUR here is set to estimated response time x 10^-4
+STDUR: Mean storm duration (yr)
+6.6
+ISTDUR: Mean time between storms (yr)
+0
+OPTSINVARINFILT: option for sinusoidal variations in infiltration capacity
+0
+#
+#   Various options
+#
+OPTMEANDER: Option for meandering
+0
+OPTDETACHLIM: Option for detachment-limited erosion only
+1
+OPTREADLAYER: option to read layer information from file (only if reading mesh)
+0
+OPTINTERPLAYER: for node moving, do we care about tracking the layers? yes=1
+0
+FLOWGEN: flow generation option: 0=Hortonian, 1=subsurface flow, etc.
+0
+LAKEFILL: fill lakes if = 1
+1
+TRANSMISSIVITY: for shallow subsurface flow option
+6200
+INFILTRATION: infiltration capacity (for Hortonian option) (m/yr)
+0
+OPTINLET: 1=add an "inlet" discharge boundary condition (0=none)
+0
+OPTTSOUTPUT: option for writing mean erosion rates, etc, at each time step
+1
+TSOPINTRVL
+88
+#
+#   Erosion and sediment transport parameters
+#   (note: choice of sediment-transport law is dictated at compile-time;
+#    see tErosion.h)
+#
+#   Important notes on parameters:
+#
+#   (1) kb, kt, mb, nb and pb are defined as follows:
+#         E = kb * ( tau - taucrit ) ^ pb,
+#         tau = kt * q ^ mb * S ^ nb,
+#         q = Q / W,  W = Wb ( Q / Qb ) ^ ws,  Wb = kw Qb ^ wb
+#      where W is width, Q total discharge, Qb bankfull discharge,
+#      Wb bankfull width. Note that kb, mb and nb are NOT the same as the
+#      "familiar" K, m, and n as sometimes used in the literature.
+#
+#   (2) For power-law sediment transport, parameters are defined as follows:
+#         capacity (m3/yr) = kf * W * ( tau - taucrit ) ^ pf
+#         tau = kt * q ^ mf * S ^ nf
+#         q is as defined above
+#
+#   (3) KT and TAUC are given in SI units -- that is, time units of seconds
+#       rather than years. The unit conversion to erosion rate or capacity
+#       is made within the code.
+#
+DETACHMENT_LAW:
+1
+TRANSPORT_LAW:
+1
+KF: sediment transport efficiency factor (dims vary but incl's conversion s->y)
+493.2
+MF: sediment transport capacity discharge exponent
+0.66667
+NF: sed transport capacity slope exponent (ND)
+0.66667
+PF: excess shear stress (sic) exponent
+1.5
+KB: bedrock erodibility coefficient (dimensions in m, kg, yr)
+0.002
+KR: regolith erodibility coefficient (dimensions same as KB)
+0.002
+KT:  Shear stress (or stream power) coefficient (in SI units)
+987.3
+MB: bedrock erodibility specific (not total!) discharge exponent
+0.66667
+NB: bedrock erodibility slope exponent
+0.66667
+PB: Exponent on excess erosion capacity (e.g., excess shear stress)
+1.5
+TAUCD: critical shear stress for detachment-limited-erosion (kg/m/s^2)
+31.24
+KD: diffusivity coef (m2/yr)
+0.0
+OPTDIFFDEP: if =1 then diffusion only erodes, never deposits
+0
+#
+#   Bedrock and regolith
+#
+BEDROCKDEPTH: initial depth of bedrock (make this arbitrarily large)
+1000000.0
+REGINIT: initial regolith thickness
+1000000.0
+MAXREGDEPTH: maximum depth of a single regolith layer (also "active layer")
+100.0
+#
+#   Tectonics / baselevel boundary conditions
+#
+UPTYPE: type of uplift (0=none, 1=uniform, 2=block, etc)
+1
+UPDUR: duration of uplift (yrs)
+1000000000
+UPRATE: uplift rate (m/yr)
+0.001
+FAULTPOS
+10000
+DISLOCDEPTHUP
+0.1
+DISLOCDEPTHDOWN
+15
+DISLOCDIP
+45
+DISLOCSLIPRATE
+0.05
+ZMESHTHRESHOLD
+100
+#
+#   Grain size parameters
+#
+#   (note: for Wilcock sand-gravel transport formula, NUMGRNSIZE must be 2;
+#   otherwise, NUMGRNSIZE must be 1. Grain diameter has no effect if the
+#   Wilcock model is not used.)
+#
+NUMGRNSIZE: number of grain size classes
+1
+REGPROPORTION1: proportion of sediments of grain size diam1 in regolith [.]
+1.0
+BRPROPORTION1: proportion of sediments of grain size diam1 in bedrock [.]
+1.0
+GRAINDIAM1: representative diameter of first grain size class [m]
+0.0010
+REGPROPORTION2: proportion of sediments of grain size diam2 in regolith [.]
+0.40
+BRPROPORTION2: proportion of sediments of grain size diam2 in bedrock [.]
+0.4
+GRAINDIAM2: representative diameter of second grain size class [m]
+0.03
+HIDINGEXP:
+1
+#
+#   Hydraulic geometry parameters
+#
+#   Width is the most critical parameter as it is used in erosion and
+#   transport capacity calculations. HYDR_WID_COEFF_DS is the "kw" parameter
+#   referred to above (equal to bankfull width in m at unit bankfull discharge
+#   in cms)
+#
+#   CHAN_GEOM_MODEL options are:
+#     1 = empirical "regime" model: Wb = Kw Qb ^ wb, W / Wb = ( Q / Qb ) ^ ws
+#     2 = Parker width closure: tau / tauc = const
+#
+CHAN_GEOM_MODEL: option for channel width closure
+1
+HYDR_WID_COEFF_DS: coeff. on downstream hydraulic width relation (m/(m3/s)^exp)
+10.0
+HYDR_WID_EXP_DS: exponent on downstream hydraulic width relation 
+0.5
+HYDR_WID_EXP_STN: exp. on at-a-station hydraulic width relation
+0.5
+HYDR_DEP_COEFF_DS: coeff. on downstream hydraulic depth relation (m/(m3/s)^exp)
+1.0
+HYDR_DEP_EXP_DS: exponent on downstream hydraulic depth relation 
+0
+HYDR_DEP_EXP_STN: exp. on at-a-station hydraulic depth relation
+0
+HYDR_ROUGH_COEFF_DS: coeff. on downstrm hydraulic roughness reln. (manning n)
+0.03
+HYDR_ROUGH_EXP_DS: exp. on downstream hydraulic roughness
+0
+HYDR_ROUGH_EXP_STN: exp on at-a-station hydr. rough.
+0
+BANK_ROUGH_COEFF: coeff. on downstream bank roughness relation (for meand only)
+15.0
+BANK_ROUGH_EXP: exp on discharge for downstream bank roughness (for meand only)
+0.80
+BANKFULLEVENT: precipitation rate of a bankfull event, in m/s
+1.268e-7
+#
+#   Other options
+#
+OPTFLOODPLAIN: option for overbank deposition using modified Howard 1992 model
+0
+OPTLOESSDEP: space-time uniform surface accumulation of sediment (loess)
+0
+OPTEXPOSURETIME: option for tracking surface-layer exposure ages
+0
+OPTVEG: option for dynamic vegetation growth and erosion
+0
+OPTKINWAVE: kinematic-wave flow routing (steady, 2D)
+0
+OPTMESHADAPTDZ: dynamic adaptive meshing based on erosion rates
+0
+OPTMESHADAPTAREA: dynamic adaptive meshing based on drainage area
+0
+OPTFOLDDENS: Option for mesh densification around a growing fold
+0
+
+Comments here:
+
+
+
+
+
+
+
+
+
+
