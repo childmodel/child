@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.4 1998-02-02 16:45:54 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.5 1998-02-02 19:18:03 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -456,11 +456,7 @@ double tNode::ComputeVoronoiArea()
                             (c*c - (b*b + a*a))*(c*c - (b*b + a*a)));
       }
    }
-   
-   cout<<"Varea: node id "<<id<<", varea "
-       <<area<<endl;
-     //cout<<"V_area done"<<endl<<flush;
-   //cout << "finished: voronoi area = " << area << endl;
+
    varea = area;
    varea_rcp = 1.0/varea;
    return area;
