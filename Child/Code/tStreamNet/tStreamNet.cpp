@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.8 1998-02-12 01:45:43 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.9 1998-02-12 23:23:42 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -224,17 +224,33 @@ void tStreamNet::CalcVAreas()
 {
    cout << "CalcVAreas()..." << endl << flush;
    double area;
-   tLNode * curnode;
-   tGridListIter<tLNode> nodIter( gridPtr->GetNodeList() );
+   tLNode * curnode, *cn;
+   tEdge *ce;
+   tArray< double > xy;
+   tGridListIter<tLNode> nodIter( gridPtr->GetNodeList() ),
+       nI( gridPtr->GetNodeList() );
+   tPtrListIter< tEdge > sI;
    
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
    {
-      //area = VoronoiArea( curnode );
+         //area = VoronoiArea( curnode );
       curnode->ComputeVoronoiArea();
-      /*assert( area > 0 );
-      curnode->setVArea( area );
-      curnode->setVArea_Rcp( 1.0 / area );*/
+      
+/*      for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+      {
+         sI.Reset( cn->getSpokeListNC() );
+         cout << "node " << cn->getID() << ": ";
+         for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
+         {
+            xy = ce->getRVtx();
+            cout << xy[0] << " " << xy[1] << "; ";
+         }
+         cout << endl;
+      }*/
+         /*assert( area > 0 );
+         curnode->setVArea( area );
+         curnode->setVArea_Rcp( 1.0 / area );*/
    }
    cout << "CalcVAreas() finished" << endl;
 }
@@ -687,12 +703,14 @@ void tStreamNet::SetVoronoiVertices()
    for( ct = triIter.FirstP(); !(triIter.AtEnd()); ct = triIter.NextP() )
    {
       xy = ct->FindCircumcenter();    
-
+      //cout << "SetVoronoiVertices(): " << xy[0] << " " << xy[1];
       // Assign the Voronoi point as the left-hand point of the three edges 
       // associated with the current triangle
       ct->ePtr(0)->setRVtx( xy );
       ct->ePtr(1)->setRVtx( xy );
       ct->ePtr(2)->setRVtx( xy );
+      //xy = ct->ePtr(0)->getRVtx();
+      //cout << "SetVoronoiVertices(): " << xy[0] << " " << xy[1];
    }
    cout << "SetVoronoiVertices() finished" << endl;
 }
