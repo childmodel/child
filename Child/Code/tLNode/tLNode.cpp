@@ -11,7 +11,7 @@
 **    - fixed problem with layer initialization in copy constructor
 **      (gt, 2/2000; see below)
 ** 
-**  $Id: tLNode.cpp,v 1.89 2000-06-07 19:12:28 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.90 2000-06-22 21:00:52 daniel Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2460,10 +2460,10 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       setLayerRtime(i,0);
    }
    
-   if(getLayerDepth(0)>1.1*maxregdep){
-      cout<<"TOO MUCH SEDIMENT IN TOP LAYER"<<endl;
-      TellAll();
-   }
+   //   if(getLayerDepth(0)>1.1*maxregdep){
+   //   cout<<"TOO MUCH SEDIMENT IN TOP LAYER"<<endl;
+   //   TellAll();
+   //}
 
 //   if(nh)
 //   {
