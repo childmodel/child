@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.102 2004-02-27 11:20:00 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.103 2004-03-05 17:24:28 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1935,7 +1935,7 @@ void tStreamMeander::CheckFlowedgCross()
             if (1) //DEBUG
                 cout << "CFC: delete node " << dn->getID() << " at "
                      << dn->getX() << ", " << dn->getY() << endl;
-            meshPtr->DeleteNode( dn, kRepairMesh, kNoUpdateMesh );
+            meshPtr->DeleteNode( dn, kRepairMesh, kNoUpdateMesh, true );
             delPtrList.removeFromFront();
          }
          meshPtr->UpdateMesh();
