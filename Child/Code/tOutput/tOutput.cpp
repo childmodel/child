@@ -4,7 +4,12 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.45 2001-06-21 09:45:58 gtucker Exp $
+**    Modifications:
+**     - 6/01 GT added optional output of channel widths to file
+**       *.chanwid. Activated if Parker-Paola width model used.
+**       If so, channel depths are also output.
+**
+**  $Id: tOutput.cpp,v 1.46 2001-06-21 13:58:10 gtucker Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -181,6 +186,7 @@ void tOutput<tSubNode>::WriteNodeData( double time )
 **  Modifications:
 **    - 1/00 added "opOpt" and creation of veg output file (GT)
 **    - added flow depth output file (GT 1/00)
+**    - added
 \*************************************************************************/
 template< class tSubNode >
 tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) 
@@ -197,16 +203,29 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
    CreateAndOpenFile( &slpofs, ".slp" );
    CreateAndOpenFile( &qofs, ".q" );
    CreateAndOpenFile( &texofs, ".tx" );
+
+   // Vegetation cover: if dynamic vegetation option selected
    if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
        CreateAndOpenFile( &vegofs, ".veg" );
-   if( (opOpt = infile.ReadItem( opOpt, "OPTKINWAVE" ) ) )
+
+   // Flow depth: if kinematic wave option used OR if channel geometry
+   // model other than "regime" used
+   if( (opOpt = infile.ReadItem( opOpt, "OPTKINWAVE" ) )
+       || (opOpt = infile.ReadItem( opOpt, "CHAN_GEOM_MODEL"))>1 )
        CreateAndOpenFile( &flowdepofs, ".dep" );
+
+   // Time-series output: if requested
    if( (optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) ) {
        CreateAndOpenFile( &volsofs, ".vols" );
        if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
 	 CreateAndOpenFile( &vegcovofs, ".vcov" );
        CreateAndOpenFile( &tareaofs, ".tarea" );
    }
+
+   // Channel width output: if the channel geometry model is other
+   // than 1 (code for empirical regime channels)
+   if( (opOpt = infile.ReadItem( opOpt, "CHAN_GEOM_MODEL" ) ) > 1 )
+       CreateAndOpenFile( &chanwidthofs, ".chanwid" );
    
 }
 
@@ -256,6 +275,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    texofs << " " << time << "\n" << nnodes << endl;
    if( vegofs.good() ) vegofs << " " << time << "\n" << nnodes << endl;
    if( flowdepofs.good() ) flowdepofs << " " << time << "\n" << nnodes << endl;
+   if( chanwidthofs.good() ) chanwidthofs << " " << time << "\n" << nnodes << endl;
 
    // Write data, including layer info
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
@@ -279,7 +299,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       }
    }
 
-   // Write discharge, vegetation, & texture data
+   // Write discharge, vegetation, & texture data, etc.
    for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() )
    {
       if( !cn->getBoundaryFlag() ) slpofs << cn->getSlope() << endl;
@@ -288,6 +308,8 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       if( vegofs.good() ) vegofs << cn->getVegCover().getVeg() << endl;
       if( flowdepofs.good() ) 
           flowdepofs << cn->getHydrDepth() << endl;
+      if( chanwidthofs.good() )
+       	  chanwidthofs << cn->getHydrWidth() << endl;
       if( cn->getNumg()>1 ) // temporary hack TODO
       {
             texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;
