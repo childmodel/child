@@ -12,7 +12,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.cpp,v 1.6 2002-05-01 14:48:32 arnaud Exp $
+**  $Id: tVegetation.cpp,v 1.7 2003-01-17 11:33:49 childcvs Exp $
 \**************************************************************************/
 
 #include "../tAssert.h"
@@ -39,7 +39,7 @@ tVegetation::tVegetation()
   mdTauCritBare(0), mdTauCritVeg(0)
 {}
 
-tVegetation::tVegetation( tMesh<tLNode> * meshPtr, tInputFile &infile )
+tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, tInputFile &infile )
   :
   mdKvd(0),
   mdTVeg(1),
@@ -98,7 +98,8 @@ tVegetation::tVegetation( tMesh<tLNode> * meshPtr, tInputFile &infile )
 **
 \**************************************************************************/
 
-void tVegetation::UpdateVegetation( tMesh<tLNode> *meshPtr, double stormdur,
+void tVegetation::UpdateVegetation( tMesh<class tLNode> *meshPtr,
+				    double stormdur,
                                     double interstormdur )
 {
    tMeshListIter< tLNode > niter( meshPtr->getNodeList() ); // Node iterator
