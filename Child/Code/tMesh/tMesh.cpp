@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.130 2003-04-09 16:37:45 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.131 2003-04-09 16:56:29 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3875,7 +3875,7 @@ InsertNode( tSubNode* newNodePtr, double time )
        newNodePtr->LayerInterpolation( tri, newNodePtr->getX(), newNodePtr->getY(), time );
 
    AddToList(*newNodePtr);
-   // Retrieve a pointer to the new node and flush its spoke list
+   // Retrieve a pointer to the new node
    tMeshListIter< tSubNode > nodIter( nodeList );
    tSubNode *cn;
    if( newNodePtr->getBoundaryFlag() == kNonBoundary )
@@ -3884,8 +3884,6 @@ InsertNode( tSubNode* newNodePtr, double time )
        cn = nodIter.FirstBoundaryP();
    else
        cn = nodIter.LastP();
-   assert( cn!=0 );
-   cn->getSpokeListNC().Flush();
 
    newNodePtr = AttachNode( cn, tri);
 
@@ -3931,6 +3929,9 @@ AttachNode( tSubNode* cn, tTriangle* tri )
   assert( tri != 0 && cn != 0 );
   int i;
   tArray< double > xyz( cn->get3DCoords() );
+
+  // flush its spoke list
+  cn->getSpokeListNC().Flush();
 
   //make ptr list of triangle's vertices:
   tPtrList< tSubNode > bndyList;
