@@ -25,6 +25,9 @@ tStorm.o tStreamNet.o tUplift.o errors.o tFloodplain.o \
 tEolian.o globalFns.o predicates.o tVegetation.o \
 ParamMesh_t.o TipperTriangulator.o TipperTriangulatorError.o
 
+all : $(EXENAME)
+.PHONY : all clean
+
 $(EXENAME): $(OBJECTS)
 	$(CXX) $(LDFLAGS) $(OBJECTS) -o $@ $(LIBS)
 
