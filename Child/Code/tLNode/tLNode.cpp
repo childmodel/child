@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.69 1999-02-23 17:24:09 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.70 1999-03-11 17:37:33 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -723,21 +723,18 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       cout << layerlist.getSize() << " layers created " << endl;
    }
 
-   cout << "nic, what is size of grade array ? " << grade.getSize() << endl;
-   cout << "1 is size " << grade[0] << endl;   
-
-   i=0;
-   while(i<layerlist.getSize()){
-      cout << "layer " << i+1 << " now from the getlayer func" << endl;
-      cout << "layer creation time is " << getLayerCtime(i) << endl;
-      cout << "layer recent time is " << getLayerRtime(i) << endl;
-      cout << "layer depth is " << getLayerDepth(i) << endl;
-      cout << "layer erodibility is " << getLayerErody(i) << endl;
-      cout << "is layer sediment? " << getLayerSed(i) << endl;
-      cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
-      if( numg>1 ) cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
-      i++;
-   }
+//     i=0;
+//     while(i<layerlist.getSize()){
+//        cout << "layer " << i+1 << " now from the getlayer func" << endl;
+//        cout << "layer creation time is " << getLayerCtime(i) << endl;
+//        cout << "layer recent time is " << getLayerRtime(i) << endl;
+//        cout << "layer depth is " << getLayerDepth(i) << endl;
+//        cout << "layer erodibility is " << getLayerErody(i) << endl;
+//        cout << "is layer sediment? " << getLayerSed(i) << endl;
+//        cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
+//        if( numg>1 ) cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
+//        i++;
+//     }
    
 }
 
@@ -1177,6 +1174,8 @@ void tLNode::TellAll()
               << nbr->getY() << "," << nbr->getZ() << ")\n    with vedglen "
               << flowedge->getVEdgLen() << endl;
          flowedge->TellCoords();
+         //cout<<"  ccwedge of flowedge is "<<flowedge->getCCWEdg()->getID();
+         //cout<<" originates at "<<flowedge->getCCWEdg()->getOriginPtrNC()->getID()<<endl;
          cout << "  qs: " << qs << "  qsin: " << qsin << "  slp: "
               << getSlope() << "  reg: " << reg.thickness << endl;
          for(i=0; i<numg; i++)
@@ -1189,7 +1188,8 @@ void tLNode::TellAll()
              cout<<"  dgrade "<<i<<" "<<getLayerDgrade(0,i);         
          cout<<" creation time top "<<getLayerCtime(0);
          cout<<"numlayers is "<<getNumLayer()<<endl;
-         cout << "  dzdt: " << dzdt << "  drdt: " << drdt << endl;
+         cout << "  dzdt: " << dzdt << "  drdt: " << drdt;
+         cout<<" meanders "<< Meanders()<<endl;
       }
       else cout << "  Flowedg is undefined\n";
       
@@ -2036,34 +2036,30 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
 void tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
 {
    //cout<<"tLNode::WarnSpokeLeaving..... node #"<<id<<endl;
+
    //Make sure that edg pointer in tNode won't be affected
    tNode::WarnSpokeLeaving( edglvingptr );
-//     if((getX()<=129.126 && getX()>=129.124) || (getX()<=115.54 && getX()>=115.53)){
-//        cout<<endl<<"starting tLNode::WarnSpokeLeaving() spk "<<edglvingptr->getID()<<endl;
-//        TellAll();
-//     }
+
    if( edglvingptr == flowedge ){
       do{
          flowedge = flowedge->getCCWEdg();
       }while( (flowedge->getBoundaryFlag()==kClosedBoundary) && (flowedge != edglvingptr) );
-
+      
       //There has been a problem with some flowedges not have a correct CCWedg
       //NG added this stupid fix - problem originates elsewhere
-      if ( flowedge->getOriginPtr() != this ){
-         flowedge = edg;
-      }
+      //if ( flowedge->getOriginPtr() != this ){
+      //   flowedge = edg;
+      //}
       assert( flowedge->getOriginPtr() == this );
       
       //After looping around edges, if flow is along a non-flow edge,
       //make this a closedboundary node.
       if(flowedge->getBoundaryFlag()==kClosedBoundary){
          boundary = kClosedBoundary;
+         cout<<"node "<<getID()<<" x "<<getX()<<" y "<<getY()<<" set to boundary in WarnSpokeLeaving"<<endl<<flush;         
       }
    }
-//     if((getX()<=129.126 && getX()>=129.124) || (getX()<=115.54 && getX()>=115.53)){
-//        cout<<endl<<"ending tLNode::WarnSpokeLeaving()"<<endl;
-//        cout<<"new flowedge id is "<<flowedge->getID()<<endl;
-//     }
+
 }
 
 /**********************************************************************\

@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.54 1999-02-22 22:11:19 nmgaspar Exp $
+**  $Id: tStreamMeander.cpp,v 1.55 1999-03-11 17:38:00 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -589,28 +589,18 @@ int tStreamMeander::InterpChannel( double time )
 
 void tStreamMeander::MakeReaches( double ctime)
 {
-      //NOTE****!!! the zero param below should be replaced with current time,
-      // which needs to be passed to Migrate, etc....TODO --DONE!
    //cout<<"tStreamMeander::MakeReaches"<<endl<<flush;
+
    netPtr->UpdateNet( ctime ); //first update the net
    do
    {
       FindMeander(); //if Q > Qcrit, meander = TRUE
-      //TODO: Since FindChanGeom and FindHydrGeom are both now in
-      //tStreamNet, these functions should be called from tStreamNet
-      //Other possibility is that these functions are called in every
-      //erosion routine.  For now, NG has just changed them to be
-      //identical to the functions in tStreamNet (changed depth calculation)
-      //FindChanGeom();//if meander = TRUE, find chan. width and reach avg. slope
-                     //if " and slope > critslope, find chan. depth;
-                     //else meander = FALSE
-      //FindHydrGeom();//if meander = TRUE, find hydr. geom.
-      //NIC, this is new, if it works, take out comments b/w here & FindMeander
-      netPtr->FindChanGeom();
+      netPtr->FindChanGeom();//sets meander=false if slope <=0
       netPtr->FindHydrGeom();
       FindReaches(); //find reaches of meandering nodes
    }
    while( InterpChannel( ctime ) ); //updates
+   //cout<<"done tStreamMeander::MakeReaches"<<endl<<flush;
 }
 
 
@@ -671,8 +661,6 @@ void tStreamMeander::FindReaches()
    i = 0;
    for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
    {
-      //nmg
-      //cout<<"FR node "<<cn->getID()<<" meanders "<<cn->Meanders()<<endl;
       //if node meanders
       if( cn->Meanders() )
       {
@@ -1092,7 +1080,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
 \***************************************************************/
 void tStreamMeander::Migrate( double ctime )
 {
-   tList< tArray< double > > bList;
+   //cout<<"Migrate - the master of meandering.."<<endl;
    double duration = netPtr->getStormPtrNC()->getStormDuration();
    duration += ctime;
    double cummvmt = 0.0;
@@ -1110,12 +1098,12 @@ void tStreamMeander::Migrate( double ctime )
          CheckBanksTooClose(); //uses reachList
          CheckFlowedgCross(); //uses tGrid::nodeList
          CheckBrokenFlowedg(); //uses tGrid::nodeList
-         //nmg put 1 flag in here for testing, needs to be changed later
          gridPtr->MoveNodes( ctime ); //uses tGrid::nodeList
          AddChanBorder( ctime ); //uses tGrid::nodeList
       }
       //MakeReaches(); had called from main routine and here
    }
+   //cout<<"end migrate"<<endl;
 }
 
 
@@ -1337,6 +1325,8 @@ void tStreamMeander::AddChanBorder(double time)
                //(b) on the same side of the channel:
                if( ct = gridPtr->LocateTriangle( oldpos[0], oldpos[1] ) )
                {
+                  if(cn->getID()==219)
+                      cout<<" D ";
                     //channodePtr = cn;
                     //channode = *channodePtr;
                   //***NG: HERE IS WHERE YOU CAN FIND A DEPOSIT THICKNESS
@@ -1352,7 +1342,7 @@ void tStreamMeander::AddChanBorder(double time)
                      {
                         if( inchan = InChannel( tn, &channode ) )
                         {
-                             //cout << "old coord's in channel" << endl;
+                           //cout << "old coord's in channel" << endl;
                            break;
                         }
                      }
@@ -1380,24 +1370,24 @@ void tStreamMeander::AddChanBorder(double time)
                      if( sameside )
                      {
                           //cout << "node " << cn->getID()
-                          //   << "'s old coords pass: add new node" << endl;
+                        //   << "'s old coords pass: add new node" << endl;
                         for( i=0; i<3; i++ ) xyz[i] = oldpos[i];
                         channodePtr = gridPtr->AddNodeAt( xyz, time );
                         channodePtr->setRock( cn->getRock() );
                         channodePtr->setSurf( cn->getSurf() );
                         channodePtr->setReg( cn->getReg() );
-                        //TODO: Need to take care of deposit depth here
+                        //TODO: NG Need to take care of deposit depth here
                         //I was thinking to leave a deposit of depth
                         //xyz[2]-cn->getZ() if this depth is positive
                         //The texture of this deposit would be
                         //the surface texture of cn.  Use erodep.
                         //if(xyz[2]-cn->getZ()>0){
                         //}
-                          //gridPtr->AddNode( channode );
+                        //gridPtr->AddNode( channode );
                         for( i=0; i<4; i++ ) oldpos[i] = 0.0;
                         cn->setXYZD( oldpos );
-                          //cout << "node " << cn->getID()
-                          //   << ": reinitialize old coords" << endl;
+                        //cout << "node " << cn->getID()
+                        //   << ": reinitialize old coords" << endl;
                      }
                      else
                      {
@@ -1433,6 +1423,7 @@ void tStreamMeander::AddChanBorder(double time)
          }
       }
    }
+ 
 }
 
 /*
@@ -2040,7 +2031,7 @@ void tStreamMeander::CheckFlowedgCross()
 #define MAXLOOPS 10
 void tStreamMeander::CheckBrokenFlowedg()
 {
-   cout << "CheckBrokenFlowedg()..." << flush << endl;
+   //cout << "CheckBrokenFlowedg()..." << flush << endl;
    int nrn, nln, breakedge = 1;
    int nloops = 0;
    double area;
@@ -2067,12 +2058,12 @@ void tStreamMeander::CheckBrokenFlowedg()
    {
       nloops++;
       breakedge = 0;
-      cout << "checking..." << endl << flush;
+      //cout << "checking..." << endl << flush;
         //look through meandering nodes:
       for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
       {
-           //cout << "node " << cn->getID() << endl << flush;
-           //for( ccn = dI.FirstP(); dI.IsActive(); ccn = dI.NextP() );
+         //cout << "node " << cn->getID() << endl << flush;
+         //for( ccn = dI.FirstP(); dI.IsActive(); ccn = dI.NextP() );
          if( cn->Meanders() )
          {
               //cout << "   meanders" << endl << flush;
@@ -2145,7 +2136,7 @@ void tStreamMeander::CheckBrokenFlowedg()
       }
         //repeat
    } while( breakedge && nloops < MAXLOOPS );
-   //cout << "finished" << endl << flush;
+   //cout << "finished checkbrokenflowedg" << endl << flush;
 }
 #undef MAXLOOPS
 

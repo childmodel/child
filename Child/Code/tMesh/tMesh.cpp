@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.62 1999-02-23 17:24:20 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.63 1999-03-11 17:39:05 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2362,7 +2362,7 @@ DeleteNode( tSubNode *node, int repairFlag )
    tSubNode nodeVal;
    
    //cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
-   //  << node->getY() << " " << node->getZ() << endl;
+   //<< node->getY() << " " << node->getZ() << endl;
    //assert( repairFlag || node->getBoundaryFlag()==kClosedBoundary );
    
    nodPtr = nodIter.NodePtr();
@@ -2486,6 +2486,7 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
   DeleteEdge( tEdge * edgePtr )
   {
      //cout << "DeleteEdge(...) " << edgePtr->getID() << endl;
+     //edgePtr->TellCoords();
      tEdge edgeVal1, edgeVal2;
      if( !ExtricateEdge( edgePtr ) ) return 0;
      //Note, extricate edge does not actually remove the edge from
@@ -2516,92 +2517,117 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
   }
 
 
-  /**************************************************************************\
-  **
-  **
-  \**************************************************************************/
-  template< class tSubNode >
-  int tGrid< tSubNode >::
-  ExtricateEdge( tEdge * edgePtr )
-  {
-     //cout << "ExtricateEdge: " << edgePtr->getID() << endl;
-     assert( edgePtr != 0 );
-       //temporary objects:
-     tEdge *tempedgePtr=0, *ce, *cce, *spk;
-     tGridListIter< tEdge > edgIter( edgeList );
-     tPtrListIter< tEdge > spokIter;
-     tPtrList< tEdge > *spkLPtr;
-     tListNode< tEdge > *listnodePtr;
-     tTriangle triVal1, triVal2;
-     tArray< tTriangle * > triPtrArr(2);
-       //cout << "find edge in list; " << flush;
-     ce = edgIter.GetP( edgePtr->getID() );  //NB: why necessary? isn't ce the
-                                         // same as edgePtr??  Yes, why???
-                                         // Puts edgIter at edgePtr's node!
-    // Remove the edge from it's origin's spokelist
-     //cout << "update origin's spokelist if not done already; " << flush;
-     spkLPtr = &( ce->getOriginPtrNC()->getSpokeListNC() );
-     spokIter.Reset( *spkLPtr );
-     for( spk = spokIter.FirstP(); spk != ce && !( spokIter.AtEnd() ); spk = spokIter.NextP() );
-     if( spk == ce )
-     {
-        spk = spokIter.NextP();
-        spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
-     }
-     // Find the triangle that points to the edge
-       //cout << "find triangle; " << flush;
-     triPtrArr[0] = TriWithEdgePtr( edgePtr ); 
-     // Find the edge's complement
-     listnodePtr = edgIter.NodePtr();
-     assert( listnodePtr != 0 );
-       //cout << "find complement; " << flush;
-     if( edgePtr->getID()%2 == 0 ) cce = edgIter.NextP();
-     else if( edgePtr->getID()%2 == 1 ) cce = edgIter.PrevP();
-     else return 0; //NB: why whould this ever occur??
+/**************************************************************************\
+ **
+ **
+ \**************************************************************************/
+template< class tSubNode >
+int tGrid< tSubNode >::
+ExtricateEdge( tEdge * edgePtr )
+{
+   //cout << "ExtricateEdge: " << edgePtr->getID() << endl;
+   //edgePtr->TellCoords();
+   assert( edgePtr != 0 );
+   //temporary objects:
+   tEdge *tempedgePtr=0, *ce, *cce, *spk;
+   tEdge *ceccw, *cceccw;
+   tGridListIter< tEdge > edgIter( edgeList );
+   tPtrListIter< tEdge > spokIter;
+   tPtrList< tEdge > *spkLPtr;
+   tListNode< tEdge > *listnodePtr;
+   tTriangle triVal1, triVal2;
+   tArray< tTriangle * > triPtrArr(2);
+   //cout << "find edge in list; " << flush;
+   ce = edgIter.GetP( edgePtr->getID() );  //NB: why necessary? isn't ce the
+   // same as edgePtr??  Yes, why???
+   // Puts edgIter at edgePtr's node!
 
-     // Find the triangle that points to the edges complement
-       //cout << "find other triangle; " << flush;
-     triPtrArr[1] = TriWithEdgePtr( cce );
-       //if triangles exist, delete them
-     //cout << "conditionally calling deletetri from extricateedge\n";
-     if( triPtrArr[0] != 0 )
-         if( !DeleteTriangle( triPtrArr[0] ) ) return 0;
-     if( triPtrArr[1] != 0 )
-         if( !DeleteTriangle( triPtrArr[1] ) ) return 0;
-       //update complement's origin's spokelist
-     spkLPtr = &(cce->getOriginPtrNC()->getSpokeListNC());
-     spokIter.Reset( *spkLPtr );
-     for( spk = spokIter.FirstP(); spk != cce && !( spokIter.AtEnd() );
-          spk = spokIter.NextP() );
-     if( spk == cce )
-     {
-        spk = spokIter.NextP();
-        spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
-     }
-
-     //Need to make sure that edg member of node was not pointing
-     //to one of the edges that will be removed.  Also, may be implications
-     //for some types of subnodes, so take care of that also.
-      tSubNode * nodece = (tSubNode *) ce->getOriginPtrNC();
-      nodece->WarnSpokeLeaving( ce );
-      tSubNode * nodecce = (tSubNode *) cce->getOriginPtrNC();
-      nodecce->WarnSpokeLeaving( cce );
+   // Remove the edge from it's origin's spokelist
+   //cout << "update origin's spokelist if not done already; " << flush;
+   spkLPtr = &( ce->getOriginPtrNC()->getSpokeListNC() );
+   spokIter.Reset( *spkLPtr );
+   for( spk = spokIter.FirstP(); spk != ce && !( spokIter.AtEnd() ); spk = spokIter.NextP() );
+   if( spk == ce )
+   {
+      spk = spokIter.NextP();
+      spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
+   }
+   // Find the triangle that points to the edge
+   //cout << "find triangle; " << flush;
+   triPtrArr[0] = TriWithEdgePtr( edgePtr ); 
+   // Find the edge's complement
+   listnodePtr = edgIter.NodePtr();
+   assert( listnodePtr != 0 );
    
-     if( ce->getBoundaryFlag() )
-     {
-          //move edges to back of list
-        edgeList.moveToBack( listnodePtr );
-        edgeList.moveToBack( edgIter.NodePtr() );
-     }
-     else
-     {
-          //move edges to front of list
-        edgeList.moveToFront( edgIter.NodePtr() );
-        edgeList.moveToFront( listnodePtr );
-     }
-     nedges-=2;
-     return 1;
-  }
+   //cout << "find complement; " << flush;
+   if( edgePtr->getID()%2 == 0 ) cce = edgIter.NextP();
+   else if( edgePtr->getID()%2 == 1 ) cce = edgIter.PrevP();
+   else return 0; //NB: why whould this ever occur??
+
+   // Find the triangle that points to the edges complement
+   //cout << "find other triangle; " << flush;
+   triPtrArr[1] = TriWithEdgePtr( cce );
+   //if triangles exist, delete them
+   //cout << "conditionally calling deletetri from extricateedge\n";
+   if( triPtrArr[0] != 0 )
+       if( !DeleteTriangle( triPtrArr[0] ) ) return 0;
+   if( triPtrArr[1] != 0 )
+       if( !DeleteTriangle( triPtrArr[1] ) ) return 0;
+   //update complement's origin's spokelist
+   spkLPtr = &(cce->getOriginPtrNC()->getSpokeListNC());
+   spokIter.Reset( *spkLPtr );
+   for( spk = spokIter.FirstP(); spk != cce && !( spokIter.AtEnd() );
+        spk = spokIter.NextP() );
+   if( spk == cce )
+   {
+      spk = spokIter.NextP();
+      spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
+   }
+
+   //Need to make sure that edg member of node was not pointing
+   //to one of the edges that will be removed.  Also, may be implications
+   //for some types of subnodes, so take care of that also.
+   tSubNode * nodece = (tSubNode *) ce->getOriginPtrNC();
+   nodece->WarnSpokeLeaving( ce ); 
+   tSubNode * nodecce = (tSubNode *) cce->getOriginPtrNC();
+   nodecce->WarnSpokeLeaving( cce );
+
+   //now, take care of the edges who had as thier ccwedge ce or cce
+   ceccw=ce->getCCWEdg();
+   tempedgePtr=ceccw;
+   do{
+      tempedgePtr=tempedgePtr->getCCWEdg();
+   }while(tempedgePtr->getCCWEdg() != ce);
+   //set tempedgeptrs ccwedge to ceccw
+   tempedgePtr->setCCWEdg( ceccw);
+   
+   cceccw=cce->getCCWEdg();
+   tempedgePtr=cceccw;
+   do{
+      tempedgePtr=tempedgePtr->getCCWEdg();
+   }while(tempedgePtr->getCCWEdg() != cce);
+   //set tempedgeptrs ccwedge to cceccw
+   tempedgePtr->setCCWEdg(cceccw);
+
+   //Since WarnSpokeLeaving can set a node to a boundary node if
+   //There is no longer a legit place to flow, we need to check 
+   //to see if nodece and nodecce are now boundaries, and take proper action.
+
+   if( ce->getBoundaryFlag() )
+   {
+      //move edges to back of list
+      edgeList.moveToBack( listnodePtr );
+      edgeList.moveToBack( edgIter.NodePtr() );
+   }
+   else
+   {
+      //move edges to front of list
+      edgeList.moveToFront( edgIter.NodePtr() );
+      edgeList.moveToFront( listnodePtr );
+   }
+   nedges-=2;
+   return 1;
+}
 
 
   /***************************************************************************\
@@ -3352,7 +3378,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    tGridListIter< tSubNode > nodIter( nodeList );
    assert( &nodeRef != 0 );
 
-   cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << " time "<<time<<endl;
+   //cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << " time "<<time<<endl;
 
    //cout << "locate tri & layer interp" << endl << flush;
    tri = LocateTriangle( xyz[0], xyz[1] );
@@ -3567,12 +3593,13 @@ tSubNode *tGrid< tSubNode >::
 AddNodeAt( tArray< double > &xyz, double time )
 {
    assert( &xyz != 0 );
-   cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] <<" time "<<time<< endl;
+   // cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] <<" time "<<time<< endl;
    tTriangle *tri;
    //cout << "locate tri" << endl << flush;
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
    else tri = LocateNewTriangle( xyz[0], xyz[1] );
-   if( tri == 0 ) return 0;
+   if( tri == 0 )      return 0;
+   
    int i, j, k, ctr;
    tGridListIter< tSubNode > nodIter( nodeList );
    tSubNode tempNode, *cn;
@@ -3612,8 +3639,8 @@ AddNodeAt( tArray< double > &xyz, double time )
        p4( node4->get2DCoords() );
    if( xyz.getSize() == 3)
    {
-      /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
+      //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+      // << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
       if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
           cout << "new tri not CCW" << endl;
    }
@@ -3623,8 +3650,8 @@ AddNodeAt( tArray< double > &xyz, double time )
       if( node2->Meanders() ) p2 = node2->getNew2DCoords();
       if( node3->Meanders() ) p3 = node3->getNew2DCoords();
       if( node4->Meanders() ) p4 = node4->getNew2DCoords();  
-      /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
+      //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+      //   << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
       if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
           cout << "new tri not CCW" << endl;
    }

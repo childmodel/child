@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.54 1999-02-22 17:59:46 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.55 1999-03-11 17:39:44 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -643,6 +643,7 @@ tErosion::tErosion( tGrid<tLNode> *gptr, tInputFile &infile )
 \*****************************************************************************/
 void tErosion::ErodeDetachLim( double dtg )
 {
+   //cout<<"ErodeDetachLim...";
    double dt,
        dtmax = 1000000.0; // time increment: initialize to arbitrary large val
    double frac = 0.9; //fraction of time to zero slope
@@ -669,7 +670,7 @@ void tErosion::ErodeDetachLim( double dtg )
          if( ratediff > 0 )
          {
             dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
-            if( dt > 0 && dt < dtmax ) dtmax = dt;
+            if( dt > 0.001 && dt < dtmax ) dtmax = dt;
          }
       }
       //assert( dtmax > 0 );
@@ -684,7 +685,7 @@ void tErosion::ErodeDetachLim( double dtg )
       }
       //update time:
       dtg -= dtmax;
-   } while( dtg>0 );
+   } while( dtg>0.0000001 );
    
 }//end tErosion::ErodeDetachLim( double dtg )
 
