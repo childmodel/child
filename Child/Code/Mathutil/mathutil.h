@@ -7,16 +7,14 @@
 **         All or most routines from Numerical Recipes in C by
 **         Press et al.
 **
-**  $Id: mathutil.h,v 1.5 2003-01-17 17:30:22 childcvs Exp $
+**  $Id: mathutil.h,v 1.6 2003-05-22 17:13:36 childcvs Exp $
 */
 /*********************************************************************/
 
 #ifndef MATHUTIL_H
 #define MATHUTIL_H
 
-#include <math.h>
-
-#define PI 3.1415926
+#define PI 3.14159265358979323846
 
 double ran3( long *idum );
 
