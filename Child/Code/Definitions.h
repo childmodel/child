@@ -1,6 +1,6 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.4 1998-02-12 01:47:01 stlancas Exp $
+**   $Id: Definitions.h,v 1.5 1998-05-05 19:46:45 gtucker Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -25,7 +25,7 @@
 #define kNonBoundary 0
 #define kFlowAllowed 1
 #define kFlowNotAllowed 0
-#define kSaturatedFlow 1   // Option for saturation-excess flow generation
+//X#define kSaturatedFlow 1   // Option for saturation-excess flow generation
 #define kDetachmentLimited      1
 #define kDetachLimThreshold     2
 #define kTransportLimited       3
