@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.51 1998-12-02 14:08:02 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.52 1999-01-26 20:35:23 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1573,6 +1573,7 @@ void tStreamNet::FindHydrGeom()
    tGridListIter< tLNode > nIter( gridPtr->getNodeList() );
    for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
    {
+      //cout<<"FHG node "<<cn->getID()<<" meanders "<<cn->Meanders()<<endl;
       //removed an if cn->Meanders(), so stuff calculated everywhere
       //if rainfall varies, find hydraulic width "at-a-station"
       //based on the channel width "downstream":
@@ -1609,7 +1610,7 @@ void tStreamNet::FindHydrGeom()
          cn->setHydrDepth( depth );
       }
    }
-   //cout << "done FindHydrGeom" << endl << flush;
+   cout << "done FindHydrGeom" << endl << flush;
 }
 
 /*****************************************************************************\
@@ -1656,31 +1657,38 @@ void tStreamNet::FindChanGeom()
       cn->setChanRough( rough );
       cn->setBankRough( lambda );
       slope = cn->getSlope();
+      //cout<<"FCG node "<<cn->getID()<<" new dep "<<depth;
       
       //Nic changed below, thinks it was causing problems
       //just using discharge relation to calculate depth instead
       //make sure slope will produce a positive depth:
-//       critS = qbf * qbf * rough * rough * 8.0 * pow( 2.0, 0.333 )/
-//           ( width * width * width * width * width * pow( width, 0.333 ) );
-//       if( slope > critS ) //should also catch negative slope flag
-//       {
-//          cout << "in FindChanGeom, slope = " << slope << endl << flush;
-          cn->setChanSlope( slope );
-//          radfactor = qbf * rough / width / sqrt(slope);
-//          hradius = pow(radfactor, 0.6);
-//          depth = hradius;
-//          depth = width / (width / hradius - 2.0);
-//          cn->setChanDepth( depth );
-//       }
-//       else cn->setMeanderStatus( kNonMeanderNode );
-//       if( slope < 0.0 )
-//       {
-//          cout << "negative slope,"
-//               << " probably from infinite loop in tLNode::GetSlope()" << endl;
-//          ReportFatalError("negative slope in tStreamNet::FindChanGeom");
-//       }
+//         double critS = qbf * qbf * rough * rough * 8.0 * pow( 2.0, 0.333 )/
+//             ( width * width * width * width * width * pow( width, 0.333 ) );
+//         if( slope > critS ) //should also catch negative slope flag
+//         {
+//            cout << "in FindChanGeom, slope = " << slope << endl << flush;
+//            cn->setChanSlope( slope );
+//            radfactor = qbf * rough / width / sqrt(slope);
+//            hradius = pow(radfactor, 0.6);
+//            depth = hradius;
+//            //depth = width / (width / hradius - 2.0);
+//            cn->setChanDepth( depth );
+//            cout<<" old dep "<<depth<<endl;
+//         }
+//         else cn->setMeanderStatus( kNonMeanderNode );
+          //nmg
+          //if( slope <= 0.00000001 ){
+          // cn->setMeanderStatus( kNonMeanderNode );
+          // cout<<"node "<< cn->getID()<<" slope "<<slope<<endl;
+          //}
+       if( slope < 0.0 )
+       {
+          cout << "negative slope,"
+               << " probably from infinite loop in tLNode::GetSlope()" << endl;
+          ReportFatalError("negative slope in tStreamNet::FindChanGeom");
+       }
    }
-   //cout << "done FindChanGeom" << endl;
+   cout << "done FindChanGeom" << endl;
 }
 #undef kSmallNum
 
