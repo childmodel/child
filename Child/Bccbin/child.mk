@@ -14,14 +14,18 @@ LDFLAGS = $(WARNINGFLAGS) $(ARCH)
 LIBS =
 EXENAME = child.exe
 
-OBJ = obj
+OBJEXT = obj
 
-OBJECTS = childmain.$(OBJ) erosion.$(OBJ) meshElements.$(OBJ) mathutil.$(OBJ) \
- tInputFile.$(OBJ) tLNode.$(OBJ) tRunTimer.$(OBJ) tStreamMeander.$(OBJ) meander.$(OBJ) \
-tStorm.$(OBJ) tStreamNet.$(OBJ) tUplift.$(OBJ) errors.$(OBJ) tFloodplain.$(OBJ) \
-tEolian.$(OBJ) globalFns.$(OBJ) predicates.$(OBJ) tVegetation.$(OBJ) tListInputData.$(OBJ) \
-tTimeSeries..$(OBJ) \
-ParamMesh_t.$(OBJ) TipperTriangulator.$(OBJ) TipperTriangulatorError.$(OBJ)
+OBJECTS = \
+ childmain.$(OBJEXT) erosion.$(OBJEXT) \
+ meshElements.$(OBJEXT) mathutil.$(OBJEXT) \
+ tInputFile.$(OBJEXT) tLNode.$(OBJEXT) tRunTimer.$(OBJEXT) \
+ tStreamMeander.$(OBJEXT) meander.$(OBJEXT) \
+ tStorm.$(OBJEXT) tStreamNet.$(OBJEXT) tUplift.$(OBJEXT) errors.$(OBJEXT) \
+ tFloodplain.$(OBJEXT) tEolian.$(OBJEXT) globalFns.$(OBJEXT) \
+ predicates.$(OBJEXT) tVegetation.$(OBJEXT) tListInputData.$(OBJEXT) \
+ tTimeSeries.$(OBJEXT) ParamMesh_t.$(OBJEXT) TipperTriangulator.$(OBJEXT) \
+ TipperTriangulatorError.$(OBJEXT)
 
 all : $(EXENAME)
 .PHONY : all clean
@@ -29,78 +33,78 @@ all : $(EXENAME)
 $(EXENAME): $(OBJECTS)
 	$(CXX) $(LDFLAGS) -e$@ $(OBJECTS) $(LIBS)
 
-erosion.$(OBJ): $(PT)/Erosion/erosion.cpp
+erosion.$(OBJEXT): $(PT)/Erosion/erosion.cpp
 	$(CXX) $(CFLAGS) $(PT)/Erosion/erosion.cpp
 
-meshElements.$(OBJ): $(PT)/MeshElements/meshElements.cpp
+meshElements.$(OBJEXT): $(PT)/MeshElements/meshElements.cpp
 	$(CXX) $(CFLAGS) $(PT)/MeshElements/meshElements.cpp
 
-mathutil.$(OBJ): $(PT)/Mathutil/mathutil.cpp
+mathutil.$(OBJEXT): $(PT)/Mathutil/mathutil.cpp
 	$(CXX) $(CFLAGS) $(PT)/Mathutil/mathutil.cpp
 
-tInputFile.$(OBJ): $(PT)/tInputFile/tInputFile.cpp
+tInputFile.$(OBJEXT): $(PT)/tInputFile/tInputFile.cpp
 	$(CXX) $(CFLAGS) $(PT)/tInputFile/tInputFile.cpp
 
-tLNode.$(OBJ): $(PT)/tLNode/tLNode.cpp
+tLNode.$(OBJEXT): $(PT)/tLNode/tLNode.cpp
 	$(CXX) $(CFLAGS) $(PT)/tLNode/tLNode.cpp
 
-tListInputData.$(OBJ): $(PT)/tListInputData/tListInputData.cpp
+tListInputData.$(OBJEXT): $(PT)/tListInputData/tListInputData.cpp
 	$(CXX) $(CFLAGS) $(PT)/tListInputData/tListInputData.cpp
 
-tRunTimer.$(OBJ): $(PT)/tRunTimer/tRunTimer.cpp
+tRunTimer.$(OBJEXT): $(PT)/tRunTimer/tRunTimer.cpp
 	$(CXX) $(CFLAGS) $(PT)/tRunTimer/tRunTimer.cpp
 
-tStorm.$(OBJ): $(PT)/tStorm/tStorm.cpp
+tStorm.$(OBJEXT): $(PT)/tStorm/tStorm.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStorm/tStorm.cpp
 
-tTimeSeries.$(OBJ):  $(PT)/tTimeSeries/tTimeSeries.cpp
+tTimeSeries.$(OBJEXT):  $(PT)/tTimeSeries/tTimeSeries.cpp
 	$(CXX) $(CFLAGS) $(PT)/tTimeSeries/tTimeSeries.cpp
 
-tStreamNet.$(OBJ): $(PT)/tStreamNet/tStreamNet.cpp
+tStreamNet.$(OBJEXT): $(PT)/tStreamNet/tStreamNet.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamNet/tStreamNet.cpp
 
-tUplift.$(OBJ): $(PT)/tUplift/tUplift.cpp
+tUplift.$(OBJEXT): $(PT)/tUplift/tUplift.cpp
 	$(CXX) $(CFLAGS) $(PT)/tUplift/tUplift.cpp
 
-errors.$(OBJ): $(PT)/errors/errors.cpp
+errors.$(OBJEXT): $(PT)/errors/errors.cpp
 	$(CXX) $(CFLAGS) $(PT)/errors/errors.cpp
 
-tFloodplain.$(OBJ): $(PT)/tFloodplain/tFloodplain.cpp
+tFloodplain.$(OBJEXT): $(PT)/tFloodplain/tFloodplain.cpp
 	$(CXX) $(CFLAGS) $(PT)/tFloodplain/tFloodplain.cpp
 
-tEolian.$(OBJ): $(PT)/tEolian/tEolian.cpp
+tEolian.$(OBJEXT): $(PT)/tEolian/tEolian.cpp
 	$(CXX) $(CFLAGS) $(PT)/tEolian/tEolian.cpp
 
-ParamMesh_t.$(OBJ): $(PT)/tMesh/ParamMesh_t.cpp
+ParamMesh_t.$(OBJEXT): $(PT)/tMesh/ParamMesh_t.cpp
 	$(CXX) $(CFLAGS) $(PT)/tMesh/ParamMesh_t.cpp
 
-TipperTriangulator.$(OBJ): $(PT)/tMesh/TipperTriangulator.cpp
+TipperTriangulator.$(OBJEXT): $(PT)/tMesh/TipperTriangulator.cpp
 	$(CXX) $(CFLAGS) $(PT)/tMesh/TipperTriangulator.cpp
 
-TipperTriangulatorError.$(OBJ): $(PT)/tMesh/TipperTriangulatorError.cpp
+TipperTriangulatorError.$(OBJEXT): $(PT)/tMesh/TipperTriangulatorError.cpp
 	$(CXX) $(CFLAGS) $(PT)/tMesh/TipperTriangulatorError.cpp
 
-globalFns.$(OBJ): $(PT)/globalFns.cpp
+globalFns.$(OBJEXT): $(PT)/globalFns.cpp
 	$(CXX) $(CFLAGS) $(PT)/globalFns.cpp
 
-predicates.$(OBJ): $(PT)/Predicates/predicates.cpp
+predicates.$(OBJEXT): $(PT)/Predicates/predicates.cpp
 	$(CXX) $(CFLAGS) $(PT)/Predicates/predicates.cpp
 
-tVegetation.$(OBJ): $(PT)/tVegetation/tVegetation.cpp
+tVegetation.$(OBJEXT): $(PT)/tVegetation/tVegetation.cpp
 	$(CXX) $(CFLAGS) $(PT)/tVegetation/tVegetation.cpp
 
-tStreamMeander.$(OBJ): $(PT)/tStreamMeander/tStreamMeander.cpp
+tStreamMeander.$(OBJEXT): $(PT)/tStreamMeander/tStreamMeander.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/tStreamMeander.cpp
 
-meander.$(OBJ): $(PT)/tStreamMeander/meander.cpp
+meander.$(OBJEXT): $(PT)/tStreamMeander/meander.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/meander.cpp
 
-childmain.$(OBJ): $(PT)/childmain.cpp
+childmain.$(OBJEXT): $(PT)/childmain.cpp
 	$(CXX) $(CFLAGS) $(PT)/childmain.cpp
 
 clean::
 	rm -f $(EXENAME)
-	rm -f *.$(OBJ)
+	rm -f *.$(OBJEXT)
 
 # dependencies: headers and template implementation files.
 # use, for instance:
@@ -146,27 +150,26 @@ HFILES = \
 	$(PT)/tVegetation/tVegetation.h \
 	$(PT)/trapfpe.h
 
-ParamMesh_t.$(OBJ): $(HFILES)
-TipperTriangulator.$(OBJ) : $(HFILES)
-TipperTriangulatorError.$(OBJ) : $(HFILES)
-erosion.$(OBJ): $(HFILES)
-errors.$(OBJ): $(HFILES)
-globalFns.$(OBJ): $(HFILES)
-mathutil.$(OBJ): $(HFILES)
-meshElements.$(OBJ): $(HFILES)
-predicates.$(OBJ): $(HFILES)
-tEolian.$(OBJ): $(HFILES)
-tFloodplain.$(OBJ): $(HFILES)
-tInputFile.$(OBJ): $(HFILES)
-tLNode.$(OBJ): $(HFILES)
-tListInputData.$(OBJ): $(HFILES)
-tRunTimer.$(OBJ): $(HFILES)
-tStorm.$(OBJ) : $(HFILES)
-tStreamNet.$(OBJ): $(HFILES)
-tUplift.$(OBJ): $(HFILES)
-tVegetation.$(OBJ): $(HFILES)
-tStreamMeander.$(OBJ): $(HFILES)
-meander.$(OBJ): $(HFILES)
-childmain.$(OBJ) : $(HFILES)
-
-
+ParamMesh_t.$(OBJEXT): $(HFILES)
+TipperTriangulator.$(OBJEXT) : $(HFILES)
+TipperTriangulatorError.$(OBJEXT) : $(HFILES)
+childmain.$(OBJEXT) : $(HFILES)
+erosion.$(OBJEXT): $(HFILES)
+errors.$(OBJEXT): $(HFILES)
+globalFns.$(OBJEXT): $(HFILES)
+mathutil.$(OBJEXT): $(HFILES)
+meander.$(OBJEXT): $(HFILES)
+meshElements.$(OBJEXT): $(HFILES)
+predicates.$(OBJEXT): $(HFILES)
+tEolian.$(OBJEXT): $(HFILES)
+tFloodplain.$(OBJEXT): $(HFILES)
+tInputFile.$(OBJEXT): $(HFILES)
+tLNode.$(OBJEXT): $(HFILES)
+tListInputData.$(OBJEXT): $(HFILES)
+tRunTimer.$(OBJEXT): $(HFILES)
+tStorm.$(OBJEXT) : $(HFILES)
+tStreamMeander.$(OBJEXT): $(HFILES)
+tStreamNet.$(OBJEXT): $(HFILES)
+tTimeSeries.$(OBJEXT) : $(HFILES)
+tUplift.$(OBJEXT): $(HFILES)
+tVegetation.$(OBJEXT): $(HFILES)
