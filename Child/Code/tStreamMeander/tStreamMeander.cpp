@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.50 1999-02-09 17:27:36 nmgaspar Exp $
+**  $Id: tStreamMeander.cpp,v 1.51 1999-02-09 21:14:26 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -1331,7 +1331,6 @@ void tStreamMeander::AddChanBorder(double time)
                //just make sure new node will be
                //(a) not in a channel and
                //(b) on the same side of the channel:
-               //Stephen == ?
                if( ct = gridPtr->LocateTriangle( oldpos[0], oldpos[1] ) )
                {
                     //channodePtr = cn;
@@ -1347,7 +1346,6 @@ void tStreamMeander::AddChanBorder(double time)
                      tn = (tLNode *) ct->pPtr(i);
                      if( tn->Meanders() )
                      {
-                        //Stephen, shouldn't this be an == ?
                         if( inchan = InChannel( tn, &channode ) )
                         {
                              //cout << "old coord's in channel" << endl;
