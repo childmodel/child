@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.15 1998-03-26 01:38:39 stlancas Exp $
+**  $Id: erosion.cpp,v 1.16 1998-03-26 15:39:45 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -543,7 +543,7 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
          if( noDepoFlag )
              if( cn->getQsin() > 0.0 )
                  cn->setQsin( 0.0 );
-         cn->ChangeZ( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area
+         cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area
          //cout << cn->z << "Q: " << cn->q << "VA " << cn->varea << endl;
          /*if( cn->id==700 ) {
            cn->TellAll();
