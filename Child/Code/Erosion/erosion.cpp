@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.18 1998-04-10 17:19:53 stlancas Exp $
+**  $Id: erosion.cpp,v 1.19 1998-04-17 14:29:06 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -331,7 +331,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          cap = sedTrans.TransCapacity( cn );
          pedr = (cn->getQsin() - cap ) / cn->getVArea();
         //sediment input:
-         if( cn == strmNet->getInletNodePtrNC() )
+         if( cn == strmNet->getInletNodePtr() )
              pedr += strmNet->getInSedLoad() / cn->getVArea();
          
          // If we're on bedrock, adjust accordingly
