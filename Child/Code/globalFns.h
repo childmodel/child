@@ -12,7 +12,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.12 2003-03-19 16:48:57 childcvs Exp $
+**  $Id: globalFns.h,v 1.13 2003-04-09 16:36:31 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -48,6 +48,10 @@ int TriPasses( tArray< double > const &, tArray< double > const &,
                tArray< double > const &, tArray< double > const & );
 
 int PointsCCW( tArray< double > const &, tArray< double > const &, tArray< double > const & );
+
+int Orientation( tArray< double > const &,
+                 tArray< double > const &,
+                 tArray< double > const & );
 
 int NewTriCCW( tTriangle * );
 

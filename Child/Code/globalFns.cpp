@@ -4,7 +4,7 @@
 **  @brief Global functions used by tGrid and other modules of
 **         CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.13 2003-03-19 16:48:56 childcvs Exp $
+**  $Id: globalFns.cpp,v 1.14 2003-04-09 16:36:30 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -154,6 +154,31 @@ int PointsCCW( tArray< double > const &p0,
    return ( predicate.orient2d( a0, a1, a2 ) > 0 );
 }
 
+
+/***************************************************************************/
+/**
+**  Orientation
+**
+**  global function; determines whether points are counter-clockwise (1),
+**  clockwise (-1) or colinear (0):
+**
+**  Inputs: p0, p1, p2 -- 2-element arrays containing x and y coords
+**
+*/
+/***************************************************************************/
+int Orientation( tArray< double > const &p0,
+                 tArray< double > const &p1,
+                 tArray< double > const &p2 )
+{
+   const double* a0 = p0.getArrayPtr();
+   const double* a1 = p1.getArrayPtr();
+   const double* a2 = p2.getArrayPtr();
+   //NEW: call exact arithmetic predicate:
+   const double ans = predicate.orient2d( a0, a1, a2 );
+   if( ans > 0. ) return 1;
+   if( ans < 0. ) return -1;
+   return 0;
+}
 
 /***************************************************************************/
 /**
