@@ -19,7 +19,7 @@
 #define TIMING 1
 
 // vector product (or cross product) of p0p1,p0p2
-static
+static inline
 double vecprod(int p0,int p1,int p2,const point *p){
   return
     (p[p1].x-p[p0].x)*(p[p2].y-p[p0].y)
@@ -887,7 +887,7 @@ void tt_build_elem_table(int npoints, const point *p,
     {
       // build vertices per element
 #define SWAP_E(EI,EJ) \
-          do { int etemp = elems[ielem].EI; \
+          do { const int etemp = elems[ielem].EI; \
 	  elems[ielem].EI = elems[ielem].EJ; \
 	  elems[ielem].EJ = etemp; } while(0)
       
