@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.191 2004-01-07 15:35:48 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.192 2004-01-07 15:39:26 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -5034,7 +5034,7 @@ SetmiNextTriID(int n_)
   miNextTriID = n_;
 }
 
-BYPASS_DEBUG_ROUTINES/*****************************************************************************\
+/*****************************************************************************\
 **
 **      InterveningTriangles: find triangles between one node and the next
 **      Created: SL 11/2003
@@ -5052,7 +5052,7 @@ InterveningTriangles( tNode* un, tNode* dn )
    // needs to be flipped
    // find line between un and dn:
    const double a = un->getY() - dn->getY();
-   const double b = dn->getX() - un->getX(); 
+   const double b = dn->getX() - un->getX();
    const double c = -b * un->getY() - a * un->getX();
    tSpkIter sI(un);
    tArray< double > spD( sI.getNumSpokes() * 2 );
@@ -5094,8 +5094,8 @@ InterveningTriangles( tNode* un, tNode* dn )
       //points are on opposite sides of the line, and first point is on right:
       //const tArray< double > unpos = un->get2DCoords();
       //const tArray< double >
-      if( s1 != s2 && PointsCCW( un->get2DCoords(), 
-                                 ce->getDestinationPtr()->get2DCoords(), 
+      if( s1 != s2 && PointsCCW( un->get2DCoords(),
+                                 ce->getDestinationPtr()->get2DCoords(),
                                  dn->get2DCoords() ) )
           break;
       i++;
@@ -5146,7 +5146,7 @@ ForceFlow( tSubNode* un, tSubNode* dn, double time )
    if(1)//DEBUG
        cout << "tMesh::ForceFlow connecting nodes" << un->getID()
             << " and " << dn->getID() << endl;
-   
+
 // find triangles between one node and the next
    tPtrList< tTriangle > tPList = InterveningTriangles( un, dn );
    // find vertex numbers:
