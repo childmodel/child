@@ -40,7 +40,7 @@
 **  Modified, SL, September 2003: Can now generate non-fatal warnings and
 **    return zero-values as specified; default will be fatal error.
 **
-**  $Id: tInputFile.h,v 1.22 2004-01-29 16:41:18 childcvs Exp $
+**  $Id: tInputFile.h,v 1.23 2004-04-16 18:36:37 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -102,6 +102,10 @@ private:
   enum { notFound = -1 }; // must be strictly negative
   int findKeyWord(const char*) const; // find index of keyword
   void writeLogFile() const;
+
+  tInputFile(tInputFile const&);
+  tInputFile& operator=(tInputFile const&);
+  tInputFile();
 };
 
 #endif
