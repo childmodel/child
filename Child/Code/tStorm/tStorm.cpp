@@ -9,7 +9,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.13 1999-05-11 19:08:23 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.14 2000-01-06 16:21:16 gtucker Exp $
 \**************************************************************************/
 
 
@@ -137,6 +137,9 @@ tStorm::tStorm( tInputFile &infile )
 **                    pMean, stdurMean, istdurMean adjusted (if optSinVar)
 **  Assumptions:  pMean > 0
 **
+**  Modifications:
+**   - changed AND to OR in while loop, GT 5/99
+**
 \**************************************************************************/
 void tStorm::GenerateStorm( double tm, double minp, double mind )
 {
@@ -170,7 +173,7 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
          /*cout << "P " << p << "  ST " << stdur << "  IST " << istdur
               << "  DP " << p*stdur << endl;*/
          //srand( seed );
-      } while( p<=minp && (p*stdur)<=mind );
+      } while( p<=minp || (p*stdur)<=mind );
    }
 }
 
