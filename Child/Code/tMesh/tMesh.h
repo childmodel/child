@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.65 2003-11-14 17:59:31 childcvs Exp $
+**  $Id: tMesh.h,v 1.66 2004-01-07 15:32:03 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -159,7 +159,9 @@ public:
    tList< tTriangle > * getTriList();
    tEdge *getEdgeComplement( tEdge * ) const;
    /* Tests consistency of a user-defined mesh */
+#ifndef BYPASS_DEBUG_ROUTINES
    void CheckMeshConsistency( bool boundaryCheckFlag=true );
+#endif
    /* Updates mesh by comp'ing edg lengths & slopes & node Voronoi areas */
    void UpdateMesh();
    /* computes edge slopes as (Zorg-Zdest)/Length */

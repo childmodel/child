@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.189 2004-01-07 13:51:47 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.190 2004-01-07 15:32:01 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -681,7 +681,9 @@ MakeMeshFromInputData( const tInputFile &infile )
    }
 
    UpdateMesh();
+#ifndef BYPASS_DEBUG_ROUTINES
    CheckMeshConsistency();
+#endif
 
    cout << "end of tMesh( input )" << endl;
 }
@@ -1451,7 +1453,9 @@ MakeMeshFromScratch( const tInputFile &infile, tRand &rand )
 
    // Now finalize the initialization by updating mesh properties
    UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
+#ifndef BYPASS_DEBUG_ROUTINES
    CheckMeshConsistency();                     //remove CMC call from UM
+#endif
 }
 
 /**************************************************************************\
@@ -1619,7 +1623,9 @@ MakeMeshFromPoints( const tInputFile &infile )
    // Update Voronoi areas, edge lengths, etc., and test the consistency
    // of the new mesh.
    UpdateMesh();
+#ifndef BYPASS_DEBUG_ROUTINES
    CheckMeshConsistency( );
+#endif
 
    // Clean up (probably not strictly necessary bcs destructors do the work)
    supertriptlist.Flush();
@@ -2117,6 +2123,7 @@ MakeHexMeshFromArcGrid( const tInputFile &infile )
 **               helper.
 **
 \*****************************************************************************/
+#ifndef BYPASS_DEBUG_ROUTINES
 #define kMaxSpokes 100
 template<class tSubNode>
 void tMesh< tSubNode >::
@@ -2442,6 +2449,7 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
 
 }
 #undef kMaxSpokes
+#endif //#ifndef BYPASS_DEBUG_ROUTINES
 
 template< class tSubNode >
 void tMesh< tSubNode >::
@@ -4187,7 +4195,9 @@ UpdateMesh()
    setVoronoiVertices();
    CalcVoronoiEdgeLengths();
    CalcVAreas();
+#ifndef BYPASS_DEBUG_ROUTINES
    CheckMeshConsistency( false );  // debug only -- remove for release
+#endif
 
 // Triangle areas
 /*   for( tlist.First(); !tlist.AtEnd(); tlist.Next() )
@@ -4774,7 +4784,9 @@ MoveNodes( double time, bool interpFlag )
    //resolve any remaining problems after points moved
    CheckLocallyDelaunay( time );
    UpdateMesh();
+#ifndef BYPASS_DEBUG_ROUTINES
    CheckMeshConsistency();  // TODO: remove this debugging call for release
+#endif
    if (0) //DEBUG
      cout << "MoveNodes() finished" << endl;
 }
