@@ -35,7 +35,7 @@
 **     neighboring triangle 1, and so on. Node 1 is also the origin for
 **     edge 1, etc.
 **   
-**  $Id: meshElements.h,v 1.20 1999-02-04 20:17:31 nmgaspar Exp $
+**  $Id: meshElements.h,v 1.21 1999-02-04 21:56:51 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -76,6 +76,9 @@ class tEdge;
 **  points must be boundaries, interior points do not necessarily have to
 **  be flagged as non-boundaries (e.g., one could include an "island" of
 **  boundary points in the interior of a mesh if needed).
+**
+**  Modifications:
+**   - 2/99 GT added tNode::AttachNewSpoke and tEdge::WelcomeCCWNeighbor
 **
 \**************************************************************************/
 class tNode
@@ -132,6 +135,7 @@ public:
   tEdge *EdgToNod( tNode * );      // finds spoke connected to given node
   double ComputeVoronoiArea();     // calculates node's Voronoi area
   void ConvertToClosedBoundary();  // makes node a closed bdy & updates edges
+  void AttachFirstSpoke( tEdge * ); // welcomes first spoke (sets edg)
   virtual void WarnSpokeLeaving( tEdge *); // signals node that spoke is being deleted
    virtual void InitializeNode();  // used when new nodes are created, for now only has a purpose in inherited classes
    
@@ -225,7 +229,8 @@ public:
   void setVEdgLen( double ); // sets length of corresponding Voronoi edge
   double CalcVEdgLen();      // computes, sets & returns length of V cell edg
   tEdge * FindComplement();  // returns ptr to edge's complement
-
+  void WelcomeCCWNeighbor( tEdge * );  // Adds another edge ccw from this edge
+  
 #ifndef NDEBUG
   void TellCoords();  // debug routine that reports edge coordinates
 #endif

@@ -10,8 +10,9 @@
 **     to spokelist. Dec 1 '97.
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
+**   - added tNode::AttachNewSpoke and tEdge::WelcomeCCWNeighbor gt 2/99
 **
-**  $Id: meshElements.cpp,v 1.25 1999-01-29 00:14:42 nmgaspar Exp $
+**  $Id: meshElements.cpp,v 1.26 1999-02-04 21:57:28 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -399,6 +400,31 @@ const tEdge *tNode::NextSpoke( tPtrListNode< tEdge > * current )//tNode
    return current->getPtr();
 }
 
+
+/*****************************************************************************\
+**
+**  tNode::AttachFirstSpoke
+**
+**  Attaches the first spoke to the node by pointing edg to that spoke,
+**  and then telling the spoke to point to itself. thespoke is the edge
+**  being added.
+**
+**      Data members updated: edg, thespoke's ccw edge
+**      Called by: tGrid::AddEdge
+**      Calls: (none)
+**      Created: 2/4/99 GT
+**
+\*****************************************************************************/
+void tNode::AttachFirstSpoke( tEdge *thespoke )
+{
+   assert( thespoke!=0 );
+   assert( thespoke->getOriginPtr()==this );
+   assert( edg==0 );
+   edg = thespoke;
+   thespoke->setCCWEdg( thespoke );
+}
+
+
 /*****************************************************************************\
 **
 **  tNode::Dist
@@ -447,7 +473,7 @@ tEdge *tNode::EdgToNod( tNode * nod )
 
 /*****************************************************************************\
 **
-**  ComputeVoronoiArea
+**  tNode::ComputeVoronoiArea
 **
 **  Computes the node's Voronoi area by summing the area of embedded
 **  triangles, and also calls CalcSpokeVEdgLengths to compute the length of
@@ -1184,6 +1210,28 @@ void tEdge::TellCoords()
    cout << "  " << org->getID() << " (" << org->getX() << ","
         << org->getY() << ") -> " << dest->getID() << " ("
         << dest->getX() << "," << dest->getY() << ")" << endl;
+}
+
+
+/**************************************************************************\
+**
+**  tEdge::WelcomeCCWNeighbor
+**
+**  Welcomes a new spoke to the neighborhood! neighbor is a new edge to
+**  be inserted counter-clockwise from this one. We point neighbor at
+**  the edge we're currently pointing to, and then point ourself to
+**  neighbor, thus maintaining the edge connectivity.
+**
+**  Data mbrs modified:  ccwedg, neighbor->ccwedg
+**  Created: 2/4/99 GT
+**
+\**************************************************************************/
+void tEdge::WelcomeCCWNeighbor( tEdge * neighbor )
+{
+   assert( neighbor!=0 );
+   assert( neighbor->org == org );
+   neighbor->ccwedg = ccwedg;
+   ccwedg = neighbor;
 }
 
 
