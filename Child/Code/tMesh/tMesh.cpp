@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.158 2003-05-26 17:44:51 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.159 2003-05-28 16:03:48 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3005,8 +3005,8 @@ LocateTriangle( double x, double y )
    int n, lv=0;
    for (n=0 ;(lv!=3)&&(lt); n++)
    {
-      tArray< double > xy1 = lt->pPtr(lv)->get2DCoords();
-      tArray< double > xy2 = lt->pPtr( (lv+1)%3 )->get2DCoords();
+      const tArray< double > xy1 = lt->pPtr(lv)->get2DCoords();
+      const tArray< double > xy2 = lt->pPtr( (lv+1)%3 )->get2DCoords();
       const double XY[] = {x, y};
       double c = predicate.orient2d(xy1.getArrayPtr(), xy2.getArrayPtr(), XY);
 
@@ -3055,20 +3055,21 @@ LocateNewTriangle( double x, double y )
       the same side of all the edges of a triangle.
       "lt" is the current triangle and "lv" is the edge number.
    */
-   int lv=0;
-   for (; lv!=3 && lt;)
+   int n, lv=0;
+   for (n=0; lv!=3 && lt; n++)
    {
       tSubNode *p1, *p2;
       p1 = static_cast<tSubNode *>(lt->pPtr(lv));
-      tArray< double > xy1 = p1->FuturePosn();
+      const tArray< double > xy1 = p1->FuturePosn();
       p2 = static_cast<tSubNode *>(lt->pPtr( (lv+1)%3 ));
-      tArray< double > xy2 = p2->FuturePosn();
+      const tArray< double > xy2 = p2->FuturePosn();
       if ( ( (xy1[1] - y) * (xy2[0] - x) ) > ( (xy1[0] - x) * (xy2[1] - y)) )
       {
          lt=lt->tPtr( (lv+2)%3 );
          lv=0;
       }
       else ++lv;
+      assert( n < 3*ntri );
    }
    return lt;
 }
@@ -3676,7 +3677,7 @@ CheckTrianglesAt( tSubNode* nPtr )
 \*****************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeDelaunay( tPtrList< tTriangle > &triPtrList )
+MakeDelaunay( tPtrList< tTriangle > &triPtrList)
 {
   tTriangle *at;
   int ctr = 0;
@@ -3736,7 +3737,7 @@ InsertNode( tSubNode* newNodePtr, double time )
 	   << newNodePtr->getX() << " " << newNodePtr->getY() << endl;
       return 0;
    }
-   if( layerflag && time > 0 )
+   if( layerflag && time > 0. )
        newNodePtr->LayerInterpolation( tri, newNodePtr->getX(), newNodePtr->getY(), time );
 
    // Insert and retrieve a pointer to the new node
@@ -4228,12 +4229,16 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
       if( edg->FlowAllowed() )
       {
          edgeList.moveToActiveBack( enodePtr1 );
+	 edgeList.setNActiveNodes(edgeList.getActiveSize()+1);
          edgeList.moveToActiveBack( enodePtr2 );
+	 edgeList.setNActiveNodes(edgeList.getActiveSize()+1);
       }
       else
       {
          edgeList.moveToBack( enodePtr1 );
+	 edgeList.setNActiveNodes(edgeList.getActiveSize()-1);
          edgeList.moveToBack( enodePtr2 );
+	 edgeList.setNActiveNodes(edgeList.getActiveSize()-1);
       }
    }
    // give triangles' initialization routine nodes of tri in ccw order:
@@ -4308,7 +4313,7 @@ CheckLocallyDelaunay()
   }
 
   // re-triangulate to fix mesh (make it Delaunay)
-  MakeDelaunay( triPtrList );
+  MakeDelaunay( triPtrList);
 }
 
 /*****************************************************************************\
@@ -4549,26 +4554,25 @@ void tMesh< tSubNode >::
 MoveNodes( double time, bool interpFlag )
 {
    cout << "MoveNodes()... time " << time <<flush << endl;
-   tSubNode * cn;
-   tMeshListIter< tSubNode > nodIter( nodeList );
 
    //Before any edges and triangles are changed, layer interpolation
    //must be performed.
    if( layerflag && time > 0.0 ) {
-      tTriangle *tri;
-      tArray<double> newxy(2);
-      for(cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP()){
-         newxy=cn->getNew2DCoords();
-         if( (cn->getX()!=newxy[0]) || (cn->getY()!=newxy[1]) ){
-            //Nic - there may be some issues if boundary nodes make up
-            //the triangle.
-            //cout<<"a point will be moved in movenodes"<<endl;
-            tri = LocateTriangle( newxy[0], newxy[1] );
-            if( interpFlag )
-                cn->LayerInterpolation( tri, newxy[0], newxy[1], time );
-            // TODO: is there a way to make this general, e.g. virtual fn?
-         }
-      }
+     tSubNode * cn;
+     tMeshListIter< tSubNode > nodIter( nodeList );
+     for(cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP()){
+       const tArray<double> newxy = cn->getNew2DCoords();
+       if( (cn->getX()!=newxy[0]) || (cn->getY()!=newxy[1]) ){
+	 //Nic - there may be some issues if boundary nodes make up
+	 //the triangle.
+	 //cout<<"a point will be moved in movenodes"<<endl;
+	 tTriangle *tri;
+	 tri = LocateTriangle( newxy[0], newxy[1] );
+	 if( interpFlag )
+	   cn->LayerInterpolation( tri, newxy[0], newxy[1], time );
+	 // TODO: is there a way to make this general, e.g. virtual fn?
+       }
+     }
    }
 
    //check for triangles with edges which intersect (an)other edge(s)
