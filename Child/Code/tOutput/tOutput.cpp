@@ -11,14 +11,24 @@
  **       If so, channel depths are also output.
  **     - 4/03 AD added canonical output
  **
- **  $Id: tOutput.cpp,v 1.79 2003-07-24 14:33:30 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.80 2003-07-25 09:29:13 childcvs Exp $
  */
 /*************************************************************************/
 
 #include <math.h>    // For fmod function
 #include <stdlib.h> // For qsort
 #include <string.h>
+#include <assert.h>
+
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 #include "tOutput.h"
+#include "../errors/errors.h"
+#include "../tMeshList/tMeshList.h"
 #include "../tStreamNet/tStreamNet.h" // For k2DKinematicWave and kHydrographPeakMethod
 
 
@@ -457,7 +467,7 @@ template< class tSubNode >
 tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
   tOutput<tSubNode>( meshPtr, infile ),  // call base-class constructor
   mdLastVolume(0.),
-  optTSOutput(0),
+  optTSOutput(false),
   counter(0)
 {
   int opOpt;  // Optional modules: only output stuff when needed
@@ -480,7 +490,8 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
     CreateAndOpenFile( &flowdepofs, ".dep" );
 
   // Time-series output: if requested
-  if( (optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) != 0) {
+  if( (opOpt = infile.ReadItem( opOpt, "OPTTSOUTPUT" ) ) != 0) {
+    optTSOutput = true;
     CreateAndOpenFile( &this->volsofs, ".vols" );
     CreateAndOpenFile( &this->dvolsofs, ".dvols" );
     if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) != 0)
@@ -501,8 +512,6 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
   // Sediment flux: if not using detachment-limited option
   if( (opOpt = infile.ReadItem( opOpt, "OPTDETACHLIM" ) ) == 0)
     CreateAndOpenFile( &qsofs, ".qs" );
-
-  this->mdLastVolume = 0.0;
 }
 
 
@@ -687,5 +696,5 @@ void tLOutput<tSubNode>::WriteTSOutput()
 
 
 template< class tSubNode >
-int tLOutput<tSubNode>::OptTSOutput() const { return optTSOutput; }
+bool tLOutput<tSubNode>::OptTSOutput() const { return optTSOutput; }
 

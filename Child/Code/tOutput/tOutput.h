@@ -29,7 +29,7 @@
  **    - 6/01: GT added chanwidthofs for output of channel widths
  **      (only when non-regime hydraulic geometry model used)
  **
- **  $Id: tOutput.h,v 1.41 2003-07-24 14:33:31 childcvs Exp $
+ **  $Id: tOutput.h,v 1.42 2003-07-25 09:29:14 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -37,15 +37,11 @@
 #define TOUTPUT_H
 
 #if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
+# include <fstream>
 using namespace std;
 #else
-# include <iostream.h>
+# include <fstream.h>
 #endif
-#include <string.h>
-#include <assert.h>
-#include "../errors/errors.h"
-#include "../tMeshList/tMeshList.h"
 #include "../MeshElements/meshElements.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tMesh/tMesh.h"
@@ -130,8 +126,10 @@ class tLOutput : public tOutput<tSubNode>
 public:
   tLOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
   void WriteTSOutput();
-  int OptTSOutput() const;
+  bool OptTSOutput() const;
 
+protected:
+  virtual void WriteNodeData( double time );
 private:
   ofstream volsofs;             // catchment volume
   ofstream dvolsofs;
@@ -151,11 +149,10 @@ private:
   ofstream flowpathlenofs;  // Flow path length
   ofstream tauofs;     // Shear stress
   ofstream qsofs;      // Sed flux
-  int optTSOutput;     // temp
+  bool optTSOutput;     // temp
 
   int counter;
 
-  virtual void WriteNodeData( double time );
   inline void WriteActiveNodeData( tSubNode * );
   inline void WriteAllNodeData( tSubNode * );
 };
