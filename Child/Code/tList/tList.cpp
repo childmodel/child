@@ -3,7 +3,7 @@
 **  tList.cpp:  Functions for class tList and related classes tListNode
 **              and tListIter.
 **
-**  $Id: tList.cpp,v 1.8 1998-04-29 21:37:30 gtucker Exp $
+**  $Id: tList.cpp,v 1.9 1998-06-10 19:18:32 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -249,6 +249,8 @@ template< class NodeType >                         //tList
 void tList< NodeType >::
 insertAtFront( const NodeType &value )
 {
+   //cout << "ADD NEW NODE TO LIST AT FRONT" << endl;
+   
    tListNode< NodeType > *newPtr = getNewNode( value );
    if( isEmpty() ) first = last = newPtr;
    else
@@ -257,6 +259,7 @@ insertAtFront( const NodeType &value )
       if( last->next == first ) last->next = newPtr;
       first = newPtr;
    }
+      
      //nNodes++;
 }
 
@@ -266,7 +269,7 @@ void tList< NodeType >::
 insertAtBack( const NodeType &value )
 {
    tListNode< NodeType > * newPtr = getNewNode( value );
-     //cout << "add new node to list" << endl;
+   //  cout << "add new node to list in back" << endl;
    assert( this != 0 );
    if( isEmpty() )
    {
@@ -278,8 +281,9 @@ insertAtBack( const NodeType &value )
       last->next = newPtr;
       last = newPtr;
    }
+
      //nNodes++;
-   //cout << "added node to back of list" << endl;
+
 }
 
 //insert at next spot in list
@@ -464,7 +468,7 @@ print() const
    cout<<"The list is: ";
    while( current != 0 )
    {
-      //cout<<current->data<<' ';
+      //cout<< current->data <<' ';
       current = current->next;
    }
    cout<<endl<<endl;
