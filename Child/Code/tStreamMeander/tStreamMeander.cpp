@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.57 1999-03-13 22:41:22 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.58 1999-03-19 22:31:56 gtucker Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -123,9 +123,10 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 **     object if ptr to tStreamNet is zero
 **
 **  2) takes grid ptr and inputfile reference; assumes tStreamNet object
-**     has already done its thing
+**     has already done its thing. Takes streamnet and inputfile references.
 **
-**  2) takes streamnet and inputfile references
+**     Modifications:
+**       - fixed bug: NB was erroneously read in place of MB (gt 3/99)
 **
 \**************************************************************************/
 tStreamMeander::tStreamMeander()
@@ -180,8 +181,9 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
    assert( leavefrac > 0 );
    vegerod = infile.ReadItem( vegerod, "VEG_ERODY" );
    rockerod = infile.ReadItem( rockerod, "KB" );
-   double MB = infile.ReadItem( MB, "NB" );
+   double MB = infile.ReadItem( MB, "MB" ); // bug fix 3/16/99
    rockerod *= .05*pow(SECPERYEAR,MB);
+   vegerod *= .05*pow(SECPERYEAR,MB);  // added gt 3/15/99
    latadjust = infile.ReadItem( latadjust, "LATADJUST" );
    double shrcoeff = 1.0 / ( 1000.0 * 9.81 * pow( knds / kwds, 0.6 ) );
    vegerod *= shrcoeff * latadjust;
@@ -376,7 +378,7 @@ void tStreamMeander::FindChanGeom()
          //cout<<"node z "<<cn->getZ()<<" DS z "<<cn->getDownstrmNbr()->getZ()<<" edge "<<cn->getFlowEdg()->getLength()<<endl;
          if( slope > critS ) //should also catch negative slope flag
          {
-            //cout << "in FindChanGeom, slope = " << slope << endl << flush;
+            cout << "in tSM::FindChanGeom, slope = " << slope << endl << flush;
             cn->setChanSlope( slope );
             radfactor = qbf * rough / width / sqrt(slope);
             //cout<<"radfactor is "<<radfactor<<endl;             
@@ -386,7 +388,7 @@ void tStreamMeander::FindChanGeom()
             cn->setChanDepth( depth );
          }
          else cn->setMeanderStatus( kNonMeanderNode );
-         if( slope < 0.0 )
+         if( slope <= 0.0 )
          {
             cout << "negative slope,"
                  << " probably from infinite loop in tLNode::GetSlope()" << endl;
@@ -510,7 +512,7 @@ int tStreamMeander::InterpChannel( double time )
                nn.set3DCoords( x, y, z );
                //if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
                gridPtr->AddNode( nn, 1, time );
-               cout<<"IC pt added\n";
+               //cout<<"IC pt added at " << x << "," << y << endl;
             }
             //otherwise, if we need to add more than one point,
             //generate a random walk with uniform spacing in x
@@ -540,7 +542,7 @@ int tStreamMeander::InterpChannel( double time )
                   nn.set3DCoords( x, y, z );
                   //if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
                   gridPtr->AddNode( nn, 1, time );
-                  cout<<"IC pt added\n";
+                  //cout<<"IC pt added at " << x << "," << y << endl;
                }
                delete arrPtr;
             }
@@ -855,10 +857,10 @@ void tStreamMeander::FindReaches()
 **
 **  Also sets "old" x and y to present node coords if they
 **  have not been set already for meandering nodes. Leaves
-**        old z and channel side flag unset (=0) to indicate that
-**        these are not the coords at which a point will be dropped.
-**        Rather, these coords are used to determine how far the
-**        meandering node has moved since it last dropped a node.
+**  old z and channel side flag unset (=0) to indicate that
+**  these are not the coords at which a point will be dropped.
+**  Rather, these coords are used to determine how far the
+**  meandering node has moved since it last dropped a node.
 **
 **		Parameters:	allowfrac -- fraction of chanwidth 
 **				          a node is allowed to move in a 
@@ -878,7 +880,10 @@ void tStreamMeander::FindReaches()
 void tStreamMeander::CalcMigration( double &time, double &duration,
                                     double &cummvmt )
 {
-   int i, j, *stations, *stnserod, nttlnodes;
+   int i, j,       // counters
+       *stations,  // number of actual landscape nodes on reach
+       *stnserod,  // total # of reach nodes including 'tail'
+       nttlnodes;  //   "
    tArray< double > xa, ya, xsa, qa, rerodya, lerodya, delsa,
        slopea, widtha, deptha, diama, deltaxa, deltaya,
        rdeptha, ldeptha, lambdaa;
@@ -892,6 +897,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
    tLNode *curnode, *nxtnode;
    tEdge *fedg;
    tArray< double > bankerody;
+   static double cumdbg=0.0; //debug
 
    //cout<<"tStreamMeander::CalcMigration()...";
 
@@ -933,13 +939,18 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
       for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
            curnode = rnIter.NextP(), j++ )
       {
+         // Set up the coordinate, streamwise length & distance, and Q arrays
          fedg = curnode->getFlowEdg();
          xa[j] = curnode->getX();
          ya[j] = curnode->getY();
          xsa[j] = xs;
-         xs += fedg->getLength();
+         //xs += fedg->getLength(); BUG?? GT 3/16/99 seems to dup line below!
          qa[j] = curnode->getQ()/SECPERYEAR;
          delsa[j] = fedg->getLength();
+         xs += delsa[j];
+
+         // For debugging: make sure the next node on the reach is the
+         // downstream neighbor of the current node
          if( j < creach->getSize() - 1 )
          {
             nxtnode = rnIter.ReportNextP();
@@ -950,12 +961,14 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
                ReportFatalError( "downstream nbr not next reach node" );
             }
          }
-         xs += delsa[j];
+
+         // Set bank erodibility on left and right banks
          bankerody = FindBankErody( curnode );
          //curnode->GetErodibility( rerody, lerody, pr->kf);
          lerodya[j] = bankerody[0];
          rerodya[j] = bankerody[1];
-//         slopea[j] = fedg->getSlope();
+
+         // Set slope, width, depth, grainsize, and roughness arrays
          slopea[j] = curnode->getHydrSlope();
          widtha[j] = curnode->getHydrWidth();
          deptha[j] = curnode->getHydrDepth();
@@ -963,7 +976,30 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
          /*diama[j] = curnode->diam;*/
          diama[j] = ( optdiamvar ) ? curnode->getDiam() : meddiam;
          lambdaa[j] = curnode->getBankRough();
+         // DEBUG
+         /*        xa[0]=0;
+         ya[0]=0;
+         delsa[0]=12;
+         xsa[0]=0;
+         slopea[0]=0.001;
+         widtha[0]=12;
+         deptha[0]=2.4;
+         qa[0]=25;
+         if( j>0 )
+         {
+            qa[j]=25;
+            xsa[j]=xsa[j-1]+12;
+            delsa[j]=12;
+            slopea[j] = 0.001;
+            widtha[j] = 12;
+            deptha[j] = 2.4;
+            xa[j] = 30*sin( 6.28*(double)j/30.0 );
+            ya[j] = j*10;
+            }*/
+         
       }
+
+      // Now we pass all this information to meander.f
       //cout << "stations, stnserod: " << *stations <<" "<< *stnserod
       //     << endl << flush;
       //this looks horrible, but we need to pass the pointer to the array
@@ -986,21 +1022,33 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
                 rdeptha.getArrayPtr(),
                 ldeptha.getArrayPtr(),
                 lambdaa.getArrayPtr() );
-      //Now reset the node values according to the arrays:
+
+      // Now reset the node values according to the arrays:
+      double dbg=0;
       for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
            curnode = rnIter.NextP(), j++ )
-          curnode->addLatDisplace( deltaxa[j], deltaya[j] );
+      {
+         dbg+=deltaxa[j];
+         cumdbg+=deltaxa[j];
+         curnode->addLatDisplace( deltaxa[j], deltaya[j] );
+      }
+      //cout << "MEAN X CHG: " << dbg/(double)j << "  CUM: " << cumdbg << endl;
+      //assert( cumdbg>-1e6 );
+      
           //arbitrary change for simple debugging:
           //( 0.1, 0.01*(ran3(&seed)-.5)
       //go through and set the elevations at the right and left banks:
       num = nrnodes[i];
+      double dbg2=0;
       for( curnode = rnIter.FirstP(), j=0; j<num;
            curnode = rnIter.NextP(), j++ )
       {
          rz = curnode->getZ() + deptha[j] - rdeptha[j];
          lz = curnode->getZ() + deptha[j] - ldeptha[j];
+         dbg2 = dbg2 + (rdeptha[j]-ldeptha[j]);
          curnode->setZOld( rz, lz );
       }
+      //cout << "MEAN rldepth " << dbg2 << endl;
       delete dumArrPtr;
    }
    //calculate ratio of total displacement to length of flow edge,
@@ -1509,8 +1557,7 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
 **	FindBankErody :	This is the routine that finds the effective erodibility 
 **                              of each bank
 **				based on a reach node's neighbor's erodibility 
-**                    and relative height 
-**				above the channel.
+**        and relative height above the channel.
 **        Check all nbrs; find distances to perp. lines. Find 2 pairs of
 **        consecutive nbrs which fall on either side of line (going ccw from
 **        flowedge, 1st pair is on left bank, 2nd pair is on right). For each
@@ -1529,6 +1576,10 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
 **		Parameters:	tSurface::vegerody; tBedrock::erodibility
 **		Called by: CalcMigration
 **		Created: 5/1/97 SL
+**    Modifications:
+**      - removed previous call to now-obsolete function getAlluvThickness.
+**        Erodibility now assumed constant and equal to rockerod. Should be
+**        based on layer exposed at channel position -- TODO. (GT 3/16/99)
 **
 \*****************************************************************************/
 tArray< double >
@@ -1592,11 +1643,17 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
          //find elev. diff's:
          dz1 = node1->getZ() - xyz1[2];
          dz2 = node2->getZ() - xyz1[2];
+
          //find whether bedrock or alluvial bank:
-         if( dz1 > node1->getAlluvThickness() ) E1 = rockerod;//node1->getBedErody();
+         // (modified by GT 3/99: getAlluvThickness is obsolete. Layer
+         // info should be used. For now assume constant erodibility. TODO)
+         /*if( dz1 > node1->getAlluvThickness() ) E1 = rockerod;//node1->getBedErody();
          else E1 = vegerod;//node1->getVegErody();
          if( dz2 > node2->getAlluvThickness() ) E2 = rockerod;//node2->getBedErody();
-         else E2 = vegerod;//node2->getVegErody();
+         else E2 = vegerod;//node2->getVegErody();*/
+         E1 = E2 = rockerod; // added 3/99
+
+         //cout << "E1 " << E1 << "  E2 " << E2 << endl;
          //find height dependence:
          //if elev diff > hydraulic depth, ratio of depth to bank height;
          //o.w., keep nominal erody:
