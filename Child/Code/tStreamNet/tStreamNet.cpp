@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.25 2003-02-10 16:37:05 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.26 2003-02-11 12:08:57 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1442,8 +1442,15 @@ void tStreamNet::FillLakes()
                cout << "LAKE LIST SIZE=" << lakeList.getSize() << "\n"
 		    << "active node size=" << meshPtr->getNodeList()->getActiveSize()
 		    << endl;
+	       cerr << "Error in Lake Filling algorithm: "
+		    << "Unable to find a drainage outlet.\n"
+		    << "This error can occur when open boundary node(s) "
+		    << "are isolated from the interior of the mesh.\n"
+		    << "This is especially common when a single outlet point "
+		    << "(open boundary) is used.\n"
+		    << "Re-check mesh configuration or try changing SEED.\n";
+	       ReportFatalError( "No drainage outlet found for one or more interior nodes." );
             }
-            assert( lakeList.getSize() <= meshPtr->getNodeList()->getActiveSize() );
          } while( !done );
 
          // Now we've found an outlet for the current lake.
