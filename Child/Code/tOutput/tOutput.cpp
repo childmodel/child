@@ -9,7 +9,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.50 2002-04-11 12:03:20 arnaud Exp $
+**  $Id: tOutput.cpp,v 1.51 2002-04-22 17:57:19 arnaud Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -103,7 +103,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
 {
    tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
    tMeshListIter<tEdge> eiter( m->getEdgeList() );    // edge list iterator
-   tPtrListIter<tTriangle> titer( m->getTriList() );     // tri list iterator
+   tListIter<tTriangle> titer( m->getTriList() );     // tri list iterator
    tNode * cn;       // current node
    tEdge * ce;       // current edge
    tTriangle * ct;   // current triangle

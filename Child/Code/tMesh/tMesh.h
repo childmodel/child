@@ -19,7 +19,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.29 2001-06-19 15:53:11 gtucker Exp $
+**  $Id: tMesh.h,v 1.30 2002-04-22 17:56:03 arnaud Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -109,7 +109,7 @@ public:
    tSubNode *AddNodeAt( tArray< double > &, double time = 0.0 );
    tMeshList<tEdge> * getEdgeList();
    tMeshList<tSubNode> * getNodeList();
-   tPtrList< tTriangle > * getTriList();
+   tList< tTriangle > * getTriList();
    tEdge *getEdgeComplement( tEdge * );
    /* Tests consistency of a user-defined mesh */
    void CheckMeshConsistency( int boundaryCheckFlag=1 );
@@ -146,7 +146,7 @@ protected:
    int nnodes, nedges, ntri;       // # of nodes, edges, and tri's (obsolete?)
    tMeshList< tSubNode > nodeList; // list of nodes
    tMeshList< tEdge > edgeList;    // list of directed edges
-   tPtrList< tTriangle > triList;  // list of ptrs to triangles
+   tList< tTriangle > triList;  // list of ptrs to triangles
    int miNextNodeID;                    // next ID for added triangle
    int miNextEdgID;                    // next ID for added triangle
    int miNextTriID;                    // next ID for added triangle

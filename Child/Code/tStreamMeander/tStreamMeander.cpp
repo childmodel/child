@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.67 2001-06-19 16:04:24 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.68 2002-04-22 17:56:48 arnaud Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -1882,7 +1882,7 @@ void tStreamMeander::CheckFlowedgCross()
    tLNode *pointtodelete, *nod, *cn, *dscn;  
    tEdge * fedg, *ce;
    tTriangle * ct, *nt;
-   tPtrListIter< tTriangle > triIter( meshPtr->getTriList() );
+   tListIter< tTriangle > triIter( meshPtr->getTriList() );
    tPtrListIter< tEdge > spokIter;
      //delete node crossed by flowedg:
      //if a new triangle is !CCW and two vtcs. are connected by a flowedg AND

@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.98 2002-04-18 13:57:36 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.99 2002-04-22 17:56:02 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -635,28 +635,27 @@ MakeMeshFromInputData( tInputFile &infile )
    while( nodIter.Next() );*/
 
    cout << "setting up triangle connectivity..." << flush;
-   tTriangle *newtri;
    for ( i=0; i<ntri; i++ )
    {
       //cout << "TRI " << i << endl << flush;
-      newtri = new tTriangle;
-      newtri->setID( i );
+      tTriangle newtri;
+      newtri.setID( i );
       if( nodIter.Get( input.p0[i] ) )
-          newtri->setPPtr( 0, &(nodIter.DatRef()) );
+          newtri.setPPtr( 0, &(nodIter.DatRef()) );
       if( nodIter.Get( input.p1[i] ) )
-          newtri->setPPtr( 1, &(nodIter.DatRef()) );
+          newtri.setPPtr( 1, &(nodIter.DatRef()) );
       if( nodIter.Get( input.p2[i] ) )
-          newtri->setPPtr( 2, &(nodIter.DatRef()) );
+          newtri.setPPtr( 2, &(nodIter.DatRef()) );
       if( edgIter.Get( input.e0[i] ) )
-          newtri->setEPtr( 0, &(edgIter.DatRef()) );
+          newtri.setEPtr( 0, &(edgIter.DatRef()) );
       if( edgIter.Get( input.e1[i] ) )
-          newtri->setEPtr( 1, &(edgIter.DatRef()) );
+          newtri.setEPtr( 1, &(edgIter.DatRef()) );
       if( edgIter.Get( input.e2[i] ) )
-          newtri->setEPtr( 2, &(edgIter.DatRef()) );
+          newtri.setEPtr( 2, &(edgIter.DatRef()) );
       triList.insertAtBack( newtri );
    }
    
-   tPtrListIter< tTriangle >
+   tListIter< tTriangle >
        triIter( triList ), triIter2( triList );
    tTriangle * ct, * nbrtri;
    for( i=0, ct=triIter.FirstP(); i<ntri; ct=triIter.NextP(), i++ )
@@ -817,7 +816,7 @@ BatchAddNodes()
    tPtrList< tEdge > tmpbndList;
    tMeshListIter< tSubNode > nI( nodeList );
    tMeshListIter< tEdge > eI( edgeList );
-   tPtrListIter< tTriangle > tI( triList );
+   tListIter< tTriangle > tI( triList );
    tPtrListIter< tEdge > bI( tmpbndList );
    tPtrListIter< tSubNode > tnI( tmpnodList ), nbrI;
    tEdge* ce;
@@ -2195,7 +2194,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
 {
    tMeshListIter<tSubNode> nodIter( nodeList );
    tMeshListIter<tEdge> edgIter( edgeList );
-   tPtrListIter<tTriangle> triIter( triList );
+   tListIter<tTriangle> triIter( triList );
    tPtrListIter< tEdge > sIter;
    tNode * cn, * org, * dest;
    tEdge * ce, * cne, * ccwedg;
@@ -2497,7 +2496,7 @@ void tMesh<tSubNode>::setVoronoiVertices()
    //tArray< double > xyo, xyd1, xyd2, xy(2);
    //cout << "setVoronoiVertices()..." << endl;
    tArray< double > xy;
-   tPtrListIter< tTriangle > triIter( triList );
+   tListIter< tTriangle > triIter( triList );
    tTriangle * ct;
 
    // Find the Voronoi vertex associated with each Delaunay triangle
@@ -2982,7 +2981,7 @@ LocateTriangle( double x, double y )
 {
    //cout << "\nLocateTriangle (" << x << "," << y << ")\n";
    int n, lv=0;
-   tPtrListIter< tTriangle > triIter( triList );  //lt
+   tListIter< tTriangle > triIter( triList );  //lt
    //XtTriangle *lt = &(triIter.DatRef());
    tTriangle *lt = ( mSearchOriginTriPtr > 0 ) ? mSearchOriginTriPtr
        : triIter.FirstP();
@@ -3058,7 +3057,7 @@ LocateNewTriangle( double x, double y )
 {
    //cout << "LocateTriangle" << endl;
    int n, lv=0;
-   tPtrListIter< tTriangle > triIter( triList );  //lt
+   tListIter< tTriangle > triIter( triList );  //lt
    tTriangle *lt = triIter.FirstP();
    tSubNode *p1, *p2;
    
@@ -3106,7 +3105,7 @@ TriWithEdgePtr( tEdge *edgPtr )
    assert( edgPtr != 0 );
    tTriangle *ct;
    //cout << "TriWithEdgePtr " << edgPtr->getID();
-   tPtrListIter< tTriangle > triIter( triList );
+   tListIter< tTriangle > triIter( triList );
 
    for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
        if( ct != 0 ) //TODO: is this test nec? why wd it be zero?
@@ -3142,7 +3141,7 @@ DeleteTriangle( tTriangle * triPtr )
 
    if( !ExtricateTriangle( triPtr ) ) return 0;
    //if( !( triList.removeFromFront( triVal ) ) ) return 0;
-   if( !( triPtr = triList.removeFromFront() ) )
+   if( !( triList.removeFromFront(triVal) ) )
    {
       cerr << "DeleteTriangle(): triList.removeFromFront( triPtr ) failed\n";
       return 0;
@@ -3169,7 +3168,7 @@ int tMesh< tSubNode >::
 ExtricateTriangle( tTriangle *triPtr )
 {
    //cout << "ExtricateTriangle" << endl;
-   tPtrListIter< tTriangle > triIter( triList );
+   tListIter< tTriangle > triIter( triList );
    tTriangle *ct;
 
    // Find the triangle on the list
@@ -3549,7 +3548,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    tSubNode *cn, *cnn, *cnnn;
    tEdge *ce;
    tTriangle *ct;
-   tPtrListIter< tTriangle > triIter( triList );
+   tListIter< tTriangle > triIter( triList );
    tMeshListIter< tEdge > edgIter( edgeList );
    tPtrListIter< tEdge > spokIter;
    assert( nbrList.getSize() == 3 );
@@ -3629,7 +3628,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    // Here, the triangle constructor takes care of setting pointers to
    // the 3 vertices and 3 edges. The neighboring triangle pointers are
    // initialized to zero.
-   triList.insertAtBack( new tTriangle( miNextTriID++, cn, cnn, cnnn ) );//put 
+   triList.insertAtBack( tTriangle( miNextTriID++, cn, cnn, cnnn ) );//put 
 
    ct = triIter.LastP();            //ct now points to our new triangle
    assert( cn == ct->pPtr(0) );     //make sure we're where we think we are
@@ -3900,7 +3899,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    {
       //Xcout << "flip checking in addnode" << endl;
       tPtrList< tTriangle > triptrList;
-      tPtrListIter< tTriangle > triIter( triList );
+      tListIter< tTriangle > triIter( triList );
       tPtrListIter< tTriangle > triptrIter( triptrList );
       tTriangle *ct;
       triptrList.insertAtBack( triIter.LastP() );
@@ -4078,7 +4077,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    {
       //cout << "flip checking" << endl;
       tPtrList< tTriangle > triptrList;
-      tPtrListIter< tTriangle > triIter( triList );
+      tListIter< tTriangle > triIter( triList );
       tPtrListIter< tTriangle > triptrIter( triptrList );
       tTriangle *ct;
       triptrList.insertAtBack( triIter.LastP() );
@@ -4159,7 +4158,7 @@ tMeshList<tSubNode> * tMesh<tSubNode>::
 getNodeList() {return &nodeList;}
 
 template <class tSubNode>
-tPtrList< tTriangle > * tMesh<tSubNode>::
+tList< tTriangle > * tMesh<tSubNode>::
 getTriList() {return &triList;}
 
 
@@ -4457,7 +4456,7 @@ CheckLocallyDelaunay()
    tTriangle *at;
    tPtrList< tTriangle > triPtrList;
    tPtrListIter< tTriangle > triPtrIter( triPtrList );
-   tPtrListIter< tTriangle > triIter( triList );
+   tListIter< tTriangle > triIter( triList );
    int i, change;
    //Xint id0, id1, id2;
    tArray< int > npop(3);
@@ -4691,7 +4690,7 @@ CheckTriEdgeIntersect()
    tSubNode *subnodePtr, tempNode, newNode;  
    tEdge * cedg, *ce;
    tTriangle * ct, * ctop, *rmtri/* *tri*/;
-   tPtrListIter< tTriangle > triIter( triList );
+   tListIter< tTriangle > triIter( triList );
    tMeshListIter< tEdge > edgIter( edgeList );
    tMeshListIter< tSubNode > nodIter( nodeList );
    tMeshListIter< tEdge > xedgIter( edgeList );
@@ -5039,7 +5038,7 @@ template<class tSubNode>
 void tMesh<tSubNode>::
 DumpTriangles()
 {
-   tPtrListIter< tTriangle > triIter( triList );
+   tListIter< tTriangle > triIter( triList );
    tTriangle *ct, *nt;
    int tid0, tid1, tid2;
    cout << "triangles:" << endl;
