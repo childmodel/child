@@ -2,13 +2,13 @@
 **
 **  tUplift.cpp: Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.9 2000-06-19 17:39:01 gtucker Exp $
+**  $Id: tUplift.cpp,v 1.10 2000-12-07 11:58:07 gtucker Exp $
 \************************************************************************/
 
 #include "tUplift.h"
 #include "../errors/errors.h"
 
-#define kNumUpliftTypes 5
+#define kNumUpliftTypes 6
 #define kNoUplift 0
 
 
@@ -39,7 +39,8 @@ tUplift::tUplift( tInputFile &infile )
            << " 2 - Uniform uplift at Y >= fault location, zero elsewhere\n"
            << " 3 - Block uplift with strike-slip motion along given Y coord\n"
            << " 4 - Propagating fold modeled w/ simple error function curve\n"
-           << " 5 - 2D cosine-based uplift-subsidence pattern\n";
+           << " 5 - 2D cosine-based uplift-subsidence pattern\n"
+	   << " 6 - Block, fault, and foreland sinusoidal fold\n";
       ReportFatalError( "Please specify a valid uplift type and try again." );
    }
 
@@ -71,7 +72,15 @@ tUplift::tUplift( tInputFile &infile )
           deformStartTime1 = 
               infile.ReadItem( deformStartTime1, "YFOLDINGSTART" );
           foldParam2 = infile.ReadItem( foldParam2, "UPSUBRATIO" );
+	  break;
+     case 6:
+          foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
+          slipRate = infile.ReadItem( slipRate, "FOLDLATRATE" );
+          faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
+	  rate2 = infile.ReadItem( rate2, "FOLDUPRATE" );
+	  foldParam2 = infile.ReadItem( foldParam2, "FOLDPOSITION" );
           break;
+ 
    }
    
 }
@@ -108,6 +117,10 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
       case 5:
           CosineWarp2D( mp, delt );
           break;
+      case 6:
+	  BlockUplift( mp, delt );
+	  PropagatingFold( mp, delt );
+	  break;
    }
    
 }
@@ -303,6 +316,58 @@ void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
    // propagates basinward as it tightens).
    foldParam = foldParam - slipRate*delt;
    faultPosition= faultPosition - slipRate*delt;
+
+}
+
+
+
+/************************************************************************\
+**
+**  tUplift::PropagatingFold
+**
+**  The "propagating fold" has two components: block uplift inboard of
+**  a mountain front (which is handled via a separate call to 
+**  BlockUplift()), and a single laterally propagating fold, which is
+**  handled by this function.
+**
+**  The fold is aligned parallel to the x-axis. The uplift pattern is
+**  sinusoidal in the y-direction and symmetrical about the fold axis.
+**  The nose of the fold propagates in the direction of increasing x.
+**  Parameters are:
+**    - foldParam: width of fold in meters
+**    - foldParam2: axis location, in meters from y=0
+**    - rate2: uplift rate along fold crest
+**    - slipRate: lateral propagation rate in m/yr
+**
+**  Inputs:  mp -- pointer to the mesh
+**           delt -- duration of uplift
+**
+\************************************************************************/
+void tUplift::PropagatingFold( tMesh<tLNode> *mp, double delt )
+{
+   assert( mp>0 );
+   tLNode *cn;
+   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   double uprate;
+   static double northEdge = foldParam2 + 0.5*foldParam;
+   static double southEdge = northEdge - foldParam;
+   static double foldNose = 0.0;
+   static double twoPiLam = TWOPI/foldParam;
+
+   // Advance the fold nose
+   foldNose += slipRate*delt;
+
+   // For each node, the uplift rate is the uplift rate constant ("rate") times
+   // the cosine function in y. The variable "foldParam2" is the location
+   // of the fold axis in meters relative to y=0.
+   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+   {
+     if( cn->getX()<=foldNose && cn->getY()<=northEdge && cn->getY()>=southEdge )
+       {
+	 uprate = rate2 * 0.5 * ( cos( twoPiLam*(foldParam2-cn->getY()) )+1.0);
+	 cn->ChangeZ( uprate*delt );
+       }
+   }
 
 }
 
