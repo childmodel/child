@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.75 2003-08-13 13:19:38 childcvs Exp $
+ **  $Id: tLNode.h,v 1.76 2003-08-13 16:10:34 childcvs Exp $
  */
 /************************************************************************/
 
@@ -595,6 +595,8 @@ protected:
   // want to put this somewhere else
   static double maxregdep;
   static double KRnew;
+public:
+  int public1; // a "public" member that can be used for various purpose
 };
 
 inline tFlood_t tLNode::getFloodStatus() const { return flood; }
