@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.40 2003-07-18 17:51:53 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.41 2003-07-21 10:05:31 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -2564,11 +2564,11 @@ tParkerChannels::tParkerChannels( tInputFile &infile )
       astring[9]++;  // Next number (1, 2, etc.)
       //strcpy( astring, "GRAINDIAM" );
       //strcat( astring, nstr );
-      d50 = d50 + infile.ReadItem( d50, astring );
+      d50 += infile.ReadItem( d50, astring );
       if (1) //DEBUG
 	cout << "Reading " << astring << "; cum value = " << d50 << endl;
     }
-  d50 = d50 / numg;
+  d50 /= numg;
 
   // Calculate coefficient and slope exponent for width equation (see above)
   taucrit = thetac*(sigma-rho)*grav*d50;
