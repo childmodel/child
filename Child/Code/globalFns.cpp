@@ -3,7 +3,7 @@
 **  globalFns.cpp: Global functions used by tGrid and other modules of
 **                 CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.1 1999-04-02 21:35:47 gtucker Exp $
+**  $Id: globalFns.cpp,v 1.2 1999-04-05 15:29:23 gtucker Exp $
 \**************************************************************************/
 
 #include "globalFns.h"
@@ -416,10 +416,10 @@ int Intersect( tEdge * ae, tEdge * be )
 **         other edges
 **
 **      Data members updated: 
-**      Called by: tGrid::BatchAddNodes()
+**      Called by: tMesh::BatchAddNodes()
 **      Calls: Intersect
 **      Created: SL 10/98
-**      Based on tGrid::IntersectsAnyEdge()
+**      Based on tMesh::IntersectsAnyEdge()
 **
 \*****************************************************************************/
 tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
@@ -453,7 +453,7 @@ tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
 **
 **  InterpSquareGrid
 **
-**   Was part of tGrid::MakeRandomPointsFromArcGrid();
+**   Was part of tMesh::MakeRandomPointsFromArcGrid();
 **   pulled it out so it can be used generally.
 **		Use Tetzlaff & Harbaugh, '88, grid interpolation:
 **			z(z1, z2, z3, z4, X, Y) = z1 * XY + z2 * (1-X)Y + z3 * X(1-Y) 

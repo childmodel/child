@@ -29,7 +29,7 @@
 **    - GT added currentItem member and routines FirstP and NextP to
 **      track position on list w/o an iterator, 1/22/99
 **
-**  $Id: tList.h,v 1.14 1999-04-01 16:24:18 gtucker Exp $
+**  $Id: tList.h,v 1.15 1999-04-05 15:33:15 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -53,9 +53,9 @@ template< class NodeType >
 class tListNode
 {
     friend class tList< NodeType >;
-    friend class tGridList< NodeType >;
+    friend class tMeshList< NodeType >;
     friend class tListIter< NodeType >;
-    friend class tGridListIter< NodeType >;
+    friend class tMeshListIter< NodeType >;
 public:
     tListNode();                                // default constructor
     tListNode( const tListNode< NodeType > & ); // copy constructor #1
@@ -92,7 +92,7 @@ template< class NodeType >
 class tList
 {
     friend class tListIter< NodeType >;
-    friend class tGridListIter< NodeType >;
+    friend class tMeshListIter< NodeType >;
 public:
     tList();                            // default constructor
     tList( const tList< NodeType > * ); // copy constructor
@@ -152,7 +152,7 @@ protected:
 ** Note that in the current implementation, list items are fetched by
 ** ID number, which presupposes that the list items have a member function
 ** getID. This restricts the generality of tList, and should be moved
-** to tGridList. (TODO)
+** to tMeshList. (TODO)
 **
 \**************************************************************************/
 //TO DO: make Get, Where, GetP, refer to place in list rather than use getID()

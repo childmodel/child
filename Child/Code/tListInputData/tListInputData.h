@@ -13,7 +13,7 @@
 **     to avoid multiple definition errors resulting from mixing
 **     template & non-template classes (1/99)
 **
-**  $Id: tListInputData.h,v 1.7 1999-01-21 17:48:01 gtucker Exp $
+**  $Id: tListInputData.h,v 1.8 1999-04-05 15:33:52 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TLISTINPUTDATA_H
@@ -106,13 +106,13 @@
 **  A key entry function is provided, but is not supported in this version.
 **
 **  Note that the class is templated only because of its friendship with 
-**  tGrid.
+**  tMesh.
 **
 \**************************************************************************/
 template< class tSubNode >
 class tListInputData
 {
-    friend class tGrid< tSubNode >;  // gives tGrid direct access
+    friend class tMesh< tSubNode >;  // gives tMesh direct access
 
 public:
     //tListInputData();
