@@ -7,9 +7,19 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.20 2003-01-17 17:30:28 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.21 2003-05-23 11:41:21 childcvs Exp $
 */
 /****************************************************************************/
+
+#include "../tAssert.h"
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+
+#include "tInputFile.h"
+#include "../errors/errors.h"
+
+#include "../Definitions.h"
 
 #if !defined(HAVE_NO_NAMESPACE)
 # include <iostream>
@@ -17,16 +27,8 @@ using namespace std;
 #else
 # include <iostream.h>
 #endif
-#include "../tAssert.h"
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
 
-//#include "../Definitions.h"
-//#include "../Classes.h"
-#include "tInputFile.h"
-#include "../errors/errors.h"
-
+#define kCommentMark '#'
 
 /****************************************************************************\
 **
