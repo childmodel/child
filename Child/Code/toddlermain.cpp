@@ -35,7 +35,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.12 2003-05-23 17:51:33 childcvs Exp $
+**  $Id: toddlermain.cpp,v 1.13 2003-05-26 17:44:50 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -85,7 +85,7 @@ int main( int argc, char **argv )
    }
 
    // Check whether we're in silent mode
-   silent_mode = ( argc>2 && argv[2][1]=='s' );
+   silent_mode = BOOL( argc>2 && argv[2][1]=='s' );
    
    // Say hello
    cout << "\nThis is TODDLER, version " << VERSION 
@@ -106,7 +106,7 @@ int main( int argc, char **argv )
    tErosion erosion( &mesh, inputFile );
    tUplift uplift( inputFile );
    cout << "Writing data for time zero...\n";
-   tRunTimer time( inputFile, (bool)!silent_mode );
+   tRunTimer time( inputFile, BOOL(!silent_mode) );
    output.WriteOutput( 0 );
    cout << "Initialization done.\n";
 

@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.25 2003-05-23 17:50:53 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.26 2003-05-26 17:44:53 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -121,7 +121,7 @@ tStorm::tStorm( tInputFile &infile )
    {
      int tmp_;
      tmp_ = infile.ReadItem( tmp_, "OPTVAR" );
-     optVariable = tmp_ != 0;
+     optVariable = BOOL(tmp_ != 0);
    }
    pMean = infile.ReadItem( pMean, "PMEAN" );
    stdurMean = infile.ReadItem( stdurMean, "STDUR" );
@@ -145,7 +145,7 @@ tStorm::tStorm( tInputFile &infile )
    {
      int tmp_;
      tmp_ = infile.ReadItem( tmp_, "OPTSINVAR" );
-     optSinVar = tmp_ != 0;
+     optSinVar = BOOL(tmp_ != 0);
    }
    if( optSinVar )
    {

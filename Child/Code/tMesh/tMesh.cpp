@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.157 2003-05-23 11:57:54 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.158 2003-05-26 17:44:51 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -165,7 +165,7 @@ tMesh( tInputFile &infile )
    {
      int help;
      help = infile.ReadItem( help, "OPTINTERPLAYER" );
-     layerflag = (help>0) ? true:false;
+     layerflag = BOOL(help>0);
    }
    // option for reading/generating initial mesh
    int read;
@@ -4201,7 +4201,9 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
    tEdge* edg = tri->ePtr( (nv+2)%3 );
    tEdge* edgop = triop->ePtr( (nvop+2)%3 );
    const bool move =
-     tEdge::isFlowAllowed(na, nc) == !tEdge::isFlowAllowed(nb, nd);
+     BOOL(
+	  tEdge::isFlowAllowed(na, nc) == !tEdge::isFlowAllowed(nb, nd)
+	  );
 
    tListNode< tEdge >* enodePtr1=0;
    tListNode< tEdge >* enodePtr2=0;

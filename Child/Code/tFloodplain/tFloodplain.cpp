@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.18 2003-05-23 11:46:33 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.19 2003-05-26 17:44:51 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -109,8 +109,8 @@ tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
 
    {
      int tmp_;
-     optControlMainChan = infile.ReadItem( tmp_,
-					   "FP_OPTCONTROLCHAN" );
+     optControlMainChan = BOOL(infile.ReadItem( tmp_,
+						"FP_OPTCONTROLCHAN" ));
    }
    if( optControlMainChan )
      chanDriver = new tMainChannelDriver( infile );

@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.6 2003-05-23 11:52:49 childcvs Exp $
+**  $Id: childmain.cpp,v 1.7 2003-05-26 17:44:50 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -104,7 +104,7 @@ int main( int argc, char **argv )
    tErosion erosion( &mesh, inputFile );
    tUplift uplift( inputFile );
    cout << "Writing data for time zero...\n";
-   tRunTimer time( inputFile, !silent_mode );
+   tRunTimer time( inputFile, BOOL(!silent_mode) );
    output.WriteOutput( 0. );
    cout << "Initialization done.\n";
 
