@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.76 1999-04-09 22:39:14 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.77 1999-04-15 14:21:36 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -208,7 +208,7 @@ tLayer::getDgrade( ) const
    return dgrade;
 }
    
-
+/*
 tErode::tErode()                                                   //tErode
 {
      //erodtype = 0;
@@ -265,7 +265,7 @@ const tErode &tErode::operator=( const tErode &right )     //tErode
    }                                         
    return *this;                             
 }
-     
+*/
 
 tMeander::tMeander()                                              //tMeander
         : xyzd(4)
@@ -488,7 +488,7 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
    if( &right != this )
    {
       //erosion = right.erosion;
-      migration = right.migration;
+       //migration = right.migration;
       drarea = right.drarea;
       q = right.q;
       chanwidth = right.chanwidth;
@@ -556,6 +556,8 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
    grade.setSize( numg );
    maxregdep = infile.ReadItem( maxregdep, "MAXREGDEPTH" );
    KRnew = infile.ReadItem( KRnew, "KR" );
+   if( KRnew<0.0 )
+       ReportFatalError( "Erodibility factor KR must be positive." );
    
    i=0;
    add='1';
@@ -616,6 +618,8 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
          // layer(s) is/are put on top of the bedrock.
          // Bedrock layer items read in and set
          help = infile.ReadItem( help, "KB");
+         if( help<0.0 )
+             ReportFatalError( "Erodibility factor KB must be positive." );
          layhelp.setErody(help);
          layhelp.setSed(0);
          
@@ -635,6 +639,8 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
          // Regolith layer items read in and set
          layhelp.setSed(1);
          help = infile.ReadItem( help, "KR" );
+         if( help<0.0 )
+             ReportFatalError( "Erodibility factor KR must be positive." );
          layhelp.setErody(help);
          help = infile.ReadItem( help, "REGINIT");
          extra = 0;
@@ -676,6 +682,8 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
          // no regolith, so by default everything is bedrock
          // Bedrock layer items set
          help = infile.ReadItem( help, "KB");
+         if( help<0.0 )
+             ReportFatalError( "Erodibility factor KB must be positive." );
          layhelp.setErody(help);
          layhelp.setSed(0);
          layhelp.setDgradesize(numg);
