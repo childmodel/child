@@ -76,7 +76,7 @@ tInlet::~tInlet()
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.16 1998-03-03 22:30:52 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.17 1998-03-06 23:18:29 gtucker Exp $
 \**************************************************************************/
 
 
@@ -959,6 +959,8 @@ void tStreamNet::FillLakes()
             for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
                  cln = lakeIter.NextP() )
             {
+               cout << "LAKE LIST:\n";
+               cln->TellAll();
                // Check all the neighbors of the node
                       //XspokIter.Reset( cln->getSpokeListNC() );
                    //Xfor( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
@@ -1005,7 +1007,12 @@ void tStreamNet::FillLakes()
                   lowestNode->SetFloodStatus( kCurrentLake );
                }
             }
-            assert( lakeList.getSize() < gridPtr->GetNodeList()->getActiveSize() );
+            if( lakeList.getSize() > gridPtr->GetNodeList()->getActiveSize() )
+            {
+               cout << "LAKE LIST SIZE: " << lakeList.getSize() << endl;
+            }
+            
+            assert( lakeList.getSize() <= gridPtr->GetNodeList()->getActiveSize() );
          } while( !done );
 
          // Now we've found an outlet for the current lake.
@@ -1169,8 +1176,8 @@ void tStreamNet::SortNodesByNetOrder()
    int i;
    int done;
    tLNode * cn;
-   tGridList<tLNode> nodeList = gridPtr->GetNodeList();
-   int nUnsortedNodes = nodeList.getActiveSize();  // Number not yet sorted
+   tGridList<tLNode> *nodeList = gridPtr->GetNodeList();
+   int nUnsortedNodes = nodeList->getActiveSize();  // Number not yet sorted
    tGridListIter<tLNode> listIter( nodeList );
    
    //test
@@ -1211,7 +1218,7 @@ void tStreamNet::SortNodesByNetOrder()
          {
             nodeToMove = listIter.NodePtr();
             cn = listIter.NextP();
-            nodeList.moveToBack( nodeToMove );
+            nodeList->moveToActiveBack( nodeToMove );
             nThisPass++;
          }
          else
@@ -1223,16 +1230,21 @@ void tStreamNet::SortNodesByNetOrder()
       
       nUnsortedNodes -= nThisPass;
 
+      /*cout << "NO. UNSORTED: " << nUnsortedNodes << endl;
+      for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
+          cout << cn->getID() << " " << cn->GetQ() << " " << cn->GetQs()
+               << endl;*/
+
     } while( !done );
 
-  /*  cout << "AFTER: " << endl;
-  //test
-cur = firstnode;
-  for (i =1; i<=nActiveNodes; i++ ){
-  cout << cur->id << " " << cur->drarea << " " << cur->flood 
-       << " " << cur->flowsTo->id << endl;
-  cur=cur->next;}
-  */  
+  cout << "AFTER: " << endl;
+  cn = listIter.FirstP();
+  cout << "First node:\n";
+  cn->TellAll();
+  for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
+      cout << cn->getID() << " " << cn->GetQ() << endl;
+  cout << "Leaving Sort\n" << flush;
+  
  
 }
 
