@@ -38,7 +38,7 @@
 **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
 **      9/02: (AD)merge in main Child version
 **
-**  $Id: tPtrList.h,v 1.26 2003-01-17 17:30:41 childcvs Exp $
+**  $Id: tPtrList.h,v 1.27 2003-02-05 14:47:52 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -437,7 +437,7 @@ tPtrList( const tPtrList< NodeType > * origptr ) :
    if( curNode != 0 )
    {
       insertAtBack( curNode->Ptr );
-      for( curNode=curNode->next; curNode!=orig.last->next; curNode=curNode->next )
+      for( curNode=curNode->next; curNode!=origptr->last->next; curNode=curNode->next )
          insertAtBack( curNode->Ptr );
       if( origptr->last->next == origptr->first ) last->next = first;
       if( origptr->first->prev == origptr->last ) first->prev = last;
@@ -1153,18 +1153,18 @@ Get( NodeType *desiredItemPtr )
 {
    assert( ptrlistPtr != 0 );
    tPtrListNode<NodeType> *tempnodeptr;
-   for( tempnodeptr=ptrListPtr->first, counter = 0;
-	counter <= ptrListPtr->getSize() && tempnodeptr != 0;
+   for( tempnodeptr=ptrlistPtr->first, counter = 0;
+	counter <= ptrlistPtr->getSize() && tempnodeptr != 0;
 	tempnodeptr=tempnodeptr->next, ++counter )
      {
        if( tempnodeptr->Ptr == desiredItemPtr )
 	 break;
      }
    if( tempnodeptr == 0 ) return 0;
-   if( tempnodeptr->Ptr != nPtr ) return 0;
+   if( tempnodeptr->Ptr != desiredItemPtr ) return 0;
    curptrnode = tempnodeptr;
    return 1;
-}       
+}
 
 
 /**************************************************************************\
