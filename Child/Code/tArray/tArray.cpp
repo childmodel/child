@@ -4,7 +4,7 @@
 **
 **  Functions for class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.6 1998-07-15 22:21:45 gtucker Exp $
+**  $Id: tArray.cpp,v 1.7 1998-10-02 23:20:59 stlancas Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -166,9 +166,10 @@ istream &operator>>( istream &input, tArray< T > &a )
 {*/
 //overloaded output operator:
 template< class T >                                               //tArray
-operator<<( ostream &output, const tArray< T > &a )
+ostream &operator<<( ostream &output, const tArray< T > &a )
 {
-   for( int i = 0; i < a.npts; i++ )
+   int i;
+   for( i = 0; i < a.npts; i++ )
    {
       output << a.avalue[i] << " ";
       if( (i + 1) %10 == 0 ) output<<endl;
