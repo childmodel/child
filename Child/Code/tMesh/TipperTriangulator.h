@@ -47,11 +47,6 @@ public:
   point(const point& p) : _id(p.id()) { _XY[0] = p.x(); _XY[1] = p.y(); }
   const point &operator=( const point &p );
   int operator < (const point& p) const;
-  point operator - (const point& p) const {return point(x()-p.x(),y()-p.y());}
-#if 0
-  point operator + (const point& p) const {return point(x()+p.x(),y()+p.y());}
-  point operator / (double f) const {return point(x()/f,y()/f);}
-#endif
   double dot(const point& p) const {return (x()*p.x()+y()*p.y());}
 #if defined(DEBUG_PRINT)
   void print () const;
@@ -65,6 +60,11 @@ private:
   double _XY[2]; // so that it can be accessed as an array
   int _id;
 };
+
+inline point operator-(const point& lhs, const point& rhs) {
+  return point(lhs.x()-rhs.x(), lhs.y()-rhs.y());
+}
+
 
 class edge{
   const edge &operator=( const edge & );
