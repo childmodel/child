@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.25 1998-06-10 22:28:24 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.26 1998-06-15 23:02:44 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -17,6 +17,7 @@
 #include "../tList/tList.h"
 #include "../tInputFile/tInputFile.h"
 #include "../GlobalFns.h"
+#include "../tRunTimer/tRunTimer.h"
 
 /** class tLayer *********************************************************/
 /* Layer records */
@@ -35,15 +36,21 @@ class tLayer
    void setRtime( double );
    double getRtime() const;
    void setDepth( double );
+   // NOTE setDepth will also update the depths in dgrade so that the
+   // total depth is consistent and the original texture is kept.
+   // If texture needs to also be changed, call setDgrade.  This will
+   // also update depth and the texture will change appropriately.
    double getDepth() const;
    void setErody( double );
    double getErody() const;
    void setSed( int );
    int getSed() const;
    void setDgradesize( int );
+   int getDgradesize();
    void setDgrade( int, double );
    double getDgrade( int );
    tArray< double > getDgrade() const;
+   void addDgrade(int, double);
    
   protected:
    double ctime; // time of creation of layer
@@ -55,8 +62,7 @@ class tLayer
    // bedrock, this is the texture of what the bedrock will break up
    // into, not what is there on the bed.
    // Later this may be used as a flag for alluvium vs. regolith, etc.
-   tArray< double > dgrade; // depth of each size if multi size
-   
+   tArray< double > dgrade; // depth of each size if multi size   
 };
 
 /** class tErode ***********************************************************/
@@ -223,6 +229,7 @@ public:
     void setBankRough( double );
     double getBankRough() const;
     double getDrArea() const;
+   double getElev() const;
     tArray< double > getZOld() const;
     tArray< double > getNew2DCoords() const;   //for chan.migration.newx, newy
     void setNew2DCoords( double, double );      //        "
@@ -253,8 +260,10 @@ public:
     void setBedErody( double );
     double getBedErody() const;
     void setReachMember( int );
-    int getReachMember() const;
-    void setQs( double );
+   int getReachMember() const;
+// NOTE - For the get and set functions which involve arrays of size numg,
+   // the arrays go from 0 to (numg-1) and must be indexed in this manner
+   void setQs( double );
     void setQs( int, double );
     double getQs() const;
    double getQs( int );
@@ -282,53 +291,78 @@ public:
     double getUplift() const;
    int getNumg() const;
    void setNumg( int );
-   double getMaxregdepth() const;
-   void setMaxregdepth( double );
+   // NOTE for the get and set functions which involve the layerlist
+   // the top layer is layer 0 and indexes go from 0 to (getNumLayer-1)
+   // NOTE The set functions for layer depths (including grades)
+   // do not obey the rules of maximum layer depths
+   // and should be only used for inititalizing values
+   // Other than that, use updateLayerDepth() for erosion or deposition.
+   // This function takes the layer index because there may be
+   // erosion of the first few layers if the surface layer is not deep enough
+   // The addtoLayer() function is a helper to addtoSurfaceDgrade()
    double getLayerCtime(int) const;
    double getLayerRtime(int) const;
    double getLayerDepth(int) const;
    double getLayerErody(int) const;
    int getLayerSed(int) const;
-   double getLayerDgrade(int, int) const;
+   double getLayerDgrade(int, int) const;  // first int is layer index
+   // second int is grade index - see note above for indexing directions
    int getNumLayer() const;
-//    void setLayerCtime(int, double);
-//    void setLayerRtime(int, double);
-//    void setLayerDepth(int, double);
-//    void setLayerErody(int, double);
-//    void setLayerSed(int, int);
-//    void setLayerDgrade(int, int, double);
-    
+   void setLayerCtime(int, double);
+   void setLayerRtime(int, double);
+   void setLayerDepth(int, double);
+   void setLayerErody(int, double);
+   void setLayerSed(int, int);
+   void setLayerDgrade(int, int, double); 
+   tArray<double> updateLayerDepth(int, tArray<double>, double);
+   // returns the depth of of each size that was actually deposited or
+   // eroded.  Important in case less can be eroded than planned.
+   // Can be used for erosion of bedrock.
+   // Algorithm assumes that the material being deposited is the
+   // Same material as that which in the layer you are depositing into.
+   tArray<double> addtoLayer(int, double, double);
+   // Used if removing material from lower layers -
+   // only called from updateLayerDepth
+   // because appropriate checking needs to be done first.
+   // array tells the composition of the material which was taken from layer
+   void addtoLayer(int, int, double, double);
+   // Used if depositing or eroding material to lower layer size by size
+   // only called from addtoSurfaceDgrade because appropriate checking needs
+   // to be done first - also used for erosion from the surface layer
+   void makeNewLayerBelow(int, int, double, tArray<double>, double);
+   void removeLayer(int);
+   
 #ifndef NDEBUG
-    void TellAll();
+   void TellAll();
 #endif
-    
+   
 protected:
-    tBedrock rock;
-    tSurface surf;
-    tRegolith reg;
-    tChannel chan;
-    int flood;        /* flag: is the node part of a lake?*/
-    tEdge *flowedge;
-    int tracer;       /* Used by network sorting algorithm*/
-    double dzdt;      /* Erosion rate */
-    double drdt;      /* Rock erosion rate */
-    double qs;           /* Sediment transport rate*/
-    tArray< double > qsm; /* multi size; transport rate of each size fraction*/
-    double qsin;         /* Sediment influx rate*/
-    tArray< double > qsinm; /* multi size; influx rate of each size fraction*/
+   tBedrock rock;
+   tSurface surf;
+   tRegolith reg;
+   tChannel chan;
+   int flood;        /* flag: is the node part of a lake?*/
+   tEdge *flowedge;
+   int tracer;       /* Used by network sorting algorithm*/
+   double dzdt;      /* Erosion rate */
+   double drdt;      /* Rock erosion rate */
+   double qs;           /* Sediment transport rate*/
+   tArray< double > qsm; /* multi size; transport rate of each size fraction*/
+   double qsin;         /* Sediment influx rate*/
+   tArray< double > qsinm; /* multi size; influx rate of each size fraction*/
    double uplift;  /*uplift rate*/
    tList< tLayer > layerlist; /* list of the different layers */
    //int numlay; /* number of layers in the list */
    // nic - not storing this for now - just use getSize() func from tList
-   int numg; // number of grain sizes recognized NIC should be the same for all
+   static int numg;
+   // number of grain sizes recognized NIC should be the same for all
    // nodes, maybe put this somewhere else when you figure out what is going on
-   tArray< double > grade;  // size of each grain size class, again, you may
+   static tArray< double > grade;
+   // size of each grain size class, again, you may
    // want to put this somewhere else
-   double maxregdepth;  // maximum depth of a regolith layer
-   // nic - for now the surface layer and max depth of layers below
-   // will be the same
-   
-   
+   static double maxregdep;
 };
 
 #endif
+
+
