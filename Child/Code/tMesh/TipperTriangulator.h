@@ -70,6 +70,9 @@ public:
   //       from            .
 };
 
+// compile-time assertions
+void require_edge_c1(int d[( edge::none<0 ?1:-1)]);
+void require_edge_c2(int d[( edge::end<0 ?1:-1)]);
 
 // auxiliary class to get clockwise and counter clockwise edges around a node
 class oriented_edge {
@@ -123,5 +126,7 @@ public:
 
 };
 
+// compile-time assertions
+void require_elem_c1(int d[( elem::none<0 ?1:-1)]);
 
 
