@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.7 1998-02-04 00:34:06 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.8 1998-02-12 01:45:43 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -356,8 +356,8 @@ void tStreamNet::FlowDirs()
       
       curnode->SetFlowEdg( nbredg );
       curnode->SetFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
-      cout << "Node " << curnode->getID() << " flows to "
-           << curnode->GetDownstrmNbr()->getID() << endl;
+      //cout << "Node " << curnode->getID() << " flows to "
+      //     << curnode->GetDownstrmNbr()->getID() << endl;
       curnode = i.NextP();
 
   }
@@ -951,8 +951,8 @@ void tStreamNet::FillLakes()
                      {     // found one!  
                         cln->SetFloodStatus( kOutletPreFlag );
                         cln->SetFlowEdg( ce );
-                        cout << "Node " << cln->getID() << " flows to "
-                             << cln->GetDownstrmNbr()->getID() << endl;
+                        //cout << "Node " << cln->getID() << " flows to "
+                        //     << cln->GetDownstrmNbr()->getID() << endl;
                         
                      }
                   } while( cln->GetFloodStatus() != kOutletFlag
@@ -1032,8 +1032,8 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node )
       {
          maxslp = ce->getSlope();
          node->SetFlowEdg( ce );
-         cout << "Node " << node->getID() << " flows to "
-              << node->GetDownstrmNbr()->getID() << endl;
+         //cout << "Node " << node->getID() << " flows to "
+         //     << node->GetDownstrmNbr()->getID() << endl;
       }
    } while( ( ce=ce->GetCCWEdg() ) != node->GetEdg() );
    
