@@ -12,7 +12,7 @@
  **
  **  Created 5/2003 (QC)
  **
- **  $Id: tStratGrid.h,v 1.4 2004-04-22 17:29:50 childcvs Exp $
+ **  $Id: tStratGrid.h,v 1.5 2004-04-27 10:41:38 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -199,7 +199,15 @@ public:
   tMatrix<tStratNode> const *getStratNodeMatrix() const {
     return StratNodeMatrix;
   }
-  void UpdateStratGrid(int, double);
+  typedef enum {
+    k0,
+    k1,
+    k2,
+    k3,
+    k4
+  } tUpdate_t;
+
+  void UpdateStratGrid(tUpdate_t, double);
   void ResetAccummulatedDh();
   void InterpolateElevations();
   void setSectionBase();

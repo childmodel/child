@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.13 2004-04-22 17:29:49 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.14 2004-04-27 10:41:37 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -303,11 +303,11 @@ void tStratGrid::updateConnect()
  **
  ** 27-10-2003 (QC)
 \***********************************************************************/
-void tStratGrid::UpdateStratGrid(int mode, double time)
+void tStratGrid::UpdateStratGrid(tUpdate_t mode, double time)
 {
   // 0 = Initialisation at the beginning of a time step
   switch(mode){
-  case 0:
+  case k0:
     {
       cout<<"+++ 0 -UPDATESTRATGRID, START INITIALIZING...."<<endl;
       updateConnect();
@@ -320,7 +320,7 @@ void tStratGrid::UpdateStratGrid(int mode, double time)
     }
     break;
     // 1 = Update after streampower-type erosion and deposition
-  case 1:
+  case k1:
     {
       cout<<"+++ 1 -UPDATESTRATGRID, START STREAMPOWER...."<<endl;
       updateConnect();
@@ -333,7 +333,7 @@ void tStratGrid::UpdateStratGrid(int mode, double time)
     }
     break;
     // 2 = Update after meander migration (may decapitate stratNodes)
-  case 2:
+  case k2:
     {
       cout<<"+++ 2 -UPDATESTRATGRID, START MIGRATION...."<<endl;
       updateConnect();
@@ -346,7 +346,7 @@ void tStratGrid::UpdateStratGrid(int mode, double time)
     }
     break;
     // 3 = Update after geometrical meander-related erosion and deposition
-  case 3:
+  case k3:
     {
       cout<<"+++ 3-UPDATESTRATGRID, START CHANNEL DRIVER...."<<endl;
       updateConnect();
@@ -358,7 +358,7 @@ void tStratGrid::UpdateStratGrid(int mode, double time)
       cout<<"   "<<endl;
     }
     break;
-  case 4:
+  case k4:
     {
       cout<<"+++ 4 -UPDATESTRATGRID, START  FLOODPLAIN...."<<endl;
       updateConnect();

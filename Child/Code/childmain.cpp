@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.22 2004-04-19 17:30:07 childcvs Exp $
+**  $Id: childmain.cpp,v 1.23 2004-04-27 10:41:36 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -197,7 +197,7 @@ OptTSOutput." );
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
-      	  stratGrid->UpdateStratGrid(0, time.getCurrentTime());
+      	  stratGrid->UpdateStratGrid(tStratGrid::k0, time.getCurrentTime());
 
       if( optDetachLim )
           erosion.ErodeDetachLim( storm.getStormDuration(), &strmNet,
@@ -209,7 +209,7 @@ OptTSOutput." );
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
-	stratGrid->UpdateStratGrid(1,time.getCurrentTime() );
+	stratGrid->UpdateStratGrid(tStratGrid::k1,time.getCurrentTime() );
 
 
       if( optMeander )
@@ -219,7 +219,7 @@ OptTSOutput." );
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
-	stratGrid->UpdateStratGrid(2,time.getCurrentTime());
+	stratGrid->UpdateStratGrid(tStratGrid::k2,time.getCurrentTime());
 
       //----------------FLOODPLAIN---------------------------------
       if( optFloodplainDep )
@@ -230,7 +230,7 @@ OptTSOutput." );
 	  cout << "UpdateChannelHeight::Done..\n";
 
 	  if( optStratGrid ){
-	    stratGrid->UpdateStratGrid(3,time.getCurrentTime());
+	    stratGrid->UpdateStratGrid(tStratGrid::k3,time.getCurrentTime());
 	  }
 
 	  floodplain->DepositOverbank( storm.getRainrate(),
@@ -239,7 +239,7 @@ OptTSOutput." );
 	  cout << "tFloodplain::Done..\n";
 
 	  if( optStratGrid ){
-	    stratGrid->UpdateStratGrid(4,time.getCurrentTime());
+	    stratGrid->UpdateStratGrid(tStratGrid::k4,time.getCurrentTime());
 	  }
 
 	} // end of floodplain stuff
