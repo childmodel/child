@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.29 2000-06-05 21:14:59 daniel Exp $
+**  $Id: tOutput.cpp,v 1.30 2000-06-05 21:17:50 daniel Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -303,7 +303,7 @@ void tOutput<tSubNode>::WriteTSOutput( double time )
    for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
        volume += cn->getZ()*cn->getVArea();
    
-   vols << volume << endl;
+   volsofs << volume << endl;
    
 }
 
