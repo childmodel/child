@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.54 1999-01-11 20:35:39 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.55 1999-01-26 20:36:15 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -3327,7 +3327,7 @@ AddNode( tSubNode &nodeRef, int updatemesh )
    tGridListIter< tSubNode > nodIter( nodeList );
    assert( &nodeRef != 0 );
 
-   //cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
+   cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
 
    //cout << "locate tri" << endl << flush;
    tri = LocateTriangle( xyz[0], xyz[1] );

@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.50 1999-01-21 19:46:58 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.51 1999-01-26 20:35:49 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -676,6 +676,7 @@ void tErosion::ErodeDetachLim( double dtg )
    } while( dtg>0 );
    
 }
+
 
    
 void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
