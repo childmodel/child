@@ -3,7 +3,13 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.80 2000-01-13 00:05:48 nmgaspar Exp $
+**  Summary of recent changes:
+**    - modified LocateTriangle to implement triangle search
+**      starting from a given location; modified constructors to set
+**      initial value of mSearchOriginTriPtr, and modified ExtricateTri...
+**      to avoid dangling ptr. GT, 1/2000
+**
+**  $Id: tMesh.cpp,v 1.81 2000-01-13 23:54:32 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -150,6 +156,8 @@ tMesh< tSubNode >::
 tMesh() 
 {
    nnodes = nedges = ntri = seed = 0;
+   mSearchOriginTriPtr=0;
+   miNextNodeID = miNextEdgID = miNextTriID = 0;
    cout<<"tMesh()"<<endl;
    layerflag=FALSE;
 }
@@ -169,6 +177,10 @@ tMesh<tSubNode>::tMesh( tMesh *originalMesh )
    triList = originalMesh->triList;
    seed = originalMesh->seed;
    layerflag = originalMesh->layerflag;
+   miNextNodeID = originalMesh->miNextNodeID;
+   miNextEdgID = originalMesh->miEdgNodeID;
+   miNextTriID = originalMesh->miNextTriID;   
+   mSearchOriginTriPtr=0;
 }
 
 
@@ -180,7 +192,6 @@ tMesh<tSubNode>::tMesh( tMesh *originalMesh )
 **                    scratch, given parameters in infile.
 **
 **   Created: 2/11/98, SL
-**   Modified: 4/98 GT added MakeMeshFromPoints function
 **   Calls: tInputFile::ReadItem,
 **        MakeMeshFromInputData( infile ), MakeMeshFromScratch( infile ),
 **        of MakeMeshFromPoints( infile )
@@ -190,14 +201,20 @@ tMesh<tSubNode>::tMesh( tMesh *originalMesh )
 **                         if needed, these are in separate files
 **   Notes: needs to find 0, 1 or 2 under the heading of "OPTREADINPUT"
 **               in infile.
-**   Added 7/98 - will read in layering information from a Child output file
-**         if OPTREADLAYER is set to 1.  
+**   Modifications: 
+**    - 4/98 GT added MakeMeshFromPoints function
+**    - Added 7/98 - will read in layering information from a Child output
+**         file if OPTREADLAYER is set to 1 (NMG).
+**    - new variable mSearchOriginTriPtr initialized, first to zero,
+**      then to center of domain. GT 1/2000  
 **
 \**************************************************************************/
 template< class tSubNode >
 tMesh< tSubNode >::
 tMesh( tInputFile &infile )
 {
+   miNextNodeID = miNextEdgID = miNextTriID = 0;
+
    int read = infile.ReadItem( read, "OPTREADINPUT" );
    if( read<0 || read>4 )
    {
@@ -210,6 +227,9 @@ tMesh( tInputFile &infile )
       ReportFatalError( "Invalid mesh input option requested." );
    }
    
+   // initially set search origin (tTriangle*) to zero:
+   mSearchOriginTriPtr = 0;
+
    if( read==1 ) {
       MakeMeshFromInputData( infile ); //create mesh by reading data files
       int lay = infile.ReadItem( lay, "OPTREADLAYER" );
@@ -228,6 +248,27 @@ tMesh( tInputFile &infile )
    int help = infile.ReadItem( help, "OPTINTERPLAYER" );
    if(help>0) layerflag=TRUE;
    else layerflag=FALSE;
+
+   // find geometric center of domain:
+   double cx = 0.0;
+   double cy = 0.0;
+   double sumarea = 0.0;
+   double carea;
+   tMeshListIter< tSubNode > nI( getNodeList() );
+   tNode* cn;
+   for( cn = nI.FirstP(); !nI.AtEnd(); cn = nI.NextP() )
+   {
+      carea = cn->getVArea();
+      cx += cn->getX() * carea;
+      cy += cn->getY() * carea;
+      sumarea += carea;
+   }
+   assert( sumarea>0.0 );
+   cx /= sumarea;
+   cy /= sumarea;
+   // find triangle in which these coordinates lie and designate it the
+   // search origin:
+   mSearchOriginTriPtr = LocateTriangle( cx, cy );
 
 }
 
@@ -431,22 +472,22 @@ MakeMeshFromInputData( tInputFile &infile )
    tMeshListIter< tSubNode > nodIter( nodeList );
    tEdge tempedge1, tempedge2;
    int obnd, dbnd;
-   for( i = 0; i< nedges-1; i+=2 )
+   for( miNextEdgID = 0; miNextEdgID < nedges-1; miNextEdgID+=2 )
    {
       // Assign values: ID, origin and destination pointers
-      tempedge1.setID( i );
-      tempedge2.setID( i + 1 );
+      tempedge1.setID( miNextEdgID );
+      tempedge2.setID( miNextEdgID + 1 );
       //cout << input.orgid[i] << " " << input.destid[i] << endl;
       //cout << nodIter.Get( input.orgid[i] ) << " ";
       //cout << nodIter.Get( input.destid[i] ) << endl;
-      assert( nodIter.Get( input.orgid[i] ) );
+      assert( nodIter.Get( input.orgid[miNextEdgID] ) );
           //{
          tempedge1.setOriginPtr( &(nodIter.DatRef()) );
          tempedge2.setDestinationPtr( &(nodIter.DatRef()) );
          obnd = nodIter.DatRef().getBoundaryFlag();
          //cout << nodIter.DatRef().getID() << "->";
          //}
-         assert( nodIter.Get( input.destid[i] ) );
+         assert( nodIter.Get( input.destid[miNextEdgID] ) );
           //{
          tempedge1.setDestinationPtr( &(nodIter.DatRef()) );
          tempedge2.setOriginPtr( &(nodIter.DatRef()) );
@@ -566,46 +607,40 @@ MakeMeshFromInputData( tInputFile &infile )
    while( nodIter.Next() );*/
 
    cout << "setting up triangle connectivity..." << flush;
-   tTriangle temptri;
+   tTriangle *newtri;
    for ( i=0; i<ntri; i++ )
    {
       //cout << "TRI " << i << endl << flush;
-      temptri.setID( i );
+      newtri = new tTriangle;
+      newtri->setID( i );
       if( nodIter.Get( input.p0[i] ) )
-          temptri.setPPtr( 0, &(nodIter.DatRef()) );
+          newtri->setPPtr( 0, &(nodIter.DatRef()) );
       if( nodIter.Get( input.p1[i] ) )
-          temptri.setPPtr( 1, &(nodIter.DatRef()) );
+          newtri->setPPtr( 1, &(nodIter.DatRef()) );
       if( nodIter.Get( input.p2[i] ) )
-          temptri.setPPtr( 2, &(nodIter.DatRef()) );
+          newtri->setPPtr( 2, &(nodIter.DatRef()) );
       if( edgIter.Get( input.e0[i] ) )
-          temptri.setEPtr( 0, &(edgIter.DatRef()) );
+          newtri->setEPtr( 0, &(edgIter.DatRef()) );
       if( edgIter.Get( input.e1[i] ) )
-          temptri.setEPtr( 1, &(edgIter.DatRef()) );
+          newtri->setEPtr( 1, &(edgIter.DatRef()) );
       if( edgIter.Get( input.e2[i] ) )
-          temptri.setEPtr( 2, &(edgIter.DatRef()) );
-      triList.insertAtBack( temptri );
+          newtri->setEPtr( 2, &(edgIter.DatRef()) );
+      triList.insertAtBack( newtri );
    }
    
-   tListIter< tTriangle >
-       trIter1( triList );
-   tListIter< tTriangle >
-       trIter2( triList );
-   i = 0;
-   do                                                //for ( i=0; i<ntri; i++ )
+   tPtrListIter< tTriangle >
+       triIter( triList );
+   tTriangle * ct, * nbrtri;
+   for( i=0, ct=triIter.FirstP(); i<ntri; ct=triIter.NextP(), i++ )
    {
-      //cout << "tMesh: Tri loop, i: " << i << endl;
-      if( trIter2.Get( input.t0[i] ) )
-          trIter1.DatRef().setTPtr( 0, &(trIter2.DatRef()) );
-      else trIter1.DatRef().setTPtr( 0, 0 );
-      if( trIter2.Get( input.t1[i] ) )
-          trIter1.DatRef().setTPtr( 1, &(trIter2.DatRef()) );
-      else trIter1.DatRef().setTPtr( 1, 0 );
-      if( trIter2.Get( input.t2[i] ) )
-          trIter1.DatRef().setTPtr( 2, &(trIter2.DatRef()) );
-      else trIter1.DatRef().setTPtr( 2, 0 );
-      i++;
+      nbrtri = ( input.t0[i]>=0 ) ? triIter.GetP( input.t0[i] ) : 0;
+      ct->setTPtr( 0, nbrtri );
+      nbrtri = ( input.t1[i]>=0 ) ? triIter.GetP( input.t1[i] ) : 0;
+      ct->setTPtr( 1, nbrtri );
+      nbrtri = ( input.t2[i]>=0 ) ? triIter.GetP( input.t2[i] ) : 0;
+      ct->setTPtr( 2, nbrtri );
    }
-   while( trIter1.Next() );
+   
    cout<<"done.\n";
 
    UpdateMesh();
@@ -682,7 +717,7 @@ BatchAddNodes()
    tPtrList< tEdge > tmpbndList;
    tMeshListIter< tSubNode > nI( nodeList );
    tMeshListIter< tEdge > eI( edgeList );
-   tListIter< tTriangle > tI( triList );
+   tPtrListIter< tTriangle > tI( triList );
    tPtrListIter< tEdge > bI( tmpbndList );
    tPtrListIter< tSubNode > tnI( tmpnodList ), nbrI;
    tEdge* ce;
@@ -960,7 +995,6 @@ void tMesh< tSubNode >::
 MakeMeshFromScratch( tInputFile &infile )
 {
    int i, j,                     // counters 
-       id,                       // node ID number
        n, nx, ny;                // no. of nodes along a side
    int numPts;                   // total no. of interior pts (if random)
    double dist;                  // current distance along boundary
@@ -1020,47 +1054,47 @@ MakeMeshFromScratch( tInputFile &infile )
    //MAKE BOUNDARY
    if( boundType == kCornerOutlet )
    {
-      id = 0;
+      miNextNodeID = 0;
       tempnode.setBoundaryFlag( kOpenBoundary );
       tempnode.set3DCoords( 0, 0, 0 );
-      tempnode.setID( id );
+      tempnode.setID( miNextNodeID );
       n = xGrid / delGrid;
       tempnode.setBoundaryFlag( kOpenBoundary );
       nodeList.insertAtBack( tempnode );
       bndList.insertAtBack( nodIter.LastP() );
       tempnode.setBoundaryFlag( kClosedBoundary );
-      for( i=1, id++; i<n; i++, id++ )
+      for( i=1, miNextNodeID++; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       n = yGrid / delGrid;
-      for( i=0; i<n; i++, id++ )
+      for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( xGrid, dist, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       n = xGrid / delGrid;
-      for( i=n; i>0; i--, id++ )
+      for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, yGrid, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       n = yGrid / delGrid;
-      for( i=n; i>0; i--, id++ )
+      for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( 0, dist, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
@@ -1070,39 +1104,39 @@ MakeMeshFromScratch( tInputFile &infile )
       cout << "OPEN SIDE boundary\n";
       n = xGrid / delGrid;
       tempnode.setBoundaryFlag( kOpenBoundary );
-      for( i=1, id=0; i<n; i++, id++ )
+      for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
-         tempnode.setID( i - 1 );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       tempnode.setBoundaryFlag( kClosedBoundary );
       n = yGrid / delGrid;
-      for( i=0; i<n; i++, id++ )
+      for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( xGrid, dist, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       n = xGrid / delGrid;
-      for( i=n; i>0; i--, id++ )
+      for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, yGrid, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       n = yGrid / delGrid;
-      for( i=n; i>=0; i--, id++ )
+      for( i=n; i>=0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( 0, dist, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
@@ -1112,82 +1146,82 @@ MakeMeshFromScratch( tInputFile &infile )
       upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
       n = xGrid / delGrid;
       tempnode.setBoundaryFlag( kOpenBoundary );
-      for( i=1, id=0; i<n; i++, id++ )
+      for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       tempnode.setBoundaryFlag( kClosedBoundary );
       n = yGrid / delGrid;
-      for( i=0; i<=n; i++, id++ )
+      for( i=0; i<=n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( xGrid, dist, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       tempnode.setBoundaryFlag( kOpenBoundary );
       n = xGrid / delGrid;
-      for( i=n-1; i>0; i--, id++ )
+      for( i=n-1; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, yGrid, upperZ );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBoundFront( tempnode );
-         bndList.insertAtBack( nodIter.GetP( id ) );
+         bndList.insertAtBack( nodIter.FirstBoundaryP() );
       }
       tempnode.setBoundaryFlag( kClosedBoundary );
       n = yGrid / delGrid;
-      for( i=n; i>=0; i--, id++ )
+      for( i=n; i>=0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( 0, dist, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
    }
    else if( boundType == kAllSidesOpen )
    {
-      id = 0;
+      miNextNodeID = 0;
       n = xGrid / delGrid;
       tempnode.setBoundaryFlag( kOpenBoundary );
-      for( i=0; i<n; i++, id++ )
+      for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       n = yGrid / delGrid;
-      for( i=0; i<n; i++, id++ )
+      for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( xGrid, dist, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       n = xGrid / delGrid;
-      for( i=n; i>0; i--, id++ )
+      for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, yGrid, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       n = yGrid / delGrid;
-      for( i=n; i>0; i--, id++ )
+      for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( 0, dist, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
@@ -1201,12 +1235,12 @@ MakeMeshFromScratch( tInputFile &infile )
       // Create nodes for bottom (Y=0) boundary and place them on list
       n = xGrid / delGrid;
       tempnode.setBoundaryFlag( kClosedBoundary );
-      for( i=0, id=0; i<n; i++, id++ )
+      for( i=0, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
          // Assign node coords to tempnode and add tempnode to list
          dist = i * delGrid + 0.01 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
 
@@ -1216,73 +1250,73 @@ MakeMeshFromScratch( tInputFile &infile )
          {
             tempnode.set3DCoords( xout, yout, 0 );
             tempnode.setBoundaryFlag( kOpenBoundary );
-            id++;
-            tempnode.setID( id );
+            miNextNodeID++;
+            tempnode.setID( miNextNodeID );
             nodeList.insertAtBoundFront( tempnode );
-            bndList.insertAtBack( nodIter.GetP( id ) );
+            bndList.insertAtBack( nodIter.FirstBoundaryP() );
             tempnode.setBoundaryFlag( kClosedBoundary );
          }
       }
 
       // Create nodes for right (X=xGrid) boundary and place them on list
       n = yGrid / delGrid;
-      for( i=0; i<n; i++, id++ )
+      for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( xGrid, dist, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
          if( xout == xGrid && yout > dist && yout < dist + delGrid )
          {
             tempnode.set3DCoords( xout, yout, 0 );
             tempnode.setBoundaryFlag( kOpenBoundary );
-            id++;
-            tempnode.setID( id );
+            miNextNodeID++;
+            tempnode.setID( miNextNodeID );
             nodeList.insertAtBoundFront( tempnode );
-            bndList.insertAtBack( nodIter.GetP( id ) );
+            bndList.insertAtBack( nodIter.FirstBoundaryP() );
             tempnode.setBoundaryFlag( kClosedBoundary );
          }
       }
 
       // Create nodes for top (Y=yGrid) boundary and place them on list
       n = xGrid / delGrid;
-      for( i=n; i>0; i--, id++ )
+      for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, yGrid, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
          if( yout == yGrid && xout < dist && xout > dist - delGrid )
          {
             tempnode.set3DCoords( xout, yout, 0 );
             tempnode.setBoundaryFlag( kOpenBoundary );
-            id++;
-            tempnode.setID( id );
+            miNextNodeID++;
+            tempnode.setID( miNextNodeID );
             nodeList.insertAtBoundFront( tempnode );
-            bndList.insertAtBack( nodIter.GetP( id ) );
+            bndList.insertAtBack( nodIter.FirstBoundaryP() );
             tempnode.setBoundaryFlag( kClosedBoundary );
          }
       }
 
       // Create nodes for left (X=0) boundary and place them on list
       n = yGrid / delGrid;
-      for( i=n; i>0; i--, id++ )
+      for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( 0, dist, 0 );
-         tempnode.setID( id );
+         tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
          if( xout == 0 && yout < dist && yout > dist - delGrid )
          {
             tempnode.set3DCoords( xout, yout, 0 );
             tempnode.setBoundaryFlag( kOpenBoundary );
-            id++;
-            tempnode.setID( id );
+            miNextNodeID++;
+            tempnode.setID( miNextNodeID );
             nodeList.insertAtBoundFront( tempnode );
-            bndList.insertAtBack( nodIter.GetP( id ) );
+            bndList.insertAtBack( nodIter.FirstBoundaryP() );
             tempnode.setBoundaryFlag( kClosedBoundary );
          }
       }
@@ -1330,7 +1364,7 @@ MakeMeshFromScratch( tInputFile &infile )
       ny = yGrid / delGrid;  // no. points in y direction
       for( i=1; i<nx; i++ )
       {
-         for( j=1; j<ny; j++, id++ )
+         for( j=1; j<ny; j++, miNextNodeID++ )
          {
             //rows are offset such that there should be an
             //edge leading to a corner outlet -- NB: no longer true!
@@ -1351,9 +1385,8 @@ MakeMeshFromScratch( tInputFile &infile )
                xyz[2] += slope * xyz[1] - mElev;
             }
             tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
-            tempnode.setID( id );
+            tempnode.setID( miNextNodeID );
             AddNode( tempnode );
-            //XAddNodeAt( xyz );
          }
       }
    }
@@ -1368,9 +1401,9 @@ MakeMeshFromScratch( tInputFile &infile )
          if( xyz[0] != 0 && xyz[0] != xGrid && xyz[1] != 0 && xyz[1] != yGrid )
          {
             tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
-            tempnode.setID( id );
+            tempnode.setID( miNextNodeID );
             AddNode( tempnode );
-            id++;
+            miNextNodeID++;
          }
       }
    }
@@ -1385,7 +1418,8 @@ MakeMeshFromScratch( tInputFile &infile )
    {
       tempnode.setBoundaryFlag( kOpenBoundary );
       tempnode.set3DCoords( xout, yout, 0 );
-      tempnode.setID( id );
+      tempnode.setID( miNextNodeID );
+      miNextNodeID++;
       AddNode( tempnode );
    }
 
@@ -1481,7 +1515,7 @@ MakeMeshFromPoints( tInputFile &infile )
    // nodes when we're done creating the mesh.
    cout << "creating supertri: max & min are " << maxx << "," << maxy << endl;
    
-tempnode.set3DCoords( minx-3*dx, miny-3*dy, 0.0 );
+   tempnode.set3DCoords( minx-3*dx, miny-3*dy, 0.0 );
    tempnode.setBoundaryFlag( kClosedBoundary );
    tempnode.setID( -1 );
    nodeList.insertAtBack( tempnode );
@@ -1519,13 +1553,14 @@ tempnode.set3DCoords( minx-3*dx, miny-3*dy, 0.0 );
    MakeTriangle( supertriptlist, stpIter );
 
    cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: " << nedges << " NT: " << ntri << endl << flush;
+   cout << "c4\n";
 
    // Now add the points one by one to construct the mesh.
    for( i=0; i<numpts; i++ )
    {
-      cout << "IN MGFP, ADDING NODE " << i << endl;
-      tempnode.setID( i );
-      tempnode.set3DCoords( x[i], y[i], z[i] );
+      cout << "IN MGFP c0, ADDING NODE " << i << endl;
+      //Xtempnode.setID( miNextNodeID );
+      tempnode.set3DCoords( x[i],y[i],z[i] );
       tempnode.setBoundaryFlag( bnd[i] );
       AddNode( tempnode );
    }
@@ -1912,6 +1947,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    // place points in hexagonal mesh, i.e., equilateral triangles:
    xgen = ygen = 0.0;
    j = 0;
+   miNextNodeID = 0;
    keepgoing = 1;
    while( keepgoing )
    {
@@ -1923,6 +1959,8 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
       else tempnode.setBoundaryFlag( kClosedBoundary );
       x = xgen * delgrid + minx;
       y = ygen * delgrid + miny;
+      tempnode.setID( miNextNodeID );
+      miNextNodeID++;
       tempnode.set3DCoords( x, y, zinterp );
       cn = AddNode( tempnode, /*updatemesh =*/ 0 );
       if( zinterp != nodata && zinterp < minz )
@@ -2042,7 +2080,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
 {
    tMeshListIter<tSubNode> nodIter( nodeList );
    tMeshListIter<tEdge> edgIter( edgeList );
-   tListIter<tTriangle> triIter( triList );
+   tPtrListIter<tTriangle> triIter( triList );
    tPtrListIter< tEdge > sIter;
    tNode * cn, * org, * dest;
    tEdge * ce, * cne, * ccwedg;
@@ -2344,7 +2382,7 @@ void tMesh<tSubNode>::setVoronoiVertices()
    //tArray< double > xyo, xyd1, xyd2, xy(2);
    //cout << "setVoronoiVertices()..." << endl;
    tArray< double > xy;
-   tListIter< tTriangle > triIter( triList );
+   tPtrListIter< tTriangle > triIter( triList );
    tTriangle * ct;
 
    // Find the Voronoi vertex associated with each Delaunay triangle
@@ -2543,11 +2581,11 @@ DeleteNode( tSubNode *node, int repairFlag )
    
    //reset node id's
    assert( nodIter.First() );
-   i = 0;
+   miNextNodeID = 0;
    do
    {
-      nodIter.DatRef().setID( i );
-      i++;
+      nodIter.DatRef().setID( miNextNodeID );
+      miNextNodeID++;
    }
    while( nodIter.Next() );
      //cout << "Mesh repaired" << endl;
@@ -2831,8 +2869,10 @@ LocateTriangle( double x, double y )
 {
    //cout << "\nLocateTriangle (" << x << "," << y << ")\n";
    int n, lv=0;
-   tListIter< tTriangle > triIter( triList );  //lt
-   tTriangle *lt = &(triIter.DatRef());
+   tPtrListIter< tTriangle > triIter( triList );  //lt
+   //XtTriangle *lt = &(triIter.DatRef());
+   tTriangle *lt = ( mSearchOriginTriPtr > 0 ) ? mSearchOriginTriPtr
+       : triIter.FirstP();
    double a, b, c;
    int online = -1;
    tArray< double > xy1, xy2;
@@ -2848,10 +2888,10 @@ LocateTriangle( double x, double y )
       a = (xy1[1] - y) * (xy2[0] - x);
       b = (xy1[0] - x) * (xy2[1] - y);
       c = a - b;
-      /*cout << "find tri for point w/ x, y, " << x << ", " << y
-        << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;
-        lt->TellAll();
-        cout << flush;*/
+      //cout << "find tri for point w/ x, y, " << x << ", " << y
+      //  << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;
+      // lt->TellAll();
+        cout << flush;
       
       if ( c > 0.0 )
       {
@@ -2877,6 +2917,7 @@ LocateTriangle( double x, double y )
    }
    //cout << "FOUND point in:\n";
    //if( lt != 0 ) lt->TellAll(); //careful with this! TellAll() will crash
+   //else ReportFatalError( "point out of bounds" );
    //if lt == 0, i.e., point is out of bounds,
    //and we don't want that;
    //calling code is built to deal with lt == 0.
@@ -2904,7 +2945,7 @@ LocateNewTriangle( double x, double y )
 {
    //cout << "LocateTriangle" << endl;
    int n, lv=0;
-   tListIter< tTriangle > triIter( triList );  //lt
+   tPtrListIter< tTriangle > triIter( triList );  //lt
    tTriangle *lt = triIter.FirstP();
    tSubNode *p1, *p2;
    
@@ -2952,7 +2993,7 @@ TriWithEdgePtr( tEdge *edgPtr )
    assert( edgPtr != 0 );
    tTriangle *ct;
    //cout << "TriWithEdgePtr " << edgPtr->getID();
-   tListIter< tTriangle > triIter( triList );
+   tPtrListIter< tTriangle > triIter( triList );
 
    for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
        if( ct != 0 ) //TODO: is this test nec? why wd it be zero?
@@ -2987,11 +3028,16 @@ DeleteTriangle( tTriangle * triPtr )
    tTriangle triVal;
 
    if( !ExtricateTriangle( triPtr ) ) return 0;
-   if( !( triList.removeFromFront( triVal ) ) ) return 0;
+   //if( !( triList.removeFromFront( triVal ) ) ) return 0;
+   if( !( triPtr = triList.removeFromFront() ) )
+   {
+      cerr << "DeleteTriangle(): triList.removeFromFront( triPtr ) failed\n";
+      return 0;
+   }
    if( &triVal == 0 ) return 0;
    return 1;
 }
-      
+
 /**************************************************************************\
 **
 **  tMesh::ExtricateTriangle
@@ -3010,7 +3056,7 @@ int tMesh< tSubNode >::
 ExtricateTriangle( tTriangle *triPtr )
 {
    //cout << "ExtricateTriangle" << endl;
-   tListIter< tTriangle > triIter( triList );
+   tPtrListIter< tTriangle > triIter( triList );
    tTriangle *ct;
 
    // Find the triangle on the list
@@ -3030,6 +3076,17 @@ ExtricateTriangle( tTriangle *triPtr )
    triList.moveToFront( triIter.NodePtr() );
 
    ntri--;
+
+   // Make sure mSearchOriginTriPtr doesn't point to the triangle being
+   // extricated. If it does, reassign it to a neighbor or zero..
+   if( triPtr == mSearchOriginTriPtr )
+   {
+       mSearchOriginTriPtr = 0;
+       for( i=0; i<3; ++i )
+           if( triPtr->tPtr(i) != 0 )
+               mSearchOriginTriPtr = triPtr->tPtr(i);
+   }
+
    return 1;
 }
 
@@ -3133,7 +3190,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
      "between nodes " << node1->getID()
      << " and " << node2->getID() << " w/ ref to node " << node3->getID() << endl;*/
    int flowflag = 1;  // Boundary code for new edges
-   int i, /*j,*/ newid;
+   int i;
    tEdge tempEdge1, tempEdge2;  // The new edges
    tEdge *ce, *le;
    tMeshListIter< tEdge > edgIter( edgeList );
@@ -3154,12 +3211,13 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
        flowflag = 0;
    
    // Set boundary status and ID
-   if( !( edgeList.isEmpty() ) )
+   /*Xif( !( edgeList.isEmpty() ) )
        newid = edgIter.LastP()->getID() + 1;
-   else newid = 0;
-   tempEdge1.setID( newid );                     //set edge1 ID
-   newid++;
-   tempEdge2.setID( newid );                     //set edge2 ID
+       else newid = 0;*/
+   tempEdge1.setID( miNextEdgID );                     //set edge1 ID
+   miNextEdgID++;
+   tempEdge2.setID( miNextEdgID );                     //set edge2 ID
+   miNextEdgID++;
    tempEdge1.setFlowAllowed( flowflag );         //set edge1 FLOWALLOWED
    tempEdge2.setFlowAllowed( flowflag );         //set edge2 FLOWALLOWED
 
@@ -3286,9 +3344,10 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    nedges+=2;
 
    // Reset edge id's
-   for( ce = edgIter.FirstP(), i = 0; !( edgIter.AtEnd() ); ce = edgIter.NextP(), i++ )
+   for( ce = edgIter.FirstP(), miNextEdgID = 0; !( edgIter.AtEnd() ); 
+        ce = edgIter.NextP(), miNextEdgID++ )
    {
-      ce->setID( i );
+      ce->setID( miNextEdgID );
       /*cout << "    Edg " << i << " (" << ce->getOriginPtr()->getID() << "->"
            << ce->getDestinationPtr()->getID() << ")\n";*/
    }
@@ -3357,6 +3416,11 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
 **   contain three, and only three, members and be circular.
 **  Created: SL fall, '97
 **
+**  Modifications:
+**   - mSearchOriginTriPtr is reset to point to the newly added triangle
+**     in an attempt to speed up triangle searches, especially during
+**     mesh creation. GT 1/2000
+**
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
@@ -3367,14 +3431,13 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    assert( nbrList.getSize() == 3 );
    //cout << "MakeTriangle" << endl << flush;
    int i, j;
-   int newid;                          // ID of new triangle
-   tTriangle tempTri;
+   //Xint newid;                          // ID of new triangle
+   //XtTriangle tempTri;
    tTriangle *nbrtriPtr;
    tSubNode *cn, *cnn, *cnnn;
    tEdge *ce;
-   //XtEdge *dce;
    tTriangle *ct;
-   tListIter< tTriangle > triIter( triList );
+   tPtrListIter< tTriangle > triIter( triList );
    tMeshListIter< tEdge > edgIter( edgeList );
    tPtrListIter< tEdge > spokIter;
    assert( nbrList.getSize() == 3 );
@@ -3392,34 +3455,35 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    {
       cerr << "in MT nodes not CCW: " << cn->getID() << ", "
            << cnn->getID() << ", " << cnnn->getID();
-      if( cn->Meanders() ) p0 = cn->getNew2DCoords();
+      /*if( cn->Meanders() ) p0 = cn->getNew2DCoords();
       else p0 = cn->get2DCoords();
       if( cnn->Meanders() ) p1 = cnn->getNew2DCoords();
       else p1 = cnn->get2DCoords();
       if( cnnn->Meanders() ) p2 = cnnn->getNew2DCoords();
       else p2 = cnnn->get2DCoords();
       if( !PointsCCW( p0, p1, p2 ) )
-          cerr << "; nor are new coords CCW ";
+      cerr << "; nor are new coords CCW ";*/
       cerr << endl;
    }
 
    /*cout << "In MT, the 3 nodes are: " << cn->getID() << " " << cnn->getID()
         << " " << cnnn->getID() << endl;*/
    
-     //for debugging:
-     //DumpEdges();
-     //DumpSpokes:
-   
+   //X OBSOLETE: Now uses miNextTriID, GT 1/2000
    // set the ID for the new triangle based on the ID of the last triangle
    // on the list plus one, or if there are no triangles on the list yet
    // (which happens when we're creating an initial "supertriangle" as in
    // MakeMeshFromPoints), set the ID to zero.
-   ct = triIter.LastP();
+   /*ct = triIter.LastP();
    if( ct ) newid = ct->getID() + 1;
    else newid = 0;
-   tempTri.setID( newid );
+   tempTri.setID( newid );*/
 
-   // set edge and vertex ptrs & add to triList: We go through each point,
+   /* The following block is made obsolete through the use of a new
+      triangle constructor that automatically initializes vertex and
+      edge pointers, 1/2000 GT */
+
+/*X   // set edge and vertex ptrs & add to triList: We go through each point,
    // p0, p1, and p2. At each step, we assign p(i) to the triangle's
    // corresponding pPtr(i), and get the spoke list for node p(i). We then
    // advance such that cn points to p(i+1) and cnn points to p(i+2), and
@@ -3441,32 +3505,29 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
            ce->getDestinationPtr() != cnn && !( spokIter.AtEnd() );
            ce = spokIter.NextP() );
 
-      /*cout << "SEEKing edg from " << ce->getOriginPtr()->getID()
-           << " to " << cnn->getID() << " and found it in edg " << ce->getID()
-           << endl;
-      ce->TellCoords();*/
-      
-      // 4 debug
-      if( ( spokIter.AtEnd() ) )
-      {
-         cerr << "dest node " << cnn->getID() << " not found for node "
-              << ce->getOriginPtrNC()->getID() << endl;
-         DumpNodes();
-         ReportFatalError( "failed: !( spokIter.AtEnd() )" );
-      }
-      
       assert( !( spokIter.AtEnd() ) );
 
       // Assign edge p(i)->p(i+2) as the triangle's clockwise edge #i
       // (eg, ePtr(0) is the edge that connects p0->p2, etc)
       tempTri.setEPtr( i, ce );      //set tri EDGE ptr i
       tempTri.setTPtr( i, 0 );       //initialize tri TRI ptrs to nul
-   }
-   triList.insertAtBack( tempTri );       //put tri in list
-   ct = triIter.LastP();                  //set triIter to last
-   assert( cn == ct->pPtr(0) );           //make sure we're where we
-                                          //think we are
+      }*/
 
+   // Create the new triangle and insert a pointer to it on the list.
+   // Here, the triangle constructor takes care of setting pointers to
+   // the 3 vertices and 3 edges. The neighboring triangle pointers are
+   // initialized to zero.
+   triList.insertAtBack( new tTriangle( miNextTriID++, cn, cnn, cnnn ) );//put 
+
+   ct = triIter.LastP();            //ct now points to our new triangle
+   assert( cn == ct->pPtr(0) );     //make sure we're where we think we are
+
+   // To speed up future searches in calls to LocateTriangle, assign the
+   // starting triangle, mSearchOriginTriPtr, to the our new triangle.
+   // The idea here is that there's a good chance that the next point
+   // to be added will be close to the current location. (added 1/2000)
+   mSearchOriginTriPtr = ct;
+   
    /*cout << "IN MT, created triangle:\n";
    ct->TellAll();*/
    
@@ -3549,10 +3610,10 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
      //may not be strictly necessary for triangles (it is for nodes and edges where
      //we have active and inactive members), but I'm sure it doesn't hurt; better safe
      //than sorry...
-   for( ct = triIter.FirstP(), i=0; !( triIter.AtEnd() );
-        ct = triIter.NextP(), i++ )
+   for( ct = triIter.FirstP(), miNextTriID=0; !( triIter.AtEnd() );
+        ct = triIter.NextP(), miNextTriID++ )
    {
-      ct->setID( i );
+      ct->setID( miNextTriID );
    }
    
    return 1;
@@ -3590,11 +3651,9 @@ template< class tSubNode >
 tSubNode * tMesh< tSubNode >::
 AddNode( tSubNode &nodeRef, int updatemesh, double time )
 {
-   int i, /*j, k,*/ ctr;
+   int i, ctr;
    tTriangle *tri;
    tSubNode *cn;
-   //XtEdge * tedg1;
-   //XtEdge * tedg3;
    tArray< double > xyz( nodeRef.get3DCoords() );
    tMeshListIter< tSubNode > nodIter( nodeList );
    assert( &nodeRef != 0 );
@@ -3616,8 +3675,9 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    // portion of the node list (if it's not a boundary) or the boundary
    // portion (if it is)
    //cout << "inserting node on list\n";
-   int newid = nodIter.LastP()->getID() + 1;
-   nodeRef.setID( newid );
+   //Xint newid = nodIter.LastP()->getID() + 1;
+   nodeRef.setID( miNextNodeID );
+   miNextNodeID++;
    if( nodeRef.getBoundaryFlag()==kNonBoundary ){
        nodeList.insertAtActiveBack( nodeRef );
        //cout<<"knonboundary"<<endl;
@@ -3728,7 +3788,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    {
       //Xcout << "flip checking in addnode" << endl;
       tPtrList< tTriangle > triptrList;
-      tListIter< tTriangle > triIter( triList );
+      tPtrListIter< tTriangle > triIter( triList );
       tPtrListIter< tTriangle > triptrIter( triptrList );
       tTriangle *ct;
       triptrList.insertAtBack( triIter.LastP() );
@@ -3769,9 +3829,9 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
 
    //reset node id's
    //cout << "resetting ids\n" << flush;
-   for( cn = nodIter.FirstP(), i=0; !( nodIter.AtEnd() ); cn = nodIter.NextP(), i++ )
+   for( cn = nodIter.FirstP(), miNextNodeID=0; !( nodIter.AtEnd() ); cn = nodIter.NextP(), miNextNodeID++ )
    {
-      cn->setID( i );
+      cn->setID( miNextNodeID );
    }
    node2->makeCCWEdges();
    node2->InitializeNode();
@@ -3784,11 +3844,11 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    fe = node2->getEdg();
    ce = fe;
 
-   int hlp=0;
-   do{
-      ce=ce->getCCWEdg();
-      hlp++;
-   }while(ce != fe );
+   //Xint hlp=0;
+   //do{
+   // ce=ce->getCCWEdg();
+   // hlp++;
+   //}while(ce != fe );
    //  if(hlp !=  node2->getSpokeListNC().getSize() ){
 //        cout<<"AddNode  number of spokes "<<node2->getSpokeListNC().getSize()<<" number of ccwedges "<<hlp<<endl<<flush;
 //     }
@@ -3832,8 +3892,10 @@ AddNodeAt( tArray< double > &xyz, double time )
 
    // Assign ID to the new node and insert it at the back of the active
    // portion of the node list (NOTE: node is assumed NOT to be a boundary)
-   int newid = nodIter.LastP()->getID() + 1;
-   tempNode.setID( newid );
+   //Xint newid = nodIter.LastP()->getID() + 1;
+   tempNode.setID( miNextNodeID );
+   miNextNodeID++;
+   cout << miNextNodeID << endl;
    nodeList.insertAtActiveBack( tempNode );
    assert( nodeList.getSize() == nnodes + 1 );
    nnodes++;
@@ -3904,7 +3966,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    {
       //cout << "flip checking" << endl;
       tPtrList< tTriangle > triptrList;
-      tListIter< tTriangle > triIter( triList );
+      tPtrListIter< tTriangle > triIter( triList );
       tPtrListIter< tTriangle > triptrIter( triptrList );
       tTriangle *ct;
       triptrList.insertAtBack( triIter.LastP() );
@@ -3940,9 +4002,10 @@ AddNodeAt( tArray< double > &xyz, double time )
       }
    }
    //reset node id's
-   for( cn = nodIter.FirstP(), i=0; !( nodIter.AtEnd() ); cn = nodIter.NextP(), i++ )
+   cout << "reset ids\n";
+   for( cn = nodIter.FirstP(), miNextNodeID=0; !( nodIter.AtEnd() ); cn = nodIter.NextP(), miNextNodeID++ )
    {
-      cn->setID( i );
+      cn->setID( miNextNodeID );
    }
    //nmg uncommented line below and added initialize line
    node2->makeCCWEdges();
@@ -3984,7 +4047,7 @@ tMeshList<tSubNode> * tMesh<tSubNode>::
 getNodeList() {return &nodeList;}
 
 template <class tSubNode>
-tList< tTriangle > * tMesh<tSubNode>::
+tPtrList< tTriangle > * tMesh<tSubNode>::
 getTriList() {return &triList;}
 
 
@@ -4280,7 +4343,7 @@ CheckLocallyDelaunay()
    tTriangle *at;
    tPtrList< tTriangle > triPtrList;
    tPtrListIter< tTriangle > triPtrIter( triPtrList );
-   tListIter< tTriangle > triIter( triList );
+   tPtrListIter< tTriangle > triIter( triList );
    int i, change;
    //Xint id0, id1, id2;
    tArray< int > npop(3);
@@ -4514,7 +4577,7 @@ CheckTriEdgeIntersect()
    tSubNode *subnodePtr, tempNode, newNode;  
    tEdge * cedg, *ce;
    tTriangle * ct, * ctop, *rmtri/* *tri*/;
-   tListIter< tTriangle > triIter( triList );
+   tPtrListIter< tTriangle > triIter( triList );
    tMeshListIter< tEdge > edgIter( edgeList );
    tMeshListIter< tSubNode > nodIter( nodeList );
    tMeshListIter< tEdge > xedgIter( edgeList );
@@ -4805,7 +4868,7 @@ template<class tSubNode>
 void tMesh<tSubNode>::
 DumpTriangles()
 {
-   tListIter< tTriangle > triIter( triList );
+   tPtrListIter< tTriangle > triIter( triList );
    tTriangle *ct, *nt;
    int tid0, tid1, tid2;
    cout << "triangles:" << endl;
