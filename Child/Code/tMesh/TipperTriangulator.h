@@ -15,7 +15,7 @@ using namespace std;
 #endif
 
 #ifndef BOOL
-#define BOOL(x) x
+#define BOOL(x) (x)
 #endif
 #if defined(__SUNPRO_CC)
 # if __SUNPRO_CC==0x420 && !defined(ENUM_BOOL_DEFINED)

@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.37 2003-09-01 14:05:52 childcvs Exp $
+**   $Id: Definitions.h,v 1.38 2003-09-19 13:16:23 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -51,7 +51,7 @@ typedef enum {
 #define SIGN(x)     ( (x)>0 ? 1 : 0 )
 
 #ifndef BOOL
-# define BOOL(x) x
+# define BOOL(x) (x)
 #endif
 #if defined(__SUNPRO_CC)
 # if __SUNPRO_CC==0x420 && !defined(ENUM_BOOL_DEFINED)
