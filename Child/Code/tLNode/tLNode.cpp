@@ -4,23 +4,11 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.4 1998-01-20 20:31:12 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.5 1998-01-21 20:11:01 gtucker Exp $
 \**************************************************************************/
 
-#include <iostream.h>
-#include <fstream.h>
 #include <assert.h>
 #include <math.h>
-#include "../Definitions.h"
-#include "../Classes.h"
-#include "../tListNode/tListNode.h"
-#include "../tList/tList.h"
-#include "../tPtrListNode/tPtrListNode.h"
-#include "../tPtrList/tPtrList.h"
-#include "../tArray/tArray.h"
-#include "../tNode/tNode.h"
-#include "../tEdge/tEdge.h"
-
 #include "tLNode.h"
 
 /*************************************************************************

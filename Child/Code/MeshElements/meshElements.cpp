@@ -1,6 +1,7 @@
 /**************************************************************************\
 **
-**  tNode.cpp: Functions for class tNode
+**  gridElements.cpp: Functions for mesh element classes tNode, tEdge, and
+**                    tTriangle.
 **
 **  Modifications:
 **   - gt added code to recreate the "edg" implementation as an alternative
@@ -8,11 +9,9 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.1 1998-01-21 01:09:50 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.2 1998-01-21 20:15:31 gtucker Exp $
 \**************************************************************************/
 
-#include <iostream.h>
-#include <fstream.h>
 #include <assert.h>
 #include <math.h>
 #include "gridElements.h"

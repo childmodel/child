@@ -2,10 +2,18 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.1 1998-01-15 22:50:16 gtucker Exp $
+**  $Id: tMesh.h,v 1.2 1998-01-21 20:16:37 gtucker Exp $
 \***************************************************************************/
+
 #ifndef TGRID_H
 #define TGRID_H
+
+#include "../tList/tList.h"
+#include "../tGridList/tGridList.h"
+#include "../GridElements/gridElements.h"
+#include "../tPtrList/tPtrList.h"
+#include "../tListInputData/tListInputData.h"
+#include "../tListOutputData/tListOutputData.h"
 
 /** class tGrid ************************************************************/
 template< class tSubNode >

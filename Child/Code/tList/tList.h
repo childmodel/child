@@ -23,7 +23,7 @@
 **  descendants). Its services include fetching data from the current entry
 **  on the list, advancing to the next or previous item on the list, etc.
 **
-**  $Id: tList.h,v 1.2 1998-01-21 19:32:07 gtucker Exp $
+**  $Id: tList.h,v 1.3 1998-01-21 20:17:40 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -34,9 +34,9 @@ template< class NodeType >
 class tListNode
 {
    friend class tList< NodeType >;
-   friend class tGridList< NodeType >;
+   //friend class tGridList< NodeType >;
    friend class tListIter< NodeType >;
-   friend class tGridListIter< NodeType >;
+   //friend class tGridListIter< NodeType >;
   public:
    tListNode();
    tListNode( const tListNode< NodeType > & );
@@ -67,7 +67,7 @@ template< class NodeType >
 class tList
 {
    friend class tListIter< NodeType >;
-   friend class tGridListIter< NodeType >;
+   //friend class tGridListIter< NodeType >;
      /*friend class tListIter< NodeType, tNode >;
    friend class tListIter< NodeType, tLNode >;
    friend class tListIter< NodeType, tGrid >;
