@@ -2,24 +2,16 @@
 **
 **  tGridList.cpp
 **
-**  Functions for derived class tGridList. The class is declared in
-**  tGridList.h.
+**  Functions for derived classes tGridList and tGridListIter. The classes
+**  are declared in tGridList.h.
 **
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.cpp,v 1.1 1998-01-14 20:19:49 gtucker Exp $
+**  $Id: tMeshList.cpp,v 1.2 1998-01-21 20:16:12 gtucker Exp $
 \**************************************************************************/
 
-#include <iostream.h>
-#include <fstream.h>
 #include <assert.h>
-
-#include "../Definitions.h"
-#include "../Classes.h"
-#include "../tListNode/tListNode.h"
-#include "../tList/tList.h"
-
 #include "tGridList.h"
 
 
@@ -370,3 +362,120 @@ Flush()
    nActiveNodes = 0;
 }
 
+/**************************************************************************\
+**
+**         Utilities for derived class tGridListIter
+**
+\**************************************************************************/
+
+template< class NodeType >   //tGridListIter
+tGridListIter< NodeType >::
+tGridListIter()
+{
+     //cout << "    from tGridListIter()" << endl;
+}
+
+template< class NodeType >   //tGridListIter
+tGridListIter< NodeType >::
+tGridListIter( tGridList< NodeType > &list )
+        : tListIter< NodeType >( list )
+{
+   assert( &list != 0 );
+     //gridlistPtr = &list;
+   curnode = /*grid*/listPtr->first;
+     //if( listPtr->first != 0 ) assert( curnode != 0 );
+     //cout << "    from tGridListIter( list )" << endl;
+}
+
+template< class NodeType >   //tGridListIter
+tGridListIter< NodeType >::
+tGridListIter( tGridList< NodeType > *ptr )
+        : tListIter< NodeType >( ptr )
+{
+   assert( ptr != 0 );
+     //gridlistPtr = &list;
+   curnode = /*grid*/listPtr->first;
+   assert( curnode != 0 );
+     //cout << "    from tGridListIter( ptr )" << endl;
+}
+
+template< class NodeType >   //tGridListIter
+tGridListIter< NodeType >::
+~tGridListIter()
+{
+     //cout << "    from ~tGridListIter()" << endl;
+}
+
+template< class NodeType >   //tGridListIter
+int tGridListIter< NodeType >::
+LastActive()
+{
+     tGridList< NodeType > *gridlistPtr;
+   gridlistPtr = ( tGridList< NodeType > * ) listPtr;
+   assert( gridlistPtr != 0 );
+   curnode = gridlistPtr->lastactive;
+   if( curnode != 0 ) return 1;
+   else return 0;
+}
+
+template< class NodeType >   //tGridListIter
+int tGridListIter< NodeType >::
+FirstBoundary()
+{
+   tGridList< NodeType > *gridlistPtr;
+   gridlistPtr = ( tGridList< NodeType > * ) listPtr;
+   assert( gridlistPtr != 0 );
+   curnode = gridlistPtr->lastactive->next;
+   if( curnode != 0 ) return 1;
+   else return 0;
+}
+
+template< class NodeType >   //tGridListIter
+int tGridListIter< NodeType >::
+IsActive()
+{
+   int act;
+   act = curnode->getDataRef().getBoundaryFlag();
+   if( act == kNonBoundary ) return 1;
+   else return 0;
+}
+
+template< class NodeType >   //tGridListIter
+NodeType *tGridListIter< NodeType >::
+LastActiveP()
+{
+   tGridList< NodeType > *gridlistPtr;
+   gridlistPtr = ( tGridList< NodeType > * ) listPtr;
+   assert( gridlistPtr != 0 );
+   curnode = gridlistPtr->lastactive;
+   if( curnode != 0 ) return curnode->getDataPtrNC();
+   else return 0;
+}
+
+/* (transferred to base class tListIter)
+template< class NodeType >        //tGridListIter
+NodeType * tGridListIter< NodeType >::
+FirstP()
+{
+   assert( listPtr != 0 );
+   curnode = listPtr->getFirst();
+   if( curnode != 0 ) return curnode->getDataPtrNC();
+   else return 0;
+}
+   
+template< class NodeType >        //tGridListIter
+NodeType * tGridListIter< NodeType >::
+NextP()
+{
+   assert( listPtr != 0 );
+   if( curnode == 0 )
+   {
+      curnode = listPtr->getFirst();
+      if( curnode != 0 ) return curnode->getDataPtrNC();
+      else return 0;
+   }
+   curnode = curnode->getNextNC();
+   if( curnode != 0 ) return curnode->getDataPtrNC();
+   else return 0;
+}
+*/
