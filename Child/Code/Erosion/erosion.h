@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.6 1998-02-20 23:02:53 stlancas Exp $
+**  $Id: erosion.h,v 1.7 1998-03-03 22:29:01 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -53,6 +53,8 @@
 #include "../Classes.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tLNode/tLNode.h"
+#include "../tUplift/tUplift.h"
+#include "../tStreamNet/tStreamNet.h"
 
 /***************************************************************************\
 **  class tSedTransPwrLaw
@@ -101,6 +103,29 @@ class tBedErodePwrLaw
    double nb;  // Exponent on slope
 };
 
+
+/***************************************************************************\
+**  class tErosion
+**
+**  Manages data and routines related to various aspects of erosion.
+**
+**  (class added by gt 3/98; routines were previously collected under
+**  tStreamNet).
+\***************************************************************************/
+class tErosion
+{
+public:
+    tErosion( tGrid< tLNode > *, tInputFile & );
+    void ErodeDetachLim( double dtg );
+    void ErodeDetachLim( double dtg, tUplift * );
+    void StreamErode( double dtg, tStreamNet * );
+
+private:
+    tGrid<tLNode> *gridPtr;
+    tBedErodePwrLaw bedErode;
+    tSedTransPwrLaw sedTrans;
+
+};
 
 
 #endif
