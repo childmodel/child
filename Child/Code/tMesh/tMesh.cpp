@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.20 1998-03-13 22:31:19 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.21 1998-03-16 18:48:54 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -426,7 +426,7 @@ tGrid< tSubNode >::
 tGrid( tInputFile &infile )
 {
    int read = infile.ReadItem( read, "OPTREADINPUT" );
-   assert( read == 0 || read == 1 );
+   assert( read == 0 || read == 1 );//TODO: should be runtime error not assertion
    if( read ) MakeGridFromInputData( infile ); //create grid by reading data files
    else MakeGridFromScratch( infile ); //create new grid with parameters
 }
@@ -469,7 +469,7 @@ MakeGridFromInputData( tInputFile &infile )
    // Create the node list by creating a temporary node and then iteratively
    // (1) assigning it values from the input data and (2) inserting it onto
    // the back of the node list.
-   tSubNode tempnode;
+   tSubNode tempnode( infile );
    int bound;
    for( i = 0; i< nnodes; i++ )
    {
@@ -712,7 +712,9 @@ MakeGridFromScratch( tInputFile &infile )
    double delGrid, slope;
    double upperZ;
    tArray< double > xyz(3);
-   tSubNode tempnode, *cn, *node0, *node1, *node2, *node3;
+   cout << "In MGFS, calling node constr w/ infile\n";
+   tSubNode tempnode( infile ),  // temporary node used to create node list
+       *cn, *node0, *node1, *node2, *node3;
    tEdge *ce;
    tGridListIter< tEdge > edgIter( edgeList );
    tGridListIter< tSubNode > nodIter( nodeList );
@@ -797,6 +799,7 @@ MakeGridFromScratch( tInputFile &infile )
    }
    else if( boundType == kOpenSide )
    {
+      cout << "OPEN SIDE boundary\n";
       n = xGrid / delGrid;
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=1, id=0; i<n; i++, id++ )
@@ -1027,6 +1030,8 @@ MakeGridFromScratch( tInputFile &infile )
    cout << "filling in points\n";
    
      //FILL IN POINTS
+   //gt modified to use AddNode instead of AddNodeAt
+   tempnode.setBoundaryFlag( kNonBoundary );
    if( ptPlace == kUniformGrid || ptPlace == kPerturbedGrid )
    {
       nx = xGrid / delGrid;
@@ -1051,7 +1056,10 @@ MakeGridFromScratch( tInputFile &infile )
                slope = upperZ / yGrid;
                xyz[2] += slope * xyz[1] - mElev;
             }
-            AddNodeAt( xyz );
+            tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
+            tempnode.setID( id );
+            AddNode( tempnode );
+            //XAddNodeAt( xyz );
          }
       }
    }
@@ -1063,7 +1071,13 @@ MakeGridFromScratch( tInputFile &infile )
          xyz[1] = ran3(&seed) * yGrid;
          xyz[2] = mElev + mElev * ( ran3( &seed ) - 0.5 );
          if( xyz[0] != 0 && xyz[0] != xGrid && xyz[1] != 0 && xyz[1] != yGrid )
-             AddNodeAt( xyz );
+         {
+            tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
+            tempnode.setID( id );
+            AddNode( tempnode );
+            id++;
+         }
+            //XAddNodeAt( xyz );
       }
    }
    MakeCCWEdges();
