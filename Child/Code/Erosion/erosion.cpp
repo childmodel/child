@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.66 1999-05-13 13:04:28 gtucker Exp $
+**  $Id: erosion.cpp,v 1.67 1999-05-18 21:53:28 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -197,6 +197,7 @@ double tEquilibCheck::FindLongTermChngRate( double newtime )
 tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 {
    kb = infile.ReadItem( kb, "KB" );
+   kt = infile.ReadItem( kt, "KT" );
    mb = infile.ReadItem( mb, "MB" );
    nb = infile.ReadItem( nb, "NB" );
    pb = infile.ReadItem( pb, "PB" );
@@ -220,6 +221,8 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 **   - replaced uniform erodibility coefficient kb with erodibility of
 **     topmost layer at node n (GT 8/98)
 **   - added threshold term and third exponent pb (GT 4/99)
+**   - added shear coefficient kt, width term, and moved erodibility coeff 
+**     (GT 5/99) (to be ver 2.0.2)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
@@ -228,10 +231,10 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
-   tauex = n->getLayerErody(0)*pow( n->getQ(), mb )*pow( slp, nb ) - taucd;
+   tauex = kt*pow( n->getQ()/n->getHydrWidth(), mb )*pow( slp, nb ) - taucd;
    //cout << "tauex: " << tauex << endl;
    tauex = (tauex>0.0) ? tauex : 0.0;
-   return( pow(tauex,pb)*dt );
+   return( n->getLayerErody(0)*pow(tauex,pb)*dt );
 }
 
 
@@ -250,6 +253,8 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 **   - replaced uniform erodibility coefficient kb with erodibility of
 **     topmost layer at node n (GT 8/98)
 **   - added threshold term and third exponent pb (GT 4/99)
+**   - added shear coefficient kt, width term, and moved erodibility coeff 
+**     (GT 5/99) (ver 2.0.2)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
@@ -257,11 +262,11 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
 
-   double erorate =  n->getLayerErody(0)*pow( n->getQ(), mb )*pow( slp, nb )
+   double erorate = kt*pow( n->getQ()/n->getHydrWidth(), mb )*pow( slp, nb ) 
        - taucd;
    //cout << "erorate: " << erorate << endl;
    erorate = (erorate>0.0) ? erorate : 0.0;
-   erorate = pow( erorate, pb );
+   erorate = n->getLayerErody(0)*pow( erorate, pb );
    n->setDrDt( -erorate );
    return erorate;
 }
@@ -283,6 +288,9 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 **  Assumptions: n->getSlope() does not return a negative value (returns neg.
 **               only if infinite loop in getSlope()); kb, mb,
 **               and nb all >=0.
+**  Modifications:
+**   - added shear coefficient kt, width term, and moved erodibility coeff 
+**     (GT 5/99) (ver 2.0.2)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
 {
@@ -290,11 +298,11 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   double erorate =n->getLayerErody(i)*pow( n->getQ(), mb )*pow( slp, nb )
+   double erorate = kt*pow( n->getQ()/n->getHydrWidth(), mb )*pow( slp, nb )
        - taucd;
    //cout << "erorate: " << erorate << endl;
    erorate = (erorate>0.0) ? erorate : 0.0;
-   erorate = pow( erorate, pb );
+   erorate = n->getLayerErody(i)*pow( erorate, pb );
    n->setDrDt( -erorate );
 //    if(n->getID() == 11 ){
 //       cout<<"node 11 is in detach capacity"<<endl;
@@ -352,8 +360,11 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 tSedTransPwrLaw::tSedTransPwrLaw( tInputFile &infile )
 {
    kf = infile.ReadItem( kf, "KF" );
+   kt = infile.ReadItem( kt, "KT" );
    mf = infile.ReadItem( mf, "MF" );
    nf = infile.ReadItem( nf, "NF" );
+   pf = infile.ReadItem( pf, "PF" );
+   tauc = infile.ReadItem( tauc, "TAUCD" );
 }
 
 
@@ -361,16 +372,26 @@ tSedTransPwrLaw::tSedTransPwrLaw( tInputFile &infile )
 **  tSedTransPwrLaw::TransCapacity
 **
 **  Computes sediment transport capacity using the simple power law
-**  Qs = kf Q^mf S^nf
+**  Qs = kf W ( kt (Q/W)^mf S^nf - tauc )^pf
+**
+**  Modifications:
+**   - Now incorporates threshold term; previously was Qs = kf Q^mf S^nf
+**     (GT 5/99) (ver 2.0.2)
 \***************************************************************************/
 double tSedTransPwrLaw::TransCapacity( tLNode *node )
 {
    double slp = node->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
-   double cap = 0;
+   double tauex, cap = 0;
    if( !node->getFloodStatus() )
-       cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
+   {
+      tauex = kt * pow( node->getQ()/node->getHydrWidth(), mf )
+          * pow( slp, nf ) - tauc;
+      tauex = (tauex>0.0) ? tauex : 0.0;
+      cap = kf * node->getHydrWidth() * pow( tauex, pf );
+      //cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
+   }
    node->setQs( cap );
    return cap;
 }
@@ -380,20 +401,31 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node )
 **  tSedTransPwrLaw::TransCapacity
 **
 **  Computes sediment transport capacity using the simple power law
-**  Qs = kf Q^mf S^nf
+**  Qs = weight kf W ( kt (Q/W)^mf S^nf - tauc )^pf
 **  This is a weighted version which is called from DetachErode.
 **  Weight is a weighting by depth of layer.
-**  Here, qsi is set by proportion in layer.
+**  Here, qsi is set by proportion in layer and threshold is constant
 **  The value returned should be in units of m^3/yr
+**
+**  Modifications:
+**   - Now incorporates threshold term; previously was Qs = kf Q^mf S^nf
+**     (GT 5/99) (ver 2.0.2)
 \***************************************************************************/
 double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
 {
    double slp = node->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
-   double cap = 0;
+   double tauex, cap = 0;
    if( !node->getFloodStatus() )
-       cap = kf * weight * pow( node->getQ(), mf ) * pow( slp, nf );
+   {
+      tauex = kt * pow( node->getQ()/node->getHydrWidth(), mf )
+          * pow( slp, nf ) - tauc;
+      tauex = (tauex>0.0) ? tauex : 0.0;
+      cap = weight * kf * node->getHydrWidth() * pow( tauex, pf );
+      //cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
+   }
+   //cap = kf * weight * pow( node->getQ(), mf ) * pow( slp, nf );
    int i;
    for(i=0; i<node->getNumg(); i++)
        node->addQs(i, cap*node->getLayerDgrade(lyr,i)/node->getLayerDepth(lyr));
@@ -458,7 +490,12 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
 **  sand range and grain size 2 is in the gravel range.  The sediment
 **  transport rate of both grain sizes is calculated, and the sum of
 **  these two rates is returned. (rate here is in m^3/yr)
+**
+**  Modifications:
+**   - Reverted to earlier computation of tau using roughness and
+**     width
 \***********************************************************************/
+#define YEARPERSEC 3.171e-8
 double tSedTransWilcock::TransCapacity( tLNode *nd )
 {
    double tau;
@@ -482,8 +519,8 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    // units of Q are m^3/yr; convert to m^3/sec
    //NIC you are doing a test here to see what is causing the
    //downstream coarsening.
-   //tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
-   tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
+   tau = taudim*pow(nd->getHydrRough()*nd->getQ()*YEARPERSEC/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
+   //tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
    
    //cout << "hydrrough is " << nd->getChanRough() << endl;
    //cout << "q is " << nd->getQ() << endl;
