@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.211 2004-04-19 17:25:38 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.212 2004-04-22 17:29:47 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -316,7 +316,10 @@ MakeLayersFromInputData( const tInputFile &infile )
          layerinfile >> ditem;
          layhelp.setErody(ditem);
          layerinfile >> item;
-         layhelp.setSed(item);
+	 {
+	   tLayer::tSed_t item_ = static_cast<tLayer::tSed_t>(item);
+	   layhelp.setSed(item_);
+	 }
          for(g=0; g<numg; g++){
             layerinfile >> ditem;
             layhelp.setDgrade(g, ditem);
@@ -350,7 +353,7 @@ MakeLayersFromInputData( const tInputFile &infile )
    layhelp.setRtime(0.);
    //layhelp.setFlag(0);
    layhelp.setErody(0.);
-   layhelp.setSed(0);
+   layhelp.setSed(tLayer::kBedRock);
    ditem=layhelp.getDepth();
    for(g=0; g<numg; g++){
       layhelp.setDgrade(g, ditem*dgradebrhelp[g]);

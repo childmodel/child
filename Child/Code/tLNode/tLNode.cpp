@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.133 2004-04-19 16:23:41 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.134 2004-04-22 17:29:45 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -417,7 +417,7 @@ public1(-1)
       if( help<0.0 )
 	ReportFatalError( "Erodibility factor KB must be positive." );
       layhelp.setErody(help);
-      layhelp.setSed(0);
+      layhelp.setSed(tLayer::kBedRock);
 
       // in the regolith layer dgrade is saving
       // the proportion of grain size available from the bedrock
@@ -433,7 +433,7 @@ public1(-1)
       layerlist.insertAtBack( layhelp );
 
       // Regolith layer items read in and set
-      layhelp.setSed(1);
+      layhelp.setSed(tLayer::kSed);
       help = infile.ReadItem( help, "KR" );
       if( help<0.0 )
 	ReportFatalError( "Erodibility factor KR must be positive." );
@@ -480,7 +480,7 @@ public1(-1)
       if( help<0.0 )
 	ReportFatalError( "Erodibility factor KB must be positive." );
       layhelp.setErody(help);
-      layhelp.setSed(0);
+      layhelp.setSed(tLayer::kBedRock);
       layhelp.setDgradesize(numg);
       i=0;
       help = infile.ReadItem( help, "BEDROCKDEPTH");
@@ -1169,7 +1169,8 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
     tArray<int> layindex(3);//What layer are you at for each node
     tArray<double> dep(3);//The depth of the layer with the matching age
     tArray<double> age(3);//The age of the current layer at each node
-    tArray<int> sed(3);//The sediment flag of the current layer at each node
+    //The sediment flag of the current layer at each node
+    tArray<tLayer::tSed_t> sed(3, tLayer::kBedRock);
 
     double dist[3]; //distance b/w new point and the three triangle points
     dist[0]=DistanceBW2Points(tx, ty, lnds[0]->getX(), lnds[0]->getY());
@@ -1182,7 +1183,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
       if(lnds[i]->getLayerRtime(0)>CA){
 	CA=lnds[i]->getLayerRtime(0);
       }
-      sed[i]=(lnds[i]->getLayerSed(0)<1 ? 0 : 1);
+      sed[i]=lnds[i]->getLayerSed(0);
       if(sed[i]>0)
 	age[i]=lnds[i]->getLayerRtime(0);
       else
@@ -1212,7 +1213,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 	newetime=0;
 
 	for(i=0; i<=2; i++){
-	  if(age[i]<=CA+10&&age[i]>=CA-10&&sed[i]>0){
+	  if(age[i]<=CA+10 && age[i]>=CA-10 && sed[i] != tLayer::kBedRock){
 	    //layer is in the window of acceptable ages
 	    //set node texture helper to texture of that layer
 	    //NOTE - This only works for two sizes right now.
@@ -1226,8 +1227,9 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 	    if( layindex[i] != lnds[i]->getNumLayer()-1 ){
 	      //More layers below, continue to search
 	      layindex[i]+=1;
-	      sed[i]=(lnds[i]->getLayerSed(layindex[i])<1 ? 0 : 1);
-	      if(sed[i]>0 && lnds[i]->getLayerRtime(layindex[i])>=0)
+	      sed[i]=lnds[i]->getLayerSed(layindex[i]);
+	      if(sed[i] != tLayer::kBedRock &&
+		 lnds[i]->getLayerRtime(layindex[i])>=0)
 		age[i]=lnds[i]->getLayerRtime(layindex[i]);
 	      else
 		age[i]=kAncient;
@@ -1291,7 +1293,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
       layhelp.setDgrade(0,newtex*newdep);
       if(numg>1)
 	layhelp.setDgrade(1,(1-newtex)*newdep);
-      layhelp.setSed(1);
+      layhelp.setSed(tLayer::kSed);
       layhelp.setErody(newerody/sum);
       layhelp.setRtime(-1.);
       layhelp.setEtime(0.);
@@ -1334,7 +1336,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
     layhelp.setDgrade(0,newtex*newdep);
     if(numg>1)
       layhelp.setDgrade(1,(1-newtex)*newdep);
-    layhelp.setSed(0);
+    layhelp.setSed(tLayer::kBedRock);
     layhelp.setErody(newerody/sum);
     layhelp.setRtime(0.);
     layhelp.setEtime(newetime/sum);
@@ -1376,7 +1378,8 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
   else if( numnodes ==2 ){
     tArray<int> layindex(2);//What layer are you at for each node
     tArray<double> age(2);//The age of the current layer at each node
-    tArray<int> sed(2);//The sediment flag of the current layer at each node
+    //The sediment flag of the current layer at each node
+    tArray<tLayer::tSed_t> sed(2, tLayer::kBedRock);
 
     double dist[2]; //distance b/w new point and the three triangle points
     dist[0]=DistanceBW2Points(tx, ty, lnds[0]->getX(), lnds[0]->getY());
@@ -1389,8 +1392,8 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
       if(lnds[i]->getLayerRtime(0)>CA){
 	CA=lnds[i]->getLayerRtime(0);
       }
-      sed[i]=(lnds[i]->getLayerSed(0)<1 ? 0 : 1);
-      if(sed[i]>0)
+      sed[i]=lnds[i]->getLayerSed(0);
+      if(sed[i] != tLayer::kBedRock)
 	age[i]=lnds[i]->getLayerRtime(0);
       else
 	age[i]=kAncient;
@@ -1418,7 +1421,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 	newdep=0;
 
 	for(i=0; i<=1; i++){
-	  if(age[i]<=CA+10&&age[i]>=CA-10&&sed[i]>0){
+	  if(age[i]<=CA+10 && age[i]>=CA-10 && sed[i] != tLayer::kBedRock){
 	    //layer is in the window of acceptable ages
 	    //set node texture helper to texture of that layer
 	    //NOTE - This only works for two sizes right now.
@@ -1432,7 +1435,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 	    if( layindex[i] != lnds[i]->getNumLayer()-1 ){
 	      //More layers below, continue to search
 	      layindex[i]+=1;
-	      sed[i]=(lnds[i]->getLayerSed(layindex[i])<1 ? 0 : 1);
+	      sed[i]=lnds[i]->getLayerSed(layindex[i]);
 	      if(sed[i]>0 && lnds[i]->getLayerRtime(layindex[i])>=0)
 		age[i]=lnds[i]->getLayerRtime(layindex[i]);
 	      else
@@ -1485,7 +1488,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
       layhelp.setDgrade(0,newtex*newdep);
       if(numg>1)
 	layhelp.setDgrade(1,(1-newtex)*newdep);
-      layhelp.setSed(1);
+      layhelp.setSed(tLayer::kSed);
       layhelp.setErody(newerody/sum);
       layhelp.setRtime(-1.);
       layhelp.setEtime(0.);
@@ -1511,7 +1514,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
     layhelp.setDgrade(0,newtex*newdep);
     if(numg>1)
       layhelp.setDgrade(1,(1-newtex)*newdep);
-    layhelp.setSed(1);
+    layhelp.setSed(tLayer::kSed);
     layhelp.setErody(newerody/sum);
     layhelp.setRtime(0.);
     layhelp.setEtime(newetime/sum);
@@ -1626,7 +1629,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
     //for layering in general.  Form a new top layer with material from
     //the bottom layer.
     tLayer layhelp;
-    layhelp.setSed(1);
+    layhelp.setSed(tLayer::kSed);
     layhelp.setEtime(0.);
     layhelp.setCtime(time);
     layhelp.setRtime(0.);
@@ -1938,7 +1941,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
   if(max <= 0 && min < -0.0000000001)
     {
       // CASE OF EROSION IN ALL SIZE CLASSES
-      if(getLayerSed(i) != 0 && getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i)+val<=maxregdep)
+      if(getLayerSed(i) != tLayer::kBedRock &&
+	 getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i)+val<=maxregdep)
 	{
 	  // Updating will also be done if entering this statement
 	  // No updating of Bedrock layers.
@@ -1998,7 +2002,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       // Also, no test done to make sure that you are depositing the right
       // material into the layer, would need to pass the flag for this.
       // For now assume that the test will be done in another place.
-      if(getLayerSed(i)>0 && val < maxregdep){
+      if(getLayerSed(i) != tLayer::kBedRock && val < maxregdep){
 	// top layer is sediment, so no issues
 	// depositing less than an entire layer of stuff
 	olde=getLayerEtime(i);
@@ -2075,7 +2079,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 	// value read in at begining
 	// Also use this if the amount of material deposited is
 	// greater than maxregdep
-	makeNewLayerBelow(-1,1,KRnew,valgrd,tt);
+	makeNewLayerBelow(-1, tLayer::kSed, KRnew, valgrd, tt);
       }
     }
   else if(max>0.0000000001 && min<-0.0000000001)
@@ -2087,7 +2091,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       if(val < 0)
 	{
 	  // Case of net erosion
-	  if(getLayerSed(i) != 0)
+	  if(getLayerSed(i) != tLayer::kBedRock)
 	    {
 	      //layer is sediment
 	      if(getLayerSed(i) == getLayerSed(i+1))
@@ -2156,7 +2160,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 		}
 	      }
 	      assert( getLayerDepth(i)>0.0 );
-	      makeNewLayerBelow(i-1, 1, KRnew, update, tt);
+	      makeNewLayerBelow(i-1, tLayer::kSed, KRnew, update, tt);
 	      //New layer made with deposited material
 	    }
 	  assert( getLayerDepth(i) > -1e-7 ); // can't be much < 0
@@ -2192,7 +2196,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 	  // below) GT 8/02
 	  if( getLayerDepth(i)<1e-7 ) removeLayer(i);
 	  assert( getLayerDepth(i)>0.0 );  // replacement should be ok
-	  if(getLayerSed(i)>0 && val<maxregdep) {
+	  if(getLayerSed(i) != tLayer::kBedRock && val<maxregdep) {
             // Case in which top layer is "sediment" and depth to be
             // deposited is less than nominal layer thickness.
             // top layer is sediment, so no issues
@@ -2273,13 +2277,13 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 	    {
 	      //Layer is bedrock, so make a new layer on top to deposit into
 	      //or, depositing more than maxregdep
-	      makeNewLayerBelow(i-1, 1, KRnew, update, tt);
+	      makeNewLayerBelow(i-1, tLayer::kSed, KRnew, update, tt);
 	    }
 	}
     }
 
   //Check to make sure that top layer is not too deep
-  if(getLayerDepth(i)>1.1*maxregdep && getLayerSed(i) !=0 ){
+  if(getLayerDepth(i)>1.1*maxregdep && getLayerSed(i) != tLayer::kBedRock ){
     //Make a top layer that is maxregdep deep so that further erosion
     //is not screwed up
     hupdate = addtoLayer(i, -1*maxregdep);
@@ -2287,7 +2291,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       hupdate[g]=-1* hupdate[g];
       assert( hupdate[g]>=0.0 ); //GT
     }
-    makeNewLayerBelow(-1,1,getLayerErody(i),hupdate, tt);
+    makeNewLayerBelow(-1, tLayer::kSed, getLayerErody(i), hupdate, tt);
     setLayerRtime(i,0.);
   }
 
@@ -2464,7 +2468,7 @@ void tLNode::removeLayer(int i)
  ** Creation and recent time set to current time, exposure time updated
  ** in erodep.
  ********************************************************************/
-void tLNode::makeNewLayerBelow(int i, int sd, double erd,
+void tLNode::makeNewLayerBelow(int i, tLayer::tSed_t sd, double erd,
 			       tArray<double> const &sz, double tt)
 {
   tLayer hlp, niclay;

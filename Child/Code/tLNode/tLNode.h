@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.90 2004-04-19 16:23:43 childcvs Exp $
+ **  $Id: tLNode.h,v 1.91 2004-04-22 17:29:46 childcvs Exp $
  */
 /************************************************************************/
 
@@ -81,9 +81,20 @@ inline const char* FloodName( tFlood_t f ){
 
 /** @class tLayer
     Layer records */
+
 class tLayer
 {
 public:
+  // 0 = bedrock; 1 = some mixture of sediments so there
+  // may be multi-sizes.  although multiple sizes are stored for
+  // bedrock, this is the texture of what the bedrock will break up
+  // into, not what is there on the bed.
+  // Later it may be used as a flag for alluvium vs. regolith, etc.
+  typedef enum {
+    kBedRock = 0,
+    kSed = 1
+  } tSed_t;
+
   inline tLayer();
   inline tLayer( int );
   inline tLayer( const tLayer & );
@@ -103,8 +114,8 @@ public:
   inline double getDepth() const;
   inline void setErody( double );
   inline double getErody() const;
-  inline void setSed( int );
-  inline int getSed() const;
+  inline void setSed( tSed_t );
+  inline tSed_t getSed() const;
   inline void setDgradesize( int );
   inline int getDgradesize() const;
   void setDgrade( int, double );
@@ -121,11 +132,7 @@ protected:
   double etime; // exposure time, i.e. time material spent at surface
   double depth; // total depth of the layer
   double erody; // erodibility of layer (varies with material)
-  int sed;  // 0 = bedrock; 1 = some mixture of sediments so there
-  // may be multi-sizes.  although multiple sizes are stored for
-  // bedrock, this is the texture of what the bedrock will break up
-  // into, not what is there on the bed.
-  // Later sed may be used as a flag for alluvium vs. regolith, etc.
+  tSed_t sed;   // type of sediment
   tArray< double > dgrade; // depth of each size if multi size
   double paleocurrent;
 };
@@ -142,7 +149,7 @@ protected:
  *************************************************************************/
 inline tLayer::tLayer () :
   ctime(0.), rtime(0.), etime(0.),
-  depth(0.), erody(0.), sed(0),
+  depth(0.), erody(0.), sed(kBedRock),
   dgrade(), paleocurrent(-1.)
 {
   if (0) //DEBUG
@@ -151,7 +158,7 @@ inline tLayer::tLayer () :
 
 inline tLayer::tLayer ( int num ) :
   ctime(0.), rtime(0.), etime(0.),
-  depth(0.), erody(0.), sed(0),
+  depth(0.), erody(0.), sed(kBedRock),
   dgrade( num ), paleocurrent(-1.)
 {
   if (0) //DEBUG
@@ -240,12 +247,12 @@ inline double tLayer::getErody() const
   return erody;
 }
 
-inline void tLayer::setSed( int rg)
+inline void tLayer::setSed( tSed_t rg)
 {
   sed = rg;
 }
 
-inline int tLayer::getSed() const
+inline tLayer::tSed_t tLayer::getSed() const
 {
   return sed;
 }
@@ -582,7 +589,7 @@ public:
   inline double getLayerEtime(int) const;
   inline double getLayerDepth(int) const;
   inline double getLayerErody(int) const;
-  inline int getLayerSed(int) const;
+  inline tLayer::tSed_t getLayerSed(int) const;
   inline double getLayerDgrade(int, int) const;  // first int is layer index
   // second int is grade index - see note above for indexing directions
   inline int getNumLayer() const;
@@ -592,7 +599,7 @@ public:
   inline void addLayerEtime(int, double);
   inline void setLayerDepth(int, double);
   inline void setLayerErody(int, double);
-  inline void setLayerSed(int, int);
+  inline void setLayerSed(int, tLayer::tSed_t);
   inline void setLayerDgrade(int, int, double);
   void setStratNode(tStratNode *s_) {
     stratNode = s_;
@@ -627,7 +634,8 @@ public:
   // Used if depositing or eroding material to lower layer size by size
   // only called from EroDep because appropriate checking needs
   // to be done first - also used for erosion from the surface layer
-  void makeNewLayerBelow(int, int, double, tArray<double> const &, double);
+  void makeNewLayerBelow(int, tLayer::tSed_t, double, tArray<double> const &,
+			 double);
   void removeLayer(int);
   void InsertLayerBack( tLayer const & );
   void LayerInterpolation( tTriangle const *, double, double, double );
@@ -1112,7 +1120,7 @@ inline double tLNode::getLayerErody( int i ) const
   return layerlist.getIthDataRef(i).getErody();
 }
 
-inline int tLNode::getLayerSed( int i ) const
+inline tLayer::tSed_t tLNode::getLayerSed( int i ) const
 {
   return layerlist.getIthDataRef(i).getSed();
 }
@@ -1158,7 +1166,7 @@ inline void tLNode::setLayerErody( int i, double ero)
   layerlist.getIthDataPtrNC( i )->setErody( ero );
 }
 
-inline void tLNode::setLayerSed( int i, int s)
+inline void tLNode::setLayerSed( int i, tLayer::tSed_t s)
 {
   layerlist.getIthDataPtrNC( i )->setSed( s );
 }

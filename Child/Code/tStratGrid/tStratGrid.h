@@ -12,7 +12,7 @@
  **
  **  Created 5/2003 (QC)
  **
- **  $Id: tStratGrid.h,v 1.3 2004-04-19 12:52:03 childcvs Exp $
+ **  $Id: tStratGrid.h,v 1.4 2004-04-22 17:29:50 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -24,9 +24,12 @@
 #include "../tList/tList.h"
 
 template< class T > class tMesh;
+class tTriangle;
+
 class tLayer;
 class tLNode;
-class tTriangle;
+// necessary to get tLayer::tSed_t
+#include "../tLNode/tLNode.h"
 
 //---------------------STRATNODE---------------------------------------------
 
@@ -102,7 +105,7 @@ public:
   double getLayerErody(int) const;		// eodability
   double getLayerPaleoCurrent(int) const;	// paleocurrent direction
   double getAgeAtDepth(double) const;
-  int getLayerSed(int) const;
+  tLayer::tSed_t getLayerSed(int) const;
   double getLayerDgrade(int, int) const;  // first int is layer index
   int getNumLayer() const;
   void setLayerCtime(int, double);
@@ -112,7 +115,7 @@ public:
   void setLayerDepth(int, double);
   void setLayerErody(int, double);
   void setLayerPaleoCurrent(int, double);
-  void setLayerSed(int, int);
+  void setLayerSed(int, tLayer::tSed_t);
   void setLayerDgrade(int, int, double);
   tArray<double> EroDep(int, tArray<double>, double);
   void EroDepSimple(int, tArray<double>, double, double);         // layer, dh[i], time, paleocurrent
@@ -120,7 +123,8 @@ public:
   tArray<double> addtoLayer(int, double,double);  // layer, g, fill[g], tt
   void addtoLayer(int, int, double, double, double);
 
-  void makeNewLayerBelow(int, int, double, tArray<double>const&, double, double);
+  void makeNewLayerBelow(int, tLayer::tSed_t, double, tArray<double>const&,
+			 double, double);
   double getPaleoCurrent(int) const;
   void removeLayer(int);
   void InsertLayerBack( tLayer const & );

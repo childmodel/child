@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.12 2004-04-22 14:42:09 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.13 2004-04-22 17:29:49 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -1027,7 +1027,7 @@ tStratNode::tStratNode( tInputFile const &infile ) :
       if( help<0.0 )
 	ReportFatalError( "Erodibility factor KB must be positive." );
       layhelp.setErody(help);
-      layhelp.setSed(0);
+      layhelp.setSed(tLayer::kBedRock);
 
       // in the regolith layer dgrade is saving
       // the proportion of grain size available from the bedrock
@@ -1043,7 +1043,7 @@ tStratNode::tStratNode( tInputFile const &infile ) :
       layerlist.insertAtBack( layhelp );
 
       // Regolith layer items read in and set
-      layhelp.setSed(1);
+      layhelp.setSed(tLayer::kSed);
       help = infile.ReadItem( help, "KR" );
       if( help<0.0 )
 	ReportFatalError( "Erodibility factor KR must be positive." );
@@ -1091,7 +1091,7 @@ tStratNode::tStratNode( tInputFile const &infile ) :
       if( help<0.0 )
 	ReportFatalError( "Erodibility factor KB must be positive." );
       layhelp.setErody(help);
-      layhelp.setSed(0);
+      layhelp.setSed(tLayer::kBedRock);
       layhelp.setDgradesize(numg);
       i=0;
       help = infile.ReadItem( help, "BEDROCKDEPTH");
@@ -1433,12 +1433,12 @@ void tStratNode::setLayerErody( int l, double ero)
 }
 
 
-int tStratNode::getLayerSed( int l ) const
+tLayer::tSed_t tStratNode::getLayerSed( int l ) const
 {
   return layerlist.getIthDataRef(l).getSed();
 }
 
-void tStratNode::setLayerSed( int i, int s)
+void tStratNode::setLayerSed( int i, tLayer::tSed_t s)
 {
   tListIter<tLayer> ly ( layerlist );
   tLayer  * hlp;
@@ -1602,7 +1602,7 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
 
     //2)No top sediment layer, deposit everything  on top of bedrock
     else if(getLayerSed(i)==0){
-      makeNewLayerBelow(-1,1,KRnew,dh,tt,current);
+      makeNewLayerBelow(-1,tLayer::kSed,KRnew,dh,tt,current);
     }
 
   }
@@ -1930,7 +1930,7 @@ void tStratNode::removeLayer(int i)
  ** Creation and recent time set to current time, exposure time updated
  ** in erodep.
  ********************************************************************/
-void tStratNode::makeNewLayerBelow(int i, int sd, double erd,
+void tStratNode::makeNewLayerBelow(int i, tLayer::tSed_t sd, double erd,
 				   tArray<double> const& sz,
 				   double tt, double current)
 {
