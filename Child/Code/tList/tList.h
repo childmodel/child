@@ -23,17 +23,19 @@
 **  descendants). Its services include fetching data from the current entry
 **  on the list, advancing to the next or previous item on the list, etc.
 **
+**  See also tPtrList, tArray, tMatrix
+**
 **  Changes:
 **    - GT added currentItem member and routines FirstP and NextP to
 **      track position on list w/o an iterator, 1/22/99
 **
-**  $Id: tList.h,v 1.13 1999-01-26 20:35:08 gtucker Exp $
+**  $Id: tList.h,v 1.14 1999-04-01 16:24:18 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
 #define TLIST_H
 
-#include "../Classes.h"
+#include "../Classes.h" // TODO: include only needed files
 
 
 /**************************************************************************\
@@ -150,7 +152,7 @@ protected:
 ** Note that in the current implementation, list items are fetched by
 ** ID number, which presupposes that the list items have a member function
 ** getID. This restricts the generality of tList, and should be moved
-** to tGridList.
+** to tGridList. (TODO)
 **
 \**************************************************************************/
 //TO DO: make Get, Where, GetP, refer to place in list rather than use getID()
