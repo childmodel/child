@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.53 1998-07-22 18:43:17 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.54 1998-07-23 17:44:49 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1663,7 +1663,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
              g++;
           }
       }
-      if(getLayerDepth(i)<=1e-10)
+      if(getLayerDepth(i)<1e-7)
           removeLayer(i);
    }
    else if(val>0)
