@@ -11,7 +11,7 @@
 **    - fixed problem with layer initialization in copy constructor
 **      (gt, 2/2000; see below)
 ** 
-**  $Id: tLNode.cpp,v 1.92 2002-04-10 16:13:30 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.93 2002-04-11 10:01:56 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -361,7 +361,7 @@ double tLNode::maxregdep = 1;
 double tLNode::KRnew = 1.0;
 
 tLNode::tLNode()                                                   //tLNode
-        : tNode(), rock(), vegCover(), reg(), chan(), qsm(), qsinm(), 
+        : tNode(), vegCover(), rock(), reg(), chan(), qsm(), qsinm(), 
           layerlist()
 {
    //cout << "=>tLNode()" << endl;
@@ -373,7 +373,7 @@ tLNode::tLNode()                                                   //tLNode
 }
 
 tLNode::tLNode( tInputFile &infile )                               //tLNode
-        : tNode(), rock(), vegCover(), reg(), chan(), qsm(), qsinm(), 
+        : tNode(), vegCover(), rock(), reg(), chan(), qsm(), qsinm(), 
           layerlist()
 {
    int i;
@@ -543,7 +543,7 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
 
 tLNode::tLNode( const tLNode &orig )                               //tLNode
         : tNode( orig ),
-          rock( orig.rock ), vegCover( orig.vegCover ),
+          vegCover( orig.vegCover ), rock( orig.rock ), 
           reg( orig.reg ), chan( orig.chan ), qsm( orig.qsm),
           qsinm( orig.qsinm )
     //Xlayerlist( orig.layerlist )
