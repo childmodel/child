@@ -91,7 +91,7 @@ void write_edge(edge *edges, point* p)
 }
 
 
-#define WRITE_FILES
+//#define WRITE_FILES
 
 void test_sort_triangulate(int npoints, point *p){
   int nedges;
@@ -131,7 +131,7 @@ void generate_dataset(int n,point* p){
 #if defined(WRITE_FILES)
   {
     const long npoints=n*n;
-    ofstream file("points");
+    ofstream file("points_res");
     file << npoints << endl;
     for(int i=0;i<npoints;++i){
       p[i].write(file);
@@ -168,7 +168,7 @@ void test_triangulate_from_file(){
 
 #if defined(USE_MAIN)
 int main(void){
-# if 0
+# if 1
 #   if 0
   int n=3;
   cout << "n= " << n << endl;
