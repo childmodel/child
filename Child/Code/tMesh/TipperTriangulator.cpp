@@ -16,10 +16,6 @@
 #define DEBUG_PRINT 1
 #include "TipperTriangulator.h"
 
-#if __SUNPRO_CC==0x420
-typedef enum { false=0, true } bool;
-#endif
-
 #define TIMING 1
 
 // vector product (or cross product) of p0p1,p0p2

@@ -1,6 +1,10 @@
 
 #include <fstream.h>
 
+#if __SUNPRO_CC==0x420
+typedef enum { false=0, true } bool;
+#endif
+
 class point;
 class edge;
 class elem;
