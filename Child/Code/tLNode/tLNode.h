@@ -1,33 +1,33 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /************************************************************************/
 /**
-**  @file tLNode.h
-**  @brief Header file for derived class tLNode and its member classes
-**
-**  A tLNode object encapsulates data and methods for a single landscape
-**  node. It inherits basic data and methods from the generic tNode
-**  class (see meshElements.h/.cpp). Embedded within tLNode are four
-**  small classes, tChannel, tSurface, tRegolith, and tRock, that
-**  contain data specific to channel geometry, surface characteristics,
-**  regolith properties, and rock properties (many of the properties in
-**  these embedded objects are now obsolete and need to be surgically
-**  removed). Embedded within tChannel is an additional class,
-**  tMeander, that contains node-data related to stream meandering.
-**
-**  Changes:
-**    - GT commented out inclusion of run timer, 1/99
-**    - removed obsolete class tErode, GT 4/99
-**    - added data mbr tau to track shear stress (or stream pwr, etc),
-**      inlined most tLayer fns. GT 1/00
-**    - GT made these changes as part of addition of vegetation module:
-**        - removed tSurface class
-**        - added tauc data mbr and retrieval functions
-**        - added embedded tVegCover object and retrieval fn
-**          (Jan 2000)
-**
-**  $Id: tLNode.h,v 1.69 2003-08-06 13:06:02 childcvs Exp $
-*/
+ **  @file tLNode.h
+ **  @brief Header file for derived class tLNode and its member classes
+ **
+ **  A tLNode object encapsulates data and methods for a single landscape
+ **  node. It inherits basic data and methods from the generic tNode
+ **  class (see meshElements.h/.cpp). Embedded within tLNode are four
+ **  small classes, tChannel, tSurface, tRegolith, and tRock, that
+ **  contain data specific to channel geometry, surface characteristics,
+ **  regolith properties, and rock properties (many of the properties in
+ **  these embedded objects are now obsolete and need to be surgically
+ **  removed). Embedded within tChannel is an additional class,
+ **  tMeander, that contains node-data related to stream meandering.
+ **
+ **  Changes:
+ **    - GT commented out inclusion of run timer, 1/99
+ **    - removed obsolete class tErode, GT 4/99
+ **    - added data mbr tau to track shear stress (or stream pwr, etc),
+ **      inlined most tLayer fns. GT 1/00
+ **    - GT made these changes as part of addition of vegetation module:
+ **        - removed tSurface class
+ **        - added tauc data mbr and retrieval functions
+ **        - added embedded tVegCover object and retrieval fn
+ **          (Jan 2000)
+ **
+ **  $Id: tLNode.h,v 1.70 2003-08-07 14:38:00 childcvs Exp $
+ */
 /************************************************************************/
 
 #ifndef TLNODE_H
@@ -49,6 +49,7 @@ using namespace std;
 #include "../tInputFile/tInputFile.h"
 #include "../globalFns.h"
 #include "../tVegetation/tVegetation.h"
+#include "../compiler.h"
 
 typedef enum {
   kFlooded     = 1,  // Flooding (lake) codes: part of a lake...
@@ -64,52 +65,52 @@ typedef enum {
 
 
 /** @class tLayer
-   Layer records */
+    Layer records */
 class tLayer
 {
-   friend class tListNode< tLayer >;
+  friend class tListNode< tLayer >;
 
-  public:
-   tLayer();
-   tLayer( int );
-   tLayer( const tLayer & );
-   const tLayer &operator=( const tLayer & );
-   void setCtime( double );
-   double getCtime() const;
-   void setRtime( double );
-   double getRtime() const;
-   void setEtime( double );
-   void addEtime( double );
-   double getEtime() const;
-   void setDepth( double );
-   // NOTE setDepth will also update the depths in dgrade so that the
-   // total depth is consistent and the original texture is kept.
-   // If texture needs to also be changed, call setDgrade.  This will
-   // also update depth and the texture will change appropriately.
-   double getDepth() const;
-   void setErody( double );
-   double getErody() const;
-   void setSed( int );
-   int getSed() const;
-   void setDgradesize( int );
-   int getDgradesize() const;
-   void setDgrade( int, double );
-   double getDgrade( int );
-   tArray< double > getDgrade() const;
-   void addDgrade(int, double);
-   
-  protected:
-   double ctime; // time of creation of layer
-   double rtime; // most recent time (time steps) that there was erosion/depo.
-   double etime; // exposure time, i.e. time material spent at surface
-   double depth; // total depth of the layer
-   double erody; // erodibility of layer (varies with material)
-   int sed;  // 0 = bedrock; 1 = some mixture of sediments so there
-   // may be multi-sizes.  although multiple sizes are stored for
-   // bedrock, this is the texture of what the bedrock will break up
-   // into, not what is there on the bed.
-   // Later sed may be used as a flag for alluvium vs. regolith, etc.
-   tArray< double > dgrade; // depth of each size if multi size
+public:
+  tLayer();
+  tLayer( int );
+  tLayer( const tLayer & );
+  const tLayer &operator=( const tLayer & );
+  void setCtime( double );
+  double getCtime() const;
+  void setRtime( double );
+  double getRtime() const;
+  void setEtime( double );
+  void addEtime( double );
+  double getEtime() const;
+  void setDepth( double );
+  // NOTE setDepth will also update the depths in dgrade so that the
+  // total depth is consistent and the original texture is kept.
+  // If texture needs to also be changed, call setDgrade.  This will
+  // also update depth and the texture will change appropriately.
+  double getDepth() const;
+  void setErody( double );
+  double getErody() const;
+  void setSed( int );
+  int getSed() const;
+  void setDgradesize( int );
+  int getDgradesize() const;
+  void setDgrade( int, double );
+  double getDgrade( int );
+  tArray< double > getDgrade() const;
+  void addDgrade(int, double);
+
+protected:
+  double ctime; // time of creation of layer
+  double rtime; // most recent time (time steps) that there was erosion/depo.
+  double etime; // exposure time, i.e. time material spent at surface
+  double depth; // total depth of the layer
+  double erody; // erodibility of layer (varies with material)
+  int sed;  // 0 = bedrock; 1 = some mixture of sediments so there
+  // may be multi-sizes.  although multiple sizes are stored for
+  // bedrock, this is the texture of what the bedrock will break up
+  // into, not what is there on the bed.
+  // Later sed may be used as a flag for alluvium vs. regolith, etc.
+  tArray< double > dgrade; // depth of each size if multi size
 };
 
 
@@ -118,11 +119,11 @@ class tLayer
  **  Inlined functions for tLayer
  **
  *************************************************************************/
- 
+
 /*************************************************************************
-**  tLayer::tLayer : Constructor function for tLayer
-*************************************************************************/
-inline tLayer::tLayer () : 
+ **  tLayer::tLayer : Constructor function for tLayer
+ *************************************************************************/
+inline tLayer::tLayer () :
   ctime(0.), rtime(0.), etime(0.),
   depth(0.), erody(0.), sed(0),
   dgrade()
@@ -152,11 +153,11 @@ inline tLayer::tLayer( const tLayer &orig ) :                        //tLayer
 
 inline const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
 {
-   if (0) //DEBUG
-     cout << "tLayer op=\n";
-    
-   if( &right != this )
-   {
+  if (0) //DEBUG
+    cout << "tLayer op=\n";
+
+  if( &right != this )
+    {
       dgrade = right.dgrade;
       ctime=right.ctime;
       rtime=right.rtime;
@@ -164,471 +165,675 @@ inline const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
       depth=right.depth;
       erody=right.erody;
       sed=right.sed;
-   
-   }
-   return *this;
+
+    }
+  return *this;
 }
 
 
 inline void tLayer::setCtime( double tt )
 {
-   ctime = tt;
+  ctime = tt;
 }
 
-inline double tLayer::getCtime() const 
+inline double tLayer::getCtime() const
 {
-   return ctime;
+  return ctime;
 }
 
 inline void tLayer::setRtime( double tt )
 {
-   rtime = tt;
+  rtime = tt;
 }
 
-inline double tLayer::getRtime() const 
+inline double tLayer::getRtime() const
 {
-   return rtime;
+  return rtime;
 }
 
 inline void tLayer::setEtime( double tt )
 {
-   etime = tt;
+  etime = tt;
 }
 
 inline void tLayer::addEtime( double tt )
 {
-   etime += tt;
+  etime += tt;
 }
 
-inline double tLayer::getEtime() const 
+inline double tLayer::getEtime() const
 {
-   return etime;
+  return etime;
 }
 
 
-inline double tLayer::getDepth() const 
+inline double tLayer::getDepth() const
 {
-   return depth;
+  return depth;
 }
 
 inline void tLayer::setErody( double ero)
 {
-   erody = ero;
+  erody = ero;
 }
 
-inline double tLayer::getErody() const 
+inline double tLayer::getErody() const
 {
-   return erody;
+  return erody;
 }
 
 inline void tLayer::setSed( int rg)
 {
-   sed = rg;
+  sed = rg;
 }
 
-inline int tLayer::getSed() const 
+inline int tLayer::getSed() const
 {
-   return sed;
+  return sed;
 }
 
 inline void tLayer::setDgradesize( int i )
 {
-   dgrade.setSize(i);
+  dgrade.setSize(i);
 }
 
 inline int tLayer::getDgradesize( ) const
 {
-   return dgrade.getSize();
+  return dgrade.getSize();
 }
 
 inline void tLayer::addDgrade( int i, double size )
 {
-   assert(i<dgrade.getSize());
-   dgrade[i]+=size;
-   assert( dgrade[i]>=0.0 );
-   depth+=size;
+  assert(i<dgrade.getSize());
+  dgrade[i]+=size;
+  assert( dgrade[i]>=0.0 );
+  depth+=size;
 }
 
 inline double tLayer::getDgrade( int i)
 {
-   assert( i<dgrade.getSize() );
-   return dgrade[i];
+  assert( i<dgrade.getSize() );
+  return dgrade[i];
 }
 
 inline tArray< double >
 tLayer::getDgrade( ) const
 {
-   return dgrade;
+  return dgrade;
 }
 
 /** class tErode ***********************************************************/
 /*class tErode
-{
-   friend class tChannel;
-   friend class tLNode;
+  {
+  friend class tChannel;
+  friend class tLNode;
   public:
-   tErode();
-   tErode( const tErode & );
-   tErode( int, int );
-   ~tErode();
-   const tErode &operator=( const tErode & );
+  tErode();
+  tErode( const tErode & );
+  tErode( int, int );
+  ~tErode();
+  const tErode &operator=( const tErode & );
   private:
-    
-   double sedinput;
-   double dz;      
-   double zp;      
-   double qs;      
-   double qsp;     
-   double qsin;    
-   double qsinp;   
-   int nsmpts;     
-   tArray< double > smooth;
-   double tau;
-};*/
+
+  double sedinput;
+  double dz;
+  double zp;
+  double qs;
+  double qsp;
+  double qsin;
+  double qsinp;
+  int nsmpts;
+  tArray< double > smooth;
+  double tau;
+  };*/
 
 
 /** @class tMeander
-*/
+ */
 class tMeander
 {
-   friend class tChannel;
-   friend class tLNode;
-  public:
-   tMeander();
-   tMeander( const tMeander & );
-   tMeander( bool, double, double );
-   ~tMeander();
-   const tMeander &operator=( const tMeander & );
-  private:
-   bool meander;      /* flag indicating if the point meanders */
-   double newx, newy;
-   int head;         /* Flag indicating node is a reach head*/
-   int reachmember;  /* Flag indicating node has been included in a reach*/
-   double deltax, deltay; /* Displacements in x and y from meandering*/
-   double zoldright;	/* right bed elevation */
-   double zoldleft;	/* left bed elevation*/
-   double bankrough; //bank roughness (lambda in meander.f) w/ units of length
-   tArray< double > xyzd;
+  friend class tChannel;
+  friend class tLNode;
+public:
+  tMeander();
+  tMeander( const tMeander & );
+  tMeander( bool, double, double );
+  ~tMeander();
+  const tMeander &operator=( const tMeander & );
+private:
+  bool meander;      /* flag indicating if the point meanders */
+  double newx, newy;
+  int head;         /* Flag indicating node is a reach head*/
+  int reachmember;  /* Flag indicating node has been included in a reach*/
+  double deltax, deltay; /* Displacements in x and y from meandering*/
+  double zoldright;	/* right bed elevation */
+  double zoldleft;	/* left bed elevation*/
+  double bankrough; //bank roughness (lambda in meander.f) w/ units of length
+  tArray< double > xyzd;
 };
 
 /** @class tBedrock
-*/
+ */
 class tBedrock
 {
-   friend class tLNode;
-  public:
-   tBedrock();
-   tBedrock( const tBedrock & );
-   ~tBedrock();
-   const tBedrock &operator=( const tBedrock & );
-  private:
-   double erodibility;
+  friend class tLNode;
+public:
+  tBedrock();
+  tBedrock( const tBedrock & );
+  ~tBedrock();
+  const tBedrock &operator=( const tBedrock & );
+private:
+  double erodibility;
 };
 
 /** class tSurface **********************************************************/
 /*class tSurface
-{
-   friend class tLNode;
+  {
+  friend class tLNode;
   public:
-   tSurface();
-   tSurface( const tSurface & );
-   ~tSurface();
-   const tSurface &operator=( const tSurface & );
+  tSurface();
+  tSurface( const tSurface & );
+  ~tSurface();
+  const tSurface &operator=( const tSurface & );
   private:
   double veg;          // Percent vegetation cover
   double tauc;         // Threshold
-   double vegerody;     //erodibility of vegetated surface (or channel bank)
-};*/
+  double vegerody;     //erodibility of vegetated surface (or channel bank)
+  };*/
 
 /** @class tRegolith
-*/
+ */
 class tRegolith
 {
-   friend class tLNode;
-  public:
-   tRegolith();
-   //tRegolith( tInputFile &infile ); /* Reads needed values from input file*/
-   tRegolith( const tRegolith & );
-   ~tRegolith();
-   const tRegolith &operator=( const tRegolith & );
-  private:
-   double thickness;  /* dynamic thickness of regolith */
-   tArray< double > dgrade;/* depth of each sediment class in active layer [m] */
+  friend class tLNode;
+public:
+  tRegolith();
+  //tRegolith( tInputFile &infile ); /* Reads needed values from input file*/
+  tRegolith( const tRegolith & );
+  ~tRegolith();
+  const tRegolith &operator=( const tRegolith & );
+private:
+  double thickness;  /* dynamic thickness of regolith */
+  tArray< double > dgrade;/* depth of each sediment class in active layer [m] */
 };
 
 /** @class tChannel
-*/
+ */
 class tChannel
 {
-   friend class tLNode;
-  public:
-   tChannel();
-   tChannel( const tChannel & );
-   ~tChannel();
-   const tChannel &operator=( const tChannel & );
-  private:
-   double drarea;       /* drainage area (2/97)*/
-   double q;  /* discharge in m^3/yr */
-   double mdFlowPathLength;  /* Longest flow path from divide (9/01) */
-   double chanwidth;    /* Channel geometry: width*/
-   double hydrwidth;    /* hydraulic geometry: width*/
-   double channrough;       /* Channel roughness (Manning 'n')*/
-   double hydrnrough;       /* Hydraulic roughness (Manning 'n')*/
-   double chandepth;    /* Channel flow depth*/
-   double hydrdepth;    /* Hydraulic flow depth*/
-   double chanslope;
-   double hydrslope;
-   double diam;    	/* Grain diameter of bed material*/
-/*member objects:*/
-   tMeander migration;
+  friend class tLNode;
+public:
+  tChannel();
+  tChannel( const tChannel & );
+  ~tChannel();
+  const tChannel &operator=( const tChannel & );
+private:
+  double drarea;       /* drainage area (2/97)*/
+  double q;  /* discharge in m^3/yr */
+  double mdFlowPathLength;  /* Longest flow path from divide (9/01) */
+  double chanwidth;    /* Channel geometry: width*/
+  double hydrwidth;    /* hydraulic geometry: width*/
+  double channrough;       /* Channel roughness (Manning 'n')*/
+  double hydrnrough;       /* Hydraulic roughness (Manning 'n')*/
+  double chandepth;    /* Channel flow depth*/
+  double hydrdepth;    /* Hydraulic flow depth*/
+  double chanslope;
+  double hydrslope;
+  double diam;    	/* Grain diameter of bed material*/
+  /*member objects:*/
+  tMeander migration;
 };
 
 /** @class tLNode
-*/
+ */
 class tLNode : public tNode
 {
 public:
-    tLNode();
-    tLNode( tInputFile &infile );
-    tLNode( const tLNode & );
-   //Syntax for calling copy constructor
-   //tLNode *newnode = new tLNode( *oldtLNode );
-    ~tLNode();
-    const tLNode &operator=( const tLNode & );
-    inline tVegCover &getVegCover();
-    const tBedrock &getRock() const;
-    const tRegolith &getReg() const;
-    const tChannel &getChan() const;
-    inline tFlood_t getFloodStatus() const;
-    inline void setFloodStatus( tFlood_t status );
-    tEdge * getFlowEdg();
-    void setFlowEdg( tEdge * );
-    void setDrArea( double );
-    inline void setFlowPathLength( double );
-    inline double getFlowPathLength() const;
-    void AddDrArea( double );
-    void AddDischarge( double );
-    inline tLNode * getDownstrmNbr();
-    double getQ() const;  // Gets total discharge from embedded chan obj
-   // fluvial discharge is in now in m^3/YR 
-    double getSlope();    // Computes and returns slope in flow direction
-    double getDSlopeDt();
-    bool Meanders() const;
-    void setMeanderStatus( bool );
-    void setHydrWidth( double );
-    void setChanWidth( double );
-    double getHydrWidth() const;
-    double getChanWidth() const;
-    void setHydrDepth( double );
-    void setChanDepth( double );
-    double getHydrDepth() const;
-    double getChanDepth() const;
-    void setHydrRough( double );
-    void setChanRough( double );
-    double getHydrRough() const;
-    double getChanRough() const;
-    void setHydrSlope( double );
-    void setChanSlope( double );
-    double getHydrSlope() const;
-    double getChanSlope() const;
-    double getDiam() const;
-    void setBankRough( double );
-    double getBankRough() const;
-    double getDrArea() const;
-   double getTotalLayerDepth() const;
-    tArray< double > getZOld() const;
-    tArray< double > getNew2DCoords() const;   //for chan.migration.newx, newy
-    void setNew2DCoords( double, double );      //        "
-    tArray< double > getNew3DCoords() const;   //        "
-    tArray< double > getLatDisplace() const;  //for chan.migration.deltax, deltay
-    void setLatDisplace( double, double );      //        "
-    void addLatDisplace( double, double );      //        "
-    void setRock( const tBedrock & );
-    inline void setVegCover( const tLNode * );
-    void setReg( const tRegolith & );
-    void setChan( const tChannel & );
-    void setDischarge( double );
-    void setZOld( double, double );
-    void RevertToOldCoords();
-    virtual void UpdateCoords();
-    double DistNew( tLNode const *, tLNode const * ) const;
-    void ActivateSortTracer();
-    void DeactivateSortTracer();
-    void MoveSortTracerDownstream();
-    void FlagDownhillNodes();
-    inline void AddTracer();
-    int NoMoreTracers() const;
-    void EroDep( double dz );
-    void setAlluvThickness( double );
-    double getAlluvThickness() const;
-   tArray< double > getAlluvThicknessm( ) const;
-    void setBedErody( double );
-    double getBedErody() const;
-    void setReachMember( int );
-   int getReachMember() const;
-// NOTE - For the get and set functions which involve arrays of size numg,
-   // the arrays go from 0 to (numg-1) and must be indexed in this manner
-   void setQs( double );
-    void setQs( int, double );
-    double getQs() const;
-   double getQs( int );
-    tArray< double > getQsm( ) const;
-    void setQsin( double );
-   void setQsin( int, double );
-   void addQs( double );
-   void addQs( int, double );
-   void addQs( tArray< double > );
-   void addQsin( double );
-   void addQsin( int, double );
-   void addQsin( tArray< double > );
-    double getQsin() const;
-   double getQsin( int );
-   tArray< double > getQsinm( ) const;
-   void setGrade( int, double ) const;
-   double getGrade( int ) const;
-   tArray< double > getGrade( ) const;
-   void setXYZD( tArray< double > const &);
-   tArray< double > getXYZD() const;
-   double DistFromOldXY() const;
-   int OnBedrock() const;
-   double getDzDt() const;
-   void setDzDt( double );
-   void addDrDt(double);
-   double getDrDt() const;
-   void setDrDt( double );
-   double getTau() const;
-   inline void setTau( double );
-   inline double getTauCrit() const;
-   inline void setTauCrit( double );
-   void setUplift( double );
-   double getUplift() const;
-   int getNumg() const;
-   void setNumg( int ) const;
-   double getMaxregdep() const;
-   // NOTE for the get and set functions which involve the layerlist
-   // the top layer is layer 0 and indexes go from 0 to (getNumLayer-1)
-   // NOTE The set functions for layer depths (including grades)
-   // do not obey the rules of maximum layer depths
-   // and should be only used for inititalizing values
-   // Other than that, use EroDep() for erosion or deposition.
-   // This function takes the layer index because there may be
-   // erosion of the first few layers if the surface layer is not deep enough
-   // The addtoLayer() function is a helper to addtoSurfaceDgrade()
-   double getLayerCtime(int) const;
-   double getLayerRtime(int) const;
-   double getLayerEtime(int) const;
-   double getLayerDepth(int) const;
-   double getLayerErody(int) const;
-   int getLayerSed(int) const;
-   double getLayerDgrade(int, int) const;  // first int is layer index
-   // second int is grade index - see note above for indexing directions
-   int getNumLayer() const;
-   void setLayerCtime(int, double);
-   void setLayerRtime(int, double);
-   void setLayerEtime(int, double);
-   void addLayerEtime(int, double);
-   void setLayerDepth(int, double);
-   void setLayerErody(int, double);
-   void setLayerSed(int, int);
-   void setLayerDgrade(int, int, double); 
-   tArray<double> EroDep(int, tArray<double>, double);
-   // returns the depth of of each size that was actually deposited or
-   // eroded.  Important in case less can be eroded than planned.
-   // Can be used for erosion of bedrock.
-   // Algorithm assumes that the material being deposited is the
-   // Same material as that in the layer you are depositing into.
-   tArray<double> addtoLayer(int, double);
-   // Used if removing material from lower layers -
-   // only called from EroDep
-   // because appropriate checking needs to be done first.
-   // array tells the composition of the material which was taken from layer
-   void addtoLayer(int, int, double, double);
-   // Used if depositing or eroding material to lower layer size by size
-   // only called from EroDep because appropriate checking needs
-   // to be done first - also used for erosion from the surface layer
-   void makeNewLayerBelow(int, int, double, tArray<double>, double);
-   void removeLayer(int);
-   void InsertLayerBack( tLayer const & );
-   void LayerInterpolation( tTriangle const *, double, double, double );
-   virtual void WarnSpokeLeaving(tEdge *);
-   virtual void InitializeNode();
-   virtual tArray< double > FuturePosn();
-   virtual bool isMobile() const { return Meanders();}
+  tLNode();
+  tLNode( tInputFile &infile );
+  tLNode( const tLNode & );
+  //Syntax for calling copy constructor
+  //tLNode *newnode = new tLNode( *oldtLNode );
+  ~tLNode();
+  const tLNode &operator=( const tLNode & );
+  inline tVegCover &getVegCover();
+  inline const tBedrock &getRock() const;
+  inline const tRegolith &getReg() const;
+  inline const tChannel &getChan() const;
+  inline tFlood_t getFloodStatus() const;
+  inline void setFloodStatus( tFlood_t status );
+  inline tEdge * getFlowEdg();
+  inline void setFlowEdg( tEdge * );
+  inline void setDrArea( double );
+  inline void setFlowPathLength( double );
+  inline double getFlowPathLength() const;
+  inline void AddDrArea( double );
+  inline void AddDischarge( double );
+  inline tLNode * getDownstrmNbr();
+  inline double getQ() const;  // Gets total discharge from embedded chan obj
+  // fluvial discharge is in now in m^3/YR
+  double getSlope();    // Computes and returns slope in flow direction
+  double getDSlopeDt();
+  inline bool Meanders() const;
+  inline void setMeanderStatus( bool );
+  inline void setHydrWidth( double );
+  inline void setChanWidth( double );
+  inline double getHydrWidth() const;
+  inline double getChanWidth() const;
+  inline void setHydrDepth( double );
+  inline void setChanDepth( double );
+  inline double getHydrDepth() const;
+  inline double getChanDepth() const;
+  inline void setHydrRough( double );
+  inline void setChanRough( double );
+  inline double getHydrRough() const;
+  inline double getChanRough() const;
+  inline void setHydrSlope( double );
+  inline void setChanSlope( double );
+  inline double getHydrSlope() const;
+  inline double getChanSlope() const;
+  double getDiam() const;
+  inline void setBankRough( double );
+  inline double getBankRough() const;
+  inline double getDrArea() const;
+  double getTotalLayerDepth() const;
+  tArray< double > getZOld() const;
+  tArray< double > getNew2DCoords() const;   //for chan.migration.newx, newy
+  void setNew2DCoords( double, double );      //        "
+  tArray< double > getNew3DCoords() const;   //        "
+  tArray< double > getLatDisplace() const;  //for chan.migration.deltax, deltay
+  void setLatDisplace( double, double );      //        "
+  void addLatDisplace( double, double );      //        "
+  inline void setRock( const tBedrock & );
+  inline void setVegCover( const tLNode * );
+  inline void setReg( const tRegolith & );
+  inline void setChan( const tChannel & );
+  void setDischarge( double );
+  void setZOld( double, double );
+  void RevertToOldCoords();
+  virtual void UpdateCoords();
+  double DistNew( tLNode const *, tLNode const * ) const;
+  void ActivateSortTracer();
+  void DeactivateSortTracer();
+  void MoveSortTracerDownstream();
+  void FlagDownhillNodes();
+  inline void AddTracer();
+  int NoMoreTracers() const;
+  void EroDep( double dz );
+  inline void setAlluvThickness( double );
+  inline double getAlluvThickness() const;
+  inline tArray< double > getAlluvThicknessm( ) const;
+  inline void setBedErody( double );
+  inline double getBedErody() const;
+  inline void setReachMember( int );
+  inline int getReachMember() const;
+  // NOTE - For the get and set functions which involve arrays of size numg,
+  // the arrays go from 0 to (numg-1) and must be indexed in this manner
+  inline void setQs( double );
+  inline void setQs( int, double );
+  inline double getQs() const;
+  inline double getQs( int );
+  inline tArray< double > getQsm( ) const;
+  inline void setQsin( double );
+  void setQsin( int, double );
+  void addQs( double );
+  void addQs( int, double );
+  void addQs( tArray< double > const &);
+  inline void addQsin( double );
+  inline void addQsin( int, double );
+  void addQsin( tArray< double > const &);
+  inline double getQsin() const;
+  inline double getQsin( int );
+  inline tArray< double > getQsinm( ) const;
+  inline void setGrade( int, double ) const;
+  inline double getGrade( int ) const;
+  inline tArray< double > getGrade( ) const;
+  inline void setXYZD( tArray< double > const &);
+  inline tArray< double > getXYZD() const;
+  double DistFromOldXY() const;
+  inline int OnBedrock() const;
+  inline double getDzDt() const;
+  inline void setDzDt( double );
+  inline void addDrDt(double);
+  inline double getDrDt() const;
+  inline void setDrDt( double );
+  inline double getTau() const;
+  inline void setTau( double );
+  inline double getTauCrit() const;
+  inline void setTauCrit( double );
+  inline void setUplift( double );
+  inline double getUplift() const;
+  inline int getNumg() const;
+  inline void setNumg( int ) const;
+  inline double getMaxregdep() const;
+  // NOTE for the get and set functions which involve the layerlist
+  // the top layer is layer 0 and indexes go from 0 to (getNumLayer-1)
+  // NOTE The set functions for layer depths (including grades)
+  // do not obey the rules of maximum layer depths
+  // and should be only used for inititalizing values
+  // Other than that, use EroDep() for erosion or deposition.
+  // This function takes the layer index because there may be
+  // erosion of the first few layers if the surface layer is not deep enough
+  // The addtoLayer() function is a helper to addtoSurfaceDgrade()
+  double getLayerCtime(int) const;
+  double getLayerRtime(int) const;
+  double getLayerEtime(int) const;
+  double getLayerDepth(int) const;
+  double getLayerErody(int) const;
+  int getLayerSed(int) const;
+  inline double getLayerDgrade(int, int) const;  // first int is layer index
+  // second int is grade index - see note above for indexing directions
+  int getNumLayer() const;
+  void setLayerCtime(int, double);
+  void setLayerRtime(int, double);
+  void setLayerEtime(int, double);
+  void addLayerEtime(int, double);
+  void setLayerDepth(int, double);
+  void setLayerErody(int, double);
+  void setLayerSed(int, int);
+  void setLayerDgrade(int, int, double);
+  tArray<double> EroDep(int, tArray<double>, double);
+  // returns the depth of of each size that was actually deposited or
+  // eroded.  Important in case less can be eroded than planned.
+  // Can be used for erosion of bedrock.
+  // Algorithm assumes that the material being deposited is the
+  // Same material as that in the layer you are depositing into.
+  tArray<double> addtoLayer(int, double);
+  // Used if removing material from lower layers -
+  // only called from EroDep
+  // because appropriate checking needs to be done first.
+  // array tells the composition of the material which was taken from layer
+  void addtoLayer(int, int, double, double);
+  // Used if depositing or eroding material to lower layer size by size
+  // only called from EroDep because appropriate checking needs
+  // to be done first - also used for erosion from the surface layer
+  void makeNewLayerBelow(int, int, double, tArray<double>, double);
+  void removeLayer(int);
+  void InsertLayerBack( tLayer const & );
+  void LayerInterpolation( tTriangle const *, double, double, double );
+  virtual void WarnSpokeLeaving(tEdge *);
+  virtual void InitializeNode();
+  virtual tArray< double > FuturePosn();
+  virtual bool isMobile() const { return Meanders();}
 
-   virtual void PrepForAddition( tTriangle const *, double );
-   virtual void PrepForMovement( tTriangle const *, double );
+  virtual void PrepForAddition( tTriangle const *, double );
+  virtual void PrepForMovement( tTriangle const *, double );
 
-   void CopyLayerList( tLNode const * ); // Copy layerlist from another node (gt 12/99)
+  void CopyLayerList( tLNode const * ); // Copy layerlist from another node (gt 12/99)
 
 #ifndef NDEBUG
-   void TellAll();
+  void TellAll();
 #endif
-   
+
 protected:
-   tVegCover vegCover;  // Vegetation cover properties (see tVegetation.h/.cpp)
-   tBedrock rock;
-   tRegolith reg;
-   tChannel chan;
-   tFlood_t flood;        /* flag: is the node part of a lake?*/
-   tEdge *flowedge;
-   int tracer;       /* Used by network sorting algorithm*/
-   double dzdt;      /* Erosion rate */
-   double drdt;      /* Rock erosion rate */
-   double tau;       // Shear stress or equivalent (e.g., unit stream pwr)
-   double tauc;      // Critical (threshold) shear stress or equiv.
-   // NOTE - all sediment transport rates are volume per year
-   double qs;           /* Sediment transport rate*/
-   tArray< double > qsm; /* multi size; transport rate of each size fraction*/
-   double qsin;         /* Sediment influx rate*/
-   tArray< double > qsinm; /* multi size; influx rate of each size fraction*/
-   double uplift;  /*uplift rate*/
-   tList< tLayer > layerlist; /* list of the different layers */
-   static int numg;
-   // number of grain sizes recognized NIC should be the same for all
-   // nodes, maybe put this somewhere else when you figure out what is going on
-   static tArray< double > grade;
-   // size of each grain size class, NIC again, you may
-   // want to put this somewhere else
-   static double maxregdep;
-   static double KRnew;
+  tVegCover vegCover;  // Vegetation cover properties (see tVegetation.h/.cpp)
+  tBedrock rock;
+  tRegolith reg;
+  tChannel chan;
+  tFlood_t flood;        /* flag: is the node part of a lake?*/
+  tEdge *flowedge;
+  int tracer;       /* Used by network sorting algorithm*/
+  double dzdt;      /* Erosion rate */
+  double drdt;      /* Rock erosion rate */
+  double tau;       // Shear stress or equivalent (e.g., unit stream pwr)
+  double tauc;      // Critical (threshold) shear stress or equiv.
+  // NOTE - all sediment transport rates are volume per year
+  double qs;           /* Sediment transport rate*/
+  tArray< double > qsm; /* multi size; transport rate of each size fraction*/
+  double qsin;         /* Sediment influx rate*/
+  tArray< double > qsinm; /* multi size; influx rate of each size fraction*/
+  double uplift;  /*uplift rate*/
+  tList< tLayer > layerlist; /* list of the different layers */
+  static int numg;
+  // number of grain sizes recognized NIC should be the same for all
+  // nodes, maybe put this somewhere else when you figure out what is going on
+  static tArray< double > grade;
+  // size of each grain size class, NIC again, you may
+  // want to put this somewhere else
+  static double maxregdep;
+  static double KRnew;
 };
 
 inline tFlood_t tLNode::getFloodStatus() const { return flood; }
 
 inline void tLNode::setFloodStatus( tFlood_t status )
 {
-   flood = status;
+  flood = status;
 }
+
+inline tEdge * tLNode::getFlowEdg()
+{
+  return flowedge;
+}
+
+inline void tLNode::setFlowEdg( tEdge * newflowedge )
+{
+  assert( newflowedge != 0 );  // Fails when passed an invalid edge
+  flowedge = newflowedge;
+}
+
+inline void tLNode::setDrArea( double val ) {chan.drarea = val;}
+inline void tLNode::AddDrArea( double val ) {chan.drarea += val;}
+
+inline void tLNode::AddDischarge( double val ) {chan.q += val;}
 
 inline tLNode * tLNode::getDownstrmNbr()
 {
-   return ( flowedge != 0 ) ?
-     static_cast<tLNode *>(flowedge->getDestinationPtrNC()):
-     0;
+  return ( flowedge != 0 ) ?
+    static_cast<tLNode *>(flowedge->getDestinationPtrNC()):
+    0;
 }
+
+// nb: if channel is integrated into node, change this
+inline double tLNode::getQ() const
+{
+  return chan.q;
+}
+
+inline bool tLNode::Meanders() const {return chan.migration.meander;}
+inline void tLNode::setMeanderStatus( bool val )
+{ chan.migration.meander = val;}
+
+inline double tLNode::getHydrWidth() const {return chan.hydrwidth;}
+inline double tLNode::getChanWidth() const {return chan.chanwidth;}
+inline double tLNode::getHydrDepth() const {return chan.hydrdepth;}
+inline double tLNode::getChanDepth() const {return chan.chandepth;}
+inline double tLNode::getHydrRough() const {return chan.hydrnrough;}
+inline double tLNode::getChanRough() const {return chan.channrough;}
+inline double tLNode::getHydrSlope() const {return chan.hydrslope;}
+inline double tLNode::getChanSlope() const {return chan.chanslope;}
+
+inline double tLNode::getBankRough() const {return chan.migration.bankrough;}
+
+//TODO: suggest doing away with the zero test for performance enhancement
+inline void tLNode::setHydrWidth( double val )  {chan.hydrwidth = ( val > 0 ) ? val : 0;}
+inline void tLNode::setChanWidth( double val )  {chan.chanwidth = ( val > 0 ) ? val : 0;}
+inline void tLNode::setHydrDepth( double val )  {chan.hydrdepth = ( val > 0 ) ? val : 0;}
+inline void tLNode::setChanDepth( double val )  {chan.chandepth = ( val > 0 ) ? val : 0;}
+inline void tLNode::setHydrRough( double val )  {chan.hydrnrough = ( val > 0 ) ? val : 0;}
+inline void tLNode::setChanRough( double val )  {chan.channrough = ( val > 0 ) ? val : 0;}
+inline void tLNode::setHydrSlope( double val )  {chan.hydrslope = ( val > 0 ) ? val : 0;}
+inline void tLNode::setChanSlope( double val )  {chan.chanslope = ( val > 0 ) ? val : 0;}
+inline void tLNode::setBankRough( double val )
+{chan.migration.bankrough = ( val > 0 ) ? val : 0;}
+
+inline double tLNode::getDrArea() const {return chan.drarea;}
+
+inline void tLNode::setBedErody( double val )
+{rock.erodibility = ( val >= 0.0 ) ? val : 0.0;}
+
+inline double tLNode::getBedErody() const {return rock.erodibility;}
+
+inline void tLNode::setReachMember( int val )
+{chan.migration.reachmember = ( val == 0 || val == 1 ) ? val : 0;}
+
+inline int tLNode::getReachMember() const {return chan.migration.reachmember;}
+
+inline void tLNode::setQs( double val ) {qs = val;}
+
+inline void tLNode::setQs( int i, double val )
+{
+  if(unlikely(i>=numg))
+    ReportFatalError( "Trying to index sediment sizes that don't exist ");
+  qsm[i] = val;
+  qs += val;
+}
+
+inline double tLNode::getQs() const {return qs;}
+
+inline double tLNode::getQs( int i)
+{
+  if(unlikely(i>=numg))
+    ReportFatalError( "Trying to index sediment sizes that don't exist ");
+  return qsm[i];
+}
+
+inline tArray< double >
+tLNode::getQsm( ) const
+{
+  return qsm;
+}
+
+inline void tLNode::setQsin( double val ) {qsin = val;}
+
+inline void tLNode::addQsin( double val )
+{
+  qsin += val;
+}
+
+inline void tLNode::addQsin( int i, double val )
+{
+  if(unlikely(i>=numg))
+    ReportFatalError( "Trying to index sediment sizes that don't exist ");
+  qsinm[i] += val;
+  qsin += val;
+
+}
+
+inline void tLNode::addQs( double val )
+{
+  qs += val;
+}
+
+inline void tLNode::addQs( int i, double val )
+{
+  if(unlikely(i>=numg))
+    ReportFatalError( "Trying to index sediment sizes that don't exist ");
+  qsm[i] += val;
+  qs += val;
+
+}
+
+inline double tLNode::getQsin() const {return qsin;}
+
+inline double tLNode::getQsin( int i )
+{
+  if(unlikely(i>=numg))
+    ReportFatalError( "Trying to index sediment sizes that don't exist ");
+  return qsinm[i];
+}
+
+inline tArray< double >
+tLNode::getQsinm( ) const
+{
+  return qsinm;
+}
+
+inline void tLNode::setGrade( int i, double size ) const
+{
+  if(unlikely(i>=numg))
+    ReportFatalError("Trying to set a grain size for an index which is too large");
+  grade[i] = size;
+}
+
+double tLNode::getGrade( int i ) const
+{
+  return grade[i];
+}
+
+tArray< double >
+tLNode::getGrade( ) const
+{
+  return grade;
+}
+
+inline void tLNode::setXYZD( tArray< double > const &arr )
+{
+  chan.migration.xyzd = ( arr.getSize() == 4 ) ? arr : tArray< double >(4);
+}
+
+inline tArray< double >
+tLNode::getXYZD() const {return chan.migration.xyzd;}
+
+// Tests whether bedrock is exposed at a node
+inline int tLNode::OnBedrock() const
+{
+  // For multi-size model, criterion might be active layer thickness less
+  // than a nominal thickness; here, it's just an arbitrary alluvial depth
+  return ( reg.thickness<0.1 );
+}
+
+inline void tLNode::setDzDt( double val ) {dzdt = val;}
+
+inline double tLNode::getDzDt() const {return dzdt;}
+
+inline void tLNode::setDrDt( double val ) {drdt = val;}
+
+inline void tLNode::addDrDt( double val )
+{
+  drdt += val;
+}
+
+inline double tLNode::getDrDt() const {return drdt;}
 
 inline double tLNode::getTau() const { return tau; }
 
 inline void tLNode::setTau( double newtau )
 {
-   tau = newtau;
+  tau = newtau;
 }
 
 inline double tLNode::getTauCrit() const { return tauc; }
 
 inline void tLNode::setTauCrit( double newtauc )
 {
-   tauc = newtauc;
+  tauc = newtauc;
+}
+
+void tLNode::setUplift( double val ) {uplift = val;}
+
+double tLNode::getUplift() const {return uplift;}
+
+inline int tLNode::getNumg() const
+{
+  return numg;
+}
+
+inline void tLNode::setNumg( int size ) const
+{
+  numg = size;
+}
+
+inline double tLNode::getMaxregdep() const
+{
+  return maxregdep;
+}
+
+inline double tLNode::getLayerDgrade( int i, int num ) const
+{
+   tLayer hlp;
+   hlp = layerlist.getIthData(i);
+   return hlp.getDgrade(num);
 }
 
 inline tVegCover & tLNode::getVegCover()
 {
-   return vegCover;
+  return vegCover;
 }
 
 inline void tLNode::setVegCover( const tLNode *node )
 {
-   vegCover = node->vegCover;
+  vegCover = node->vegCover;
 }
 
 inline double tLNode::getFlowPathLength() const
@@ -641,35 +846,44 @@ inline void tLNode::setFlowPathLength( double fpl )
   chan.mdFlowPathLength = fpl;
 }
 
+inline const tBedrock &tLNode::getRock() const {return rock;}
+//Xconst tSurface &tLNode::getSurf() const {return surf;}
+inline const tRegolith &tLNode::getReg() const {return reg;}
+inline const tChannel &tLNode::getChan() const {return chan;}
+
+inline void tLNode::setRock( const tBedrock & val ) {rock = val;}
+//Xvoid tLNode::setSurf( const tSurface & val ) {surf = val;}
+inline void tLNode::setReg( const tRegolith & val ) {reg = val;}
+inline void tLNode::setChan( const tChannel & val ) {chan = val;}
 
 /**************************************************************************\
-**
-**  Tracer-sorting routines:
-**
-**  These routines are utilities that are used in sorting the nodes
-**  according to their position within the drainage network. The main
-**  sorting algorithm is implemented in tStreamNet::SortNodesByNetOrder().
-**  The sorting method works by introducing a "tracer" at each point,
-**  then allowing the tracers to iteratively cascade downstream. At each
-**  step any nodes not containing tracers are moved to the back of the
-**  list. The result is a list sorted in upstream-to-downstream order.
-**
-**  These utilities do the following:
-**    ActivateSortTracer -- injects a single tracer at a node
-**    AddTracer -- adds a tracer to a node (ignored if node is a bdy)
-**    MoveSortTracerDownstream -- removes a tracer and sends it to the
-**                                downstream neighbor (unless the node is
-**                                a sink; then the tracer just vanishes)
-**    FlagDownhillNodes -- for multiple flow direction
-**                         routing: flag all downhill nodes
-**    NoMoreTracers -- reports whether there are any tracers left here
-**
-**  Created by GT 12/97.
-**
-**  Modifications:
-**   - added MoveSortTracersDownstrmMulti and moved all files to .h
-**     for inlining, 1/00, GT
-**
+ **
+ **  Tracer-sorting routines:
+ **
+ **  These routines are utilities that are used in sorting the nodes
+ **  according to their position within the drainage network. The main
+ **  sorting algorithm is implemented in tStreamNet::SortNodesByNetOrder().
+ **  The sorting method works by introducing a "tracer" at each point,
+ **  then allowing the tracers to iteratively cascade downstream. At each
+ **  step any nodes not containing tracers are moved to the back of the
+ **  list. The result is a list sorted in upstream-to-downstream order.
+ **
+ **  These utilities do the following:
+ **    ActivateSortTracer -- injects a single tracer at a node
+ **    AddTracer -- adds a tracer to a node (ignored if node is a bdy)
+ **    MoveSortTracerDownstream -- removes a tracer and sends it to the
+ **                                downstream neighbor (unless the node is
+ **                                a sink; then the tracer just vanishes)
+ **    FlagDownhillNodes -- for multiple flow direction
+ **                         routing: flag all downhill nodes
+ **    NoMoreTracers -- reports whether there are any tracers left here
+ **
+ **  Created by GT 12/97.
+ **
+ **  Modifications:
+ **   - added MoveSortTracersDownstrmMulti and moved all files to .h
+ **     for inlining, 1/00, GT
+ **
 \**************************************************************************/
 
 inline void tLNode::ActivateSortTracer()
@@ -680,39 +894,51 @@ inline void tLNode::DeactivateSortTracer()
 
 inline void tLNode::MoveSortTracerDownstream()
 {
-   tracer--;
-   if( flood!=kSink ) getDownstrmNbr()->AddTracer();
+  tracer--;
+  if( flood!=kSink ) getDownstrmNbr()->AddTracer();
 }
 
 inline void tLNode::FlagDownhillNodes()
 {
-   tEdge *ce;
-   
-   // Flag all adjacent nodes that are lower than me
-   ce = getEdg();
-   do
-   {
+  tEdge *ce;
+
+  // Flag all adjacent nodes that are lower than me
+  ce = getEdg();
+  do
+    {
       if( ce->getDestinationPtr()->getZ() < z && ce->FlowAllowed() )
-          (static_cast<tLNode *>(ce->getDestinationPtrNC()))->ActivateSortTracer();
+	(static_cast<tLNode *>(ce->getDestinationPtrNC()))->ActivateSortTracer();
       ce = ce->getCCWEdg();
-   }
-   while( ce!=getEdg() );
+    }
+  while( ce!=getEdg() );
 
 }
 
 inline void tLNode::AddTracer()
 {
-   if( !boundary ) tracer++;
+  if( !boundary ) tracer++;
 }
 
-inline int tLNode::NoMoreTracers() const 
+inline void tLNode::setAlluvThickness( double val )
 {
-   assert( tracer>=0 );
-   return( tracer==0 );
+  //reg.thickness = ( val >= 0.0 ) ? val : 0.0;
+  // gt changed for performance speedup (if stmt shouldn't ever be needed)
+  assert( val>=0 );
+  reg.thickness = val;
 }
 
+inline double tLNode::getAlluvThickness() const {return reg.thickness;}
 
+inline tArray< double >
+tLNode::getAlluvThicknessm( ) const
+{
+  return reg.dgrade;
+}
+
+inline int tLNode::NoMoreTracers() const
+{
+  assert( tracer>=0 );
+  return( tracer==0 );
+}
 
 #endif
-
-
