@@ -4,7 +4,7 @@
 **
 **  NB: inherit from this basic class to do output for tLNode objects.
 **
-**  $Id: tOutput.h,v 1.3 1998-01-29 19:53:01 stlancas Exp $
+**  $Id: tOutput.h,v 1.4 1998-02-02 17:53:07 gtucker Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -28,6 +28,7 @@ public:
     tOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile );
     void WriteOutput( double time );
     virtual void WriteNodeData( double time );
+    void CreateAndOpenFile( ofstream * theOFStream, char * extension );
 
 protected:
     tGrid<tSubNode> * g;
@@ -38,6 +39,7 @@ protected:
     ofstream zofs;
 };
 
+
 template< class tSubNode >
 class tLOutput : public tOutput<tSubNode>
 {
@@ -47,6 +49,7 @@ public:
 private:
     ofstream drareaofs;  // Drainage areas
     ofstream netofs;     // Downstream neighbor IDs
+    ofstream slpofs;     // Slopes in the direction of flow
     
 };
 
