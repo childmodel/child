@@ -18,9 +18,12 @@ tInlet::tInlet()
 
 tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
 {
-   int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" );
+   int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" ),
+       numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    int add = 1;
+   char end, name[20];
    double xin, yin, mindist, dist, x, y, zin = 0, suminvdist = 0;
+   double help;
    tArray< double > xyz(3);
    tTriangle *intri, *ntri;
    tLNode *cn;
@@ -31,7 +34,23 @@ tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
    if( inletbc )
    {
       inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
-      inSedLoad = infile.ReadItem( inSedLoad, "INSEDLOAD" );
+      if(numg <= 1)
+          inSedLoad = infile.ReadItem( inSedLoad, "INSEDLOAD" );
+      else{
+         inSedLoadm.setSize(numg+1);
+         inSedLoadm[0]=0.0;
+         i=1;
+         end='1';
+         while( i<=numg ){
+            strcpy( name, "INSEDLOAD");
+            strcat( name, &end ); 
+            help = infile.ReadItem( help, name);
+            inSedLoadm[i] = help;
+            inSedLoadm[0] += help;
+            i++;
+            end++;
+         }
+      }
       xin = infile.ReadItem( xin, "INLET_X" );
       yin = infile.ReadItem( yin, "INLET_Y" );
       intri = gridPtr->LocateTriangle( xin, yin );
@@ -126,7 +145,18 @@ void tInlet::FindNewInlet()
 }
 
 double tInlet::getInSedLoad() const {return inSedLoad;}
+tArray< double >
+tInlet::getInSedLoadm( ) const
+{
+   return inSedLoadm;
+}
 void tInlet::setInSedLoad( double val ) {inSedLoad = ( val > 0.0 ) ? val : 0.0;}
+void tInlet::setInSedLoadm( int i, double val )
+{
+   if(i>inSedLoadm.getSize()-1)
+        ReportFatalError( "Trying to set size in sediment load that doesn't exist");
+   inSedLoadm[i]=val;
+}
 double tInlet::getInDrArea() const {return inDrArea;}
 void tInlet::setInDrArea( double val ) {inDrArea = ( val > 0.0 ) ? val : 0.0;}
 tLNode *tInlet::getInNodePtr() {return innode;}
@@ -140,7 +170,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.29 1998-04-22 00:15:21 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.30 1998-04-22 20:36:42 nmgaspar Exp $
 \**************************************************************************/
 
 
