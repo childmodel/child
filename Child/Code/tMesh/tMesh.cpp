@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.108 2002-07-05 16:50:09 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.109 2002-07-08 12:55:00 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -499,10 +499,12 @@ MakeMeshFromInputData( tInputFile &infile )
           nodeList.insertAtBoundFront( tempnode );
       else
           nodeList.insertAtBack( tempnode );       //kClosedBoundary
-      //cout << input.x[i] << input.y[i] << input.z[i]
-      //     << input.boundflag[i] << endl;
-      //cout << tempnode.getBoundaryFlag() << " ";
-      //cout << nodeList.getLast()->getDataPtr()->getBoundaryFlag() << endl;
+      if (0) { // DEBUG
+	cout << input.x[i] << input.y[i] << input.z[i]
+	     << input.boundflag[i] << endl;
+	cout << tempnode.getBoundaryFlag() << " ";
+	cout << nodeList.getLast()->getDataPtr()->getBoundaryFlag() << endl;
+      }
    }
    cout << "done.\n";
    
@@ -546,8 +548,9 @@ MakeMeshFromInputData( tInputFile &infile )
       if( obnd == kClosedBoundary || dbnd == kClosedBoundary
 	  || (obnd==kOpenBoundary && dbnd==kOpenBoundary) )
       {
-         /*cout << "setting edges " << tempedge1.getID() << " and "
-              << tempedge2.getID() << " as no-flux" << endl;*/
+	if (0) //DEBUG
+	  cout << "setting edges " << tempedge1.getID() << " and "
+	       << tempedge2.getID() << " as no-flux" << endl;
          tempedge1.setFlowAllowed( 0 );
          tempedge2.setFlowAllowed( 0 );
          edgeList.insertAtBack( tempedge1 );
@@ -555,20 +558,22 @@ MakeMeshFromInputData( tInputFile &infile )
       }
       else
       {
-         /*cout << "setting edges " << tempedge1.getID() << " and "
-              << tempedge2.getID() << " as OPEN" << endl;*/
+	if (0) //DEBUG
+	  cout << "setting edges " << tempedge1.getID() << " and "
+	       << tempedge2.getID() << " as OPEN" << endl;
          tempedge1.setFlowAllowed( 1 );
          tempedge2.setFlowAllowed( 1 );
          edgeList.insertAtActiveBack( tempedge1 );
          edgeList.insertAtActiveBack( tempedge2 );
-         //cout << "EDGFA " << tempedge2.FlowAllowed() << endl;
+	 if (0) //DEBUG
+	   cout << "EDGFA " << tempedge2.FlowAllowed() << endl;
       }
    }
    cout << "done.\n";
 
    //DEBUG
    if (0) {
-   cout << "JUST ADDED EDGES:\n";
+     cout << "JUST ADDED EDGES:\n";
      tMeshListIter< tEdge > ei( edgeList );
      tEdge * ce;
      
@@ -761,7 +766,7 @@ MakeMeshFromInputData( tInputFile &infile )
      }  // end of current densification level
    } // end of optional mesh densification  
 
-   {
+   if (0) { // DEBUG
      tMeshListIter< tEdge > ei( edgeList );
      tEdge * ce;
      cout << "JUST BEFORE UPDATEMESH\n";
