@@ -5,19 +5,23 @@
 template< class T >
 class tIdArray
 {
+  tArray< T* > e_;
 public:
-  tArray< T* > e;
   tIdArray(tList< T >& List);
+  T* operator[]( int subscript ) const {
+    // return a value and not a reference, hence the "const".
+    return e_[subscript];
+  }
 };
 
 template< class T >
 tIdArray< T >::tIdArray(tList< T >& List) :
-  e(List.getSize())
+  e_(List.getSize())
 {
   tListIter< T > Iter( List );
   T *c;
   for( c=Iter.FirstP(); !(Iter.AtEnd()); c=Iter.NextP() )
-    e[c->getID()] = c;
+    e_[c->getID()] = c;
 }
 
 /**************************************************************************\
@@ -78,7 +82,7 @@ MakeMeshFromScratchTipper( tInputFile &infile )
        }
      }
    }
-   tIdArray< tSubNode > NodeTable(nodeList); // for fast lookup per ID
+   const tIdArray< tSubNode > NodeTable(nodeList); // for fast lookup per ID
 
    // call mesh generator based on Tipper's method
    cout << "Computing triangulation..." << flush;
@@ -121,13 +125,13 @@ MakeMeshFromScratchTipper( tInputFile &infile )
        tempedge1.setID( e_t2c(iedge,true) );
        tempedge2.setID( e_t2c(iedge,false) );
        {
-	 tSubNode *nodPtr1 = NodeTable.e[p[edges[iedge].from].id];
+	 tSubNode *nodPtr1 = NodeTable[p[edges[iedge].from].id];
 	 tempedge1.setOriginPtr( nodPtr1 );
 	 tempedge2.setDestinationPtr( nodPtr1 );
 	 obnd = (*nodPtr1).getBoundaryFlag();
        }
        {
-	 tSubNode *nodPtr2 = NodeTable.e[p[edges[iedge].to].id];
+	 tSubNode *nodPtr2 = NodeTable[p[edges[iedge].to].id];
 	 tempedge1.setDestinationPtr( nodPtr2 );
 	 tempedge2.setOriginPtr( nodPtr2 );
 	 dbnd = (*nodPtr2).getBoundaryFlag();
@@ -160,7 +164,7 @@ MakeMeshFromScratchTipper( tInputFile &infile )
 	 }
      }
    }
-   tIdArray< tEdge > EdgeTable(edgeList); // for fast lookup per ID
+   const tIdArray< tEdge > EdgeTable(edgeList); // for fast lookup per ID
    cout << "done.\n";
 
    if (0) { //DEBUG
@@ -195,7 +199,7 @@ MakeMeshFromScratchTipper( tInputFile &infile )
 	 curnode = nodIter.DatPtr();
 	 {
 	   const int e1 = e_t2c(oedge[p2sp[curnode->getID()]]);
-	   tEdge *edgPtr = EdgeTable.e[e1];
+	   tEdge *edgPtr = EdgeTable[e1];
 	   curnode->insertBackSpokeList( edgPtr );
 	   curnode->setEdg( edgPtr );
 	 }
@@ -205,7 +209,7 @@ MakeMeshFromScratchTipper( tInputFile &infile )
 	 while( ccw_from.e() != oe_ref.e()) {
 	   assert(ccw_from.e() < nedgesl);
 	   const int ne = e_t2c(ccw_from);
-	   tEdge *edgPtr = EdgeTable.e[ne];
+	   tEdge *edgPtr = EdgeTable[ne];
 	   curnode->insertBackSpokeList( edgPtr );
 	   ccw_from = ccw_from.ccw_edge_around_from(edges);
 	 }
@@ -228,7 +232,7 @@ MakeMeshFromScratchTipper( tInputFile &infile )
 	   const oriented_edge e1(iedge,true);
 	   const oriented_edge ccw_from = e1.ccw_edge_around_from(edges);
 	   const int ccwedgid = e_t2c(ccw_from);
-	   ccwedg = EdgeTable.e[ccwedgid];
+	   ccwedg = EdgeTable[ccwedgid];
 	   curedg->setCCWEdg( ccwedg );
 	 }
 	 curedg = edgIter.NextP();
@@ -236,7 +240,7 @@ MakeMeshFromScratchTipper( tInputFile &infile )
 	   const oriented_edge e2(iedge,false);
 	   const oriented_edge ccw_to = e2.ccw_edge_around_from(edges);
 	   const int ccwedgid = e_t2c(ccw_to);
-	   ccwedg = EdgeTable.e[ccwedgid];
+	   ccwedg = EdgeTable[ccwedgid];
 	   curedg->setCCWEdg( ccwedg );
 	 }
 	 curedg = edgIter.NextP(); 
@@ -267,31 +271,31 @@ MakeMeshFromScratchTipper( tInputFile &infile )
 	      << "e2=" << elems[ielem].e3 << endl;
        }
        {
-	 newtri.setPPtr( 0, NodeTable.e[p[elems[ielem].p1].id] );
-	 newtri.setPPtr( 1, NodeTable.e[p[elems[ielem].p2].id] );
-	 newtri.setPPtr( 2, NodeTable.e[p[elems[ielem].p3].id] );
+	 newtri.setPPtr( 0, NodeTable[p[elems[ielem].p1].id] );
+	 newtri.setPPtr( 1, NodeTable[p[elems[ielem].p2].id] );
+	 newtri.setPPtr( 2, NodeTable[p[elems[ielem].p3].id] );
        }
        {
-	 newtri.setEPtr( 0, EdgeTable.e[e_t2c(elems[ielem].e1, 
-					      elems[ielem].eo1)] );
-	 newtri.setEPtr( 1, EdgeTable.e[e_t2c(elems[ielem].e2,
-					      elems[ielem].eo2)] );
-	 newtri.setEPtr( 2, EdgeTable.e[e_t2c(elems[ielem].e3,
-					      elems[ielem].eo3)] );
+	 newtri.setEPtr( 0, EdgeTable[e_t2c(elems[ielem].e1, 
+					    elems[ielem].eo1)] );
+	 newtri.setEPtr( 1, EdgeTable[e_t2c(elems[ielem].e2,
+					    elems[ielem].eo2)] );
+	 newtri.setEPtr( 2, EdgeTable[e_t2c(elems[ielem].e3,
+					    elems[ielem].eo3)] );
        }
        triList.insertAtBack( newtri );
      }
-     tIdArray< tTriangle > TriTable(triList); // for fast lookup per ID
+     const tIdArray< tTriangle > TriTable(triList); // for fast lookup per ID
      
      tTriangle * ct, * nbrtri;
      tListIter< tTriangle > triIter( triList );
      for( ielem=0, ct=triIter.FirstP(); ielem<nelem; ct=triIter.NextP(), 
 	    ++ielem ) {
-       nbrtri = ( elems[ielem].t1>=0 ) ? TriTable.e[ elems[ielem].t1 ] : 0;
+       nbrtri = ( elems[ielem].t1>=0 ) ? TriTable[ elems[ielem].t1 ] : 0;
        ct->setTPtr( 0, nbrtri );
-       nbrtri = ( elems[ielem].t2>=0 ) ? TriTable.e[ elems[ielem].t2 ] : 0;
+       nbrtri = ( elems[ielem].t2>=0 ) ? TriTable[ elems[ielem].t2 ] : 0;
        ct->setTPtr( 1, nbrtri );
-       nbrtri = ( elems[ielem].t3>=0 ) ? TriTable.e[ elems[ielem].t3 ] : 0;
+       nbrtri = ( elems[ielem].t3>=0 ) ? TriTable[ elems[ielem].t3 ] : 0;
        ct->setTPtr( 2, nbrtri );
      }
    }   
