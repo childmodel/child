@@ -700,18 +700,18 @@ void tt_verify_sort(int npoints, const point *p){
 void tt_sort_triangulate(int npoints, point *p,
 			 int *pnedges, edge** edges_ret){
 
-  //sort the points - note that the point class defines the
-  // < operator so that the sort is on the x co-ordinate
-  //array p will be replaced with the array sorted in x
-  heapsort(npoints,p);
-  if (0) // DEBUG
-    tt_verify_sort(npoints, p);
-
 #if defined(TIMING)
   {
     time_t t1 = time(NULL);
     clock_t tick1 = clock();
 #endif
+
+    //sort the points - note that the point class defines the
+    // < operator so that the sort is on the x co-ordinate
+    //array p will be replaced with the array sorted in x
+    heapsort(npoints,p);
+    if (0) // DEBUG
+      tt_verify_sort(npoints, p);
 
     //triangulate the set of points
     triangulate(npoints,p,pnedges, edges_ret);
