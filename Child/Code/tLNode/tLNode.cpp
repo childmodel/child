@@ -1,431 +1,431 @@
-// /**************************************************************************\
-// **
-// **  tLNode.cpp
-// **
-// **  Functions for derived class tLNode and its member classes
-// **
-// **  $Id: tLNode.cpp,v 1.61 1998-07-27 20:27:17 nmgaspar Exp $
-// \**************************************************************************/
+/**************************************************************************\
+**
+**  tLNode.cpp
+**
+**  Functions for derived class tLNode and its member classes
+**
+**  $Id: tLNode.cpp,v 1.62 1998-07-27 21:06:47 nmgaspar Exp $
+\**************************************************************************/
 
-// #include <assert.h>
-// #include <math.h>
-// #include "../errors/errors.h"
-// #include "tLNode.h"
-// #define kBugTime 5000000
+#include <assert.h>
+#include <math.h>
+#include "../errors/errors.h"
+#include "tLNode.h"
+#define kBugTime 5000000
 
-// /*************************************************************************
-// **  tLayer::tLayer : Constructor function for tLayer
-// *************************************************************************/
-// tLayer::tLayer ()
-//         : dgrade()
-// {
-//    ctime=0;
-//    rtime=0;
-//    depth=0;
-//    erody=0;
-//    sed=0;
-//    flag=0;
-//    //cout << "tLayer( num )" << endl;
-// }
+/*************************************************************************
+**  tLayer::tLayer : Constructor function for tLayer
+*************************************************************************/
+tLayer::tLayer ()
+        : dgrade()
+{
+   ctime=0;
+   rtime=0;
+   depth=0;
+   erody=0;
+   sed=0;
+   flag=0;
+   //cout << "tLayer( num )" << endl;
+}
 
-// tLayer::tLayer ( int num )
-//         : dgrade( num )
-// {
-//    ctime=0;
-//    rtime=0;
-//    depth=0;
-//    erody=0;
-//    sed=0;
-//    flag=0;
-//      //cout << "tLayer( num )" << endl;
-// }
+tLayer::tLayer ( int num )
+        : dgrade( num )
+{
+   ctime=0;
+   rtime=0;
+   depth=0;
+   erody=0;
+   sed=0;
+   flag=0;
+     //cout << "tLayer( num )" << endl;
+ }
 
-// tLayer::tLayer( const tLayer &orig )                         //tLayer
-//         :dgrade( orig.dgrade )
-// {
-//    ctime=orig.ctime;
-//    rtime=orig.rtime;
-//    depth=orig.depth;
-//    erody=orig.erody;
-//    sed=orig.sed;
-//    flag=orig.flag;
+tLayer::tLayer( const tLayer &orig )                         //tLayer
+        :dgrade( orig.dgrade )
+{
+   ctime=orig.ctime;
+   rtime=orig.rtime;
+   depth=orig.depth;
+   erody=orig.erody;
+   sed=orig.sed;
+   flag=orig.flag;
    
-//   //if( &orig != 0 )
-//   // {
-//   //    dpth = orig.dpth;
-//   // }
-// }
+  //if( &orig != 0 )
+  // {
+  //    dpth = orig.dpth;
+  // }
+}
 
-// tLayer::~tLayer()
-// {
-//      //cout << "    ~tLayer()" << endl;
-// }
+tLayer::~tLayer()
+{
+     //cout << "    ~tLayer()" << endl;
+}
 
-// const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
-// {
-//    if( &right != this )
-//    {
-//       dgrade = right.dgrade;
-//       ctime=right.ctime;
-//       rtime=right.rtime;
-//       depth=right.depth;
-//       erody=right.erody;
-//       sed=right.sed;
-//       flag=right.flag;
-     
-//    }
-//    return *this;
-// }
-
-
-// void tLayer::setCtime( double tt )
-// {
-//    ctime = tt;
+const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
+{
+   if( &right != this )
+   {
+      dgrade = right.dgrade;
+      ctime=right.ctime;
+      rtime=right.rtime;
+      depth=right.depth;
+      erody=right.erody;
+      sed=right.sed;
+      flag=right.flag;
    
-// }
+   }
+   return *this;
+}
 
-// double tLayer::getCtime() const 
-// {
-//    return ctime;
-// }
 
-// void tLayer::setRtime( double tt )
-// {
-//    rtime = tt;
-// }
+void tLayer::setCtime( double tt )
+{
+   ctime = tt;
+   
+}
 
-// double tLayer::getRtime() const 
-// {
-//    return rtime;
-// }
+double tLayer::getCtime() const 
+{
+   return ctime;
+}
 
-// void tLayer::setDepth( double dep)
-// {
-//    // while updating depth, dgrade info is automatically updated
-//    // to keep the same texture (as long as size of dgrade > 0)
-//    // So if texture is going to change too - you MUST update dgrade
-//    // not depth because depth will be automatically updated in dgrade
-//    if(dgrade.getSize()>0 && depth>0){      
-//       double sum=0;
-//       tArray<double> prop;
-//       prop.setSize(dgrade.getSize());
-//       int i=0;
-//       while(i<dgrade.getSize()){
-//          prop[i]=dgrade[i]/depth;
-//          dgrade[i]=prop[i]*dep;
-//          sum+=prop[i];
-//          i++;
+void tLayer::setRtime( double tt )
+{
+   rtime = tt;
+}
+
+double tLayer::getRtime() const 
+{
+   return rtime;
+}
+
+void tLayer::setDepth( double dep)
+{
+   // while updating depth, dgrade info is automatically updated
+   // to keep the same texture (as long as size of dgrade > 0)
+   // So if texture is going to change too - you MUST update dgrade
+   // not depth because depth will be automatically updated in dgrade
+   if(dgrade.getSize()>0 && depth>0){      
+      double sum=0;
+      tArray<double> prop;
+      prop.setSize(dgrade.getSize());
+      int i=0;
+      while(i<dgrade.getSize()){
+         prop[i]=dgrade[i]/depth;
+         dgrade[i]=prop[i]*dep;
+         sum+=prop[i];
+         i++;
          
-//       }
-//       if(fabs(sum-1)>0.01)
-//           ReportFatalError("Somewhere grain sizes got messed up");
-//       depth=dep;
-//    }
-//    else
-//        depth=dep;
-// }
+      }
+      if(fabs(sum-1)>0.01)
+          ReportFatalError("Somewhere grain sizes got messed up");
+      depth=dep;
+   }
+   else
+       depth=dep;
+}
 
-// double tLayer::getDepth() const 
-// {
-//    return depth;
-// }
+double tLayer::getDepth() const 
+{
+   return depth;
+}
 
-// void tLayer::setErody( double ero)
-// {
-//    erody = ero;
-// }
+void tLayer::setErody( double ero)
+{
+   erody = ero;
+}
 
-// double tLayer::getErody() const 
-// {
-//    return erody;
-// }
+double tLayer::getErody() const 
+{
+   return erody;
+}
 
-// void tLayer::setSed( int rg)
-// {
-//    sed = rg;
-// }
+void tLayer::setSed( int rg)
+{
+   sed = rg;
+}
 
-// int tLayer::getSed() const 
-// {
-//    return sed;
-// }
+int tLayer::getSed() const 
+{
+   return sed;
+}
 
-// void tLayer::setFlag( int rg)
-// {
-//    flag = rg;
-// }
+void tLayer::setFlag( int rg)
+{
+   flag = rg;
+}
 
-// int tLayer::getFlag() const 
-// {
-//    return flag;
-// }
+int tLayer::getFlag() const 
+{
+   return flag;
+}
 
-// void tLayer::setDgradesize( int i )
-// {
-//    dgrade.setSize(i);
-// }
+void tLayer::setDgradesize( int i )
+{
+   dgrade.setSize(i);
+}
 
-// int tLayer::getDgradesize( )
-// {
-//    return dgrade.getSize();
-// }
+int tLayer::getDgradesize( )
+{
+   return dgrade.getSize();
+}
 
-// void tLayer::setDgrade( int i, double size )
-// {
-//    if(i>=dgrade.getSize())
-//       ReportFatalError( "Trying to set sediment sizes in dgrade of layer that don't exist");
-//    dgrade[i]=size;
-//    // Automatically update depth when dgrade is changed
-//    int j=0;
-//    double sum=0;
-//    while(j<dgrade.getSize()){
-//       sum += dgrade[j];
-//       j++;
-//    }
-//    depth=sum;
-// }
+void tLayer::setDgrade( int i, double size )
+{
+   if(i>=dgrade.getSize())
+      ReportFatalError( "Trying to set sediment sizes in dgrade of layer that don't exist");
+  dgrade[i]=size;
+  // Automatically update depth when dgrade is changed
+  int j=0;
+   double sum=0;
+   while(j<dgrade.getSize()){
+      sum += dgrade[j];
+      j++;
+   }
+   depth=sum;
+}
 
-// void tLayer::addDgrade( int i, double size )
-// {
-//    if(i>=dgrade.getSize())
-//       ReportFatalError( "Trying to add sediment sizes in dgrade of layer that don't exist");
-//    dgrade[i]+=size;
-//    depth+=size;
-// }
+void tLayer::addDgrade( int i, double size )
+{
+   if(i>=dgrade.getSize())
+     ReportFatalError( "Trying to add sediment sizes in dgrade of layer that don't exist");
+   dgrade[i]+=size;
+   depth+=size;
+}
 
-// double tLayer::getDgrade( int i)
-// {
-//    assert( i<dgrade.getSize() );
-//    if(i>=dgrade.getSize())
-//       ReportFatalError( "Trying to get sediment sizes in dgrade of layer that don't exist");
-//    return dgrade[i];
-// }
-
-// tArray< double >
-// tLayer::getDgrade( ) const
-// {
-//    return dgrade;
-// }
+double tLayer::getDgrade( int i)
+{
+  assert( i<dgrade.getSize() );
+   if(i>=dgrade.getSize())
+      ReportFatalError( "Trying to get sediment sizes in dgrade of layer that don't exist");
+   return dgrade[i];
+}
+tArray< double >
+tLayer::getDgrade( ) const
+{
+   return dgrade;
+}
    
 
-// tErode::tErode()                                                   //tErode
-// {
-//      //erodtype = 0;
-//    sedinput = zp = qs = qsp = qsin = qsinp = tau = dz = 0.0;
-//    nsmpts = 0;
-//      //cout << "  tErode()" << endl;
-// }
+tErode::tErode()                                                   //tErode
+{
+     //erodtype = 0;
+   sedinput = zp = qs = qsp = qsin = qsinp = tau = dz = 0.0;
+   nsmpts = 0;
+     //cout << "  tErode()" << endl;
+}
 
-// tErode::tErode( const tErode &orig )                                //tErode
-// {
-//    if( &orig != 0 )
-//    {
-//         //erodtype = orig.erodtype;
-//       sedinput = orig.sedinput;
-//       zp = orig.zp;
-//       qs = orig.qs;
-//       qsp = orig.qsp;
-//       qsin = orig.qsin;
-//       qsinp = orig.qsinp;
-//       tau = orig.tau;
-//       nsmpts = orig.nsmpts;
-//       dz = orig.dz;
-//    }
-//      //cout << "  tErode( orig )" << endl;
-// }
+tErode::tErode( const tErode &orig )                                //tErode
+{
+  if( &orig != 0 )
+   {
+        //erodtype = orig.erodtype;
+      sedinput = orig.sedinput;
+      zp = orig.zp;
+      qs = orig.qs;
+      qsp = orig.qsp;
+      qsin = orig.qsin;
+      qsinp = orig.qsinp;
+      tau = orig.tau;
+      nsmpts = orig.nsmpts;
+      dz = orig.dz;
+   }
+    //cout << "  tErode( orig )" << endl;
+}
 
-// tErode::tErode( int numg, int nums )                                //tErode
-// {
-//    nsmpts = nums;
-//    sedinput = zp = qs = qsp = qsin = qsinp = tau = dz = 0.0;
-//      //cout << "  tErode( numg, nums )" << endl;
-// }
+tErode::tErode( int numg, int nums )                                //tErode
+{
+   nsmpts = nums;
+   sedinput = zp = qs = qsp = qsin = qsinp = tau = dz = 0.0;
+     //cout << "  tErode( numg, nums )" << endl;
+}
 
-// tErode::~tErode()                                                   //tErode
-// {
-//      //cout << "    ~tErode()" << endl;
-// }
+tErode::~tErode()                                                   //tErode
+{
+     //cout << "    ~tErode()" << endl;
+}
 
-// //assignment
-// const tErode &tErode::operator=( const tErode &right )     //tErode
-// {
-//    if( &right != this )
-//    {
-//       sedinput = right.sedinput;
-//       zp = right.zp;
-//       qs = right.qs;
-//       qsp = right.qsp;
-//       qsin = right.qsin;
-//       qsinp = right.qsinp;
-//       tau = right.tau;
-//       nsmpts = right.nsmpts;
-//       dz = right.dz;
-//       smooth = right.smooth;
-//    }
-//    return *this;
-// }
+//assignment
+const tErode &tErode::operator=( const tErode &right )     //tErode
+{
+   if( &right != this )
+   {                                         
+      sedinput = right.sedinput;             
+      zp = right.zp;                         
+      qs = right.qs;                         
+      qsp = right.qsp;                       
+      qsin = right.qsin;                     
+      qsinp = right.qsinp;                   
+      tau = right.tau;                       
+      nsmpts = right.nsmpts;                 
+      dz = right.dz;                         
+      smooth = right.smooth;                 
+   }                                         
+   return *this;                             
+}                                            
+       
 
-// tMeander::tMeander()                                              //tMeander
-//         : xyzd(4)
-// {
-//    meander = head = reachmember = 0;
-//    newx = newy = deltax = deltay = zoldright = zoldleft = bankrough = 0.0;
-//      //cout << "  tMeander()" << endl;
-// }
+tMeander::tMeander()                                              //tMeander
+        : xyzd(4)
+{
+   meander = head = reachmember = 0;
+   newx = newy = deltax = deltay = zoldright = zoldleft = bankrough = 0.0;
+     //cout << "  tMeander()" << endl;
+}
 
-// tMeander::tMeander( const tMeander &orig )                        //tMeander
-//         : xyzd( orig.xyzd )
-// {
-//    if( &orig != 0 )
-//    {
-//       meander = orig.meander;
-//       head = orig.head;
-//       reachmember = orig.reachmember;
-//       newx = orig.newx;
-//       newy = orig.newy;
-//       deltax = orig.deltax;
-//       deltay = orig.deltay;
-//       zoldright = orig.zoldright;
-//       zoldleft = orig.zoldleft;
-//       bankrough = orig.bankrough;
-//    }
-//      //cout << "  tMeander( orig )" << endl;
-// }
+tMeander::tMeander( const tMeander &orig )                        //tMeander
+        : xyzd( orig.xyzd )
+{
+   if( &orig != 0 )
+   {
+      meander = orig.meander;
+      head = orig.head;
+      reachmember = orig.reachmember;
+      newx = orig.newx;
+      newy = orig.newy;
+      deltax = orig.deltax;
+      deltay = orig.deltay;
+      zoldright = orig.zoldright;
+      zoldleft = orig.zoldleft;
+      bankrough = orig.bankrough;
+   }
+     //cout << "  tMeander( orig )" << endl;
+}
 
-// tMeander::tMeander( int state, double x, double y )                //tMeander
-//         : xyzd(4)
-// {
-//      //chanptr = 0;
-//    meander = state;
-//    newx = x;
-//    newy = y;
-//    head = reachmember = 0;
-//    deltax = deltay = zoldright = zoldleft = bankrough = 0.0;
-//      //cout << "  tMeander( state, x, y )" << endl;
-// }
+tMeander::tMeander( int state, double x, double y )                //tMeander
+        : xyzd(4)
+{
+     //chanptr = 0;
+   meander = state;
+   newx = x;
+   newy = y;
+   head = reachmember = 0;
+   deltax = deltay = zoldright = zoldleft = bankrough = 0.0;
+     //cout << "  tMeander( state, x, y )" << endl;
+}
 
-// tMeander::~tMeander()                                             //tMeander
-// {
-//      //cout << "    ~tMeander()" << endl;
-// }
+tMeander::~tMeander()                                             //tMeander
+{
+     //cout << "    ~tMeander()" << endl;
+}
 
-// //assignment
-// const tMeander &tMeander::operator=( const tMeander &right )     //tMeander
-// {
-//    if( &right != this )
-//    {
-//       meander = right.meander;
-//       head = right.head;
-//       reachmember = right.reachmember;
-//       newx = right.newx;
-//       newy = right.newy;
-//       deltax = right.deltax;
-//       deltay = right.deltay;
-//       zoldright = right.zoldright;
-//       zoldleft = right.zoldleft;
-//       bankrough = right.bankrough;
-//       xyzd = right.xyzd;
-//    }
-//    return *this;
-// }
+//assignment
+const tMeander &tMeander::operator=( const tMeander &right )     //tMeander
+{
+   if( &right != this )
+   {
+      meander = right.meander;
+      head = right.head;
+      reachmember = right.reachmember;
+      newx = right.newx;
+      newy = right.newy;
+      deltax = right.deltax;
+      deltay = right.deltay;
+      zoldright = right.zoldright;
+      zoldleft = right.zoldleft;
+      bankrough = right.bankrough;
+      xyzd = right.xyzd;
+   }
+   return *this;
+}
 
-// tBedrock::tBedrock()                                             //tBedrock
-// {
-//    erodibility = 0;
-//      //cout << "  tBedrock()" << endl;
-// }
+tBedrock::tBedrock()                                             //tBedrock
+{
+   erodibility = 0;
+     //cout << "  tBedrock()" << endl;
+}
 
-// tBedrock::tBedrock( const tBedrock &orig )                       //tBedrock
-// {
-//    if( &orig != 0 )
-//    {
-//       erodibility = orig.erodibility;
-//    }
-//      //cout << "  tBedrock( orig )" << endl;
-// }
+tBedrock::tBedrock( const tBedrock &orig )                       //tBedrock
+{
+   if( &orig != 0 )
+   {
+      erodibility = orig.erodibility;
+   }
+     //cout << "  tBedrock( orig )" << endl;
+}
 
-// tBedrock::~tBedrock()                                            //tBedrock
-// {
-//      //cout << "    ~tBedrock()" << endl;
-// }
+tBedrock::~tBedrock()                                            //tBedrock
+{
+     //cout << "    ~tBedrock()" << endl;
+}
 
-// //assignment
-// const tBedrock &tBedrock::operator=( const tBedrock &right )     //tBedrock
-// {
-//    if( &right != this )
-//    {
-//       erodibility = right.erodibility;
-//    }
-//    return *this;
-// }
+//assignment
+const tBedrock &tBedrock::operator=( const tBedrock &right )     //tBedrock
+{
+   if( &right != this )
+   {
+      erodibility = right.erodibility;
+   }
+   return *this;
+}
 
-// tSurface::tSurface()                                             //tSurface
-// {
-//    veg = tauc = vegerody = 0.0;
-//      //cout << "  tSurface()" << endl;
-// }
+tSurface::tSurface()                                             //tSurface
+{
+   veg = tauc = vegerody = 0.0;
+     //cout << "  tSurface()" << endl;
+}
 
-// tSurface::tSurface( const tSurface &orig )                       //tSurface
-// {
-//    if( &orig != 0 )
-//    {
-//       veg = orig.veg;
-//       tauc = orig.tauc;
-//       vegerody = orig.vegerody;
-//    }
-//      //cout << "  tSurface( orig )" << endl;
-// }
+tSurface::tSurface( const tSurface &orig )                       //tSurface
+{
+   if( &orig != 0 )
+   {
+      veg = orig.veg;
+      tauc = orig.tauc;
+      vegerody = orig.vegerody;
+   }
+     //cout << "  tSurface( orig )" << endl;
+}
 
-// tSurface::~tSurface()                                            //tSurface
-// {
-//      //cout << "    ~tSurface()" << endl;
-// }
+tSurface::~tSurface()                                            //tSurface
+{
+     //cout << "    ~tSurface()" << endl;
+}
 
-// //assignment
-// const tSurface &tSurface::operator=( const tSurface &right )     //tSurface
-// {
-//    if( &right != this )
-//    {
-//       veg = right.veg;
-//       tauc = right.tauc;
-//       vegerody = right.vegerody;
-//    }
-//    return *this;
-// }
+//assignment
+const tSurface &tSurface::operator=( const tSurface &right )     //tSurface
+{
+   if( &right != this )
+   {
+      veg = right.veg;
+      tauc = right.tauc;
+      vegerody = right.vegerody;
+   }
+   return *this;
+}
 
-// /***** Functions for class tRegolith **************************************/
+/***** Functions for class tRegolith **************************************/
 
-// /**************************************************************************\
-// **
-// **  Constructors:
-// **   - Default: initializes variables to zero.
-// **   - Input file: takes a tInputFile reference as an argument, and 
-// **              reads the default initial thickness from the file.
-// **   - Copy: copies all fields of tLNode and calls copy constructors for
-// **              embedded objects.
-// **
-// \**************************************************************************/
+/**************************************************************************\
+**
+**  Constructors:
+**   - Default: initializes variables to zero.
+**   - Input file: takes a tInputFile reference as an argument, and 
+**              reads the default initial thickness from the file.
+**   - Copy: copies all fields of tLNode and calls copy constructors for
+**              embedded objects.
+**
+\**************************************************************************/
 
-// tRegolith::tRegolith()                                          //tRegolith
-//         : dgrade()
-// {
-//    thickness = 0;
-//      //cout << "  tRegolith()" << endl;
-// }
+tRegolith::tRegolith()                                          //tRegolith
+        : dgrade()
+{
+   thickness = 0;
+     //cout << "  tRegolith()" << endl;
+}
 
-// tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
-//   : dgrade( )
-// {
-//   int i;
-//   char add, name[20];
-//   double help, sum, numg;
+tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
+  : dgrade( )
+{
+  int i;
+  char add, name[20];
+  double help, sum, numg;
 
-//    cout << "tRegolith(infile)\n";
-//    thickness = infile.ReadItem( thickness, "REGINIT" );
-//    numg = infile.ReadItem( numg, "NUMGRNSIZE" );
+//   cout << "tRegolith(infile)\n";
+//   thickness = infile.ReadItem( thickness, "REGINIT" );
+//   numg = infile.ReadItem( numg, "NUMGRNSIZE" );
 
-//    if( numg>1 )
-//    {
+//   if( numg>1 )
+//   {
 //      dgrade.setSize( numg );
 //      sum = 0;
 //      i=0;
@@ -446,95 +446,92 @@
 
 //    cout << "end tRegolith(infile)\n" << flush;
    
-// }
+}
 
-// tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
-//         : dgrade( orig.dgrade )
-// {
-//    if( &orig != 0 )
-//    {
-//       thickness = orig.thickness;
-//    }
-//    cout << "  tRegolith( orig ) " << thickness << endl;
-// }
+tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
+        : dgrade( orig.dgrade )
+{
+   if( &orig != 0 )
+   {
+      thickness = orig.thickness;
+   }
+   cout << "  tRegolith( orig ) " << thickness << endl;
+}
 
 
-// tRegolith::~tRegolith()                                         //tRegolith
-// {
-//      //cout << "    ~tRegolith()" << endl;
-// }
+tRegolith::~tRegolith()                                         //tRegolith
+{
+     //cout << "    ~tRegolith()" << endl;
+}
 
-// //assignment
-// const tRegolith &tRegolith::operator=( const tRegolith &right )     //tRegolith
-// {
-//    if( &right != this )
-//    {
-//       thickness = right.thickness;
-//       dgrade = right.dgrade;
-//    }
-//    return *this;
-// }
+//assignment
+const tRegolith &tRegolith::operator=( const tRegolith &right )     //tRegolith
+{
+   if( &right != this )
+   {
+      thickness = right.thickness;
+      dgrade = right.dgrade;
+   }
+   return *this;
+}
 
-// tChannel::tChannel()                                             //tChannel
-// {
-//    drarea = q = chanwidth = hydrwidth = channrough = hydrnrough =
-//        chandepth = hydrdepth = chanslope = hydrslope = diam = 0;
-//    diam = kVeryHigh;
-//      //cout << "  tChannel()" << endl;
-// }
+tChannel::tChannel()                                             //tChannel
+{
+   drarea = q = chanwidth = hydrwidth = channrough = hydrnrough =
+       chandepth = hydrdepth = chanslope = hydrslope = diam = 0;
+   diam = kVeryHigh;
+     //cout << "  tChannel()" << endl;
+}
 
-// tChannel::tChannel( const tChannel &orig )                       //tChannel
-//         : /*erosion( orig.erosion ),*/ migration( orig.migration )
-// {
-//    if( &orig != 0 )
-//    {
-//       drarea = orig.drarea;
-//       q = orig.q;
-//       chanwidth = orig.chanwidth;
-//       chandepth = orig.chandepth;
-//       channrough = orig.channrough;
-//       chanslope = orig.chanslope;
-//       hydrwidth = orig.hydrwidth;
-//       hydrdepth = orig.hydrdepth;
-//       hydrnrough = orig.hydrnrough;
-//       hydrslope = orig.hydrslope;
-//       diam = orig.diam;
-//    }
-//      //cout << "  tChannel( orig )" << endl;
-// }
+tChannel::tChannel( const tChannel &orig )                       //tChannel
+        : /*erosion( orig.erosion ),*/ migration( orig.migration )
+{
+   if( &orig != 0 )
+   {
+      drarea = orig.drarea;
+      q = orig.q;
+      chanwidth = orig.chanwidth;
+      chandepth = orig.chandepth;
+      channrough = orig.channrough;
+      chanslope = orig.chanslope;
+      hydrwidth = orig.hydrwidth;
+      hydrdepth = orig.hydrdepth;
+      hydrnrough = orig.hydrnrough;
+      hydrslope = orig.hydrslope;
+      diam = orig.diam;
+   }
+     //cout << "  tChannel( orig )" << endl;
+}
 
-// tChannel::~tChannel()                                            //tChannel
-// {
-//      //cout << "    ~tChannel()" << endl;
-// }
-
-// //assignment
-// const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
-// {
-//    if( &right != this )
-//    {
-//       //erosion = right.erosion;
-//       migration = right.migration;
-//       drarea = right.drarea;
-//       q = right.q;
-//       chanwidth = right.chanwidth;
-//       chandepth = right.chandepth;
-//       channrough = right.channrough;
-//       chanslope = right.chanslope;
-//       hydrwidth = right.hydrwidth;
-//       hydrdepth = right.hydrdepth;
-//       hydrnrough = right.hydrnrough;
-//       hydrslope = right.hydrslope;
-//       diam = right.diam;
-//    }
-//    return *this;
-// }
-
+tChannel::~tChannel()                                            //tChannel
+{
+     //cout << "    ~tChannel()" << endl;
+}
+//assignment
+const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
+{
+   if( &right != this )
+   {
+      //erosion = right.erosion;
+      migration = right.migration;
+      drarea = right.drarea;
+      q = right.q;
+      chanwidth = right.chanwidth;
+      chandepth = right.chandepth;
+      channrough = right.channrough;
+      chanslope = right.chanslope;
+      hydrwidth = right.hydrwidth;
+      hydrdepth = right.hydrdepth;
+      hydrnrough = right.hydrnrough;
+      hydrslope = right.hydrslope;
+      diam = right.diam;
+   }
+   return *this;
+}
 
 // /***** Functions for class tLNode *****************************************/
 
-// /**************************************************************************\
-// **
+/**************************************************************************\**
 **  Constructors:
 **   - Default: initializes several variables to zero and calls
 **              constructors for embedded objects.
