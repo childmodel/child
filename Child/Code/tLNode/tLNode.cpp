@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.9 1998-02-18 01:12:46 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.10 1998-02-20 00:11:17 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -121,7 +121,7 @@ const tErode &tErode::operator=( const tErode &right )     //tErode
 tMeander::tMeander()                                              //tMeander
 {
    meander = head = reachmember = 0;
-   newx = newy = deltax = deltay = zoldright = zoldleft = 0.0;
+   newx = newy = deltax = deltay = zoldright = zoldleft = bankrough = 0.0;
      //cout << "  tMeander()" << endl;
 }
 
@@ -138,6 +138,7 @@ tMeander::tMeander( const tMeander &orig )                        //tMeander
       deltay = orig.deltay;
       zoldright = orig.zoldright;
       zoldleft = orig.zoldleft;
+      bankrough = orig.bankrough;
    }
      //cout << "  tMeander( orig )" << endl;
 }
@@ -149,7 +150,7 @@ tMeander::tMeander( int state, double x, double y )                //tMeander
    newx = x;
    newy = y;
    head = reachmember = 0;
-   deltax = deltay = zoldright = zoldleft = 0.0;
+   deltax = deltay = zoldright = zoldleft = bankrough = 0.0;
      //cout << "  tMeander( state, x, y )" << endl;
 }
 
@@ -172,6 +173,7 @@ const tMeander &tMeander::operator=( const tMeander &right )     //tMeander
       deltay = right.deltay;
       zoldright = right.zoldright;
       zoldleft = right.zoldleft;
+      bankrough = right.bankrough;
    }
    return *this;
 }
@@ -428,6 +430,7 @@ double tLNode::getChanRough() const {return chan.channrough;}
 double tLNode::getHydrSlope() const {return chan.hydrslope;}
 double tLNode::getChanSlope() const {return chan.chanslope;}
 double tLNode::getDiam() const {return chan.diam;}
+double tLNode::getBankRough() const {return chan.migration.bankrough;}
 
 void tLNode::setHydrWidth( double val )  {chan.hydrwidth = ( val > 0 ) ? val : 0;}
 void tLNode::setChanWidth( double val )  {chan.chanwidth = ( val > 0 ) ? val : 0;}
@@ -437,6 +440,9 @@ void tLNode::setHydrRough( double val )  {chan.hydrnrough = ( val > 0 ) ? val : 
 void tLNode::setChanRough( double val )  {chan.channrough = ( val > 0 ) ? val : 0;}
 void tLNode::setHydrSlope( double val )  {chan.hydrslope = ( val > 0 ) ? val : 0;}
 void tLNode::setChanSlope( double val )  {chan.chanslope = ( val > 0 ) ? val : 0;}
+void tLNode::setBankRough( double val )
+{chan.migration.bankrough = ( val > 0 ) ? val : 0;}
+
 double tLNode::getDrArea() const {return chan.drarea;}
 
 tArray< double >
@@ -544,12 +550,34 @@ double tLNode::GetQ()
 **
 **  Assumptions: edge lengths up to date and nonzero, flowedg's up to
 **    date.
+**  Modified, 2/19/98: to return a reach slope over some distance
+**   independent of the discretization for meandering nodes.
+**   Nominally, we set that distance to 10 channel widths; we limit this
+**   reach slope calculation to meandering nodes because they are the only
+**   ones for which hydraulic geometry is now calculated; if we want to
+**   use a reach slope everywhere, then we need to also calculate the
+**   hydraulic geometry everywhere.
 \************************************************************************/
 double tLNode::GetSlope()
 {
-   assert( GetFlowEdg() != 0 );
-   assert( GetFlowEdg()->getLength()>0 ); // failure means lengths not init'd
-   double slp = (z - GetDownstrmNbr()->getZ() ) / GetFlowEdg()->getLength();
+   double rlen, curlen, slp;
+   tLNode *dn;
+   assert( flowedge != 0 );
+   assert( flowedge->getLength()>0 ); // failure means lengths not init'd
+   if( Meanders() )
+   {
+      rlen = 10.0 * chan.chanwidth;
+      curlen = 0.0;
+      dn = this;
+      while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary )
+      {
+         curlen += dn->flowedge->getLength();
+         dn = dn->GetDownstrmNbr();
+      }
+      assert( curlen > 0 );
+      slp = (z - dn->z) / curlen;
+   }
+   else slp = (z - GetDownstrmNbr()->z ) / flowedge->getLength();
    if( slp>=0.0 ) return slp;
    else return 0.0;
 }
