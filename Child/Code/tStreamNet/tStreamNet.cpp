@@ -181,7 +181,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.34 1998-05-03 01:12:51 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.35 1998-05-05 19:45:23 gtucker Exp $
 \**************************************************************************/
 
 
@@ -233,6 +233,8 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
       trans = 0;
       infilt = infile.ReadItem( infilt, "INFILTRATION" );
    }
+   if( flowgen == kConstSoilStore )
+       soilStore = infile.ReadItem( soilStore, "SOILSTORE" );
    rainrate = stormPtr->GetRainrate();
    int itMeanders = infile.ReadItem( itMeanders, "OPTMNDR" );
    if( itMeanders ) mndrDirChngProb = infile.ReadItem( mndrDirChngProb, "CHNGPROB" );
@@ -285,6 +287,8 @@ double tStreamNet::getRainRate() const {return rainrate;}
 double tStreamNet::getTransmissivity() const {return trans;}
 
 double tStreamNet::getInfilt() const {return infilt;}
+
+double tStreamNet::getSoilStore() const {return soilStore;}
 
 double tStreamNet::getInDrArea() const {return inlet.inDrArea;}
 
@@ -358,7 +362,7 @@ void tStreamNet::UpdateNet()
    InitFlowDirs();
    FlowDirs();
    MakeFlow();
-   CheckNetConsistency();
+   //CheckNetConsistency();
    //cout << "UpdateNet() finished" << endl;	
 }
 
@@ -938,6 +942,7 @@ void tStreamNet::MakeFlow()
    if( filllakes ) FillLakes();
    DrainAreaVoronoi();
    if( flowgen == kSaturatedFlow ) FlowSaturated();
+   else if( flowgen == kConstSoilStore ) FlowBucket();
    else FlowUniform();
    //cout << "MakeFlow() finished" << endl;
 }
@@ -989,8 +994,7 @@ void tStreamNet::FlowUniform()
 **  times depth. To get a volume discharge, we must multiply the
 **  transmissivity by the Voronoi edge length for the flow edge. (5/98 SL)
 **
-**  Parameters:  pr -- parameter block
-**               precip -- precipitation rate
+**  Parameters:  none
 **  Called by:  main
 **  Modifications:
 **    - updated 12/19/97 SL
@@ -1015,6 +1019,65 @@ void tStreamNet::FlowSaturated()
       curnode->setDischarge( discharge );
    }
    //cout << "finished" << endl;
+}
+
+
+/*****************************************************************************\
+**
+**  tStreamNet::FlowBucket
+**
+**  Computes runoff rate and discharge assuming a spatially and temporally
+**  uniform "bucket" soil storage capacity. Runoff rate is the sum of
+**  infiltration excess runoff ( = rainrate - infilt ), if any, and
+**  saturation excess runoff, if any. Saturation excess runoff is
+**  calculated as ( total water depth of infiltrated storm water
+**  minus soil storage capacity ) divided by storm duration, where the
+**  infiltration depth is just the rainfall depth minus any infiltration-
+**  excess runoff. Discharge is runoff rate times contributing area.
+**    We save a multiplication operation by noting that:
+**      satEx = ( infiltDepth - soilStore ) / stormDuration
+**            = (rainrate - infiltEx) - (soilStore/stormDuration)
+**
+**  Parameters: none
+**  Called by:  MakeFlow
+**  Assumes:  stormPtr is valid -- ie, to use this function, StreamNet
+**                                  must be init'd with a storm object,
+**                                  or UpdateNet must be called w/ a
+**                                  storm object.
+**  Created:  5/98 GT
+**  Modifications:
+**
+\*****************************************************************************/
+void tStreamNet::FlowBucket()
+{
+   assert( stormPtr!=0 );
+   //cout << "FlowBucket..." << endl << flush;
+   tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
+   tLNode *curnode;
+   double infiltEx=0.0,  /* infiltration excess runoff (L/T) */  
+       satEx=0.0,        /* saturation excess runoff (L/T) */
+       infiltRate,       /* soil store / storm duration */
+       runoff,           /* total runoff */
+       discharge;
+   
+   // Compute total runoff as the sum of infiltration excess (if any)
+   // and saturation excess (if any)
+   if( rainrate > infilt )
+       infiltEx = rainrate - infilt;
+   if( (rainrate-infiltEx) >
+       (infiltRate=(soilStore/stormPtr->GetStormDuration())) )
+       satEx = (rainrate - infiltEx) - infiltRate;
+   runoff = infiltEx + satEx;
+   cout << "  R " << runoff << " = IEx " << infiltEx << " + SEx " << satEx << endl;
+   
+   // Compute and assign discharge for each node
+   for( curnode = nodIter.FirstP(); nodIter.IsActive();
+        curnode = nodIter.NextP() )
+   {
+      discharge = curnode->getDrArea() * runoff;
+      curnode->setDischarge( discharge );
+   }
+   //cout << "FlowBucket finished" << endl;
 }
 
 
