@@ -2,6 +2,9 @@
 //Computers and geoscience vol17 no 5 pp 597-632,1991
 //Scaling is nlogn for random datasets
 //Mike Bithell 31/08/01
+
+// Arnaud Desitter. Q2 2002. Binding to CHILD data structures.
+
 #include <math.h>
 #include <fstream.h>
 #include <stdlib.h>
@@ -423,6 +426,12 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 #include "heapsort.h"
 
 void sort_triangulate(int npoints, point *p, int *pnedges, edge** edges_ret){
+
+  {
+    for(int ip=0;ip!=npoints;++ip)
+      p[ip].id = ip;
+  }
+
   //sort the points - note that the point class defines the
   // < operator so that the sort is on the x co-ordinate
   //array p will be replaced with the array sorted in x
@@ -455,7 +464,7 @@ public:
     :
     left_visited_(false), right_visited_(false),
     ie_left(-2), ie_right(-2)
-  {};
+  {}
   bool left_visited() const { return left_visited_; }
   bool right_visited() const { return right_visited_; }
   int ielem_left() const;
@@ -479,8 +488,81 @@ void edge_auxi_t::mark_right(int ielem) {
 int edge_auxi_t::ielem_left() const { assert(left_visited_); return ie_left; }
 int edge_auxi_t::ielem_right() const { assert(right_visited_); return ie_right; }
 
+
+// auxiliary class to get clockwise and counter clockwise edges around a node
+class oriented_edge {
+  int _edge;
+  bool _orientation;
+  int o() const { return _orientation; }
+public:
+  oriented_edge():
+    _edge(-1),
+    _orientation(true) {}
+  oriented_edge(int e, bool o):
+    _edge(e),
+    _orientation(o) {}
+  oriented_edge(const oriented_edge & _e):
+    _edge(_e.e()),
+    _orientation(_e.o()) {}
+  int e() const { return _edge; }
+  oriented_edge next_ccw_around_to(const edge* edges) const;
+  oriented_edge next_cw_around_to(const edge* edges) const ;
+  oriented_edge ccw_edge_around_to(const edge* edges) const;
+};
+
+oriented_edge oriented_edge::next_ccw_around_to(const edge* edges) const {
+  int ires;
+  bool bres = true;
+  if (o()){
+    ires = edges[e()].ret;
+  } else {
+    ires = edges[e()].lef;
+  }
+  if (ires != -1){
+    bres = edges[ires].let == e();
+    if (!bres)
+      assert( edges[ires].ref == e());
+  }
+  return oriented_edge(ires,bres);
+}
+
+oriented_edge oriented_edge::next_cw_around_to(const edge* edges) const {
+  int ires;
+  bool bres = true;
+  if (o()){
+    ires = edges[e()].let;
+  } else {
+    ires = edges[e()].ref;
+  }
+  if (ires != -1){
+    bres = edges[ires].ret == e();
+    if (!bres)
+      assert( edges[ires].lef == e());
+  }
+  return oriented_edge(ires,bres);
+}
+
+// give counter clockwise edge
+oriented_edge oriented_edge::ccw_edge_around_to(const edge* edges) const {
+  oriented_edge ccw = next_ccw_around_to(edges);
+  if (ccw.e() == -1) {
+    // iterated on clockwise edges
+    oriented_edge e1(*this);
+    for(;;){
+      const oriented_edge enext = e1.next_cw_around_to(edges);
+      if (enext.e() == -1) 
+	break;
+      e1 = enext;
+    }
+    ccw = e1;
+  }
+  return ccw;
+}
+
+
 // mark as visited the side of iedge_markable that points to
 // iedge_orig
+static
 void mark_as_visited(int iedge_markable, int iedge_orig,
 		     const edge* edges, edge_auxi_t* edges_visit,
 		     int ielem){
@@ -491,6 +573,39 @@ void mark_as_visited(int iedge_markable, int iedge_orig,
     assert(edges[iedge_markable].ref == iedge_orig ||
 	   edges[iedge_markable].ret == iedge_orig);
     edges_visit[iedge_markable].mark_right(ielem);
+  }
+}
+
+// check geometry properties of the edges in the elems table
+static
+void sanity_check_elems(const edge* edges, const elem *elems, 
+			const edge_auxi_t *edges_visit, int ielem){
+  if (elems[ielem].eo2){
+    assert(edges[elems[ielem].e2].from == elems[ielem].p2);
+    assert(edges[elems[ielem].e2].to == elems[ielem].p1);
+    assert(edges_visit[elems[ielem].e2].ielem_right() == ielem);
+  } else {
+    assert(edges[elems[ielem].e2].from == elems[ielem].p1);
+    assert(edges[elems[ielem].e2].to == elems[ielem].p2);
+    assert(edges_visit[elems[ielem].e2].ielem_left() == ielem);
+  }
+  if (elems[ielem].eo1){
+    assert(edges[elems[ielem].e1].from == elems[ielem].p1);
+    assert(edges[elems[ielem].e1].to == elems[ielem].p3);
+    assert(edges_visit[elems[ielem].e1].ielem_right() == ielem);
+  } else {
+    assert(edges[elems[ielem].e1].from == elems[ielem].p3);
+    assert(edges[elems[ielem].e1].to == elems[ielem].p1);
+    assert(edges_visit[elems[ielem].e1].ielem_left() == ielem);
+  }
+  if (elems[ielem].eo3){
+    assert(edges[elems[ielem].e3].from == elems[ielem].p3);
+    assert(edges[elems[ielem].e3].to == elems[ielem].p2);
+    assert(edges_visit[elems[ielem].e3].ielem_right() == ielem);
+  } else {
+    assert(edges[elems[ielem].e3].from == elems[ielem].p2);
+    assert(edges[elems[ielem].e3].to == elems[ielem].p3);
+    assert(edges_visit[elems[ielem].e3].ielem_left() == ielem);
   }
 }
 
@@ -589,35 +704,7 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
 #undef SWAP_E
     }
 #if 1
-    if (1) { // verifications
-      if (elems[ielem].eo2){
- 	assert(edges[elems[ielem].e2].from == elems[ielem].p2);
- 	assert(edges[elems[ielem].e2].to == elems[ielem].p1);
-	assert(edges_visit[elems[ielem].e2].ielem_right() == ielem);
-      } else {
- 	assert(edges[elems[ielem].e2].from == elems[ielem].p1);
- 	assert(edges[elems[ielem].e2].to == elems[ielem].p2);
-	assert(edges_visit[elems[ielem].e2].ielem_left() == ielem);
-      }
-      if (elems[ielem].eo1){
- 	assert(edges[elems[ielem].e1].from == elems[ielem].p1);
- 	assert(edges[elems[ielem].e1].to == elems[ielem].p3);
-	assert(edges_visit[elems[ielem].e1].ielem_right() == ielem);
-      } else {
- 	assert(edges[elems[ielem].e1].from == elems[ielem].p3);
- 	assert(edges[elems[ielem].e1].to == elems[ielem].p1);
-	assert(edges_visit[elems[ielem].e1].ielem_left() == ielem);
-      }
-      if (elems[ielem].eo3){
- 	assert(edges[elems[ielem].e3].from == elems[ielem].p3);
- 	assert(edges[elems[ielem].e3].to == elems[ielem].p2);
-	assert(edges_visit[elems[ielem].e3].ielem_right() == ielem);
-      } else {
- 	assert(edges[elems[ielem].e3].from == elems[ielem].p2);
- 	assert(edges[elems[ielem].e3].to == elems[ielem].p3);
-	assert(edges_visit[elems[ielem].e3].ielem_left() == ielem);
-      }
-    }
+    sanity_check_elems(edges, elems, edges_visit, ielem);
 #endif
     {
       // build t1, t2, t3
@@ -646,9 +733,27 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
 	     << " p1=" << elems[ielem].p1 << " (" << p[elems[ielem].p1].x <<"," << p[elems[ielem].p1].y << ")"
 	     << " p2=" << elems[ielem].p2 << " (" << p[elems[ielem].p2].x <<"," << p[elems[ielem].p2].y << ")"
 	     << " p3=" << elems[ielem].p3 << " (" << p[elems[ielem].p3].x <<"," << p[elems[ielem].p3].y << ")"
+	     << endl;
     }
   }
 #endif
+  {
+    // test ccw edge code
+    for(int iedge=0; iedge<nedges; iedge++){
+      const oriented_edge e1(iedge,true);
+      const oriented_edge ccw_to = e1.ccw_edge_around_to(edges);
+      const oriented_edge e2(iedge,false);
+      const oriented_edge ccw_from = e2.ccw_edge_around_to(edges);
+#if 0
+      cout << "edge=" << iedge
+	   << " ret=" << edges[iedge].ret 
+	   << " lef=" << edges[iedge].lef
+	   << " ccw_to=" << ccw_to.e()
+	   << " ccw_from=" << ccw_from.e()
+	   << endl;
+#endif
+    }
+  }
 
   delete [] edges_visit; edges_visit = NULL;
   *pnelem = nelem;
