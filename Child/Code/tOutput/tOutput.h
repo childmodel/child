@@ -21,7 +21,10 @@
 **  the CHILD model. In the future, such inherited classes will be
 **  kept in separate files to preserve the generality of tOutput.
 **
-**  $Id: tOutput.h,v 1.9 1999-09-01 15:57:38 gtucker Exp $
+**  Recent modifications:
+**    - 1/00: GT added vegofs for output of vegetation cover
+**
+**  $Id: tOutput.h,v 1.10 2000-01-25 19:05:30 gtucker Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -94,6 +97,7 @@ private:
     ofstream qofs;       // Discharge
     ofstream layofs;     // Layer info
     ofstream texofs;     // Texture info
+    ofstream vegofs;     // Vegetation cover %
                                 
 };
 
