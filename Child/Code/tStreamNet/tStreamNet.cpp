@@ -9,7 +9,7 @@
 **       constructor to implement dynamic node addition in regions of
 **       high drainage area (ie, main channels; see below) GT
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.69 2000-03-24 16:58:56 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.70 2000-04-25 16:56:14 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1715,6 +1715,10 @@ void tStreamNet::FindHydrGeom()
 //depth = width / ( width / hradius - 2.0 );
          //cn->setHydrDepth( depth );
          cn->setHydrSlope( slope );
+         //cout << "NODE " << cn->getID() << ": Q=" << cn->getQ() <<
+         //    " Wb=" << cn->getChanWidth()
+//     << " W=" << cn->getHydrWidth() << " Hb=" << cn->getChanDepth()
+         //      << " H=" << cn->getHydrDepth() << endl;
       }
       //if rainfall does not vary, set hydraulic geom. = channel geom.
       else
@@ -1788,7 +1792,7 @@ void tStreamNet::FindChanGeom()
       depth = kdds * pow(qbf, edds);      
       rough = knds * pow(qbf, ends);
       lambda = klambda * pow(qbf, elambda);
-      //Xcout << "FindChanGeom: w="<<width<<" d="<<depth<<" r="<<rough<<" lambda="<<lambda<<endl;
+      //cout << "FindChanGeom: a="<<cn->getDrArea()<<" q="<<cn->getQ()<<"w="<<width<<" d="<<depth<<endl;
       cn->setChanWidth( width );
       cn->setChanDepth( depth );
       cn->setChanRough( rough );
