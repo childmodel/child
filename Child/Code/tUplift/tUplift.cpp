@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.22 2003-10-15 09:21:12 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.23 2004-01-29 15:05:39 childcvs Exp $
 */
 /************************************************************************/
 
@@ -28,7 +28,8 @@
 **  Inputs:  infile -- input file from which to read parameters
 **
 \************************************************************************/
-tUplift::tUplift( const tInputFile &infile )
+tUplift::tUplift( const tInputFile &infile ) :
+  duration(0.)
 {
    // Find out what kind of uplift the user wants
    typeCode = infile.ReadItem( typeCode, "UPTYPE" );
@@ -104,7 +105,7 @@ tUplift::tUplift( const tInputFile &infile )
      	  break;
      default:
           assert(0); /*NOTREACHED*/
-          abort();
+          ::abort();
    }
 
 }
@@ -156,7 +157,7 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
           break;
      default:
           assert(0); /*NOTREACHED*/
-          abort();
+          ::abort();
    }
 
 }
