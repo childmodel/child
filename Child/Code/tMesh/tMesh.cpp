@@ -3,7 +3,7 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.78 1999-12-07 16:49:30 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.79 2000-01-12 22:11:49 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -1469,6 +1469,7 @@ MakeMeshFromPoints( tInputFile &infile )
       
    }
    pointfile.close();
+   
    dx = maxx - minx;
    dy = maxy - miny;
 
