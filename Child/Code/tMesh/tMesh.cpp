@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.25 1998-03-23 20:03:00 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.26 1998-03-23 23:15:27 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1979,6 +1979,10 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    tempEdge2.setOriginPtr( node2 );   //set edge2 ORG
    tempEdge1.setDestinationPtr( node2 );//set edge1 DEST
    if( node2->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
+   if( node1->getBoundaryFlag()==kOpenBoundary     // Also no-flow if both
+       && node2->getBoundaryFlag()==kOpenBoundary ) //  nodes are open bnds
+       flowflag = 0;
+   
    if( !( edgeList.isEmpty() ) )
        newid = edgIter.LastP()->getID() + 1;
    else newid = 0;
@@ -2134,9 +2138,12 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
    tempEdge1.setID( newid );                     //set edge2 ID
 
    // Set the boundary status of the edge pair: flow is allowed unless
-   // one of the endpoints is a closed boundary.
+   // one of the endpoints is a closed boundary, or both are open boundaries.
    if( cn->getBoundaryFlag() == kClosedBoundary ||
-       cnnn->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
+       cnnn->getBoundaryFlag() == kClosedBoundary ||
+       (cn->getBoundaryFlag() == kOpenBoundary &&
+        cnnn->getBoundaryFlag() == kOpenBoundary ) )
+       flowflag = 0;
    tempEdge1.setFlowAllowed( flowflag );         //set edge1 FLOWALLOWED
    tempEdge2.setFlowAllowed( flowflag );         //set edge2 FLOWALLOWED
      //cout << "aemt 2\n" << flush;
