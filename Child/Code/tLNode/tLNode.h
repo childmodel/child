@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.26 1998-06-15 23:02:44 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.27 1998-06-17 23:43:58 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -205,6 +205,7 @@ public:
     void AddDischarge( double );
     tLNode * getDownstrmNbr();
     double getQ();        // Gets total discharge from embedded chan obj
+   // fluvial discharge is in m^3/sec 
     double getSlope();    // Computes and returns slope in flow direction
     double getDSlopeDt();
     int Meanders() const;
@@ -229,7 +230,7 @@ public:
     void setBankRough( double );
     double getBankRough() const;
     double getDrArea() const;
-   double getElev() const;
+   double getTotalLayerDepth() const;
     tArray< double > getZOld() const;
     tArray< double > getNew2DCoords() const;   //for chan.migration.newx, newy
     void setNew2DCoords( double, double );      //        "
@@ -291,12 +292,13 @@ public:
     double getUplift() const;
    int getNumg() const;
    void setNumg( int );
+   double getMaxregdep() const;
    // NOTE for the get and set functions which involve the layerlist
    // the top layer is layer 0 and indexes go from 0 to (getNumLayer-1)
    // NOTE The set functions for layer depths (including grades)
    // do not obey the rules of maximum layer depths
    // and should be only used for inititalizing values
-   // Other than that, use updateLayerDepth() for erosion or deposition.
+   // Other than that, use EroDep() for erosion or deposition.
    // This function takes the layer index because there may be
    // erosion of the first few layers if the surface layer is not deep enough
    // The addtoLayer() function is a helper to addtoSurfaceDgrade()
@@ -314,7 +316,7 @@ public:
    void setLayerErody(int, double);
    void setLayerSed(int, int);
    void setLayerDgrade(int, int, double); 
-   tArray<double> updateLayerDepth(int, tArray<double>, double);
+   tArray<double> EroDep(int, tArray<double>, double);
    // returns the depth of of each size that was actually deposited or
    // eroded.  Important in case less can be eroded than planned.
    // Can be used for erosion of bedrock.
@@ -322,12 +324,12 @@ public:
    // Same material as that which in the layer you are depositing into.
    tArray<double> addtoLayer(int, double, double);
    // Used if removing material from lower layers -
-   // only called from updateLayerDepth
+   // only called from EroDep
    // because appropriate checking needs to be done first.
    // array tells the composition of the material which was taken from layer
    void addtoLayer(int, int, double, double);
    // Used if depositing or eroding material to lower layer size by size
-   // only called from addtoSurfaceDgrade because appropriate checking needs
+   // only called from EroDep because appropriate checking needs
    // to be done first - also used for erosion from the surface layer
    void makeNewLayerBelow(int, int, double, tArray<double>, double);
    void removeLayer(int);
@@ -346,6 +348,7 @@ protected:
    int tracer;       /* Used by network sorting algorithm*/
    double dzdt;      /* Erosion rate */
    double drdt;      /* Rock erosion rate */
+   // NOTE - all sediment transport rates are volume per year
    double qs;           /* Sediment transport rate*/
    tArray< double > qsm; /* multi size; transport rate of each size fraction*/
    double qsin;         /* Sediment influx rate*/
