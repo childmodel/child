@@ -36,9 +36,7 @@ const point &point::operator=( const point &p ) {
 // we sort according x *and* y (if x are equal) so that
 // vertically aligned point are ordered.
 int point::operator < (const point& p) const {
-  if (x == p.x)
-    return y<p.y;
-  return x<p.x;
+  return x == p.x ? y<p.y : x<p.x;
 }
 
 #if defined(DEBUG_PRINT)
@@ -843,10 +841,8 @@ void tt_build_elem_table(int npoints, const point *p,
     for(int iedge=0;iedge<nedges;iedge++) {
       // left
       if (! edges_visit[iedge].left_visited()) {
-	int ielem_current = -1;
-	if (edges[iedge].lef == edge::none) {
-	  assert(edges[iedge].let == edge::none);
-	} else {
+	int ielem_current = elem::none;
+	if (edges[iedge].lef != edge::none) {
 	  // don't bother with orientation at the moment
 	  ielem_current = ielem;
 	  elems[ielem].e1 = iedge;
@@ -855,15 +851,15 @@ void tt_build_elem_table(int npoints, const point *p,
 	  elems[ielem].e3 = edges[iedge].let;
 	  mark_as_visited(edges[iedge].let,iedge,edges, edges_visit, ielem_current);
 	  ielem++;
+	} else {
+	  assert(edges[iedge].let == edge::none);
 	}
 	edges_visit[iedge].mark_left(ielem_current);
       }
       // right
       if (! edges_visit[iedge].right_visited()) {
-	int ielem_current = -1;
-	if (edges[iedge].ref == edge::none) {
-	  assert(edges[iedge].ref == edge::none);
-	} else {
+	int ielem_current = elem::none;
+	if (edges[iedge].ref != edge::none) {
 	  // don't bother with orientation at the moment
 	  ielem_current = ielem;
 	  elems[ielem].e1 = iedge;
@@ -872,6 +868,8 @@ void tt_build_elem_table(int npoints, const point *p,
 	  elems[ielem].e3 = edges[iedge].ret;
 	  mark_as_visited(edges[iedge].ret,iedge,edges, edges_visit, ielem_current);
 	  ielem++;
+	} else {
+	  assert(edges[iedge].ref == edge::none);
 	}
 	edges_visit[iedge].mark_right(ielem_current);
       }
@@ -932,22 +930,15 @@ void tt_build_elem_table(int npoints, const point *p,
       sanity_check_elems(edges, elems, edges_visit, ielem);
     {
       // build t1, t2, t3
-      if (elems[ielem].eo2){
-	elems[ielem].t3 = edges_visit[elems[ielem].e2].ielem_left();
-      } else {
-	elems[ielem].t3 = edges_visit[elems[ielem].e2].ielem_right();
-      }
-      if (elems[ielem].eo1){
-	elems[ielem].t2 = edges_visit[elems[ielem].e1].ielem_left();
-      } else {
-	elems[ielem].t2 = edges_visit[elems[ielem].e1].ielem_right();
-      }
-      if (elems[ielem].eo3){
-	elems[ielem].t1 = edges_visit[elems[ielem].e3].ielem_left();
-      } else {
-	elems[ielem].t1 = edges_visit[elems[ielem].e3].ielem_right();
-      }
-
+      elems[ielem].t3 = elems[ielem].eo2 ? 
+	edges_visit[elems[ielem].e2].ielem_left() :
+	edges_visit[elems[ielem].e2].ielem_right();
+      elems[ielem].t2 = elems[ielem].eo1 ?
+	edges_visit[elems[ielem].e1].ielem_left() :
+	edges_visit[elems[ielem].e1].ielem_right();
+      elems[ielem].t1 = elems[ielem].eo3 ?
+	edges_visit[elems[ielem].e3].ielem_left() :
+	edges_visit[elems[ielem].e3].ielem_right();
     }
   }
   if (0) { //DEBUG

@@ -58,7 +58,7 @@ public:
   void write(ofstream& f,const point p[]) const;
   bool visible(const point p[],int i) const;
 public:
-  enum { none = -1, end = -2 }; // must be negative
+  enum { none = -1, end = -2 }; // must be strictly negative
   int from,to;
   int lef,let,ref,ret;
   //                       .
@@ -101,15 +101,16 @@ class elem {
   elem(const elem&);
 public:
   elem() :
-    p1(-1), p2(-1), p3(-1),
-    e1(-1), e2(-1), e3(-1),
-    t1(-1), t2(-1), t3(-1),
+    p1(-2), p2(-2), p3(-2),
+    e1(-2), e2(-2), e3(-2),
+    t1(-2), t2(-2), t3(-2),
     eo1(false), eo2(false), eo3(false)
   {}
   int p1, p2, p3;  // nodes
   int e1, e2, e3;  // edges 
   int t1, t2, t3;  // triangles (or elements)
   bool eo1, eo2, eo3; // orientation of edges
+  enum{ none = -1 }; // no neighbour triangle, must be strictly negative 
   //
   //         P1       .
   //        -/\       .
