@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.180 2003-09-02 13:50:41 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.181 2003-09-18 17:23:40 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2402,9 +2402,22 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
 	 // check flip test
 	 if( ct->tPtr(i) != 0 )
 	   {
-	     if ( CheckForFlip( ct, i, false, false ) ) {
+	     switch(CheckForFlip( ct, i, false, false )) {
+ 	     case FLIP_NOT_NEEDED:
+	       break;
+	     case FLIP_DONE: // Cannot happen.
+	       assert(0);
+	       abort();
+	       break;
+	     case FLIP_NEEDED:
                cerr << "TRIANGLE #" << ct->getID()
                     << ": flip test failed for edge opposite to vertex "
+                    << cn->getID() << ".\n";
+               goto error;
+	     case FLIP_ERROR:
+               cerr << "TRIANGLE #" << ct->getID()
+                    << ": flip test return an error for edge opposite"
+		 " to vertex "
                     << cn->getID() << ".\n";
                goto error;
 	     }
@@ -3701,7 +3714,10 @@ MakeDelaunay( tPtrList< tTriangle > &triPtrList )
 	      tTriangle *tp = at->tPtr(i);
 	      // Check triangle _at_ for a flip across face opposite vertex i,
 	      // and do the flip if needed
-	      if( CheckForFlip( at, i, true ) )
+	      switch( CheckForFlip( at, i, true ) ) {
+	      case FLIP_NOT_NEEDED:
+		break;
+	      case FLIP_DONE:
 		{
 		  // A flip occurred, insert the two new triangles
 		  // which have been rebuilt with the same pointers
@@ -3712,10 +3728,17 @@ MakeDelaunay( tPtrList< tTriangle > &triPtrList )
 		    triPtrList.insertAtBack( tp );
 		  // at has been removed from triptrList, insert it directly
 		  triPtrList.insertAtBack( at );
-		  break;
+		  goto out_of_for_loop;
 		}
+	      case FLIP_NEEDED: // Cannot happen
+		assert(0);
+		abort();
+	      case FLIP_ERROR:
+		ReportFatalError( "MakeDelaunay(): error in CheckForFlip." );
+	      }
 	    }
 	}
+    out_of_for_loop: ;
     }
 }
 
@@ -4096,13 +4119,13 @@ UpdateMesh()
 **
 \*****************************************************************************/
 template< class tSubNode >
-bool tMesh< tSubNode >::
+flipStatus_t tMesh< tSubNode >::
 CheckForFlip( tTriangle * tri, int nv, bool flip, bool useFuturePosn )
 {
    if( tri == 0 )  // TODO: is this just a bug check?
    {
       cout << "CheckForFlip: tri == 0" << endl;
-      return false;
+      return FLIP_ERROR;
    }
    assert( nv < 3 );
    if (0) //DEBUG
@@ -4135,7 +4158,7 @@ CheckForFlip( tTriangle * tri, int nv, bool flip, bool useFuturePosn )
    }
 
    // If p0-p1-p2 passes the test, no flip is necessary
-   if( TriPasses( ptest, p0, p1, p2 ) ) return false;
+   if( TriPasses( ptest, p0, p1, p2 ) ) return FLIP_NOT_NEEDED;
 
    // Otherwise, a flip is needed, provided that the new triangles are
    // counter-clockwise (would this really ever happen??) and that the
@@ -4143,12 +4166,12 @@ CheckForFlip( tTriangle * tri, int nv, bool flip, bool useFuturePosn )
    if( flip )                     //and make sure there isn't already an edge?
    {
       if( !PointsCCW( p0, p1, ptest ) || !PointsCCW( p0, ptest, p2 ) )
-          return false;
+          return FLIP_ERROR;
       //cout << "calling Flip edge from cff" << endl;
       FlipEdge( tri, triop, nv, nvop );
+      return FLIP_DONE;
    }
-     //cout << "finished" << endl;
-   return true;
+   return FLIP_NEEDED;
 }
 
 
