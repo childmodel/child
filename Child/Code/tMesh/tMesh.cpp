@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.162 2003-05-30 14:46:20 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.163 2003-05-30 16:41:03 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3333,9 +3333,10 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode const *node3 )
    //add pointers to the new edges to nodes' spokeLists:
    tSpkIter spokIter;
    spokIter.Reset( node2 );
-   if( spokIter.isEmpty() )
-      spokIter.insertAtFront( le );
-   else if( spokIter.ReportNextP() == spokIter.CurSpoke() )
+   if( spokIter.isEmpty()
+       // only one spoke
+       || ( spokIter.ReportNextP() == spokIter.CurSpoke() )
+       )
        spokIter.insertAtFront( le );
    else
    {
@@ -3355,10 +3356,11 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode const *node3 )
       spokIter.insertAtNext( le );
    }
    spokIter.Reset( node1 );
-   if( spokIter.isEmpty() )
-       spokIter.insertAtFront( nle );
-   else if( spokIter.ReportNextP() == spokIter.CurSpoke() )
-       spokIter.insertAtFront( nle );
+   if( spokIter.isEmpty()
+       // only one spoke
+       || ( spokIter.ReportNextP() == spokIter.CurSpoke() )
+       )
+     spokIter.insertAtFront( nle );
    else
    {
       for( ce = spokIter.FirstP();
