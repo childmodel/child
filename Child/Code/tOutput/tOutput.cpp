@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.24 2000-01-25 19:07:21 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.25 2000-01-27 22:02:49 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -179,6 +179,7 @@ void tOutput<tSubNode>::WriteNodeData( double time )
 **
 **  Modifications:
 **    - 1/00 added "opOpt" and creation of veg output file (GT)
+**    - added flow depth output file (GT 1/00)
 \*************************************************************************/
 template< class tSubNode >
 tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) 
@@ -194,6 +195,9 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
    CreateAndOpenFile( &texofs, ".tx" );
    if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
        CreateAndOpenFile( &vegofs, ".veg" );
+   if( (opOpt = infile.ReadItem( opOpt, "OPTKINWAVE" ) ) )
+       CreateAndOpenFile( &flowdepofs, ".dep" );
+   
    
 }
 
@@ -207,6 +211,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
 **
 **  Modifications:
 **    - 1/00 added output to veg output file (GT)
+**    - added output of flow depth; made slope output for all nodes (GT 1/00)
 \*************************************************************************/
 //TODO: should output boundary points as well so they'll map up with nodes
 // for plotting. Means changing getSlope so it returns zero if flowedg
@@ -223,11 +228,12 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    // Write current time in each file
    drareaofs << " " << time << "\n " << nActiveNodes << endl;
    netofs << " " << time << "\n " << nActiveNodes << endl;
-   slpofs << " " << time << "\n " << nActiveNodes << endl;
+   slpofs << " " << time << "\n " << nnodes << endl;
    qofs << " " << time << "\n " << nnodes << endl;
    layofs << " " << time << "\n" << nActiveNodes << endl;
    texofs << " " << time << "\n" << nnodes << endl;
    if( vegofs.good() ) vegofs << " " << time << "\n" << nnodes << endl;
+   if( flowdepofs.good() ) flowdepofs << " " << time << "\n" << nnodes << endl;
 
    // Write data, including layer info
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
@@ -236,7 +242,6 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       drareaofs << cn->getDrArea() << endl;
       if( cn->getDownstrmNbr() )
           netofs << cn->getDownstrmNbr()->getID() << endl;
-      slpofs << cn->getSlope() << endl;
       layofs << " " << cn->getNumLayer() << endl;
       i=0;
       while(i<cn->getNumLayer()){
@@ -255,8 +260,12 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    // Write discharge, vegetation, & texture data
    for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() )
    {
+      if( !cn->getBoundaryFlag() ) slpofs << cn->getSlope() << endl;
+      else slpofs << 0 << endl;
       qofs << cn->getQ() << endl;
       if( vegofs.good() ) vegofs << cn->getVegCover().getVeg() << endl;
+      if( flowdepofs.good() ) 
+          flowdepofs << cn->getHydrDepth() << endl;
       if( cn->getNumg()>1 ) // temporary hack TODO
       {
             texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;
