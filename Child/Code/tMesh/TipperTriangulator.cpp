@@ -23,7 +23,6 @@ using namespace std;
 # include <iostream.h>
 # include <fstream.h>
 #endif
-#include <stdlib.h>
 #include <time.h>
 #include <assert.h>
 
