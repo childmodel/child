@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.5 1998-01-29 20:06:57 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.6 1998-02-03 00:47:40 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -147,7 +147,7 @@ void tStreamNet::UpdateNet()
    CalcVAreas();          // TODO: should be in tgrid
    FlowDirs();
    MakeFlow();
-   cout << "finished" << endl;	
+   cout << "UpdateNet() finished" << endl;	
 }
 
 void tStreamNet::UpdateNet( tStorm &storm )
@@ -161,7 +161,7 @@ void tStreamNet::UpdateNet( tStorm &storm )
    CalcVAreas();
    FlowDirs();
    MakeFlow();
-   cout << "finished" << endl;	
+   cout << "UpdatNet(...) finished" << endl;	
 }
 
 
@@ -188,7 +188,7 @@ void tStreamNet::CalcSlopes()
 	assert( gridPtr != 0 );
 	tEdge *curedg;
 	tGridListIter<tEdge> i( gridPtr->GetEdgeList() );
-  double slp;
+  double slp, length;
 
   cout << "CalcSlopes()...";
 
@@ -197,11 +197,11 @@ void tStreamNet::CalcSlopes()
 	{
      // Make sure edge is valid, and length is nonzero
      assert( curedg > 0 );
-     if( curedg->getLength() == 0 )
-     {
-        curedg->CalcLength();
-        assert( curedg->getLength() > 0 );
-     }
+     assert( curedg->getLength() > 0 );
+     //if( curedg->getLength() == 0 )
+     //{
+     //   length = curedg->CalcLength();
+     //}
 
      // Compute the slope and assign it to the current edge
      slp = ( curedg->getOrgZ() - curedg->getDestZ() )
@@ -212,15 +212,17 @@ void tStreamNet::CalcSlopes()
      curedg = i.NextP();
      assert( !( i.AtEnd() ) );
      curedg->setSlope( -slp );
+     //curedg->setLength( length );
+     assert( curedg->getLength() > 0 );
 	}
-  cout << "finished" << endl;	
+  cout << "CalcSlopes() finished" << endl;	
 }
 
 
 // NB: move to tGrid
 void tStreamNet::CalcVAreas()
 {
-   cout << "CalcVAreas()...";
+   cout << "CalcVAreas()..." << endl << flush;
    double area;
    tLNode * curnode;
    tGridListIter<tLNode> nodIter( gridPtr->GetNodeList() );
@@ -234,7 +236,7 @@ void tStreamNet::CalcVAreas()
       curnode->setVArea( area );
       curnode->setVArea_Rcp( 1.0 / area );*/
    }
-   cout << "finished" << endl;
+   cout << "CalcVAreas() finished" << endl;
 }
 
 
@@ -359,6 +361,7 @@ void tStreamNet::FlowDirs()
       curnode = i.NextP();
 
   }
+  cout << "FlowDirs() finished" << endl << flush;
   
 }
 #undef kLargeNegative
@@ -421,7 +424,7 @@ void tStreamNet::FlowDirs()
 void tStreamNet::DrainAreaVoronoi()
 {
 //#if TRACKFNS
-   cout << "DrainAreaVoronoi()...";
+   cout << "DrainAreaVoronoi()..." << endl << flush;
 //#endif
    tLNode * curnode;
    tGridListIter<tLNode> nodIter( gridPtr->GetNodeList() );
@@ -435,9 +438,11 @@ void tStreamNet::DrainAreaVoronoi()
    // flowedge and downstream 
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
-       RouteFlowArea( curnode, curnode->getVArea() );
+   {
+      RouteFlowArea( curnode, curnode->getVArea() );
+   }
    
-   cout << "finished" << endl;
+   cout << "DrainAreaVoronoi() finished" << endl << flush;
 }
 
 
@@ -607,10 +612,10 @@ double tStreamNet::VoronoiArea( tLNode * centre )
 \*****************************************************************************/
 void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
 {
-   //cout << "RouteFlowArea()...";
-#if DEBUG
+   cout << "RouteFlowArea()..." << endl << flush;
+//#if DEBUG
    int niterations=0;  // Safety feature: prevents endless loops
-#endif
+//#endif
 
    // As long as the current node is neither a boundary nor a sink, add
    // _addedArea_ to its total drainage area and advance to the next node
@@ -619,7 +624,7 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
    {
       curnode->AddDrArea( addedArea );
       curnode = curnode->GetDownstrmNbr();
-#if DEBUG
+//#if DEBUG
       niterations++;
       if( niterations>9990 )
           cout << "Node " << curnode->getID()
@@ -627,9 +632,9 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
                << " flood status " << curnode->GetFloodStatus() 
                << endl << flush;
       assert( niterations < 10000 );
-#endif
+//#endif
    }
-   //cout << "finished" << endl;
+   cout << "RouteFlowArea() finished" << endl << flush;
 }
 
 
@@ -673,6 +678,7 @@ void tStreamNet::SetVoronoiVertices()
 {
    //double x, y, x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
    //tArray< double > xyo, xyd1, xyd2, xy(2);
+   cout << "SetVoronoiVertices()..." << endl;
    tArray< double > xy;
    tListIter< tTriangle > triIter( gridPtr->GetTriList() );
    tTriangle * ct;
@@ -688,6 +694,7 @@ void tStreamNet::SetVoronoiVertices()
       ct->ePtr(1)->setRVtx( xy );
       ct->ePtr(2)->setRVtx( xy );
    }
+   cout << "SetVoronoiVertices() finished" << endl;
 }
 
 
@@ -707,12 +714,12 @@ void tStreamNet::SetVoronoiVertices()
 \*****************************************************************************/
 void tStreamNet::MakeFlow()
 {
-   cout << "MakeFlow()...";
+   cout << "MakeFlow()..." << endl << flush;
    if( filllakes ) FillLakes();
    DrainAreaVoronoi();
    if( flowgen == kSaturatedFlow ) FlowSaturated();
    else FlowUniform();
-   cout << "finished" << endl;
+   cout << "MakeFlow() finished" << endl;
 }
 
 
@@ -732,7 +739,7 @@ void tStreamNet::MakeFlow()
 \*****************************************************************************/
 void tStreamNet::FlowUniform()
 {
-   cout << "FlowUniform...";
+   cout << "FlowUniform..." << endl << flush;
    tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
    tLNode *curnode;
    double runoff = rainrate - infilt;
@@ -745,7 +752,7 @@ void tStreamNet::FlowUniform()
       discharge = curnode->getDrArea() * runoff;
       curnode->setDischarge( discharge );
    }
-   cout << "finished" << endl;
+   cout << "FlowUniform finished" << endl;
 }
 
 
@@ -820,7 +827,7 @@ void tStreamNet::FlowSaturated()
 void tStreamNet::FillLakes()
 {
 //#if TRACKFNS
-   cout << "FillLakes()...";
+   cout << "FillLakes()..." << endl << flush;
 //#endif
    tLNode *cn,    // Node on list: if a sink, then process
        *thenode,           // Node on lake perimeter
@@ -944,6 +951,9 @@ void tStreamNet::FillLakes()
                      {     // found one!  
                         cln->SetFloodStatus( kOutletPreFlag );
                         cln->SetFlowEdg( ce );
+                        cout << "Node " << cln->getID() << " flows to "
+                             << cln->GetDownstrmNbr()->getID() << endl;
+                        
                      }
                   } while( cln->GetFloodStatus() != kOutletFlag
                            && ( ce=ce->GetCCWEdg() ) != cln->GetEdg() );
@@ -968,6 +978,7 @@ void tStreamNet::FillLakes()
          lakeList.Flush();
       } /* END if Sink */
    } /* END Active Nodes */
+   cout << "FillLakes() finished" << endl << flush;
    
 } // end of tStreamNet::FillLakes
 
@@ -1021,6 +1032,8 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node )
       {
          maxslp = ce->getSlope();
          node->SetFlowEdg( ce );
+         cout << "Node " << node->getID() << " flows to "
+              << node->GetDownstrmNbr()->getID() << endl;
       }
    } while( ( ce=ce->GetCCWEdg() ) != node->GetEdg() );
    
