@@ -32,7 +32,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.29 2002-08-12 15:41:16 arnaud Exp $
+**  $Id: tList.h,v 1.30 2002-08-28 14:30:39 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -91,7 +91,7 @@ protected:
 **         FUNCTIONS FOR CLASS tListNode< NodeType >
 **
 **         tListNodes contain a data item and a pointer to the next
-**         tListNode in the tList (or tGridList). The data item may
+**         tListNode in the tList (or tMeshList). The data item may
 **         be of any type, specified in the template brackets.
 **
 **         Some of the functions for retrieving the data are duplicated
@@ -154,8 +154,6 @@ operator=( const tListNode< NodeType > &right )
 {
    if( &right != this )
    {
-        //delete data;
-        //data = new NodeType;
       assert( &data != 0 );
       data = right.data;
       next = right.next;
@@ -489,7 +487,8 @@ insertAtFront( const NodeType &value )
    //cout << "ADD NEW NODE TO LIST AT FRONT" << endl;
    
    tListNode< NodeType > *newPtr = getNewNode( value );
-   if( isEmpty() ) first = last = currentItem = newPtr;
+   if( isEmpty() )
+     first = last = currentItem = newPtr;
    else
    {
       newPtr->next = first;
@@ -1044,7 +1043,7 @@ protected:
 **  descendants). Its services include fetching data from the current entry
 **  on the list, advancing to the next or previous item on the list, etc.
 **
-**  See also tGridList.
+**  See also tMeshList.
 **
 **  Created: fall, 97, SL.
 **  Modifications:  added an "AtEnd" function that signals whether the
