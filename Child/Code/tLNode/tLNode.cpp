@@ -8,8 +8,10 @@
 **    - changes related to addition of Vegetation module (GT 1/2000):
 **       - removed tSurface class & fn
 **       - modified constructors (tLNode) to handle tau, tauc, vegCover
+**    - fixed problem with layer initialization in copy constructor
+**      (gt, 2/2000; see below)
 ** 
-**  $Id: tLNode.cpp,v 1.86 2000-01-25 19:03:34 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.87 2000-03-09 20:01:01 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -212,39 +214,6 @@ const tBedrock &tBedrock::operator=( const tBedrock &right )     //tBedrock
    return *this;
 }
 
-/*tSurface::tSurface()                                             //tSurface
-{
-   veg = tauc = vegerody = 0.0;
-     //cout << "  tSurface()" << endl;
-}
-
-tSurface::tSurface( const tSurface &orig )                       //tSurface
-{
-   if( &orig != 0 )
-   {
-      veg = orig.veg;
-      tauc = orig.tauc;
-      vegerody = orig.vegerody;
-   }
-     //cout << "  tSurface( orig )" << endl;
-}
-
-tSurface::~tSurface()                                            //tSurface
-{
-     //cout << "    ~tSurface()" << endl;
-}
-
-//assignment
-const tSurface &tSurface::operator=( const tSurface &right )     //tSurface
-{
-   if( &right != this )
-   {
-      veg = right.veg;
-      tauc = right.tauc;
-      vegerody = right.vegerody;
-   }
-   return *this;
-}*/
 
 /***** Functions for class tRegolith **************************************/
 
@@ -367,6 +336,18 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
 **              that they can read values for default parameters, etc.
 **   - Copy: copies all fields of tLNode and calls copy constructors for
 **              embedded objects.
+**
+**    Modifications:
+**     - fixed an odd error with the layer initialization in the copy
+**       constructor. The use of the embedded object initialization
+**       syntax " : layerlist( orig.layerlist ) ", when compiled with
+**       cxx, appeared to erroneously look for a tList constructor of
+**       type tList( int ), which does not exist. Thus, the layerlist
+**       was not duplicated but instead simply handed by default
+**       memberwise copy, so that the new list pointed to the original 
+**       one. Once the problem was discovered, the fix was simple:
+**       use the assignment operator instead. This was probably the
+**       source of the problem noted by nmg below. (gt, 2/2000)
 **
 \**************************************************************************/
 
@@ -560,8 +541,8 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
         : tNode( orig ),
           rock( orig.rock ), vegCover( orig.vegCover ),
           reg( orig.reg ), chan( orig.chan ), qsm( orig.qsm),
-          qsinm( orig.qsinm ), 
-          layerlist( orig.layerlist)
+          qsinm( orig.qsinm )
+    //Xlayerlist( orig.layerlist )
 {
 
 //Be aware that the copy constructor should be called using the 
@@ -579,7 +560,9 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
    qs = orig.qs;
    qsin = orig.qsin;
    uplift = orig.uplift;
-   
+   tau = orig.tau;
+   tauc = orig.tauc;
+   layerlist = orig.layerlist;
    //cout << "=>tLNode( orig )" << endl;
 }
 
@@ -1003,10 +986,12 @@ void tLNode::TellAll()
          //for(i=0; i<numg; i++)
          //cout<<"  qsini "<<i<<" "<<qsinm[i];
          //cout<<endl;         
-         for(i=0; i<numg; i++)
-             cout<<"  dgrade "<<i<<" "<<getLayerDgrade(0,i);         
          cout<<" creation time top "<<getLayerCtime(0);
          cout<<"numlayers is "<<getNumLayer()<<endl;
+         int j;
+         for( j=0; j<getNumLayer(); j++ )
+             for(i=0; i<numg; i++)
+                 cout<<"  dgrade "<<i<<" "<<getLayerDgrade(j,i);
          cout << "  dzdt: " << dzdt << "  drdt: " << drdt;
          cout<<" meanders "<< Meanders()<<endl;
       }
@@ -1015,52 +1000,10 @@ void tLNode::TellAll()
    }
    else cout << "  edg is undefined!\n";
    
+   cout << "layerlist addresses are:\n";
+   layerlist.DebugTellPtrs();
 }
 #endif
-
-/**************************************************************************\
-**
-**  Tracer-sorting routines:
-**
-**  These routines are utilities that are used in sorting the nodes
-**  according to their position within the drainage network. The main
-**  sorting algorithm is implemented in tStreamNet::SortNodesByNetOrder().
-**  The sorting method works by introducing a "tracer" at each point,
-**  then allowing the tracers to iteratively cascade downstream. At each
-**  step any nodes not containing tracers are moved to the back of the
-**  list. The result is a list sorted in upstream-to-downstream order.
-**
-**  These utilities do the following:
-**    ActivateSortTracer -- injects a single tracer at a node
-**    AddTracer -- adds a tracer to a node (ignored if node is a bdy)
-**    MoveSortTracerDownstream -- removes a tracer and sends it to the
-**                                downstream neighbor (unless the node is
-**                                a sink; then the tracer just vanishes)
-**    NoMoreTracers -- reports whether there are any tracers left here
-**
-**  Created by GT 12/97.
-**
-\**************************************************************************/
-
-void tLNode::ActivateSortTracer()
-{ tracer = 1; }
-
-void tLNode::MoveSortTracerDownstream()
-{
-   tracer--;
-   if( flood!=kSink ) getDownstrmNbr()->AddTracer();
-}
-
-void tLNode::AddTracer()
-{
-   if( !boundary ) tracer++;
-}
-
-int tLNode::NoMoreTracers()
-{
-   assert( tracer>=0 );
-   return( tracer==0 );
-}
 
 
 /**************************************************************************\
@@ -1422,6 +1365,10 @@ void tLNode::setLayerSed( int i, int s)
 
 double tLNode::getLayerDgrade( int i, int num ) const
 {
+   //cout << "newgetlayerdgrade\n";
+   //tLayer * lyr;
+   //lyr = layerlist.getIthDataPtr(i);
+   //return lyr->getDgrade(num);
    tLayer hlp;
    hlp = layerlist.getIthData(i);
    return hlp.getDgrade(num);
@@ -1476,7 +1423,8 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
 {
    assert(tri!=0);
    
-//   cout<<endl<<"tLNode::LayerInterpolation....";
+   int dbg;
+   //cout<<endl<<"tLNode::LayerInterpolation....";
 //   cout<<" current x = "<<x<<" current y = "<<y;
 //   cout<<" newx= "<<tx<<" newy= "<<ty<<endl<<flush;
    
