@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.19 1998-04-07 16:16:00 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.20 1998-04-21 00:28:14 stlancas Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -16,6 +16,7 @@
 #include "../GridElements/gridElements.h"
 #include "../tList/tList.h"
 #include "../tInputFile/tInputFile.h"
+#include "../GlobalFns.h"
 
 /** class tDeposit *********************************************************/
 /* Deposit records */
