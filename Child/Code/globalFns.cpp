@@ -4,7 +4,7 @@
 **  @brief Global functions used by tGrid and other modules of
 **         CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.18 2004-02-18 15:16:56 childcvs Exp $
+**  $Id: globalFns.cpp,v 1.19 2004-04-14 12:57:31 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -182,6 +182,22 @@ int PointsCCW( tArray< double > const &p0,
 }
 
 
+int PointsCCW( tArray2< double > const &p0,
+               tArray2< double > const &p1,
+               tArray2< double > const &p2 )
+{
+   if (0) //DEBUG
+     cout << "PointsCCW? ";
+
+   if( p0 == p1 || p0 == p2 || p1 == p2 )
+     return 0;
+
+   const double* a0 = p0.getArrayPtr();
+   const double* a1 = p1.getArrayPtr();
+   const double* a2 = p2.getArrayPtr();
+   // call exact arithmetic predicate:
+   return ( predicate.orient2d( a0, a1, a2 ) > 0 );
+}
 /***************************************************************************/
 /**
 **  Orientation

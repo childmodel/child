@@ -12,7 +12,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.17 2004-02-18 15:16:56 childcvs Exp $
+**  $Id: globalFns.h,v 1.18 2004-04-14 12:57:31 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -21,6 +21,7 @@
 
 #include <math.h>
 #include "tArray/tArray.h"
+#include "tArray/tArray2.h"
 #include "MeshElements/meshElements.h"
 #include "tLNode/tLNode.h"
 #include "tPtrList/tPtrList.h"
@@ -50,6 +51,8 @@ int TriPasses( tArray< double > const &, tArray< double > const &,
 
 int PointsCCW( tArray< double > const &, tArray< double > const &, tArray< double > const & );
 
+int PointsCCW( tArray2< double > const &, tArray2< double > const &, tArray2< double > const & );
+
 int Orientation( tArray< double > const &,
                  tArray< double > const &,
                  tArray< double > const & );
@@ -67,10 +70,10 @@ tEdge* IntersectsAnyEdgeInList( tEdge*, tPtrList< tEdge >& );
 
 double InterpSquareGrid( double, double, tMatrix< double > const &, int );
 
-tArray< double > FindIntersectionCoords( tArray< double > const&,
-                                         tArray< double > const&,
-                                         tArray< double > const&,
-                                         tArray< double > const&);
+tArray2< double > FindIntersectionCoords( tArray2< double > const&,
+					  tArray2< double > const&,
+					  tArray2< double > const&,
+					  tArray2< double > const&);
 
 //double timetrack;
 

@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.76 2004-04-14 11:20:50 childcvs Exp $
+**  $Id: meshElements.h,v 1.77 2004-04-14 12:57:36 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -63,6 +63,7 @@ using namespace std;
 #include "../tList/tList.h"
 #include "../tPtrList/tPtrList.h"
 #include "../tArray/tArray.h"
+#include "../tArray/tArray2.h"
 #include "../Geometry/geometry.h"   // for Point2D definitions & fns
 
 class tEdge;
@@ -116,6 +117,7 @@ public:
 // SL, 7/2003: added less costly versions that pass references
   void get3DCoords( tArray< double >& ) const;
   void get2DCoords( tArray< double >& ) const;
+  void get2DCoords( tArray2< double >& ) const;
   inline int getID() const;                         // returns ID number
   inline double getX() const;                       // returns x coord
   inline double getY() const;                       // returns y coord
@@ -241,8 +243,8 @@ public:
   inline tEdge* getComplementEdge();
   inline tEdge const * getComplementEdge() const;
   inline void setComplementEdge( tEdge* );
-  inline tArray< double > const & getRVtx() const;  // returns Voronoi vertex for RH triangle
-  inline void getRVtx( tArray< double >& ) const; // less costly ref-passing version
+  inline tArray2< double > const & getRVtx() const;  // returns Voronoi vertex for RH triangle
+  inline void getRVtx( tArray2< double >& ) const; // less costly ref-passing version
   inline double getVEdgLen() const;    // returns length of assoc'd Voronoi cell edge
   inline tEdgeBoundary_t FlowAllowed() const; // returns boundary status ("flow allowed")
 
@@ -258,7 +260,7 @@ public:
   double CalcSlope();                // computes & sets slope
   void setCCWEdg( tEdge * edg );     // sets ptr to counter-clockwise neighbor
   void setCWEdg( tEdge * edg );
-  void setRVtx( tArray< double > const &);  // sets coords of Voronoi vertex RH tri
+  void setRVtx( tArray2< double > const &);  // sets coords of Voronoi vertex RH tri
   void setVEdgLen( double ); // sets length of corresponding Voronoi edge
   double CalcVEdgLen();      // computes, sets & returns length of V cell edg
   tEdge * FindComplement();  // returns ptr to edge's complement
@@ -281,7 +283,7 @@ private:
   tEdgeBoundary_t flowAllowed; // boundary flag, usu. false when org & dest = closed bds
   double len;      // edge length
   double slope;    // edge slope
-  tArray< double > rvtx; // (x,y) coords of Voronoi vertex in RH triangle
+  tArray2< double > rvtx; // (x,y) coords of Voronoi vertex in RH triangle
   double vedglen;        // length of Voronoi edge shared by org & dest cells
   tNode *org, *dest;     // ptrs to origin and destination nodes
   tEdge *ccwedg;  // ptr to counter-clockwise (left-hand) edge w/ same origin
@@ -336,7 +338,7 @@ public:
   inline void setTPtr( int, tTriangle * );  // sets ptr to given neighboring tri
   inline int nVOp( const tTriangle * ) const;// returns side # (0,1 or 2) of nbr triangle
   int nVtx( const tNode * ) const;  // returns vertex # (0,1 or 2) of given node
-  tArray<double> FindCircumcenter() const; // computes & returns tri's circumcenter
+  tArray2<double> FindCircumcenter() const; // computes & returns tri's circumcenter
   const unsigned char *index() const { return index_; }
   void SetIndexIDOrdered(); // build the ordering index array
   inline bool isIndexIDOrdered() const;
@@ -554,6 +556,12 @@ inline void tNode::get2DCoords( tArray< double >& xy ) const
    xy.at(1) = y;
 }
 
+inline void tNode::get2DCoords( tArray2< double >& xy ) const
+{
+   xy.at(0) = x;
+   xy.at(1) = y;
+}
+
 inline int tNode::getID() const {return id;}
 inline double tNode::getX() const {return x;}
 inline double tNode::getY() const {return y;}
@@ -702,7 +710,7 @@ inline tArray< double > tNode::FuturePosn() {return get2DCoords();}
 inline tEdge::tEdge() :
   listObj(),
   id(0), flowAllowed(kFlowNotAllowed), len(0.), slope(0.),
-  rvtx(2),
+  rvtx(),
   vedglen(0.),
   org(0), dest(0), ccwedg(0), cwedg(0),
   compedg(0), tri(0)
@@ -725,7 +733,7 @@ inline tEdge::tEdge( const tEdge &original ) :
 inline tEdge::tEdge(tNode* n1, tNode* n2) :
   listObj(),
   id(0), flowAllowed(kFlowNotAllowed), len(0.), slope(0.),
-  rvtx(2),
+  rvtx(),
   vedglen(0.),
   org(0), dest(0), ccwedg(0), cwedg(0),
   compedg(0), tri(0)
@@ -738,7 +746,7 @@ inline tEdge::tEdge(tNode* n1, tNode* n2) :
 inline tEdge::tEdge(int id_, tNode* n1, tNode* n2) :
   listObj(),
   id(id_), flowAllowed(kFlowNotAllowed), len(0.), slope(0.),
-  rvtx(2),
+  rvtx(),
   vedglen(0.),
   org(0), dest(0), ccwedg(0), cwedg(0),
   compedg(0), tri(0)
@@ -875,17 +883,15 @@ inline tEdgeBoundary_t tEdge::FlowAllowed() const
    return flowAllowed;
 }
 
-inline tArray< double > const &
+inline tArray2< double > const &
 tEdge::getRVtx() const
 {
    return rvtx;
 }
 
-inline void tEdge::getRVtx( tArray< double >& arr ) const
+inline void tEdge::getRVtx( tArray2< double >& arr ) const
 {
-   if( arr.getSize() != 2 ) arr.setSize(2);
-   arr.at(0) = rvtx.at(0);
-   arr.at(1) = rvtx.at(1);
+   arr = rvtx;
 }
 
 inline double tEdge::getVEdgLen() const {return vedglen;}
@@ -966,14 +972,12 @@ inline void tEdge::setCWEdg( tEdge * edg )
   cwedg = edg;
 }
 
-inline void tEdge::setRVtx( tArray< double > const & arr )
+inline void tEdge::setRVtx( tArray2< double > const & arr )
 {
-   assert( arr.getSize() == 2 );
    if (0)//DEBUG
      cout << "setRVtx for edge " << id
 	  << " to x, y, " << arr.at(0) << ", " << arr.at(1) << endl;
-   rvtx.at(0) = arr.at(0);
-   rvtx.at(1) = arr.at(1);
+   rvtx = arr;
 }
 
 inline void tEdge::setVEdgLen( double val )

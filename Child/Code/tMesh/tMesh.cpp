@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.205 2004-03-31 17:53:50 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.206 2004-04-14 12:57:38 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -432,9 +432,9 @@ MeshDensification( const tInputFile &infile )
 	 for( int i=0; i<ntri; i++ )    // loop through the triangles
 	   {
 	     assert( ct!=0 );
-	     tArray<double> const &xy = ct->ePtr(0)->getRVtx();  // get the coords
-	     newx[i] = xy[0];
-	     newy[i] = xy[1];
+	     tArray2<double> const &xy = ct->ePtr(0)->getRVtx();  // get the coords
+	     newx[i] = xy.at(0);
+	     newy[i] = xy.at(1);
 
 	     // Now find the z coordinate using interpolation
 	     const tArray<double> zvals( // z values of a triangle's 3 nodes
@@ -442,7 +442,8 @@ MeshDensification( const tInputFile &infile )
 					ct->pPtr(1)->getZ(),
 					ct->pPtr(2)->getZ()
 					);
-	     newz[i] = PlaneFit( xy[0], xy[1], ct->pPtr(0)->get2DCoords(),
+	     newz[i] = PlaneFit( xy.at(0), xy.at(1),
+				 ct->pPtr(0)->get2DCoords(),
 				 ct->pPtr(1)->get2DCoords(),
 				 ct->pPtr(2)->get2DCoords(), zvals );
 	     ct = triIter.NextP();
@@ -2490,7 +2491,7 @@ void tMesh<tSubNode>::setVoronoiVertices()
    // Find the Voronoi vertex associated with each Delaunay triangle
    for( ct = triIter.FirstP(); !(triIter.AtEnd()); ct = triIter.NextP() )
    {
-      const tArray< double > xy( ct->FindCircumcenter() );
+      const tArray2< double > xy( ct->FindCircumcenter() );
       //cout << "setVoronoiVertices(): " << xy[0] << " " << xy[1];
       // Assign the Voronoi point as the left-hand point of the three edges
       // associated with the current triangle
@@ -2505,8 +2506,9 @@ void tMesh<tSubNode>::setVoronoiVertices()
                << ct->ePtr(i)->getOriginPtr()->getID() << ","
                << ct->ePtr(i)->getDestinationPtr()->getID() << ") ";
 	cout << ", v verts are:\n";
-	const tArray< double > & xy_ = ct->ePtr(0)->getRVtx();
-	cout << "  setVoronoiVertices(): " << xy_[0] << " " << xy_[1] << endl;
+	const tArray2< double > & xy_ = ct->ePtr(0)->getRVtx();
+	cout << "  setVoronoiVertices(): " << xy_.at(0)
+	     << " " << xy_.at(1) << endl;
       }
    }
    if (0) //DEBUG

@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.70 2004-04-14 11:20:48 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.71 2004-04-14 12:57:32 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -39,12 +39,12 @@
 **  Called by:  tNode::ComputeVoronoiArea
 **
 \*************************************************************************/
-tArray< double > FindIntersectionCoords( tArray< double > const &xy1,
-                                         tArray< double > const &xy2,
-                                         tArray< double > const &xy3,
-                                         tArray< double > const &xy4 )
+tArray2< double > FindIntersectionCoords( tArray2< double > const &xy1,
+					  tArray2< double > const &xy2,
+					  tArray2< double > const &xy3,
+					  tArray2< double > const &xy4 )
 {
-   tArray< double > intxy(2);
+   tArray2< double > intxy;
 
    const double dxa = xy2.at(0) - xy1.at(0);
    const double dxb = xy4.at(0) - xy3.at(0);
@@ -208,12 +208,12 @@ double tNode::ComputeVoronoiArea()
       assert( ce!=0 );
       vedgList.insertAtBack( ce );
       if (0) {//DEBUG
-	tArray< double > const &xy1 = ce->getRVtx();
-	tArray< double > const &xy2 =
+	tArray2< double > const &xy1 = ce->getRVtx();
+	tArray2< double > const &xy2 =
 	  vedgList.getLast()->getPtrNC()->getRVtx();
 	cout
-	  << xy1[0] << " " << xy1[1] << "; "
-	  << xy2[0] << " " << xy2[1] << endl;
+	  << xy1.at(0) << " " << xy1.at(1) << "; "
+	  << xy2.at(0) << " " << xy2.at(1) << endl;
 	//if( id==83) cout << " " << ce->getDestinationPtr()->getX() << ","
 	//                 << ce->getDestinationPtr()->getY() << endl;
       }
@@ -225,7 +225,7 @@ double tNode::ComputeVoronoiArea()
   if( getBoundaryFlag() == kNonBoundary )
     {
       {
-	tArray< double > xy1(2), xy2(2);
+	tArray2< double > xy1, xy2;
 	bool cw = true;
 	//cout << "find clockwise loops" << endl;
 	do
@@ -242,16 +242,16 @@ double tNode::ComputeVoronoiArea()
 	    cw = false;
 	    for( ce=vtxIter.FirstP(); !( vtxIter.AtEnd() ); ce=vtxIter.NextP() )
 	      {
-		tArray< double > const &xy = ce->getRVtx();
-		tArray< double > const &xyn = vtxIter.NextP()->getRVtx();
-		tArray< double > const &xynn = vtxIter.NextP()->getRVtx();
+		tArray2< double > const &xy = ce->getRVtx();
+		tArray2< double > const &xyn = vtxIter.NextP()->getRVtx();
+		tArray2< double > const &xynn = vtxIter.NextP()->getRVtx();
 		dx0 = xynn.at(0) - xyn.at(0);
 		dy0 = xynn.at(1) - xyn.at(1);
 		dx1 = xy.at(0) - xyn.at(0);
 		dy1 = xy.at(1) - xyn.at(1);
 		if( dy0 * dx1 > dx0 * dy1 ) //clockwise
 		  {
-		    tArray< double > const &xynnn = vtxIter.NextP()->getRVtx();
+		    tArray2< double > const &xynnn = vtxIter.NextP()->getRVtx();
 		    dx0 = xynnn.at(0) - xynn.at(0);
 		    dy0 = xynnn.at(1) - xynn.at(1);
 		    dx1 = xyn.at(0) - xynn.at(0);
@@ -312,7 +312,7 @@ double tNode::ComputeVoronoiArea()
 			//reset 'next' edge's vertex to newly found intersection,
 			//length adjusted accordingly
 			edgptr->setVEdgLen( sqrt( dx*dx + dy*dy ) );
-			edgptr->setRVtx( tArray<double>( vx, vy ) );
+			edgptr->setRVtx( tArray2<double>( vx, vy ) );
 			edgptr = vtxIter.ReportNextP();
 			//cout << "reset vedglen and rvtx for edge "
 			//     << edgptr->getID()
@@ -340,13 +340,13 @@ double tNode::ComputeVoronoiArea()
       // Go through spokes and put RVtx of ccw edge in coord list, but
       // first check that the vtx lies within the bndies
       {
-	tArray< double > xy2(2), xy3(2);
-	tList< tArray< double > > vcL; // list of vertex coordinates
+	tArray2< double > xy2, xy3;
+	tList< tArray2< double > > vcL; // list of vertex coordinates
 	tEdge *ne, *nne;
 	for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
 	  {
 	    ne = ce->getCCWEdg();
-	    tArray<double> const &xy1 = ne->getRVtx();
+	    tArray2<double> const &xy1 = ne->getRVtx();
 	    //checking polygon edge is on boundary and ccw edge's RVtx is on
 	    //wrong side of bndy edge...
 	    if( ce->getBoundaryFlag() != kNonBoundary &&
@@ -384,8 +384,8 @@ double tNode::ComputeVoronoiArea()
 	// sum of the area of triangles [P(1) P(i) P(i+1)] for i=2,3...N-1.
 	//cout << "find polygon area" << endl;
 	// coords of first vertex:
-	tListIter< tArray< double > > vcI( vcL ); // iterator for coord list
-	tArray< double > const * const xy = vcI.FirstP(); //ce = vtxIter.FirstP();
+	tListIter< tArray2< double > > vcI( vcL ); // iterator for coord list
+	tArray2< double > const * const xy = vcI.FirstP(); //ce = vtxIter.FirstP();
 	//xy = ce->getRVtx();
 	// Find out # of vertices in polygon:
 	const int nverts = vcL.getSize(); //vedgList.getSize();
@@ -393,8 +393,8 @@ double tNode::ComputeVoronoiArea()
 	  {
 	    double a, b, c;
 
-	    tArray<double> const * const xyn = vcI.NextP(); //xyn = vtxIter.NextP()->getRVtx();// Vertex i
-	    tArray<double> const * const xynn = vcI.NextP();//vtxIter.ReportNextP()->getRVtx(); // Vertex i+1
+	    tArray2<double> const * const xyn = vcI.NextP(); //xyn = vtxIter.NextP()->getRVtx();// Vertex i
+	    tArray2<double> const * const xynn = vcI.NextP();//vtxIter.ReportNextP()->getRVtx(); // Vertex i+1
 	    {
 	      const double dx = (*xyn).at(0) - (*xy).at(0);
 	      const double dy = (*xyn).at(1) - (*xy).at(1);
@@ -446,7 +446,7 @@ double tNode::ComputeVoronoiArea()
       cout << " reading list: ";
       for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
 	{
-	  tArray<double> const &xy = ce->getRVtx();
+	  tArray2<double> const &xy = ce->getRVtx();
 	  cout << xy.at(0) << " " << xy.at(1) << "; ";
 	}
       cout << endl;
@@ -455,7 +455,7 @@ double tNode::ComputeVoronoiArea()
       do
 	{
 	  assert( ce!=0 );
-	  tArray<double> const &xy = ce->getRVtx();
+	  tArray2<double> const &xy = ce->getRVtx();
 	  cout << xy.at(0) << " " << xy.at(1) << "; ";
 	  ce = ce->getCCWEdg();
 	} while( ce != edg );
@@ -491,7 +491,7 @@ void tNode::getVoronoiVertexList( tList<Point2D> * vertexList )
    tEdge *ce = edg;
    do
    {
-      tArray<double> const & vtxarr = ce->getRVtx();
+      tArray2<double> const & vtxarr = ce->getRVtx();
       const Point2D vtx( vtxarr.at(0), vtxarr.at(1) );
       //cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << endl;
       vertexList->insertAtBack( vtx );
@@ -534,7 +534,7 @@ void tNode::getVoronoiVertexXYZList( tList<Point3D> * vertexList )
       ce = ce->getCCWEdg();
       n1 = n2;
       n2 = ce->getDestinationPtrNC();
-      tArray<double> const &vtxarr = ce->getRVtx();
+      tArray2<double> const &vtxarr = ce->getRVtx();
       const tArray<double> zvals( this->z, n1->getZ(), n2->getZ());
       const double zz =
 	PlaneFit(vtxarr.at(0), vtxarr.at(1), this->get2DCoords(),
@@ -884,15 +884,15 @@ tTriangle::~tTriangle()
 **  triangle's three nodes (that's the point of computing it).
 **
 \*****************************************************************************/
-tArray< double >
+tArray2< double >
 tTriangle::FindCircumcenter() const
 {
    assert( pPtr(0) && pPtr(1) && pPtr(2) );
 
    // Coordinates of triangle's nodes p0, p1, and p2
-   tArray< double > const xyo = pPtr(0)->get2DCoords();
-   tArray< double > const xyd1 = pPtr(1)->get2DCoords();
-   tArray< double > const xyd2 = pPtr(2)->get2DCoords();
+   tArray2< double > xyo; pPtr(0)->get2DCoords( xyo );
+   tArray2< double > xyd1; pPtr(1)->get2DCoords( xyd1 );
+   tArray2< double > xyd2; pPtr(2)->get2DCoords( xyd2 );
 
    // Find the midpoints of the two sides (p0,p1) and (p0,p2) and store them
    // in (x1,y1) & (x2,y2). Then get the distance between p0 and the
@@ -945,7 +945,7 @@ tTriangle::FindCircumcenter() const
 	 YY = xyo.at(1) + dy1;
       }
    }
-   return tArray< double >(XX, YY);
+   return tArray2< double >(XX, YY);
 }
 
 
@@ -981,10 +981,10 @@ void tTriangle::SetIndexIDOrdered()
 tTriangle* tTriangle::NbrToward( double x, double y )
 {
   tTriangle* ct = 0;
-  tArray< double > xy0(x, y);
-  tArray< double > xy1(2);
-  tArray< double > xy2(2);
-  tArray< double > xy3(2);
+  tArray2< double > xy0(x, y);
+  tArray2< double > xy1;
+  tArray2< double > xy2;
+  tArray2< double > xy3;
   p[0]->get2DCoords( xy1 );
   p[1]->get2DCoords( xy2 );
   p[2]->get2DCoords( xy3 );
