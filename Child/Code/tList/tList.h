@@ -1,6 +1,6 @@
 /**************************************************************************\
 **
-**  tList.h: Header file for class tList< NodeType >
+**  tList.h: Header file for classes tList, tListNode, and tListIter.
 **
 **  A tList is an object that implements a general linked list NodeType
 **  objects, where NodeType can be any type (float, int, other objects,
@@ -15,10 +15,52 @@
 **  For moving back and forth in a tList and retrieving items, it's often
 **  most useful to use a tListIter object (q.v.).
 **
-**  $Id: tList.h,v 1.1 1998-01-14 20:33:55 gtucker Exp $
+**  tListNode objects are the nodes on the list; each contains an instance
+**  of the given data type (float, int, class, etc) and a pointer to the
+**  next node in the list.
+**
+**  A tListIter is an iterator for the linked list tList objects (and their
+**  descendants). Its services include fetching data from the current entry
+**  on the list, advancing to the next or previous item on the list, etc.
+**
+**  $Id: tList.h,v 1.2 1998-01-21 19:32:07 gtucker Exp $
 \**************************************************************************/
+
 #ifndef TLIST_H
 #define TLIST_H
+
+/** class tListNode  ********************************************************/
+template< class NodeType >
+class tListNode
+{
+   friend class tList< NodeType >;
+   friend class tGridList< NodeType >;
+   friend class tListIter< NodeType >;
+   friend class tGridListIter< NodeType >;
+  public:
+   tListNode();
+   tListNode( const tListNode< NodeType > & );
+   tListNode( const NodeType & );
+   const tListNode< NodeType >
+       &operator=( const tListNode< NodeType > & );
+   int operator==( const tListNode< NodeType > & ) const;
+   int operator!=( const tListNode< NodeType > & ) const;
+     /*set*/
+   NodeType getDataNC();
+   NodeType &getDataRefNC();
+   NodeType *getDataPtrNC();
+   tListNode< NodeType > * getNextNC() const;
+     /*get*/
+   NodeType getData() const;
+   const NodeType &getDataRef() const;
+   const NodeType *getDataPtr() const;
+   const tListNode< NodeType > * getNext() const;
+   
+  private:
+   NodeType data;
+   tListNode< NodeType > *next;
+};
+
 
 /** class tList ************************************************************/
 template< class NodeType >
@@ -69,6 +111,39 @@ class tList
    tListNode< NodeType > * first;
    tListNode< NodeType > * last;
    tListNode< NodeType > * getNewNode( const NodeType & );
+};
+
+
+
+/** class tListIter ********************************************************/
+template< class NodeType >
+class tListIter
+{
+  public:
+   tListIter();
+   tListIter( tList< NodeType > & );
+   tListIter( tList< NodeType > * );
+   ~tListIter();
+   int First();
+   int Last();
+   int Get( int );
+   int Next();
+   int Prev();
+   int Where();
+   int AtEnd();
+   NodeType &DatRef();
+   NodeType *DatPtr();
+   tListNode< NodeType > *NodePtr();
+   void Reset( tList< NodeType > & );
+   NodeType * FirstP();
+   NodeType * LastP();
+   NodeType * NextP();
+   NodeType * PrevP();
+   NodeType * GetP( int num );
+   
+  protected:
+   tListNode< NodeType > * curnode;
+   tList< NodeType > *listPtr;   
 };
 
 #endif
