@@ -10,8 +10,10 @@
 **   - GT merged tListIFStreams and tListInputData into a single class
 **     to avoid multiple definition errors resulting from mixing
 **     template & non-template classes (1/99)
+**   - Bug fix in constructor: nnodes was being read from edge and
+**     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
 **
-**  $Id: tListInputData.cpp,v 1.5 1999-01-21 17:48:29 gtucker Exp $
+**  $Id: tListInputData.cpp,v 1.6 2002-04-10 09:01:25 gtucker Exp $
 \**************************************************************************/
 
 #include "tListInputData.h"
@@ -31,6 +33,14 @@
 **  GetFileEntry() is called to read the data into the arrays. Note that
 **  the time in each file is identified by a space character preceding it
 **  on the same line.
+**
+**  Modifications:
+**   - Calls to seekg appear not to be working properly with the g++
+**     compiler, and a quick web search revealed all sorts of complaints
+**     about seekg under g++. So I recoded the file reading to avoid
+**     using seekg. (GT Feb 01)
+**   - Fixed bug in which no. edges and triangles were incorrectly
+**     assigned to nnodes, instead of nedges and ntri. (GT 04/02)
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -79,20 +89,36 @@ tListInputData( tInputFile &infile )                   //tListInputData
    // Find out which time slice we want to extract
    intime = infile.ReadItem( intime, "INPUTTIME" );
    cout << "intime = " << intime << endl;
+   cout << "Is node input file ok? " << nodeinfile.good()
+	<< " Are we at eof? " << nodeinfile.eof() << endl;
 
    // Find specified input times in input data files and read # items.
    // First, nodes:
    righttime = 0;
    while( !( nodeinfile.eof() ) && !righttime )
    {
-      nodeinfile.getline( headerLine, kMaxNameLength );
+     /*nodeinfile.getline( headerLine, kMaxNameLength );
       if( headerLine[0] == kTimeLineMark )
       {
          nodeinfile.seekg( -nodeinfile.gcount(), ios::cur );
          nodeinfile >> time;
          cout << "from file, time = " << time << endl;
+	 cout << "Read: " << headerLine << endl;
          if( time == intime ) righttime = 1;
-      }
+      }*/
+     nodeinfile >> time;
+     cout << "Read time: " << time << endl;
+     if( time != intime )
+       {
+	 int i;
+	 nodeinfile >> nnodes;
+	 cout << "nnodes = " << nnodes << endl;
+	 for( i=1; i<=nnodes+1; i++ ) {
+	   nodeinfile.getline( headerLine, kMaxNameLength );
+	 }
+       }
+     else righttime = 1;
+      cout << " NOW are we at eof? " << nodeinfile.eof() << endl;
    }
    if( !( nodeinfile.eof() ) ) nodeinfile >> nnodes;
    else
@@ -104,13 +130,25 @@ tListInputData( tInputFile &infile )                   //tListInputData
    righttime = 0;
    while( !( zinfile.eof() ) && !righttime )
    {
-      zinfile.getline( headerLine, kMaxNameLength );
+     /*zinfile.getline( headerLine, kMaxNameLength );
       if( headerLine[0] == kTimeLineMark )
       {
          zinfile.seekg( -zinfile.gcount(), ios::cur );
          zinfile >> time;
          if( time == intime ) righttime = 1;
-      }
+      }*/
+     zinfile >> time;
+     cout << "Read time: " << time << endl;
+     if( time != intime )
+       {
+	 int i;
+	 zinfile >> nnodes;
+	 cout << "nnodes = " << nnodes << endl;
+	 for( i=1; i<=nnodes+1; i++ ) {
+	   zinfile.getline( headerLine, kMaxNameLength );
+	 }
+       }
+     else righttime = 1;  
    }
    if( !( zinfile.eof() ) ) zinfile >> nnodes;
    else
@@ -122,13 +160,26 @@ tListInputData( tInputFile &infile )                   //tListInputData
    righttime = 0;
    while( !( edgeinfile.eof() ) && !righttime )
    {
-      edgeinfile.getline( headerLine, kMaxNameLength );
+     /*edgeinfile.getline( headerLine, kMaxNameLength );
       if( headerLine[0] == kTimeLineMark )
       {
          edgeinfile.seekg( -edgeinfile.gcount(), ios::cur );
          edgeinfile >> time;
          if( time == intime ) righttime = 1;
-      }
+      }*/
+
+     edgeinfile >> time;
+     cout << "Read time: " << time << endl;
+     if( time != intime )
+       {
+	 int i;
+	 edgeinfile >> nedges;
+	 cout << "nedges = " << nedges << endl;
+	 for( i=1; i<=nedges+1; i++ ) {
+	   edgeinfile.getline( headerLine, kMaxNameLength );
+	 }
+       }
+     else righttime = 1;  
    }
    if( !( edgeinfile.eof() ) ) edgeinfile >> nedges;
    else
@@ -136,17 +187,31 @@ tListInputData( tInputFile &infile )                   //tListInputData
       cerr << "Couldn't find the specified input time in the edge file\n";
       ReportFatalError( "Input error" );
    }
+
    // And finally, triangles:
    righttime = 0;
    while( !( triinfile.eof() ) && !righttime )
    {
-      triinfile.getline( headerLine, kMaxNameLength );
+     /*triinfile.getline( headerLine, kMaxNameLength );
       if( headerLine[0] == kTimeLineMark )
       {
          triinfile.seekg( -triinfile.gcount(), ios::cur );
          triinfile >> time;
          if( time == intime ) righttime = 1;
-      }
+      }*/
+     triinfile >> time;
+     cout << "Read time: " << time << endl;
+     if( time != intime )
+       {
+	 int i;
+	 triinfile >> ntri;
+	 cout << "ntri = " << ntri << endl;
+	 for( i=1; i<=ntri+1; i++ ) {
+	   triinfile.getline( headerLine, kMaxNameLength );
+	 }
+       }
+     else righttime = 1;  
+
    }
    if( !( triinfile.eof() ) ) triinfile >> ntri;
    else
