@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.26 2003-07-25 12:01:33 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.27 2003-07-28 10:47:14 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -380,6 +380,12 @@ void tInputFile::ReadItem( char * theString, size_t len,
   const int i = findKeyWord( itemCode );
   if (i == notFound)
     ReportNonExistingKeyWord( itemCode );
-  strncpy(theString,KeyWordTable[i].value(), len);
+  strncpy(theString, KeyWordTable[i].value(), len);
   theString[len-1] = '\0';
+
+  const size_t llen = strlen(theString);
+  if (llen == 0) return;
+  // strip trailing '\r' if we are dealing with a windows CR/LF text file
+  if (theString[llen-1] == '\r')
+    theString[llen-1] = '\0';
 }
