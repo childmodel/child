@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.43 2000-07-04 04:44:54 daniel Exp $
+**  $Id: tOutput.cpp,v 1.44 2000-07-04 05:19:33 daniel Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -323,6 +323,7 @@ void tLOutput<tSubNode>::WriteTSOutput()
 
    cout << "tLOutput::WriteTSOutput()\n" << flush;
    
+   int i = 0;
    for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
        volume += cn->getZ()*cn->getVArea();
        area += cn->getVArea();
@@ -339,19 +340,3 @@ void tLOutput<tSubNode>::WriteTSOutput()
 
 }
 
-
-template< class tSubNode >
-int tLOutput<tSubNode>::NodeCount()
-{
-  tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
-
-  tSubNode * cn;       // current node
-  
-  int count = 0;
-
-  for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
-    count++;
-  }
-     
-  return count;
-}
