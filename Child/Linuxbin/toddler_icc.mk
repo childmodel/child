@@ -2,8 +2,8 @@ PT = ../Code
 CXX = icpc
 #
 # Intel compiler is picky !
-#WARNINGFLAGS = -Wall -wd279,981,810 -wd444
-WARNINGFLAGS =
+WARNINGFLAGS = -Wall -wd279,981,810 -wd444
+#WARNINGFLAGS =
 
 # gcc 3.1 and later implements standard C++ headers.
 # In such a case, comment out the following line.
