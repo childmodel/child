@@ -3,7 +3,7 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.68 1999-04-04 21:33:32 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.69 1999-04-05 17:31:30 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -209,9 +209,9 @@ tMesh( tInputFile &infile )
 }
 
 //destructor
-/*template< class tSubNode >
+template< class tSubNode >
 tMesh< tSubNode >::
-~tMesh() {cout << "    ~tMesh()" << endl;}*/                    //tMesh
+~tMesh() {cout << "    ~tMesh()" << endl;}                    //tMesh
 
 
 /************************************************************************\

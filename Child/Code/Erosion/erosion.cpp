@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.58 1999-04-04 21:34:11 gtucker Exp $
+**  $Id: erosion.cpp,v 1.59 1999-04-05 17:31:48 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -621,7 +621,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
         : bedErode( infile ), sedTrans( infile )
 {
-   assert( gptr!=0 );
+   assert( mptr!=0 );
    meshPtr = mptr;
 
    // Read parameters needed from input file
