@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.24 2004-03-24 14:54:35 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.25 2004-04-05 10:03:31 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -381,30 +381,30 @@ double tFloodplain::FloodplainDh2(double y, double flood_depth,
   //
 
   double ws=0.0;
-  double Ey=0.0;
+  //double Ey=0.0;
   double Co=0.0;
-  double density=0.0;
-  double G=0.0;
-  double n=0.0;
+  //double density=0.0;
+  //double G=0.0;
+  //double n=0.0;
   double Cy=0.0;
   double Dy=0.0;
 
   // Hard-coded variables (rates etc.)
   ws = 0.002;       // downward settling velocity in m/s for something between fine sand and fine silt
-  Ey = 0.10 ;       // transverse diffusion coefficient in m^2/s for fine silt
+  //Ey = 0.10 ;       // transverse diffusion coefficient in m^2/s for fine silt
   Co =	1.0 ;       // suspended load concentration integrated over the flow depth
   		    // above the levee, in parts per million times meter, ppm-m
   		    // assumtion used in Gross and Small, use 75% of the in-channel concentration
-  density = 1.8e6;   // density of silt in suspension, g/m^3
+  //density = 1.8e6;   // density of silt in suspension, g/m^3
 
-  G  = Wy * sqrt(   ws/flood_depth*Ey  );	// gross and small,1998
+  //G  = Wy * sqrt(   ws/flood_depth*Ey  );	// gross and small,1998
 
-  Ey = 0.013;
+  //Ey = 0.013;
   //double Ez = 0.0076;
   //double Vs = 0.008;
   //double G2 = (Wy*Vs)*sqrt(Ey*Ez);                     //floodplain concavity Pizzuto,1987
 
-  n = y/Wy;
+  //n = y/Wy;
 
   // Calculate the Local concentration
   //Cy = Co * (  ( (sinh(G*n) * exp(-G))  /cosh(G) ) + exp(-G*n)  );
@@ -628,7 +628,7 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
     elev,
     chanslp;
   tEdge * fe;    // Ptr to flow edge of current node
-  tLNode * cn,*pn;   // Current node along main channel
+  tLNode * cn /* ,*pn */ ;   // Current node along main channel
 
   assert( inletNode != 0 );
 
@@ -736,7 +736,7 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
   tArray<double> delzRect( num_grnsize_fractions + 1);    // CAREFUL, temp Hack by Q., this way you have 2 classes in StratGrid, but only one in the mesh
   elev = newInletElevation;
   cn = inletNode;
-  pn = cn;
+  //pn = cn;
   //cout<< "Inlet Node = " <<cn->getX()<< ' ' << cn->getY()<<endl;
 
   do
@@ -782,7 +782,7 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
       }
 
       // Move to downstream node
-      pn = cn;
+      //pn = cn;
       cn = cn->getDownstrmNbr();
       assert( cn );
     }
