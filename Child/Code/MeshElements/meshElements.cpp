@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.62 2003-09-18 15:52:31 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.63 2003-10-15 09:27:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -803,9 +803,11 @@ void tTriangle::InitializeTriangle( tNode* n0, tNode* n1, tNode* n2 )
 	  {
             assert( nbrtriPtr->e[i] != 0 );
             assert( ce != 0 );
-            if( nbrtriPtr->e[i] == ce ) break;
+            if( nbrtriPtr->e[i] == ce ) goto found;
 	  }
-	assert( nbrtriPtr->e[i] == ce );
+	assert( 0 );
+	::abort();
+      found:
 	nbrtriPtr->t[(i+1)%3] = this;  //set NBR TRI ptr to tri
       }
    }
