@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.3 1999-03-21 19:28:57 gtucker Exp $
+**  $Id: tFloodplain.cpp,v 1.4 1999-04-02 23:02:51 gtucker Exp $
 \**************************************************************************/
 
 #include "tFloodplain.h"
@@ -210,9 +210,16 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
          // (note: deposit is assumed to consist of 100% of the finest
          // grain size fraction, which is assumed to be the first fraction.
          // All other entries in deparr are zero)
+         //   NOTE: when delt > 1/mu exp( minDist/fplamda ), the solution
+         // is invalid because deposition occurs above the water surface!
+         // An analytical solution znew = z + D0(1-exp(-fx delt)) could
+         // be used in these cases (ie, when delt is large to speed up
+         // computation)
          if( ( floodDepth = wsh - cn->getZ() ) > 0.0 )
          {
             deparr[0] = floodDepth*fpmu*exp( -minDist/fplamda )*delt;
+            if( deparr[0]>floodDepth)
+                cout << " *WARNING, deposit thicker than flood depth\n";
             //Xcn->ChangeZ( depo ); // (note: use layering-TODO)
             cn->EroDep( 0, deparr, ctime );
             cout << " OBDep " << deparr[0] << " at (" << cn->getX()
