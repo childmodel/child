@@ -5,7 +5,7 @@
 **  tStreamNet objects contain data and functions related to flow routing
 **  and sediment transport across the landscape surface.
 **
-**  $Id: tStreamNet.h,v 1.2 1998-01-15 19:37:09 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.3 1998-01-21 20:03:43 stlancas Exp $
 \**************************************************************************/
 #ifndef TSTREAMNET_H
 #define TSTREAMNET_H
@@ -24,6 +24,8 @@ public:
    void ResetGrid( tGrid< tLNode > & );
    const tGrid< tLNode > *getGridPtr() const;
    tGrid< tLNode > *getGridPtrNC();
+   const tStorm *getStormPtr() const;
+   tStorm *getStormPtrNC();
    int getFlowGenOpt() const;
    int getFillLakesOpt() const;
    float getRainRate() const;
@@ -55,6 +57,7 @@ public:
 protected:
    
    tGrid< tLNode > * gridPtr;
+   tStorm *stormPtr;
    int flowgen;
    int filllakes;
    float rainrate;
