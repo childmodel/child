@@ -5,7 +5,7 @@
 **  tStreamNet objects contain data and functions related to flow routing
 **  and sediment transport across the landscape surface.
 **
-**  $Id: tStreamNet.h,v 1.19 1998-05-04 22:07:31 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.20 1998-05-05 19:46:17 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -20,6 +20,9 @@
 #include "../tLNode/tLNode.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tStorm/tStorm.h"
+
+#define kSaturatedFlow 1   // Option for saturation-excess flow generation
+#define kConstSoilStore 2  // Option for "bucket"-type flow generation
 
 /** class tInlet *************************************************************/
 class tInlet
@@ -68,6 +71,7 @@ public:
    double getRainRate() const;
    double getTransmissivity() const;
    double getInfilt() const;
+   double getSoilStore() const;
    double getInDrArea() const;
    double getInSedLoad() const;
    tArray< double > getInSedLoadm() const;
@@ -96,6 +100,7 @@ public:
    void MakeFlow();
    void FlowUniform();
    void FlowSaturated();
+   void FlowBucket();
    void FillLakes();
    int FindLakeNodeOutlet( tLNode * );
    void SortNodesByNetOrder();
@@ -109,6 +114,7 @@ protected:
    double rainrate;
    double trans;
    double infilt;
+   double soilStore;        /* soil water storage, depth equiv (m) */
    //double inDrArea;
    tInlet inlet;
    double mndrDirChngProb;
