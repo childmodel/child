@@ -4,7 +4,7 @@
 **  @brief Error-handling routines.
 **
 **  Created Dec. 97 from earlier routine embedded in child.cpp
-**  $Id: errors.cpp,v 1.5 2003-01-17 17:30:25 childcvs Exp $
+**  $Id: errors.cpp,v 1.6 2003-02-10 12:21:02 childcvs Exp $
 */
 /******************************************************************/
 
@@ -17,6 +17,8 @@ using namespace std;
 #else
 # include <iostream.h>
 #endif
+
+#define CHILD_ABORT_ON_ERROR "CHILD_ABORT_ON_ERROR"
 
 /*****************************************************************************\
 **
@@ -32,6 +34,9 @@ void ReportFatalError( const char *errMsg )
 {
   cout << errMsg <<endl;
   cout << "That was a fatal error, my friend!" <<endl;
+  if (getenv(CHILD_ABORT_ON_ERROR) != NULL)
+    abort();
+  cout << "(Set \"" CHILD_ABORT_ON_ERROR "\" to generate a crash.)" <<endl;
   exit(1);
 }
 
