@@ -26,7 +26,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.64 2003-05-26 17:41:40 childcvs Exp $
+**  $Id: tLNode.h,v 1.65 2003-05-30 12:30:12 childcvs Exp $
 */
 /************************************************************************/
 
@@ -118,7 +118,8 @@ inline tLayer::tLayer () :
   depth(0.), erody(0.), sed(0),
   dgrade()
 {
-   //cout << "tLayer( )" << endl;
+  if (0) //DEBUG
+    cout << "tLayer( )" << endl;
 }
 
 inline tLayer::tLayer ( int num ) :
@@ -126,8 +127,8 @@ inline tLayer::tLayer ( int num ) :
   depth(0.), erody(0.), sed(0),
   dgrade( num )
 {
-   //cout << "tLayer num const\n";
-   //cout << "tLayer( num )" << endl;
+  if (0) //DEBUG
+    cout << "tLayer( num )" << endl;
 }
 
 //copy constructor
@@ -136,12 +137,14 @@ inline tLayer::tLayer( const tLayer &orig ) :                        //tLayer
   depth(orig.depth), erody(orig.erody), sed(orig.sed),
   dgrade( orig.dgrade )
 {
-   //cout << "tLayer copy const\n";
+  if (0) //DEBUG
+    cout << "tLayer copy const\n";
 }
 
 inline const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
 {
-    // cout << "tLayer op=\n";
+   if (0) //DEBUG
+     cout << "tLayer op=\n";
     
    if( &right != this )
    {

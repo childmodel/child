@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.106 2003-05-26 17:41:39 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.107 2003-05-30 12:30:11 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -75,7 +75,8 @@ head(0), reachmember(0),
 deltax(0.), deltay(0.), zoldright(0.), zoldleft(0.), bankrough(0.),
 xyzd(4)
 {
-  //cout << "  tMeander()" << endl;
+  if (0) //DEBUG
+    cout << "  tMeander()" << endl;
 }
 
 tMeander::tMeander( const tMeander &orig )                        //tMeander
@@ -87,7 +88,8 @@ deltax(orig.deltax), deltay(orig.deltay),
 zoldright(orig.zoldright), zoldleft(orig.zoldleft), bankrough(orig.bankrough),
 xyzd( orig.xyzd )
 {
-  //cout << "  tMeander( orig )" << endl;
+  if (0) //DEBUG
+    cout << "  tMeander( orig )" << endl;
 }
 
 tMeander::tMeander( bool state, double x, double y )                //tMeander
@@ -98,12 +100,14 @@ head(0), reachmember(0),
 deltax(0.), deltay(0.), zoldright(0.), zoldleft(0.), bankrough(0.),
 xyzd(4)
 {
-  //cout << "  tMeander( state, x, y )" << endl;
+  if (0) //DEBUG
+    cout << "  tMeander( state, x, y )" << endl;
 }
 
 tMeander::~tMeander()                                             //tMeander
 {
-     //cout << "    ~tMeander()" << endl;
+  if (0) //DEBUG
+    cout << "    ~tMeander()" << endl;
 }
 
 //assignment
@@ -130,19 +134,22 @@ tBedrock::tBedrock()                                             //tBedrock
   :
 erodibility(0.)
 {
-  //cout << "  tBedrock()" << endl;
+  if (0) //DEBUG
+    cout << "  tBedrock()" << endl;
 }
 
 tBedrock::tBedrock( const tBedrock &orig )                       //tBedrock
   :
 erodibility(orig.erodibility)
 {
-  //cout << "  tBedrock( orig )" << endl;
+  if (0) //DEBUG
+    cout << "  tBedrock( orig )" << endl;
 }
 
 tBedrock::~tBedrock()                                            //tBedrock
 {
-     //cout << "    ~tBedrock()" << endl;
+  if (0) //DEBUG
+    cout << "    ~tBedrock()" << endl;
 }
 
 //assignment
@@ -174,7 +181,8 @@ tRegolith::tRegolith()                                          //tRegolith
 thickness(0.),
 dgrade()
 {
-  //cout << "  tRegolith()" << endl;
+  if (0) //DEBUG
+    cout << "  tRegolith()" << endl;
 }
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
@@ -182,13 +190,15 @@ tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
 thickness(orig.thickness),
 dgrade( orig.dgrade )
 {
-  //cout << "  tRegolith( orig ) " << thickness << endl;
+  if (0) //DEBUG
+    cout << "  tRegolith( orig ) " << thickness << endl;
 }
 
 
 tRegolith::~tRegolith()                                         //tRegolith
 {
-     //cout << "    ~tRegolith()" << endl;
+  if (0) //DEBUG
+    cout << "    ~tRegolith()" << endl;
 }
 
 //assignment
@@ -213,7 +223,8 @@ chanslope(0.),hydrslope(0.),
 diam(kVeryHigh),
 migration()
 {
-  //cout << "  tChannel()" << endl;
+  if (0) //DEBUG
+    cout << "  tChannel()" << endl;
 }
 
 tChannel::tChannel( const tChannel &orig )                       //tChannel
@@ -227,12 +238,14 @@ chanslope(orig.chanslope),hydrslope(orig.hydrslope),
 diam(orig.diam),
 migration( orig.migration )
 {
-  //cout << "  tChannel( orig )" << endl;
+  if (0) //DEBUG
+    cout << "  tChannel( orig )" << endl;
 }
 
 tChannel::~tChannel()                                            //tChannel
 {
-     //cout << "    ~tChannel()" << endl;
+  if (0) //DEBUG
+    cout << "    ~tChannel()" << endl;
 }
 //assignment
 const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
@@ -299,7 +312,8 @@ qsinm(),
 uplift(0.),
 layerlist()
 {
-   //cout << "=>tLNode()" << endl;
+   if (0) //DEBUG
+     cout << "=>tLNode()" << endl;
    flood = 0;
    flowedge = 0;
    tracer = 0;
@@ -324,9 +338,10 @@ uplift(0.),
    tArray<double> dgradehelp;
    tArray<double> dgradebrhelp;
 
+   if (0) //DEBUG
+     cout << "=>tLNode( infile )" << endl;
    tauc = infile.ReadItem( tauc, "TAUC" );
    
-   //cout << "=>tLNode( infile )" << endl;
    numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    grade.setSize( numg );
    maxregdep = infile.ReadItem( maxregdep, "MAXREGDEPTH" );
@@ -498,12 +513,14 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
 //properly copy the layerlist
 
   layerlist = orig.layerlist;
-  //cout << "=>tLNode( orig )" << endl;
+  if (0) //DEBUG
+    cout << "=>tLNode( orig )" << endl;
 }
 
 tLNode::~tLNode()                                                  //tLNode
 {
-  //cout << "    ~tLNode()" << endl;
+  if (0) //DEBUG
+    cout << "    ~tLNode()" << endl;
   flowedge = 0;
 }
 
@@ -1369,7 +1386,8 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 {
    assert(tri!=0);
    
-   //cout<<endl<<"tLNode::LayerInterpolation....";
+   if (0) //DEBUG
+     cout<<endl<<"tLNode::LayerInterpolation....";
 //   cout<<" current x = "<<x<<" current y = "<<y;
 //   cout<<" newx= "<<tx<<" newy= "<<ty<<endl<<flush;
    
@@ -1922,7 +1940,8 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 \*******************************************************************/
 void tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
 {
-   //cout<<"tLNode::WarnSpokeLeaving..... node #"<<id<<endl;
+   if (0) //DEBUG
+     cout<<"tLNode::WarnSpokeLeaving..... node #"<<id<<endl;
 
    //Make sure that edg pointer in tNode won't be affected
    tNode::WarnSpokeLeaving( edglvingptr );
