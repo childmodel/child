@@ -3,7 +3,7 @@
 **  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
 **                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.11 1998-09-23 21:41:30 nmgaspar Exp $
+**  $Id: tPtrList.cpp,v 1.12 1999-01-05 22:36:23 stlancas Exp $
 \**************************************************************************/
 
 #include "tPtrList.h"
@@ -611,7 +611,7 @@ Get( int num )
 {
      //cout << "Get: num " << num << "; ";
    assert( ptrlistPtr != 0 );
-   if( num < 0 ) return 0;
+   //if( num < 0 ) return 0;
    tPtrListNode< NodeType > *tempnodeptr;// = ptrlistPtr->first;
      //counter = 0;
    for( tempnodeptr = ptrlistPtr->first, counter = 0;
@@ -795,7 +795,7 @@ NodeType * tPtrListIter< NodeType >::
 GetP( int num )
 {
    assert( ptrlistPtr != 0 );
-   if( num < 0 ) return 0;
+   //if( num < 0 ) return 0;
    //cout << "Get: num " << num << "; ";
    int i;
    tPtrListNode< NodeType > *tempnodeptr = ptrlistPtr->first;
