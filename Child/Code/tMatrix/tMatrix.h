@@ -11,7 +11,7 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.h,v 1.12 2003-06-06 12:49:32 childcvs Exp $
+**  $Id: tMatrix.h,v 1.13 2004-02-27 18:43:37 childcvs Exp $
 */
 /*************************************************************************/
 #ifndef TMATRIX_H
@@ -26,18 +26,39 @@ class tMatrix
   tMatrix(const tMatrix&);
   tMatrix& operator=(const tMatrix&);
 public:
-  tMatrix( int nr, int nc );
-  ~tMatrix();
-  T &operator()( int row, int col );
-  const T &operator()( int row, int col ) const;
+  inline tMatrix( int nr, int nc );
+  inline T &operator()( int row, int col );
+  inline const T &operator()( int row, int col ) const;
   int getNumRows() const {return nrows;}
   int getNumCols() const {return ncols;}
 
 private:
-  tArray<T> *ptr;
+  tArray<T> ptr;
   const int nrows;
   const int ncols;
 };
+
+// Constructor: sets the size of the matrix to nr by nc and sets all values
+// to zero.
+template < class T >
+inline tMatrix<T>::tMatrix( int nr, int nc ) :
+  ptr(nr*nc),
+  nrows(nr),
+  ncols(nc)
+{}
+
+// Overloaded () operator for referencing individual matrix entries
+template < class T >
+inline T &tMatrix<T>::operator()( int row, int col )
+{
+  return ptr[col+ncols*row];
+}
+
+template < class T >
+inline const T &tMatrix<T>::operator()( int row, int col ) const
+{
+   return ptr[col+ncols*row];
+}
 
 /*
 ** The following is designed to allow for compiling under the Borland-style
