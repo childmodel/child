@@ -91,6 +91,7 @@ bool edge::visible(const point p[],int i) const {
 
 static
 bool needswap(int i1, int i2, int i3, int i4, const point p[]){
+#ifdef DONT_USE_PREDICATE
   // i3 - i4 currently joined by diagonal.
   // i1 - i4 - i2 - i3 anti-clockwise
   // check if i1 lies inside the circumcircle for the triangle
@@ -124,6 +125,9 @@ bool needswap(int i1, int i2, int i3, int i4, const point p[]){
   if (sint1t2 < 0)
     return true;
   return false;
+#else
+  return predicate.incircle(p[i4].XY(), p[i2].XY(), p[i3].XY(), p[i1].XY()) > 0;
+#endif
 }
 
 static
