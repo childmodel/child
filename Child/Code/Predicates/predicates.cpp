@@ -15,7 +15,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.cpp,v 1.10 2003-05-15 16:34:26 childcvs Exp $
+//  $Id: predicates.cpp,v 1.11 2003-05-16 13:17:35 childcvs Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -151,8 +151,8 @@
 #  else
 #   define _FPU_GETCW(cw) __asm__ __volatile__("fnstcw %0" : "=m" (*&cw))
 #   define _FPU_SETCW(cw) __asm__ __volatile__("fldcw %0" : : "m" (*&cw))
-#  define fpu_control_t unsigned int
 #  endif
+#  define fpu_control_t unsigned int
 # else
 #  error Platform not supported
 # endif
