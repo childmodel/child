@@ -9,7 +9,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.14 2000-01-06 16:21:16 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.15 2000-01-06 21:44:02 nmgaspar Exp $
 \**************************************************************************/
 
 
@@ -161,6 +161,7 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
    // If option for random storms is on, pick a storm at random.
    // Keep picking and accumulating time until the storm depth or intensity
    // is greater than the minimum value needed to produce runoff.
+
    if( optVariable )
    {
       stdur = 0;
