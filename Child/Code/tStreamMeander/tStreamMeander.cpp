@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.75 2003-02-05 17:14:53 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.76 2003-04-09 15:52:21 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -563,7 +563,7 @@ int tStreamMeander::InterpChannel( double time )
 		  xp = yp = zp = *arrPtr;
 		  for(int i=1; i<npts; i++ )
 		    {
-		      xp[i] = (double)i * defseglen;
+		      xp[i] = static_cast<double>(i) * defseglen;
 		      val = ran3(&seed) - 0.5;
 		      yp[i] = yp[i-1] + 0.01 * val * exp(-yp[i-1] * val) 
 			* defseglen;//pow(defseglen, 2.0);
@@ -731,7 +731,7 @@ void tStreamMeander::FindReaches()
 	  for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); 
 	       ce = spokIter.NextP() )
 	    {
-	      lnPtr = (tLNode *) ce->getDestinationPtrNC();
+	      lnPtr = static_cast<tLNode *>( ce->getDestinationPtrNC() );
 	      //lnPtr points to the downstream neighbor of the current edge
 	      if( lnPtr->getBoundaryFlag() == kNonBoundary
 		  && lnPtr->getDownstrmNbr() == cn
@@ -1118,7 +1118,8 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
 	  curnode->addLatDisplace( deltaxa[j], deltaya[j] );
 	}
       if (0) //DEBUG
-	cout << "MEAN X CHG: " << dbg/(double)j << "  CUM: " << cumdbg << endl;
+	cout << "MEAN X CHG: " << dbg/static_cast<double>(j)
+	     << "  CUM: " << cumdbg << endl;
       //assert( cumdbg>-1e6 );
       
       //arbitrary change for simple debugging:
@@ -1531,7 +1532,7 @@ void tStreamMeander::AddChanBorder(double time)
 		      inchan = 0;
 		      for( i=0; i<3; i++ )
 			{
-			  tn = (tLNode *) ct->pPtr(i);
+			  tn = static_cast<tLNode *>( ct->pPtr(i) );
 			  if( tn->Meanders() )
 			    {
 			      // ! This passes uninitialized channode ptr ! TODO
@@ -1548,7 +1549,7 @@ void tStreamMeander::AddChanBorder(double time)
 			  sameside = 1;
 			  for( i=0; i<3; i++ )
 			    {
-			      tn = (tLNode *) ct->pPtr(i);
+			      tn = static_cast<tLNode *>( ct->pPtr(i) );
 			      if( tn->Meanders() )
 				{
 				  xy = tn->get2DCoords();
@@ -1695,7 +1696,7 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
   i = 0;
   do
     {
-      cn = (tLNode *) ce->getDestinationPtrNC();
+      cn = static_cast<tLNode *>( ce->getDestinationPtrNC() );
       xy = cn->get2DCoords();
       d = a * xy[0] + b * xy[1] + c;
       spD[i] = spD[n + i] = d;
@@ -1736,8 +1737,8 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
 	  D = d1 + d2;
 	  //find erodibilities of nbr nodes wrt nPtr
 	  ne = ce->getCCWEdg();
-	  node1 = (tLNode *) ce->getDestinationPtrNC();
-	  node2 = (tLNode *) ne->getDestinationPtrNC();
+	  node1 = static_cast<tLNode *>( ce->getDestinationPtrNC() );
+	  node2 = static_cast<tLNode *>( ne->getDestinationPtrNC() );
 	  //find elev. diff's:
 	  dz1 = node1->getZ() - xyz1[2];
 	  dz2 = node2->getZ() - xyz1[2];
@@ -1816,7 +1817,7 @@ void tStreamMeander::CheckBndyTooClose()
       //count number of meandering nbrs:
       for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
 	{
-	  mn = (tLNode *) ce->getDestinationPtrNC();
+	  mn = static_cast<tLNode *>( ce->getDestinationPtrNC() );
 	  if( mn->Meanders() )
 	    {
 	      n++;
@@ -1841,7 +1842,7 @@ void tStreamMeander::CheckBndyTooClose()
 	  //find meandering nbrs:
 	  for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
 	    {
-	      mn = (tLNode *) ce->getDestinationPtrNC();
+	      mn = static_cast<tLNode *>( ce->getDestinationPtrNC() );
 	      if( mn->Meanders() )
 		{
 		  width = mn->getHydrWidth();
@@ -1914,7 +1915,7 @@ void tStreamMeander::CheckBanksTooClose()
 	  for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
 	       ce = spokIter.NextP() )
 	    {
-	      sn = (tLNode *) ce->getDestinationPtrNC();
+	      sn = static_cast<tLNode *>( ce->getDestinationPtrNC() );
               //check for proximity to channel:
 	      if( !(sn->Meanders()) && InChannel( cn, sn ) )
 		{
@@ -1923,7 +1924,7 @@ void tStreamMeander::CheckBanksTooClose()
 		  if (0) //DEBUG
 		    cout<<"too close: cn, cn->hydrwidth "<<cn->getID()<<" "
 			<<cn->getHydrWidth()<<endl<<flush;
-		  pointtodelete = (tLNode *) ce->getDestinationPtrNC();
+		  pointtodelete = static_cast<tLNode *>( ce->getDestinationPtrNC() );
 		  if( pointtodelete->getBoundaryFlag() == kNonBoundary )
 		    {
 		      if ( pointtodelete->getDrArea() < cn->getDrArea() )
@@ -2016,20 +2017,20 @@ void tStreamMeander::CheckFlowedgCross()
 	      pointtodelete = 0;
 	      for( i=0; i<3; i++ )
 		{
-		  cn = (tLNode *) ct->pPtr(i);
+		  cn = static_cast<tLNode *>( ct->pPtr(i) );
 		  if( cn->Meanders() )
 		    {
 		      dscn = cn->getDownstrmNbr();
 		      for( j=1; j<3; j++ )
 			{
-			  nod = (tLNode *) ct->pPtr( (i+j)%3 );
+			  nod = static_cast<tLNode *>( ct->pPtr( (i+j)%3 ) );
 			  //if another vtx is cn's downstream nbr
 			  if( nod == dscn )
 			    {
 			      ft = 1;
 			      //set 'nod' to third node
-			      if( j == 1 ) nod = (tLNode *) ct->pPtr( (i+2)%3 );
-			      else nod = (tLNode *) ct->pPtr( (i+1)%3 );
+			      if( j == 1 ) nod = static_cast<tLNode *>( ct->pPtr( (i+2)%3 ) );
+			      else nod = static_cast<tLNode *>( ct->pPtr( (i+1)%3 ) );
 			    }
 			  if( ft ) break;
 			}
@@ -2214,8 +2215,8 @@ void tStreamMeander::CheckBrokenFlowedg()
 			  //if flowedge to be flipped, delete closer of two "third" nodes
 			  //if their drareas are smaller:
 			  nrn = rtri->nVOp( ltri );
-			  ln = (tLNode *) ltri->pPtr( nln );
-			  rn = (tLNode *) rtri->pPtr( nrn );
+			  ln = static_cast<tLNode *>( ltri->pPtr( nln ) );
+			  rn = static_cast<tLNode *>( rtri->pPtr( nrn ) );
 			  area = cn->getDrArea();
 			  if( ln->getDrArea() < area && rn->getDrArea() < area )
 			    {
