@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.11 1998-02-27 00:08:45 stlancas Exp $
+**  $Id: tLNode.h,v 1.12 1998-03-03 22:28:31 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -153,100 +153,113 @@ class tChannel
    double hydrslope;
    double diam;    	/* Grain diameter of bed material*/
 /*member objects:*/
-   tErode erosion;
+   //tErode erosion;
    tMeander migration;
 };
 
 /** class tLNode ***************************************************************/
 class tLNode : public tNode
 {
-  public:
-   tLNode();
-   tLNode( const tLNode & );
-   ~tLNode();
-   const tLNode &operator=( const tLNode & );   
-   const tBedrock &getRock() const;
-   const tSurface &getSurf() const;
-   const tRegolith &getReg() const;
-   const tChannel &getChan() const;
-   int GetFloodStatus();
-   void SetFloodStatus( int status );
-   tEdge * GetFlowEdg();
-   void SetFlowEdg( tEdge * );
-   void SetDrArea( double );
-   void AddDrArea( double );
-   tLNode * GetDownstrmNbr();
-   double GetQ();        // Gets total discharge from embedded chan obj
-   double GetSlope();    // Computes and returns slope in flow direction
-   int Meanders() const;
-   void SetMeanderStatus( int );
-   void setHydrWidth( double );
-   void setChanWidth( double );
-   double getHydrWidth() const;
-   double getChanWidth() const;
-   void setHydrDepth( double );
-   void setChanDepth( double );
-   double getHydrDepth() const;
-   double getChanDepth() const;
-   void setHydrRough( double );
-   void setChanRough( double );
-   double getHydrRough() const;
-   double getChanRough() const;
-   void setHydrSlope( double );
-   void setChanSlope( double );
-   double getHydrSlope() const;
-   double getChanSlope() const;
-   double getDiam() const;
-   void setBankRough( double );
-   double getBankRough() const;
-   double getDrArea() const;
-   tArray< double > getZOld() const;
-   tArray< double > getNew2DCoords() const;   //for chan.migration.newx, newy
-   void setNew2DCoords( double, double );      //        "
-   tArray< double > getNew3DCoords() const;   //        "
-   tArray< double > getLatDisplace() const;  //for chan.migration.deltax, deltay
-   void setLatDisplace( double, double );      //        "
-   void addLatDisplace( double, double );      //        "
-   void setRock( const tBedrock & );
-   void setSurf( const tSurface & );
-   void setReg( const tRegolith & );
-   void setChan( const tChannel & );
-   void setDischarge( double );
-   void setDiam( double );
-   void setZOld( double, double );
-   void RevertToOldCoords();
-   void UpdateCoords();
-   double DistNew( tLNode *, tLNode * );
-   void ActivateSortTracer();
-   void MoveSortTracerDownstream();
-   void AddTracer();
-   int NoMoreTracers();
-   void EroDep( double dz );
-#ifndef NDEBUG
-   void TellAll();
-#endif
-   void setAlluvThickness( double );
-   double getAlluvThickness() const;
-   void setVegErody( double );
-   double getVegErody() const;
-   void setBedErody( double );
-   double getBedErody() const;
-   void setReachMember( int );
-   int getReachMember() const;
-   void setQs( double );
-   double getQs() const;
+public:
+    tLNode();
+    tLNode( const tLNode & );
+    ~tLNode();
+    const tLNode &operator=( const tLNode & );   
+    const tBedrock &getRock() const;
+    const tSurface &getSurf() const;
+    const tRegolith &getReg() const;
+    const tChannel &getChan() const;
+    int GetFloodStatus();
+    void SetFloodStatus( int status );
+    tEdge * GetFlowEdg();
+    void SetFlowEdg( tEdge * );
+    void SetDrArea( double );
+    void AddDrArea( double );
+    tLNode * GetDownstrmNbr();
+    double GetQ();        // Gets total discharge from embedded chan obj
+    double GetSlope();    // Computes and returns slope in flow direction
+    int Meanders() const;
+    void SetMeanderStatus( int );
+    void setHydrWidth( double );
+    void setChanWidth( double );
+    double getHydrWidth() const;
+    double getChanWidth() const;
+    void setHydrDepth( double );
+    void setChanDepth( double );
+    double getHydrDepth() const;
+    double getChanDepth() const;
+    void setHydrRough( double );
+    void setChanRough( double );
+    double getHydrRough() const;
+    double getChanRough() const;
+    void setHydrSlope( double );
+    void setChanSlope( double );
+    double getHydrSlope() const;
+    double getChanSlope() const;
+    double getDiam() const;
+    void setBankRough( double );
+    double getBankRough() const;
+    double getDrArea() const;
+    tArray< double > getZOld() const;
+    tArray< double > getNew2DCoords() const;   //for chan.migration.newx, newy
+    void setNew2DCoords( double, double );      //        "
+    tArray< double > getNew3DCoords() const;   //        "
+    tArray< double > getLatDisplace() const;  //for chan.migration.deltax, deltay
+    void setLatDisplace( double, double );      //        "
+    void addLatDisplace( double, double );      //        "
+    void setRock( const tBedrock & );
+    void setSurf( const tSurface & );
+    void setReg( const tRegolith & );
+    void setChan( const tChannel & );
+    void setDischarge( double );
+    void setDiam( double );
+    void setZOld( double, double );
+    void RevertToOldCoords();
+    void UpdateCoords();
+    double DistNew( tLNode *, tLNode * );
+    void ActivateSortTracer();
+    void MoveSortTracerDownstream();
+    void AddTracer();
+    int NoMoreTracers();
+    void EroDep( double dz );
+    void setAlluvThickness( double );
+    double getAlluvThickness() const;
+    void setVegErody( double );
+    double getVegErody() const;
+    void setBedErody( double );
+    double getBedErody() const;
+    void setReachMember( int );
+    int getReachMember() const;
+    void SetQs( double );
+    double GetQs() const;
+    void SetQsin( double );
+    void AddQsin( double );
+   double GetQsin() const;
    void setXYZD( tArray< double > );
    tArray< double > getXYZD() const;
    double DistFromOldXY() const;
+   int OnBedrock();
+   double GetDzDt();
+   void SetDzDt( double );
+   double GetDrDt();
+   void SetDrDt( double );
+#ifndef NDEBUG
+   void TellAll();
+#endif
    
-  protected:
+protected:
    tBedrock rock;
    tSurface surf;
    tRegolith reg;
    tChannel chan;
    int flood;        /* flag: is the node part of a lake?*/
    tEdge *flowedge;
-   int tracer;       // Used by network sorting algorithm
+   int tracer;       /* Used by network sorting algorithm*/
+   double dzdt;      /* Erosion rate */
+   double drdt;      /* Rock erosion rate */
+   double qs;           /* Sediment transport rate*/
+   double qsin;         /* Sediment influx rate*/
+   
 };
 
 #endif
