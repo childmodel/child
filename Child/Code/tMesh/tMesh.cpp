@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.58 1999-02-05 05:20:39 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.59 1999-02-05 18:43:49 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -545,6 +545,7 @@ MakeGridFromInputData( tInputFile &infile )
 
    UpdateMesh();
    CheckMeshConsistency();
+   cout << "nnodes, nedges, ntri: " << nnodes << " " << nedges << " " << ntri << endl << flush;
    cout << "end of tGrid( input )" << endl << flush;
 }
 
@@ -2382,7 +2383,7 @@ DeleteNode( tSubNode *node, int repairFlag )
    nnodes = nodeList.getSize();
    nedges = edgeList.getSize();
    ntri = triList.getSize();
-   //cout << "nn " << nnodes << "  ne " << nedges << "  nt " << ntri << endl;
+   cout << "nn " << nnodes << "  ne " << nedges << "  nt " << ntri << endl;
    
    /*tPtrListIter< tSubNode > nbrIter( nbrList );
    cout << "leaving hole defined by " << endl << "   Node  x  y " << endl;
@@ -2471,289 +2472,286 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
       if( !DeleteEdge( ce ) ) return 0;
    }  
    nnodes--;
-   if( node->getSpokeList().isEmpty() ) return 1;
-   return 0;
-}
+   cout<<"nnodes decremented now "<<nnodes<<endl;
+     if( node->getSpokeList().isEmpty() ) return 1;
+     return 0;
+  }
    
-/**************************************************************************\
-**
-**
-\**************************************************************************/
-template< class tSubNode >
-int tGrid< tSubNode >::
-DeleteEdge( tEdge * edgePtr )
-{
-   //cout << "DeleteEdge(...) " << edgePtr->getID() << endl;
-   tEdge edgeVal1, edgeVal2;
-   if( !ExtricateEdge( edgePtr ) ) return 0;
-   //Note, extricate edge does not actually remove the edge from
-   //the edge list, it only moves the two edges (one 'line' that
-   //has two directions) to the end or front of the list.
-   //These two edges are then actually removed here.
-   if( edgePtr->getBoundaryFlag() )
-   {
-      if( !( edgeList.removeFromBack( edgeVal1 ) ) ) return 0;
-      if( !( edgeList.removeFromBack( edgeVal2 ) ) ) return 0;
-      //assert( edgeList.removeFromBack( edgeVal1 ) );
-      //assert( edgeList.removeFromBack( edgeVal2 ) );
-   }
-   else
-   {
-      if( !( edgeList.removeFromFront( edgeVal1 ) ) ) return 0;
-      if( !( edgeList.removeFromFront( edgeVal2 ) ) ) return 0;
-      //assert( edgeList.removeFromFront( edgeVal1 ) );
-      //assert( edgeList.removeFromFront( edgeVal2 ) );
-   }
-//    cout << "  edges " << edgeVal1.getID() << " and "
-//         <<  edgeVal2.getID() << " between nodes "
-//         << edgeVal1.getOriginPtr()->getID() << " and "
-//         << edgeVal2.getOriginPtr()->getID() << " removed" << endl;
+  /**************************************************************************\
+  **
+  **
+  \**************************************************************************/
+  template< class tSubNode >
+  int tGrid< tSubNode >::
+  DeleteEdge( tEdge * edgePtr )
+  {
+     //cout << "DeleteEdge(...) " << edgePtr->getID() << endl;
+     tEdge edgeVal1, edgeVal2;
+     if( !ExtricateEdge( edgePtr ) ) return 0;
+     //Note, extricate edge does not actually remove the edge from
+     //the edge list, it only moves the two edges (one 'line' that
+     //has two directions) to the end or front of the list.
+     //These two edges are then actually removed here.
+     if( edgePtr->getBoundaryFlag() )
+     {
+        if( !( edgeList.removeFromBack( edgeVal1 ) ) ) return 0;
+        if( !( edgeList.removeFromBack( edgeVal2 ) ) ) return 0;
+        //assert( edgeList.removeFromBack( edgeVal1 ) );
+        //assert( edgeList.removeFromBack( edgeVal2 ) );
+     }
+     else
+     {
+        if( !( edgeList.removeFromFront( edgeVal1 ) ) ) return 0;
+        if( !( edgeList.removeFromFront( edgeVal2 ) ) ) return 0;
+        //assert( edgeList.removeFromFront( edgeVal1 ) );
+        //assert( edgeList.removeFromFront( edgeVal2 ) );
+     }
+  //    cout << "  edges " << edgeVal1.getID() << " and "
+  //         <<  edgeVal2.getID() << " between nodes "
+  //         << edgeVal1.getOriginPtr()->getID() << " and "
+  //         << edgeVal2.getOriginPtr()->getID() << " removed" << endl;
    
-   if( &edgeVal1 == 0 || &edgeVal2 == 0 ) return 0;
-   return 1;
-}
+     if( &edgeVal1 == 0 || &edgeVal2 == 0 ) return 0;
+     return 1;
+  }
 
 
-/**************************************************************************\
-**
-**
-\**************************************************************************/
-template< class tSubNode >
-int tGrid< tSubNode >::
-ExtricateEdge( tEdge * edgePtr )
-{
-   //cout << "ExtricateEdge: " << edgePtr->getID() << endl;
-   assert( edgePtr != 0 );
-     //temporary objects:
-   tEdge *tempedgePtr=0, *ce, *cce, *spk;
-   tGridListIter< tEdge > edgIter( edgeList );
-   tPtrListIter< tEdge > spokIter;
-   tPtrList< tEdge > *spkLPtr;
-   tListNode< tEdge > *listnodePtr;
-   tTriangle triVal1, triVal2;
-   tArray< tTriangle * > triPtrArr(2);
-     //cout << "find edge in list; " << flush;
-   ce = edgIter.GetP( edgePtr->getID() );  //NB: why necessary? isn't ce the
-                                       // same as edgePtr??  Yes, why???
-                                       // Puts edgIter at edgePtr's node!
-
-   // Remove the edge from it's origin's spokelist
+  /**************************************************************************\
+  **
+  **
+  \**************************************************************************/
+  template< class tSubNode >
+  int tGrid< tSubNode >::
+  ExtricateEdge( tEdge * edgePtr )
+  {
+     //cout << "ExtricateEdge: " << edgePtr->getID() << endl;
+     assert( edgePtr != 0 );
+       //temporary objects:
+     tEdge *tempedgePtr=0, *ce, *cce, *spk;
+     tGridListIter< tEdge > edgIter( edgeList );
+     tPtrListIter< tEdge > spokIter;
+     tPtrList< tEdge > *spkLPtr;
+     tListNode< tEdge > *listnodePtr;
+     tTriangle triVal1, triVal2;
+     tArray< tTriangle * > triPtrArr(2);
+       //cout << "find edge in list; " << flush;
+     ce = edgIter.GetP( edgePtr->getID() );  //NB: why necessary? isn't ce the
+                                         // same as edgePtr??  Yes, why???
+                                         // Puts edgIter at edgePtr's node!
+    // Remove the edge from it's origin's spokelist
      //cout << "update origin's spokelist if not done already; " << flush;
-   spkLPtr = &( ce->getOriginPtrNC()->getSpokeListNC() );
-   spokIter.Reset( *spkLPtr );
-   for( spk = spokIter.FirstP(); spk != ce && !( spokIter.AtEnd() ); spk = spokIter.NextP() );
-   if( spk == ce )
-   {
-      spk = spokIter.NextP();
-      spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
-   }
+     spkLPtr = &( ce->getOriginPtrNC()->getSpokeListNC() );
+     spokIter.Reset( *spkLPtr );
+     for( spk = spokIter.FirstP(); spk != ce && !( spokIter.AtEnd() ); spk = spokIter.NextP() );
+     if( spk == ce )
+     {
+        spk = spokIter.NextP();
+        spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
+     }
+     // Find the triangle that points to the edge
+       //cout << "find triangle; " << flush;
+     triPtrArr[0] = TriWithEdgePtr( edgePtr ); 
+     // Find the edge's complement
+     listnodePtr = edgIter.NodePtr();
+     assert( listnodePtr != 0 );
+       //cout << "find complement; " << flush;
+     if( edgePtr->getID()%2 == 0 ) cce = edgIter.NextP();
+     else if( edgePtr->getID()%2 == 1 ) cce = edgIter.PrevP();
+     else return 0; //NB: why whould this ever occur??
 
-   // Find the triangle that points to the edge
-     //cout << "find triangle; " << flush;
-   triPtrArr[0] = TriWithEdgePtr( edgePtr ); 
+     // Find the triangle that points to the edges complement
+       //cout << "find other triangle; " << flush;
+     triPtrArr[1] = TriWithEdgePtr( cce );
+       //if triangles exist, delete them
+     //cout << "conditionally calling deletetri from extricateedge\n";
+     if( triPtrArr[0] != 0 )
+         if( !DeleteTriangle( triPtrArr[0] ) ) return 0;
+     if( triPtrArr[1] != 0 )
+         if( !DeleteTriangle( triPtrArr[1] ) ) return 0;
+       //update complement's origin's spokelist
+     spkLPtr = &(cce->getOriginPtrNC()->getSpokeListNC());
+     spokIter.Reset( *spkLPtr );
+     for( spk = spokIter.FirstP(); spk != cce && !( spokIter.AtEnd() );
+          spk = spokIter.NextP() );
+     if( spk == cce )
+     {
+        spk = spokIter.NextP();
+        spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
+     }
 
-   // Find the edge's complement
-   listnodePtr = edgIter.NodePtr();
-   assert( listnodePtr != 0 );
-     //cout << "find complement; " << flush;
-   if( edgePtr->getID()%2 == 0 ) cce = edgIter.NextP();
-   else if( edgePtr->getID()%2 == 1 ) cce = edgIter.PrevP();
-   else return 0; //NB: why whould this ever occur??
-
-   // Find the triangle that points to the edges complement
-     //cout << "find other triangle; " << flush;
-   triPtrArr[1] = TriWithEdgePtr( cce );
-     //if triangles exist, delete them
-   //cout << "conditionally calling deletetri from extricateedge\n";
-   if( triPtrArr[0] != 0 )
-       if( !DeleteTriangle( triPtrArr[0] ) ) return 0;
-   if( triPtrArr[1] != 0 )
-       if( !DeleteTriangle( triPtrArr[1] ) ) return 0;
-     //update complement's origin's spokelist
-   spkLPtr = &(cce->getOriginPtrNC()->getSpokeListNC());
-   spokIter.Reset( *spkLPtr );
-   for( spk = spokIter.FirstP(); spk != cce && !( spokIter.AtEnd() );
-        spk = spokIter.NextP() );
-   if( spk == cce )
-   {
-      spk = spokIter.NextP();
-      spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
-   }
-
-   //Need to make sure that edg member of node was not pointing
-   //to one of the edges that will be removed.  Also, may be implications
-   //for some types of subnodes, so take care of that also.
-    tSubNode * nodece = (tSubNode *) ce->getOriginPtrNC();
-    nodece->WarnSpokeLeaving( ce );
-    tSubNode * nodecce = (tSubNode *) cce->getOriginPtrNC();
-    nodecce->WarnSpokeLeaving( cce );
+     //Need to make sure that edg member of node was not pointing
+     //to one of the edges that will be removed.  Also, may be implications
+     //for some types of subnodes, so take care of that also.
+      tSubNode * nodece = (tSubNode *) ce->getOriginPtrNC();
+      nodece->WarnSpokeLeaving( ce );
+      tSubNode * nodecce = (tSubNode *) cce->getOriginPtrNC();
+      nodecce->WarnSpokeLeaving( cce );
    
-   if( ce->getBoundaryFlag() )
-   {
-        //move edges to back of list
-      edgeList.moveToBack( listnodePtr );
-      edgeList.moveToBack( edgIter.NodePtr() );
-   }
-   else
-   {
-        //move edges to front of list
-      edgeList.moveToFront( edgIter.NodePtr() );
-      edgeList.moveToFront( listnodePtr );
-   }
-   nedges-=2;
-   return 1;
-}
+     if( ce->getBoundaryFlag() )
+     {
+          //move edges to back of list
+        edgeList.moveToBack( listnodePtr );
+        edgeList.moveToBack( edgIter.NodePtr() );
+     }
+     else
+     {
+          //move edges to front of list
+        edgeList.moveToFront( edgIter.NodePtr() );
+        edgeList.moveToFront( listnodePtr );
+     }
+     nedges-=2;
+     return 1;
+  }
 
 
-/***************************************************************************\
-**
-**  tGrid::LocateTriangle
-**
-**  Locates the triangle in which point (x,y) falls. The algorithm exploits
-**  the fact that the 3 triangle points are always in counter-clockwise
-**  order, so that the point is contained within a given triangle (p0,p1,p2)
-**  if and only if the point lies to the left of vectors p0->p1, p1->p2,
-**  and p2->p0. Here's how it works:
-**   1 - start with a given triangle (currently first on the list, but a
-**       smarter initial guess could be used -- TODO)
-**   2 - lv is the number of successful left-hand checks found so far:
-**       initialize it to zero
-**   3 - check whether (x,y) lies to the left of p(lv)->p((lv+1)%3)
-**   4 - if so, increment lv by one (ie, move on to the next vector)
-**   5 - if not, (x,y) is to the right of the current face, so move to
-**       the triangle that lies opposite that face and reset lv to zero
-**   6 - continue steps 3-5 until lv==3, which means that we've found
-**       our triangle.
-**   7 - so far, a point "on the line", i.e., colinear w/ two of the
-**       three points, still passes; that's OK unless that line is on
-**       the boundary, so we need to check
-**
-**  Input: x, y -- coordinates of the point
-**  Modifies: (nothing)
-**  Returns: a pointer to the triangle that contains (x,y)
-**  Assumes: the point is contained within one of the current triangles
-**
-\***************************************************************************/
-template< class tSubNode >
-tTriangle * tGrid< tSubNode >::
-LocateTriangle( double x, double y )
-{
-   //cout << "\nLocateTriangle (" << x << "," << y << ")\n";
-   int n, lv=0;
-   tListIter< tTriangle > triIter( triList );  //lt
-   tTriangle *lt = &(triIter.DatRef());
-   double a, b, c;
-   int online = -1;
-   tArray< double > xy1, xy2;
+  /***************************************************************************\
+  **
+  **  tGrid::LocateTriangle
+  **
+  **  Locates the triangle in which point (x,y) falls. The algorithm exploits
+  **  the fact that the 3 triangle points are always in counter-clockwise
+  **  order, so that the point is contained within a given triangle (p0,p1,p2)
+  **  if and only if the point lies to the left of vectors p0->p1, p1->p2,
+  **  and p2->p0. Here's how it works:
+  **   1 - start with a given triangle (currently first on the list, but a
+  **       smarter initial guess could be used -- TODO)
+  **   2 - lv is the number of successful left-hand checks found so far:
+  **       initialize it to zero
+  **   3 - check whether (x,y) lies to the left of p(lv)->p((lv+1)%3)
+  **   4 - if so, increment lv by one (ie, move on to the next vector)
+  **   5 - if not, (x,y) is to the right of the current face, so move to
+  **       the triangle that lies opposite that face and reset lv to zero
+  **   6 - continue steps 3-5 until lv==3, which means that we've found
+  **       our triangle.
+  **   7 - so far, a point "on the line", i.e., colinear w/ two of the
+  **       three points, still passes; that's OK unless that line is on
+  **       the boundary, so we need to check
+  **
+  **  Input: x, y -- coordinates of the point
+  **  Modifies: (nothing)
+  **  Returns: a pointer to the triangle that contains (x,y)
+  **  Assumes: the point is contained within one of the current triangles
+  **
+  \***************************************************************************/
+  template< class tSubNode >
+  tTriangle * tGrid< tSubNode >::
+  LocateTriangle( double x, double y )
+  {
+     //cout << "\nLocateTriangle (" << x << "," << y << ")\n";
+     int n, lv=0;
+     tListIter< tTriangle > triIter( triList );  //lt
+     tTriangle *lt = &(triIter.DatRef());
+     double a, b, c;
+     int online = -1;
+     tArray< double > xy1, xy2;
    
-   /* it starts from the first triangle, 
-      searches through the triangles until the point is on
-      the same side of all the edges of a triangle.
-      "lt" is the current triangle and "lv" is the edge number. */
-   for (n=0 ;(lv!=3)&&(lt); n++)
-   {
-      xy1 = lt->pPtr(lv)->get2DCoords();
-      xy2 = lt->pPtr( (lv+1)%3 )->get2DCoords();
-      a = (xy1[1] - y) * (xy2[0] - x);
-      b = (xy1[0] - x) * (xy2[1] - y);
-      c = a - b;
-
-      /*cout << "find tri for point w/ x, y, " << x << ", " << y
-           << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;
-      lt->TellAll();
-      cout << flush;*/
-
-      if ( c > 0.0 )
-      {
-         //cout << "    Moving on...\n";
-         lt=lt->tPtr( (lv+2)%3 );
-         lv=0;
-         online = -1;
-      }
-      else
-      {
-         //cout << "    So far so good...\n";
-         if( c == 0.0 ) online = lv;
-         lv++;
-      }
-      
-      /*if( n >= ntri + 20 )
-      {
-         DumpTriangles();
-         DumpNodes();
-      }*/
-      //cout << "NTRI: " << ntri << flush;
-      assert( n < 3*ntri );
-   }
-   //cout << "FOUND point in:\n";
-   //if( lt != 0 ) lt->TellAll(); //careful with this! TellAll() will crash
-                                    //if lt == 0, i.e., point is out of bounds,
-                                    //and we don't want that;
-                                    //calling code is built to deal with lt == 0.
-   if( online != -1 )
-       if( lt->pPtr(online)->getBoundaryFlag() != kNonBoundary &&
-           lt->pPtr( (online+1)%3 )->getBoundaryFlag() != kNonBoundary ) //point on bndy
-           return 0;
-   //else cout << "location out of bounds\n";
-   return(lt);
-}
-
-/**************************************************************************\
-**
-**
-\**************************************************************************/
-template< class tSubNode >
-tTriangle * tGrid< tSubNode >::
-LocateNewTriangle( double x, double y )
-{
-   //cout << "LocateTriangle" << endl;
-   int n, lv=0;
-   tListIter< tTriangle > triIter( triList );  //lt
-   tTriangle *lt = triIter.FirstP();
-   tSubNode *p1, *p2;
-
-   tArray< double > xy1, xy2;
      /* it starts from the first triangle, 
         searches through the triangles until the point is on
         the same side of all the edges of a triangle.
-        "lt" is the current triangle and "lv" is the edge number.
-        */
-   for (n=0 ;(lv!=3)&&(lt); n++)
-   {
-      p1 = (tSubNode *) lt->pPtr(lv);
-      if( p1->Meanders() ) xy1 = p1->getNew2DCoords();
-      else xy1 = p1->get2DCoords();
-      p2 = (tSubNode *) lt->pPtr( (lv+1)%3 );
-      if( p2->Meanders() ) xy1 = p2->getNew2DCoords();
-      else xy2 = p2->get2DCoords();
-      if ( ( (xy1[1] - y) * (xy2[0] - x) ) > ( (xy1[0] - x) * (xy2[1] - y)) )
-      {
-         lt=lt->tPtr( (lv+2)%3 );
-         lv=0;
-      }
-      else {lv++;}
-        /*if( !(n < ntri) )
-          cout << "tri not found for point w/ x, y, " << x << ", " << y
-               << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;*/
-        //assert( n < ntri + 20 );
-   }
-   return(lt);
-}
+        "lt" is the current triangle and "lv" is the edge number. */
+     for (n=0 ;(lv!=3)&&(lt); n++)
+     {
+        xy1 = lt->pPtr(lv)->get2DCoords();
+        xy2 = lt->pPtr( (lv+1)%3 )->get2DCoords();
+        a = (xy1[1] - y) * (xy2[0] - x);
+        b = (xy1[0] - x) * (xy2[1] - y);
+        c = a - b;
+        /*cout << "find tri for point w/ x, y, " << x << ", " << y
+             << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;
+        lt->TellAll();
+        cout << flush;*/
 
-/**************************************************************************\
-**
-**
-\**************************************************************************/
-template< class tSubNode >
-tTriangle *tGrid< tSubNode >::
-TriWithEdgePtr( tEdge *edgPtr )
-{
-   assert( edgPtr != 0 );
-   tTriangle *ct;
-     //cout << "TriWithEdgePtr " << edgPtr->getID();
-   tListIter< tTriangle > triIter( triList ); 
-   for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
-       if( ct != 0 ) //TODO: is this test nec? why wd it be zero?
+        if ( c > 0.0 )
+        {
+           //cout << "    Moving on...\n";
+           lt=lt->tPtr( (lv+2)%3 );
+           lv=0;
+           online = -1;
+        }
+        else
+        {
+           //cout << "    So far so good...\n";
+           if( c == 0.0 ) online = lv;
+           lv++;
+        }
+     
+        /*if( n >= ntri + 20 )
+        {
+           DumpTriangles();
+           DumpNodes();
+        }*/
+        //cout << "NTRI: " << ntri << flush;
+        assert( n < 3*ntri );
+     }
+     //cout << "FOUND point in:\n";
+     //if( lt != 0 ) lt->TellAll(); //careful with this! TellAll() will crash
+                                      //if lt == 0, i.e., point is out of bounds,
+                                      //and we don't want that;
+                                      //calling code is built to deal with lt == 0.
+     if( online != -1 )
+         if( lt->pPtr(online)->getBoundaryFlag() != kNonBoundary &&
+             lt->pPtr( (online+1)%3 )->getBoundaryFlag() != kNonBoundary ) //point on bndy
+             return 0;
+     //else cout << "location out of bounds\n";
+     return(lt);
+  }
+
+  /**************************************************************************\
+  **
+  **
+  \**************************************************************************/
+  template< class tSubNode >
+  tTriangle * tGrid< tSubNode >::
+  LocateNewTriangle( double x, double y )
+  {
+     //cout << "LocateTriangle" << endl;
+     int n, lv=0;
+     tListIter< tTriangle > triIter( triList );  //lt
+     tTriangle *lt = triIter.FirstP();
+     tSubNode *p1, *p2;
+
+     tArray< double > xy1, xy2;
+       /* it starts from the first triangle, 
+          searches through the triangles until the point is on
+          the same side of all the edges of a triangle.
+          "lt" is the current triangle and "lv" is the edge number.
+          */
+     for (n=0 ;(lv!=3)&&(lt); n++)
+     {
+        p1 = (tSubNode *) lt->pPtr(lv);
+        if( p1->Meanders() ) xy1 = p1->getNew2DCoords();
+        else xy1 = p1->get2DCoords();
+        p2 = (tSubNode *) lt->pPtr( (lv+1)%3 );
+        if( p2->Meanders() ) xy1 = p2->getNew2DCoords();
+        else xy2 = p2->get2DCoords();
+        if ( ( (xy1[1] - y) * (xy2[0] - x) ) > ( (xy1[0] - x) * (xy2[1] - y)) )
+        {
+           lt=lt->tPtr( (lv+2)%3 );
+           lv=0;
+        }
+        else {lv++;}
+          /*if( !(n < ntri) )
+            cout << "tri not found for point w/ x, y, " << x << ", " << y
+                 << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;*/
+          //assert( n < ntri + 20 );
+     }
+     return(lt);
+  }
+
+  /**************************************************************************\
+  **
+  **
+  \**************************************************************************/
+  template< class tSubNode >
+  tTriangle *tGrid< tSubNode >::
+  TriWithEdgePtr( tEdge *edgPtr )
+  {
+     assert( edgPtr != 0 );
+     tTriangle *ct;
+       //cout << "TriWithEdgePtr " << edgPtr->getID();
+     tListIter< tTriangle > triIter( triList );
+     for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
+         if( ct != 0 ) //TODO: is this test nec? why wd it be zero?
            if( ct->ePtr(0) == edgPtr ||
                ct->ePtr(1) == edgPtr ||
                ct->ePtr(2) == edgPtr ) return ct;
@@ -3383,8 +3381,9 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
        cout<<"other"<<endl;
    }
    cout<<"nodeList.getSize() "<< nodeList.getSize()<<" nnodes "<<nnodes<<endl;
-   assert( nodeList.getSize() == nnodes + 1 );
+   //assert( nodeList.getSize() == nnodes + 1 );
    nnodes++;
+   cout<<"nnodes increased, now "<<nnodes<<endl;
    
    // Retrieve a pointer to the new node and flush its spoke list
    if( nodeRef.getBoundaryFlag() == kNonBoundary )
@@ -3537,40 +3536,40 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
 
 
 /**************************************************************************\
-**
-**   tGrid::AddNode ( tSubNode nodeRef&, int dum )
-**
-**   Adds a new node with the properties of nodRef to the mesh.
-**   Same as AddNode above, it just takes a dummy integer to indicate
-**   that layer interpolation should be done.
-**   This is not a good solution, this function should only be
-**   temporary until a better way is thought of to indicate that
-**   layer interpolation is necessary.
-**
-**   Calls: tGrid::LocateTriangle, tGrid::DeleteTriangle, tGrid::AddEdge,
-**            tGrid::AddEdgeAndMakeTriangle, tGrid::MakeTriangle,
-**            tGrid::CheckForFlip; various member functions of tNode,
-**            tGridList, tGridListIter, tPtrList, etc. Also tLNode
-**            functions (TODO: this needs to be removed somehow),
-**            and temporarily, tGrid::UpdateMesh
-**   Parameters: nodeRef -- reference to node to be added (really,
-**                          duplicated)
-**   Returns:  (always TRUE: TODO make void return type)
-**   Assumes:
-**   Created: SL fall, '97
-**   Modifications:
-**        - 4/98: node is no longer assumed to be a non-boundary (GT)
-**        - 7/98: changed return type from int (0 or 1) to ptr to
-**                the new node (GT)
-**
-\**************************************************************************/
+ **
+ **   tGrid::AddNode ( tSubNode nodeRef&, int dum )
+ **
+ **   Adds a new node with the properties of nodRef to the mesh.
+ **   Same as AddNode above, it just takes a dummy integer to indicate
+ **   that layer interpolation should be done.
+ **   This is not a good solution, this function should only be
+ **   temporary until a better way is thought of to indicate that
+ **   layer interpolation is necessary.
+ **
+ **   Calls: tGrid::LocateTriangle, tGrid::DeleteTriangle, tGrid::AddEdge,
+ **            tGrid::AddEdgeAndMakeTriangle, tGrid::MakeTriangle,
+ **            tGrid::CheckForFlip; various member functions of tNode,
+ **            tGridList, tGridListIter, tPtrList, etc. Also tLNode
+ **            functions (TODO: this needs to be removed somehow),
+ **            and temporarily, tGrid::UpdateMesh
+ **   Parameters: nodeRef -- reference to node to be added (really,
+ **                          duplicated)
+ **   Returns:  (always TRUE: TODO make void return type)
+ **   Assumes:
+ **   Created: SL fall, '97
+ **   Modifications:
+ **        - 4/98: node is no longer assumed to be a non-boundary (GT)
+ **        - 7/98: changed return type from int (0 or 1) to ptr to
+ **                the new node (GT)
+ **
+ \**************************************************************************/
 /*
-#define kLargeNumber 1000000000
-template< class tSubNode >
-tSubNode * tGrid< tSubNode >::
-AddNode( tSubNode &nodeRef, int dum )
-{
-   int i, j, k, ctr;
+  #define kLargeNumber 1000000000
+  template< class tSubNode >
+  tSubNode * tGrid< tSubNode >::
+  AddNode( tSubNode &nodeRef, int dum )
+  {
+  int i, j, k, ctr;
    tTriangle *tri;
    tSubNode *cn;
    tArray< double > xyz( nodeRef.get3DCoords() );
@@ -3769,6 +3768,8 @@ AddNodeAt( tArray< double > &xyz, double time )
    nodeList.insertAtActiveBack( tempNode );
    assert( nodeList.getSize() == nnodes + 1 );
    nnodes++;
+   cout<<"number of nodes is now "<<nnodes<<endl;
+   
      //make ptr list of triangle's vertices:
    tPtrList< tSubNode > bndyList;
    tSubNode *tmpPtr;

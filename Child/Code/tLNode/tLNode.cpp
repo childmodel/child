@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.65 1999-02-04 19:26:46 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.66 1999-02-05 18:44:05 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1692,7 +1692,7 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
       newerody=0;
       
       for(i=0; i<=2; i++){
-         //cout<<"i = "<<i<<" age = "<<age[i]<<" sed = "<<sed[i]<<endl;
+         cout<<"i = "<<i<<" age = "<<age[i]<<" sed = "<<sed[i]<<endl;
          if(age[i]<=CA+10&&age[i]>=CA-10&&sed[i]>0){
             //layer is in the window of acceptable ages
             //set node texture helper to texture of that layer
@@ -1731,9 +1731,9 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
             //}
          }
          else{
-            //tex[i]==0;
-            dep[i]==0;
-            //cout<<"not in correct range, tex and dep set to 0"<<endl;
+            //tex[i]=0;
+            dep[i]=0;
+            cout<<"not in correct range, tex and dep set to 0"<<endl;
          }
       }
       
@@ -1746,6 +1746,7 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
       layhelp.setDepth(newdep);
       layhelp.setDgrade(0,newtex*newdep);
       layhelp.setErody(newerody/sum);
+      layhelp.setRtime(CA);
       if(numg>1)
           layhelp.setDgrade(1,(1-newtex)*newdep);
       //layhelp.setSed(SD);
@@ -1796,17 +1797,35 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
       
    layerlist=helplist;
    i=0;
-//   while(i<layerlist.getSize()){
-//      cout << "layer " << i+1 << " now from the getlayer func" << endl;
-//      cout << "layer creation time is " << getLayerCtime(i) << endl;
-//      cout << "layer recent time is " << getLayerRtime(i) << endl;
-//      cout << "layer depth is " << getLayerDepth(i) << endl;
-//      cout << "layer erodibility is " << getLayerErody(i) << endl;
-//      cout << "is layer sediment? " << getLayerSed(i) << endl;
-//      cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
-//      if( numg>1 ) cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
-//      i++;
-//   }
+   while(i<layerlist.getSize()){
+      cout << "layer " << i+1 << " now from the getlayer func" << endl;
+      cout << "layer creation time is " << getLayerCtime(i) << endl;
+      cout << "layer recent time is " << getLayerRtime(i) << endl;
+      cout << "layer depth is " << getLayerDepth(i) << endl;
+      cout << "layer erodibility is " << getLayerErody(i) << endl;
+      cout << "is layer sediment? " << getLayerSed(i) << endl;
+      cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
+      if( numg>1 ) cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
+      i++;
+   }
+
+   int j;
+   for(j=0; j<=2; j++){
+      cout<<"node "<<j<<" x "<<lnds[j]->getX()<<" y "<<lnds[j]->getY()<<endl;
+//        tLNode * nicn = lnds[j];
+//        i=0;
+//        while(i<nicn->getNumLayer()){
+//           cout << "layer " << i+1 << " node " <<j<< endl;
+//           cout << "layer creation time is " << nicn->getLayerCtime(i) << endl;
+//           cout << "layer recent time is " << nicn->getLayerRtime(i) << endl;
+//           cout << "layer depth is " << nicn->getLayerDepth(i) << endl;
+//           cout << "layer erodibility is " << nicn->getLayerErody(i) << endl;
+//           cout << "is layer sediment? " << nicn->getLayerSed(i) << endl;
+//           cout << "dgrade 1 is " << nicn->getLayerDgrade(i,0) << endl;
+//           if( numg>1 ) cout << "dgrade 2 is " << nicn->getLayerDgrade(i,1) << endl;
+//           i++;
+//        }
+   }
    
 }
 #undef kAncient
@@ -1859,23 +1878,6 @@ void tLNode::InitializeNode()
 {
    flowedge=getEdg();
    //cout<<"tLNode::InitializeNode node "<<id<<" flow edge "<<flowedge->getID()<<endl;
-   //nmg everything below is temporary-shouldn't need it when layerinterp works
-   //cout<<"tLNode::InitializeNode node "<<id<<" number of layers "<<getNumLayer()<<endl;
-//     if(getNumLayer()==0){
-//        tLayer layhelp;
-//        layhelp.setCtime( 0.0 );
-//        layhelp.setRtime( 0.0 );
-//        layhelp.setErody(((tLNode *)flowedge->getDestinationPtr())->getLayerErody(1));
-//        layhelp.setSed(0);
-//        layhelp.setDgradesize(numg);
-//        int i=0;
-//        while(i<numg){
-//           layhelp.setDgrade(i, 5000/numg);
-//           i++;
-//        }         
-//        layerlist.insertAtBack( layhelp );
-//     }
-   //cout<<"after tLNode::InitializeNode node "<<id<<" number of layers "<<getNumLayer()<<endl;
 }
 
 
