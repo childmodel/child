@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.35 2000-06-08 13:45:29 nmgaspar Exp $
+**  $Id: tOutput.cpp,v 1.36 2000-06-08 19:19:25 daniel Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -200,9 +200,11 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
        CreateAndOpenFile( &vegofs, ".veg" );
    if( (opOpt = infile.ReadItem( opOpt, "OPTKINWAVE" ) ) )
        CreateAndOpenFile( &flowdepofs, ".dep" );
-   if( (optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) )
+   if( (optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) ) {
        CreateAndOpenFile( &volsofs, ".vols" );
-   
+       if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
+	 CreateAndOpenFile( &vegcovofs, ".vcov" );
+   }
    
 }
 
@@ -313,15 +315,26 @@ void tOutput<tSubNode>::WriteTSOutput( double time )
 
    tNode * cn;       // current node
 
-   double volume = 0;
+   double volume = 0,
+          area = 0,
+          cover = 0;
 
    cout << "tOutput::WriteTSOutput()\n" << flush;
    
-   for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
+   for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
        volume += cn->getZ()*cn->getVArea();
+       area += cn->getVArea();
+   }
    
    volsofs << volume << endl;
-   
+   tareaofs << area << endl;
+
+   if( vegofs.good() ) {
+     for( cn = niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
+       cover += cn->getVegCover().getVeg()*cn->getVArea();
+     vegcovofs << cover << endl;
+   }
+
 }
 
 
