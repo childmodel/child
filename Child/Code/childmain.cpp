@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.7 2003-05-26 17:44:50 childcvs Exp $
+**  $Id: childmain.cpp,v 1.8 2003-05-29 17:58:22 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -206,8 +206,10 @@ OptTSOutput." );
       // Do storm...
       storm.GenerateStorm( time.getCurrentTime(),
                            strmNet.getInfilt(), strmNet.getSoilStore() );
-      cout << storm.getRainrate() << " " << storm.getStormDuration() << " "
-           << storm.interstormDur() << endl;
+      cout
+	<< "Storm: "
+	<< storm.getRainrate() << " " << storm.getStormDuration() << " "
+	<< storm.interstormDur() << endl;
 
       strmNet.UpdateNet( time.getCurrentTime(), storm );
       
