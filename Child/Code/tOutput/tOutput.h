@@ -4,7 +4,7 @@
 **
 **  NB: inherit from this basic class to do output for tLNode objects.
 **
-**  $Id: tOutput.h,v 1.5 1998-02-02 20:37:00 gtucker Exp $
+**  $Id: tOutput.h,v 1.6 1998-06-17 23:37:02 nmgaspar Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -51,6 +51,8 @@ private:
     ofstream netofs;     // Downstream neighbor IDs
     ofstream slpofs;     // Slopes in the direction of flow
     ofstream qofs;       // Discharge
+   ofstream layofs;      // Layer info
+   ofstream texofs;      // Texture info
                                 
 };
 
