@@ -26,7 +26,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.62 2003-05-23 15:03:53 childcvs Exp $
+**  $Id: tLNode.h,v 1.63 2003-05-23 17:47:33 childcvs Exp $
 */
 /************************************************************************/
 
@@ -288,7 +288,7 @@ class tMeander
    ~tMeander();
    const tMeander &operator=( const tMeander & );
   private:
-   int meander;      /* flag indicating if the point meanders */
+   bool meander;      /* flag indicating if the point meanders */
    double newx, newy;
    int head;         /* Flag indicating node is a reach head*/
    int reachmember;  /* Flag indicating node has been included in a reach*/
@@ -401,8 +401,8 @@ public:
    // fluvial discharge is in now in m^3/YR 
     double getSlope();    // Computes and returns slope in flow direction
     double getDSlopeDt();
-    int Meanders() const;
-    void setMeanderStatus( int );
+    bool Meanders() const;
+    void setMeanderStatus( bool );
     void setHydrWidth( double );
     void setChanWidth( double );
     double getHydrWidth() const;

@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.32 2003-01-17 17:30:17 childcvs Exp $
+**   $Id: Definitions.h,v 1.33 2003-05-23 17:47:55 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -34,8 +34,8 @@
 #define kTransportLimited       3
 #define kTransLimThreshold      4
 #define kBedrockAlluvial        5
-#define kMeanderNode 1
-#define kNonMeanderNode 0
+#define kMeanderNode true
+#define kNonMeanderNode false
 #define RHO 1000.0      /* Density of water (kg/m^3) */
 #define RHOSED 2650. /* density of sediment, [kg/m^3] */
 #define GRAV 9.81       /* Gravitational acceleration, m/s^2 */

@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.18 2003-05-23 11:44:18 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.19 2003-05-23 17:48:08 childcvs Exp $
 */
 /************************************************************************/
 
@@ -240,7 +240,7 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt ) const
    {
      if( cn->getY()<faultPosition )
      {
-        cn->setMeanderStatus( TRUE );  // redundant: TODO
+        cn->setMeanderStatus( true );  // redundant: TODO
         cn->setNew2DCoords( cn->getX()+slip, cn->getY() );
      }
    }
@@ -513,7 +513,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
        (flatDepth/tan(PI*rampDip/180))-(flatDepth*tan(PI*90/180-
        PI*kinkDip/180)))*tan(PI*kinkDip/180) )
        {
-          cn->setMeanderStatus( TRUE );  // redundant: TODO
+          cn->setMeanderStatus( true );  // redundant: TODO
           cn->setNew2DCoords(  cn->getX(), cn->getY()+slip );
        }
        /* For hangingwall above ramp */
@@ -525,7 +525,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
        cn->getZ()>=tan(PI*upperKinkDip/180)*cn->getY()-tan(PI*upperKinkDip/180)*
        faultPosition )
        {
-          cn->setMeanderStatus( TRUE );  // redundant: TODO
+          cn->setMeanderStatus( true );  // redundant: TODO
           cn->setNew2DCoords( cn->getX(), cn->getY()+slip*cos(PI*rampDip/180) );
        }
        
@@ -536,7 +536,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
        tan(PI*upperKinkDip/180)*faultPosition && cn->getY()>faultPosition 
        && cn->getZ()>(meanElevation + 3) )
        {
-          cn->setMeanderStatus( TRUE );  // redundant: TODO
+          cn->setMeanderStatus( true );  // redundant: TODO
           cn->setNew2DCoords( cn->getX(), cn->getY()+slip );
        } 
  
@@ -558,7 +558,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
        (flatDepth/tan(PI*rampDip/180))-(flatDepth*tan(PI*90/180-
        PI*kinkDip/180)))*tan(PI*kinkDip/180) )
        {
-          cn->setMeanderStatus( TRUE );  // redundant: TODO
+          cn->setMeanderStatus( true );  // redundant: TODO
           cn->setNew2DCoords( cn->getX(), cn->getY()+slip );
        }
 
@@ -571,7 +571,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
        cn->getZ()<=-tan(PI*kinkDip/180)*cn->getY()+tan(PI*kinkDip/180)*
        faultPosition )
        {
-          cn->setMeanderStatus( TRUE );  // redundant: TODO
+          cn->setMeanderStatus( true );  // redundant: TODO
           cn->setNew2DCoords( cn->getX(), cn->getY()+slip*cos(PI*rampDip/180) );
           /* cn->ChangeZ( slip*sin(PI*rampDip/180) );  */
           /* cn->setUplift( slipRate*sin(PI*rampDip/180) );  */
@@ -584,7 +584,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
        tan(PI*kinkDip/180)*faultPosition && cn->getY()<=faultPosition  &&
        cn->getZ()>(meanElevation + 3) )
        {
-          cn->setMeanderStatus( TRUE );  // redundant: TODO
+          cn->setMeanderStatus( true );  // redundant: TODO
           cn->setNew2DCoords( cn->getX(), cn->getY()+slip );
        }
        

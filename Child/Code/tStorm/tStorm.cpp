@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.24 2003-05-23 11:54:14 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.25 2003-05-23 17:50:53 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -37,16 +37,23 @@ using namespace std;
 **                   variation in means).
 **
 \**************************************************************************/
-tStorm::tStorm( int optvar )
+tStorm::tStorm( bool optvar )
   :
   optVariable(optvar),
-  optSinVar(0),
+  optSinVar(false),
   stdurMean(1.0),
   istdurMean(1.0),
   pMean(1.0),
   p(1.0),
   stdur(1.0),
   istdur(1.0),
+  p0(-1.),
+  stdur0(-1.),
+  istdur0(-1.),
+  pdev(-1.),
+  stdurdev(-1.),
+  istdurdev(-1.),
+  twoPiLam(-1.),
   seed(0),      // default seed
   endtm(1.0e9)
 {
@@ -64,16 +71,23 @@ tStorm::tStorm( int optvar )
 **                   variation in means).
 **
 \**************************************************************************/
-tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar, double et )
+tStorm::tStorm( double mp, double ms, double mis, unsigned sd, bool optvar, double et )
   :
   optVariable(optvar),
-  optSinVar(0),
+  optSinVar(false),
   stdurMean(ms),
   istdurMean(mis),
   pMean(mp),
   p(pMean),
   stdur(stdurMean),
   istdur(istdurMean),
+  p0(-1.),
+  stdur0(-1.),
+  istdur0(-1.),
+  pdev(-1.),
+  stdurdev(-1.),
+  istdurdev(-1.),
+  twoPiLam(-1.),
   seed(sd),
   endtm(et)
 {
@@ -104,7 +118,11 @@ tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar, doubl
 tStorm::tStorm( tInputFile &infile )
 {
    // Read + set parameters for storm intensity, duration, and spacing
-   optVariable = infile.ReadItem( optVariable, "OPTVAR" );
+   {
+     int tmp_;
+     tmp_ = infile.ReadItem( tmp_, "OPTVAR" );
+     optVariable = tmp_ != 0;
+   }
    pMean = infile.ReadItem( pMean, "PMEAN" );
    stdurMean = infile.ReadItem( stdurMean, "STDUR" );
    istdurMean = infile.ReadItem( istdurMean, "ISTDUR" );
@@ -124,7 +142,11 @@ tStorm::tStorm( tInputFile &infile )
 
 
    // Handle option for sinuidoil variation in means
-   optSinVar = infile.ReadItem( optSinVar, "OPTSINVAR" );
+   {
+     int tmp_;
+     tmp_ = infile.ReadItem( tmp_, "OPTSINVAR" );
+     optSinVar = tmp_ != 0;
+   }
    if( optSinVar )
    {
       p0 = pMean;

@@ -35,7 +35,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.11 2003-05-23 12:04:29 childcvs Exp $
+**  $Id: toddlermain.cpp,v 1.12 2003-05-23 17:51:33 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -50,8 +50,8 @@ Predicates predicate;
 
 int main( int argc, char **argv )
 {
-   int silent_mode,       // Option for silent mode (no time output to stdout)
-       optDetachLim,      // Option for detachment-limited erosion only
+   bool silent_mode;       // Option for silent mode (no time output to stdout)
+   int optDetachLim,      // Option for detachment-limited erosion only
        optFloodplainDep,  // Option for floodplain (overbank) deposition
        optLoessDep,       // Option for eolian deposition
        optVegetation,     // Option for dynamic vegetation cover
@@ -106,7 +106,7 @@ int main( int argc, char **argv )
    tErosion erosion( &mesh, inputFile );
    tUplift uplift( inputFile );
    cout << "Writing data for time zero...\n";
-   tRunTimer time( inputFile, !silent_mode );
+   tRunTimer time( inputFile, (bool)!silent_mode );
    output.WriteOutput( 0 );
    cout << "Initialization done.\n";
 

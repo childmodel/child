@@ -28,7 +28,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.22 2003-05-23 11:54:14 childcvs Exp $
+**  $Id: tStorm.h,v 1.23 2003-05-23 17:50:54 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -41,8 +41,8 @@
 class tStorm
 {
 public:
-    tStorm( int optVariable = 1 );
-    tStorm( double, double, double, unsigned, int optvar=1, double et=1.0e9 );
+    tStorm( bool optVariable = true );
+    tStorm( double, double, double, unsigned, bool optvar=true, double et=1.0e9 );
     tStorm( tInputFile & );
     void  GenerateStorm( double tm, double minp=0.0, double mind=0.0);
     double getStormDuration() const;
@@ -57,8 +57,8 @@ private:
     double ExpDev( long * ) const;
     double GammaDev(double, long*) const;
    
-    int optVariable;   // Flag indicating whether storms are random or not
-    int optSinVar;     // Option for sinusoidal variation in storm params
+    bool optVariable;   // Flag indicating whether storms are random or not
+    bool optSinVar;     // Option for sinusoidal variation in storm params
     double stdurMean;   // Mean duration
     double istdurMean;  // Mean time between storms
     double pMean;       // Mean rainfall intensity
