@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.16 1998-03-26 15:39:45 gtucker Exp $
+**  $Id: erosion.cpp,v 1.17 1998-04-09 18:36:40 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -367,7 +367,8 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
           cn->setQsin( 0.0 );
         //sediment input:
-      strmNet->getInletNodePtrNC()->setQsin( strmNet->getInSedLoad() );
+      if(strmNet->getInletNodePtrNC() != NULL)
+          strmNet->getInletNodePtrNC()->setQsin( strmNet->getInSedLoad() );
 
       // Notes for multi-size adaptation:
       // qs, qsin, dz, etc could be arrays with dimensions (1..NUMG+1) with
