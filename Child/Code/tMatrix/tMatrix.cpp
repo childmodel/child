@@ -9,7 +9,7 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.cpp,v 1.3 2003-01-17 17:30:34 childcvs Exp $
+**  $Id: tMatrix.cpp,v 1.4 2003-03-19 16:48:57 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -54,7 +54,11 @@ template < class T >
 T &tMatrix<T>::operator()( int row, int col )
 {
    return (ptr[row])[col];
-   
 }
 
+template < class T >
+const T &tMatrix<T>::operator()( int row, int col ) const
+{
+   return (ptr[row])[col];
+}
 

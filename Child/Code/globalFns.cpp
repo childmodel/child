@@ -4,7 +4,7 @@
 **  @brief Global functions used by tGrid and other modules of
 **         CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.12 2003-03-07 15:45:50 childcvs Exp $
+**  $Id: globalFns.cpp,v 1.13 2003-03-19 16:48:56 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -474,7 +474,7 @@ tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
 **
 */
 /**************************************************************************/
-double InterpSquareGrid( double xgen, double ygen, tMatrix< double > & elev,
+double InterpSquareGrid( double xgen, double ygen, tMatrix< double > const & elev,
                          int nodata )
 {
    int nodatacount = 0;

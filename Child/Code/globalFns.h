@@ -12,7 +12,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.11 2003-02-12 18:45:20 childcvs Exp $
+**  $Id: globalFns.h,v 1.12 2003-03-19 16:48:57 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -60,7 +60,7 @@ int Intersect( tEdge *, tEdge * );
 
 tEdge* IntersectsAnyEdgeInList( tEdge*, tPtrList< tEdge >& );
 
-double InterpSquareGrid( double, double, tMatrix< double >&, int );
+double InterpSquareGrid( double, double, tMatrix< double > const &, int );
 
 tArray< double > FindIntersectionCoords( tArray< double > const&,
                                          tArray< double > const&,
