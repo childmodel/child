@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.43 2003-04-30 17:17:02 childcvs Exp $
+**  $Id: meshElements.h,v 1.44 2003-05-01 12:26:05 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -232,8 +232,9 @@ public:
   void setSlope( double );           // sets slope
   void setOriginPtr( tNode * );      // sets origin ptr
   void setDestinationPtr( tNode * ); // sets destination ptr
+  static int isFlowAllowed( const tNode*, const tNode* );
   void setFlowAllowed( int );        // sets boundary code
-  void setFlowAllowed( tNode*, tNode* ); // sets boundary code
+  void setFlowAllowed( const tNode*, const tNode* ); // sets boundary code
   double CalcLength();               // computes & sets length
   double CalcSlope();                // computes & sets slope
   void setCCWEdg( tEdge * edg );     // sets ptr to counter-clockwise neighbor
@@ -862,13 +863,18 @@ inline void tEdge::setFlowAllowed( int val )
    flowAllowed = val;
 }
 
-inline void tEdge::setFlowAllowed( tNode* n1, tNode* n2 )
+inline int tEdge::isFlowAllowed( const tNode* n1, const tNode* n2 )
 {
    assert( n1 && n2 );
-   flowAllowed = ( n1->getBoundaryFlag() != kClosedBoundary
-                   && n2->getBoundaryFlag() != kClosedBoundary
-                   && !( n1->getBoundaryFlag()==kOpenBoundary
-                         && n2->getBoundaryFlag()==kOpenBoundary ) ) ? 1 : 0;
+   return ( n1->getBoundaryFlag() != kClosedBoundary
+	    && n2->getBoundaryFlag() != kClosedBoundary
+	    && !( n1->getBoundaryFlag()==kOpenBoundary
+		  && n2->getBoundaryFlag()==kOpenBoundary ) ) ? 1 : 0;
+}
+
+inline void tEdge::setFlowAllowed( const tNode* n1, const tNode* n2 )
+{
+   flowAllowed = tEdge::isFlowAllowed(n1, n2);
 }
 
 inline void tEdge::setCCWEdg( tEdge * edg )
