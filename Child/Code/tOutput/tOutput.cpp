@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.38 2000-06-08 19:23:49 daniel Exp $
+**  $Id: tOutput.cpp,v 1.39 2000-06-08 20:02:36 daniel Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -313,13 +313,13 @@ void tLOutput<tSubNode>::WriteTSOutput( double time )
 {
    tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
 
-   tNode * cn;       // current node
+   tSubNode * cn;       // current node
 
    double volume = 0,
           area = 0,
           cover = 0;
 
-   cout << "tOutput::WriteTSOutput()\n" << flush;
+   cout << "tLOutput::WriteTSOutput()\n" << flush;
    
    for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
        volume += cn->getZ()*cn->getVArea();
