@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.57 1998-07-24 20:00:03 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.58 1998-07-25 01:16:04 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -715,38 +715,22 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
          layhelp.setSed(0);
          layhelp.setDgradesize(numg);
          i=0;
-         cout<< "nic nic nic"<<flush;
          help = infile.ReadItem( help, "BEDROCKDEPTH");
-         cout<< "nic nic nic"<<flush;
          while(i<numg){
             layhelp.setDgrade(i, help*dgradebrhelp[i]);
             i++;
          }
-         
          layerlist.insertAtBack( layhelp );
-         
       }
       
       cout << layerlist.getSize() << " layers created " << endl;
    }
 
-   cout << "nicole is a crappy coder"<<endl;
-   
-   
    cout << "nic, what is size of grade array ? " << grade.getSize() << endl;
    //cout << "1 is size " << grade[0] << " 2 is size " << grade[1] << endl;   
 
 //   i=0;
 //   while(i<layerlist.getSize()){
-//       cout << "layer " << i+1 << endl;
-//       niclay = layerlist.getIthData(i);
-//       cout << "layer creation time is " << niclay.getCtime() << endl;
-//       cout << "layer recent time is " << niclay.getRtime() << endl;
-//       cout << "layer depth is " << niclay.getDepth() << endl;
-//       cout << "layer erodibility is " << niclay.getErody() << endl;
-//       cout << "is layer sediment? " << niclay.getSed() << endl;
-//       cout << "dgrade 1 is " << niclay.getDgrade(0) << endl;
-//       cout << "dgrade 2 is " << niclay.getDgrade(1) << endl;
 //        cout << "layer " << i+1 << " now from the getlayer func" << endl;
 //        cout << "layer creation time is " << getLayerCtime(i) << endl;
 //        cout << "layer recent time is " << getLayerRtime(i) << endl;
@@ -758,25 +742,6 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
 //        i++;
 //     }
    
-//    cout << "nic is trying to erode from first layer" << endl;
-//    dgradehelp[0]=-1.0;
-//    dgradehelp[1]=-1.0;
-//    dgradebrhelp=EroDep(0,dgradehelp,50.0);
-//    cout << "returned stuff is 1 -> " << dgradebrhelp[0] << endl;
-//    cout << "ret stuff 2 is -> " << dgradebrhelp[1] << endl;
-//    i=0;
-//    while(i<layerlist.getSize()){
-//       cout << "layer " << i+1 << endl;
-//       niclay = layerlist.getIthData(i);
-//       cout << "layer creation time is " << getLayerCtime(i) << endl;
-//       cout << "layer recent time is " << getLayerRtime(i) << endl;
-//       cout << "layer depth is " << getLayerDepth(i) << endl;
-//       cout << "layer erodibility is " << getLayerErody(i) << endl;
-//       cout << "is layer sediment? " << getLayerSed(i) << endl;
-//       cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
-//       cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
-//       i++;  
-//    }
 }
 
 tLNode::tLNode( const tLNode &orig )                               //tLNode

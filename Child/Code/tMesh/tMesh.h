@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.11 1998-07-15 22:24:56 gtucker Exp $
+**  $Id: tMesh.h,v 1.12 1998-07-25 01:17:38 nmgaspar Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -52,6 +52,7 @@ public:
     void MakeGridFromScratch( tInputFile & );
     void MakeGridFromInputData( tInputFile & );
     void MakeGridFromPoints( tInputFile & );
+    void MakeLayersFromInputData( tInputFile & );   
     void Print();
     /*makes edg, ccwedg structure from spokelists*/
     void MakeCCWEdges();
