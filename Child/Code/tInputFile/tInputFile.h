@@ -37,8 +37,10 @@
 **
 **  Created by Greg Tucker, November 1997
 **  Re-written, AD, July 2003
+**  Modified, SL, September 2003: Can now generate non-fatal warnings and
+**    return zero-values as specified; default will be fatal error.
 **
-**  $Id: tInputFile.h,v 1.19 2003-10-14 13:03:01 childcvs Exp $
+**  $Id: tInputFile.h,v 1.20 2004-01-07 10:58:43 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -83,10 +85,10 @@ class tInputFile
 {
 public:
   tInputFile( const char * );   // constructor takes name of file to open
-  int ReadItem( const int &, const char * ) const;       // reads an int
-  long ReadItem( const long &, const char * ) const;     // reads a long
-  double ReadItem( const double &, const char * ) const; // reads a double
-  void ReadItem( char *, size_t len, const char * ) const;// reads a string
+  int ReadItem( const int &, const char *, bool reqParam = true ) const;       // reads an int
+  long ReadItem( const long &, const char *, bool reqParam = true ) const;     // reads a long
+  double ReadItem( const double &, const char *, bool reqParam = true ) const; // reads a double
+  void ReadItem( char *, size_t len, const char *, bool reqParam = true ) const;// reads a string
   // similar overrides could be added for other data types
 
 private:
