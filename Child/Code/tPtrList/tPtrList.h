@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.46 2004-04-19 13:02:12 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.47 2004-04-19 13:27:06 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -188,7 +188,7 @@ public:
   inline const tPtrListNode< NodeType > * getFirst() const;  // return const "
   inline void moveToBack( tPtrListNode< NodeType > *  );   // moves item to back
   inline void moveToFront( tPtrListNode< NodeType > *  );  // moves item to front
-  inline tPtrListNode< NodeType > * getLast() const;
+  inline tPtrListNode< NodeType > const * getLast() const;
   inline void makeCircular();
   inline const NodeType *getIthPtr( int ) const;
   inline NodeType *getIthPtrNC( int );
@@ -931,7 +931,7 @@ inline const tPtrListNode< NodeType > * tPtrList< NodeType >::
 getFirst() const {return first;}
 
 template< class NodeType >
-inline tPtrListNode< NodeType > * tPtrList< NodeType >::
+inline const tPtrListNode< NodeType > * tPtrList< NodeType >::
 getLast() const {return last;}
 
 template< class NodeType >

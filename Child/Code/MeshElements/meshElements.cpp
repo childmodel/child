@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.72 2004-04-16 16:18:28 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.73 2004-04-19 13:27:08 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -210,7 +210,7 @@ double tNode::ComputeVoronoiArea()
       if (0) {//DEBUG
 	tArray2< double > const &xy1 = ce->getRVtx();
 	tArray2< double > const &xy2 =
-	  vedgList.getLast()->getPtrNC()->getRVtx();
+	  vedgList.getLast()->getPtr()->getRVtx();
 	cout
 	  << xy1.at(0) << " " << xy1.at(1) << "; "
 	  << xy2.at(0) << " " << xy2.at(1) << endl;
