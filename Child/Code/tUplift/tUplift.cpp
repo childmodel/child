@@ -2,7 +2,7 @@
 **
 **  tUplift.cpp: Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.5 1999-04-01 19:09:32 gtucker Exp $
+**  $Id: tUplift.cpp,v 1.6 1999-04-05 15:22:14 gtucker Exp $
 \************************************************************************/
 
 #include "tUplift.h"
@@ -62,19 +62,19 @@ tUplift::tUplift( tInputFile &infile )
 **  Calls the appropriate function to perform the desired type of
 **  uplift.
 **
-**  Inputs:  gp -- pointer to the mesh
+**  Inputs:  mp -- pointer to the mesh
 **           delt -- duration of uplift
 **
 \************************************************************************/
-void tUplift::DoUplift( tGrid<tLNode> *gp, double delt )
+void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
 {
    switch( typeCode )
    {
       case 1:
-          UpliftUniform( gp, delt );
+          UpliftUniform( mp, delt );
           break;
       case 2:
-          BlockUplift( gp, delt );
+          BlockUplift( mp, delt );
           break;
    }
    
@@ -88,15 +88,15 @@ void tUplift::DoUplift( tGrid<tLNode> *gp, double delt )
 **  Uniform uplift at a constant rate across the entire domain (but not
 **  including boundaries).
 **
-**  Inputs:  gp -- pointer to the mesh
+**  Inputs:  mp -- pointer to the mesh
 **           delt -- duration of uplift
 **
 \************************************************************************/
-void tUplift::UpliftUniform( tGrid<tLNode> *gp, double delt )
+void tUplift::UpliftUniform( tMesh<tLNode> *mp, double delt )
 {
-   assert( gp>0 );
+   assert( mp>0 );
    tLNode *cn;
-   tGridListIter<tLNode> ni( gp->getNodeList() );
+   tMeshListIter<tLNode> ni( mp->getNodeList() );
    double rise = rate*delt;
 
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
@@ -114,22 +114,22 @@ void tUplift::UpliftUniform( tGrid<tLNode> *gp, double delt )
 **  Uplift at a constant rate for all points Y>=Yf, where Yf is the
 **  location of a vertical fault (striking parallel to x-axis).
 **
-**  Inputs:  gp -- pointer to the mesh
+**  Inputs:  mp -- pointer to the mesh
 **           delt -- duration of uplift
 **
 \************************************************************************/
-void tUplift::BlockUplift( tGrid<tLNode> *gp, double delt )
+void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt )
 {
-   assert( gp>0 );
+   assert( mp>0 );
    tLNode *cn;
-   tGridListIter<tLNode> ni( gp->getNodeList() );
+   tMeshListIter<tLNode> ni( mp->getNodeList() );
    double rise = rate*delt;
 
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
      if( cn->getY()>=faultPosition )
      {
-	cn->ChangeZ( rise );
-	cn->setUplift( rate );
+        cn->ChangeZ( rise );
+        cn->setUplift( rate );
      }
 }
 

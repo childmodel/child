@@ -18,7 +18,7 @@
 **  function, which in turn calls the appropriate function (e.g.,
 **  UpliftUniform()) to implement the desired behavior.
 **
-**  $Id: tUplift.h,v 1.5 1999-04-01 19:02:40 gtucker Exp $
+**  $Id: tUplift.h,v 1.6 1999-04-05 15:22:21 gtucker Exp $
 \************************************************************************/
 
 #ifndef TUPLIFT_H
@@ -26,19 +26,19 @@
 
 #include <iostream.h>
 #include "../tInputFile/tInputFile.h"
-#include "../tGrid/tGrid.h"
+#include "../tMesh/tMesh.h"
 
 
 class tUplift
 {
 public:
     tUplift( tInputFile &infile );
-    void DoUplift( tGrid<tLNode> *gp, double delt );
+    void DoUplift( tMesh<tLNode> *mp, double delt );
     double getDuration();
     double getRate() const;
 private:
-    void UpliftUniform( tGrid<tLNode> *gp, double delt );
-    void BlockUplift( tGrid<tLNode> *gp, double delt );
+    void UpliftUniform( tMesh<tLNode> *mp, double delt );
+    void BlockUplift( tMesh<tLNode> *mp, double delt );
 
 private:
     int typeCode;          // Code for the type of uplift desired

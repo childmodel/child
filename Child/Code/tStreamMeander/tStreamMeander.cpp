@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.59 1999-03-26 20:43:10 nmgaspar Exp $
+**  $Id: tStreamMeander.cpp,v 1.60 1999-04-05 15:14:20 gtucker Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -119,10 +119,10 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 **
 **  Constructors
 **
-**  1) takes grid and inputfile references and constructs a tStreamNet
+**  1) takes mesh and inputfile references and constructs a tStreamNet
 **     object if ptr to tStreamNet is zero
 **
-**  2) takes grid ptr and inputfile reference; assumes tStreamNet object
+**  2) takes mesh ptr and inputfile reference; assumes tStreamNet object
 **     has already done its thing. Takes streamnet and inputfile references.
 **
 **     Modifications:
@@ -132,7 +132,7 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 tStreamMeander::tStreamMeander()
         : reachList(), rlIter( reachList )
 {
-   gridPtr = 0;
+   meshPtr = 0;
    netPtr = 0;
    infilePtr = 0;
    optdiamvar = optrainvar = 0;
@@ -141,15 +141,15 @@ tStreamMeander::tStreamMeander()
        latadjust = Pdz = 0;
 }
 
-tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
+tStreamMeander::tStreamMeander( tStreamNet &netRef, tMesh< tLNode > &mRef,
                                 tInputFile &infile )
         : reachList(), rlIter( reachList )
 {
    //if( netPtr != 0 ) netPtr = new tStreamNet( gRef );
    netPtr = &netRef;
    assert( netPtr != 0 );
-   gridPtr = &gRef;
-   assert( gridPtr != 0 );
+   meshPtr = &mRef;
+   assert( meshPtr != 0 );
    infilePtr = &infile;
    assert( infilePtr != 0 );
    critflow = infilePtr->ReadItem( critflow, "CRITICAL_FLOW" );
@@ -197,7 +197,7 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
 tStreamMeander::~tStreamMeander()
 {
    //if( netPtr != 0 ) delete netPtr;
-   gridPtr = 0;
+   meshPtr = 0;
    netPtr = 0;
    infilePtr = 0;
 }
@@ -205,7 +205,7 @@ tStreamMeander::~tStreamMeander()
 
 /*****************************************************************************\
 **
-**       FindMeander: simply goes through active grid nodes and assigns
+**       FindMeander: simply goes through active mesh nodes and assigns
 **                    meander status flag based on a threshold discharge
 **                
 **
@@ -222,7 +222,7 @@ void tStreamMeander::FindMeander()
 {
    double slp;
    tLNode * cn;
-   tGridListIter< tLNode > nodIter( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
 
    //cout << "FindMeander...()";
 
@@ -279,7 +279,7 @@ void tStreamMeander::FindHydrGeom()
    widpow = 1.0 - ewstn / ewds;
    npow = 1.0 - enstn / ends;
    //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
-   tGridListIter< tLNode > nIter( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
    for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
    {
       if( cn->Meanders() )
@@ -344,7 +344,7 @@ void tStreamMeander::FindChanGeom()
    double lambda;
    double rlen, cz, nz, critS;
    tLNode *cn, *dsn;
-   tGridListIter< tLNode > nIter( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
    tPtrList< tLNode > *plPtr;
    //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
    tStorm *sPtr = netPtr->getStormPtrNC();
@@ -427,7 +427,7 @@ void tStreamMeander::FindChanGeom()
 **	
 **		Parameters: dscrtwids -- default spacing in # hydr widths
 **		Called by:  MakeReaches
-**    Calls: tGrid::AddNode, tStreamNet::UpdateNet
+**    Calls: tMesh::AddNode, tStreamNet::UpdateNet
 **		Created:  5/16/97 SL
 **    Updated: 1/98 SL
 **
@@ -511,7 +511,7 @@ int tStreamMeander::InterpChannel( double time )
                z = z0 - curseglen / 2.0 * slope;
                nn.set3DCoords( x, y, z );
                //if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
-               gridPtr->AddNode( nn, 1, time );
+               meshPtr->AddNode( nn, 1, time );
                //cout<<"IC pt added at " << x << "," << y << endl;
             }
             //otherwise, if we need to add more than one point,
@@ -541,7 +541,7 @@ int tStreamMeander::InterpChannel( double time )
                   //cout<<"InterpChannel: call AddNode"<<endl<<flush;
                   nn.set3DCoords( x, y, z );
                   //if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
-                  gridPtr->AddNode( nn, 1, time );
+                  meshPtr->AddNode( nn, 1, time );
                   //cout<<"IC pt added at " << x << "," << y << endl;
                }
                delete arrPtr;
@@ -657,7 +657,7 @@ void tStreamMeander::FindReaches()
    double rdrop;
    tLNode *cn, *lnPtr, *frn, *lrn, *nxn, *ln;
    tEdge *ce;
-   tGridListIter< tLNode > nodIter( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
    tPtrListIter< tEdge > spokIter;
    tPtrListIter< tLNode > rnIter;
    tPtrList< tLNode > rnodList, *plPtr, listtodelete;
@@ -1139,7 +1139,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
 **                              migrating channel
 **           CheckBrokenFlowedg--deletes points that are too close 
 **                               to the channel
-**           tGrid::MoveNodes--changes node coords, updates grid
+**           tMesh::MoveNodes--changes node coords, updates mesh
 **           AddChanBorder--"drops" nodes at old coords
 ** 
 **		Created: 1/98 SL
@@ -1166,12 +1166,12 @@ void tStreamMeander::Migrate( double ctime )
          //cout<<"in loop "<<ctime<<" duration is "<<duration<<endl<<flush;
          CalcMigration( ctime, duration, cummvmt ); //incr time; uses reachList
          MakeChanBorder( ); //uses reachList
-         CheckBndyTooClose();  //uses tGrid::nodeList
+         CheckBndyTooClose();  //uses tMesh::nodeList
          CheckBanksTooClose(); //uses reachList
-         CheckFlowedgCross(); //uses tGrid::nodeList
-         CheckBrokenFlowedg(); //uses tGrid::nodeList
-         gridPtr->MoveNodes( ctime ); //uses tGrid::nodeList
-         AddChanBorder( ctime ); //uses tGrid::nodeList
+         CheckFlowedgCross(); //uses tMesh::nodeList
+         CheckBrokenFlowedg(); //uses tMesh::nodeList
+         meshPtr->MoveNodes( ctime ); //uses tMesh::nodeList
+         AddChanBorder( ctime ); //uses tMesh::nodeList
       }
       else ctime=duration; // If no reaches, end here (GT added 3/12/99)
       //MakeReaches(); had called from main routine and here
@@ -1201,7 +1201,7 @@ void tStreamMeander::Migrate( double ctime )
 **  side changes, reset z and d to zero.
 **
 **   All of this is done after CalcMigration has been called
-**   but before tGrid::MoveNodes is called.
+**   but before tMesh::MoveNodes is called.
 **
 **              Parameters:     
 **              Called by:      Migrate
@@ -1297,7 +1297,7 @@ void tStreamMeander::MakeChanBorder( )
          }         
       }
    }
-   /*tGridListIter< tLNode > nIter( gridPtr->GetNodeList() );
+   /*tMeshListIter< tLNode > nIter( gridPtr->GetNodeList() );
    for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
    {
       cout << "node " << cn->getID() << endl << flush;
@@ -1378,8 +1378,8 @@ void tStreamMeander::AddChanBorder(double time)
    tArray< double > xy, xyd, oldpos, zeroArr(4), xyz(3);
    tTriangle *ct;
    tLNode *cn, *tn, *dn, *channodePtr, channode;
-   tGridListIter< tLNode > nIter( gridPtr->getNodeList() ),
-       tI( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nIter( meshPtr->getNodeList() ),
+       tI( meshPtr->getNodeList() );
 
    //go through active nodes:
    for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
@@ -1401,7 +1401,7 @@ void tStreamMeander::AddChanBorder(double time)
                //just make sure new node will be
                //(a) not in a channel and
                //(b) on the same side of the channel:
-               if( ct = gridPtr->LocateTriangle( oldpos[0], oldpos[1] ) )
+               if( ct = meshPtr->LocateTriangle( oldpos[0], oldpos[1] ) )
                {
                   if(cn->getID()==219)
                       cout<<" D ";
@@ -1451,7 +1451,7 @@ void tStreamMeander::AddChanBorder(double time)
                         //   << "'s old coords pass: add new node" << endl;
                         //cout << "** ELEV is " << oldpos[2] << endl;
                         for( i=0; i<3; i++ ) xyz[i] = oldpos[i];
-                        channodePtr = gridPtr->AddNodeAt( xyz, time );
+                        channodePtr = meshPtr->AddNodeAt( xyz, time );
                         channodePtr->setRock( cn->getRock() );
                         channodePtr->setSurf( cn->getSurf() );
                         channodePtr->setReg( cn->getReg() );
@@ -1801,7 +1801,7 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
 \*****************************************************************************/
 void tStreamMeander::CheckBndyTooClose()
 {
-   tGridListIter< tLNode > nI( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
    tPtrListIter< tEdge > sI;
    tLNode *cn, *mn;
    tNode *nn, *bn0, *bn1;
@@ -1943,7 +1943,7 @@ void tStreamMeander::CheckBanksTooClose()
    for( dn = dIter.FirstP(); !(dIter.AtEnd()); dn = dIter.FirstP() )
    {
       //cout << "CBTC: delete node " << dn->getID() << endl << flush;
-      gridPtr->DeleteNode( dn );
+      meshPtr->DeleteNode( dn );
       delPtrList.removeFromFront( cn );
    }
    
@@ -1971,7 +1971,7 @@ void tStreamMeander::CheckBanksTooClose()
 **
 **		Parameters:	
 **		Called by:	Migrate
-**		Created: 1/98 SL; moved/modified from tGrid routine
+**		Created: 1/98 SL; moved/modified from tMesh routine
 **
 \*****************************************************************************/
 void tStreamMeander::CheckFlowedgCross()
@@ -1985,7 +1985,7 @@ void tStreamMeander::CheckFlowedgCross()
    tLNode *pointtodelete, *lnodePtr, *nod, *cn, *dscn;  
    tEdge * fedg, * cedg, * ccedg, *ce;
    tTriangle * ct, *nt;
-   tListIter< tTriangle > triIter( gridPtr->getTriList() );
+   tListIter< tTriangle > triIter( meshPtr->getTriList() );
    tPtrListIter< tEdge > spokIter;
      //delete node crossed by flowedg:
      //if a new triangle is !CCW and two vtcs. are connected by a flowedg AND
@@ -2072,18 +2072,18 @@ void tStreamMeander::CheckFlowedgCross()
                   }
                   if( pointtodelete != 0 )
                   {
-                     gridPtr->DeleteNode( pointtodelete );
+                     meshPtr->DeleteNode( pointtodelete );
                   }
                   else
                   {
                        //we had found a crossed node but it was on the boundary
                        //so we revert the other two to their original coords
-                       //if they fall outside the grid
+                       //if they fall outside the mesh
                      xy0 = cn->getNew2DCoords();
-                     if( gridPtr->LocateTriangle( xy0[0], xy0[1] ) == 0 )
+                     if( meshPtr->LocateTriangle( xy0[0], xy0[1] ) == 0 )
                          cn->RevertToOldCoords();
                      xy1 = dscn->getNew2DCoords();
-                     if( gridPtr->LocateTriangle( xy1[0], xy1[1] ) == 0 )
+                     if( meshPtr->LocateTriangle( xy1[0], xy1[1] ) == 0 )
                          dscn->RevertToOldCoords();
                        //assert( gridPtr->LocateTriangle( xy0[0], xy0[1] ) == 0 ||
                        //        gridPtr->LocateTriangle( xy1[0], xy1[1] ) == 0 );
@@ -2141,9 +2141,9 @@ void tStreamMeander::CheckBrokenFlowedg()
    tLNode *cn, *dn, *rn, *ln, *on, *ccn;
    tEdge *fedg, *cedg, *ce;
    tTriangle *rtri, *ltri;
-   tGridListIter< tLNode > nIter( gridPtr->getNodeList() ),
-       dI( gridPtr->getNodeList() );
-   tGridListIter< tEdge > eIter( gridPtr->getEdgeList() );
+   tMeshListIter< tLNode > nIter( meshPtr->getNodeList() ),
+       dI( meshPtr->getNodeList() );
+   tMeshListIter< tEdge > eIter( meshPtr->getEdgeList() );
    tPtrListIter< tEdge > sIter;
    
    /*for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
@@ -2180,10 +2180,10 @@ void tStreamMeander::CheckBrokenFlowedg()
                //to worry about breaking it if it doesn't really exist:
                if( eIter.Get( fedg->getID() ) )
                {
-                  cedg = gridPtr->getEdgeComplement( fedg );
+                  cedg = meshPtr->getEdgeComplement( fedg );
                   assert( cedg != 0 );
-                  ltri = gridPtr->TriWithEdgePtr( fedg );
-                  rtri = gridPtr->TriWithEdgePtr( cedg );
+                  ltri = meshPtr->TriWithEdgePtr( fedg );
+                  rtri = meshPtr->TriWithEdgePtr( cedg );
                   assert( ltri != 0 );
                   assert( rtri != 0 );
                   //if( ltri != 0 && rtri != 0 )
@@ -2191,7 +2191,7 @@ void tStreamMeander::CheckBrokenFlowedg()
                   nln = ltri->nVOp( rtri );
                   //nrn = rtri->nVOp( ltri );
                   //check for flip of flowedge (tri's on either side of flowedge:
-                  if( gridPtr->CheckForFlip( ltri, nln, flip ) )
+                  if( meshPtr->CheckForFlip( ltri, nln, flip ) )
                   {
                      //if flowedge to be flipped, delete closer of two "third" nodes
                      //if their drareas are smaller:
@@ -2210,7 +2210,7 @@ void tStreamMeander::CheckBrokenFlowedg()
                         {
                            if( ln->getBoundaryFlag() == kNonBoundary )
                            {
-                              gridPtr->DeleteNode( ln );
+                              meshPtr->DeleteNode( ln );
                               cn->setFlowEdg( cn->EdgToNod( dn ) );
                               //cout<<"Node "<<cn->getID()<<" flows to "<<dn->getID()<<endl;
                               //cout<<"in tstreammeander::checkenbrokenflowedge"<<endl;
@@ -2221,7 +2221,7 @@ void tStreamMeander::CheckBrokenFlowedg()
                         {
                            if( rn->getBoundaryFlag() == kNonBoundary )
                            {
-                              gridPtr->DeleteNode( rn );
+                              meshPtr->DeleteNode( rn );
                               cn->setFlowEdg( cn->EdgToNod( dn ) );
                               //cout<<"Node "<<cn->getID()<<" flows to "<<dn->getID()<<endl;
                               //cout<<"in tstreammeander::checkenbrokenflowedge"<<endl;
@@ -2256,12 +2256,13 @@ int tStreamMeander::InChannel( tLNode *mnode, tLNode *bnode )
 {
    double L, b, a, d, mindist;
    tArray< double > up, dn, bnk;
-   tGridListIter< tLNode > dI( gridPtr->getNodeList() );
-   tGridListIter< tEdge > eI( gridPtr->getEdgeList() );
+   tMeshListIter< tLNode > dI( meshPtr->getNodeList() );
+   tMeshListIter< tEdge > eI( meshPtr->getEdgeList() );
    b = mnode->getHydrWidth();
    if( b == 0 ) return 0;
    tLNode *dnode = mnode->getDownstrmNbr();
    tEdge *fe = mnode->getFlowEdg();
+
      //if downstrm nbr exists and is still in nodeList; also flowedge:
    if( dnode != 0 && dI.Get( dnode->getID() ) && fe != 0 && eI.Get( fe->getID() ) )
    {

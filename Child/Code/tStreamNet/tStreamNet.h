@@ -20,7 +20,7 @@
 **  with a tLNode; it could be recoded to operate with a "hydrologic"
 **  node or any descendents.
 **
-**  $Id: tStreamNet.h,v 1.28 1999-04-01 18:06:50 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.29 1999-04-05 15:19:13 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -30,8 +30,8 @@
 #include "../Classes.h"
 #include "../tUplift/tUplift.h"
 #include "../Erosion/erosion.h"
-#include "../GridElements/gridElements.h"
-#include "../tGrid/tGrid.h"
+#include "../MeshElements/meshElements.h"
+#include "../tMesh/tMesh.h"
 #include "../tLNode/tLNode.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tStorm/tStorm.h"
@@ -70,7 +70,7 @@ class tInlet
     friend class tStreamNet;
 public:
     tInlet();
-    tInlet( tGrid< tLNode > *, tInputFile & );
+    tInlet( tMesh< tLNode > *, tInputFile & );
     ~tInlet();
     void FindNewInlet();
     double getInSedLoad() const;
@@ -88,7 +88,7 @@ private:
     double inDrArea;  // drainage area at inlet
     double inSedLoad; // total sediment load
     tArray< double > inSedLoadm; // incoming sediment load if multi-sizes
-    tGrid< tLNode > *gridPtr;  // ptr to grid
+    tMesh< tLNode > *meshPtr;  // ptr to mesh
 };
 
 
@@ -117,11 +117,11 @@ class tStreamNet
     friend class tStreamMeander; //necessary?
 public:
     tStreamNet();
-    tStreamNet( tGrid< tLNode > &, tStorm &, tInputFile & );
+    tStreamNet( tMesh< tLNode > &, tStorm &, tInputFile & );
     ~tStreamNet();
-    void ResetGrid( tGrid< tLNode > & );
-    const tGrid< tLNode > *getGridPtr() const;
-    tGrid< tLNode > *getGridPtrNC();
+    void ResetMesh( tMesh< tLNode > & );
+    const tMesh< tLNode > *getMeshPtr() const;
+    tMesh< tLNode > *getMeshPtrNC();
     const tStorm *getStormPtr() const;
     tStorm *getStormPtrNC();
     int getFlowGenOpt() const;
@@ -174,7 +174,7 @@ public:
     void FindHydrGeom();
     
 protected:
-    tGrid< tLNode > * gridPtr;  // ptr to mesh
+    tMesh< tLNode > * meshPtr;  // ptr to mesh
     tStorm *stormPtr;    // ptr to storm object (for getting precip)
     int flowgen;         // option for runoff generation method
     int filllakes;       // option for filling lakes

@@ -8,11 +8,11 @@
 **    * Contains functions for constructing reaches and calculating lateral
 **      channel migration for nodes in those reaches.
 **
-**    * Contains pointers to a tGrid, a tStreamNet, and a tInputFile.
+**    * Contains pointers to a tMesh, a tStreamNet, and a tInputFile.
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.21 1999-02-22 20:07:16 nmgaspar Exp $
+**  $Id: tStreamMeander.h,v 1.22 1999-04-05 15:14:34 gtucker Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
@@ -25,13 +25,13 @@
 #include "../Mathutil/mathutil.h"
 #include "../tArray/tArray.h"
 #include "../tPtrList/tPtrList.h"
-#include "../tGridList/tGridList.h"
+#include "../tMeshList/tMeshList.h"
 #include "../tList/tList.h"
 #include "../tStorm/tStorm.h"
 #include "../tStreamNet/tStreamNet.h"
 #include "../tLNode/tLNode.h"
-#include "../GridElements/gridElements.h"
-#include "../tGrid/tGrid.h"
+#include "../MeshElements/meshElements.h"
+#include "../tMesh/tMesh.h"
 #include "../tInputFile/tInputFile.h"
 #include "../globalFns.h"
 /*#include "../Inclusions.h"*/
@@ -45,7 +45,7 @@ public:
    //what should be called, after tStreamNet obj. is done
    //(will crash if ptr to tStreamNet obj. is zero);
    //does not call MakeReaches():
-   tStreamMeander( tStreamNet &, tGrid< tLNode > &, tInputFile & );
+   tStreamMeander( tStreamNet &, tMesh< tLNode > &, tInputFile & );
    ~tStreamMeander();
    //"get" ready, "set"...go!
    const tList< tPtrList< tLNode > > &getReachList();
@@ -93,7 +93,7 @@ public:
     
 protected:
       //ptrs and list stuff:
-    tGrid< tLNode > *gridPtr;//ptr to tGrid obj. containing meandering reaches
+    tMesh< tLNode > *meshPtr;//ptr to tMesh obj. containing meandering reaches
     tStreamNet *netPtr;      //ptr to tStreamNet obj., just to make sure it exists
     tInputFile *infilePtr;   //ptr to tInputFile obj. containing parameters
     tList< tPtrList< tLNode > > reachList; //list of tPtrLists of reach node ptrs
