@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.14 2002-04-23 10:29:44 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.15 2002-04-23 15:06:50 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2156,11 +2156,13 @@ void tStreamNet::DensifyMeshDrArea( double time )
 \**************************************************************************/
 
 tInlet::tInlet() :
-  innode(0), inDrArea(0.), inSedLoadm(), meshPtr(0)
+  innode(0), inDrArea(0.), inSedLoad(0.), inSedLoadm(), meshPtr(0)
 {}
 
 #define LARGE_DISTANCE 1e9
 tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
+  :
+  inSedLoad(0.)
 {
    int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" ),
        numg = infile.ReadItem( numg, "NUMGRNSIZE" );
