@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.148 2003-05-13 14:03:51 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.149 2003-05-16 13:03:40 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -109,7 +109,7 @@ tMesh<tSubNode>::tMesh( tMesh *originalMesh )
   edgeList(originalMesh->edgeList),
   triList(originalMesh->triList),
   miNextNodeID(originalMesh->miNextNodeID),
-  miNextEdgID(originalMesh->miEdgNodeID),
+  miNextEdgID(originalMesh->miNextEdgID),
   miNextTriID(originalMesh->miNextTriID),
   seed(originalMesh->seed),
   layerflag(originalMesh->layerflag),
@@ -936,7 +936,7 @@ BatchAddNodes()
          if( bI.Get( n1->EdgToNod( n2 )->getID() ) ) // remove edge from boundary list
          {
             tmpbndList.moveToBack( bI.NodePtr() );
-            tmpbndList.removeFromBack( be );
+            be = tmpbndList.removeFromBack();
          }
          else cerr << "n1-n2 edge "
                    << n2->EdgToNod( n0 )->getID() << " not in temp bound list\n";
@@ -964,7 +964,7 @@ BatchAddNodes()
             if( tnI.Get( cn->getID() ) )
             {
                tmpnodList.moveToBack( tnI.NodePtr() );
-               tmpnodList.removeFromBack( cn );
+               cn = tmpnodList.removeFromBack();
             }
             else cerr << "node " << cn->getID() << " was not in temp list\n";
          }
@@ -2989,7 +2989,7 @@ LocateTriangle( double x, double y )
      cout << "\nLocateTriangle (" << x << "," << y << ")\n";
    int n, lv=0;
    tListIter< tTriangle > triIter( triList );  //lt
-   tTriangle *lt = ( mSearchOriginTriPtr > 0 ) ? mSearchOriginTriPtr
+   tTriangle *lt = ( mSearchOriginTriPtr != 0 ) ? mSearchOriginTriPtr
        : triIter.FirstP();
    int online = -1;
 
@@ -4113,7 +4113,7 @@ UpdateMesh()
       }
       assert( len>0.0 );
       curedg = elist.NextP();
-      assert( curedg > 0 ); // failure = complementary edges not consecutive
+      assert( curedg != 0 ); // failure = complementary edges not consecutive
       curedg->setLength( len );
    } while( curedg=elist.NextP() );
 
