@@ -1,6 +1,3 @@
-#ifndef __GNUC__
-#include "tMesh.h"
-#endif
 
 #include <math.h>
 #include "../tListInputData/tListInputData.h"

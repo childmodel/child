@@ -10,12 +10,10 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.115 2002-09-11 13:37:08 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.116 2002-12-12 13:50:24 childcvs Exp $
 \***************************************************************************/
 
-#ifndef __GNUC__
 #include "tMesh.h"
-#endif
 
 #include <stdlib.h>
 
@@ -5145,7 +5143,5 @@ DumpNodes()
 }
 #endif
 
-#ifndef __GNUC__
 #include "tMesh2.cpp"
-#endif
 

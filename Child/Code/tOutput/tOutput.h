@@ -28,7 +28,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.31 2002-09-23 12:11:50 arnaud Exp $
+**  $Id: tOutput.h,v 1.32 2002-12-12 13:50:26 childcvs Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -143,8 +143,9 @@ private:
 ** The following is designed to allow for compiling under the Borland-style
 ** template instantiation used by the Linux/GNU and Solaris versions of GCC
 */
-#ifdef __GNUC__
-#include "tOutput.cpp"
+#include "../Template_model.h"
+#ifdef CHILD_TEMPLATE_IN_HEADER
+# include "tOutput.cpp"
 #endif
 
 

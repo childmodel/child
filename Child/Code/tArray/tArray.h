@@ -14,7 +14,7 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.13 2002-09-23 12:11:49 arnaud Exp $
+**  $Id: tArray.h,v 1.14 2002-12-12 13:50:23 childcvs Exp $
 \***************************************************************************/
 
 #ifndef TARRAY_H
@@ -60,8 +60,9 @@ private:
 ** The following is designed to allow for compiling under the Borland-style
 ** template instantiation used by the Linux/GNU and Solaris versions of GCC
 */
-#ifdef __GNUC__
-#include "tArray.cpp"
+#include "../Template_model.h"
+#ifdef CHILD_TEMPLATE_IN_HEADER
+# include "tArray.cpp"
 #endif
 
 #endif

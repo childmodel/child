@@ -10,7 +10,7 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.h,v 1.8 2002-07-08 17:21:50 arnaud Exp $
+**  $Id: tMatrix.h,v 1.9 2002-12-12 13:50:23 childcvs Exp $
 \*************************************************************************/
 #ifndef TMATRIX_H
 #define TMATRIX_H
@@ -41,8 +41,9 @@ private:
 ** The following is designed to allow for compiling under the Borland-style
 ** template instantiation used by the Linux/GNU and Solaris versions of GCC
 */
-#ifdef __GNUC__
-#include "tMatrix.cpp"
+#include "../Template_model.h"
+#ifdef CHILD_TEMPLATE_IN_HEADER
+# include "tMatrix.cpp"
 #endif
 
 #endif

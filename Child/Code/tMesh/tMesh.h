@@ -21,7 +21,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.37 2002-09-02 16:19:29 arnaud Exp $
+**  $Id: tMesh.h,v 1.38 2002-12-12 13:50:26 childcvs Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -173,9 +173,9 @@ protected:
 ** The following is designed to allow for compiling under the Borland-style
 ** template instantiation used by the Linux/GNU and Solaris versions of GCC
 */
-#ifdef __GNUC__
-#include "tMesh.cpp"
-#include "tMesh2.cpp"
+#include "../Template_model.h"
+#ifdef CHILD_TEMPLATE_IN_HEADER
+# include "tMesh.cpp"
 #endif
 
 #endif

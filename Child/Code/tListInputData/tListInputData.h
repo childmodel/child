@@ -15,7 +15,7 @@
 **     to avoid multiple definition errors resulting from mixing
 **     template & non-template classes (1/99)
 **
-**  $Id: tListInputData.h,v 1.13 2002-09-23 12:11:50 arnaud Exp $
+**  $Id: tListInputData.h,v 1.14 2002-12-12 13:50:23 childcvs Exp $
 \**************************************************************************/
 
 #ifndef TLISTINPUTDATA_H
@@ -189,8 +189,9 @@ private:
 ** The following is designed to allow for compiling under the Borland-style
 ** template instantiation used by the Linux/GNU and Solaris versions of GCC
 */
-#ifdef __GNUC__
-#include "tListInputData.cpp"
+#include "../Template_model.h"
+#ifdef CHILD_TEMPLATE_IN_HEADER
+# include "tListInputData.cpp"
 #endif
 
 #endif
