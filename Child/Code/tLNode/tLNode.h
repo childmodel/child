@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.34 1998-08-03 00:26:08 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.35 1998-08-04 17:52:53 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -368,8 +368,6 @@ protected:
    tArray< double > qsinm; /* multi size; influx rate of each size fraction*/
    double uplift;  /*uplift rate*/
    tList< tLayer > layerlist; /* list of the different layers */
-   //int numlay; /* number of layers in the list */
-   // nic - not storing this for now - just use getSize() func from tList
    static int numg;
    // number of grain sizes recognized NIC should be the same for all
    // nodes, maybe put this somewhere else when you figure out what is going on
