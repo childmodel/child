@@ -2,7 +2,10 @@
 #include <fstream.h>
 
 #if __SUNPRO_CC==0x420
+# if !defined(ENUM_BOOL_DEFINED)
+#  define ENUM_BOOL_DEFINED 1
 typedef enum { false=0, true } bool;
+# endif
 #endif
 
 class point;
