@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.17 1998-08-19 21:39:35 gtucker Exp $
+**  $Id: erosion.h,v 1.18 1998-08-25 18:23:46 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -58,7 +58,7 @@
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
 
-#define tSedTrans tSedTransWilcock
+#define tSedTrans tSedTransPwrLaw
 
 
 /***************************************************************************\
