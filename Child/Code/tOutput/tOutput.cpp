@@ -10,7 +10,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.61 2003-04-10 09:57:40 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.62 2003-04-23 10:44:27 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -46,8 +46,6 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
    CreateAndOpenFile( &triofs, STRI );
    CreateAndOpenFile( &zofs, SZ );
    CreateAndOpenFile( &vaofs, SVAREA );
-   
-   
 }
 
 
@@ -72,8 +70,8 @@ void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
                                            const char *extension )
 {
    char fullName[kMaxNameSize+6];  // name of file to be created
-   
-   assert(strlen(baseName)+strlen(extension) < kMaxNameSize+6);
+
+   assert(strlen(baseName)+strlen(extension) < sizeof(fullName));
 
    strcpy( fullName, baseName );
    strcat( fullName, extension );
@@ -82,7 +80,6 @@ void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
    if( !theOFStream->good() )
        ReportFatalError(
            "I can't create files for output. Storage space may be exhausted.");
-        
 }
 
 
@@ -110,63 +107,110 @@ void tOutput<tSubNode>::WriteOutput( double time )
    tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
    tMeshListIter<tEdge> eiter( m->getEdgeList() );    // edge list iterator
    tListIter<tTriangle> titer( m->getTriList() );     // tri list iterator
-   tNode * cn;       // current node
-   tEdge * ce;       // current edge
-   tTriangle * ct;   // current triangle
-   int id;           // id of element (node, edge, or triangle)
-   int nnodes = m->getNodeList()->getSize();  // # of nodes on list
-   int nedges = m->getEdgeList()->getSize();  // "    edges "
-   int ntri = m->getTriList()->getSize();     // "    triangles "
+   const int nnodes = m->getNodeList()->getSize();  // # of nodes on list
+   const int nedges = m->getEdgeList()->getSize();  // "    edges "
+   const int ntri = m->getTriList()->getSize();     // "    triangles "
 
-   cout << "tOutput::WriteOutput()\n" << flush;
-   
+   if (1)//DEBUG
+     cout << "tOutput::WriteOutput()" << endl;
+
    // Renumber IDs in order by position on list
-   for( cn=niter.FirstP(), id=0; id<nnodes; cn=niter.NextP(), id++ )
-       cn->setID( id );
-   for( ce=eiter.FirstP(), id=0; id<nedges; ce=eiter.NextP(), id++ )
-       ce->setID( id );
-   for( ct=titer.FirstP(), id=0; id<ntri; ct=titer.NextP(), id++ )
-       ct->setID( id );
+   RenumberIDInListOrder();
 
    // Write node file, z file, and varea file
-   nodeofs << " " << time << endl << nnodes << endl;
-   zofs << " " << time << endl << nnodes << endl;
-   vaofs << " " << time << endl << nnodes << endl;
-   for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
+   nodeofs << ' ' << time << '\n' << nnodes << '\n';
+   zofs << ' ' << time << '\n' << nnodes << '\n';
+   vaofs << ' ' << time << '\n' << nnodes << '\n';
    {
-      nodeofs << cn->getX() << " " << cn->getY() << " "
-              << cn->getEdg()->getID() << " " << cn->getBoundaryFlag() << endl;
-      zofs << cn->getZ() << endl;
-      vaofs << cn->getVArea() << endl;
+     for( tNode *cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
+       WriteNodeRecord( cn );
    }
-   
+
    // Write edge file
-   edgofs << " " << time << endl << nedges << endl;
-   for( ce=eiter.FirstP(); !(eiter.AtEnd()); ce=eiter.NextP() )
-      edgofs << ce->getOriginPtrNC()->getID() << " "
-             << ce->getDestinationPtrNC()->getID() << " "
-             << ce->getCCWEdg()->getID() << endl;
-   
-   // Write triangle file
-   int i;
-   triofs << " " << time << endl << ntri << endl;
-   for( ct=titer.FirstP(); !(titer.AtEnd()); ct=titer.NextP() )
+   edgofs << ' ' << time << '\n' << nedges << '\n';
    {
-      for( i=0; i<=2; i++ )
-          triofs << ct->pPtr(i)->getID() << " ";
-      for( i=0; i<=2; i++ )
-      {
-          if( ct->tPtr(i) ) triofs << ct->tPtr(i)->getID() << " ";
-          else triofs << "-1 ";
-      }
-      triofs << ct->ePtr(0)->getID() << " " 
-             << ct->ePtr(1)->getID() << " " 
-             << ct->ePtr(2)->getID() << endl;
+     for( tEdge *ce=eiter.FirstP(); !(eiter.AtEnd()); ce=eiter.NextP() )
+       WriteEdgeRecord( ce );
    }
+
+   // Write triangle file
+   triofs << ' ' << time << '\n' << ntri << '\n';
+   {
+     const int index[] = { 0, 1, 2 };
+     for( tTriangle *ct=titer.FirstP(); !(titer.AtEnd()); ct=titer.NextP() )
+       WriteTriangleRecord(ct, index);
+   }
+
+   nodeofs << flush;
+   zofs << flush;
+   vaofs << flush;
+   edgofs << flush;
+   triofs << flush;
 
    // Call virtual function to write any additional data
    WriteNodeData( time );
-   
+
+   if (0)//DEBUG
+     cout << "tOutput::WriteOutput() Output done" << endl;
+}
+
+template< class tSubNode >
+inline void tOutput<tSubNode>::WriteNodeRecord( tNode *cn )
+{
+  nodeofs << cn->getX() << ' ' << cn->getY() << ' '
+	  << cn->getEdg()->getID() << ' '
+	  << cn->getBoundaryFlag() << '\n';
+  zofs << cn->getZ() << '\n';
+  vaofs << cn->getVArea() << '\n';
+}
+
+template< class tSubNode >
+inline void tOutput<tSubNode>::WriteEdgeRecord( tEdge *ce )
+{
+  edgofs << ce->getOriginPtrNC()->getID() << ' '
+	 << ce->getDestinationPtrNC()->getID() << ' '
+	 << ce->getCCWEdg()->getID() << '\n';
+}
+
+template< class tSubNode >
+inline void tOutput<tSubNode>::WriteTriangleRecord( tTriangle *ct,
+						    const int index[3])
+{
+  int i;
+  for( i=0; i<=2; i++ )
+    triofs << ct->pPtr(index[i])->getID() << ' ';
+  for( i=0; i<=2; i++ )
+    triofs << (ct->tPtr(index[i]) ? ct->tPtr(index[i])->getID() : -1) << ' ';
+  triofs << ct->ePtr(index[0])->getID() << ' '
+	 << ct->ePtr(index[1])->getID() << ' '
+	 << ct->ePtr(index[2])->getID() << '\n';
+}
+
+/*************************************************************************\
+**
+**  tOutput::RenumberID
+**
+**  Set IDs in list order
+**
+**  AD, April 2003
+\*************************************************************************/
+template< class tSubNode >
+void tOutput<tSubNode>::RenumberIDInListOrder()
+{
+   tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
+   tMeshListIter<tEdge> eiter( m->getEdgeList() );    // edge list iterator
+   tListIter<tTriangle> titer( m->getTriList() );     // tri list iterator
+
+   int id;
+   tNode *cn;
+   for( cn=niter.FirstP(), id=0; !(niter.AtEnd()); cn=niter.NextP(), id++ )
+     cn->setID( id );
+   tEdge *ce;
+   for( ce=eiter.FirstP(), id=0; !(eiter.AtEnd()); ce=eiter.NextP(), id++ )
+     ce->setID( id );
+   tTriangle *ct;
+   for( ct=titer.FirstP(), id=0; !(titer.AtEnd()); ct=titer.NextP(), id++ )
+     ct->setID( id );
 }
 
 
@@ -179,7 +223,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
 **
 \*************************************************************************/
 template< class tSubNode >
-void tOutput<tSubNode>::WriteNodeData( double /* time */ ) 
+void tOutput<tSubNode>::WriteNodeData( double /* time */ )
 {}
 
 
@@ -200,7 +244,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
   counter(0)
 {
    int opOpt;  // Optional modules: only output stuff when needed
-   
+
    CreateAndOpenFile( &drareaofs, ".area" );
    CreateAndOpenFile( &netofs, ".net" );
    CreateAndOpenFile( &slpofs, ".slp" );
@@ -240,7 +284,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
    // Sediment flux: if not using detachment-limited option
    if( !(opOpt = infile.ReadItem( opOpt, "OPTDETACHLIM" ) ) )
      CreateAndOpenFile( &qsofs, ".qs" );
-   
+
    this->mdLastVolume = 0.0;
 }
 
@@ -268,10 +312,8 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    const char* const nums("0123456789");
 
    tMeshListIter<tSubNode> ni( this->m->getNodeList() ); // node list iterator
-   tSubNode *cn;   // current node
-   int nActiveNodes = this->m->getNodeList()->getActiveSize(); // # active nodes
-   int nnodes = this->m->getNodeList()->getSize();             // total # nodes
-   int i, j;      // counters
+   const int nActiveNodes = this->m->getNodeList()->getActiveSize(); // # active nodes
+   const int nnodes = this->m->getNodeList()->getSize(); // total # nodes
 
    //taking care of layer file, since new one each time step
    char ext[7];
@@ -286,74 +328,101 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    counter++;
 
    // Write current time in each file
-   drareaofs << " " << time << "\n " << nActiveNodes << endl;
-   netofs << " " << time << "\n " << nActiveNodes << endl;
-   slpofs << " " << time << "\n " << nnodes << endl;
-   qofs << " " << time << "\n " << nnodes << endl;
-   layofs << " " << time << "\n" << nActiveNodes << endl;
-   texofs << " " << time << "\n" << nnodes << endl;
-   tauofs << " " << time << "\n" << nnodes << endl;
-   if( vegofs.good() ) vegofs << " " << time << "\n" << nnodes << endl;
-   if( flowdepofs.good() ) flowdepofs << " " << time << "\n" << nnodes << endl;
-   if( chanwidthofs.good() ) chanwidthofs << " " << time << "\n" << nnodes << endl;
-   if( flowpathlenofs.good() ) flowpathlenofs << " " << time << "\n" << nnodes << endl;
-   if( qsofs.good() ) qsofs << " " << time << "\n" << nnodes << endl;
+   drareaofs << ' ' << time << '\n' << nActiveNodes << '\n';
+   netofs << ' ' << time << '\n' << nActiveNodes << '\n';
+   slpofs << ' ' << time << '\n' << nnodes << '\n';
+   qofs << ' ' << time << '\n' << nnodes << '\n';
+   layofs << ' ' << time << '\n' << nActiveNodes << '\n';
+   texofs << ' ' << time << '\n' << nnodes << '\n';
+   tauofs << ' ' << time << '\n' << nnodes << '\n';
+   if( vegofs.good() )
+     vegofs << ' ' << time << '\n' << nnodes << '\n';
+   if( flowdepofs.good() )
+     flowdepofs << ' ' << time << '\n' << nnodes << '\n';
+   if( chanwidthofs.good() )
+     chanwidthofs << ' ' << time << '\n' << nnodes << '\n';
+   if( flowpathlenofs.good() )
+     flowpathlenofs << ' ' << time << '\n' << nnodes << '\n';
+   if( qsofs.good() )
+     qsofs << ' ' << time << '\n' << nnodes << '\n';
 
-   // Write data, including layer info
-   for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+   // Write data
    {
-      assert( cn>0 );
-      drareaofs << cn->getDrArea() << endl;
-      if( cn->getDownstrmNbr() )
-          netofs << cn->getDownstrmNbr()->getID() << endl;
-      layofs << " " << cn->getNumLayer() << endl;
-      i=0;
-      while(i<cn->getNumLayer()){
-         layofs << cn->getLayerCtime(i) << " " << cn->getLayerRtime(i) << " " << cn->getLayerEtime(i) << endl;
-         layofs << cn->getLayerDepth(i) << " " << cn->getLayerErody(i) << " " << cn->getLayerSed(i) << endl;
-         j=0;
-         while(j<cn->getNumg()){
-            layofs << cn->getLayerDgrade(i,j) << " ";
-            j++;
-         }
-         layofs << endl;
-         i++;
-      }
+     tSubNode *cn;   // current node
+     for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+       WriteActiveNodeData( cn );
+     for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() )
+       WriteAllNodeData( cn );
    }
 
-   // Write discharge, vegetation, & texture data, etc.
-   for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() )
-   {
-      if( !cn->getBoundaryFlag() ) slpofs << cn->getSlope() << endl;
-      else slpofs << 0 << endl;
-      qofs << cn->getQ() << endl;
-      if( vegofs.good() ) vegofs << cn->getVegCover().getVeg() << endl;
-      if( flowdepofs.good() ) 
-          flowdepofs << cn->getHydrDepth() << endl;
-      if( chanwidthofs.good() )
-       	  chanwidthofs << cn->getHydrWidth() << endl;
-      if( cn->getNumg()>1 ) // temporary hack TODO
-      {
-            texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;
-      }
-      if( flowpathlenofs.good() )
-	flowpathlenofs << cn->getFlowPathLength() << endl;
-      tauofs << cn->getTau() << endl;
-      if( qsofs.good() ) qsofs << cn->getQs() << endl;
-   }
-   
+   drareaofs << flush;
+   netofs << flush;
+   slpofs << flush;
+   qofs << flush;
+   texofs << flush;
+   tauofs << flush;
+   if( vegofs.good() ) vegofs << flush;
+   if( flowdepofs.good() ) flowdepofs << flush;
+   if( chanwidthofs.good() ) chanwidthofs << flush;
+   if( flowpathlenofs.good() ) flowpathlenofs << flush;
+   if( qsofs.good() ) qsofs << flush;
+
    layofs.close();
-
 }
 
+// Write data, including layer info
+template< class tSubNode >
+inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
+{
+  int i, j;      // counters
 
+  assert( cn!=0 );
+  drareaofs << cn->getDrArea() << '\n';
+  if( cn->getDownstrmNbr() )
+    netofs << cn->getDownstrmNbr()->getID() << '\n';
+  layofs << ' ' << cn->getNumLayer() << '\n';
+  i=0;
+  while(i<cn->getNumLayer()){
+    layofs << cn->getLayerCtime(i) << ' ' << cn->getLayerRtime(i) << ' '
+	   << cn->getLayerEtime(i) << '\n';
+    layofs << cn->getLayerDepth(i) << ' ' << cn->getLayerErody(i) << ' '
+	   << cn->getLayerSed(i) << '\n';
+    j=0;
+    while(j<cn->getNumg()){
+      layofs << cn->getLayerDgrade(i,j) << ' ';
+      j++;
+    }
+    layofs << '\n';
+    i++;
+  }
+}
 
+// Write discharge, vegetation, & texture data, etc.
+template< class tSubNode >
+inline void tLOutput<tSubNode>::WriteAllNodeData( tSubNode *cn )
+{
+  slpofs << (!cn->getBoundaryFlag() ? cn->getSlope():0.) << '\n';
+  qofs << cn->getQ() << '\n';
+  if( vegofs.good() ) vegofs << cn->getVegCover().getVeg() << '\n';
+  if( flowdepofs.good() )
+    flowdepofs << cn->getHydrDepth() << '\n';
+  if( chanwidthofs.good() )
+    chanwidthofs << cn->getHydrWidth() << '\n';
+  if( cn->getNumg()>1 ) // temporary hack TODO
+    {
+      texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << '\n';
+    }
+  if( flowpathlenofs.good() )
+    flowpathlenofs << cn->getFlowPathLength() << '\n';
+  tauofs << cn->getTau() << '\n';
+  if( qsofs.good() ) qsofs << cn->getQs() << '\n';
+}
 
 /*************************************************************************\
 **
 **  tOutput::WriteTSOutput
 **  This function writes the total volume of the DEM above the datum to
-**  a file called name.vols, where "name" is a name that the user has 
+**  a file called name.vols, where "name" is a name that the user has
 **  specified in the input file and which is stored in the data member
 **  baseName.
 **
@@ -365,17 +434,18 @@ void tLOutput<tSubNode>::WriteTSOutput()
 
    tSubNode * cn;       // current node
 
-   double volume = 0,
-          area = 0,
-          cover = 0;
+   double volume = 0.,
+          area = 0.,
+          cover = 0.;
 
-   //cout << "tLOutput::WriteTSOutput()\n" << flush;
-   
+   if (0)//DEBUG
+     cout << "tLOutput::WriteTSOutput()" << endl;
+
    for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
        volume += cn->getZ()*cn->getVArea();
        area += cn->getVArea();
    }
-   
+
    this->volsofs << volume << endl;
    if( this->mdLastVolume > 0.0 )
      this->dvolsofs << volume - this->mdLastVolume << endl;

@@ -29,7 +29,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.33 2003-01-17 17:30:40 childcvs Exp $
+**  $Id: tOutput.h,v 1.34 2003-04-23 10:44:27 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -88,12 +88,18 @@ protected:
     ofstream edgofs;              // output file for edge data
     ofstream triofs;              // output file for triangle data
     ofstream zofs;                // output file for node "z" data
-    ofstream vaofs;               // output file for Voronoi areas    
+    ofstream vaofs;               // output file for Voronoi areas
     ofstream volsofs;             // catchment volume
     ofstream dvolsofs;
     ofstream tareaofs;            // total voronoi area of catchment
     double mdLastVolume;   // these 4 SHOULD BE MOVED TO ANOTHER CLASS!!
 
+  // renumber in list order
+  void RenumberIDInListOrder();
+  // write an individual record
+  inline void WriteNodeRecord( tNode * );
+  inline void WriteEdgeRecord( tEdge * );
+  inline void WriteTriangleRecord( tTriangle *, const int[3]);
 };
 
 
@@ -119,11 +125,11 @@ class tLOutput : public tOutput<tSubNode>
   tLOutput& operator=(const tLOutput&);
 public:
     tLOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
-    void WriteNodeData( double time );  
+    void WriteNodeData( double time );
     void WriteTSOutput();
     int NodeCount();
     int OptTSOutput();
-   
+
 
 private:
     ofstream drareaofs;  // Drainage areas
@@ -142,6 +148,9 @@ private:
     int optTSOutput;     // temp
 
    int counter;
+
+  inline void WriteActiveNodeData( tSubNode * );
+  inline void WriteAllNodeData( tSubNode * );
 };
 
 
