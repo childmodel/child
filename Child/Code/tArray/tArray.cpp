@@ -3,7 +3,7 @@
  **  @file tArray.cpp
  **  @brief Functions for template class tArray< T >
  **
- **  $Id: tArray.cpp,v 1.23 2003-09-01 13:02:28 childcvs Exp $
+ **  $Id: tArray.cpp,v 1.24 2003-09-02 13:55:55 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -33,7 +33,7 @@ using namespace std;
 template< class T >
 tArray< T >::
 tArray( int number ) :
-  npts(number), avalue(0)
+  avalue(0), npts(number)
 {
   assert( number > 0 );
   avalue = new T [npts];
@@ -45,7 +45,7 @@ tArray( int number ) :
 template< class T >
 tArray< T >::
 tArray( const tArray< T > &original ) :
-  npts(original.npts), avalue(0)
+  avalue(0), npts(original.npts)
 {
   assert( npts > 0 );
 

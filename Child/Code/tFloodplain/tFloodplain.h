@@ -18,7 +18,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.13 2003-06-23 10:36:21 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.14 2003-09-02 13:57:13 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -104,17 +104,17 @@ public:
   void UpdateMainChannelHeight( double tm, tLNode * inletNode );
 
 private:
-    double fpmu;            // "mu" parameter of Howard model
-    double fplamda;         // "lamda" (distance-decay) parameter
-    double kdb;             // depth-disch coeff (lumped; see tFloodplain.cpp)
-    double event_min;       // bankfull event precip rate
-    double drarea_min;      // min drainage area for a "flood node"
-    double mqs;             // depth-disch at-a-station exponent
-    double mqbmqs;          // bankfull minus at-a-station exponents
-    tArray<double> deparr;  // depth deposited (# grn size; all but 1st=0)
-    tMesh<tLNode> *meshPtr; // ptr to mesh
+  double fpmu;            // "mu" parameter of Howard model
+  double fplamda;         // "lamda" (distance-decay) parameter
+  double kdb;             // depth-disch coeff (lumped; see tFloodplain.cpp)
+  double event_min;       // bankfull event precip rate
+  double drarea_min;      // min drainage area for a "flood node"
+  double mqs;             // depth-disch at-a-station exponent
+  double mqbmqs;          // bankfull minus at-a-station exponents
+  tMainChannelDriver *chanDriver;   // if user wants to control chan elev
+  tMesh<tLNode> *meshPtr; // ptr to mesh
+  tArray<double> deparr;  // depth deposited (# grn size; all but 1st=0)
   bool optControlMainChan;  // option to treat chan elev as boundary cond
-  tMainChannelDriver * chanDriver;   // if user wants to control chan elev
 };
 
 

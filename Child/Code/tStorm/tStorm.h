@@ -28,7 +28,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.25 2003-08-01 17:14:59 childcvs Exp $
+**  $Id: tStorm.h,v 1.26 2003-09-02 13:52:59 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -58,19 +58,19 @@ public:
     double getMeanInterstormDur() const;
     double getMeanPrecip() const;
     double getOptVar() const;
-   
+
 private:
     double ExpDev() const;
     double GammaDev(double) const;
-   
-    bool optVariable;   // Flag indicating whether storms are random or not
-    bool optSinVar;     // Option for sinusoidal variation in storm params
-    double stdurMean;   // Mean duration
-    double istdurMean;  // Mean time between storms
-    double pMean;       // Mean rainfall intensity
-    double p;           // Actual rainfall intensity for the current storm
-    double stdur;       // Actual storm duration
-    double istdur;      // Actual time between storms
+
+    ofstream stormfile;// File containing history of storm events
+    tRand *rand;       // Random number generator
+    double stdurMean;  // Mean duration
+    double istdurMean; // Mean time between storms
+    double pMean;      // Mean rainfall intensity
+    double p;          // Actual rainfall intensity for the current storm
+    double stdur;      // Actual storm duration
+    double istdur;     // Actual time between storms
     double p0;         // Climatological mean: the "weather" means can
     double stdur0;     //  themselves vary over geologic time; p0, etc, are
     double istdur0;    //  the means of the means so to speak.
@@ -78,10 +78,10 @@ private:
     double stdurdev;   //  sinusoidal variation.
     double istdurdev;
     double twoPiLam;   // Parameter for sinusoidal variation: 2pi / period
-    tRand *rand;       // Random number generator
     double endtm;      // The end time of the run, just in case a big enough
                        // storm is never generated
-    ofstream stormfile; // File containing history of storm events
+    bool optVariable;  // Flag indicating whether storms are random or not
+    bool optSinVar;    // Option for sinusoidal variation in storm params
 };
 
 

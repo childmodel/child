@@ -13,7 +13,7 @@
  **  argument passed to the constructor or by assignment of one array
  **  to another.
  **
- **  $Id: tArray.h,v 1.23 2003-09-01 13:02:31 childcvs Exp $
+ **  $Id: tArray.h,v 1.24 2003-09-02 13:55:57 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -63,8 +63,8 @@ public:
   // to fortran.
   inline const T *getArrayPtr() const; // returns the actual array
 private:
-  int npts;   // size of array
   T * avalue; // the array itself
+  int npts;   // size of array
 };
 
 template< class T >
@@ -86,7 +86,7 @@ ostream &operator<<( ostream &output, const tArray< T > &a );
 template< class T >
 inline tArray< T >::
 tArray() :
-  npts(1), avalue(0)
+  avalue(0), npts(1)
 {
   avalue = new T [1];
   avalue[0] = 0;
@@ -96,7 +96,7 @@ tArray() :
 template< class T >
 inline tArray< T >::
 tArray( const T& e1, const T& e2 ) :
-  npts(2), avalue(0)
+  avalue(0), npts(2)
 {
   avalue = new T [2];
   avalue[0] = e1;
@@ -106,7 +106,7 @@ tArray( const T& e1, const T& e2 ) :
 template< class T >
 inline tArray< T >::
 tArray( const T& e1, const T& e2, const T& e3 ) :
-  npts(3), avalue(0)
+  avalue(0), npts(3)
 {
   avalue = new T [3];
   avalue[0] = e1;

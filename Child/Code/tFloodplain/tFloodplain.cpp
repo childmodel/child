@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.19 2003-05-26 17:44:51 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.20 2003-09-02 13:57:10 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -83,8 +83,8 @@
 \**************************************************************************/
 tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
   :
-  meshPtr(mp),
-  chanDriver(0)
+  chanDriver(0),
+  meshPtr(mp)
 {
    int numg;
 

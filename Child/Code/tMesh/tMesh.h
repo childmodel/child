@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.59 2003-08-01 17:14:57 childcvs Exp $
+**  $Id: tMesh.h,v 1.60 2003-09-02 13:50:47 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -175,15 +175,15 @@ public:
 #endif
 
 protected:
-   int nnodes, nedges, ntri;       // # of nodes, edges, and tri's (obsolete?)
    tMeshList< tSubNode > nodeList; // list of nodes
    tMeshList< tEdge > edgeList;    // list of directed edges
    tList< tTriangle > triList;  // list of ptrs to triangles
+   tTriangle* mSearchOriginTriPtr; // ptr to tri. from which to start searches
+   int nnodes, nedges, ntri;       // # of nodes, edges, and tri's (obsolete?)
    int miNextNodeID;                   // next ID for added node
    int miNextEdgID;                    // next ID for added edge
    int miNextTriID;                    // next ID for added triangle
    bool layerflag;                 // flag indicating whether nodes have layers
-   tTriangle* mSearchOriginTriPtr; // ptr to tri. from which to start searches
 
 };
 

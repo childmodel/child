@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.179 2003-09-02 08:45:46 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.180 2003-09-02 13:50:41 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -146,15 +146,15 @@ template< class tSubNode >
 tMesh< tSubNode >::
 tMesh( tInputFile &infile, tRand &randS)
   :
+  nodeList(),
+  mSearchOriginTriPtr(0),
   nnodes(0),
   nedges(0),
   ntri(0),
-  nodeList(),
   miNextNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),
-  layerflag(false),
-  mSearchOriginTriPtr(0)
+  layerflag(false)
 {
    // mSearchOriginTriPtr:
    // initially set search origin (tTriangle*) to zero:

@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.59 2003-09-01 13:56:30 childcvs Exp $
+**  $Id: meshElements.h,v 1.60 2003-09-02 13:51:20 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -331,10 +331,10 @@ public:
 #endif
 
 private:
-  int id;          // triangle ID number
   tNode *p[3];     // ptrs to 3 nodes (vertices)
   tEdge *e[3];     // ptrs to 3 clockwise-oriented edges
   tTriangle *t[3]; // ptrs to 3 neighboring triangles (or 0 if no nbr exists)
+  int id;          // triangle ID number
   unsigned char index_[3]; // index used for ordered output
 
   inline void SetIndex(); // build the ordering index array in simple order

@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.29 2003-08-01 17:14:58 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.30 2003-09-02 13:52:57 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -39,8 +39,7 @@ using namespace std;
 \**************************************************************************/
 tStorm::tStorm( bool optvar )
   :
-  optVariable(optvar),
-  optSinVar(false),
+  rand(0),
   stdurMean(1.0),
   istdurMean(1.0),
   pMean(1.0),
@@ -54,8 +53,9 @@ tStorm::tStorm( bool optvar )
   stdurdev(-1.),
   istdurdev(-1.),
   twoPiLam(-1.),
-  rand(0),
-  endtm(1.0e9)
+  endtm(1.0e9),
+  optVariable(optvar),
+  optSinVar(false)
 {
    //srand( 0 );
 }
@@ -73,8 +73,7 @@ tStorm::tStorm( bool optvar )
 \**************************************************************************/
 tStorm::tStorm( double mp, double ms, double mis, tRand *rand_, bool optvar, double et )
   :
-  optVariable(optvar),
-  optSinVar(false),
+  rand(rand_),
   stdurMean(ms),
   istdurMean(mis),
   pMean(mp),
@@ -88,8 +87,9 @@ tStorm::tStorm( double mp, double ms, double mis, tRand *rand_, bool optvar, dou
   stdurdev(-1.),
   istdurdev(-1.),
   twoPiLam(-1.),
-  rand(rand_),
-  endtm(et)
+  endtm(et),
+  optVariable(optvar),
+  optSinVar(false)
 {
 }
 
