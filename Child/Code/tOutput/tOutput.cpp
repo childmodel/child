@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.94 2004-04-16 18:33:25 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.95 2004-04-19 14:01:12 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -1233,7 +1233,7 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
       double dist    = 1000000.0;
       double mindist = 1000000.0;
       assert( netPtr != 0);
-      meandernode = netPtr->getInletNodePtr();
+      meandernode = netPtr->getInletNodePtrNC();
       while(meandernode != NULL && counter < 300){                 // nb wil not work if num meander nodes > 300 !
 	const double XX = sn.getX()- meandernode->getX();
 	const double YY = sn.getY()- meandernode->getY();

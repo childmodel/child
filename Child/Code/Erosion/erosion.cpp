@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.131 2004-04-14 13:13:26 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.132 2004-04-19 14:01:10 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -2410,7 +2410,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
       depck,
       qs,
       excap;
-    tLNode * inletNode = strmNet->getInletNodePtr();
+    tLNode * inletNode = strmNet->getInletNodePtrNC();
     double insedloadtotal = strmNet->getInSedLoad();
 
     cn = ni.FirstP();

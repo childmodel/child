@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.20 2004-04-14 11:17:52 childcvs Exp $
+**  $Id: childmain.cpp,v 1.21 2004-04-19 14:01:10 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -226,7 +226,7 @@ OptTSOutput." );
 	{
 	  if( floodplain->OptControlMainChan() )
 	    floodplain->UpdateMainChannelHeight( time.getCurrentTime(),
-						 strmNet.getInletNodePtr() );
+						 strmNet.getInletNodePtrNC() );
 	    cout << "UpdateChannelHeight::Done..\n";
 
 	    if( optStratGrid ){
