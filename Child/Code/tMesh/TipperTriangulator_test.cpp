@@ -2,6 +2,15 @@
 /**
 **  @file
 **  @brief unit test code for Tipper triangulator
+**
+** Use with:
+**   (stand-alone)
+**   g++ -DTIPPER_TEST -DDONT_USE_PREDICATE TipperTriangulator_test.cpp
+**     TipperTriangulator.cpp TipperTriangulatorError.cpp
+**   (with algorithms in predicates.cpp)
+**   g++ -DTIPPER_TEST TipperTriangulator_test.cpp TipperTriangulator.cpp
+**      TipperTriangulatorError.cpp ../Predicates/predicates.cpp
+**
 */
 /***************************************************************************/
 
