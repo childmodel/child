@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.51 2003-08-12 15:55:43 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.52 2003-08-13 13:26:18 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -745,9 +745,10 @@ void tStreamNet::FlowDirs()
    {
       curnode->setFloodStatus( kNotFlooded );  // Init flood status flag
       firstedg =  curnode->getFlowEdg();
-      if( firstedg == 0 )
+      if( unlikely(firstedg == 0) ) {
           curnode->TellAll();
-      assert( firstedg != 0 );
+	  assert( 0 );
+      }
       slp = firstedg->getSlope();
       nbredg = firstedg;
 //        if(curnode->getID()==240 || curnode->getID()==213) {
@@ -773,7 +774,7 @@ void tStreamNet::FlowDirs()
          }
          curedg = curedg->getCCWEdg();
          ctr++;
-         if( ctr>kMaxSpokes ) // Make sure to prevent endless loops
+         if( unlikely(ctr>kMaxSpokes) ) // Make sure to prevent endless loops
          {
             cerr << "Mesh error: node " << curnode->getID()
                  << " going round and round"
@@ -2057,7 +2058,7 @@ void tStreamNet::FindChanGeom()
       if( slope <= 0.00000001 ){
          cn->setMeanderStatus( kNonMeanderNode );
       }
-      if( slope < 0.0 )
+      if( unlikely(slope < 0.0) )
       {
          cout << "negative slope,"
               << " probably from infinite loop in tLNode::GetSlope()" << endl;
