@@ -19,7 +19,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.27 2000-12-07 11:44:29 gtucker Exp $
+**  $Id: tMesh.h,v 1.28 2000-12-07 11:47:47 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -155,5 +155,12 @@ protected:
 
 };
 
-//#include "tMesh.cpp"
+/*
+** The following is designed to allow for compiling under the Borland-style
+** template instantiation used by the Linux/GNU and Solaris versions of GCC
+*/
+#ifdef __GNUC__
+#include "tMesh.cpp"
+#endif
+
 #endif
