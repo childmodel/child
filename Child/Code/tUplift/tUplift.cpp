@@ -3,12 +3,13 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.20 2003-07-15 16:04:59 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.21 2003-09-02 11:56:52 childcvs Exp $
 */
 /************************************************************************/
 
 #include "tUplift.h"
 #include "../errors/errors.h"
+#include "../Mathutil/mathutil.h"
 
 #define kNumUpliftTypes 8
 #define kNoUplift 0
@@ -34,22 +35,22 @@ tUplift::tUplift( tInputFile &infile )
    if( typeCode < 0 || typeCode > kNumUpliftTypes )
    {
       cerr << "I don't recognize the uplift type you asked for ("
-           << typeCode << ")\n";
-      cerr << "Valid uplift types are:\n";
-      cerr << " 0 - none\n"
-           << " 1 - Spatially and temporally uniform uplift\n"
-           << " 2 - Uniform uplift at Y >= fault location, zero elsewhere\n"
-           << " 3 - Block uplift with strike-slip motion along given Y coord\n"
-           << " 4 - Propagating fold modeled w/ simple error function curve\n"
-           << " 5 - 2D cosine-based uplift-subsidence pattern\n"
-	   << " 6 - Block, fault, and foreland sinusoidal fold\n"
-	   << " 7 - Two-sided differential uplift\n"
-	   << " 8 - Fault bend fold\n";
+           << typeCode << ")\n"
+	   "Valid uplift types are:\n"
+	   " 0 - none\n"
+           " 1 - Spatially and temporally uniform uplift\n"
+           " 2 - Uniform uplift at Y >= fault location, zero elsewhere\n"
+           " 3 - Block uplift with strike-slip motion along given Y coord\n"
+           " 4 - Propagating fold modeled w/ simple error function curve\n"
+           " 5 - 2D cosine-based uplift-subsidence pattern\n"
+	   " 6 - Block, fault, and foreland sinusoidal fold\n"
+	   " 7 - Two-sided differential uplift\n"
+	   " 8 - Fault bend fold\n";
       ReportFatalError( "Please specify a valid uplift type and try again." );
    }
 
    if( typeCode==kNoUplift ) return;
-   
+
    // get the parameters relevant to that type
    duration = infile.ReadItem( duration, "UPDUR" );
    rate = infile.ReadItem( rate, "UPRATE" );
@@ -77,7 +78,7 @@ tUplift::tUplift( tInputFile &infile )
           slipRate = infile.ReadItem( slipRate, "TIGHTENINGRATE" );
           faultPosition = infile.ReadItem( faultPosition, "ANTICLINEYCOORD" );
           positionParam1 = infile.ReadItem( positionParam1, "ANTICLINEXCOORD");
-          deformStartTime1 = 
+          deformStartTime1 =
               infile.ReadItem( deformStartTime1, "YFOLDINGSTART" );
           foldParam2 = infile.ReadItem( foldParam2, "UPSUBRATIO" );
 	  break;
@@ -105,7 +106,7 @@ tUplift::tUplift( tInputFile &infile )
           assert(0); /*NOTREACHED*/
           abort();
    }
-   
+
 }
 
 
@@ -157,7 +158,7 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
           assert(0); /*NOTREACHED*/
           abort();
    }
-   
+
 }
 
 
@@ -177,10 +178,11 @@ void tUplift::UpliftUniform( tMesh<tLNode> *mp, double delt )
    assert( mp!=0 );
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
-   double rise = rate*delt;
+   const double rise = rate*delt;
 
-   //cout << "****UPLIFTUNI: " << rise << endl;
-   
+   if (0) //DEBUG
+     cout << "****UPLIFTUNI: " << rise << endl;
+
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
    {
       cn->ChangeZ( rise );
@@ -209,7 +211,7 @@ void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt )
    assert( mp!=0 );
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
-   double rise = rate*delt,
+   const double rise = rate*delt,
      sink = rate2*delt;
 
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
@@ -258,7 +260,7 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt ) const
      }
    }
    mp->MoveNodes( 0., false );
-   
+
 }
 
 /************************************************************************\
@@ -314,7 +316,6 @@ void tUplift::FoldPropErf( tMesh<tLNode> *mp, double delt )
 **           delt -- duration of uplift
 **
 \************************************************************************/
-#define TWOPI 6.2832
 void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
 {
    assert( mp!=0 );
@@ -329,14 +330,14 @@ void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
    // is used to store the Y location of the anticline peak (normally, the
    // upper boundary). The ratio of uplift to subsidence rates is controlled
    // by the parameter "foldParam2"; if uplift is positive, the rate is
-   // multiplied by this factor. "positionParam1" is used to store the 
+   // multiplied by this factor. "positionParam1" is used to store the
    // x-location of the anticline.
    if( elapsedTime >= deformStartTime1 )
    {
       for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
       {
-         uprate = rate * 
-             ( cos(PI*(positionParam1 - cn->getX())/foldParam) 
+         uprate = rate *
+             ( cos(PI*(positionParam1 - cn->getX())/foldParam)
                + cos(TWOPI*(faultPosition-cn->getY())/foldParam) );
          if( uprate>0.0 ) uprate *= foldParam2;
          cn->ChangeZ( uprate*delt );
@@ -346,7 +347,7 @@ void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
    {
       for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
       {
-         uprate = rate * 
+         uprate = rate *
              cos(TWOPI*(faultPosition-cn->getY())/foldParam);
          if( uprate>0.0 ) uprate *= foldParam2;
          cn->ChangeZ( uprate*delt );
@@ -356,7 +357,7 @@ void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
 
    // The "tightening" of the folds through time is simulated by
    // progressively decreasing the fold wavelength. (Here the variable
-   // "slipRate" is used to store the tightening rate in m/yr, and 
+   // "slipRate" is used to store the tightening rate in m/yr, and
    // "foldParam" is used to store the fold wavelength in m).
    // As the fold tightens, the anticline axis migrates in the direction
    // of decreasing Y (assumed to be basinward; this means the folding
@@ -373,7 +374,7 @@ void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
 **  tUplift::PropagatingFold
 **
 **  The "propagating fold" has two components: block uplift inboard of
-**  a mountain front (which is handled via a separate call to 
+**  a mountain front (which is handled via a separate call to
 **  BlockUplift()), and a single laterally propagating fold, which is
 **  handled by this function.
 **
@@ -396,10 +397,10 @@ void tUplift::PropagatingFold( tMesh<tLNode> *mp, double delt ) const
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double uprate;
-   static double northEdge = foldParam2 + 0.5*foldParam;
-   static double southEdge = northEdge - foldParam;
+   const double northEdge = foldParam2 + 0.5*foldParam;
+   const double southEdge = northEdge - foldParam;
    static double foldNose = 0.0;
-   static double twoPiLam = TWOPI/foldParam;
+   const double twoPiLam = TWOPI/foldParam;
 
    // Advance the fold nose
    foldNose += slipRate*delt;
@@ -426,17 +427,17 @@ void tUplift::PropagatingFold( tMesh<tLNode> *mp, double delt ) const
 **  by two active baselevels that are lowering at different rates. It
 **  is designed to operate on a rectangular domain with open boundaries
 **  along two (opposite) sides. The function was written to study
-**  controls on drainage divide migration under conditions of 
+**  controls on drainage divide migration under conditions of
 **  differential relative uplift -- for example in the case range
 **  bounded on one side by a rapidly-slipping normal fault, and on the
 **  other by a boundary that slowly lowers due to steady erosion.
 **
 **  The function uses "rate" as the baselevel fall rate along the lower
 **  (y=0) boundary. "rate2" is initially read in (in the constructor)
-**  as the baselevel fall rate along the upper boundary. However, in order 
-**  to preserve the lower boundary as a zero and fixed relative elevation 
-**  boundary, the differential lowering is implemented by having the 
-**  interior landscape rise at "rate" (lower baselevel fall) and the upper 
+**  as the baselevel fall rate along the upper boundary. However, in order
+**  to preserve the lower boundary as a zero and fixed relative elevation
+**  boundary, the differential lowering is implemented by having the
+**  interior landscape rise at "rate" (lower baselevel fall) and the upper
 **  boundary rise or fall at a rate equal to the difference between upper
 **  and lower boundary baselevel fall rates (so the relative rates are
 **  preserved; so effectively the datum is the lower baselevel). "rate2"
@@ -447,7 +448,7 @@ void tUplift::PropagatingFold( tMesh<tLNode> *mp, double delt ) const
 **  parameter positionParam1 is used to store the y-coordinate of the
 **  dividing line between the two base levels. Any open boundary points
 **  at y<=positionParam1 are treated as "lower boundary" (ie, fixed at
-**  zero elevation), while any open boundary points at y>positionParam1 
+**  zero elevation), while any open boundary points at y>positionParam1
 **  are treated as "upper boundary".
 **
 **    Created July, 2001 GT
@@ -482,13 +483,13 @@ void tUplift::TwoSideDifferential( tMesh<tLNode> *mp, double delt ) const
 **
 **  tUplift::FaultBendFold
 **
-**  Mesh points above ramp and flat move in positive y-direction at 
-**  sliprate, inclined and horizontally, respectively.  Note that 
-**  boundary nodes also move.  Right now, get to work if Z at 
-**  faultPosition (initial break at surface) is same as the mean 
+**  Mesh points above ramp and flat move in positive y-direction at
+**  sliprate, inclined and horizontally, respectively.  Note that
+**  boundary nodes also move.  Right now, get to work if Z at
+**  faultPosition (initial break at surface) is same as the mean
 **  elevation--and most realistic if mean elevation is zero so we don't
 **  have to worry about foreland erosion and deformation of the hanging
-**  wall above this foreland topography.  If you make any inclined 
+**  wall above this foreland topography.  If you make any inclined
 **  initial topography, make Z=0 for y-coordinates where y>=faultPosition.
 **  Fault strikes parallel to x-axis.
 **
@@ -505,22 +506,22 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double slip = slipRate*delt;
    static double elapsedTime = delt;
-      
-   
+
+
    for( cn=ni.FirstP(); !(ni.AtEnd()); cn=ni.NextP() )
    {
 
-     /* This loop handles the the initial stages of folding, specifically 
+     /* This loop handles the the initial stages of folding, specifically
         that when the active, backlimb-ward dipping upper flat
         axial surface that exists until the forward dipping passive axial
         surface, which migrates up from the lower end of the ramp, reaches
         the upper end of the ramp.  */
-     
+
      if( elapsedTime < flatDepth/(sin(PI*rampDip/180))/slipRate )
      {
-       
+
        /* For hinterland (lower ramp) hangingwall */
-       
+
        if( cn->getY()< (faultPosition-flatDepth/tan(PI*rampDip/180)) &&
        cn->getZ()<=-tan(PI*kinkDip/180)*cn->getY()+(faultPosition-
        (flatDepth/tan(PI*rampDip/180))-(flatDepth*tan(PI*90/180-
@@ -530,42 +531,42 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
           cn->setNew2DCoords(  cn->getX(), cn->getY()+slip );
        }
        /* For hangingwall above ramp */
-       
+
        else if( cn->getZ()>=tan(PI*rampDip/180)*cn->getY()-tan(PI*rampDip/180)
        *faultPosition && cn->getZ()>-tan(PI*kinkDip/180)*cn->getY()+
        (faultPosition-(flatDepth/tan(PI*rampDip/180))-(flatDepth*tan(PI*90/180-
-       PI*kinkDip/180)))*tan(PI*kinkDip/180) && 
+       PI*kinkDip/180)))*tan(PI*kinkDip/180) &&
        cn->getZ()>=tan(PI*upperKinkDip/180)*cn->getY()-tan(PI*upperKinkDip/180)*
        faultPosition )
        {
           cn->setMeanderStatus( true );  // redundant: TODO
           cn->setNew2DCoords( cn->getX(), cn->getY()+slip*cos(PI*rampDip/180) );
        }
-       
+
        /* For foreland (upper ramp) hangingwall.  Note that only nodes
        slightly (here, 3 m) above the mean elevation are moved with the hangingwall. */
-     
-       else if( cn->getZ()<tan(PI*upperKinkDip/180)*cn->getY()- 
-       tan(PI*upperKinkDip/180)*faultPosition && cn->getY()>faultPosition 
+
+       else if( cn->getZ()<tan(PI*upperKinkDip/180)*cn->getY()-
+       tan(PI*upperKinkDip/180)*faultPosition && cn->getY()>faultPosition
        && cn->getZ()>(meanElevation + 3) )
        {
           cn->setMeanderStatus( true );  // redundant: TODO
           cn->setNew2DCoords( cn->getX(), cn->getY()+slip );
-       } 
- 
-     }   
-        
-   
+       }
+
+     }
+
+
      /* This loop handles the later stages of deformation, when both
         active axial surface dip towards the forelimb and the passive axial
-        surface above the upper flat, if it is not eroded, dips towards 
+        surface above the upper flat, if it is not eroded, dips towards
         the backlimb. */
-     
+
      else
      {
-     
+
        /* For hinterland (lower ramp) hangingwall */
-     
+
        if( cn->getY()< (faultPosition-flatDepth/tan(PI*rampDip/180)) &&
        cn->getZ()<=-tan(PI*kinkDip/180)*cn->getY()+(faultPosition-
        (flatDepth/tan(PI*rampDip/180))-(flatDepth*tan(PI*90/180-
@@ -576,11 +577,11 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
        }
 
        /* For hangingwall above ramp */
-       
+
        else if( cn->getZ()>=tan(PI*rampDip/180)*cn->getY()-tan(PI*rampDip/180)
        *faultPosition && cn->getZ()>-tan(PI*kinkDip/180)*cn->getY()+
        (faultPosition-(flatDepth/tan(PI*rampDip/180))-(flatDepth*tan(PI*90/180-
-       PI*kinkDip/180)))*tan(PI*kinkDip/180) && 
+       PI*kinkDip/180)))*tan(PI*kinkDip/180) &&
        cn->getZ()<=-tan(PI*kinkDip/180)*cn->getY()+tan(PI*kinkDip/180)*
        faultPosition )
        {
@@ -590,23 +591,23 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
           /* cn->setUplift( slipRate*sin(PI*rampDip/180) );  */
        }
 
-       /* For foreland (upper ramp) hangingwall.  Note only nodes slightly above 
+       /* For foreland (upper ramp) hangingwall.  Note only nodes slightly above
        (here, 3 m) the mean elevation are moved. */
-     
-       else if( cn->getZ()>-tan(PI*kinkDip/180)*cn->getY()+ 
+
+       else if( cn->getZ()>-tan(PI*kinkDip/180)*cn->getY()+
        tan(PI*kinkDip/180)*faultPosition && cn->getY()<=faultPosition  &&
        cn->getZ()>(meanElevation + 3) )
        {
           cn->setMeanderStatus( true );  // redundant: TODO
           cn->setNew2DCoords( cn->getX(), cn->getY()+slip );
        }
-       
+
      }
-     
+
    }
    mp->MoveNodes( 0., false );
-   
-     
+
+
    /*elapsedTime += delt;*/
 }
 
@@ -615,7 +616,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
 **
 **  tUplift::FaultBendFold2
 **
-**  This is the uplift part of the fault-bend fold uplift function.  It 
+**  This is the uplift part of the fault-bend fold uplift function.  It
 **  is separate so that the boundary nodes are pinned.
 **
 **  Created September, 2002  (s. miller)
@@ -631,11 +632,11 @@ void tUplift::FaultBendFold2( tMesh<tLNode> *mp, double delt ) const
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double slip = slipRate*delt;
    static double elapsedTime = delt;
-   /* Redefinitions so faultPosition and flatDepth are measured with respect 
+   /* Redefinitions so faultPosition and flatDepth are measured with respect
    to where fault intersects z=0 (faultPosition) and depth below z=0. */
    //double faultPosition = faultPosition - meanElevation/tan(rampDip);
    //double flatDepth = meanElevation - flatDepth;
-   
+
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
    {
       if( elapsedTime < flatDepth/(sin(PI*rampDip/180))/slipRate )
@@ -643,34 +644,34 @@ void tUplift::FaultBendFold2( tMesh<tLNode> *mp, double delt ) const
           if( cn->getZ()>=tan(PI*rampDip/180)*cn->getY()-tan(PI*rampDip/180)
           *faultPosition && cn->getZ()>-tan(PI*kinkDip/180)*cn->getY()+
           (faultPosition-(flatDepth/tan(PI*rampDip/180))-(flatDepth*tan(PI*90/180-
-          PI*kinkDip/180)))*tan(PI*kinkDip/180) && 
+          PI*kinkDip/180)))*tan(PI*kinkDip/180) &&
           cn->getZ()>=tan(PI*upperKinkDip/180)*cn->getY()-tan(PI*upperKinkDip/180)*
           faultPosition )
           {
-             cn->ChangeZ( slip*sin(PI*rampDip/180) ); 
+             cn->ChangeZ( slip*sin(PI*rampDip/180) );
              cn->setUplift( slipRate*sin(PI*rampDip/180) );
           }
       }
-    
+
       else
       {
           if( cn->getZ()>=tan(PI*rampDip/180)*cn->getY()-tan(PI*rampDip/180)
           *faultPosition && cn->getZ()>-tan(PI*kinkDip/180)*cn->getY()+
           (faultPosition-(flatDepth/tan(PI*rampDip/180))-(flatDepth*tan(PI*90/180-
-          PI*kinkDip/180)))*tan(PI*kinkDip/180) && 
+          PI*kinkDip/180)))*tan(PI*kinkDip/180) &&
           cn->getZ()<=-tan(PI*kinkDip/180)*cn->getY()+tan(PI*kinkDip/180)*
           faultPosition )
           {
-             cn->ChangeZ( slip*sin(PI*rampDip/180) );  
-             cn->setUplift( slipRate*sin(PI*rampDip/180) );  
+             cn->ChangeZ( slip*sin(PI*rampDip/180) );
+             cn->setUplift( slipRate*sin(PI*rampDip/180) );
           }
       }
    }
-         
-   elapsedTime += delt;    
+
+   elapsedTime += delt;
 }
 
-  
+
 
 /************************************************************************\
 **
@@ -683,7 +684,7 @@ double tUplift::getDuration() const
    return duration;
 }
 
-double tUplift::getRate() const 
+double tUplift::getRate() const
 {
    return rate;
 }
