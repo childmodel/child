@@ -19,7 +19,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.33 2002-06-18 16:29:50 arnaud Exp $
+**  $Id: tMesh.h,v 1.34 2002-07-05 16:50:12 arnaud Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -69,7 +69,8 @@ class tMesh
    tMesh& operator=(const tMesh&);
 
    void MakePointBoundary( const ParamMMFS_t &, tInputFile &, tPtrList< tSubNode > & );
-   void MakePointInterior( const ParamMMFS_t &, tInputFile & );
+   void MakePointInterior( const ParamMMFS_t &, tInputFile &,
+			   bool makeMesh);
 public:
    tMesh();
    tMesh( tInputFile & );
@@ -77,6 +78,7 @@ public:
    ~tMesh();
    void BatchAddNodes(); // quickly adds many nodes when starting w/ dense mesh
    void MakeMeshFromScratch( tInputFile & );   // creates a new mesh
+   void MakeMeshFromScratchTipper( tInputFile & );   // creates a new mesh
    void MakeMeshFromInputData( tInputFile & ); // reads in an existing mesh
    void MakeMeshFromPoints( tInputFile & );    // creates mesh from list of pts
 	 void MakeRandomPointsFromArcGrid( tInputFile & ); // mesh from arc (rand)
@@ -169,6 +171,7 @@ protected:
 */
 #ifdef __GNUC__
 #include "tMesh.cpp"
+#include "tMesh2.cpp"
 #endif
 
 #endif

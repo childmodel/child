@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.107 2002-06-24 14:03:16 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.108 2002-07-05 16:50:09 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -255,6 +255,9 @@ tMesh( tInputFile &infile )
    case 0:
      MakeMeshFromScratch( infile ); //create new mesh with parameters
      break;
+   case 10:
+     MakeMeshFromScratchTipper( infile ); //create new mesh with parameters
+     break;
    case 1:
      {
        int lay;  // option for reading layer info
@@ -276,6 +279,7 @@ tMesh( tInputFile &infile )
    default:
      cerr << "Valid options for reading mesh input are:\n"
 	  << "  0 -- create rectangular offset mesh\n"
+	  << " 10 -- idem, using Tipper triangulator\n"
 	  << "  1 -- read mesh from input data files\n"
 	  << "  2 -- create mesh from a list of (x,y,z,b) points\n"
 	  << "  3 -- create random mesh from ArcGrid ascii output\n"
@@ -563,15 +567,17 @@ MakeMeshFromInputData( tInputFile &infile )
    cout << "done.\n";
 
    //DEBUG
+   if (0) {
    cout << "JUST ADDED EDGES:\n";
-   tMeshListIter< tEdge > ei( edgeList );
-   tEdge * ce;
-
-   /*Xfor( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
-     {
-       ce->TellCoords();
-       cout << ce->FlowAllowed() << endl;
-     }*/
+     tMeshListIter< tEdge > ei( edgeList );
+     tEdge * ce;
+     
+     for( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
+       {
+	 ce->TellCoords();
+	 cout << ce->FlowAllowed() << endl;
+       }
+   }
 
    // set up the lists of edges (spokes) connected to each node
    // (GT added code to also assign the 1st edge to "edg" as an alternative
@@ -755,16 +761,16 @@ MakeMeshFromInputData( tInputFile &infile )
      }  // end of current densification level
    } // end of optional mesh densification  
 
-   /*tMeshListIter< tEdge > ei( edgeList );
-   tEdge * ce;*/
-   cout << "JUST BEFORE UPDATEMESH\n";
-   for( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
-     {
-       ce->TellCoords();
-       cout << ce->getVEdgLen() << " " << ce->getBoundaryFlag() << endl;
-     }
-
-
+   {
+     tMeshListIter< tEdge > ei( edgeList );
+     tEdge * ce;
+     cout << "JUST BEFORE UPDATEMESH\n";
+     for( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
+       {
+	 ce->TellCoords();
+	 cout << ce->getVEdgLen() << " " << ce->getBoundaryFlag() << endl;
+       }
+   }
 
    UpdateMesh();
    CheckMeshConsistency();
@@ -1393,7 +1399,8 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
 
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile )
+MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
+		   bool makeMesh )
 {
    int i, j,                     // counters 
        nx, ny;                   // no. of nodes along a side
@@ -1440,7 +1447,10 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile )
             }
             tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
             tempnode.setID( miNextNodeID );
-            AddNode( tempnode );
+	    if (makeMesh)
+	      AddNode( tempnode );
+	    else
+	      nodeList.insertAtActiveBack(tempnode);
          }
       }
    }
@@ -1456,7 +1466,10 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile )
          {
             tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
             tempnode.setID( miNextNodeID );
-            AddNode( tempnode );
+	    if (makeMesh)
+	      AddNode( tempnode );
+	    else
+	      nodeList.insertAtActiveBack(tempnode);
             miNextNodeID++;
          }
       }
@@ -1474,7 +1487,10 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile )
       tempnode.set3DCoords( Param.xout, Param.yout, 0 );
       tempnode.setID( miNextNodeID );
       miNextNodeID++;
-      AddNode( tempnode );
+      if (makeMesh)
+	AddNode( tempnode );
+      else
+	nodeList.insertAtActiveBack(tempnode);
    }
 }
 
@@ -1524,7 +1540,7 @@ MakeMeshFromScratch( tInputFile &infile )
 
    // Add the interior points.
    cout << "filling in points\n";
-   MakePointInterior(Param, infile);
+   MakePointInterior(Param, infile, true);
 
    // Now finalize the initialization by updating mesh properties
    MakeCCWEdges();
