@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.10 1998-02-20 00:11:17 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.11 1998-02-20 23:01:48 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -737,3 +737,8 @@ void tLNode::setReachMember( int val )
 {chan.migration.reachmember = ( val == 0 || val == 1 ) ? val : 0;}
 
 int tLNode::getReachMember() const {return chan.migration.reachmember;}
+
+void tLNode::setQs( double val ) {chan.erosion.qs = val;}
+
+double tLNode::getQs() const {return chan.erosion.qs;}
+
