@@ -3,7 +3,7 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.73 1999-05-11 19:07:23 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.74 1999-05-14 14:35:28 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -941,11 +941,15 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 MakeMeshFromScratch( tInputFile &infile )
 {
-   int i, j, id, n, nx, ny;
-   int numPts;
-   double dist;
-   double delGrid, slope;
+   int i, j,                     // counters 
+       id,                       // node ID number
+       n, nx, ny;                // no. of nodes along a side
+   int numPts;                   // total no. of interior pts (if random)
+   double dist;                  // current distance along boundary
+   double delGrid,               // average spacing between nodes
+       slope;
    double upperZ;
+   double xout=0, yout=0;        // coordinates of user-specified outlet
    tArray< double > xyz(3);
    //cout << "In MGFS, calling node constr w/ infile\n";
    tSubNode tempnode( infile ),  // temporary node used to create node list
@@ -1164,17 +1168,24 @@ MakeMeshFromScratch( tInputFile &infile )
    }
    else if( boundType == kSpecifyOutlet )
    {
-      double xout = infile.ReadItem( xout, "OUTLET_X_COORD" );
-      double yout = infile.ReadItem( yout, "OUTLET_Y_COORD" );
+      // Read outlet coordinates from input file
+      xout = infile.ReadItem( xout, "OUTLET_X_COORD" );
+      yout = infile.ReadItem( yout, "OUTLET_Y_COORD" );
+
+      // Create nodes for bottom (Y=0) boundary and place them on list
       n = xGrid / delGrid;
       tempnode.setBoundaryFlag( kClosedBoundary );
       for( i=0, id=0; i<n; i++, id++ )
       {
+         // Assign node coords to tempnode and add tempnode to list
          dist = i * delGrid + 0.01 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
          tempnode.setID( id );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
+
+         // If user wants outlet on this side between this and the next pt,
+         // create the outlet now
          if( yout == 0 && xout > dist && xout < dist + delGrid )
          {
             tempnode.set3DCoords( xout, yout, 0 );
@@ -1186,6 +1197,8 @@ MakeMeshFromScratch( tInputFile &infile )
             tempnode.setBoundaryFlag( kClosedBoundary );
          }
       }
+
+      // Create nodes for right (X=xGrid) boundary and place them on list
       n = yGrid / delGrid;
       for( i=0; i<n; i++, id++ )
       {
@@ -1205,6 +1218,8 @@ MakeMeshFromScratch( tInputFile &infile )
             tempnode.setBoundaryFlag( kClosedBoundary );
          }
       }
+
+      // Create nodes for top (Y=yGrid) boundary and place them on list
       n = xGrid / delGrid;
       for( i=n; i>0; i--, id++ )
       {
@@ -1224,6 +1239,8 @@ MakeMeshFromScratch( tInputFile &infile )
             tempnode.setBoundaryFlag( kClosedBoundary );
          }
       }
+
+      // Create nodes for left (X=0) boundary and place them on list
       n = yGrid / delGrid;
       for( i=n; i>0; i--, id++ )
       {
@@ -1270,19 +1287,29 @@ MakeMeshFromScratch( tInputFile &infile )
    assert( meshok );
    cout << "filling in points\n";
 
-   // FILL IN POINTS
-   // gt modified to use AddNode instead of AddNodeAt
+   // Add the interior points. 
+   // Variations on the theme are these:
+   // 1 - If points are uniform, set up a staggered mesh (alternate rows
+   //     are offset by + or - 25% of delGrid, respectively)
+   // 2 - If points are "perturbed", do the same but add an extra random offset
+   //     of +/- 25% of delGrid
+   // 3 - If top and bottom sides (but not left & right) are open boundaries,
+   //     modify elevations to set up a slope from top to bottom
+   // 4 - If points are "random", simply pick numPts random locations within
+   //     the interior
    tempnode.setBoundaryFlag( kNonBoundary );
    if( ptPlace == kUniformMesh || ptPlace == kPerturbedMesh )
    {
-      nx = xGrid / delGrid;
-      ny = yGrid / delGrid;
+      nx = xGrid / delGrid;  // no. points in x direction
+      ny = yGrid / delGrid;  // no. points in y direction
       for( i=1; i<nx; i++ )
       {
          for( j=1; j<ny; j++, id++ )
          {
             //rows are offset such that there should be an
-            //edge leading to a corner outlet
+            //edge leading to a corner outlet -- NB: no longer true!
+            // Random offset amplified to 25%!
+            // TODO: ensure integrity of corner outlet!
             xyz[0] = i * delGrid - 0.25 * delGrid * (j%2)
                 + 0.25 * delGrid * ((j+1)%2);
             xyz[1] = j * delGrid;
@@ -1321,6 +1348,22 @@ MakeMeshFromScratch( tInputFile &infile )
          }
       }
    }
+
+   // If user wants a specified outlet location, place the outlet point
+   // now (unless the outlet is right along one of the boundaries, in which
+   // case it will already have been created during boundary setup)
+   // Added by GT, 5/14/99
+   // Note: potential gotcha is that we don't check to see if there's 
+   // already another point at the same location. TODO (see tInlet)
+   if( boundType==kSpecifyOutlet && xout!=0 && yout!=0 )
+   {
+      tempnode.setBoundaryFlag( kOpenBoundary );
+      tempnode.set3DCoords( xout, yout, 0 );
+      tempnode.setID( id );
+      AddNode( tempnode );
+   }
+
+   // Now finalize the initialization by updating mesh properties
    MakeCCWEdges();
    UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
    CheckMeshConsistency();                     //remove CMC call from UM
