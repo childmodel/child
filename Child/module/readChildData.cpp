@@ -245,10 +245,7 @@ int skipRecords(ifstream& file, const int nStep, const char* filename){
 
 void ReadChildData::CopyZinData(){
   AllocateData(false);
-  for(size_t i=0; i != nnodes_; ++i){
-    data[i] = z[i];
-  }
-
+  memcpy(data,z,nnodes()*sizeof(data[0]));
 }
 
 bool ReadChildData::ReadNodes(const char* filename, const int nStep){
