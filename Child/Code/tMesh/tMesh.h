@@ -2,7 +2,17 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.18 1999-02-04 19:26:28 nmgaspar Exp $
+**  tGrid is the master class that handles the implementation of the
+**  triangulated mesh. The class includes lists of the mesh elements
+**  (nodes, triangles, and edges; see gridElements.h/.cpp), and provides
+**  functionality to:
+**    - read in or create meshes, either from scratch, from a list of
+**      points, from a pre-existing set of triangulation files (e.g., a
+**      previous run), or an Arc/Info grid DEM
+**    - move, add, and/or delete nodes
+**    - update Delaunay and Voronoi geometry
+**
+**  $Id: tMesh.h,v 1.19 1999-03-19 22:31:32 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -47,16 +57,14 @@ class tGrid
    friend class tListOutputData< tSubNode >;
 public:
    tGrid();
-   //tGrid( tListInputData< tSubNode > & );
-   //tGrid( tListInputData< tSubNode > &, int );
    tGrid( tInputFile & );
    ~tGrid();
-   void BatchAddNodes();
-   void MakeGridFromScratch( tInputFile & );
-   void MakeGridFromInputData( tInputFile & );
-   void MakeGridFromPoints( tInputFile & );
-	 void MakeRandomPointsFromArcGrid( tInputFile & );
-   void MakeHexMeshFromArcGrid( tInputFile &infile );
+   void BatchAddNodes(); // quickly adds many nodes when starting w/ dense mesh
+   void MakeGridFromScratch( tInputFile & );   // creates a new mesh
+   void MakeGridFromInputData( tInputFile & ); // reads in an existing mesh
+   void MakeGridFromPoints( tInputFile & );    // creates mesh from list of pts
+	 void MakeRandomPointsFromArcGrid( tInputFile & ); // mesh from arc (rand)
+   void MakeHexMeshFromArcGrid( tInputFile &infile );// mesh from arc (hex)
    void MakeLayersFromInputData( tInputFile & );
    void Print();
    /*makes edg, ccwedg structure from spokelists*/
@@ -124,12 +132,12 @@ public:
 #endif
    
 protected:
-   int nnodes, nedges, ntri;
-   tGridList< tSubNode > nodeList;
-   tGridList< tEdge > edgeList;
-   tList< tTriangle > triList;
-   long seed;
-   bool layerflag;
+   int nnodes, nedges, ntri;       // # of nodes, edges, and tri's (obsolete?)
+   tGridList< tSubNode > nodeList; // list of nodes
+   tGridList< tEdge > edgeList;    // list of directed edges
+   tList< tTriangle > triList;     // list of triangles
+   long seed;                      // random seed
+   bool layerflag;                 // flag indicating whether nodes have layers
 
 };
 
