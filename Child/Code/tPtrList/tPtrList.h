@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.47 2004-04-19 13:27:06 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.48 2004-06-14 14:09:56 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -48,11 +48,9 @@
 #include <stdlib.h>
 #if !defined(HAVE_NO_NAMESPACE)
 # include <iostream>
-# include <fstream>
 using namespace std;
 #else
 # include <iostream.h>
-# include <fstream.h>
 #endif
 #include <assert.h>
 #include "../compiler.h"
