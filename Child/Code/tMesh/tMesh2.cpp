@@ -81,6 +81,8 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
       cerr << "\nPoint file name: '" << pointFilenm << "'\n";;
       ReportFatalError( "I can't find a file by this name." );
     }
+    // temporary node used to create node list (creation is costly)
+    const tSubNode aNode( infile );
     //Read point file, make Nodelist
     for( int i=0; i<numpts; i++ ){
       double x, y, z;
@@ -96,7 +98,7 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
 	ReportFatalError( "I can't read the point above." );
       }
 
-      tSubNode tempnode( infile );  // temporary node used to create node list
+      tSubNode tempnode( aNode );
       tempnode.set3DCoords( x, y, z);
       tempnode.setBoundaryFlag( bnd );
       miNextNodeID = i;
