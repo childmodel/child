@@ -35,7 +35,7 @@
 **       MIT, Bldg 48, Room 429             Mansfield Road
 **       Cambridge, MA 02139 USA            Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.1 2000-06-19 15:20:47 gtucker Exp $
+**  $Id: toddlermain.cpp,v 1.2 2000-06-19 17:39:35 gtucker Exp $
 \**************************************************************************/
 
 
@@ -84,7 +84,7 @@ main( int argc, char **argv )
    silent_mode = ( argc>2 && argv[2][1]=='s' );
    
    // Say hello
-   cout << "\nThis is CHILD, version " << VERSION << endl << endl;
+   cout << "\nThis is TODDLER, version " << VERSION << endl << endl;
    
    // Open main input file
    tInputFile inputFile( argv[1] );
