@@ -276,8 +276,8 @@ BANK_ROUGH_COEFF: coeff. on downstream bank roughness relation (for meand only)
 75.0
 BANK_ROUGH_EXP: exp on discharge for downstream bank roughness (for meand only)
 0.0
-BANKFULLEVENT: precipitation rate of a bankfull event, in m/s
-1.268e-7
+BANKFULLEVENT: precipitation rate of a bankfull event, in m/year
+11.
 #
 #   Other options
 #
