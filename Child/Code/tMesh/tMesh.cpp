@@ -9,7 +9,7 @@
 **      initial value of mSearchOriginTriPtr, and modified ExtricateTri...
 **      to avoid dangling ptr. GT, 1/2000
 **
-**  $Id: tMesh.cpp,v 1.83 2000-01-20 17:15:50 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.84 2000-01-24 22:49:01 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -1582,6 +1582,8 @@ MakeMeshFromPoints( tInputFile &infile )
 
    // Clean up (probably not strictly necessary bcs destructors do the work)
    supertriptlist.Flush();
+
+   //XPtrListDebug::TellAll();
    
 }
 
