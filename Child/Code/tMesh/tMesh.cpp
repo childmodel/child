@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.124 2003-03-07 10:40:35 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.125 2003-03-07 15:17:38 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3005,65 +3005,43 @@ template< class tSubNode >
 tTriangle * tMesh< tSubNode >::
 LocateTriangle( double x, double y )
 {
-   //cout << "\nLocateTriangle (" << x << "," << y << ")\n";
+   if (0) //DEBUG
+     cout << "\nLocateTriangle (" << x << "," << y << ")\n";
    int n, lv=0;
    tListIter< tTriangle > triIter( triList );  //lt
-   //XtTriangle *lt = &(triIter.DatRef());
    tTriangle *lt = ( mSearchOriginTriPtr > 0 ) ? mSearchOriginTriPtr
        : triIter.FirstP();
-   double a, b, c;
    int online = -1;
-   tArray< double > xy1, xy2;
 
-   /* it starts from the first triangle,
-      searches through the triangles until the point is on
-      the same side of all the edges of a triangle.
-      "lt" is the current triangle and "lv" is the edge number. */
+   // it starts from the first triangle,
+   // searches through the triangles until the point is on
+   // the same side of all the edges of a triangle.
+   // "lt" is the current triangle and "lv" is the edge number.
    for (n=0 ;(lv!=3)&&(lt); n++)
    {
-      xy1 = lt->pPtr(lv)->get2DCoords();
-      xy2 = lt->pPtr( (lv+1)%3 )->get2DCoords();
-      a = (xy1[1] - y) * (xy2[0] - x);
-      b = (xy1[0] - x) * (xy2[1] - y);
-      c = a - b;
-      //cout << "find tri for point w/ x, y, " << x << ", " << y
-      //  << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;
-      // lt->TellAll();
-        cout << flush;
-   
-      if ( c > 0.0 )
+      tArray< double > xy1 = lt->pPtr(lv)->get2DCoords();
+      tArray< double > xy2 = lt->pPtr( (lv+1)%3 )->get2DCoords();
+      const double XY[] = {x, y};
+      double c = predicate.orient2d(xy1.getArrayPtr(), xy2.getArrayPtr(), XY);
+
+      if ( c < 0.0 )
       {
-         //cout << "    Moving on...\n";
          lt=lt->tPtr( (lv+2)%3 );
          lv=0;
          online = -1;
       }
       else
       {
-         //cout << "    So far so good...\n";
          if( c == 0.0 ) online = lv;
          lv++;
       }
-   
-      /*if( n >= ntri + 20 )
-        {
-        DumpTriangles();
-        DumpNodes();
-        }*/
-      //cout << "NTRI: " << ntri << flush;
+
       assert( n < 3*ntri );
    }
-   //cout << "FOUND point in:\n";
-   //if( lt != 0 ) lt->TellAll(); //careful with this! TellAll() will crash
-   //else ReportFatalError( "point out of bounds" );
-   //if lt == 0, i.e., point is out of bounds,
-   //and we don't want that;
-   //calling code is built to deal with lt == 0.
    if( online != -1 )
        if( lt->pPtr(online)->getBoundaryFlag() != kNonBoundary &&
            lt->pPtr( (online+1)%3 )->getBoundaryFlag() != kNonBoundary ) //point on bndy
            return 0;
-   //else cout << "location out of bounds\n";
    return(lt);
 }
 
