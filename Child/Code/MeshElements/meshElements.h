@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.42 2003-04-30 12:35:37 childcvs Exp $
+**  $Id: meshElements.h,v 1.43 2003-04-30 17:17:02 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -753,7 +753,7 @@ inline int tEdge::getID() const {return id;}
 
 //return 0 if flow allowed to match kNonBoundary:
 inline int tEdge::getBoundaryFlag() const
-{return ( flowAllowed == 1 )?kFlowAllowed:kFlowNotAllowed; }
+{return !( flowAllowed == 1 )?kFlowAllowed:kFlowNotAllowed; }
 
 inline double tEdge::getLength() const {return len;}
 
