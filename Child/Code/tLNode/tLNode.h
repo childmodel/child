@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.71 2003-08-08 10:38:02 childcvs Exp $
+ **  $Id: tLNode.h,v 1.72 2003-08-08 11:10:05 childcvs Exp $
  */
 /************************************************************************/
 
@@ -95,8 +95,8 @@ public:
   inline void setDgradesize( int );
   inline int getDgradesize() const;
   void setDgrade( int, double );
-  inline double getDgrade( int );
-  inline tArray< double > getDgrade() const;
+  inline double getDgrade( int ) const;
+  inline tArray< double > const & getDgrade() const;
   inline void addDgrade(int, double);
 
 protected:
@@ -250,13 +250,13 @@ inline void tLayer::addDgrade( int i, double size )
   depth+=size;
 }
 
-inline double tLayer::getDgrade( int i)
+inline double tLayer::getDgrade( int i) const
 {
   assert( i<dgrade.getSize() );
   return dgrade[i];
 }
 
-inline tArray< double >
+inline tArray< double > const &
 tLayer::getDgrade( ) const
 {
   return dgrade;
@@ -462,7 +462,7 @@ public:
   void EroDep( double dz );
   inline void setAlluvThickness( double );
   inline double getAlluvThickness() const;
-  inline tArray< double > getAlluvThicknessm( ) const;
+  inline tArray< double > const & getAlluvThicknessm( ) const;
   inline void setBedErody( double );
   inline double getBedErody() const;
   inline void setReachMember( int );
@@ -473,7 +473,7 @@ public:
   inline void setQs( int, double );
   inline double getQs() const;
   inline double getQs( int );
-  inline tArray< double > getQsm( ) const;
+  inline tArray< double > const & getQsm( ) const;
   inline void setQsin( double );
   void setQsin( int, double );
   void addQs( double );
@@ -484,12 +484,12 @@ public:
   void addQsin( tArray< double > const &);
   inline double getQsin() const;
   inline double getQsin( int );
-  inline tArray< double > getQsinm( ) const;
+  inline tArray< double > const & getQsinm( ) const;
   inline void setGrade( int, double ) const;
   inline double getGrade( int ) const;
-  inline tArray< double > getGrade( ) const;
+  inline tArray< double > const & getGrade( ) const;
   inline void setXYZD( tArray< double > const &);
-  inline tArray< double > getXYZD() const;
+  inline tArray< double > const & getXYZD() const;
   double DistFromOldXY() const;
   inline int OnBedrock() const;
   inline double getDzDt() const;
@@ -515,15 +515,15 @@ public:
   // This function takes the layer index because there may be
   // erosion of the first few layers if the surface layer is not deep enough
   // The addtoLayer() function is a helper to addtoSurfaceDgrade()
-  double getLayerCtime(int) const;
-  double getLayerRtime(int) const;
-  double getLayerEtime(int) const;
-  double getLayerDepth(int) const;
-  double getLayerErody(int) const;
-  int getLayerSed(int) const;
+  inline double getLayerCtime(int) const;
+  inline double getLayerRtime(int) const;
+  inline double getLayerEtime(int) const;
+  inline double getLayerDepth(int) const;
+  inline double getLayerErody(int) const;
+  inline int getLayerSed(int) const;
   inline double getLayerDgrade(int, int) const;  // first int is layer index
   // second int is grade index - see note above for indexing directions
-  int getNumLayer() const;
+  inline int getNumLayer() const;
   void setLayerCtime(int, double);
   void setLayerRtime(int, double);
   void setLayerEtime(int, double);
@@ -734,7 +734,7 @@ inline double tLNode::getQs( int i)
   return qsm[i];
 }
 
-inline tArray< double >
+inline tArray< double > const &
 tLNode::getQsm( ) const
 {
   return qsm;
@@ -779,7 +779,7 @@ inline double tLNode::getQsin( int i )
   return qsinm[i];
 }
 
-inline tArray< double >
+inline tArray< double > const &
 tLNode::getQsinm( ) const
 {
   return qsinm;
@@ -797,7 +797,7 @@ double tLNode::getGrade( int i ) const
   return grade[i];
 }
 
-tArray< double >
+tArray< double > const &
 tLNode::getGrade( ) const
 {
   return grade;
@@ -808,7 +808,7 @@ inline void tLNode::setXYZD( tArray< double > const &arr )
   chan.migration.xyzd = ( arr.getSize() == 4 ) ? arr : tArray< double >(4);
 }
 
-inline tArray< double >
+inline tArray< double > const &
 tLNode::getXYZD() const {return chan.migration.xyzd;}
 
 // Tests whether bedrock is exposed at a node
@@ -865,11 +865,50 @@ inline double tLNode::getMaxregdep() const
   return maxregdep;
 }
 
+inline double tLNode::getLayerCtime( int i ) const
+{
+  return layerlist.getIthDataRef(i).getCtime();
+}
+
+inline double tLNode::getLayerRtime( int i ) const
+{
+  return layerlist.getIthDataRef(i).getRtime();
+}
+
+inline double tLNode::getLayerEtime( int i ) const
+{
+  return layerlist.getIthDataRef(i).getEtime();
+}
+
+inline double tLNode::getLayerDepth( int i ) const
+{
+  if( unlikely(layerlist.isEmpty()) )
+    {
+      cout << "** WARNING lyr list empty\n"
+	   << " NODE " << id << ":\n"
+	   << "  x=" << x << " y=" << y << " z=" << z;
+    }
+  return layerlist.getIthDataRef(i).getDepth();
+}
+
+inline double tLNode::getLayerErody( int i ) const
+{
+  return layerlist.getIthDataRef(i).getErody();
+}
+
+inline int tLNode::getLayerSed( int i ) const
+{
+  return layerlist.getIthDataRef(i).getSed();
+}
+
 inline double tLNode::getLayerDgrade( int i, int num ) const
 {
-   tLayer hlp;
-   hlp = layerlist.getIthData(i);
-   return hlp.getDgrade(num);
+   return layerlist.getIthDataRef(i).getDgrade(num);
+}
+
+inline int tLNode::getNumLayer() const
+{
+  return layerlist.getSize();
 }
 
 inline tVegCover & tLNode::getVegCover()
@@ -975,7 +1014,7 @@ inline void tLNode::setAlluvThickness( double val )
 
 inline double tLNode::getAlluvThickness() const {return reg.thickness;}
 
-inline tArray< double >
+inline tArray< double > const &
 tLNode::getAlluvThicknessm( ) const
 {
   return reg.dgrade;

@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.116 2003-08-08 10:38:00 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.117 2003-08-08 11:10:04 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -935,13 +935,6 @@ void tLNode::addQs( tArray< double > const & val )
 }
 
 
-double tLNode::getLayerCtime( int i ) const
-{
-  tLayer hlp;
-  hlp = layerlist.getIthData(i);
-  return hlp.getCtime();
-}
-
 void tLNode::setLayerCtime( int i, double tt)
 {
   tListIter<tLayer> ly ( layerlist );
@@ -958,13 +951,6 @@ void tLNode::setLayerCtime( int i, double tt)
   hlp->setCtime( tt );
 }
 
-double tLNode::getLayerRtime( int i ) const
-{
-  tLayer hlp;
-  hlp = layerlist.getIthData(i);
-  return hlp.getRtime();
-}
-
 void tLNode::setLayerRtime( int i, double tt)
 {
   tListIter<tLayer> ly ( layerlist );
@@ -979,13 +965,6 @@ void tLNode::setLayerRtime( int i, double tt)
   }
 
   hlp->setRtime( tt );
-}
-
-double tLNode::getLayerEtime( int i ) const
-{
-  tLayer hlp;
-  hlp = layerlist.getIthData(i);
-  return hlp.getEtime();
 }
 
 void tLNode::setLayerEtime( int i, double tt)
@@ -1020,19 +999,6 @@ void tLNode::addLayerEtime( int i, double tt)
   hlp->addEtime( tt );
 }
 
-double tLNode::getLayerDepth( int i ) const
-{
-  tLayer hlp;
-  if( layerlist.isEmpty() )
-    {
-      cout << "** WARNING lyr list empty\n";
-      cout << " NODE " << id << ":\n";
-      cout << "  x=" << x << " y=" << y << " z=" << z;
-
-    }
-  hlp = layerlist.getIthData(i);
-  return hlp.getDepth();
-}
 
 void tLNode::setLayerDepth( int i, double dep)
 {
@@ -1051,13 +1017,6 @@ void tLNode::setLayerDepth( int i, double dep)
   hlp->setDepth( dep );
 }
 
-double tLNode::getLayerErody( int i ) const
-{
-  tLayer hlp;
-  hlp = layerlist.getIthData(i);
-  return hlp.getErody();
-}
-
 void tLNode::setLayerErody( int i, double ero)
 {
   tListIter<tLayer> ly ( layerlist );
@@ -1074,13 +1033,6 @@ void tLNode::setLayerErody( int i, double ero)
   hlp->setErody( ero );
 }
 
-
-int tLNode::getLayerSed( int i ) const
-{
-  tLayer hlp;
-  hlp = layerlist.getIthData(i);
-  return hlp.getSed();
-}
 
 void tLNode::setLayerSed( int i, int s)
 {
@@ -1603,7 +1555,8 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
     }
   }
 
-  if(maxregdep-helplist.FirstP()->getDepth()>0.001 && helplist.getIthData(1).getSed()>0){
+  if(maxregdep-helplist.FirstP()->getDepth()>0.001 &&
+     helplist.getIthDataRef(1).getSed()>0){
     //top layer is too small, want to maintain maxregdep for erosion reasons
     //Because NG doesn't really know how to manipulate lists,
     //this is probably done in a cockeyed way.  First remove
@@ -2479,11 +2432,6 @@ void tLNode::makeNewLayerBelow(int i, int sd, double erd,
   else{
     layerlist.insertAtFront(hlp);
   }
-}
-
-int tLNode::getNumLayer() const
-{
-  return layerlist.getSize();
 }
 
 //Returns depth of all the layers - pretty useless for the current model
