@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.92 2002-02-11 09:19:51 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.93 2002-03-06 09:18:17 gtucker Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -4228,7 +4228,7 @@ UpdateMesh()
    {
       len = curedg->CalcLength();
       assert( len>0.0 );
-      //Xcout << "Edge " << curedg->getID() << " length: " << curedg->getLength() << endl;
+      cout << "Edge " << curedg->getID() << " length: " << curedg->getLength() << endl;
       curedg = elist.NextP();
       assert( curedg > 0 ); // failure = complementary edges not consecutive
       curedg->setLength( len );
