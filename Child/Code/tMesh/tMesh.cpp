@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.103 2002-05-22 16:50:02 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.104 2002-05-28 17:05:04 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -186,11 +186,11 @@ tMesh<tSubNode>::tMesh( tMesh *originalMesh )
   nodeList(originalMesh->nodeList),
   edgeList(originalMesh->edgeList),
   triList(originalMesh->triList),
-  seed(originalMesh->seed),
-  layerflag(originalMesh->layerflag),
   miNextNodeID(originalMesh->miNextNodeID),
   miNextEdgID(originalMesh->miEdgNodeID),
   miNextTriID(originalMesh->miNextTriID),   
+  seed(originalMesh->seed),
+  layerflag(originalMesh->layerflag),
   mSearchOriginTriPtr(0)
 {}
 
@@ -228,11 +228,11 @@ tMesh( tInputFile &infile )
   nedges(0),
   ntri(0),
   nodeList(),
-  seed(0),
-  layerflag(FALSE),
   miNextNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),   
+  seed(0),
+  layerflag(FALSE),
   mSearchOriginTriPtr(0)
 {
    // mSearchOriginTriPtr:
@@ -247,7 +247,8 @@ tMesh( tInputFile &infile )
      else layerflag=FALSE;
    }
    // option for reading/generating initial mesh
-   int read = infile.ReadItem( read, "OPTREADINPUT" );
+   int read;
+   read = infile.ReadItem( read, "OPTREADINPUT" );
    if( read<0 || read>4 )
    {
       cerr << "Valid options for reading mesh input are:\n"
