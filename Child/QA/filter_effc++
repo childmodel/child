@@ -4,6 +4,8 @@
 # Extract warnings related to initialisation list
 # in constructors from the output of "g++ -Weffc++"
 #
+# results can be on one line with -Weffc++ -fmessage-length=0
+#
 
 # join again the lines that are split 
 awk '
