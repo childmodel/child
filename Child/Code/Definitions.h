@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.44 2004-04-19 15:08:20 childcvs Exp $
+**   $Id: Definitions.h,v 1.45 2004-04-19 16:23:41 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -19,7 +19,7 @@ typedef enum {      // method of grid construction
   kPerturbedMesh = 1,
   kRandomMesh = 2
 } tMeshType_t;
-typedef enum { // type of open boundary (used in MakeMeshFromScratch)
+typedef enum { // type of open boundary (used in tMesh::MakeMeshFromScratch)
   kCornerOutlet = 0,       // corner outlet (lower left)
   kOpenSide = 1,           // one open side (lower)
   kOppositeSidesOpen = 2,  // two opposite sides (upper and lower)
@@ -27,15 +27,42 @@ typedef enum { // type of open boundary (used in MakeMeshFromScratch)
   kSpecifyOutlet = 4 ,     // specify outlet coordinates
   kAllSideClosed = -1      // all sides closed
 } tOpenBoundary_t;
+
 typedef enum { // type of boundary condition
   kClosedBoundary = 1,
   kOpenBoundary = 2,
   kNonBoundary = 0
 } tBoundary_t;
+inline const char* BoundName( tBoundary_t b ){
+  switch(b){
+  case kClosedBoundary:
+    return "1-Closed";
+  case kOpenBoundary:
+    return "2-Open";
+  case kNonBoundary:
+    return "0-Non";
+  }
+}
+inline tBoundary_t IntToBound( int b_ ){
+  return static_cast<tBoundary_t>(b_);
+}
+inline int BoundToInt( tBoundary_t b ){
+  return static_cast<int>(b);
+}
+
 typedef enum {
   kFlowAllowed = 1,
   kFlowNotAllowed = 0
 } tEdgeBoundary_t;
+inline const char* EdgeBoundName( tEdgeBoundary_t b ){
+  switch(b){
+  case kFlowAllowed:
+    return "1-Allowed";
+  case kFlowNotAllowed:
+    return "0-NonAllowed";
+  }
+}
+
 #define kMeanderNode true
 #define kNonMeanderNode false
 #define RHO 1000.0      /* Density of water (kg/m^3) */

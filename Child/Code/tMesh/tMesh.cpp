@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.209 2004-04-19 13:33:38 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.210 2004-04-19 16:23:45 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -494,7 +494,7 @@ MakeMeshFromInputData( const tInputFile &infile )
       miNextNodeID = i;
       tempnode.setID( miNextNodeID );
       assert( input.boundflag[i] >= 0 && input.boundflag[i] <= 2 );
-      tBoundary_t bound = INT_TO_ENUM(tBoundary_t, input.boundflag[i]);
+      tBoundary_t bound = IntToBound(input.boundflag[i]);
       tempnode.setBoundaryFlag( bound );
       switch (bound){
       case kNonBoundary:
@@ -510,8 +510,9 @@ MakeMeshFromInputData( const tInputFile &infile )
       if (0) { // DEBUG
 	cout << input.x[i] << input.y[i] << input.z[i]
 	     << input.boundflag[i] << endl;
-	cout << tempnode.getBoundaryFlag() << " ";
-	cout << nodeList.getLast()->getDataPtr()->getBoundaryFlag() << endl;
+	cout << BoundName(tempnode.getBoundaryFlag()) << " "
+	     << BoundName(nodeList.getLast()->getDataPtr()->getBoundaryFlag())
+	     << endl;
       }
    }
    cout << "done.\n";
@@ -577,7 +578,7 @@ MakeMeshFromInputData( const tInputFile &infile )
        for( tEdge *ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
 	 {
 	   ce->TellCoords();
-	   cout << ce->FlowAllowed() << endl;
+	   cout << EdgeBoundName(ce->FlowAllowed()) << endl;
 	 }
      }
 
@@ -660,7 +661,8 @@ MakeMeshFromInputData( const tInputFile &infile )
      for( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
        {
 	 ce->TellCoords();
-	 cout << ce->getVEdgLen() << " " << ce->getBoundaryFlag() << endl;
+	 cout << ce->getVEdgLen() << " "
+	      << BoundName(ce->getBoundaryFlag()) << endl;
        }
    }
 
@@ -1629,7 +1631,7 @@ MakeMeshFromPoints( const tInputFile &infile )
       //cout << "IN MGFP c0, ADDING NODE " << i << endl;
       //Xtempnode.setID( miNextNodeID );
       tempnode.set3DCoords( x[i],y[i],z[i] );
-      tempnode.setBoundaryFlag( INT_TO_ENUM(tBoundary_t,bnd[i]) );
+      tempnode.setBoundaryFlag( IntToBound(bnd[i]) );
       //if(bnd[i]==kNonBoundary && z[i]<0)
       //  cout<<"problem at x "<<x[i]<<" y "<<y[i]<<endl;
       AddNode( tempnode );
@@ -2369,9 +2371,9 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
                     << "is a non-boundary point, boundary conditions not OK \n"
                     << "The two nodes x, y and boundary flags are: \n"
                     << (ct->pPtr((i+1)%3))->getX() << ' ' << (ct->pPtr((i+1)%3))->getY() << ' '
-                    << (ct->pPtr((i+1)%3))->getBoundaryFlag()
+                    << BoundName((ct->pPtr((i+1)%3))->getBoundaryFlag())
                     << " and \n" << (ct->pPtr((i+2)%3))->getX() <<' ' << (ct->pPtr((i+2)%3))->getY()<< ' '
-                    << (ct->pPtr((i+2)%3))->getBoundaryFlag()<< endl;
+                    << BoundName((ct->pPtr((i+2)%3))->getBoundaryFlag())<< endl;
                goto error;
             }
          }
@@ -4892,7 +4894,8 @@ DumpEdges()
       tid = ( ct != 0 ) ? ct->getID() : -1;
       cout << ce->getID() << " from " << ce->getOriginPtrNC()->getID()
            << " to " << ce->getDestinationPtrNC()->getID() << "; in tri "
-           << tid << " (flw " << ce->getBoundaryFlag() << ")" << endl;
+           << tid << " (flw " << BoundName(ce->getBoundaryFlag()) << ")"
+	   << endl;
    }
 }
 
@@ -4952,7 +4955,7 @@ DumpNodes()
    for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
    {
       cout << " at " << cn->getX() << ", " << cn->getY() << ", " << cn->getZ()
-           << "; bndy: " << cn->getBoundaryFlag() << "; ";
+           << "; bndy: " << BoundName(cn->getBoundaryFlag()) << "; ";
       DumpSpokes( cn );
    }
 }

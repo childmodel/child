@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.73 2004-04-19 13:27:08 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.74 2004-04-19 16:23:41 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -190,7 +190,7 @@ double tNode::ComputeVoronoiArea()
   if( getBoundaryFlag()!=kNonBoundary ) // if not an interior node, something's wrong
     {
       cout << "Warning: attempt to compute Voronoi area for a boundary node: "
-	   << id << " " << x << " " << y << " " << getBoundaryFlag() << endl;
+	   << id << " " << x << " " << y << " " << BoundName(getBoundaryFlag()) << endl;
       return 0.0;
     }
 
@@ -434,7 +434,8 @@ double tNode::ComputeVoronoiArea()
   varea = area;
   if( varea<=0.0 ) { // debug
     cout << "Error: zero or negative varea = " << varea << endl;
-    cout << "Node: " << id << " " << x << " " << y << " " << boundary << endl;
+    cout << "Node: " << id << " " << x << " " << y << " "
+	 << BoundName(boundary) << endl;
     getEdg()->TellCoords();
   }
   assert( varea>0.0 );
@@ -592,7 +593,7 @@ void tNode::TellAll() const
 {
    cout << " NODE " << id << ":\n";
    cout << "  x=" << x << " y=" << y << " z=" << z;
-   cout << "  boundary: " << boundary
+   cout << "  boundary: " << BoundName(boundary)
         << "\n  varea: " << varea << endl;
    if( edg )
        cout << "  points to edg #" << edg->getID() << endl;

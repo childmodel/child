@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.52 2004-04-19 12:52:48 childcvs Exp $
+ **  $Id: tOutput.h,v 1.53 2004-04-19 16:23:49 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -130,7 +130,7 @@ inline void tOutput<tSubNode>::WriteNodeRecord( tNode *cn )
 {
   nodeofs << cn->getX() << ' ' << cn->getY() << ' '
 	  << cn->getEdg()->getID() << ' '
-	  << cn->getBoundaryFlag() << '\n';
+	  << BoundToInt(cn->getBoundaryFlag()) << '\n';
   zofs << cn->getZ() << '\n';
   vaofs << cn->getVArea() << '\n';
 }

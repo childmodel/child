@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.95 2004-04-19 14:01:12 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.96 2004-04-19 16:23:47 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -372,7 +372,8 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
 
   // Flow depth: if kinematic wave option used OR if channel geometry
   // model other than "regime" used
-  if( ((opOpt = infile.ReadItem( opOpt, "FLOWGEN" )) == k2DKinematicWave )
+  if( (static_cast<kFlowGen_t>(opOpt = infile.ReadItem( opOpt, "FLOWGEN" ))
+       == k2DKinematicWave )
       || (opOpt = infile.ReadItem( opOpt, "CHAN_GEOM_MODEL"))>1 )
     CreateAndOpenFile( &flowdepofs, ".dep" );
 
@@ -388,7 +389,8 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
 
   // Flow path length output: if using hydrograph peak method for
   // computing discharge
-  if( (opOpt = infile.ReadItem( opOpt, "FLOWGEN" )) == kHydrographPeakMethod )
+  if( static_cast<kFlowGen_t>(opOpt = infile.ReadItem( opOpt, "FLOWGEN" ))
+      == kHydrographPeakMethod )
     CreateAndOpenFile( &flowpathlenofs, ".fplen" );
 
   // Sediment flux: if not using detachment-limited option

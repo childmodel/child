@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.89 2004-04-19 14:00:25 childcvs Exp $
+ **  $Id: tLNode.h,v 1.90 2004-04-19 16:23:43 childcvs Exp $
  */
 /************************************************************************/
 
@@ -65,6 +65,16 @@ typedef enum {
   kOutletPreFlag= 5  // ditto
 } tFlood_t;
 
+inline const char* FloodName( tFlood_t f ){
+  switch(f){
+  case kFlooded:      return "1-Flooded";
+  case kNotFlooded:   return "0-NotFlooded";
+  case kCurrentLake:  return "2-CurrentLake";
+  case kSink:         return "3-Sink";
+  case kOutletFlag:   return "4-OutletFlag";
+  case kOutletPreFlag:return "5-OutletPreFlag";
+  }
+}
 
 #define kVeryHigh 100000  // Used in FillLakes
 

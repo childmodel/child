@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.132 2004-04-16 18:37:15 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.133 2004-04-19 16:23:41 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -672,7 +672,12 @@ double tLNode::CalcSlopeMeander()
 	      counter=0;
 	      cn=this;
 	      while(cn!=NULL && counter <=50){
-	         cout<< "M-Nodes " <<cn->getID()<<' '<<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()<<" A= "<<cn->getDrArea()<<" Q= "<<cn->getQ()<<" W= "<<cn->getChanWidth()<< " Mndr="<<cn->Meanders()<<"Flood= "<<cn->getFloodStatus()<<endl;
+	         cout<< "M-Nodes "
+		     <<cn->getID()<<' '
+		     <<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
+		     <<" A= "<<cn->getDrArea()<<" Q= "<<cn->getQ()
+		     <<" W= "<<cn->getChanWidth()<< " Mndr="<<cn->Meanders()
+		     <<"Flood= "<< FloodName(cn->getFloodStatus()) <<endl;
 	  	 cn=cn->getDownstrmNbr();
 	  	 counter++;
 	      }
@@ -732,7 +737,7 @@ void tLNode::FindInitFlowDir() // overrides tNode; was tStreamNet::
    int ctr = 0;
    // Start with the node's default edge
    tEdge* flowedg = getEdg();
-   assert( flowedg>0 );
+   assert( flowedg!=0 );
 
    // As long as the current edge is a no-flow edge, advance to the next one
    // counter-clockwise
@@ -970,7 +975,8 @@ void tLNode::TellAll() const
   if( getEdg() ) {
     cout << "  points to edg #" << getEdg()->getID() << endl;
     cout << "  dr area: " << getDrArea() << "  disch: " << getQ()
-	 << "  boundary: " << boundary << "  flood: " << flood
+	 << "  boundary: " << BoundName(boundary)
+	 << "  flood: " << FloodName(flood)
 	 << "\n  varea: " << varea << endl;
 
     if( flowedge ) {
@@ -1661,7 +1667,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
     for(j=0; j<numnodes; j++){
       cout<<endl;
       cout<<"node "<<j<<" x "<<lnds[j]->getX()<<" y "<<lnds[j]->getY();
-      cout<<" boundary "<<lnds[j]->getBoundaryFlag()<<endl;
+      cout<<" boundary "<< BoundName(lnds[j]->getBoundaryFlag())<<endl;
       tLNode * nicn = lnds[j];
       i=0;
       while(i<nicn->getNumLayer()){

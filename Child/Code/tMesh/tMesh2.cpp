@@ -98,7 +98,7 @@ MakeMeshFromPointsTipper( const tInputFile &infile ){
 
       tSubNode tempnode( aNode );
       tempnode.set3DCoords( x, y, z);
-      tempnode.setBoundaryFlag( static_cast<tBoundary_t>(bnd) );
+      tempnode.setBoundaryFlag( IntToBound(bnd) );
       miNextNodeID = i;
       tempnode.setID( miNextNodeID );
       if( bnd<0 || bnd>3 ){
@@ -255,7 +255,7 @@ BuildDelaunayMeshTipper()
        edgeListIter_t ei( edgeList );
        for( tEdge *ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() ){
 	 ce->TellCoords();
-	 cout << ce->FlowAllowed() << endl;
+	 cout << EdgeBoundName(ce->FlowAllowed()) << endl;
        }
      }
 
