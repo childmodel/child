@@ -42,7 +42,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.32 2002-09-23 12:11:47 arnaud Exp $
+**  $Id: meshElements.h,v 1.33 2002-12-12 14:19:49 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -111,7 +111,7 @@ public:
   const tNode &operator=( const tNode & );   // assignment operator
   tArray< double > get3DCoords() const;      // returns x,y,z
   tArray< double > get2DCoords() const;      // returns x,y
-  int getID() const;                         // returns ID number
+  inline int getID() const;                         // returns ID number
   double getX() const;                       // returns x coord
   double getY() const;                       // returns y coord
   double getZ() const;                       // returns z value
@@ -228,8 +228,8 @@ public:
   const tNode *getOriginPtr() const;      // returns ptr to origin node (const)
   const tNode *getDestinationPtr() const; // returns ptr to dest node (const)
   tNode *getOriginPtrNC();      // returns ptr to origin node (non-const)
-  tNode *getDestinationPtrNC(); // returns ptr to destination node (non-const)
-  tEdge * getCCWEdg();          // returns ptr to counter-clockwise neighbor
+  inline tNode *getDestinationPtrNC(); // returns ptr to destination node (non-const)
+  inline tEdge * getCCWEdg();          // returns ptr to counter-clockwise neighbor
   tArray< double > getRVtx() const;  // returns Voronoi vertex for RH triangle
   double getVEdgLen() const;    // returns length of assoc'd Voronoi cell edge
   int FlowAllowed();            // returns boundary status ("flow allowed")
@@ -297,13 +297,13 @@ public:
   //~tTriangle();                   // destructor
 
   const tTriangle &operator=( const tTriangle & ); // assignment operator
-  int getID() const;                 // returns ID number
+  inline int getID() const;                 // returns ID number
   tNode *pPtr( int );                // returns ptr to given vertex (0,1, or 2)
   tEdge *ePtr( int );                // returns ptr to given clockwise edge
   tTriangle *tPtr( int );            // returns ptr to given neighboring tri
   void setID( int );                 // sets ID number
   void setPPtr( int, tNode * );      // sets ptr to given vertex
-  void setEPtr( int, tEdge * );      // sets ptr to given clockwise edge
+  inline void setEPtr( int, tEdge * );      // sets ptr to given clockwise edge
   void setTPtr( int, tTriangle * );  // sets ptr to given neighboring tri
   int nVOp( tTriangle * );    // returns side # (0,1 or 2) of nbr triangle
   int nVtx( tNode * );        // returns vertex # (0,1 or 2) of given node

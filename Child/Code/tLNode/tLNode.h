@@ -27,7 +27,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.55 2002-09-23 12:11:49 arnaud Exp $
+**  $Id: tLNode.h,v 1.56 2002-12-12 14:19:50 childcvs Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -440,7 +440,7 @@ public:
     void DeactivateSortTracer();
     void MoveSortTracerDownstream();
     void FlagDownhillNodes();
-    void AddTracer();
+    inline void AddTracer();
     int NoMoreTracers();
     void EroDep( double dz );
     void setAlluvThickness( double );
