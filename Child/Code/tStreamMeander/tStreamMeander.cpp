@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.96 2003-10-02 15:51:55 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.97 2003-10-03 10:00:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1300,6 +1300,12 @@ void tStreamMeander::AddChanBorder(double time)
 			      }
 			      tArray< double > xyz(3);
 			      for( i=0; i<3; i++ ) xyz[i] = oldpos[i];
+			      // Make sure the banknode is not lower than the node it
+			      // originates from, bug fix 8/2003 QC. Causes ponds if the
+			      // meander path is redirected over the newly added banknode
+			      // in FlowDir
+			      if( xyz[2] < cn->getZ())
+				xyz[2] = cn->getZ();
 			      channodePtr = meshPtr->AddNodeAt( xyz, time );
 			      channodePtr->setRock( cn->getRock() );
 			      //XchannodePtr->setSurf( cn->getSurf() );
@@ -2015,8 +2021,7 @@ int tStreamMeander::InChannel( tLNode *mnode, tLNode const *bnode )
   tEdge *fe = mnode->getFlowEdg();
 
   //if downstrm nbr exists and is still in nodeList; also flowedge:
-  if( dnode != 0 && dI.Get( dnode->getID() ) &&
-      fe != 0 && eI.Get( fe->getID() ) )
+  if( dnode != 0 && fe != 0 )
     {
       const double L = mnode->getFlowEdg()->getLength();
       //mindist = sqrt( L * L + b * b );
