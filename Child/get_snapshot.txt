@@ -15,9 +15,9 @@ Version System) version 1.10 or later.
 1. Because the repository is accessed using the Secure Shell (ssh) facility,
 you will need to generate an RSA 1 key pair that will allow you to send and
 receive encrypted transmissions. A key pair consists of a public key that can
-be published  and a private key kept secret. You can do this by entering
+be published and a private key kept secret. You can do this by entering
 "ssh-keygen -t rsa1" at the Unix command prompt if you are using openssh.
-If your version of ssh is different, you are in unkown territory. Check out
+If your version of ssh is different, you are in unknown territory. Check out
 the links below though and email us for support.
    To avoid to have to type a password at each connection, you can leave the
 pass-phrase empty when generating the key pair.
@@ -50,12 +50,13 @@ add the following line to the file .cshrc in your home directory:
   CVS_RSH=ssh
   export CVS_RSH
   Or, if you have no idea which shell you're running, "echo $SHELL" may give
-you a clue. Try as well "ypcat passwd | grep `whoami`" or
+you a clue. You may ry as well "ypcat passwd | grep `whoami`" or
 "cat /etc/passwd | grep `whoami`". At a last resort, try both -- chances are
 only one of these two files (.cshrc and .profile) will exist anyway.
   You should only need to do this once.
   Then you have to re-load the start-up files to take into account this change.
-The easiest way is to log out and log in.
+The easiest way is to log out and log in. Typing "env | grep CVS" should
+prove that CVS_RSH is properly defined.
 
 Do the following steps only after your key has been added to the access list:
 
@@ -66,7 +67,14 @@ ssh -l childcvs nimbus.geog.ox.ac.uk 'uname -a'
 You should see something similar to:
 SunOS nimbus.geog.ox.ac.uk 5.7 Generic_106541-19 sun4u sparc SUNW,Ultra-4
 
-If it does not work, email us for help.
+There has been one report that using "ssh -c 3des" was necessary although
+it should be the default. In such (unlikely) case, create a file containing:
+#! /bin/sh
+exec ssh -c 3des "$@"
+call it say "oxford_ssh", make it executable (chmod a+x oxford_ssh) and set
+CVS_RSH to its full path (i.e. setenv CVS_RSH /path/to/oxford_ssh).
+
+If it still does not work, email us for help.
 
 5. Navigate to the directory in which you wish to keep your snapshot (you
 might want to create a new directory for it).
