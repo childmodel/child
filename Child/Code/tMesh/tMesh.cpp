@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.50 1999-01-05 17:02:02 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.51 1999-01-05 19:51:51 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -10,7 +10,7 @@
 
      //global functions:
 
-
+/*
 //global function; determines whether test point violates "Delaunay-ness"
 //of other three; i.e., does the triangle 'pass the test' against the other
 int TriPasses( tArray< double > &ptest,
@@ -115,6 +115,7 @@ int InNewTri( tArray< double > &xy, tTriangle *ct )
    else return 0;
 }
 
+*/
 
 //global function; determines whether nbr node currently pointed to
 //by iterator and the next two in the nbr list form a Delaunay triangle:
@@ -214,6 +215,7 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
 **      Calls:  
 **
 \*****************************************************************************/
+/*
 int Intersect( tEdge * ae, tEdge * be )
 {
    //cout << "Intersect(...)..." << endl;
@@ -396,6 +398,7 @@ int Intersect( tEdge * ae, tEdge * be )
       }
    }
 }
+*/
 
 /**************************************************************************\
 **
