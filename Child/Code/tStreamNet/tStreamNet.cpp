@@ -19,6 +19,7 @@ tInlet::tInlet()
 tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
 {
    int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" );
+   int add = 1;
    double xin, yin, mindist, dist, x, y, zin = 0, suminvdist = 0;
    tArray< double > xyz(3);
    tTriangle *intri, *ntri;
@@ -34,7 +35,7 @@ tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
       yin = infile.ReadItem( yin, "INLET_Y" );
       intri = gridPtr->LocateTriangle( xin, yin );
       assert( intri > 0 );
-      //mindist = 1000000000;
+      mindist = 0.000001;
       for( i=0; i<3; i++ )
       {
          cn = (tLNode *) intri->pPtr(i);
@@ -52,8 +53,17 @@ tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
          x = cn->getX();
          y = cn->getY();
          dist = sqrt( (xin - x) * (xin - x) + (yin - y) * (yin - y) );
-         zin += cn->getZ() / dist;
-         suminvdist += 1 / dist;
+         if( dist > mindist )
+         {
+            zin += cn->getZ() / dist;
+            suminvdist += 1 / dist;
+         }
+         else
+         {
+            innode = cn;
+            add = 0;
+         }
+         
          /*
          if( dist < mindist )
          {
@@ -61,11 +71,14 @@ tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
             innode = cn;
          }*/
       }
-      zin = zin / suminvdist;
-      xyz[0] = xin;
-      xyz[1] = yin;
-      xyz[2] = zin;
-      innode = gridPtr->AddNodeAt( xyz );
+      if( add )
+      {
+         zin = zin / suminvdist;
+         xyz[0] = xin;
+         xyz[1] = yin;
+         xyz[2] = zin;
+         innode = gridPtr->AddNodeAt( xyz );
+      }
    }
    else
    {
@@ -119,7 +132,7 @@ void tInlet::FindNewInlet()
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.19 1998-03-10 23:31:19 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.20 1998-03-13 22:26:16 stlancas Exp $
 \**************************************************************************/
 
 
@@ -538,10 +551,10 @@ void tStreamNet::FlowDirs()
    //cout << "FlowDirs" << endl;
 //#endif
 
-   int redo = 1;
-   while( redo )
-   {
-      redo = 0;
+   //int redo = 1;
+   //while( redo )
+   //{
+   //   redo = 0;
       // Find the connected edge with the steepest slope
       curnode = i.FirstP();
       while( i.IsActive() )  // DO for each non-boundary (active) node
@@ -569,7 +582,7 @@ void tStreamNet::FlowDirs()
          }
       
          curnode->SetFlowEdg( nbredg );
-         if( slp < 0 )
+         /*if( slp < 0 )
          {
             if( DamBypass( curnode ) )
             {
@@ -577,14 +590,14 @@ void tStreamNet::FlowDirs()
                redo = 1;
                break;
             }
-         }
+         }*/
          curnode->SetFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
          //cout << "Node " << curnode->getID() << " flows to "
          //     << curnode->GetDownstrmNbr()->getID() << endl;
          curnode = i.NextP();
 
       }
-   }
+      //}
    //cout << "FlowDirs() finished" << endl << flush;
   
 }
