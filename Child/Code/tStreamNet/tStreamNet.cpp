@@ -181,7 +181,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.35 1998-05-05 19:45:23 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.36 1998-05-05 22:06:46 gtucker Exp $
 \**************************************************************************/
 
 
@@ -235,6 +235,7 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    }
    if( flowgen == kConstSoilStore )
        soilStore = infile.ReadItem( soilStore, "SOILSTORE" );
+   else soilStore = 0.0;
    rainrate = stormPtr->GetRainrate();
    int itMeanders = infile.ReadItem( itMeanders, "OPTMNDR" );
    if( itMeanders ) mndrDirChngProb = infile.ReadItem( mndrDirChngProb, "CHNGPROB" );
@@ -1062,10 +1063,11 @@ void tStreamNet::FlowBucket()
    
    // Compute total runoff as the sum of infiltration excess (if any)
    // and saturation excess (if any)
+   rainrate = stormPtr->GetRainrate();
    if( rainrate > infilt )
        infiltEx = rainrate - infilt;
    if( (rainrate-infiltEx) >
-       (infiltRate=(soilStore/stormPtr->GetStormDuration())) )
+       (infiltRate=(soilStore/(stormPtr->GetStormDuration()) ) ) )
        satEx = (rainrate - infiltEx) - infiltRate;
    runoff = infiltEx + satEx;
    cout << "  R " << runoff << " = IEx " << infiltEx << " + SEx " << satEx << endl;
