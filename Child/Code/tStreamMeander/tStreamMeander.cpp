@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.10 1998-01-30 19:13:38 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.11 1998-02-03 00:46:03 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -61,13 +61,19 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
    }
    optrainvar = infilePtr->ReadItem( optrainvar, "OPTVAR" );
    kwds = infilePtr->ReadItem( kwds, "HYDR_WID_COEFF_DS" );
+   cout << "kwds: " << kwds << endl;
    assert( kwds > 0 );
    ewds = infilePtr->ReadItem( ewds, "HYDR_WID_EXP_DS" );
+   cout << "ewds: " << ewds << endl;
    ewstn = infilePtr->ReadItem( ewstn, "HYDR_WID_EXP_STN" );
+   cout << "ewstn: " << ewstn << endl;
    knds = infilePtr->ReadItem( knds, "HYDR_ROUGH_COEFF_DS" );
+   cout << "knds: " << knds << endl;
    assert( knds > 0 );
    ends = infilePtr->ReadItem( ends, "HYDR_ROUGH_EXP_DS" );
+   cout << "ends: " << ends << endl;
    enstn = infilePtr->ReadItem( enstn, "HYDR_ROUGH_EXP_STN" );
+   cout << "enstn: " << enstn << endl;
    dscrtwids = infilePtr->ReadItem( dscrtwids, "DEF_CHAN_DISCR" );
    assert( dscrtwids > 0 );
    allowfrac = infilePtr->ReadItem( allowfrac, "FRAC_WID_MOVE" );
@@ -204,8 +210,8 @@ void tStreamMeander::FindChanGeom()
 {
    int i, j, num;
    double qbf, hradius, qbffactor=0, radfactor, width, depth, rough, slope;
-   tLNode *cn;
-   tPtrListIter< tLNode > nIter;
+   tLNode *cn, *usn;
+   tPtrListIter< tLNode > nIter/*, usnIter*/;
    tPtrList< tLNode > *plPtr;
    //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
    tStorm *sPtr = netPtr->getStormPtrNC();
@@ -220,11 +226,27 @@ void tStreamMeander::FindChanGeom()
       num = nrnodes[i];
       for( cn = nIter.FirstP(), j=0; j<num; cn = nIter.NextP(), j++ )
       {
+         //assert( cn->GetFlowEdg()->getLength() > 0 );
          qbf = cn->getDrArea() * qbffactor;
          if( !qbf ) qbf = cn->GetQ();  // q is now in m^3/s
          width = kwds * pow(qbf, ewds);
          rough = knds * pow(qbf, ends);
          slope = cn->GetSlope();
+         if( slope <= 0 )
+         {
+            /*usnIter.Reset( *plPtr );
+            usnIter.Get( nIter.Where() );
+            for( usn = usnIter.GetP( nIter.Where() );
+                 slope <= 0 && !(usnIter.AtEnd());
+                 usn = usnIter.NextP() )
+            {
+               slope = usn->GetSlope();
+            }*/
+            for( usn = cn; slope <= 0; usn = usn->GetDownstrmNbr() )
+            {
+               slope = usn->GetSlope();
+            }
+         }
          assert( slope > 0 );
          cn->setChanWidth( width );
          cn->setChanRough( rough );
@@ -253,6 +275,7 @@ void tStreamMeander::FindChanGeom()
 
 int tStreamMeander::InterpChannel()
 {
+   cout << "InterpChannel" << endl;
    int i, j, npts, num;
    double curwidth;
    double curseglen, defseglen, maxseglen, bigseglen;
@@ -274,8 +297,9 @@ int tStreamMeander::InterpChannel()
       {
          curwidth = crn->getHydrWidth();
          nPtr = crn->GetDownstrmNbr();
-         slope = crn->GetSlope();
          curseglen = crn->GetFlowEdg()->getLength();
+         assert( curseglen > 0 );
+         slope = crn->GetSlope();
          defseglen = dscrtwids * curwidth;
          maxseglen = 2.0 * defseglen;
          //if current flowedg length is greater than
@@ -344,10 +368,18 @@ int tStreamMeander::InterpChannel()
    }
    if( change )
    {
+      //gridPtr->UpdateMesh();
+      netPtr->InitFlowDirs();
       netPtr->UpdateNet();
+      cout << "added nodes(s), InterpChannel finished" << endl << flush;
       return 1;
    }
-   else return 0;
+   else
+   {
+      cout << "InterpChannel finished" << endl << flush;
+      return 0;
+   }
+   
 }
 
 /*****************************************************************************\
@@ -443,11 +475,12 @@ void tStreamMeander::FindReaches()
          for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
          {
             lnPtr = (tLNode *) ce->getDestinationPtrNC();
-            if( lnPtr->GetDownstrmNbr() == cn && lnPtr->Meanders() )
-            {
-               nmndrnbrs++;
-               break;
-            }
+            if( lnPtr->getBoundaryFlag() == kNonBoundary )
+                if( lnPtr->GetDownstrmNbr() == cn && lnPtr->Meanders() )
+                {
+                   nmndrnbrs++;
+                   break;
+                }
          }
          //if no upstream meandering nbr, then it's a reach "head";
          //put it at the beginning of an otherwise empty reach
@@ -457,6 +490,7 @@ void tStreamMeander::FindReaches()
             rnodList.Flush();
             rnodList.insertAtFront( cn );
             reachList.insertAtBack( rnodList );
+            cn->setReachMember( 1 );
          }
       }
    }
@@ -467,10 +501,14 @@ void tStreamMeander::FindReaches()
    reachlen = *fArrPtr;
    taillen = *fArrPtr;
    delete fArrPtr;
+   cout << "No. reaches: " << reachList.getSize() << endl;
    //loop through reaches
    for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
         plPtr = rlIter.NextP(), i++ )
    {
+      assert( reachList.getSize() > 0 );
+      //cout << " on reach " << i << endl << flush;
+      assert( i<reachList.getSize() );
       //go downstream from reach head
       //and add nodes to the reach
       //if they're not already reach members:
@@ -479,23 +517,32 @@ void tStreamMeander::FindReaches()
       do
       {
          nrnodes[i]++;
+         //assert( cn->GetFlowEdg()->getLength() > 0 );
          reachlen[i] += cn->GetFlowEdg()->getLength();
          cn->setReachMember( 1 );
          plPtr->insertAtBack( cn );
          cn = cn->GetDownstrmNbr();
       }
       while (!cn->getReachMember() && cn->getBoundaryFlag() == kNonBoundary);
+   }
+   
       //now we'll need to know the
       //channel and hydraulic geometry:
-      FindChanGeom();
-      FindHydrGeom();
+   FindChanGeom();
+   FindHydrGeom();
       //construct a tail for the reach
       //which is some number of hydr. widths long:
+   for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
+        plPtr = rlIter.NextP(), i++ )
+   {
+      //cout << " on reach " << i << endl << flush;
+      assert( i<reachList.getSize() );
       curwidth = rnIter.LastP()->getHydrWidth();
       taillen[i] = 10.0*curwidth;
       ctaillen = 0.0;
       while (ctaillen <= taillen[i] && cn->getBoundaryFlag() == kNonBoundary)
       {
+         //assert( cn->GetFlowEdg()->getLength() > 0 );
          ctaillen+= cn->GetFlowEdg()->getLength();
          plPtr->insertAtBack( cn );
          cn = cn->GetDownstrmNbr();
@@ -873,6 +920,7 @@ tArray< double > tStreamMeander::FindBankErody( tLNode *nPtr )
 //to the perpendicular; those determine right and left erodibility, resp.
 //(another way: weighted average according to distance from perpendicular.)
    xyz1 = nPtr->get3DCoords();
+   cout << "FindBankErody: node " << nPtr->getID() << endl << flush;
    dn = nPtr->GetDownstrmNbr();
    xy2 = dn->get2DCoords();
    for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
