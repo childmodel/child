@@ -43,6 +43,16 @@ char *MyString::retn(){
   return p;
 }
 
+enum {
+  v_z = 0,
+  v_slp,
+  v_area,
+  v_varea,
+  v_q,
+  v_qs,
+  v_tau,
+  v_tx
+};
 
 const char * const SuffixVariable[] =
 { 
@@ -159,7 +169,7 @@ bool ReadChildData::LoadData(const char* basename, const int nStep,
   // elevation
   strcpy(filename.ptr(),basename);
   strcat(filename.ptr(),SuffixVariable[TypeVariable]);
-  if (!ReadZ(filename.c_str(), nStep))
+  if (!ReadZ(filename.c_str(), nStep, TypeVariable == v_area))
     goto fail;
 
   return true;
@@ -292,7 +302,8 @@ bool ReadChildData::ReadTriangles(const char* filename, const int nStep){
   return false;
 }
 
-bool ReadChildData::ReadZ(const char* filename, const int nStep){
+bool ReadChildData::ReadZ(const char* filename, const int nStep,
+			  bool isArea){
   ifstream zinfile;
 
   zinfile.open(filename);
@@ -313,13 +324,21 @@ bool ReadChildData::ReadZ(const char* filename, const int nStep){
   if ( ! zinfile.good() )
     throw BadFile(FileBad,filename);
   assert( !zinfile.fail() );
-  assert(ntemp == nnodes_);
+  if (isArea)
+    assert(ntemp < nnodes_);
+  else
+    assert(ntemp == nnodes_);
   AllocateZ();
-  for(size_t i=0; i != nnodes_; ++i){
+  for(size_t i=0; i != ntemp; ++i){
     if (zinfile.eof()) throw BadFile(FileBad,filename);
 
     zinfile >> z[i];
     assert( !zinfile.fail() );
+  }
+  if (isArea) {
+    for(size_t i=ntemp; i != nnodes_; ++i){
+      z[i] = 0.;
+    }
   }
   zinfile.close();
   return true;

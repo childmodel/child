@@ -22,7 +22,7 @@ class ReadChildData {
  protected:
   bool ReadNodes(const char *basename, int nStep);
   bool ReadTriangles(const char *basename, int nStep);
-  bool ReadZ(const char *basename, int nStep);
+  bool ReadZ(const char *basename, int nStep, bool isArea);
   void AllocateNodes();
   void AllocateTriangles();
   void AllocateZ();
