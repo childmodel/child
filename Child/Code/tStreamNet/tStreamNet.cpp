@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.38 1998-06-04 21:25:04 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.39 1998-06-22 18:11:37 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -635,7 +635,7 @@ void tStreamNet::FlowDirs()
 void tStreamNet::DrainAreaVoronoi()
 {
 //#if TRACKFNS
-   cout << "DrainAreaVoronoi()..." << endl << flush;
+   //cout << "DrainAreaVoronoi()..." << endl << flush;
 //#endif
    tLNode * curnode;
    tGridListIter<tLNode> nodIter( gridPtr->getNodeList() );
@@ -759,7 +759,7 @@ void tStreamNet::RouteRunoff( tLNode *curnode, double addedArea,
 \*****************************************************************************/
 void tStreamNet::MakeFlow()
 {
-   cout << "MakeFlow()..." << endl << flush;
+   //cout << "MakeFlow()..." << endl << flush;
    if( filllakes ) FillLakes();
    DrainAreaVoronoi();
    switch( flowgen )
@@ -777,7 +777,7 @@ void tStreamNet::MakeFlow()
           FlowUniform();      // Spatially uniform infiltration-excess runoff
    }
    
-   cout << "MakeFlow() finished" << endl;
+   //cout << "MakeFlow() finished" << endl;
 }
 
 
