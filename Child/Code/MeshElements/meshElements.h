@@ -4,7 +4,7 @@
 **                  and tTriangle. Each of these grid elements is
 **                  implemented as an object, as described below.
 **
-**  $Id: meshElements.h,v 1.6 1998-03-10 23:32:07 stlancas Exp $
+**  $Id: meshElements.h,v 1.7 1998-03-20 15:39:28 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -151,12 +151,14 @@ class tEdge
    void setDestinationPtr( tNode * );
    void setFlowAllowed( int );
    double CalcLength();
+   double CalcSlope();
    tEdge * GetCCWEdg();
    void SetCCWEdg( tEdge * edg );
    tArray< double > getRVtx() const; // Get the Voronoi vertex for LH triangle
    void setRVtx( tArray< double > );
    double getVEdgLen() const;  // Get length of associated Voronoi cell edge
    void setVEdgLen( double );
+   void TellCoords();  // debug routine
 
   private:
    int id;
@@ -215,6 +217,9 @@ public:
    int nVOp( tTriangle * );
    int nVtx( tNode * );
    tArray<double> FindCircumcenter();
+#ifndef NDEBUG
+   void TellAll();
+#endif
 
 private:
    int id;       /* Triangle ID # for testing*/
