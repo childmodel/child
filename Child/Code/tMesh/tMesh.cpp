@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.97 2002-04-11 12:24:00 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.98 2002-04-18 13:57:36 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -222,6 +222,13 @@ tMesh( tInputFile &infile )
 
    miNextNodeID = miNextEdgID = miNextTriID = 0;
 
+   // As "layerflag" is used in this constructor, we compute it now.
+   {
+     int help;
+     help = infile.ReadItem( help, "OPTINTERPLAYER" );
+     if(help>0) layerflag=TRUE;
+     else layerflag=FALSE;
+   }
    read = infile.ReadItem( read, "OPTREADINPUT" );
    if( read<0 || read>4 )
    {
@@ -252,11 +259,6 @@ tMesh( tInputFile &infile )
        MakeHexMeshFromArcGrid( infile );
    else
        MakeMeshFromScratch( infile ); //create new mesh with parameters
-
-   int help;
-   help = infile.ReadItem( help, "OPTINTERPLAYER" );
-   if(help>0) layerflag=TRUE;
-   else layerflag=FALSE;
 
    // find geometric center of domain:
    double cx = 0.0;
