@@ -5,12 +5,24 @@ MODFLAGS =  -u -zero -oo\($@\)
 
 APPFLAGS =
 
-OBJECTS = childmain.lob erosion.lob meshElements.lob mathutil.lob \
- tInputFile.lob tLNode.lob tRunTimer.lob tStreamMeander.lob meander.lob \
-tStorm.lob tStreamNet.lob tUplift.lob errors.lob tFloodplain.lob \
-tEolian.lob globalFns.lob predicates.lob tVegetation.lob tListInputData.lob \
-tTimeSeries.lob \
-ParamMesh_t.lob TipperTriangulator.lob TipperTriangulatorError.lob
+# map to compiler variable
+CXX = $(LINT)
+CFLAGS = $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS)
+LDFLAGS = $(LINTFLAGS) $(APPFLAGS)
+LIBS =
+
+OBJEXT = lob
+
+OBJECTS = \
+ childmain.$(OBJEXT) erosion.$(OBJEXT) \
+ meshElements.$(OBJEXT) mathutil.$(OBJEXT) \
+ tInputFile.$(OBJEXT) tLNode.$(OBJEXT) tRunTimer.$(OBJEXT) \
+ tStreamMeander.$(OBJEXT) meander.$(OBJEXT) \
+ tStorm.$(OBJEXT) tStreamNet.$(OBJEXT) tUplift.$(OBJEXT) errors.$(OBJEXT) \
+ tFloodplain.$(OBJEXT) tEolian.$(OBJEXT) globalFns.$(OBJEXT) \
+ predicates.$(OBJEXT) tVegetation.$(OBJEXT) tListInputData.$(OBJEXT) \
+ tTimeSeries.$(OBJEXT) ParamMesh_t.$(OBJEXT) TipperTriangulator.$(OBJEXT) \
+ TipperTriangulatorError.$(OBJEXT)
 
 .PHONY : all clean project module
 
@@ -18,79 +30,79 @@ all : project
 module : $(OBJECTS)
 
 project: $(OBJECTS)
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(OBJECTS)
+	$(CXX) $(LDFLAGS) $(OBJECTS) $(LIBS)
 
-erosion.lob: $(PT)/Erosion/erosion.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/Erosion/erosion.cpp
+erosion.$(OBJEXT): $(PT)/Erosion/erosion.cpp
+	$(CXX) $(CFLAGS) $(PT)/Erosion/erosion.cpp
 
-meshElements.lob: $(PT)/MeshElements/meshElements.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/MeshElements/meshElements.cpp
+meshElements.$(OBJEXT): $(PT)/MeshElements/meshElements.cpp
+	$(CXX) $(CFLAGS) $(PT)/MeshElements/meshElements.cpp
 
-mathutil.lob: $(PT)/Mathutil/mathutil.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/Mathutil/mathutil.cpp
+mathutil.$(OBJEXT): $(PT)/Mathutil/mathutil.cpp
+	$(CXX) $(CFLAGS) $(PT)/Mathutil/mathutil.cpp
 
-tInputFile.lob: $(PT)/tInputFile/tInputFile.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tInputFile/tInputFile.cpp
+tInputFile.$(OBJEXT): $(PT)/tInputFile/tInputFile.cpp
+	$(CXX) $(CFLAGS) $(PT)/tInputFile/tInputFile.cpp
 
-tLNode.lob: $(PT)/tLNode/tLNode.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tLNode/tLNode.cpp
+tLNode.$(OBJEXT): $(PT)/tLNode/tLNode.cpp
+	$(CXX) $(CFLAGS) $(PT)/tLNode/tLNode.cpp
 
-tListInputData.lob: $(PT)/tListInputData/tListInputData.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tListInputData/tListInputData.cpp
+tListInputData.$(OBJEXT): $(PT)/tListInputData/tListInputData.cpp
+	$(CXX) $(CFLAGS) $(PT)/tListInputData/tListInputData.cpp
 
-tRunTimer.lob: $(PT)/tRunTimer/tRunTimer.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tRunTimer/tRunTimer.cpp
+tRunTimer.$(OBJEXT): $(PT)/tRunTimer/tRunTimer.cpp
+	$(CXX) $(CFLAGS) $(PT)/tRunTimer/tRunTimer.cpp
 
-tStorm.lob: $(PT)/tStorm/tStorm.h
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tStorm/tStorm.cpp
+tStorm.$(OBJEXT): $(PT)/tStorm/tStorm.cpp
+	$(CXX) $(CFLAGS) $(PT)/tStorm/tStorm.cpp
 
-tTimeSeries.lob: $(PT)/tTimeSeries/tTimeSeries.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tTimeSeries/tTimeSeries.cpp
+tTimeSeries.$(OBJEXT): $(PT)/tTimeSeries/tTimeSeries.cpp
+	$(CXX) $(CFLAGS) $(PT)/tTimeSeries/tTimeSeries.cpp
 
-tStreamNet.lob: $(PT)/tStreamNet/tStreamNet.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tStreamNet/tStreamNet.cpp
+tStreamNet.$(OBJEXT): $(PT)/tStreamNet/tStreamNet.cpp
+	$(CXX) $(CFLAGS) $(PT)/tStreamNet/tStreamNet.cpp
 
-tUplift.lob: $(PT)/tUplift/tUplift.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tUplift/tUplift.cpp
+tUplift.$(OBJEXT): $(PT)/tUplift/tUplift.cpp
+	$(CXX) $(CFLAGS) $(PT)/tUplift/tUplift.cpp
 
-errors.lob: $(PT)/errors/errors.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/errors/errors.cpp
+errors.$(OBJEXT): $(PT)/errors/errors.cpp
+	$(CXX) $(CFLAGS) $(PT)/errors/errors.cpp
 
-tFloodplain.lob: $(PT)/tFloodplain/tFloodplain.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tFloodplain/tFloodplain.cpp
+tFloodplain.$(OBJEXT): $(PT)/tFloodplain/tFloodplain.cpp
+	$(CXX) $(CFLAGS) $(PT)/tFloodplain/tFloodplain.cpp
 
-tEolian.lob: $(PT)/tEolian/tEolian.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tEolian/tEolian.cpp
+tEolian.$(OBJEXT): $(PT)/tEolian/tEolian.cpp
+	$(CXX) $(CFLAGS) $(PT)/tEolian/tEolian.cpp
 
-ParamMesh_t.lob: $(PT)/tMesh/ParamMesh_t.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tMesh/ParamMesh_t.cpp
+ParamMesh_t.$(OBJEXT): $(PT)/tMesh/ParamMesh_t.cpp
+	$(CXX) $(CFLAGS) $(PT)/tMesh/ParamMesh_t.cpp
 
-TipperTriangulator.lob: $(PT)/tMesh/TipperTriangulator.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tMesh/TipperTriangulator.cpp
+TipperTriangulator.$(OBJEXT): $(PT)/tMesh/TipperTriangulator.cpp
+	$(CXX) $(CFLAGS) $(PT)/tMesh/TipperTriangulator.cpp
 
-TipperTriangulatorError.lob: $(PT)/tMesh/TipperTriangulatorError.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tMesh/TipperTriangulatorError.cpp
+TipperTriangulatorError.$(OBJEXT): $(PT)/tMesh/TipperTriangulatorError.cpp
+	$(CXX) $(CFLAGS) $(PT)/tMesh/TipperTriangulatorError.cpp
 
-globalFns.lob: $(PT)/globalFns.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/globalFns.cpp
+globalFns.$(OBJEXT): $(PT)/globalFns.cpp
+	$(CXX) $(CFLAGS) $(PT)/globalFns.cpp
 
-predicates.lob: $(PT)/Predicates/predicates.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/Predicates/predicates.cpp
+predicates.$(OBJEXT): $(PT)/Predicates/predicates.cpp
+	$(CXX) $(CFLAGS) $(PT)/Predicates/predicates.cpp
 
-tVegetation.lob: $(PT)/tVegetation/tVegetation.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tVegetation/tVegetation.cpp
+tVegetation.$(OBJEXT): $(PT)/tVegetation/tVegetation.cpp
+	$(CXX) $(CFLAGS) $(PT)/tVegetation/tVegetation.cpp
 
-tStreamMeander.lob: $(PT)/tStreamMeander/tStreamMeander.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tStreamMeander/tStreamMeander.cpp
+tStreamMeander.$(OBJEXT): $(PT)/tStreamMeander/tStreamMeander.cpp
+	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/tStreamMeander.cpp
 
-meander.lob: $(PT)/tStreamMeander/meander.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tStreamMeander/meander.cpp
+meander.$(OBJEXT): $(PT)/tStreamMeander/meander.cpp
+	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/meander.cpp
 
-childmain.lob: $(PT)/childmain.cpp
-	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/childmain.cpp
+childmain.$(OBJEXT): $(PT)/childmain.cpp
+	$(CXX) $(CFLAGS) $(PT)/childmain.cpp
 
 clean::
-	rm -f *.lob
+	rm -f *.$(OBJEXT)
 
 # dependencies: headers and template implementation files.
 # use, for instance:
@@ -136,26 +148,26 @@ HFILES = \
 	$(PT)/tVegetation/tVegetation.h \
 	$(PT)/trapfpe.h
 
-ParamMesh_t.lob: $(HFILES)
-TipperTriangulator.lob : $(HFILES)
-TipperTriangulatorError.lob : $(HFILES)
-erosion.lob: $(HFILES)
-errors.lob: $(HFILES)
-globalFns.lob: $(HFILES)
-mathutil.lob: $(HFILES)
-meshElements.lob: $(HFILES)
-predicates.lob: $(HFILES)
-tEolian.lob: $(HFILES)
-tFloodplain.lob: $(HFILES)
-tInputFile.lob: $(HFILES)
-tLNode.lob: $(HFILES)
-tRunTimer.lob: $(HFILES)
-tStorm.lob : $(HFILES)
-tStreamNet.lob: $(HFILES)
-tUplift.lob: $(HFILES)
-tVegetation.lob: $(HFILES)
-tStreamMeander.lob: $(HFILES)
-meander.lob: $(HFILES)
-childmain.lob : $(HFILES)
-
-
+ParamMesh_t.$(OBJEXT): $(HFILES)
+TipperTriangulator.$(OBJEXT) : $(HFILES)
+TipperTriangulatorError.$(OBJEXT) : $(HFILES)
+childmain.$(OBJEXT) : $(HFILES)
+erosion.$(OBJEXT): $(HFILES)
+errors.$(OBJEXT): $(HFILES)
+globalFns.$(OBJEXT): $(HFILES)
+mathutil.$(OBJEXT): $(HFILES)
+meander.$(OBJEXT): $(HFILES)
+meshElements.$(OBJEXT): $(HFILES)
+predicates.$(OBJEXT): $(HFILES)
+tEolian.$(OBJEXT): $(HFILES)
+tFloodplain.$(OBJEXT): $(HFILES)
+tInputFile.$(OBJEXT): $(HFILES)
+tLNode.$(OBJEXT): $(HFILES)
+tListInputData.$(OBJEXT): $(HFILES)
+tRunTimer.$(OBJEXT): $(HFILES)
+tStorm.$(OBJEXT) : $(HFILES)
+tStreamMeander.$(OBJEXT): $(HFILES)
+tStreamNet.$(OBJEXT): $(HFILES)
+tTimeSeries.$(OBJEXT) : $(HFILES)
+tUplift.$(OBJEXT): $(HFILES)
+tVegetation.$(OBJEXT): $(HFILES)
