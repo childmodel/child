@@ -3,12 +3,8 @@
 **  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
 **                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.3 1998-01-30 16:34:50 stlancas Exp $
+**  $Id: tPtrList.cpp,v 1.4 1998-02-01 00:54:09 stlancas Exp $
 \**************************************************************************/
-
-#include <iostream.h>
-#include <fstream.h>
-#include <assert.h>
 
 #include "tPtrList.h"
 
@@ -434,12 +430,13 @@ template< class NodeType >                      //tPtrList
 void tPtrList< NodeType >::
 moveToBack( tPtrListNode< NodeType > * mvnode ) 
 {
+   tPtrListNode< NodeType > *prev;
    if( mvnode != last )
    {  
       if( mvnode == first ) first = first->next;
       else
       {
-         for( tPtrListNode< NodeType > * prev = first;
+         for( prev = first;
               prev->next != mvnode;
               prev = prev->next );
          prev->next = mvnode->next;
@@ -455,9 +452,10 @@ template< class NodeType >                      //tPtrList
 void tPtrList< NodeType >::
 moveToFront( tPtrListNode< NodeType > * mvnode ) 
 {
+   tPtrListNode< NodeType > *prev;
    if( mvnode != first )
    {
-      for( tPtrListNode< NodeType > * prev = first;
+      for( prev = first;
            prev->next != mvnode;
            prev = prev->next );
       prev->next = mvnode->next;

@@ -11,13 +11,15 @@
 **   - changed .tri file format from points-edges-triangles to
 **     points-triangles-edges, compatible with earlier format (gt 1/98)
 **
-**  $Id: tListInputData.h,v 1.3 1998-01-29 20:21:20 stlancas Exp $
+**  $Id: tListInputData.h,v 1.4 1998-02-01 00:57:00 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TLISTINPUTDATA_H
 #define TLISTINPUTDATA_H
 
+#include <assert.h>
 #include <iostream.h>
+#include <string.h>
 #include "../tArray/tArray.h"
 #include "../tInputFile/tInputFile.h"
 

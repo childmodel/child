@@ -8,10 +8,9 @@
 **   - changed .tri file format from points-edges-triangles to
 **     points-triangles-edges, compatible with earlier format (gt 1/98)
 **
-**  $Id: tListInputData.cpp,v 1.2 1998-01-21 19:41:52 gtucker Exp $
+**  $Id: tListInputData.cpp,v 1.3 1998-02-01 00:56:42 stlancas Exp $
 \**************************************************************************/
 
-#include <assert.h>
 #include "tListInputData.h"
 
 /**************************************************************************\
@@ -138,7 +137,8 @@ template< class tSubNode >
 void tListInputData< tSubNode >::
 GetKeyEntry( tListIFStreams &inchan )                   //tListInputData
 {
-   for( int i=0; i < inchan.getNNodes(); i++ )
+   int i;
+   for( i=0; i < inchan.getNNodes(); i++ )
    {
       cout << "x y z edgid:" << endl;
       cin >> x[i] >> y[i] >> z[i] >> edgid[i];
@@ -161,7 +161,8 @@ template< class tSubNode >
 void tListInputData< tSubNode >::
 GetFileEntry( tListIFStreams &inchan )                  //tListInputData
 {
-   for( int i=0; i< inchan.getNNodes(); i++ )
+   int i;
+   for( i=0; i< inchan.getNNodes(); i++ )
        inchan.getNodeInFile() >> x[i] >> y[i] >> z[i]
                               >> edgid[i] >> boundflag[i];
    
