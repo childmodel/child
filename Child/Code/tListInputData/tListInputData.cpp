@@ -13,8 +13,9 @@
  **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
  **   - Remove dead code. Add findRightTime (AD 07/03)
  **   - Add Random number generator handling. (AD 08/03)
+ **   - refactoring with multiple classes (AD 11/03)
  **
- **  $Id: tListInputData.cpp,v 1.21 2003-10-15 09:18:34 childcvs Exp $
+ **  $Id: tListInputData.cpp,v 1.22 2003-11-14 17:09:24 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -27,7 +28,7 @@ using namespace std;
 #endif
 
 template< class tSubNode >
-void tListInputData< tSubNode >::
+void tListInputDataBase< tSubNode >::
 ReportIOError(IOErrorType t, const char *filename,
 	      const char *suffix, int n) {
   cerr << "\nFile: '" << filename << suffix << "' "
@@ -45,6 +46,92 @@ ReportIOError(IOErrorType t, const char *filename,
   }
   cerr << "." << endl;
   ReportFatalError( "Input/Output Error." );
+}
+
+
+/**************************************************************************\
+ **
+ **  tListInputDataBase::openFile
+ **
+ **  Find the right time in file and position it for reading
+ **
+\**************************************************************************/
+template< class tSubNode >
+void tListInputDataBase< tSubNode >::
+openFile( ifstream &infile, const char *basename,
+	  const char *ext)
+{
+  char inname[80];                  // full name of an input file
+
+  // Open each of the four files
+  assert( strlen(basename)+strlen(ext)<sizeof(inname) );
+  strcpy( inname, basename );
+  strcat( inname, ext );
+  infile.open(inname);
+  if( !infile.good() )
+    {
+      cerr << "Error: I can't find the following files:\n"
+           << "\t" << basename << ext << "\n";
+      ReportFatalError( "Unable to open triangulation input file(s)." );
+    }
+}
+
+/**************************************************************************\
+ **
+ **  tListInputData::findRightTime
+ **
+ **  Find the right time in file and position it for reading
+ **
+\**************************************************************************/
+template< class tSubNode >
+void tListInputDataBase< tSubNode >::
+findRightTime( ifstream &infile, int &nn, double intime,
+	       const char *basename, const char *ext, const char *typefile)
+{
+  char headerLine[kMaxNameLength]; // header line read from input file
+  bool righttime = false;
+  double time;
+  while( !( infile.eof() ) && !righttime )
+    {
+      /*infile.getline( headerLine, kMaxNameLength );
+	if( headerLine[0] == kTimeLineMark )
+	{
+	infile.seekg( -infile.gcount(), ios::cur );
+	infile >> time;
+	cout << "from file, time = " << time << endl;
+	cout << "Read: " << headerLine << endl;
+	if( time == intime ) righttime = 1;
+	}*/
+      infile >> time;
+      if (infile.fail())
+	ReportIOError(IOTime, basename, ext);
+      if (0) //DEBUG
+	cout << "Read time: " << time << endl;
+      if( time < intime )
+	{
+	  infile >> nn;
+	  if (infile.fail())
+	    ReportIOError(IOSize, basename, ext);
+	  if (0) //DEBUG
+	    cout << "nn (" << typefile << ")= " << nn << endl;
+	  int i;
+	  for( i=1; i<=nn+1; i++ ) {
+	    infile.getline( headerLine, kMaxNameLength );
+	  }
+	}
+      else righttime = true;
+      if (0) //DEBUG
+	cout << " NOW are we at eof? " << infile.eof() << endl;
+    }
+  if( !( infile.eof() ) ) {
+    infile >> nn;
+    if (infile.fail())
+      ReportIOError(IOSize, basename, ext);
+  } else {
+    cerr << "Couldn't find the specified input time in the " << typefile
+	 << " file\n";
+    ReportFatalError( "Input error" );
+  }
 }
 
 
@@ -77,51 +164,25 @@ tListInputData< tSubNode >::
 tListInputData( const tInputFile &infile, tRand &rand )          //tListInputData
 {
   double intime;                   // desired time
-  char basename[80],               // base name of input files
-    inname[80];                  // full name of an input file
+  char basename[80];               // base name of input files
 
   // Read base name for triangulation files from infile
   infile.ReadItem( basename, sizeof(basename), "INPUTDATAFILE" );
 
   // Open each of the four files
-  strcpy( inname, basename );
-  strcat( inname, SNODES );
-  nodeinfile.open(inname);    // Node input file pointer
-  //assert( nodeinfile.good() );
-  strcpy( inname, basename );
-  strcat( inname, SEDGES );
-  edgeinfile.open(inname);    // Edge input file pointer
-  //assert( edgeinfile.good() );
-  strcpy( inname, basename );
-  strcat( inname, STRI );
-  triinfile.open( inname );   // Triangle input file pointer
-  //assert( triinfile.good() );
-  strcpy( inname, basename );
-  strcat( inname, SZ );
-  zinfile.open( inname );     // Elevations input file pointer
-  //assert( zinfile.good() );
-  strcpy( inname, basename );
-  strcat( inname, SRANDOM );
-  randominfile.open( inname );// Random number generator input file pointer
-
-  // Make sure we found them
-  if( !nodeinfile.good() || !edgeinfile.good() || !triinfile.good()
-      || !zinfile.good() || !randominfile.good() )
-    {
-      cerr << "Error: I can't find one or more of the following files:\n"
-           << "\t" << basename << SNODES "\n"
-           << "\t" << basename << SEDGES "\n"
-           << "\t" << basename << STRI "\n"
-           << "\t" << basename << SZ "\n"
-           << "\t" << basename << SRANDOM "\n";
-      ReportFatalError( "Unable to open triangulation input file(s)." );
-    }
+  openFile( nodeinfile, basename, SNODES);
+  openFile( edgeinfile, basename, SEDGES);
+  openFile( triinfile, basename, STRI);
+  openFile( zinfile, basename, SZ);
+  openFile( randominfile, basename, SRANDOM);
 
   // Find out which time slice we want to extract
   intime = infile.ReadItem( intime, "INPUTTIME" );
-  cout << "intime = " << intime << endl;
-  cout << "Is node input file ok? " << nodeinfile.good()
-       << " Are we at eof? " << nodeinfile.eof() << endl;
+  if (1) //DEBUG
+    cout << "intime = " << intime << endl;
+  if (1) //DEBUG
+   cout << "Is node input file ok? " << nodeinfile.good()
+	<< " Are we at eof? " << nodeinfile.eof() << endl;
 
   // Find specified input times in input data files and read # items.
   // First, nodes:
@@ -178,65 +239,6 @@ tListInputData( const tInputFile &infile, tRand &rand )          //tListInputDat
 
 /**************************************************************************\
  **
- **  tListInputData::findRightTime
- **
- **  Find the right time in file and position it for reading
- **
-\**************************************************************************/
-template< class tSubNode >
-void tListInputData< tSubNode >::
-findRightTime( ifstream &infile, int &nn, double intime,
-	       const char *basename, const char *ext, const char *typefile)
-{
-  char headerLine[kMaxNameLength]; // header line read from input file
-  bool righttime = false;
-  double time;
-  while( !( infile.eof() ) && !righttime )
-    {
-      /*infile.getline( headerLine, kMaxNameLength );
-	if( headerLine[0] == kTimeLineMark )
-	{
-	infile.seekg( -infile.gcount(), ios::cur );
-	infile >> time;
-	cout << "from file, time = " << time << endl;
-	cout << "Read: " << headerLine << endl;
-	if( time == intime ) righttime = 1;
-	}*/
-      infile >> time;
-      if (infile.fail())
-	ReportIOError(IOTime, basename, ext);
-      if (0) //DEBUG
-	cout << "Read time: " << time << endl;
-      if( time < intime )
-	{
-	  infile >> nn;
-	  if (infile.fail())
-	    ReportIOError(IOSize, basename, ext);
-	  if (0) //DEBUG
-	    cout << "nn (" << typefile << ")= " << nn << endl;
-	  int i;
-	  for( i=1; i<=nn+1; i++ ) {
-	    infile.getline( headerLine, kMaxNameLength );
-	  }
-	}
-      else righttime = true;
-      if (0) //DEBUG
-	cout << " NOW are we at eof? " << infile.eof() << endl;
-    }
-  if( !( infile.eof() ) ) {
-    infile >> nn;
-    if (infile.fail())
-      ReportIOError(IOSize, basename, ext);
-  } else {
-    cerr << "Couldn't find the specified input time in the " << typefile
-	 << " file\n";
-    ReportFatalError( "Input error" );
-  }
-}
-
-
-/**************************************************************************\
- **
  **  tListInputData::GetFileEntry
  **
  **  Reads node, edge, and triangle data from the four triangulation input
@@ -273,38 +275,4 @@ GetFileEntry(tRand &rand)                  //tListInputData
       ReportIOError(IORecord, basename, STRI, i);
   }
   rand.readFromFile( randominfile );
-}
-
-
-/**************************************************************************\
- **
- **  tListInputData::GetKeyEntry
- **
- **  Provides alternative keyboard entry of triangulation data for
- **  testing purposes. Not currently supported.
- **
-\**************************************************************************/
-template< class tSubNode >
-void tListInputData< tSubNode >::
-GetKeyEntry()                   //tListInputData
-{
-  int i;
-  for( i=0; i < nnodes; i++ )
-    {
-      cout << "x y z edgid boundary:" << endl;
-      cin >> x[i] >> y[i] >> z[i] >> edgid[i] >> boundflag[i];
-    }
-  for( i=0; i < nedges; i++ )
-    {
-      cout << "orgid destid nextid" << endl;
-      cin >> orgid[i] >> destid[i] >> nextid[i];
-    }
-  for( i=0; i< ntri; i++ )
-    {
-      cout << "nodeids (3), edgids (3), triangleids (3)" << endl;
-      cin >> p0[i] >> p1[i] >> p2[i]
-          >> e0[i] >> e1[i] >> e2[i]
-          >> t0[i] >> t1[i] >> t2[i];
-    }
-
 }

@@ -16,7 +16,7 @@
  **     to avoid multiple definition errors resulting from mixing
  **     template & non-template classes (1/99)
  **
- **  $Id: tListInputData.h,v 1.23 2003-10-15 09:18:34 childcvs Exp $
+ **  $Id: tListInputData.h,v 1.24 2003-11-14 17:09:24 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -40,6 +40,30 @@ using namespace std;
 
 #define kTimeLineMark ' '
 
+
+/**************************************************************************/
+/**
+ **  @class tListInputDataBase
+ **
+ **  base services for tListInputData
+ */
+/**************************************************************************/
+template< class tSubNode >
+class tListInputDataBase
+{
+protected:
+  static void findRightTime(ifstream &, int &, double,
+			    const char *, const char *, const char *);
+  static void openFile(ifstream &, const char *, const char *);
+  // IO Error handling
+  typedef enum {
+    IOTime,
+    IOSize,
+    IORecord
+  } IOErrorType;
+  static void ReportIOError(IOErrorType t, const char *filename,
+			    const char *suffix, int n=-1);
+};
 
 /**************************************************************************/
 /**
@@ -122,7 +146,7 @@ using namespace std;
  */
 /**************************************************************************/
 template< class tSubNode >
-class tListInputData
+class tListInputData : private tListInputDataBase< tSubNode >
 {
   friend class tMesh< tSubNode >;  // gives tMesh direct access
 
@@ -130,9 +154,6 @@ public:
   tListInputData( const tInputFile &, tRand & ); // Read filename & time from main inp file
 
 private:
-  static void findRightTime(ifstream &, int &, double,
-			    const char *, const char *, const char *);
-  void GetKeyEntry();        // not currently supported
   void GetFileEntry(tRand &);       // read data from files
 
   int nnodes, nedges, ntri;  // # nodes, edges, & triangles
@@ -160,14 +181,6 @@ private:
   tArray< int > t1;     // IDs of neighboring tri's opposite node 1
   tArray< int > t2;     // IDs of neighboring tri's opposite node 2
 
-  // IO Error handling
-  typedef enum {
-    IOTime,
-    IOSize,
-    IORecord
-  } IOErrorType;
-  static void ReportIOError(IOErrorType t, const char *filename,
-			    const char *suffix, int n=-1);
 };
 
 
