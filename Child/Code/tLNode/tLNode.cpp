@@ -11,7 +11,7 @@
 **    - fixed problem with layer initialization in copy constructor
 **      (gt, 2/2000; see below)
 ** 
-**  $Id: tLNode.cpp,v 1.88 2000-03-30 21:57:38 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.89 2000-06-07 19:12:28 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2083,18 +2083,24 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    update.setSize(numg);
    tArray<double> hupdate;
    hupdate.setSize(numg);
-
+   
    //NIC these are for testing
    //Xbefore=getLayerDepth(i);
    tArray<double> helper=valgrd;
    int numlay=getNumLayer();
    //Xint h;
-
-   //if(x<560.418 && x>560.416){
-//     if(getNumLayer()==2){
-//        cout<<"ERODEP x "<<x<<" y "<<y<<" numlayers "<<getNumLayer();
-//        cout<<" to erode b4 "<<valgrd[0]<<endl;
-//     }
+   //int nh = 0;
+   
+   //if(getLayerDgrade(i,0)/getLayerDepth(i)>0.99)
+   //{
+      //if(x<560.418 && x>560.416){
+   // nh=1;
+   // cout<<"layer "<<i<<" size 0 "<< getLayerDgrade(i,0)<<" size 1 "<<getLayerDgrade(i,1)<<endl;
+   // if(getNumLayer()==2){
+   //    cout<<"ERODEP x "<<x<<" y "<<y<<" numlayers "<<getNumLayer();
+   //    cout<<" to erode b4 "<<valgrd[0]<< " " <<valgrd[1]<<endl;
+   // }
+   //}
    
    g=0;
    val=0;
@@ -2111,13 +2117,15 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       g++;
    }
 
+//   if(nh){
 //     if(x<560.418 && x>560.416){
-//         cout<<"amt to ero/dep "<<val<<endl;
+//      cout<<"amt to ero/dep "<<val<<endl;
+//      cout<<"individual amts "<<valgrd[0]<< " " <<valgrd[1]<<endl;
 //         for(g=0; g<getNumLayer(); g++){
 //            cout<<getLayerCtime(g)<<" "<<getLayerRtime(g)<<" "<<getLayerEtime(g)<<" "<<getLayerSed(g)<<" "<<getLayerDepth(g)<<" "<<getLayerErody<<endl;
 //         }
-//     }
-   
+//   }
+          
 
    // val is now set to the total amount of erosion or deposition
    z += val;
@@ -2132,7 +2140,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    if(max <= 0 && min < -0.0000000001)
    {
       // CASE OF EROSION IN ALL SIZE CLASSES
-      if(getLayerSed(i) != 0 && getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i)<=maxregdep)
+      if(getLayerSed(i) != 0 && getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i)+val<=maxregdep)
       {
          // Updating will also be done if entering this statement
          // No updating of Bedrock layers.
@@ -2152,7 +2160,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                sumd-=hupdate[g];
                val-=hupdate[g];//hupdate stores texture of material that will
                //refil the top layer
-               update[g] += hupdate[g];
+               update[g] += hupdate[g];//need update cause might need
+               //to get material from more than one layer
                g++;
             }
             sume+=sumd*olde;
@@ -2169,7 +2178,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       {
          // No updating, just eroding, don't need to change exposure time
          //Do this if you have only bedrock below, or if layer you are eroding
-         //from is >maxregdepth (could be if lots of deposition)
+         //from is >maxregdepth-val (could be if lots of deposition)
          g=0;
          while(g<numg){
             addtoLayer(i, g, valgrd[g], -1); // Erosion done on this line
@@ -2178,15 +2187,6 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       }
       if(getLayerDepth(i)<1e-7)
           removeLayer(i);
-      if(getLayerDepth(i)>maxregdep*10 && getLayerSed(i) !=0 ){
-         //Make a top layer that is maxregdep deep so that further erosion
-         //is not screwed up
-         hupdate = addtoLayer(i, -1*maxregdep);
-         for(g=0; g<numg; g++)
-             hupdate[g]=-1* hupdate[g];
-         makeNewLayerBelow(-1,1,getLayerErody(i),hupdate, tt);
-         setLayerRtime(i,0);
-      }
    }
    else if(min >= 0.0 && max > 0.0000000001)
    {
@@ -2201,9 +2201,10 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       // For now assume that the test will be done in another place.
       if(getLayerSed(i)>0 && val < maxregdep){
          // top layer is sediment, so no issues
+         // depositing less than an entire layer of stuff
          olde=getLayerEtime(i);
          if(getLayerDepth(i)+val>maxregdep){
-            // Need to move stuff out of top layer to make room for deposited mat
+            // Need to move stuff out of top layer to make room for deposited material
             if(getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i+1)+val<maxregdep)
             {
                // The layer below is of the appropriate material and has space
@@ -2263,7 +2264,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       }
       else{
          // depositing sediment on top of br - create a new surface layer baby.
-         // NIC setting all new sediment layers to have erodibility of KRnew,
+         // setting all new sediment layers to have erodibility of KRnew,
          // value read in at begining
          // Also use this if the amount of material deposited is 
          // greater than maxregdep
@@ -2448,10 +2449,30 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       }
    }
 
-//     if(getNumLayer()<=2)
-//         cout<<"erodep 2 or less layers x "<<getX()<<" y "<<getY()<<endl;
+   //Check to make sure that top layer is not too deep
+   if(getLayerDepth(i)>1.1*maxregdep && getLayerSed(i) !=0 ){
+      //Make a top layer that is maxregdep deep so that further erosion
+      //is not screwed up
+      hupdate = addtoLayer(i, -1*maxregdep);
+      for(g=0; g<numg; g++)
+          hupdate[g]=-1* hupdate[g];
+      makeNewLayerBelow(-1,1,getLayerErody(i),hupdate, tt);
+      setLayerRtime(i,0);
+   }
    
+   if(getLayerDepth(0)>1.1*maxregdep){
+      cout<<"TOO MUCH SEDIMENT IN TOP LAYER"<<endl;
+      TellAll();
+   }
 
+//   if(nh)
+//   {
+//      cout<<"layer "<<i<<" size 0 "<< getLayerDgrade(i,0)<<" size 1 "<<getLayerDgrade(i,1)<<endl;
+//      cout<<"at end, valgrd[0] "<<valgrd[0]<<" [1] "<<valgrd[1]<<endl;
+//   }
+   
+          
+   
    return valgrd;
 }
 
@@ -2460,7 +2481,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 /**************************************************************
  ** tLNode::addtoLayer(int i, int g, double val, double tt)
  **
- ** This function is called from the EroDep which updates layerin.
+ ** This function is called from the EroDep which updates layering.
  ** Used when material is added/removed to/from a layer, grain size 
  ** by grain size. i.e. texture may change
  ** i = layer to add to
@@ -2505,7 +2526,7 @@ void tLNode::addtoLayer(int i, int g, double val, double tt)
  **  This erosion will not change the texture of a layer, only depth.
  **  As always, the depth of each grain size class is also updated.
  **  i = layer to deplete
- **  val = amount to deplet by
+ **  val = amount to deplete by
  **  Returns an array containing the texture of material removed.
  **
  **  created NG
@@ -2630,6 +2651,7 @@ void tLNode::removeLayer(int i)
 /*****************************************************************
  ** tLNode::makeNewLayerBelow(int i, int sd, double erd, tArray<double> sz, double tt)
  ** Makes a new layer below layer i.
+ ** if i<0 then make new top layer.
  ** sd = sediment flag
  ** erd = erodibility
  ** sz = array of depths of each grain size class
