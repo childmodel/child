@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.101 2004-02-18 17:49:34 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.102 2004-02-27 11:20:00 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -290,7 +290,7 @@ const tArray< double > tStreamMeander::FindInterpCoords( tLNode* crn, tLNode* nP
           2.0 + 0.001 * val1 * defseglen;//pow(defseglen, 2.0);
       const double val2 = rand->ran3() - 0.5;
       const double y = y0 + curseglen * sin(phi) /
-          2.0 + 0.01 * val2 * defseglen;//pow(defseglen, 2.0);
+          2.0 + 0.001 * val2 * defseglen;//pow(defseglen, 2.0);
       //const double z = z0 - curseglen / 2.0 * slope; // Removed by quintijn
       const double z = (nPtr->getZ() + z0)/2.0;
       tArray< double > ttic( x, y, z );
