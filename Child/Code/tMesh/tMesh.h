@@ -12,7 +12,7 @@
 **    - move, add, and/or delete nodes
 **    - update Delaunay and Voronoi geometry
 **
-**  $Id: tMesh.h,v 1.23 1999-09-09 21:31:42 gtucker Exp $
+**  $Id: tMesh.h,v 1.24 1999-11-30 21:25:02 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -58,6 +58,7 @@ class tMesh
 public:
    tMesh();
    tMesh( tInputFile & );
+   tMesh( tMesh * );
    ~tMesh();
    void BatchAddNodes(); // quickly adds many nodes when starting w/ dense mesh
    void MakeMeshFromScratch( tInputFile & );   // creates a new mesh
