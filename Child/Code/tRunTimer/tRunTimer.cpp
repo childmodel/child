@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.9 1999-04-01 17:20:22 gtucker Exp $
+**  $Id: tRunTimer.cpp,v 1.10 2000-06-05 19:09:12 daniel Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -59,6 +59,8 @@ tRunTimer::tRunTimer()
 	optPrintEachTime = 1;
 	notifyInterval = 1000;
 	nextNotify = 0;
+	TSOutputInterval = 1;
+	nextTSOutpueTime = 0;
 }
 
 tRunTimer::tRunTimer( double duration, double opint, int optprint )
@@ -70,6 +72,7 @@ tRunTimer::tRunTimer( double duration, double opint, int optprint )
 	optPrintEachTime = optprint;
 	notifyInterval = 1000;
 	nextNotify = 0;
+	nextTSOutput = 999999999
 }
 
 tRunTimer::tRunTimer( tInputFile &infile, int optprint )
@@ -78,6 +81,10 @@ tRunTimer::tRunTimer( tInputFile &infile, int optprint )
 	outputInterval = infile.ReadItem( outputInterval, "OPINTRVL" );
 	optPrintEachTime = optprint;
 	notifyInterval = 1000;
+        optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" );
+	if( optTSOutput )
+	  TSOutput = infile.ReadItem( TSOutputInterval, "TSOPINTRVL" );
+	
   double help;
 
   //If you are reading in layering information, the timer should
@@ -188,6 +195,22 @@ int tRunTimer::CheckOutputTime()
 	else return 0;
 }
 
+//*************************************************
+// CheckTSOutputTime
+//
+// Checks to see weather it's time to write time
+// series output yet.
+//*************************************************
+int tRunTimer::CheckTSOutputTime()
+{
+        if( currentTime >= nextTSOutputTime )
+	{
+	    	nextTSOutputTime += TSoutputInterval;
+		return 1;
+	}
+	else return 0;
+}
+    
 //*************************************************
 // IsFinished
 //
