@@ -6,7 +6,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.9 2002-04-11 12:03:19 arnaud Exp $
+**  $Id: tInputFile.cpp,v 1.10 2002-04-24 16:49:17 arnaud Exp $
 \****************************************************************************/
 
 #include <iostream.h>
@@ -34,6 +34,8 @@
 **
 \****************************************************************************/
 tInputFile::tInputFile( const char *filename )
+  :
+  infile(), inoutfile()
 {
    char inoutname[kMaxNameLength];
 
