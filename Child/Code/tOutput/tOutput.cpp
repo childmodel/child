@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.11 1998-06-22 17:02:49 nmgaspar Exp $
+**  $Id: tOutput.cpp,v 1.12 1998-06-29 18:57:22 nmgaspar Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -168,7 +168,7 @@ tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile )
    CreateAndOpenFile( &slpofs, ".slp" );
    CreateAndOpenFile( &qofs, ".q" );
    CreateAndOpenFile( &layofs, ".lay" );
-   CreateAndOpenFile( &texofs, ".tex" );
+   CreateAndOpenFile( &texofs, ".tx" );
    
 }
 
@@ -205,17 +205,16 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       qofs << cn->getQ() << endl;
       texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;      
       i=0;
+      layofs << cn->getNumLayer() << endl;
       while(i<cn->getNumLayer()){
-         layofs << i+1 << " " << cn->getLayerCtime(i) << " " << cn->getLayerRtime(i) << " " << cn->getLayerFlag(i) << endl;
+         layofs << cn->getLayerCtime(i) << " " << cn->getLayerRtime(i) << " " << cn->getLayerFlag(i) << endl;
          layofs << cn->getLayerDepth(i) << " " << cn->getLayerErody(i) << " " << cn->getLayerSed(i) << endl;
-         if(cn->getLayerSed(i)>0){
-            j=0;
-            while(j<cn->getNumg()){
-               layofs << cn->getLayerDgrade(i,j) << " ";
-               j++;
-            }
-            layofs << endl;
+         j=0;
+         while(j<cn->getNumg()){
+            layofs << cn->getLayerDgrade(i,j) << " ";
+            j++;
          }
+         layofs << endl;
          i++;
       }
       
