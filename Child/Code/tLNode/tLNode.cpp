@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.28 1998-04-07 00:18:09 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.29 1998-04-07 16:14:30 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -249,17 +249,17 @@ const tSurface &tSurface::operator=( const tSurface &right )     //tSurface
 \**************************************************************************/
 
 tRegolith::tRegolith()                                          //tRegolith
-        : dgrade()
+        : dgrade(), grade()
 {
    thickness = 0;
    numal = 0;
    dpth = 0;
-   actdepth = 0;
+   actdpth = 0;
      //cout << "  tRegolith()" << endl;
 }
 
 tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
-  : dgrade( )
+  : dgrade( ), grade( )
 {
   int i;
   char add, name[20];
@@ -271,26 +271,26 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
    numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    actdpth = infile.ReadItem( actdpth, "ACTIVEDEPTH" );
    dpth = infile.ReadItem( dpth, "SURLAYDEPTH" );
-   
+
    if( numg>1 )
    {
      dgrade.setSize( numg+1 );
      dgrade[0]=0;
      i=1;
-     add='1'
-       while ( i<=numg ){
-	 strcpy( name, "PROPORTION");
-	 strcat( name, &add ); 
-	 help = infile.ReadItem( help, name);
-	 dgrade[i] = help*dpth;
-	 i++;
-	 add++;
-       }
-     if( grade.getSize()<2 ){
+     add='1';
+     while ( i<=numg ){
+       strcpy( name, "PROPORTION");
+       strcat( name, &add ); 
+       help = infile.ReadItem( help, name);
+       dgrade[i] = help*dpth;
+       i++;
+       add++;
+     }
+     //if( grade.getSize()<2 ){
        grade.setSize( numg+1 );
        grade[0]=0;
        i=1;
-       add='1'
+       add='1';
        while ( i<=numg ){
 	 strcpy( name, "GRAINDIAM");
 	 strcat( name, &add ); 
@@ -299,12 +299,12 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
 	 i++;
 	 add++;
        }
-     }
+       //}
    }
 }
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
-        : dgrade( orig.dgrade ),  grade(orig.grade),
+        : dgrade( orig.dgrade ), grade( orig.grade ),
 	  depositList( orig.depositList )
 {
    if( &orig != 0 )
