@@ -40,7 +40,7 @@
 **  Modified, SL, September 2003: Can now generate non-fatal warnings and
 **    return zero-values as specified; default will be fatal error.
 **
-**  $Id: tInputFile.h,v 1.23 2004-04-16 18:36:37 childcvs Exp $
+**  $Id: tInputFile.h,v 1.24 2004-05-19 17:03:10 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -89,13 +89,17 @@ public:
   bool Contain(const char *) const;
   void WarnObsoleteKeyword(const char *, const char *) const;
   int ReadItem( const int &, const char *, bool reqParam = true ) const;       // reads an int
+  int ReadInt( const char * );												   // reads an int (alt)
   long ReadItem( const long &, const char *, bool reqParam = true ) const;     // reads a long
   double ReadItem( const double &, const char *, bool reqParam = true ) const; // reads a double
+  double ReadDouble( const char * );											// reads a double (alt)
   void ReadItem( char *, size_t len, const char *, bool reqParam = true ) const;// reads a string
   void ReadItem(tTimeSeries &, const char *,
 		bool reqParam = true ) const; // reads a time series
 
   // similar overrides could be added for other data types
+  
+  tArray< tKeyPair > * GetKeyWordTablePtr();  // Returns a pointer to the keyword table
 
 private:
   tArray< tKeyPair > KeyWordTable; // hold key/value pair

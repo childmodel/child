@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.31 2004-01-29 16:41:18 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.32 2004-05-19 17:03:10 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -420,6 +420,24 @@ void tInputFile::ReadItem( char * theString, size_t len,
   if (theString[llen-1] == '\r')
     theString[llen-1] = '\0';
 }
+
+int tInputFile::ReadInt( const char *itemCode )
+{
+  int datTypeInt;
+  return ReadItem( datTypeInt, itemCode );
+}
+
+double tInputFile::ReadDouble( const char *itemCode )
+{
+  double datTypeDouble;
+  return ReadItem( datTypeDouble, itemCode );
+}
+
+tArray< tKeyPair > * tInputFile::GetKeyWordTablePtr()
+{
+  return &KeyWordTable;
+}
+
 
 //****************************************************************
 // Designed and implemented:
