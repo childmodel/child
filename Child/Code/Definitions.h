@@ -1,6 +1,6 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.13 1999-02-01 21:47:09 gtucker Exp $
+**   $Id: Definitions.h,v 1.14 1999-02-04 15:02:55 nmgaspar Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -38,6 +38,7 @@
 #define GRAV 9.81       /* Gravitational acceleration, m/s^2 */
 #define POROSITY 0.3        /* porosity of sediment on bed */
 #define VISC .00000112      /* viscosity of water [m^2/s] */
+#define SECPERYEAR 31557600.00  /*number of seconds in a year*/
 
 // Macros
 #define ROUND(x)    (int)(x+0.5)
