@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.164 2003-06-04 10:15:59 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.165 2003-06-19 15:03:02 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2465,14 +2465,13 @@ void tMesh<tSubNode>::setVoronoiVertices()
 {
    if (0) //DEBUG
      cout << "setVoronoiVertices()..." << endl;
-   tArray< double > xy;
    tListIter< tTriangle > triIter( triList );
    tTriangle * ct;
 
    // Find the Voronoi vertex associated with each Delaunay triangle
    for( ct = triIter.FirstP(); !(triIter.AtEnd()); ct = triIter.NextP() )
    {
-      xy = ct->FindCircumcenter();
+      const tArray< double > xy = ct->FindCircumcenter();
       //cout << "setVoronoiVertices(): " << xy[0] << " " << xy[1];
       // Assign the Voronoi point as the left-hand point of the three edges
       // associated with the current triangle
@@ -2487,8 +2486,8 @@ void tMesh<tSubNode>::setVoronoiVertices()
                << ct->ePtr(i)->getOriginPtr()->getID() << ","
                << ct->ePtr(i)->getDestinationPtr()->getID() << ") ";
 	cout << ", v verts are:\n";
-	xy = ct->ePtr(0)->getRVtx();
-	cout << "  setVoronoiVertices(): " << xy[0] << " " << xy[1] << endl;
+	const tArray< double > xy_ = ct->ePtr(0)->getRVtx();
+	cout << "  setVoronoiVertices(): " << xy_[0] << " " << xy_[1] << endl;
       }
    }
    if (0) //DEBUG
@@ -3602,8 +3601,7 @@ template< class tSubNode >
 tSubNode * tMesh< tSubNode >::
 AddNode( tSubNode &nodeRef, bool updatemesh, double time )
 {
-   tArray< double > xyz( nodeRef.get3DCoords() );
-   assert( &nodeRef != 0 );
+   const tArray< double > xyz( nodeRef.get3DCoords() );
 
    if (0) //DEBUG
      cout << "AddNode at " << xyz[0] << ", " << xyz[1]
@@ -3788,7 +3786,7 @@ AttachNode( tSubNode* cn, tTriangle* tri )
 {
   assert( tri != 0 && cn != 0 );
   int i;
-  tArray< double > xyz( cn->get3DCoords() );
+  const tArray< double > xyz( cn->get3DCoords() );
 
   // flush its spoke list
   cn->setEdg( 0 );
@@ -4180,7 +4178,7 @@ CheckForFlip( tTriangle * tri, int nv, bool flip, bool useFuturePosn )
 **    Calls: DeleteEdge, AddEdgeAndMakeTriangle, MakeTriangle
 **    Called by: CheckForFlip, CheckTriEdgeIntersect
 **
-** Edges and triangles are re-used (SL) 
+** Edges and triangles are re-used (SL)
 ** 5/2003 AD
 \*******************************************************************/
 template< class tSubNode >
@@ -4333,21 +4331,18 @@ void tMesh< tSubNode >::
 CheckTriEdgeIntersect()
 {
    if (0) //DEBUG
-     cout << "CheckTriEdgeIntersect()..." << flush << endl;
-     //DumpNodes();
+     cout << "CheckTriEdgeIntersect()..." << endl;
+   //DumpNodes();
    int i, j, nv, nvopp;
    bool flipped = true;
    bool crossed;
-   tSubNode *subnodePtr, tempNode, newNode;
-   tEdge * cedg, *ce;
-   tTriangle * ct, * ctop, *rmtri/* *tri*/;
+   tSubNode *subnodePtr;
+   tEdge *cedg, *ce;
+   tTriangle *ct, *ctop, *rmtri;
    tListIter< tTriangle > triIter( triList );
-   tMeshListIter< tEdge > edgIter( edgeList );
    tMeshListIter< tSubNode > nodIter( nodeList );
-   tMeshListIter< tEdge > xedgIter( edgeList );
    tMeshList< tSubNode > tmpNodeList;
    tMeshListIter< tSubNode > tmpIter( tmpNodeList );
-   tArray< double > p0, p1, p2, xy, xyz, xy1, xy2;
    tSubNode *cn;
    tPtrList< tTriangle > triptrList;
    tPtrListNode< tTriangle > *tpListNode;
@@ -4374,7 +4369,7 @@ CheckTriEdgeIntersect()
            ct = triptrList.removeFromFront(), ct = tpIter.FirstP() )
       {
            //cout<<"PA: check triangle "<<ct->id<<", w edges "
-           //<<ct->e[0]->id<<", "<<ct->e[1]->id<<", "<<ct->e[2]->id<<endl<<flush;
+           //<<ct->e[0]->id<<", "<<ct->e[1]->id<<", "<<ct->e[2]->id<<endl;
          if( !NewTriCCW( ct ) )
          {
             flipped = true;
@@ -4414,7 +4409,7 @@ CheckTriEdgeIntersect()
                            {
                               crossed = true;
                               ctop = ct->tPtr(i);
-                              xy = cn->getNew2DCoords();
+			      const tArray< double > xy = cn->getNew2DCoords();
                                 //check to make sure the opposite tri is still CCW;
                                 //if so, check whether the point has moved into it;
                                 //otherwise delete node and re-add it
@@ -4433,9 +4428,10 @@ CheckTriEdgeIntersect()
                                  }
                                  nv = ct->nVOp( ctop );
                                  nvopp = ctop->nVOp( ct );
-                                 //cout << "call FlipEdge from CTEI for edge between nodes "
-                                 //     << ct->pPtr( (nv+1)%3 )->getID() << " and "
-                                 //     << ct->pPtr( (nv+2)%3 )->getID() << endl;
+				 if (0) //DEBUG
+				   cout << "call FlipEdge from CTEI for edge between nodes "
+					<< ct->pPtr( (nv+1)%3 )->getID() << " and "
+					<< ct->pPtr( (nv+2)%3 )->getID() << endl;
                                  FlipEdge( ct, ctop, nv, nvopp );
                                  triptrList.insertAtBack( ct );
                                  triptrList.insertAtBack( ctop );
@@ -4447,7 +4443,6 @@ CheckTriEdgeIntersect()
                               {
                                  if( LocateTriangle( xy[0], xy[1] ) != 0 )
                                  {
-                                      //tempNode = *cn;
                                       //find spoke tri's in tri ptr list and remove them
                                     for( ce = spokIter.FirstP(); !(spokIter.AtEnd());
                                          ce = spokIter.NextP() )
@@ -4463,10 +4458,12 @@ CheckTriEdgeIntersect()
                                           triptrList.removeNext( tpListNode );
                                        }
                                     }
-                                      //delete the node;
-                                    xyz = cn->getNew3DCoords();
-                                    //cout << "delete node at " << xyz[0] << ", " << xyz[1]
-                                    //     << ", " << xyz[2] << endl;
+				    //delete the node;
+				    if (0) {//DEBUG
+				      const tArray< double > xyz = cn->getNew3DCoords();
+				      cout << "delete node at " << xyz[0] << ", " << xyz[1]
+					   << ", " << xyz[2] << endl;
+				    }
                                     tmpNodeList.insertAtBack( *cn );
                                     DeleteNode( cn, kRepairMesh );
                                  }
@@ -4548,7 +4545,7 @@ void tMesh< tSubNode >::
 MoveNodes( double time, bool interpFlag )
 {
    if (1) //DEBUG
-     cout << "MoveNodes()... time " << time <<flush << endl;
+     cout << "MoveNodes()... time " << time << endl;
 
    //Before any edges and triangles are changed, layer interpolation
    //must be performed.
