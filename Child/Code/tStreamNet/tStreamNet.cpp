@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.60 2003-09-19 13:45:44 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.61 2003-09-23 10:41:00 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -182,8 +182,9 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
      tmp_ = infile.ReadItem( tmp_, "OPTVAR" );
      optrainvar = BOOL(tmp_ != 0 );
    }
+   // Arnaud: useless
    // Options related to stream meandering
-   int itMeanders = infile.ReadItem( itMeanders, "OPTMEANDER" );
+   // int itMeanders = infile.ReadItem( itMeanders, "OPTMEANDER" );
 
    // Read hydraulic geometry parameters: first, those used (potentially)
    // by both "regime" and "parker" hydraulic geometry models
