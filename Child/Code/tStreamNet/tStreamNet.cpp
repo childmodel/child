@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.45 2003-08-06 13:13:09 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.46 2003-08-07 11:25:42 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -132,7 +132,11 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    // Read option for runoff generation/routing and get relevant parameters
    knds = infile.ReadItem( knds, "HYDR_ROUGH_COEFF_DS" );
 
-   miOptFlowgen = infile.ReadItem( miOptFlowgen, "FLOWGEN" );
+   {
+     int tmp_;
+     tmp_ = infile.ReadItem( tmp_, "FLOWGEN" );
+     miOptFlowgen = static_cast<kFlowGen_t>( miOptFlowgen );
+   }
    filllakes = infile.ReadItem( filllakes, "LAKEFILL" );
    if( miOptFlowgen == kSaturatedFlow1 || miOptFlowgen==kSaturatedFlow2 )
       trans = infile.ReadItem( trans, "TRANSMISSIVITY" );
@@ -194,14 +198,19 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
 
    // Read remaining hydraulic geometry parameters according to which
    // (of currently 2) model is chosen
-   miChannelType = infile.ReadItem( miChannelType, "CHAN_GEOM_MODEL" );
-   if( miChannelType < 1 || miChannelType > kNumChanGeomModels )
    {
-     cout << "You asked for channel geometry model number " << miChannelType;
-     cout << " but there is no such thing.\n";
-     cout << "Available models are:\n";
-     cout << " 1. Regime theory (empirical power-law scaling)\n";
-     cout << " 2. Parker-Paola self-formed channel theory\n";
+     int tmp_;
+     tmp_ = infile.ReadItem( tmp_, "CHAN_GEOM_MODEL" );
+     miChannelType = static_cast<kChannelType_t>(  miChannelType );
+   }
+   if( miChannelType < kChannelType_Begin ||
+       miChannelType > kChannelType_End )
+   {
+     cout << "You asked for channel geometry model number " << miChannelType
+	  << " but there is no such thing.\n"
+       "Available models are:\n"
+       " 1. Regime theory (empirical power-law scaling)\n"
+       " 2. Parker-Paola self-formed channel theory\n";
      ReportFatalError( "Unrecognized channel geometry model code.\n" );
    }
    if( miChannelType==kRegimeChannels )
@@ -272,7 +281,7 @@ const tStorm *tStreamNet::getStormPtr() const {return stormPtr;}
 
 tStorm *tStreamNet::getStormPtrNC() {return stormPtr;}
 
-inline int tStreamNet::getFlowGenOpt() const {return miOptFlowgen;}
+inline kFlowGen_t tStreamNet::getFlowGenOpt() const {return miOptFlowgen;}
 
 int tStreamNet::getFillLakesOpt() const {return filllakes;}
 
@@ -297,7 +306,7 @@ tLNode *tStreamNet::getInletNodePtrNC() {   return inlet.innode;}
 
 // TODO: the value checks are nice, but will hurt performance. Should
 // probably be removed.
-void tStreamNet::setFlowGenOpt( int val )
+void tStreamNet::setFlowGenOpt( kFlowGen_t val )
 {miOptFlowgen=val;
 /*miOptFlowgen = ( val == 0 || val == 1 ) ? val : 0;*/}
 

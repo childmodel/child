@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.46 2003-08-06 13:13:11 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.47 2003-08-07 11:25:44 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -43,17 +43,22 @@
 #include "../tInputFile/tInputFile.h"
 #include "../tStorm/tStorm.h"
 
-#define kHortonian 0       // Option for uniform infilt-excess runoff
-#define kSaturatedFlow1 1  // Option for sat-excess runoff w/ return flow
-#define kSaturatedFlow2 2  // Option for sat-excess runoff w/o return flow
-#define kConstSoilStore 3  // Option for "bucket"-type flow generation
-#define k2DKinematicWave 4 // Option for 2D steady kinematic wave multi-flow
-#define kHydrographPeakMethod 5  // Option for hydrograph peak method
+typedef enum {
+  kHortonian = 0,       // Option for uniform infilt-excess runoff
+  kSaturatedFlow1 = 1,  // Option for sat-excess runoff w/ return flow
+  kSaturatedFlow2 = 2,  // Option for sat-excess runoff w/o return flow
+  kConstSoilStore = 3,  // Option for "bucket"-type flow generation
+  k2DKinematicWave = 4, // Option for 2D steady kinematic wave multi-flow
+  kHydrographPeakMethod = 5  // Option for hydrograph peak method
+} kFlowGen_t;
 
-#define kNumChanGeomModels 2
-#define kRegimeChannels 1
-#define kParkerChannels 2
 
+typedef enum {
+  kChannelType_Begin = 1,
+  kRegimeChannels = kChannelType_Begin,
+  kParkerChannels,
+  kChannelType_End = kParkerChannels
+} kChannelType_t;
 
 double DistanceToLine( double x2, double y2, double a, double b, double c );
 double DistanceToLine( double x2, double y2, tNode const *p0, tNode const *p1 );
@@ -204,7 +209,7 @@ public:
     tMesh< tLNode > *getMeshPtrNC();
     const tStorm *getStormPtr() const;
     tStorm *getStormPtrNC();
-    int getFlowGenOpt() const;
+    kFlowGen_t getFlowGenOpt() const;
     int getFillLakesOpt() const;
     double getRainRate() const;
     double getTransmissivity() const;
@@ -215,7 +220,7 @@ public:
     tArray< double > getInSedLoadm() const;
     tLNode *getInletNodePtr() const;
     tLNode *getInletNodePtrNC();
-    void setFlowGenOpt( int );
+    void setFlowGenOpt( kFlowGen_t );
     void setFillLakesOpt( int );
     void setRainRate( double );
     void setTransmissivity( double );
@@ -258,7 +263,7 @@ protected:
 
     tMesh< tLNode > * meshPtr;  // ptr to mesh
     tStorm *stormPtr;    // ptr to storm object (for getting precip)
-    int miOptFlowgen;         // option for runoff generation & routing method
+    kFlowGen_t miOptFlowgen; // option for runoff generation & routing method
     int filllakes;       // option for filling lakes
     int optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
     double kwds, ewds, ewstn;//coefs & exps for dwnstrm & at-a-stn hydr. width
@@ -272,7 +277,7 @@ protected:
     double soilStore;     // soil water storage, depth equiv (m)
     tInlet inlet;         // inlet
     int optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
-    int miChannelType;    // code for type of channels: "regime", "parker"
+    kChannelType_t miChannelType; // code for type of channels: "regime", "parker"
     tParkerChannels *mpParkerChannels;  // -> tParkerChannels object
     double infilt_dev;    // max +/- variation from mean infilt cap
     double infilt0;    // mean infilt cap
