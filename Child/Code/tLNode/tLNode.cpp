@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.30 1998-04-09 18:37:36 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.31 1998-04-09 21:33:20 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -328,11 +328,15 @@ const tRegolith &tRegolith::operator=( const tRegolith &right )     //tRegolith
 {
    if( &right != this )
    {
-      dgrade = right.dgrade;
       depositList = right.depositList;
       dpth = right.dpth;
       thickness = right.thickness;
       numal = right.numal;
+      numg = right.numg;
+      dpth = right.dpth;
+      actdpth = right.actdpth;
+      dgrade = right.dgrade;
+      grade = right.grade;
    }
    return *this;
 }
@@ -409,7 +413,7 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
 \**************************************************************************/
 
 tLNode::tLNode()                                                   //tLNode
-        : tNode(), rock(), surf(), reg(), chan()
+        : tNode(), rock(), surf(), reg(), chan(), qsm(), qsinm()
 {
      //cout << "=>tLNode()" << endl;
    flood = 0;
@@ -419,19 +423,25 @@ tLNode::tLNode()                                                   //tLNode
 }
 
 tLNode::tLNode( tInputFile &infile )                               //tLNode
-        : tNode(), rock(), surf(), reg( infile ), chan()
+        : tNode(), rock(), surf(), reg( infile ), chan(), qsm(), qsinm()
 {
    //cout << "=>tLNode( infile )" << endl;
    flood = 0;
    flowedge = 0;
    tracer = 0;
    dzdt = drdt = qs = qsin = uplift = 0.0;
+   if( reg.numg > 1 ){
+      qsm.setSize( reg.numg+1 );
+      qsinm.setSize( reg.numg+1 );
+   }
+   
 }
 
 tLNode::tLNode( const tLNode &orig )                               //tLNode
         : tNode( orig ),
           rock( orig.rock ), surf( orig.surf ),
-          reg( orig.reg ), chan( orig.chan )
+          reg( orig.reg ), chan( orig.chan ), qsm( orig.qsm),
+          qsinm( orig.qsinm )
 {
    flowedge = orig.flowedge;
    flood = orig.flood;
@@ -467,6 +477,8 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
       qs = right.qs;
       qsin = right.qsin;
       uplift = right.uplift;
+      qsm = right.qsm;
+      qsinm = right.qsinm;
    }
    return *this;
 }
