@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 // Master list of included files for CHILD model
 
 #ifndef INCLUSIONS_H

@@ -1,7 +1,9 @@
+//-*-c++-*- 
+
 /****************************************************************************\
 **   Definitions.h: Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.27 2002-07-08 13:49:39 arnaud Exp $
+**   $Id: Definitions.h,v 1.28 2002-07-08 17:21:49 arnaud Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H

@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /***************************************************************************\
 **
 **  tRunTimer.h: Header for tRunTimer objects.
@@ -7,7 +9,7 @@
 **  time to write output, printing the current time to standard output if
 **  desired, and writing the current time to a file every so often.
 **
-**  $Id: tRunTimer.h,v 1.7 2000-06-05 22:39:02 daniel Exp $
+**  $Id: tRunTimer.h,v 1.8 2002-07-08 17:21:51 arnaud Exp $
 \***************************************************************************/
 
 #ifndef TRUNTIMER_H

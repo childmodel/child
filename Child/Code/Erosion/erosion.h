@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /***************************************************************************\
 **
 **  erosion.h
@@ -53,7 +55,7 @@
 **     - Added variants of power law detachment and transport formulae
 **       of form tau^p - tauc^p rather than (tau - tauc)^p (GT 4/02)
 **
-**  $Id: erosion.h,v 1.35 2002-05-01 08:43:14 gtucker Exp $
+**  $Id: erosion.h,v 1.36 2002-07-08 17:21:49 arnaud Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H

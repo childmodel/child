@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /**************************************************************************\
 **
 **  tListInputData.h: header file for class tListInputData
@@ -13,7 +15,7 @@
 **     to avoid multiple definition errors resulting from mixing
 **     template & non-template classes (1/99)
 **
-**  $Id: tListInputData.h,v 1.10 2002-05-01 14:48:29 arnaud Exp $
+**  $Id: tListInputData.h,v 1.11 2002-07-08 17:21:50 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLISTINPUTDATA_H

@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /**************************************************************************\
 *
 **  tStorm.h: Header for class tStorm
@@ -25,7 +27,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.19 2002-04-30 17:17:27 arnaud Exp $
+**  $Id: tStorm.h,v 1.20 2002-07-08 17:21:51 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TSTORM_H

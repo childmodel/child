@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 //  These functions are added as members of the class Predicates; should
 //  ideally be a namespace, but some compilers, including Sun's, do not
 //  support namespaces yet.
@@ -9,7 +11,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.h,v 1.4 2002-05-01 14:48:25 arnaud Exp $
+//  $Id: predicates.h,v 1.5 2002-07-08 17:21:50 arnaud Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 

@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /**************************************************************************\
 **
 **  tStreamMeander.h: Header file for class tStreamMeander.
@@ -17,7 +19,7 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.25 2002-05-01 14:48:31 arnaud Exp $
+**  $Id: tStreamMeander.h,v 1.26 2002-07-08 17:21:52 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMMEANDER_H

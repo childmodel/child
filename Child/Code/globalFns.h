@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /**************************************************************************\
 **
 **  globalFns.h: Header file for global functions used by tGrid and other
@@ -9,7 +11,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.5 1999-05-11 19:09:53 gtucker Exp $
+**  $Id: globalFns.h,v 1.6 2002-07-08 17:21:49 arnaud Exp $
 \**************************************************************************/
 
 #ifndef GLOBALFNS_H

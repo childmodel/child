@@ -1,10 +1,12 @@
+//-*-c++-*- 
+
 /****************************************************************\
 **  errors.h
 **
 **  Header file for CHILD error-handling routines.
 **
 **  Created Dec. 97
-**  $Id: errors.h,v 1.5 2002-04-11 10:53:25 arnaud Exp $
+**  $Id: errors.h,v 1.6 2002-07-08 17:21:50 arnaud Exp $
 \****************************************************************/
 
 #ifndef ERRORS_H

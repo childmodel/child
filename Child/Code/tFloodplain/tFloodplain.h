@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /**************************************************************************\
 **
 **  tFloodplain.h: header file for class tFloodplain and its helper class
@@ -15,7 +17,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.6 2002-05-01 14:48:26 arnaud Exp $
+**  $Id: tFloodplain.h,v 1.7 2002-07-08 17:21:50 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TFLOODPLAIN_H

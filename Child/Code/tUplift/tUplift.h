@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /************************************************************************\
 **
 **  tUplift.h:  Header file for tUplift objects.
@@ -21,7 +23,7 @@
 **  Major modifications:
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **
-**  $Id: tUplift.h,v 1.11 2002-04-10 16:13:31 gtucker Exp $
+**  $Id: tUplift.h,v 1.12 2002-07-08 17:21:52 arnaud Exp $
 \************************************************************************/
 
 #ifndef TUPLIFT_H

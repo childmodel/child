@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 // Parameters read in Input File
 class ParamMMFS_t {
 public:

@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /****************************************************************************\
 **
 **  tInputFile.h: Header file for class tInputFile.
@@ -34,7 +36,7 @@
 **
 **  Created by Greg Tucker, November 1997
 **
-**  $Id: tInputFile.h,v 1.5 1999-03-31 21:08:50 gtucker Exp $
+**  $Id: tInputFile.h,v 1.6 2002-07-08 17:21:50 arnaud Exp $
 \****************************************************************************/
 
 #ifndef TINPUTFILE_H

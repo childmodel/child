@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /**************************************************************************\
 **
 **  tVegetation.h: Header file for the tVegetation and tVegCover classes
@@ -21,7 +23,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.h,v 1.7 2002-04-30 17:17:27 arnaud Exp $
+**  $Id: tVegetation.h,v 1.8 2002-07-08 17:21:52 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TVEGETATION_H

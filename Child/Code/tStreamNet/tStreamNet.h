@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /**************************************************************************\
 **
 **  tStreamNet.h: Header file for class tStreamNet and related class
@@ -24,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.36 2002-05-02 09:23:38 arnaud Exp $
+**  $Id: tStreamNet.h,v 1.37 2002-07-08 17:21:52 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H

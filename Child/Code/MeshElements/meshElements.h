@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /**************************************************************************\
 **
 **  meshElements.h: Header file for mesh elements tNode, tEdge,
@@ -40,7 +42,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.30 2002-05-01 10:12:47 arnaud Exp $
+**  $Id: meshElements.h,v 1.31 2002-07-08 17:21:49 arnaud Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/

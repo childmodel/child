@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /*************************************************************************\
 **
 **  tMatrix.h:  Header file for class tMatrix.
@@ -8,7 +10,7 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.h,v 1.7 2002-04-30 17:17:26 arnaud Exp $
+**  $Id: tMatrix.h,v 1.8 2002-07-08 17:21:50 arnaud Exp $
 \*************************************************************************/
 #ifndef TMATRIX_H
 #define TMATRIX_H

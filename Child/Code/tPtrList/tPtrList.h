@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /**************************************************************************\
 **
 **  tPtrList.h: Header file for tPtrList, tPtrListNode, and tPtrListIter
@@ -31,7 +33,7 @@
 **    - 3/31/00 bug fix to tPtrList copy constructors (GT)
 **    - 5/10/00 typo fix in DataCopy (GT)
 **
-**  $Id: tPtrList.h,v 1.16 2002-05-01 14:48:30 arnaud Exp $
+**  $Id: tPtrList.h,v 1.17 2002-07-08 17:21:51 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H

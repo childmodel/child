@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /***************************************************************************\
 **
 **  tMesh.h: Header file for class tMesh (formerly tGrid)
@@ -19,7 +21,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.34 2002-07-05 16:50:12 arnaud Exp $
+**  $Id: tMesh.h,v 1.35 2002-07-08 17:21:51 arnaud Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H

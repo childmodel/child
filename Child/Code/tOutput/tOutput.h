@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /*************************************************************************\
 **
 **  tOutput.h: Header file for classes tOutput and tLOutput
@@ -26,7 +28,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.29 2002-05-01 14:48:30 arnaud Exp $
+**  $Id: tOutput.h,v 1.30 2002-07-08 17:21:51 arnaud Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H

@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /***************************************************************************\
 **
 **  tArray.h
@@ -12,7 +14,7 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.10 2000-12-07 12:06:06 gtucker Exp $
+**  $Id: tArray.h,v 1.11 2002-07-08 17:21:50 arnaud Exp $
 \***************************************************************************/
 
 #ifndef TARRAY_H

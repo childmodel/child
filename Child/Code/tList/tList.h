@@ -1,3 +1,5 @@
+//-*-c++-*- 
+
 /**************************************************************************\
 **
 **  tList.h: Header file for classes tList, tListNode, and tListIter.
@@ -30,7 +32,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.24 2002-04-30 17:17:26 arnaud Exp $
+**  $Id: tList.h,v 1.25 2002-07-08 17:21:50 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
