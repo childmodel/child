@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.61 2003-09-05 14:20:53 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.62 2003-09-18 15:52:31 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -178,156 +178,159 @@ tEdge *tNode::EdgToNod( tNode const * nod )
 \*****************************************************************************/
 double tNode::ComputeVoronoiArea()
 {
-   double area = 0;
-   double dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
-   double vx, vy, x0, y0, x1, y1, x2, y2, m1, m2;
-   tEdge * ce, *edgptr;
-   int i;
+  double area = 0;
+  double dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
+  double vx, vy, x0, y0, x1, y1, x2, y2, m1, m2;
+  tEdge * ce, *edgptr;
+  int i;
 
-   // the following is a temporary hack, which should be replaced by a more
-   // proper handling but i'm going away for a week tomorrow and don't
-   // have time to deal w/ it right now (gt, aug 02)
-   if( getBoundaryFlag()!=kNonBoundary ) // if not an interior node, something's wrong
-     {
-       cout << "Warning: attempt to compute Voronoi area for a boundary node: "
-	    << id << " " << x << " " << y << " " << getBoundaryFlag() << endl;
-       return 0.0;
-     }
+  // the following is a temporary hack, which should be replaced by a more
+  // proper handling but i'm going away for a week tomorrow and don't
+  // have time to deal w/ it right now (gt, aug 02)
+  if( getBoundaryFlag()!=kNonBoundary ) // if not an interior node, something's wrong
+    {
+      cout << "Warning: attempt to compute Voronoi area for a boundary node: "
+	   << id << " " << x << " " << y << " " << getBoundaryFlag() << endl;
+      return 0.0;
+    }
 
-   // Create a duplicate list of edges; we will modify this list to obtain
-   // the correct vertices. In some cases, we may need to delete an edge
-   // to get the correct list of vertices; we don't want to delete the
-   // spoke ptr, so we make a duplicate list.
-   //if( id==83 ) cout << "NODE 83: " << x << "," << y << endl;
+  // Create a duplicate list of edges; we will modify this list to obtain
+  // the correct vertices. In some cases, we may need to delete an edge
+  // to get the correct list of vertices; we don't want to delete the
+  // spoke ptr, so we make a duplicate list.
+  //if( id==83 ) cout << "NODE 83: " << x << "," << y << endl;
 
-   tPtrList< tEdge > vedgList /*= spokeList*/;
-   tPtrListIter< tEdge > //spokIter( spokeList ),
-       vtxIter( vedgList );
-   ce = edg;
-   do
-   {
+  tPtrList< tEdge > vedgList;
+  tPtrListIter< tEdge > vtxIter( vedgList );
+  ce = edg;
+  do
+    {
       assert( ce!=0 );
       vedgList.insertAtBack( ce );
-      //xy = ce->getRVtx();
-      //cout << xy[0] << " " << xy[1] << "; " << flush;
-      //xy = vedgList.getLast()->getPtrNC()->getRVtx();
-      //cout << xy[0] << " " << xy[1] << endl << flush;
-      //if( id==83) cout << " " << ce->getDestinationPtr()->getX() << ","
-      //                 << ce->getDestinationPtr()->getY() << endl;
+      if (0) {//DEBUG
+	tArray< double > const &xy1 = ce->getRVtx();
+	tArray< double > const &xy2 =
+	  vedgList.getLast()->getPtrNC()->getRVtx();
+	cout
+	  << xy1[0] << " " << xy1[1] << "; "
+	  << xy2[0] << " " << xy2[1] << endl;
+	//if( id==83) cout << " " << ce->getDestinationPtr()->getX() << ","
+	//                 << ce->getDestinationPtr()->getY() << endl;
+      }
       ce = ce->getCCWEdg();
-   } while( ce != edg );
-   vedgList.makeCircular();
-   //cout << endl << flush;
-   // Check boundary status: Voronoi area only defined for non-boundary nodes
-   if( boundary == kNonBoundary )
-   {
-      bool cw = true;
-      //cout << "find clockwise loops" << endl << flush;
-      do
+    } while( ce != edg );
+  vedgList.makeCircular();
+  //cout << endl;
+  // Check boundary status: Voronoi area only defined for non-boundary nodes
+  if( boundary == kNonBoundary )
+    {
       {
-         // go through the list; we want the vertex list to run CCW;
-         // in some cases of long skinny triangles, the 'unimproved'
-         // v. polygon sides may form loops; loops are detected by
-         // finding two (2) consecutive 'CCW' vertices; i.e., where
-         // the 'curvature' is CW rather than CCW. In such cases,
-         // we delete one of the edges from the vertex list and find
-         // the new vertex at the intersection of the perp. bisectors
-         // of the edges to either 'side' of the deleted edge. Iterate.
-         // Really. It works.
-         cw = false;
-         for( ce=vtxIter.FirstP(); !( vtxIter.AtEnd() ); ce=vtxIter.NextP() )
-         {
-            tArray< double > const &xy = ce->getRVtx();
-            tArray< double > const &xyn = vtxIter.NextP()->getRVtx();
-            tArray< double > const &xynn = vtxIter.NextP()->getRVtx();
-            dx0 = xynn[0] - xyn[0];
-            dy0 = xynn[1] - xyn[1];
-            dx1 = xy[0] - xyn[0];
-            dy1 = xy[1] - xyn[1];
-            if( dy0 * dx1 > dx0 * dy1 ) //clockwise
-            {
-               tArray< double > const &xynnn = vtxIter.NextP()->getRVtx();
-               dx0 = xynnn[0] - xynn[0];
-               dy0 = xynnn[1] - xynn[1];
-               dx1 = xyn[0] - xynn[0];
-               dy1 = xyn[1] - xynn[1];
-               if( dy0 * dx1 > dx0 * dy1 ) //clockwise
-               {
-                  //two consecutive clockwise vertices=>want intersection
-                  //of bisectors of ce->nextedg and
-                  //ce->nextedg->nextedg->nextedg:
-                  cw = true;
-                  x0 = x; //node.x
-                  y0 = y; //node.y
-                  const tArray<double> xy1 =
-		    ce->getDestinationPtr()->get2DCoords();
-                  //vtxIter.Prev();
-                  const tArray<double> xy2 =
-		    vtxIter.PrevP()->getDestinationPtr()->get2DCoords();
-                  x1 = ( x0 + xy1[0] ) / 2;
-                  y1 = ( y0 + xy1[1] ) / 2;
-                  x2 = ( x0 + xy2[0] ) / 2;
-                  y2 = ( y0 + xy2[1] ) / 2;
-                  dx1 = x1 - x0;
-                  dy1 = y1 - y0;
-                  dx2 = x2 - x0;
-                  dy2 = y2 - y0;
-                  if( fabs(dy1)>0 && fabs(dy2) > 0 )
-                  {
-                     m1 = -dx1/dy1;
-                     m2 = -dx2/dy2;
-                     vx = (y2-m2*x2-y1+m1*x1) / (m1-m2);
-                     vy = m1*(vx-x1)+y1;
-                  }
-                  else
-                  {
-                     if( fabs(dx1) > 0 && fabs(dx2) > 0 )
-                     {
-                        m1 = dy1/dx1;
-                        m2 = dy2/dx2;
-                        vy=(m1*y1+x1-m2*y2-x2)/(m1-m2);
-                        vx= -vy*m1+m1*y1+x1;
-                     }
-                     //otherwise one vert., one horiz. line:
-                     else if( fabs(dx1) > 0 )
-                     {
-                        vx = x2;
-                        vy = y1;
-                     }
-                     else
-                     {
-                        vx = x1;
-                        vy = y2;
-                     }
-                  }
-                  edgptr = vtxIter.PrevP();
-                  const tArray< double > xyn( vx, vy );
-                  dx = xy[0] - vx;
-                  dy = xy[1] - vy;
-                  //cout << "reset vedglen and rvtx for edge "
-                  //     << edgptr->getID() << " to len "
-                  //     << sqrt( dx*dx + dy*dy )
-                  //     << ", x, y, " << xyn[0] << ", " << xyn[1] << endl << flush;
-                    //reset 'next' edge's vertex to newly found intersection,
-                    //length adjusted accordingly
-                  edgptr->setVEdgLen( sqrt( dx*dx + dy*dy ) );
-                  edgptr->setRVtx( xyn );
-                  edgptr = vtxIter.ReportNextP();
-                  //cout << "reset vedglen and rvtx for edge "
-                  //     << edgptr->getID()
-                  //     << " to len 0.0, x, y, " << xynnn[0] << ", "
-                  //     << xynnn[1] << endl << flush;
-                    //reset 'next-next' edge's vertex to the coordinates
-                    //of the 'next-next-next' edge's vertex; length to zero
-                  edgptr->setVEdgLen(0.0);
-                  edgptr->setRVtx( xynnn );
-                    //delete the offending vertex's edge from list
-                  /* edgptr =*/ vedgList.removeNext( vtxIter.NodePtr() );
-               }
-            }
-            vtxIter.Get( ce->getID() );
-         }
-      } while( cw ); //while we're still finding loops in the polygon
+	tArray< double > xy1(2), xy2(2);
+	bool cw = true;
+	//cout << "find clockwise loops" << endl;
+	do
+	  {
+	    // go through the list; we want the vertex list to run CCW;
+	    // in some cases of long skinny triangles, the 'unimproved'
+	    // v. polygon sides may form loops; loops are detected by
+	    // finding two (2) consecutive 'CCW' vertices; i.e., where
+	    // the 'curvature' is CW rather than CCW. In such cases,
+	    // we delete one of the edges from the vertex list and find
+	    // the new vertex at the intersection of the perp. bisectors
+	    // of the edges to either 'side' of the deleted edge. Iterate.
+	    // Really. It works.
+	    cw = false;
+	    for( ce=vtxIter.FirstP(); !( vtxIter.AtEnd() ); ce=vtxIter.NextP() )
+	      {
+		tArray< double > const &xy = ce->getRVtx();
+		tArray< double > const &xyn = vtxIter.NextP()->getRVtx();
+		tArray< double > const &xynn = vtxIter.NextP()->getRVtx();
+		dx0 = xynn[0] - xyn[0];
+		dy0 = xynn[1] - xyn[1];
+		dx1 = xy[0] - xyn[0];
+		dy1 = xy[1] - xyn[1];
+		if( dy0 * dx1 > dx0 * dy1 ) //clockwise
+		  {
+		    tArray< double > const &xynnn = vtxIter.NextP()->getRVtx();
+		    dx0 = xynnn[0] - xynn[0];
+		    dy0 = xynnn[1] - xynn[1];
+		    dx1 = xyn[0] - xynn[0];
+		    dy1 = xyn[1] - xynn[1];
+		    if( dy0 * dx1 > dx0 * dy1 ) //clockwise
+		      {
+			//two consecutive clockwise vertices=>want intersection
+			//of bisectors of ce->nextedg and
+			//ce->nextedg->nextedg->nextedg:
+			cw = true;
+			x0 = x; //node.x
+			y0 = y; //node.y
+			ce->getDestinationPtr()->get2DCoords( xy1 );
+			vtxIter.PrevP()->getDestinationPtr()->get2DCoords( xy2 );
+			x1 = ( x0 + xy1[0] ) / 2;
+			y1 = ( y0 + xy1[1] ) / 2;
+			x2 = ( x0 + xy2[0] ) / 2;
+			y2 = ( y0 + xy2[1] ) / 2;
+			dx1 = x1 - x0;
+			dy1 = y1 - y0;
+			dx2 = x2 - x0;
+			dy2 = y2 - y0;
+			if( fabs(dy1)>0 && fabs(dy2) > 0 )
+			  {
+			    m1 = -dx1/dy1;
+			    m2 = -dx2/dy2;
+			    vx = (y2-m2*x2-y1+m1*x1) / (m1-m2);
+			    vy = m1*(vx-x1)+y1;
+			  }
+			else
+			  {
+			    if( fabs(dx1) > 0 && fabs(dx2) > 0 )
+			      {
+				m1 = dy1/dx1;
+				m2 = dy2/dx2;
+				vy=(m1*y1+x1-m2*y2-x2)/(m1-m2);
+				vx= -vy*m1+m1*y1+x1;
+			      }
+			    //otherwise one vert., one horiz. line:
+			    else if( fabs(dx1) > 0 )
+			      {
+				vx = x2;
+				vy = y1;
+			      }
+			    else
+			      {
+				vx = x1;
+				vy = y2;
+			      }
+			  }
+			edgptr = vtxIter.PrevP();
+			const tArray< double > xyn( vx, vy );
+			dx = xy[0] - vx;
+			dy = xy[1] - vy;
+			//cout << "reset vedglen and rvtx for edge "
+			//     << edgptr->getID() << " to len "
+			//     << sqrt( dx*dx + dy*dy )
+			//     << ", x, y, " << xyn[0] << ", " << xyn[1] << endl;
+			//reset 'next' edge's vertex to newly found intersection,
+			//length adjusted accordingly
+			edgptr->setVEdgLen( sqrt( dx*dx + dy*dy ) );
+			edgptr->setRVtx( xyn );
+			edgptr = vtxIter.ReportNextP();
+			//cout << "reset vedglen and rvtx for edge "
+			//     << edgptr->getID()
+			//     << " to len 0.0, x, y, " << xynnn[0] << ", "
+			//     << xynnn[1] << endl;
+			//reset 'next-next' edge's vertex to the coordinates
+			//of the 'next-next-next' edge's vertex; length to zero
+			edgptr->setVEdgLen(0.0);
+			edgptr->setRVtx( xynnn );
+			//delete the offending vertex's edge from list
+			/* edgptr =*/ vedgList.removeNext( vtxIter.NodePtr() );
+		      }
+		  }
+		vtxIter.Get( ce->getID() );
+	      }
+	  } while( cw ); //while we're still finding loops in the polygon
+      }
 
       //Before the next step, make a list of V. vertex coord. arrays.
       //In doing so, check for parts of the V. area lying outside the
@@ -337,125 +340,128 @@ double tNode::ComputeVoronoiArea()
       //outlying area as long as all boundaries are convex.
       // Go through spokes and put RVtx of ccw edge in coord list, but
       // first check that the vtx lies within the bndies
-      tList< tArray< double > > vcL; // list of vertex coordinates
-      tListIter< tArray< double > > vcI( vcL ); // iterator for coord list
-      tEdge *ne, *nne;
-      for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
       {
-         ne = ce->getCCWEdg();
-         tArray<double> const &xy1 = ne->getRVtx();
-         //checking polygon edge is on boundary and ccw edge's RVtx is on
-         //wrong side of bndy edge...
-         if( ce->getBoundaryFlag() && ne->getBoundaryFlag() )
-         {
-            //if( id==83 ) cout << " CASE A\n";
-	    tNode *bn0, *bn1;
-	    bn0 = ce->getDestinationPtrNC();
-            bn1 = ne->getDestinationPtrNC();
-            const tArray<double> xy2 = bn0->get2DCoords();
-            const tArray<double> xy3 = bn1->get2DCoords();
-            if( !PointsCCW( xy1, xy2, xy3 ) )
-            {
-               //"cut off" portion of V. area outside bndy by finding intersections
-               //of V. edges and bndy edge:
-               //if( id==83 ) cout << " CASE B\n";
-               const tArray< double > xy_1 =
-		 FindIntersectionCoords( ce->getRVtx(), xy1, xy2, xy3 );
-               vcL.insertAtBack( xy_1 );
-               nne = ne->getCCWEdg();
-               const tArray< double > xy_2 =
-		 FindIntersectionCoords( xy1, nne->getRVtx(), xy2, xy3 );
-               vcL.insertAtBack( xy_2 );
-            }
-            else vcL.insertAtBack( xy1 );
-         }
-         else vcL.insertAtBack( xy1 );
-      }
+	tArray< double > xy2(2), xy3(2);
+	tList< tArray< double > > vcL; // list of vertex coordinates
+	tEdge *ne, *nne;
+	for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
+	  {
+	    ne = ce->getCCWEdg();
+	    tArray<double> const &xy1 = ne->getRVtx();
+	    //checking polygon edge is on boundary and ccw edge's RVtx is on
+	    //wrong side of bndy edge...
+	    if( ce->getBoundaryFlag() && ne->getBoundaryFlag() )
+	      {
+		//if( id==83 ) cout << " CASE A\n";
+		tNode *bn0, *bn1;
+		bn0 = ce->getDestinationPtrNC();
+		bn1 = ne->getDestinationPtrNC();
+		bn0->get2DCoords( xy2 );
+		bn1->get2DCoords( xy3 );
+		if( !PointsCCW( xy1, xy2, xy3 ) )
+		  {
+		    //"cut off" portion of V. area outside bndy by finding intersections
+		    //of V. edges and bndy edge:
+		    //if( id==83 ) cout << " CASE B\n";
+		    const tArray< double > xy_1 =
+		      FindIntersectionCoords( ce->getRVtx(), xy1, xy2, xy3 );
+		    vcL.insertAtBack( xy_1 );
+		    nne = ne->getCCWEdg();
+		    const tArray< double > xy_2 =
+		      FindIntersectionCoords( xy1, nne->getRVtx(), xy2, xy3 );
+		    vcL.insertAtBack( xy_2 );
+		  }
+		else vcL.insertAtBack( xy1 );
+	      }
+	    else vcL.insertAtBack( xy1 );
+	  }
 
-      // Now that we've found the correct vertices, make triangles to
-      // fill the polygon; the sum of the tri areas is the v. area.
-      // For a convex polygon, we can compute the total area as the
-      // sum of the area of triangles [P(1) P(i) P(i+1)] for i=2,3...N-1.
-      //cout << "find polygon area" << endl << flush;
-      // coords of first vertex:
-      tArray< double > const * const xy = vcI.FirstP(); //ce = vtxIter.FirstP();
-      //xy = ce->getRVtx();
-      // Find out # of vertices in polygon:
-      const int nverts = vcL.getSize(); //vedgList.getSize();
-      for( i=2; i<=nverts-1; i++ )
-      {
-         double a, b, c;
+	// Now that we've found the correct vertices, make triangles to
+	// fill the polygon; the sum of the tri areas is the v. area.
+	// For a convex polygon, we can compute the total area as the
+	// sum of the area of triangles [P(1) P(i) P(i+1)] for i=2,3...N-1.
+	//cout << "find polygon area" << endl;
+	// coords of first vertex:
+	tListIter< tArray< double > > vcI( vcL ); // iterator for coord list
+	tArray< double > const * const xy = vcI.FirstP(); //ce = vtxIter.FirstP();
+	//xy = ce->getRVtx();
+	// Find out # of vertices in polygon:
+	const int nverts = vcL.getSize(); //vedgList.getSize();
+	for( i=2; i<=nverts-1; i++ )
+	  {
+	    double a, b, c;
 
-         tArray<double> const * const xyn = vcI.NextP(); //xyn = vtxIter.NextP()->getRVtx();// Vertex i
-         tArray<double> const * const xynn = vcI.NextP();//vtxIter.ReportNextP()->getRVtx(); // Vertex i+1
-	 {
-	   const double dx = (*xyn)[0] - (*xy)[0];
-	   const double dy = (*xyn)[1] - (*xy)[1];
-	   a = sqrt( dx*dx + dy*dy );
-	 }
-	 {
-	   const double dx = (*xynn)[0] - (*xyn)[0];
-	   const double dy = (*xynn)[1] - (*xyn)[1];
-	   b = sqrt( dx*dx + dy*dy );
-	 }
-	 {
-	   const double dx = (*xynn)[0] - (*xy)[0];
-	   const double dy = (*xynn)[1] - (*xy)[1];
-	   c = sqrt( dx*dx + dy*dy );
-	 }
-	 // Kahan, W. 1986. Calculating Area and Angle of a Needle-like
-	 // Triangle, unpublished manuscript
-	 // Goldberg, David, What Every Computer Scientist Should Know about
-	 // Floating-Point arithmetic, ACM Computing Surveys, Vol. 23, #1,
-	 // March 1991, pp. 5-48
- 	 {
-	   // order a, b, c such as a >= b >= c
+	    tArray<double> const * const xyn = vcI.NextP(); //xyn = vtxIter.NextP()->getRVtx();// Vertex i
+	    tArray<double> const * const xynn = vcI.NextP();//vtxIter.ReportNextP()->getRVtx(); // Vertex i+1
+	    {
+	      const double dx = (*xyn)[0] - (*xy)[0];
+	      const double dy = (*xyn)[1] - (*xy)[1];
+	      a = sqrt( dx*dx + dy*dy );
+	    }
+	    {
+	      const double dx = (*xynn)[0] - (*xyn)[0];
+	      const double dy = (*xynn)[1] - (*xyn)[1];
+	      b = sqrt( dx*dx + dy*dy );
+	    }
+	    {
+	      const double dx = (*xynn)[0] - (*xy)[0];
+	      const double dy = (*xynn)[1] - (*xy)[1];
+	      c = sqrt( dx*dx + dy*dy );
+	    }
+	    // Kahan, W. 1986. Calculating Area and Angle of a Needle-like
+	    // Triangle, unpublished manuscript
+	    // Goldberg, David, What Every Computer Scientist Should Know about
+	    // Floating-Point arithmetic, ACM Computing Surveys, Vol. 23, #1,
+	    // March 1991, pp. 5-48
+	    {
+	      // order a, b, c such as a >= b >= c
 #define ORDER(A,B) if (A<B) { const double t_ = A; A = B; B = t_; }
- 	   ORDER(a,b)
- 	   ORDER(b,c)
- 	   ORDER(a,b)
+	      ORDER(a,b)
+		ORDER(b,c)
+		ORDER(a,b)
 #undef ORDER
-	   assert(a>=b && b>=c);
-	   area += sqrt(
- 			(a+(b+c))*(c-(a-b))*(c+(a-b))*(a+(b-c))
-			)/4;
-	 }
-         vcI.Prev();
+		assert(a>=b && b>=c);
+	      area += sqrt(
+			   (a+(b+c))*(c-(a-b))*(c+(a-b))*(a+(b-c))
+			   )/4;
+	    }
+	    vcI.Prev();
+	  }
       }
-   }
-   varea = area;
-   if( varea<=0.0 ) { // debug
-     cout << "Error: zero or negative varea = " << varea << endl;
-     cout << "Node: " << id << " " << x << " " << y << " " << boundary << endl;
-     edg->TellCoords();
-   }
-   assert( varea>0.0 );
-   varea_rcp = 1.0/varea;
+    }
+  varea = area;
+  if( varea<=0.0 ) { // debug
+    cout << "Error: zero or negative varea = " << varea << endl;
+    cout << "Node: " << id << " " << x << " " << y << " " << boundary << endl;
+    edg->TellCoords();
+  }
+  assert( varea>0.0 );
+  varea_rcp = 1.0/varea;
 
-   // debug
-   if (0){ //DEBUG
-     if( id==83 ) {
-       cout << " reading list: ";
-       for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
-	 {
-	   tArray<double> const &xy = ce->getRVtx();
-	   cout << xy[0] << " " << xy[1] << "; " << flush;
-	 }
-       cout << endl << flush;
-       cout << "reading spokes: ";
-       ce = edg;
-       do
-	 {
-	   assert( ce!=0 );
-	   tArray<double> const &xy = ce->getRVtx();
-	   cout << xy[0] << " " << xy[1] << "; " << flush;
-	   ce = ce->getCCWEdg();
-	 } while( ce != edg );
-       cout << endl;
-     }
-   }
+  // debug
+  if (0){ //DEBUG
+    if( id==83 ) {
+      cout << " reading list: ";
+      for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
+	{
+	  tArray<double> const &xy = ce->getRVtx();
+	  cout << xy[0] << " " << xy[1] << "; ";
+	}
+      cout << endl;
+      cout << "reading spokes: ";
+      ce = edg;
+      do
+	{
+	  assert( ce!=0 );
+	  tArray<double> const &xy = ce->getRVtx();
+	  cout << xy[0] << " " << xy[1] << "; ";
+	  ce = ce->getCCWEdg();
+	} while( ce != edg );
+      cout << endl;
+    }
+  }
 
-   return area;
+  return area;
 }
 
 /*******************************************************************\
@@ -684,8 +690,12 @@ tEdge * tEdge::FindComplement()
 //   tMesh::AddEdge(...)
 // 3/99 SL
 // 4/2003 AD
+// 8/2003 SL: added flag for "usefuturePosn" so that if geometry is used to 
+//   place edge in spoke list, new coordinates can be used if nodes are 
+//   moving. Has default value of "false", so existing calls need not
+//   be changed.
 //***************************************************************************
-void tEdge::InitializeEdge( tNode* n1, tNode* n2, tNode const * n3 )
+void tEdge::InitializeEdge( tNode* n1, tNode* n2, tNode const * n3, bool useFuturePosn )
 {
    assert( n1!=0 && n2!=0 && n3!=0 );
    setOriginPtr( n1 );
@@ -711,12 +721,24 @@ void tEdge::InitializeEdge( tNode* n1, tNode* n2, tNode const * n3 )
               !( sI.AtEnd() );
               ce = sI.NextP() )
          {
-	   if( PointsCCW( UnitVector( ce ),
-			  UnitVector( this ),
-			  UnitVector( sI.ReportNextP() )
-			  )
-	       )
-	     break;
+            if( !useFuturePosn )
+            {
+                if( PointsCCW( UnitVector( ce ),
+                               UnitVector( this ),
+                               UnitVector( sI.ReportNextP() )
+                               )
+                    )
+                    break;
+            }
+            else
+            {
+               if( PointsCCW( NewUnitVector( ce ),
+                              NewUnitVector( this ),
+                              NewUnitVector( sI.ReportNextP() )
+                              )
+                   )
+                   break;
+            }
          }
       }
       //put edge2 in SPOKELIST:

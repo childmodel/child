@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.61 2003-09-05 14:20:56 childcvs Exp $
+**  $Id: meshElements.h,v 1.62 2003-09-18 15:52:31 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -115,6 +115,9 @@ public:
   const tNode &operator=( const tNode & );   // assignment operator
   tArray< double > get3DCoords() const;      // returns x,y,z
   tArray< double > get2DCoords() const;      // returns x,y
+// SL, 7/2003: added less costly versions that pass references
+  void get3DCoords( tArray< double >& ) const;
+  void get2DCoords( tArray< double >& ) const;
   inline int getID() const;                         // returns ID number
   double getX() const;                       // returns x coord
   double getY() const;                       // returns y coord
@@ -144,7 +147,8 @@ public:
   double ComputeVoronoiArea();     // calculates node's Voronoi area
   void ConvertToClosedBoundary();  // makes node a closed bdy & updates edges
   virtual void WarnSpokeLeaving( tEdge *); // signals node that spoke is being deleted
-  virtual void InitializeNode();  // used when new nodes are created, for now only has a purpose in inherited classes
+  virtual void InitializeNode();  // used when new nodes are created, 
+                                  // for now only has a purpose in inherited classes
   virtual tArray< double > FuturePosn();
   virtual void UpdateCoords() {}
   virtual bool isMobile() const { return false;}
@@ -217,7 +221,7 @@ public:
   //~tEdge();               // destructor
 
   const tEdge &operator=( const tEdge & );  // assignment operator
-  void InitializeEdge( tNode*, tNode*, tNode const * );
+  void InitializeEdge( tNode*, tNode*, tNode const *, bool useFuturePosn = false );
   inline int getID() const;            // returns ID number
   tBoundary_t getBoundaryFlag() const; // returns boundary status (flow or no flow)
   double getLength() const;     // returns edge's length (projected)
@@ -233,6 +237,7 @@ public:
   inline tEdge* getComplementEdge();
   inline void setComplementEdge( tEdge* );
   inline tArray< double > const & getRVtx() const;  // returns Voronoi vertex for RH triangle
+  inline void getRVtx( tArray< double >& ) const; // less costly ref-passing version
   inline double getVEdgLen() const;    // returns length of assoc'd Voronoi cell edge
   inline tEdgeBoundary_t FlowAllowed() const; // returns boundary status ("flow allowed")
 
@@ -504,10 +509,25 @@ tNode::get3DCoords() const
   return tArray< double > (x, y, z);
 }
 
+inline void tNode::get3DCoords( tArray< double >& xyz ) const
+{
+   if( xyz.getSize() != 3 ) xyz.setSize(3);
+   xyz[0] = x;
+   xyz[1] = y;
+   xyz[2] = z;
+}
+
 inline tArray< double >
 tNode::get2DCoords() const
 {
   return tArray< double > (x, y);
+}
+
+inline void tNode::get2DCoords( tArray< double >& xy ) const
+{
+   if( xy.getSize() != 2 ) xy.setSize(2);
+   xy[0] = x;
+   xy[1] = y;
 }
 
 inline int tNode::getID() const {return id;}
@@ -827,6 +847,13 @@ inline tArray< double > const &
 tEdge::getRVtx() const
 {
    return rvtx;
+}
+
+inline void tEdge::getRVtx( tArray< double >& arr ) const
+{
+   if( arr.getSize() != 2 ) arr.setSize(2);
+   arr[0] = rvtx[0];
+   arr[1] = rvtx[1];
 }
 
 inline double tEdge::getVEdgLen() const {return vedglen;}
