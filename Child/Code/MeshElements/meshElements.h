@@ -4,7 +4,7 @@
 **                  and tTriangle. Each of these grid elements is
 **                  implemented as an object, as described below.
 **
-**  $Id: meshElements.h,v 1.9 1998-03-23 21:18:19 gtucker Exp $
+**  $Id: meshElements.h,v 1.10 1998-04-29 21:41:32 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -16,6 +16,7 @@
 #include "../Definitions.h"
 #include "../tPtrList/tPtrList.h"
 #include "../tArray/tArray.h"
+#include "../tGridList/tGridList.h"
 
 class tEdge;
 
@@ -83,6 +84,7 @@ class tNode
    tEdge *EdgToNod( tNode * );
    double ComputeVoronoiArea();
    void makeCCWEdges();
+   void ConvertToClosedBoundary();
    
   protected:
    int id;
@@ -121,6 +123,9 @@ class tNode
 **   - definition of "rvpt" changed to "left-hand triangle" (name should
 **     also be changed) gt 1/98
 **
+**  Subsequent modifications:
+**   - added FindComplement function, 4/98 GT
+**
 \***************************************************************************/
 
 /** class tEdge ************************************************************/
@@ -158,7 +163,8 @@ public:
     void setRVtx( tArray< double > );
     double getVEdgLen() const;  // Get length of associated Voronoi cell edge
     void setVEdgLen( double );
-    double CalcVEdgLen();   // Computes, sets & returns length of V cell edg
+    double CalcVEdgLen();   /* Computes, sets & returns length of V cell edg */
+    tEdge * FindComplement();
 #ifndef NDEBUG
     void TellCoords();  // debug routine
 #endif
