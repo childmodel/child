@@ -34,7 +34,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.90 2002-04-11 11:56:45 arnaud Exp $
+**  $Id: erosion.cpp,v 1.91 2002-04-11 12:03:19 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -681,7 +681,7 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight
 }
 
 
-double tSedTransPwrLawMulti::TransCapacity( tLNode * node )
+double tSedTransPwrLawMulti::TransCapacity( tLNode * /* node */ )
 {
   return 0.0;
 }

@@ -9,7 +9,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.49 2002-04-11 11:56:49 arnaud Exp $
+**  $Id: tOutput.cpp,v 1.50 2002-04-11 12:03:20 arnaud Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -173,7 +173,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
 **
 \*************************************************************************/
 template< class tSubNode >
-void tOutput<tSubNode>::WriteNodeData( double time ) 
+void tOutput<tSubNode>::WriteNodeData( double /* time */ ) 
 {}
 
 

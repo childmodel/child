@@ -6,7 +6,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.8 2002-04-10 16:13:30 gtucker Exp $
+**  $Id: tInputFile.cpp,v 1.9 2002-04-11 12:03:19 arnaud Exp $
 \****************************************************************************/
 
 #include <iostream.h>
@@ -81,7 +81,7 @@ tInputFile::tInputFile( const char *filename )
 **      12/23/97 SL
 **
 \****************************************************************************/
-int tInputFile::ReadItem( const int &datType, const char *itemCode )
+int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode )
 {
    //cout << "ReadItem( int )...";
    int item;
@@ -115,7 +115,7 @@ int tInputFile::ReadItem( const int &datType, const char *itemCode )
    return item;
 }
 
-long tInputFile::ReadItem( const long &datType, const char *itemCode )
+long tInputFile::ReadItem( const long & /*datType*/, const char *itemCode )
 {
    //cout << "ReadItem( long )...";
    long item;
@@ -146,7 +146,7 @@ long tInputFile::ReadItem( const long &datType, const char *itemCode )
    return item;
 }
 
-double tInputFile::ReadItem( const double &datType, const char *itemCode )
+double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode )
 {
    //cout << "ReadItem( double )...";
    double item;
