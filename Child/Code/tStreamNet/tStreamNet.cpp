@@ -181,7 +181,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.33 1998-04-29 21:27:19 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.34 1998-05-03 01:12:51 stlancas Exp $
 \**************************************************************************/
 
 
@@ -985,11 +985,16 @@ void tStreamNet::FlowUniform()
 **  steady-state runoff is rainfall rate times drainage area. Surface
 **  runoff is total minus subsurface. (5/97 GT)
 **
+**  Transmissivity has units of L^2/T; it is hydraulic conductivity
+**  times depth. To get a volume discharge, we must multiply the
+**  transmissivity by the Voronoi edge length for the flow edge. (5/98 SL)
+**
 **  Parameters:  pr -- parameter block
 **               precip -- precipitation rate
 **  Called by:  main
 **  Modifications:
 **    - updated 12/19/97 SL
+**    - 5/2/98 SL
 **
 \*****************************************************************************/
 void tStreamNet::FlowSaturated()
@@ -997,13 +1002,15 @@ void tStreamNet::FlowSaturated()
    //cout << "FlowSaturated...";
    tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
    tLNode *curnode;
+   tEdge *fedg;
    double discharge;
    
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
    {
+      fedg = curnode->GetFlowEdg();
       discharge = curnode->getDrArea() * rainrate -
-          curnode->GetFlowEdg()->getSlope() * trans;
+          fedg->getSlope() * fedg->getVEdgLen() * trans;
       discharge *= ( discharge > 0 );
       curnode->setDischarge( discharge );
    }
