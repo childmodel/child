@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.58 2004-04-16 18:29:05 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.59 2004-04-19 14:02:10 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -221,7 +221,7 @@ public:
     double getInDrArea() const;
     double getInSedLoad() const;
     tArray< double > getInSedLoadm() const;
-    tLNode *getInletNodePtr() const;
+    tLNode const *getInletNodePtr() const;
     tLNode *getInletNodePtrNC();
     void setFlowGenOpt( kFlowGen_t );
     void setFillLakesOpt( bool );

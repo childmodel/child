@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.71 2004-04-16 18:29:04 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.72 2004-04-19 14:02:08 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -308,7 +308,7 @@ double tStreamNet::getInSedLoad() const {return inlet.inSedLoad;}
 
 tArray< double > tStreamNet::getInSedLoadm( ) const {return inlet.inSedLoadm;}
 
-tLNode *tStreamNet::getInletNodePtr() const {return inlet.innode;}
+tLNode const *tStreamNet::getInletNodePtr() const {return inlet.innode;}
 tLNode *tStreamNet::getInletNodePtrNC() {   return inlet.innode;}
 
 //double tStreamNet::getMndrDirChngProb() const {return mndrDirChngProb;}
@@ -578,8 +578,8 @@ int tStreamNet::CheckNetConsistencyFlowPath( tLNode **pcn )
 void tStreamNet::CheckMeander() const
 {
 
-   tLNode *cn, *secondnode,*thirdnode;
-   tEdge * fe;
+   tLNode const *cn, *secondnode, *thirdnode;
+   tEdge const * fe;
    double totlen;
 
 
@@ -642,7 +642,7 @@ void tStreamNet::CheckMeander() const
         cout<<"   "<<endl;
         cout<<"The nodes surrounding "<< cn->getID()<<" are: "<<endl;
         tEdge *ce;
-        tSpkIter spokIter( cn );
+        tSpkIter spokIter( const_cast<tLNode*>(cn) );
         for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
         {
           tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
@@ -651,7 +651,7 @@ void tStreamNet::CheckMeander() const
 
         cout<<"   "<<endl;
         cout<<"The nodes surrounding its dwnstr nbr "<< secondnode->getID()<<" are: "<<endl;
-        tSpkIter spokIter2( secondnode );
+        tSpkIter spokIter2( const_cast<tLNode*>(secondnode) );
         for( ce = spokIter2.FirstP(); !( spokIter2.AtEnd() ); ce = spokIter2.NextP() )
         {
           tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
@@ -698,7 +698,7 @@ void tStreamNet::CheckMeander() const
 
 
          tEdge *ce;
-         tSpkIter spokIter( cn );
+         tSpkIter spokIter( const_cast<tLNode*>(cn) );
          for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
          {
           tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
@@ -709,7 +709,7 @@ void tStreamNet::CheckMeander() const
 
         cout<<"    "<<endl;
         cout<<"The nodes surrounding its dwnstr nbr "<< secondnode->getID()<<" are: "<<endl;
-        tSpkIter spokIter3( secondnode );
+        tSpkIter spokIter3( const_cast<tLNode*>(secondnode) );
         for( ce = spokIter3.FirstP(); !( spokIter3.AtEnd() ); ce = spokIter3.NextP() )
         {
           tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
@@ -769,7 +769,7 @@ void tStreamNet::CheckMeander() const
 void tStreamNet::ShowMeanderNeighbours(int debugID) const
 {
 
-         tLNode *cn = getInletNodePtr();
+         tLNode const *cn = getInletNodePtr();
          int counter = 0;
          while (counter < 100){
 
@@ -777,7 +777,7 @@ void tStreamNet::ShowMeanderNeighbours(int debugID) const
    	      if( cn->getID() ==debugID){
 
    	      	tEdge *ce;
-                tSpkIter spokIter( cn );
+                tSpkIter spokIter( const_cast<tLNode*>(cn) );
 
                 for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
                 {
