@@ -4,7 +4,7 @@
 **
 **  Functions for class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.7 1998-10-02 23:20:59 stlancas Exp $
+**  $Id: tArray.cpp,v 1.8 1999-01-05 22:22:35 stlancas Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -65,7 +65,7 @@ tArray( const tArray< T > &original )
       assert( npts > 0 );
       avalue = new T[npts];
       assert( avalue != 0 );
-      for( int i = 0; i < npts; i++ )
+      for( i = 0; i < npts; i++ )
           avalue[i] = original.avalue[i];
    }
      //cout<<"tArray(original): no. in array "<<npts<<endl<<flush;
@@ -96,6 +96,7 @@ template< class T >                                               //tArray
 const tArray< T > &tArray< T >::operator=( const tArray< T > &right )
 {
    assert( &right != 0 );
+   int i;
    if( &right != this )
    {
       delete [] avalue;
@@ -105,7 +106,7 @@ const tArray< T > &tArray< T >::operator=( const tArray< T > &right )
          assert( avalue != 0 && right.avalue != 0 );
          avalue = new T [npts];
         //cout << "tArray op=: npts " << npts << "; ";
-         for( int i = 0; i < npts; i++ )
+         for( i = 0; i < npts; i++ )
          {
             //cout << right.avalue[i] << " ";
             avalue[i] = right.avalue[i];
@@ -135,7 +136,8 @@ template< class T >                                               //tArray
 int tArray< T >::operator==( const tArray< T > &right ) const
 {
    if( npts != right.npts ) return 0;
-   for( int i = 0; i < npts; i++ )
+   int i;
+   for( i = 0; i < npts; i++ )
        if( avalue[i] != right.avalue[i] )
            return 0;
    return 1;
@@ -146,7 +148,8 @@ template< class T >                                               //tArray
 int tArray< T >::operator!=( const tArray< T > &right ) const
 {
    if( npts != right.npts ) return 0;
-   for( int i = 0; i < npts; i++ )
+   int i;
+   for( i = 0; i < npts; i++ )
        if( avalue[i] != right.avalue[i] )
            return 1;
    return 0;
@@ -203,7 +206,7 @@ ofstream &operator<<( ofstream &output, const tArray< T > &a )
 \**************************************************************************/
 template< class T >                                               //tArray
 int tArray< T >::
-getSize() {return npts;}
+getSize() const {return npts;}
 
 template< class T >
 T *tArray< T >::
