@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.83 2003-05-16 16:19:32 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.84 2003-05-23 11:59:20 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -277,7 +277,6 @@ void tStreamMeander::FindHydrGeom()
 **
 **
 \*****************************************************************************/
-#define kSmallNum 0.0000000001
 void tStreamMeander::FindChanGeom()
 {
   //Xint i, j, num;
@@ -352,9 +351,6 @@ void tStreamMeander::FindChanGeom()
     cout << "done tStreamMeander::FindChanGeom" << endl;
    
 }
-
-#undef kSmallNum
-  
 
 /****************************************************************\
 **
@@ -479,7 +475,7 @@ int tStreamMeander::InterpChannel( double time )
 		  if (0){ //DEBUG
 		    if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
 		  }
-		  meshPtr->AddNode( nn, 1, time );
+		  meshPtr->AddNode( nn, 1., time );
 		  if (0) //DEBUG
 		    cout<<"IC pt added at " << x << "," << y << endl;
 		}
@@ -513,7 +509,7 @@ int tStreamMeander::InterpChannel( double time )
 		      if (0){ //DEBUG
 			if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
 		      }
-		      meshPtr->AddNode( nn, 1, time );
+		      meshPtr->AddNode( nn, 1., time );
 		      if (0) //DEBUG
 			cout<<"IC pt added at " << x << "," << y << endl;
 		    }
@@ -886,7 +882,7 @@ void tStreamMeander::FindReaches()
 **		Created: 5/1/97  SL
 **
 \***************************************************************/
-void tStreamMeander::CalcMigration( double &time, double &duration,
+void tStreamMeander::CalcMigration( double &time, double const &duration,
                                     double &cummvmt )
 {
   int i, j;       // counters

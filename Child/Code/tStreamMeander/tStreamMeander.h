@@ -20,7 +20,7 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.28 2003-05-16 16:19:33 childcvs Exp $
+**  $Id: tStreamMeander.h,v 1.29 2003-05-23 11:59:20 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -97,7 +97,7 @@ public:
    void CheckFlowedgCross();
    void CheckBrokenFlowedg();
    //calls meander_; pass it the running time, storm duration, and cum. mvmt.:
-   void CalcMigration( double &, double &, double & ); 
+   void CalcMigration( double &, double const &, double & ); 
    //calls CalcMigration, routines to keep the mesh and net happy,
    //routines to add nodes;
    //only routine you need to make meandering happen for you:
