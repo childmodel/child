@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.57 1999-03-12 23:12:55 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.58 1999-03-21 19:27:36 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -165,7 +165,7 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    if( itMeanders )
    {
        mndrDirChngProb = infile.ReadItem( mndrDirChngProb, "CHNGPROB" );
-       bankfullevent = infile.ReadItem( bankfullevent, "FP_BANKFULLEVENT" );
+       bankfullevent = infile.ReadItem( bankfullevent, "BANKFULLEVENT" );
        bankfullevent *= kYearpersec;
        if( bankfullevent<=0.0 )
            ReportFatalError( 
@@ -1599,7 +1599,6 @@ void tStreamNet::FindHydrGeom()
    widpow = 1.0 - ewstn / ewds;
    deppow = 1.0 - edstn / edds;
    npow = 1.0 - enstn / ends;
-   //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
    tGridListIter< tLNode > nIter( gridPtr->getNodeList() );
    for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
    {
@@ -1617,7 +1616,7 @@ void tStreamNet::FindHydrGeom()
          rough = pow(cn->getChanRough(), npow) * kndspow * pow(qpsec, enstn);
          cn->setHydrRough( rough );
          slope = cn->getChanSlope();
-         assert( slope > 0 );
+         assert( slope >= 0 ); // slope can be zero -- changed assert 3/99
          //Depth now calculated as above - done to be consistent
          //with changes made in FindChanGeom
          //radfactor = qpsec * rough / width / sqrt(slope);
@@ -2005,6 +2004,11 @@ void tInlet::FindNewInlet()
    }
      //finally reset inlet node; if no new inlet was found, we're just
      //setting it equal to itself:
+   if( innode!=newinnode ) 
+       cout << "*** MOVING INLET from " << innode->getX()
+            << "," << innode->getY() << " to "
+            << newinnode->getX() << ","
+            << newinnode->getY() << endl;
    innode = newinnode;
 }
 
