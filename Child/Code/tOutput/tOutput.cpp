@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.36 2000-06-08 19:19:25 daniel Exp $
+**  $Id: tOutput.cpp,v 1.37 2000-06-08 19:20:40 daniel Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -332,7 +332,7 @@ void tOutput<tSubNode>::WriteTSOutput( double time )
    if( vegofs.good() ) {
      for( cn = niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
        cover += cn->getVegCover().getVeg()*cn->getVArea();
-     vegcovofs << cover << endl;
+     vegcovofs << cover/area << endl;
    }
 
 }

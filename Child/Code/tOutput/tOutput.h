@@ -24,7 +24,7 @@
 **  Recent modifications:
 **    - 1/00: GT added vegofs for output of vegetation cover
 **
-**  $Id: tOutput.h,v 1.15 2000-06-08 13:45:39 nmgaspar Exp $
+**  $Id: tOutput.h,v 1.16 2000-06-08 19:20:49 daniel Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -102,6 +102,7 @@ private:
     ofstream texofs;     // Texture info
     ofstream vegofs;     // Vegetation cover %
     ofstream flowdepofs; // Flow depth
+    ofstream vegcovofs;  // Catchment vegetation cover %
 
    int counter;
    char nums[10]; //for writing out layer info to different files at each time
