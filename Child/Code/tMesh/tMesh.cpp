@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.144 2003-05-08 16:13:25 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.145 2003-05-12 10:13:14 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2538,24 +2538,23 @@ template <class tSubNode>
 
 /**************************************************************************\
 **
-**  tMesh::DeleteNode( tListNode<tSubNode> *, int =1 )
-**    (see DeleteNode( tSubNode *, int =1 ) below)
+**  tMesh::DeleteNode( tSubNode *, int =1 )
+**    (see DeleteNode( tListNode<tSubNode> *, int =1 ) below)
 **
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-DeleteNode( tListNode< tSubNode > *nodPtr, bool repairFlag )
+DeleteNode( tSubNode *node, bool repairFlag )
 {
-   if (0) //DEBUG
-     cout << "DeleteNode: " << nodPtr->getDataPtr()->getID() << endl;
-   if( !DeleteNode( nodPtr->getDataPtrNC(), repairFlag ) ) return 0;
-   return 1;
+  tMeshListIter< tSubNode > nodIter( nodeList );
+  if( nodIter.Get( node->getID() ) )
+    return DeleteNode( nodIter.NodePtr(), repairFlag );
+  return 0;
 }
-
 
 /**************************************************************************\
 **
-**  tMesh::DeleteNode( tSubNode *, int =1 )
+**  tMesh::DeleteNode( tListNode<tSubNode> *, int =1 )
 **
 **  Deletes a node from the mesh. This is done by first calling
 **  ExtricateNode to detach the node by removing its edges and their
@@ -2587,25 +2586,26 @@ DeleteNode( tListNode< tSubNode > *nodPtr, bool repairFlag )
 **        doesn't exist. This condition isn't tested for, so be careful.
 **  Created: fall, '97 SL
 **  Modifications: added repairFlag 4/98 GT
+**  5/2003 SL, AD
 **
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-DeleteNode( tSubNode *node, bool repairFlag )
+DeleteNode( tListNode< tSubNode >* nodPtr, bool repairFlag)
 {
    tPtrList< tSubNode > nbrList;
-   tListNode< tSubNode > *nodPtr;
-   tMeshListIter< tSubNode > nodIter( nodeList );
-   nodIter.Get( node->getID() );
-   tSubNode nodeVal;
+   tSubNode *node = nodPtr->getDataPtrNC();
 
    if (0) //DEBUG
      cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
 	  << node->getY() << " " << node->getZ() << endl;
    //assert( repairFlag || node->getBoundaryFlag()==kClosedBoundary );
 
-   nodPtr = nodIter.NodePtr();
+   // extricate node from mesh and get list of its neighbors:
    if( !( ExtricateNode( node, nbrList ) ) ) return 0;
+
+   // remove node from nodeList:
+   tSubNode nodeVal;
    if( node->getBoundaryFlag() )
    {
       nodeList.moveToBack( nodPtr );
@@ -2644,17 +2644,11 @@ DeleteNode( tSubNode *node, bool repairFlag )
    }
 
    //reset node id's
-   assert( nodIter.First() );
-   miNextNodeID = 0;
-   do
-   {
-      nodIter.DatRef().setID( miNextNodeID );
-      miNextNodeID++;
-   }
-   while( nodIter.Next() );
+   ResetNodeID();
 
    if (0) { //DEBUG
      cout << "Mesh repaired" << endl;
+     tMeshListIter< tSubNode > nodIter( nodeList );
      tSubNode *cn;
      for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
        {
@@ -2701,7 +2695,7 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
    if (0) //DEBUG
      cout << "ExtricateNode: " << node->getID() << endl;
    tSpkIter spokIter( node );
-   tEdge edgeVal1, edgeVal2, *ce;
+   tEdge *ce;
    tSubNode *nbrPtr;
 
      //cout << "Removing spokes: " << endl;
@@ -2710,13 +2704,15 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
    {
       nbrPtr = static_cast< tSubNode * >(ce->getDestinationPtrNC());
       nbrList.insertAtBack( nbrPtr );
-      if( node->getBoundaryFlag()                      // If node is a bdy make
-          && nbrPtr->getBoundaryFlag()==kNonBoundary )// sure nbrs are also
-      {                                                // boundaries.
+      // If node is a bdy make sure nbrs are also boundaries:
+      if( node->getBoundaryFlag()
+          && nbrPtr->getBoundaryFlag()==kNonBoundary )
+      {
          nbrPtr->ConvertToClosedBoundary();
          nodeList.moveToBack( nbrPtr );
       }
-      if( !DeleteEdge( ce ) ) return 0;
+      if( !DeleteEdge( ce ) )
+	return 0;
    }
 
    //cout<<"nnodes decremented now "<<nnodes<<endl;
@@ -2831,11 +2827,16 @@ ExtricateEdge( tEdge * edgePtr )
    //cout << "find complement; " << flush;
    if( edgePtr->getID()%2 == 0 ) {
      cce = edgIter.NextP();
-   } else if( edgePtr->getID()%2 == 1 ) {
+   } else {
      cce = edgIter.PrevP();
-   } else
-     return 0; //NB: why whould this ever occur??
+   }
    listnodePtr2 = edgIter.NodePtr();
+
+   // just to make sure
+   assert( listnodePtr1->getDataPtrNC() == ce );
+   assert( listnodePtr2->getDataPtrNC() == cce );
+   assert( ce->getComplementEdge() == cce );
+   assert( cce->getComplementEdge() == ce );
 
    //Need to make sure that "edg" member of node was not pointing
    //to one of the edges that will be removed.  Also, may be implications
@@ -3382,12 +3383,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    nedges+=2;
 
    // Reset edge id's
-   tMeshListIter< tEdge > edgIter( edgeList );
-   for( ce = edgIter.FirstP(), miNextEdgID = 0; !( edgIter.AtEnd() );
-        ce = edgIter.NextP(), miNextEdgID++ )
-   {
-      ce->setID( miNextEdgID );
-   }
+   ResetEdgeID();
 
    if (0) //DEBUG
      cout << "AddEdge() done\n" << flush;
@@ -3568,15 +3564,7 @@ MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
    //may not be strictly necessary for triangles (it is for nodes and edges where
    //we have active and inactive members), but I'm sure it doesn't hurt; better safe
    //than sorry...
-   {
-     tListIter< tTriangle > triIter( triList );
-     tTriangle *ct;
-     for( ct = triIter.FirstP(), miNextTriID=0; !( triIter.AtEnd() );
-	  ct = triIter.NextP(), miNextTriID++ )
-       {
-	 ct->setID( miNextTriID );
-       }
-   }
+   ResetTriangleID();
    return 1;
 }
 
@@ -3636,15 +3624,7 @@ AddNode( tSubNode &nodeRef, bool updatemesh, double time )
      CheckTrianglesAt( newNodePtr );
 
    //reset node id's
-   {
-     tSubNode *cn;
-     tMeshListIter< tSubNode > nodIter( nodeList );
-     for( cn = nodIter.FirstP(), miNextNodeID=0; !( nodIter.AtEnd() );
-	  cn = nodIter.NextP(), miNextNodeID++ )
-       {
-	 cn->setID( miNextNodeID );
-       }
-   }
+   ResetNodeID();
    newNodePtr->InitializeNode();
 
    if( updatemesh ) UpdateMesh();
@@ -4020,10 +4000,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    }
    //reset node id's
    cout << "reset ids\n";
-   for( cn = nodIter.FirstP(), miNextNodeID=0; !( nodIter.AtEnd() ); cn = nodIter.NextP(), miNextNodeID++ )
-   {
-      cn->setID( miNextNodeID );
-   }
+   ResetNodeID();
    //nmg uncommented line below and added initialize line
    node2->InitializeNode();
 
@@ -4811,6 +4788,63 @@ DumpNodes()
    }
 }
 #endif
+
+/*****************************************************************************\
+**
+**      ResetNodeID(): reset node ID in list order
+**      Created: AD 5/2003 (refactored from code lying in various locations)
+**
+\*****************************************************************************/
+template<class tSubNode>
+void tMesh<tSubNode>::
+ResetNodeID()
+{
+  tSubNode *cn;
+  tMeshListIter< tSubNode > nodIter( nodeList );
+  for( cn = nodIter.FirstP(), miNextNodeID=0; !( nodIter.AtEnd() );
+       cn = nodIter.NextP(), miNextNodeID++ )
+    {
+      cn->setID( miNextNodeID );
+    }
+}
+
+/*****************************************************************************\
+**
+**      ResetEdgeID(): reset edge ID in list order
+**      Created: AD 5/2003 (refactored from code lying in various locations)
+**
+\*****************************************************************************/
+template<class tSubNode>
+void tMesh<tSubNode>::
+ResetEdgeID()
+{
+  tEdge *ce;
+  tMeshListIter< tEdge > edgIter( edgeList );
+  for( ce = edgIter.FirstP(), miNextEdgID = 0; !( edgIter.AtEnd() );
+       ce = edgIter.NextP(), miNextEdgID++ )
+    {
+      ce->setID( miNextEdgID );
+    }
+}
+
+/*****************************************************************************\
+**
+**      ResetTriangleID(): reset triangle ID in list order
+**      Created: AD 5/2003 (refactored from code lying in various locations)
+**
+\*****************************************************************************/
+template<class tSubNode>
+void tMesh<tSubNode>::
+ResetTriangleID()
+{
+  tTriangle *ct;
+  tListIter< tTriangle > triIter( triList );
+  for( ct = triIter.FirstP(), miNextTriID=0; !( triIter.AtEnd() );
+       ct = triIter.NextP(), miNextTriID++ )
+    {
+      ct->setID( miNextTriID );
+    }
+}
 
 #include "tMesh2.cpp"
 
