@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.17 2002-05-01 14:48:31 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.18 2002-05-01 14:58:18 arnaud Exp $
 \**************************************************************************/
 
 #include "../tAssert.h"
@@ -2240,10 +2240,8 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
          ntri = intri->tPtr(i);
          if( ntri != 0 )
          {
-	   // TODO BUG arnaud
-            cn = (tLNode *) ntri->tPtr( ntri->nVOp( intri ) );
-	    //cn = static_cast<tLNode *>(ntri->tPtr( ntri->nVOp( intri ) ));
-            if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
+	   cn = static_cast<tLNode *>(ntri->pPtr( ntri->nVOp( intri ) ));
+	   if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
          }
       }
       minDistFound = LARGE_DISTANCE;
