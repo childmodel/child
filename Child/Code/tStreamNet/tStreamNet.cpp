@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.34 2003-05-23 17:49:37 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.35 2003-05-29 17:57:03 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -124,7 +124,8 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
   inlet( &meshRef, infile ),
   mpParkerChannels(0)
 {
-   cout << "tStreamNet(...)...";
+   if (1) //DEBUG
+     cout << "tStreamNet(...)...";
    assert( meshPtr != 0 );
    assert( stormPtr != 0 );
 
@@ -234,7 +235,8 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    FlowDirs();
    CheckNetConsistency();
    MakeFlow( 0.0 );
-   cout << "finished" << endl;
+   if (1) //DEBUG
+     cout << "finished" << endl;
 }
 
 //necessary?
@@ -243,7 +245,8 @@ tStreamNet::~tStreamNet()
    meshPtr = 0;
    stormPtr = 0;
    delete mpParkerChannels;
-   cout << "~tStreamNet()" << endl;
+   if (1) //DEBUG
+     cout << "~tStreamNet()" << endl;
 }
 
 
@@ -568,7 +571,8 @@ void tStreamNet::InitFlowDirs()
    tEdge * flowedg;
    int ctr;
 
-   cout << "InitFlowDirs()...\n";
+   if (1) //DEBUG
+     cout << "InitFlowDirs()...\n";
 
    // For every active (non-boundary) node, initialize it to flow to a
    // non-boundary node (ie, along a "flowAllowed" edge)
@@ -601,7 +605,8 @@ void tStreamNet::InitFlowDirs()
       curnode = i.NextP();
    }
 
-   cout << "finished\n";
+   if (1) //DEBUG
+     cout << "finished\n";
 
 }
 #undef kMaxSpokes
@@ -2051,7 +2056,8 @@ void tStreamNet::RouteFlowKinWave( double rainrate_ )
    double sum;                         // Sum used in to apportion flow
    double runoff = rainrate_ - infilt;  // Local runoff rate at node
 
-   cout << "RouteFlowKinWave\n";
+   if (1) //DEBUG
+     cout << "RouteFlowKinWave\n";
 
    if( runoff <= 0.0 ) return;
 
@@ -2248,7 +2254,8 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
             help = infile.ReadItem( help, tagline );
             inSedLoadm[i] = help;
             inSedLoad += help;
-            cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i]<<endl;
+	    if (1) //DEBUG
+	      cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i]<<endl;
             //i++;
             //end++;
          }
@@ -2559,19 +2566,22 @@ tParkerChannels::tParkerChannels( tInputFile &infile )
       //strcpy( astring, "GRAINDIAM" );
       //strcat( astring, nstr );
       d50 = d50 + infile.ReadItem( d50, astring );
-      cout << "Reading " << astring << "; cum value = " << d50 << endl;
+      if (1) //DEBUG
+	cout << "Reading " << astring << "; cum value = " << d50 << endl;
     }
   d50 = d50 / numg;
 
   // Calculate coefficient and slope exponent for width equation (see above)
   taucrit = thetac*(sigma-rho)*grav*d50;
-  cout << "Tau crit = " << taucrit << endl;
+  if (1) //DEBUG
+    cout << "Tau crit = " << taucrit << endl;
   kt = infile.ReadItem( kt, "KT" );
   alpha = infile.ReadItem( alpha, "MF" );
   beta = infile.ReadItem( beta, "NF" );
   mdPPfac = ( 1.0 / secPerYear ) * pow( kt / ( taucrit * P ), 1.0 / alpha );
   mdPPexp = beta / alpha;
-  cout << "mdPPfac=" << mdPPfac << "  mdPPexp=" << mdPPexp << endl;
+  if (1) //DEBUG
+    cout << "mdPPfac=" << mdPPfac << "  mdPPexp=" << mdPPexp << endl;
 
   // Depth is calculated from width plus Manning equation
   mdRough = infile.ReadItem( mdRough, "HYDR_ROUGH_COEFF_DS" ); // Manning's n
@@ -2605,8 +2615,8 @@ void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
   tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
   tLNode *cn;
 
-   if (0) //DEBUG
-     cout << "tParkerChannels::CalcChanGeom\n";
+  if (0) //DEBUG
+    cout << "tParkerChannels::CalcChanGeom\n";
 
   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
     {
