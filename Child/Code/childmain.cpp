@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.26 2004-06-16 13:37:24 childcvs Exp $
+**  $Id: childmain.cpp,v 1.27 2004-10-05 14:24:27 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -181,7 +181,8 @@ OptTSOutput." );
    **********************************************************************/
    while( !time.IsFinished() )
    {
-      std::cout << "         " << std::endl;
+      if(0) //debug
+      	std::cout << "         " << std::endl;
       time.ReportTimeStatus();
 
       // Do storm...
