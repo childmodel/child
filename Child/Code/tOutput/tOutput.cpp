@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.30 2000-06-05 21:17:50 daniel Exp $
+**  $Id: tOutput.cpp,v 1.31 2000-06-05 21:19:16 daniel Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -198,7 +198,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
    if( (opOpt = infile.ReadItem( opOpt, "OPTKINWAVE" ) ) )
        CreateAndOpenFile( &flowdepofs, ".dep" );
    if( (optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) )
-       CreateAndOpenFile( &vols, ".vols" );
+       CreateAndOpenFile( &volsofs, ".vols" );
    
    
 }
