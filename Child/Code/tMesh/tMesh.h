@@ -21,7 +21,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.36 2002-09-02 15:39:09 arnaud Exp $
+**  $Id: tMesh.h,v 1.37 2002-09-02 16:19:29 arnaud Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -84,7 +84,8 @@ public:
    void MakeMeshFromScratchTipper( tInputFile & );   // creates a new mesh
    void MakeMeshFromInputData( tInputFile & ); // reads in an existing mesh
    void MakeMeshFromPoints( tInputFile & );    // creates mesh from list of pts
-	 void MakeRandomPointsFromArcGrid( tInputFile & ); // mesh from arc (rand)
+   void MakeMeshFromPointsTipper( tInputFile & ); // creates mesh from list of pts
+   void MakeRandomPointsFromArcGrid( tInputFile & ); // mesh from arc (rand)
    void MakeHexMeshFromArcGrid( tInputFile &infile );// mesh from arc (hex)
    void MakeLayersFromInputData( tInputFile & );
    void Print();

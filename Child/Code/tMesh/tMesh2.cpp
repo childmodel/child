@@ -40,6 +40,76 @@ MakeMeshFromScratchTipper( tInputFile &infile )
    cout<<"MakeMeshFromScratchTipper done.\n";
 }
 
+/**************************************************************************
+**
+**   tMesh::MakeMeshFromPointsTipper( infile )
+**
+**   Similar to tMesh::MakeMeshFromPoints but uses Tipper's triangulation
+**   algorithm.
+**
+**   Created: 07/2002, Arnaud Desitter, Greg Tucker, Oxford
+**   Modified: 08/2002, MIT
+**
+**************************************************************************/
+
+template< class tSubNode >
+void tMesh< tSubNode >::
+MakeMeshFromPointsTipper( tInputFile &infile ){
+  {
+    int numpts;                      // no. of points in mesh
+    char pointFilenm[80];            // name of file containing (x,y,z,b) data
+    ifstream pointfile;              // the file (stream) itself
+
+    tSubNode tempnode( infile );  // temporary node used to create node list
+   
+    //Read Points
+    infile.ReadItem( pointFilenm, "POINTFILENAME" );
+    pointfile.open( pointFilenm );
+    if( !pointfile.good() ){
+      cerr << "\nPoint file name: '" << pointFilenm << endl;
+      ReportFatalError( "I can't find a file by this name." );
+    }
+
+    cout<<"\nReading in '"<<pointFilenm<<"' points file..."<<endl;
+    pointfile >> numpts;
+    //Read point file, make Nodelist 
+    for( int i=0; i<numpts; i++ ){
+      double x, y, z;
+      int bnd;
+      if( pointfile.eof() ) {
+	cout << "\nReached end-of-file while reading points.\n" ;
+	ReportFatalError("Invalid point file.");
+      }
+      pointfile >> x >> y >> z >> bnd;
+      tempnode.set3DCoords( x, y, z);
+      tempnode.setBoundaryFlag( bnd );
+      tempnode.setID( i );
+      if( bnd<0 || bnd>3 ){
+	ReportFatalError("Invalid boundary code.");
+      }
+      
+      switch(bnd){
+      case kNonBoundary:
+	nodeList.insertAtActiveBack( tempnode );
+	break;
+      case kOpenBoundary:
+	nodeList.insertAtBoundFront( tempnode );
+	break;
+      default:
+	nodeList.insertAtBack( tempnode );
+	break;
+      }
+    }
+    pointfile.close();
+  }
+  nnodes = nodeList.getSize();
+
+  // call triangulator based on Tipper's method
+  BuildDelaunayMeshTipper();
+  
+  cout<<"MakeMeshFromPointsTipper done.\n";
+}
+
 /**************************************************************************\
 **
 **   tMesh::BuildDelaunayMeshTipper()

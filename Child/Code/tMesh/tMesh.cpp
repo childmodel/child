@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.113 2002-08-12 14:25:37 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.114 2002-09-02 16:19:29 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -286,6 +286,9 @@ tMesh( tInputFile &infile )
    case 2:
      MakeMeshFromPoints( infile );  //create new mesh from list of points
      break;
+   case 12:
+     MakeMeshFromPointsTipper( infile ); //create new mesh from list of points
+     break;
    case 3:
      MakeRandomPointsFromArcGrid( infile ); //create mesh from regular grid
      break;
@@ -298,6 +301,7 @@ tMesh( tInputFile &infile )
 	  << " 10 -- idem, using Tipper triangulator\n"
 	  << "  1 -- read mesh from input data files\n"
 	  << "  2 -- create mesh from a list of (x,y,z,b) points\n"
+	  << " 12 -- idem, using Tipper triangulator\n"
 	  << "  3 -- create random mesh from ArcGrid ascii output\n"
 	  << "  4 -- create hexagonal mesh from ArcGrid ascii output\n";
      ReportFatalError( "Invalid mesh input option requested." );
