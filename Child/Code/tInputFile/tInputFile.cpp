@@ -1,59 +1,78 @@
 /****************************************************************************\
 **
-**  tInputFile.cpp: Member functions for tInput objects.
+**  tInputFile.cpp: Member functions for class tInputFile.
+**
+**  (see tInputFile.h for a description of this class)
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.5 1999-02-22 17:40:12 gtucker Exp $
+**  $Id: tInputFile.cpp,v 1.6 1999-03-31 21:24:04 gtucker Exp $
 \****************************************************************************/
 
 #include <iostream.h>
 #include <fstream.h>
 #include <assert.h>
 #include <string.h>
-#include "../Definitions.h"
-#include "../Classes.h"
+//#include "../Definitions.h"
+//#include "../Classes.h"
 #include "tInputFile.h"
 #include "../errors/errors.h"
 
-/*
-**  Constructors
-*/
 
+/****************************************************************************\
+**
+**  tInputFile Constructor
+**
+**  Looks for a file called filename, opens it if found or generates an
+**  error if not. Then reads the base name for output files and creates
+**  a file called <filename>.inputs which will act as a log file for
+**  parameters read. (This is often useful when the original input file
+**  gets lost or modified).
+**
+\****************************************************************************/
 tInputFile::tInputFile( const char *filename )
 {
    char inoutname[kMaxNameLength];
-   
+
+   // Open file
    infile.open( filename );
    if( !infile.good() )
    {
       cerr << "tInputFile::tInputFile: Unable to open '" << filename << "'." << endl;
       ReportFatalError( "The file may not exist or may be mis-named." );
    }
-   strcpy( inoutname, filename );
-   strcat( inoutname, "INPUTS" );
+
+   // Create log file for inputs
+   ReadItem( inoutname, "OUTFILENAME" );
+   strcat( inoutname, ".inputs" );
    inoutfile.open( inoutname );
    assert( inoutfile.good() );
    
 }
 
 
-/*
-**  ReadItem
+/****************************************************************************\
+**
+**  tInputFile::ReadItem
 **
 **  Reads one parameter from the file. The format is assumed to be a line
-**  of text that begins with the code "code", followed by a line containing
+**  of text that begins with the code "itemCode", followed by a line containing
 **  the parameter to be read. The function is overloaded according to the
 **  type of data desired (datType simply governs which overloaded function
 **  will be called; it is not used by the routines).
 **
-**  IMPORTANT:
-**  revised to allow arbitrary ordering of items in infile and/or ReadItem
-**  calls in code; routine searches
-**  through list until it either finds the right itemCode or reaches EOF.
-**  This should make reading/entering parameters MUCH less complicated.
-**  -12/23/97 SL
-*/
+**  Inputs:  datType -- dummy variable indicating the data type to be read
+**                      (in the case of the string version, the string read
+**                      is placed here)
+**           itemCode -- string that describes the parameter to be read
+**  Returns:  the item read (except in the case of the string version)
+**  Modifications:
+**    - revised to allow arbitrary ordering of items in infile and/or
+**      ReadItem calls in code; routine searches through
+**      list until it either finds the right itemCode or reaches EOF.
+**      12/23/97 SL
+**
+\****************************************************************************/
 int tInputFile::ReadItem( const int &datType, const char *itemCode )
 {
    //cout << "ReadItem( int )...";
