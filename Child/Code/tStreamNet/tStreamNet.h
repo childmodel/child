@@ -24,7 +24,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.33 2001-06-21 13:55:02 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.34 2002-04-10 16:13:31 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -44,6 +44,8 @@
 #define kSaturatedFlow1 1  // Option for sat-excess runoff w/ return flow
 #define kSaturatedFlow2 2  // Option for sat-excess runoff w/o return flow
 #define kConstSoilStore 3  // Option for "bucket"-type flow generation
+#define k2DKinematicWave 4 // Option for 2D steady kinematic wave multi-flow
+#define kHydrographPeakMethod 5  // Option for hydrograph peak method
 
 #define kSecperyear 31536000  // No. of seconds in one year
 
@@ -225,7 +227,9 @@ public:
     void InitFlowDirs();
     void FlowDirs();
     void DrainAreaVoronoi();
+    void FlowPathLength();
     void RouteFlowArea( tLNode *, double );
+    void RouteFlowHydrographPeak();
     void RouteRunoff( tLNode *, double, double );
     void SetVoronoiVertices();
     void MakeFlow( double tm );
@@ -249,7 +253,7 @@ public:
 protected:
     tMesh< tLNode > * meshPtr;  // ptr to mesh
     tStorm *stormPtr;    // ptr to storm object (for getting precip)
-    int flowgen;         // option for runoff generation method
+    int miOptFlowgen;         // option for runoff generation & routing method
     int filllakes;       // option for filling lakes
     int optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
     double kwds, ewds, ewstn;//coefs & exps for dwnstrm & at-a-stn hydr. width
@@ -262,7 +266,6 @@ protected:
     double infilt;        // soil infiltration capacity
     double soilStore;     // soil water storage, depth equiv (m)
     tInlet inlet;         // inlet
-    //Xdouble mndrDirChngProb; // probability of mnd chan changing direction
     int optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
     int miChannelType;    // code for type of channels: "regime", "parker"
     tParkerChannels *mpParkerChannels;  // -> tParkerChannels object
@@ -273,7 +276,8 @@ protected:
     double mdKinWaveRough; // Roughness coef, units m^(1/e)-2 yr, e=above exp 
     double mdMeshAdaptMinArea;  // Dr area threshold for densifying mesh
     double mdMeshAdaptMaxVArea; // Max voronoi area for nodes above threshold
-    
+    double mdHydrgrphShapeFac;  // "Fhs" for hydrograph peak method
+    double mdFlowVelocity;      // Runoff velocity for computing travel time
 };
 
 #endif

@@ -6,7 +6,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.7 2001-06-19 15:44:23 gtucker Exp $
+**  $Id: tInputFile.cpp,v 1.8 2002-04-10 16:13:30 gtucker Exp $
 \****************************************************************************/
 
 #include <iostream.h>
@@ -29,6 +29,9 @@
 **  parameters read. (This is often useful when the original input file
 **  gets lost or modified).
 **
+**  Modifications:
+**    - 2/02: error check for inoutfile added (GT)
+**
 \****************************************************************************/
 tInputFile::tInputFile( const char *filename )
 {
@@ -46,7 +49,12 @@ tInputFile::tInputFile( const char *filename )
    ReadItem( inoutname, "OUTFILENAME" );
    strcat( inoutname, ".inputs" );
    inoutfile.open( inoutname );
-   assert( inoutfile.good() ); //TODO: should be error check, not assert!
+   if( !inoutfile.good() )
+     {
+       cerr << "Unable to open '" << inoutname << "'.\n";
+       cerr << "(Error generated in module tInputFile, function tInputFile::tInputFile( const char * ) )\n";
+       ReportFatalError( "The specified path name may not exist.\n" );
+     }
    
 }
 

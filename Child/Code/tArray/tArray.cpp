@@ -4,7 +4,7 @@
 **
 **  Functions for template class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.9 1999-01-12 21:32:38 gtucker Exp $
+**  $Id: tArray.cpp,v 1.10 2002-04-10 16:13:30 gtucker Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -155,6 +155,10 @@ int tArray< T >::operator!=( const tArray< T > &right ) const
 template< class T >                                               //tArray
 T &tArray< T >::operator[]( int subscript )
 {
+   if( 0 > subscript || subscript >= npts ){
+      cout<<"subscript is "<<subscript<<" npts is "<<npts<<endl<<flush;
+      cout<<"bailing out of tArray[]"<<endl<<flush;
+   }
    assert( 0 <= subscript && subscript < npts );
    return avalue[subscript];
 }

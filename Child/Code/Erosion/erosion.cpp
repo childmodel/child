@@ -34,13 +34,13 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.88 2002-02-11 09:12:35 gtucker Exp $
+**  $Id: erosion.cpp,v 1.89 2002-04-10 16:13:08 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
 #include <assert.h>
 #include <iomanip.h>
-#include <string>
+//#include <string>
 #include "erosion.h"
 
 /***************************************************************************\
@@ -590,9 +590,11 @@ tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
    // Record diameter of each size-fraction
    mdGrndiam.setSize( miNumgrnsizes );
    mdTauc.setSize( miNumgrnsizes );
-   std::string taglinebase = "GRAINDIAM";
+   /*std::string taglinebase = "GRAINDIAM";
    std::string digits = "123456789";
-   std::string tagline;
+   std::string tagline;*/
+   char tagline[10], digit = '0';
+   strcpy( tagline, "GRAINDIAM0\0");
    int i;
    double thetac = 0.045,
      sig = 2650.0,
@@ -600,8 +602,11 @@ tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
      g = 9.81;
    for( i=0; i<miNumgrnsizes; i++ )
      {
-       tagline = taglinebase + digits.substr(i,i);
-       mdGrndiam[i] = infile.ReadItem( mdGrndiam[i], tagline.c_str() );
+       /*tagline = taglinebase + digits.substr(i,i);
+       mdGrndiam[i] = infile.ReadItem( mdGrndiam[i], tagline.c_str() );*/
+       digit++;
+       tagline[9] = digit;
+       mdGrndiam[i] = infile.ReadItem( mdGrndiam[i], tagline );
        mdTauc[i] = thetac * (sig-rho) * g * mdGrndiam[i];
        //cout << "Diam " << i << " = " << mdGrndiam[i] << " tauc = " << mdTauc[i] << endl;
      }

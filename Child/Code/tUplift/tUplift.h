@@ -21,7 +21,7 @@
 **  Major modifications:
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **
-**  $Id: tUplift.h,v 1.10 2001-06-19 16:07:22 gtucker Exp $
+**  $Id: tUplift.h,v 1.11 2002-04-10 16:13:31 gtucker Exp $
 \************************************************************************/
 
 #ifndef TUPLIFT_H
@@ -46,6 +46,7 @@ private:
     void FoldPropErf( tMesh<tLNode> *mp, double delt );
     void CosineWarp2D( tMesh<tLNode> *mp, double delt );
     void PropagatingFold( tMesh<tLNode> *mp, double delt );
+    void TwoSideDifferential( tMesh<tLNode> *mp, double delt );
 
 private:
     int typeCode;          // Code for the type of uplift desired

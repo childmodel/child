@@ -25,7 +25,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.48 2000-03-09 19:54:56 gtucker Exp $
+**  $Id: tLNode.h,v 1.49 2002-04-10 16:13:31 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -357,6 +357,7 @@ class tChannel
   private:
    double drarea;       /* drainage area (2/97)*/
    double q;  /* discharge in m^3/yr */
+   double mdFlowPathLength;  /* Longest flow path from divide (9/01) */
    double chanwidth;    /* Channel geometry: width*/
    double hydrwidth;    /* hydraulic geometry: width*/
    double channrough;       /* Channel roughness (Manning 'n')*/
@@ -390,6 +391,8 @@ public:
     tEdge * getFlowEdg();
     void setFlowEdg( tEdge * );
     void setDrArea( double );
+    void setFlowPathLength( double );
+    double getFlowPathLength();
     void AddDrArea( double );
     void AddDischarge( double );
     tLNode * getDownstrmNbr();
@@ -595,6 +598,17 @@ inline void tLNode::setVegCover( const tLNode *node )
 {
    vegCover = node->vegCover;
 }
+
+inline double tLNode::getFlowPathLength()
+{
+  return chan.mdFlowPathLength;
+}
+
+inline void tLNode::setFlowPathLength( double fpl )
+{
+  chan.mdFlowPathLength = fpl;
+}
+
 
 /**************************************************************************\
 **

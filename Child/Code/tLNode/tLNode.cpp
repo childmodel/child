@@ -11,7 +11,7 @@
 **    - fixed problem with layer initialization in copy constructor
 **      (gt, 2/2000; see below)
 ** 
-**  $Id: tLNode.cpp,v 1.91 2001-06-19 15:46:54 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.92 2002-04-10 16:13:30 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -274,7 +274,8 @@ const tRegolith &tRegolith::operator=( const tRegolith &right )     //tRegolith
 tChannel::tChannel()                                             //tChannel
 {
    drarea = q = chanwidth = hydrwidth = channrough = hydrnrough =
-       chandepth = hydrdepth = chanslope = hydrslope = diam = 0;
+       chandepth = hydrdepth = chanslope = hydrslope = diam = 
+       mdFlowPathLength = 0;
    diam = kVeryHigh;
      //cout << "  tChannel()" << endl;
 }
@@ -294,6 +295,7 @@ tChannel::tChannel( const tChannel &orig )                       //tChannel
       hydrdepth = orig.hydrdepth;
       hydrnrough = orig.hydrnrough;
       hydrslope = orig.hydrslope;
+      mdFlowPathLength = orig.mdFlowPathLength;
       diam = orig.diam;
    }
      //cout << "  tChannel( orig )" << endl;
@@ -320,6 +322,7 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
       hydrdepth = right.hydrdepth;
       hydrnrough = right.hydrnrough;
       hydrslope = right.hydrslope;
+      mdFlowPathLength = right.mdFlowPathLength;
       diam = right.diam;
    }
    return *this;

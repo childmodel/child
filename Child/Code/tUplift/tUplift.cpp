@@ -2,13 +2,13 @@
 **
 **  tUplift.cpp: Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.10 2000-12-07 11:58:07 gtucker Exp $
+**  $Id: tUplift.cpp,v 1.11 2002-04-10 16:13:31 gtucker Exp $
 \************************************************************************/
 
 #include "tUplift.h"
 #include "../errors/errors.h"
 
-#define kNumUpliftTypes 6
+#define kNumUpliftTypes 7
 #define kNoUplift 0
 
 
@@ -40,7 +40,8 @@ tUplift::tUplift( tInputFile &infile )
            << " 3 - Block uplift with strike-slip motion along given Y coord\n"
            << " 4 - Propagating fold modeled w/ simple error function curve\n"
            << " 5 - 2D cosine-based uplift-subsidence pattern\n"
-	   << " 6 - Block, fault, and foreland sinusoidal fold\n";
+	   << " 6 - Block, fault, and foreland sinusoidal fold\n"
+	   << " 7 - Two-sided differential uplift\n";
       ReportFatalError( "Please specify a valid uplift type and try again." );
    }
 
@@ -80,7 +81,10 @@ tUplift::tUplift( tInputFile &infile )
 	  rate2 = infile.ReadItem( rate2, "FOLDUPRATE" );
 	  foldParam2 = infile.ReadItem( foldParam2, "FOLDPOSITION" );
           break;
- 
+     case 7:
+          rate2 = infile.ReadItem( rate2, "BLFALL_UPPER" );
+	  positionParam1 = infile.ReadItem( positionParam1, "BLDIVIDINGLINE" );
+	  break;
    }
    
 }
@@ -120,6 +124,9 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
       case 6:
 	  BlockUplift( mp, delt );
 	  PropagatingFold( mp, delt );
+	  break;
+      case 7:
+	  TwoSideDifferential( mp, delt );
 	  break;
    }
    
@@ -369,6 +376,65 @@ void tUplift::PropagatingFold( tMesh<tLNode> *mp, double delt )
        }
    }
 
+}
+
+/************************************************************************\
+**
+**  tUplift::TwoSideDifferential
+**
+**  This uplift pattern is designed to simulate a block of land bordered
+**  by two active baselevels that are lowering at different rates. It
+**  is designed to operate on a rectangular domain with open boundaries
+**  along two (opposite) sides. The function was written to study
+**  controls on drainage divide migration under conditions of 
+**  differential relative uplift -- for example in the case range
+**  bounded on one side by a rapidly-slipping normal fault, and on the
+**  other by a boundary that slowly lowers due to steady erosion.
+**
+**  The function uses "rate" as the baselevel fall rate along the lower
+**  (y=0) boundary. "rate2" is initially read in (in the constructor)
+**  as the baselevel fall rate along the upper boundary. However, in order 
+**  to preserve the lower boundary as a zero and fixed relative elevation 
+**  boundary, the differential lowering is implemented by having the 
+**  interior landscape rise at "rate" (lower baselevel fall) and the upper 
+**  boundary rise or fall at a rate equal to the difference between upper
+**  and lower boundary baselevel fall rates (so the relative rates are
+**  preserved; so effectively the datum is the lower baselevel). "rate2"
+**  is converted in the constructor to the difference between upper and
+**  lower baselevel fall rates, and can be positve or negative.
+**
+**  Since the user might choose any arbitrary boundary condition, the
+**  parameter positionParam1 is used to store the y-coordinate of the
+**  dividing line between the two base levels. Any open boundary points
+**  at y<=positionParam1 are treated as "lower boundary" (ie, fixed at
+**  zero elevation), while any open boundary points at y>positionParam1 
+**  are treated as "upper boundary".
+**
+**    Created July, 2001 GT
+**
+**    Parameters:
+**      mp -- pointer to mesh object
+**      delt -- time interval over which uplift occurs
+**
+**    Member data accessed:
+**      rate, rate2, positionParam1
+**
+\************************************************************************/
+void tUplift::TwoSideDifferential( tMesh<tLNode> *mp, double delt )
+{
+  tMeshListIter<tLNode> ni( mp->getNodeList() );
+  tLNode *cn;
+  double landraise = rate*delt,
+    boundaryupdown = rate2*delt;
+
+  // Raise the landscape
+  for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+    cn->ChangeZ( landraise );
+
+  // Raise or lower the "upper" boundary
+  for( cn=ni.FirstBoundaryP(); !ni.AtEnd(); cn=ni.NextP() )
+    if( cn->getBoundaryFlag()==kOpenBoundary && cn->getY()>positionParam1 )
+      cn->ChangeZ( boundaryupdown );
 }
 
 
