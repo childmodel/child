@@ -50,8 +50,10 @@
 **     - 2/02 new class tSedTransPwrLawMulti to handle multi-size
 **       transport in power-law (excess-shear stress) formulation
 **       (GT)
+**     - Added variants of power law detachment and transport formulae
+**       of form tau^p - tauc^p rather than (tau - tauc)^p (GT 4/02)
 **
-**  $Id: erosion.h,v 1.34 2002-04-22 18:14:29 arnaud Exp $
+**  $Id: erosion.h,v 1.35 2002-05-01 08:43:14 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -67,12 +69,16 @@
 #include "../tRunTimer/tRunTimer.h"
 
 //#define tSedTrans tSedTransPwrLawMulti
-#define tSedTrans tSedTransPwrLaw
-#define SEDTRANSOPTION "Power-law transport formula"
+//#define tSedTrans tSedTransPwrLaw
+//#define SEDTRANSOPTION "Power-law transport formula"
 //#define tSedTrans tSedTransWilcock
 //#define SEDTRANSOPTION "Wilcock sand-gravel formula"
+#define tSedTrans tSedTransPwrLaw2
+#define SEDTRANSOPTION "Power-law transport formula, form 2"
 //#define SEDTRANSOPTION "Willgoose/Riley mine tailings formula"
 //#define SEDTRANSOPTION "Multi-size power-law formula"
+#define tBedErode tBedErodePwrLaw2
+#define BEDERODEOPTION "Power law, form 2"
 
 /***************************************************************************\
 **  class tEquilibCheck
@@ -126,12 +132,36 @@ private:
 **  Manages data and routines to compute sediment transport capacity as a
 **  simple power function of slope and total discharge (channel width and
 **  flow depth are implicit in the power-law derivation):
-**    Qs = kf Q^m S^n
+**    Qs = kf ( tau - tauc ) ^ pf,   tau = kt (Q/W)^mb S^nf
 \***************************************************************************/
 class tSedTransPwrLaw
 {
   public:
    tSedTransPwrLaw( tInputFile &infile );
+   double TransCapacity( tLNode * n );
+   double TransCapacity( tLNode *n, int i, double weight);
+
+  private:
+   double kf;  // Transport capacity coefficient
+   double kt;  // Shear stress coefficient
+   double mf;  // Exponent on total discharge
+   double nf;  // Exponent on slope
+   double pf;  // Excess shear exponent
+   double tauc; // Entrainment threshold
+};
+
+/***************************************************************************\
+**  class tSedTransPwrLaw2
+**
+**  Manages data and routines to compute sediment transport capacity as a
+**  simple power function of slope and total discharge (channel width and
+**  flow depth are implicit in the power-law derivation):
+**    Qs = kf ( tau^pf - tauc^pf ),  tau = kt (Q/W)^mf S^nf
+\***************************************************************************/
+class tSedTransPwrLaw2
+{
+  public:
+   tSedTransPwrLaw2( tInputFile &infile );
    double TransCapacity( tLNode * n );
    double TransCapacity( tLNode *n, int i, double weight);
 
@@ -275,6 +305,44 @@ class tBedErodePwrLaw
 
 
 /***************************************************************************\
+**  class tBedErodePwrLaw2
+**
+**  This is a variation of tBedErodePwrLaw that differs in the following
+**  respect:
+**    tBedErodePwrLaw:  erorate ~ ( tau - taucrit ) ^ pb
+**    tBedErodePwrLaw2: erorate ~ tau^pb - taucrit^pb
+**
+**  In other words, this function computes a more analytically tractable
+**  form of the power-law erosion equation.
+**
+**  Created: April 2002 (GT)
+**
+\***************************************************************************/
+class tBedErodePwrLaw2
+{
+  public:
+   tBedErodePwrLaw2( tInputFile &infile );
+     //Computes depth of potential erosion at node n over time interval dt
+   double DetachCapacity( tLNode * n, double dt );
+   //Computes rate of potential erosion of layer i at node n 
+   double DetachCapacity( tLNode * n, int i );
+     //Computes rate of erosion at node n
+   double DetachCapacity( tLNode * n );
+     //Returns an estimate of maximum stable & accurate time step size
+   double SetTimeStep( tLNode * n );
+
+  private:
+   double kb;  // Erosion coefficient
+   double kt;  // Shear stress (or stream power) coefficient
+   double mb;  // Exponent on total discharge
+   double ma;  // Exponent on drainage area (can differ from mb!)
+   double nb;  // Exponent on slope
+   double pb;  // Exponent on excess erosion capacity (e.g., shear stress)
+   double taucd;  // Erosion threshold
+};
+
+
+/***************************************************************************\
 **  class tErosion
 **
 **  Manages data and routines related to various aspects of erosion.
@@ -300,7 +368,7 @@ public:
 
 private:
     tMesh<tLNode> *meshPtr;    // ptr to mesh
-    tBedErodePwrLaw bedErode;  // bed erosion object
+    tBedErode bedErode;        // bed erosion object
     tSedTrans sedTrans;        // sediment transport object 
     double kd;                 // Hillslope transport (diffusion) coef
     double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate

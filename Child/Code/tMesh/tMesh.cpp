@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.100 2002-04-23 14:45:11 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.101 2002-05-01 08:43:32 gtucker Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -222,11 +222,12 @@ tMesh<tSubNode>::tMesh( tMesh *originalMesh )
 \**************************************************************************/
 template< class tSubNode >
 tMesh< tSubNode >::
-tMesh( tInputFile &infile )
+tMesh( tInputFile &infile ) : nodeList()
 {
    int read;   // option for reading/generating initial mesh
 
    miNextNodeID = miNextEdgID = miNextTriID = 0;
+   nnodes = nedges = ntri = 0;
 
    // As "layerflag" is used in this constructor, we compute it now.
    {

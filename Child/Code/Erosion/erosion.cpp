@@ -27,6 +27,8 @@
 **       and multiplied by the unit conversion factor before being
 **       used in the detachment and transport equations. (GT 6/01)
 **     - added functions for new class tSedTransPwrLawMulti (GT 2/02)
+**     - added functions for tBedErodePwrLaw2 (GT 4/02)
+**     - added functions for tSedTransPwrLaw2 (GT 4/02)
 **
 **    Known bugs:
 **     - ErodeDetachLim assumes 1 grain size. If multiple grain sizes
@@ -34,7 +36,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.95 2002-04-24 16:47:20 arnaud Exp $
+**  $Id: erosion.cpp,v 1.96 2002-05-01 08:43:13 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -451,6 +453,195 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 
 }
 
+/***************************************************************************\
+**  FUNCTIONS FOR CLASS tBedErodePwrLaw2
+\***************************************************************************/
+
+/***************************************************************************\
+**  tBedErodePwrLaw2 Constructor
+**
+\***************************************************************************/
+//constructor: reads and sets the parameters
+tBedErodePwrLaw2::tBedErodePwrLaw2( tInputFile &infile )
+{
+  double secPerYear = 365.25*24*3600.0;  // # secs in one year
+
+   kb = infile.ReadItem( kb, "KB" );
+   kt = infile.ReadItem( kt, "KT" );
+   mb = infile.ReadItem( mb, "MB" ); // Specific q exponent
+   //wb = infile.ReadItem( wb, "HYDR_WID_EXP_DS" );
+   //ws = infile.ReadItem( ws, "HYDR_WID_EXP_STN" );
+   //ma = mb*(ws-wb);  // Drainage area exponent
+   //mb = mb*(1-ws);   // Convert mb to total-discharge exponent
+   nb = infile.ReadItem( nb, "NB" );
+   pb = infile.ReadItem( pb, "PB" );
+   taucd = infile.ReadItem( taucd, "TAUCD" );
+
+   // Add unit conversion factor for kt -- this is required to convert
+   // the quantity (Q/W)^mb from units of years to units of seconds.
+   kt = kt * pow( secPerYear, -mb );
+}
+
+
+/***************************************************************************\
+**  tBedErodePwrlaw2::DetachCapacity (1 of 3)
+**
+**  Computes the depth of erosion over a time interval dt assuming the
+**  erosion rate = kb ( tau^pb - taucrit^pb )
+**
+**  Input: n -- node at which to compute detachment capacity
+**         dt -- time interval
+**  Returns: the detachment depth
+**  Assumptions: n->getSlope() does not return a negative value (returns neg.
+**               only if infinite loop in getSlope()); kb, mb,
+**               and nb all >=0.
+**  Modifications:
+**   - replaced uniform erodibility coefficient kb with erodibility of
+**     topmost layer at node n (GT 8/98)
+**   - added threshold term and third exponent pb (GT 4/99)
+**   - added shear coefficient kt, width term, and moved erodibility coeff 
+**     (GT 5/99) (to be ver 2.0.2)
+**   - replaced spatially uniform taucd parameter with node variable
+**     tauc (GT 1/00)
+**   - placed channel width explicitly in the denominator rather than
+**     have it be buried in exponents and coefficients, so as to be
+**     consistent with the transport equations.
+**     (GT 2/01)
+\***************************************************************************/
+double tBedErodePwrLaw2::DetachCapacity( tLNode * n, double dt )
+{
+   double slp = n->getSlope(),
+       tau, tauexpb;
+
+   if( n->getFloodStatus() ) return 0.0;
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
+   //tau =  ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma ) * pow( slp, nb );
+   tau =  kt*pow( n->getQ() / n->getHydrWidth(), mb ) * pow( slp, nb );
+   n->setTau( tau );
+   tauexpb = pow( tau, pb ) - pow( n->getTauCrit(), pb );
+   //cout << "tauex: " << tauex << endl;
+   tauexpb = (tauexpb>0.0) ? tauexpb : 0.0;
+   return( n->getLayerErody(0)*tauexpb*dt );
+}
+
+
+/***************************************************************************\
+**  tBedErodePwrLaw2::DetachCapacity (2 of 3)
+**
+**  Computes the rate of erosion  = kb ( tau^pb - taucrit^pb )
+**
+**  Input: n -- node at which to compute detachment capacity
+**
+**  Returns: the detachment rate
+**  Assumptions: n->getSlope() does not return a negative value (returns neg.
+**               only if infinite loop in getSlope()); kb, mb,
+**               and nb all >=0.
+\***************************************************************************/
+double tBedErodePwrLaw2::DetachCapacity( tLNode * n )
+{
+   //cout<<"in detach capacity "<<endl<<flush;
+   assert( n->getQ()>=0.0 );
+   assert( n->getQ()>=0.0 );
+   
+   if( n->getFloodStatus() ) return 0.0;
+   double slp = n->getSlope();
+   if( slp < 0.0 )
+     ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
+   //double tau = ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
+   //    *pow( slp, nb );
+   double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
+   if( n->getQ()<0.0 || n->getDrArea()<0.0 ) n->TellAll();
+   assert( n->getQ()>=0.0 );
+   assert( n->getDrArea()>=0.0 );
+   n->setTau( tau );
+   double erorate = pow( tau, pb ) - pow( n->getTauCrit(), pb );
+   //cout << "tau " << tau;
+   //cout << " tauc " << n->getTauCrit() << endl;
+   erorate = (erorate>0.0) ? erorate : 0.0;
+   erorate = n->getLayerErody(0)*erorate;
+   //if( n->getDrArea()>1e7 ) cout << " erorate: " << erorate << endl;
+   n->setDrDt( -erorate );
+   //cout << "2erorate: " << erorate << endl;
+   return erorate;
+}
+
+
+/***************************************************************************\
+**  tBedErodePwrLaw2::DetachCapacity (3 of 3)
+**
+**  Computes the rate of erosion  = e* Q^mb S^nb
+**  Here erodibility of layer is used as the coefficient for detach capacity
+**
+**  TODO: have this just call the other DetachCapacity and multiply by dt!
+**  Also: consolidate w/ 2 of 3 by using default 0 parameter for layer #.
+**
+**  Input: n -- node at which to compute detachment capacity
+**         i -- layer which you are computing detachment of
+** 
+**  Returns: the detachment rate
+**  Assumptions: n->getSlope() does not return a negative value (returns neg.
+**               only if infinite loop in getSlope()); kb, mb,
+**               and nb all >=0.
+\***************************************************************************/
+double tBedErodePwrLaw2::DetachCapacity( tLNode * n, int i )
+{
+   if( n->getFloodStatus() ) return 0.0;
+   double slp = n->getSlope();
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
+   //double tau = ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
+   //    *pow( slp, nb );
+   double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
+   n->setTau( tau );
+   double erorate = pow( tau, pb ) - pow( n->getTauCrit(), pb );
+   //cout << "erorate: " << erorate << endl;
+   erorate = (erorate>0.0) ? erorate : 0.0;
+   erorate = n->getLayerErody(i)*erorate;
+   n->setDrDt( -erorate );
+//    if(n->getID() == 11 ){
+//       cout<<"node 11 is in detach capacity"<<endl;
+//       cout<<"layer is "<<i<<endl;
+//       cout<<"numg is "<<n->getNumg()<<endl;
+//    }
+   
+   return erorate;
+}
+
+
+
+/***************************************************************************\
+**  tBedErode::SetTimeStep
+**
+**  Estimates a maximum time step as a function of the Courant stability
+**  criterion: dt <= dx/v, where dx is the node spacing and v is the
+**  wave velocity. If nb=1, v = kb Q^mb. If the equation is nonlinear
+**  with nb!=1, the wave velocity is estimated as if the equation were
+**  linear with a gradient term in the coefficient, ie
+**      v S = [kb Q^mb S^(nb-1)] S  (recall S = -dz/dx)
+**  The estimated time step limitation is therefore given by:
+**      dt = 0.2 * ( dx / (kb Q^mb S^(nb-1) ) )
+**  (the 0.2 is a factor to keep us comfortably below the Courant #).
+**  If the denominator is zero, an arbirarily large number is returned.
+**
+**  Input: n -- node for which to estimate time step
+**  Returns: the estimated maximum time step size
+**  Assumptions: getSlope() returns a value >=0, edge length>0.
+**
+**  TODO: update this to handle threshold term taucd and pb
+\***************************************************************************/
+double tBedErodePwrLaw2::SetTimeStep( tLNode * n )
+{
+   double slp = n->getSlope();
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tBedErodePwrLaw::setTimeStep(tLNode*)");
+   assert( n->getQ()>=0 );
+   double eroterm = kb * pow( n->getQ(), mb ) * pow( slp, nb-1.0 );
+   if( eroterm==0 ) return 100000;
+   return( 0.2*n->getFlowEdg()->getLength() / eroterm );
+
+}
+
 
 
 /***************************************************************************\
@@ -546,6 +737,107 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
       tauex = tau - tauc;
       tauex = (tauex>0.0) ? tauex : 0.0;
       cap = weight * kf * node->getHydrWidth() * pow( tauex, pf );
+      //cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
+   }
+   //cap = kf * weight * pow( node->getQ(), mf ) * pow( slp, nf );
+   int i;
+   for(i=0; i<node->getNumg(); i++)
+       node->addQs(i, cap*node->getLayerDgrade(lyr,i)/node->getLayerDepth(lyr));
+   
+   /*if( node->getDrArea() > 1e7 ) {
+       node->TellAll();
+       cout << "tauex=" << tauex << " bfwid=" << node->getChanWidth()
+            << " wid=" << node->getHydrWidth() << " cap=" << cap << endl;
+            }*/
+   
+   
+   node->setQs( cap );
+   return cap;
+}
+
+
+/***************************************************************************\
+**  FUNCTIONS FOR CLASS tSedTransPwrLaw2
+\***************************************************************************/
+
+/***************************************************************************\
+**  tSedTransPwrLaw2 Constructor:
+**
+**    Given a tInputFile as an argument, will read relevant parameters from
+**  the input file.
+**
+\***************************************************************************/
+tSedTransPwrLaw2::tSedTransPwrLaw2( tInputFile &infile )
+{
+   double secPerYear = 365.25*24*3600.0;  // # secs in one year
+
+   kf = infile.ReadItem( kf, "KF" );
+   kt = infile.ReadItem( kt, "KT" );
+   mf = infile.ReadItem( mf, "MF" );
+   nf = infile.ReadItem( nf, "NF" );
+   pf = infile.ReadItem( pf, "PF" );
+   tauc = infile.ReadItem( tauc, "TAUCD" );
+
+   // Add unit conversion factor for kt -- this is required to convert
+   // the quantity (Q/W)^mb from units of years to units of seconds.
+   kt = kt * pow( secPerYear, -mf );
+}
+
+
+/***************************************************************************\
+**  tSedTransPwrLaw2::TransCapacity
+**
+**  Computes sediment transport capacity using the simple power law
+**  Qs = kf W ( [kt (Q/W)^mf S^nf]^pf - tauc^pf )
+**
+\***************************************************************************/
+double tSedTransPwrLaw2::TransCapacity( tLNode *node )
+{
+   double slp = node->getSlope();
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
+   double tau, tauexpf, cap = 0;
+   if( !node->getFloodStatus() )
+   {
+      tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
+      node->setTau( tau );
+      //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << endl;
+      tauexpf = pow( tau, pf ) - pow( tauc, pf );
+      tauexpf = (tauexpf>0.0) ? tauexpf : 0.0;
+      cap = kf * node->getHydrWidth() * tauexpf;
+      //cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
+   }
+   node->setQs( cap );
+   return cap;
+}
+
+
+/***************************************************************************\
+**  tSedTransPwrLaw2::TransCapacity
+**
+**  Computes sediment transport capacity using the simple power law
+**  Qs = weight kf W ( [ kt (Q/W)^mf S^nf ]^pf - tauc^pf )
+**  This is a weighted version which is called from DetachErode.
+**  Weight is a weighting by depth of layer.
+**  Here, qsi is set by proportion in layer and threshold is constant
+**  The value returned should be in units of m^3/yr
+**
+\***************************************************************************/
+double tSedTransPwrLaw2::TransCapacity( tLNode *node, int lyr, double weight )
+{
+   double slp = node->getSlope();
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
+   double tau, tauexpf, cap = 0;
+   
+   if( !node->getFloodStatus() )
+   {
+      tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
+      node->setTau( tau );
+      //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << " tau=" << tau << endl;
+      tauexpf = pow( tau, pf ) - pow( tauc, pf );
+      tauexpf = (tauexpf>0.0) ? tauexpf : 0.0;
+      cap = weight * kf * node->getHydrWidth() * tauexpf;
       //cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
    }
    //cap = kf * weight * pow( node->getQ(), mf ) * pow( slp, nf );
@@ -1201,6 +1493,7 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
                                              "MESHADAPT_MAXNODEFLUX" );
 
    cout << "SEDIMENT TRANSPORT OPTION: " << SEDTRANSOPTION << endl;
+   cout << "DETACHMENT OPTION: " << BEDERODEOPTION << endl;
 
 }
 
