@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.3 1998-01-20 15:31:36 stlancas Exp $
+**  $Id: tLNode.h,v 1.4 1998-01-20 20:31:40 stlancas Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -140,7 +140,8 @@ class tChannel
    float q;
    float chanwidth;    /* Channel geometry: width*/
    float hydrwidth;    /* hydraulic geometry: width*/
-   float nrough;       /* Hydraulic roughness (Manning 'n')*/
+   float channrough;       /* Channel roughness (Manning 'n')*/
+   float hydrnrough;       /* Hydraulic roughness (Manning 'n')*/
    float chandepth;    /* Channel flow depth*/
    float hydrdepth;    /* Hydraulic flow depth*/
    float diam;    	/* Grain diameter of bed material*/
@@ -172,9 +173,21 @@ class tLNode : public tNode
    float GetSlope();    // Computes and returns slope in flow direction
    int Meanders() const;
    void SetMeanderStatus( int );
+   void setHydrWidth( float );
+   void setChanWidth( float );
    float getHydrWidth() const;
    float getChanWidth() const;
+   void setHydrDepth( float );
+   void setChanDepth( float );
+   float getHydrDepth() const;
+   float getChanDepth() const;
+   void setHydrRough( float );
+   void setChanRough( float );
+   float getHydrRough() const;
+   float getChanRough() const;
+   float getDiam() const;
    float getDrArea() const;
+   tArray< float > getZOld() const;
    tArray< float > getNew2DCoords() const;   //for chan.migration.newx, newy
    void setNew2DCoords( float, float );      //        "
    tArray< float > getNew3DCoords() const;   //        "
@@ -186,6 +199,8 @@ class tLNode : public tNode
    void setReg( const tRegolith & );
    void setChan( const tChannel & );
    void setDischarge( float );
+   void setDiam( float );
+   void setZOld( float, float );
    void RevertToOldCoords();
    void UpdateCoords();
    float DistNew( tLNode *, tLNode * );
