@@ -24,7 +24,7 @@
 **  Recent modifications:
 **    - 1/00: GT added vegofs for output of vegetation cover
 **
-**  $Id: tOutput.h,v 1.16 2000-06-08 19:20:49 daniel Exp $
+**  $Id: tOutput.h,v 1.17 2000-06-08 19:24:18 daniel Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -74,6 +74,7 @@ protected:
     ofstream zofs;                // output file for node "z" data
     ofstream vaofs;               // output file for Voronoi areas    
     ofstream volsofs;             // catchment volume
+    ofstream tareaofs;            // total voronoi area of catchment
 
 };
 

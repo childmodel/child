@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.37 2000-06-08 19:20:40 daniel Exp $
+**  $Id: tOutput.cpp,v 1.38 2000-06-08 19:23:49 daniel Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -309,7 +309,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
 **
 \*************************************************************************/
 template< class tSubNode >
-void tOutput<tSubNode>::WriteTSOutput( double time )
+void tLOutput<tSubNode>::WriteTSOutput( double time )
 {
    tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
 
