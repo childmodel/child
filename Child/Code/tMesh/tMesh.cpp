@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.93 2002-03-06 09:18:17 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.94 2002-03-06 09:29:44 gtucker Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -541,11 +541,11 @@ MakeMeshFromInputData( tInputFile &infile )
    tMeshListIter< tEdge > ei( edgeList );
    tEdge * ce;
 
-   for( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
+   /*Xfor( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
      {
        ce->TellCoords();
        cout << ce->FlowAllowed() << endl;
-     }
+     }*/
 
    // set up the lists of edges (spokes) connected to each node
    // (GT added code to also assign the 1st edge to "edg" as an alternative
@@ -4220,15 +4220,17 @@ UpdateMesh()
    //tMeshListIter<tSubNode> nlist( nodeList );
    tEdge * curedg = 0;
    double len;
-   //XtTriangle * curtri;
    
    // Edge lengths
    curedg = elist.FirstP();
    do
    {
       len = curedg->CalcLength();
+      if( len<=0.0 ) {
+	cout << "Edge " << curedg->getID() << " length: " << curedg->getLength() << endl;
+	curedg->TellCoords();
+      }
       assert( len>0.0 );
-      cout << "Edge " << curedg->getID() << " length: " << curedg->getLength() << endl;
       curedg = elist.NextP();
       assert( curedg > 0 ); // failure = complementary edges not consecutive
       curedg->setLength( len );
