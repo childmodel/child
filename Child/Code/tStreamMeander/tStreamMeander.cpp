@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.56 1999-03-12 23:12:04 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.57 1999-03-13 22:41:22 gtucker Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -222,7 +222,7 @@ void tStreamMeander::FindMeander()
    tLNode * cn;
    tGridListIter< tLNode > nodIter( gridPtr->getNodeList() );
 
-   cout << "FindMeander...()";
+   //cout << "FindMeander...()";
 
    for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
    {
@@ -243,7 +243,7 @@ void tStreamMeander::FindMeander()
            //       << " but is flooded" << endl;
       }
    }
-   cout << "done\n";
+   //cout << "done\n";
 }
 
 
@@ -596,7 +596,7 @@ int tStreamMeander::InterpChannel( double time )
 
 void tStreamMeander::MakeReaches( double ctime)
 {
-   cout<<"tStreamMeander::MakeReaches...";
+   //cout<<"tStreamMeander::MakeReaches...";
 
    netPtr->UpdateNet( ctime ); //first update the net
    do
@@ -607,7 +607,7 @@ void tStreamMeander::MakeReaches( double ctime)
       FindReaches(); //find reaches of meandering nodes
    }
    while( InterpChannel( ctime ) ); //updates
-   cout<<"done MakeReaches"<<endl<<flush;
+   //cout<<"done MakeReaches"<<endl<<flush;
 }
 
 
@@ -663,7 +663,7 @@ void tStreamMeander::FindReaches()
    tArray< int > *iArrPtr;
    tArray< double > *fArrPtr;
 
-   cout<<"tStreamMeander::FindReaches()"<<endl;
+   //cout<<"tStreamMeander::FindReaches()"<<endl;
 
    if( !(reachList.isEmpty()) ) reachList.Flush();
    //loop through active nodes
@@ -839,7 +839,7 @@ void tStreamMeander::FindReaches()
    //{
    //     cout << "end FindReaches, node " << cn->getID() << endl;
    //  }
-   cout << "done FindReaches" << endl;
+   //cout << "done FindReaches" << endl;
 }
 
 
@@ -893,7 +893,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
    tEdge *fedg;
    tArray< double > bankerody;
 
-   cout<<"tStreamMeander::CalcMigration()...";
+   //cout<<"tStreamMeander::CalcMigration()...";
 
    //loop through reaches:
    for( creach = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
@@ -1070,7 +1070,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
    time += dtm;
    cummvmt += maxfrac * dtm;
    
-   cout<<"done CalcMigration\n";
+   //cout<<"done CalcMigration\n";
    
 }
 
