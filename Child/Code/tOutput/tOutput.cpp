@@ -10,7 +10,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.60 2003-02-05 14:52:16 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.61 2003-04-10 09:57:40 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -73,6 +73,8 @@ void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
 {
    char fullName[kMaxNameSize+6];  // name of file to be created
    
+   assert(strlen(baseName)+strlen(extension) < kMaxNameSize+6);
+
    strcpy( fullName, baseName );
    strcat( fullName, extension );
    theOFStream->open( fullName );
