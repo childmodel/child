@@ -4,7 +4,7 @@
 **                  and tTriangle. Each of these grid elements is
 **                  implemented as an object, as described below.
 **
-**  $Id: meshElements.h,v 1.3 1998-01-29 19:55:40 gtucker Exp $
+**  $Id: meshElements.h,v 1.4 1998-02-02 16:45:32 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -67,6 +67,7 @@ class tNode
    void setX( double );
    void setY( double );
    void setZ( double );
+   void ChangeZ( double );   // adds or subtracts from the current Z value
    void setVArea( double );
    void setVArea_Rcp( double );
    void set2DCoords( double, double );
