@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.65 1999-05-04 17:15:49 gtucker Exp $
+**  $Id: erosion.cpp,v 1.66 1999-05-13 13:04:28 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -416,18 +416,18 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
         : grade()
 {
    int i;
-   char add, name[20];
+   char add[1], name[20];
    double help;
    //Xdouble sum;
 
    //cout << "tSedTransWilcock(infile)\n" << endl;
-   add='1';
+   strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
    grade.setSize(2);
    for(i=0; i<=1; i++){
       strcpy( name, "GRAINDIAM");
-      strcat( name, &add );
+      strcat( name, add );
       help = infile.ReadItem( help, name);
-      add++;
+      add[0]++;
       grade[i] = help;
    }
 
