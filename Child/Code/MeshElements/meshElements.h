@@ -35,7 +35,7 @@
 **     neighboring triangle 1, and so on. Node 1 is also the origin for
 **     edge 1, etc.
 **   
-**  $Id: meshElements.h,v 1.19 1999-01-29 00:14:27 nmgaspar Exp $
+**  $Id: meshElements.h,v 1.20 1999-02-04 20:17:31 nmgaspar Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -138,6 +138,7 @@ public:
 #ifndef NDEBUG
    void TellAll();  // Debugging routine that outputs node data
 #endif
+
    
 protected:
   int id;           // ID number
