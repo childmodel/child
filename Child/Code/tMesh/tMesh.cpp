@@ -3,7 +3,7 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.75 1999-09-09 21:32:06 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.76 1999-09-20 14:28:19 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -4011,7 +4011,7 @@ template <class tSubNode>
 void tMesh<tSubNode>::
 UpdateMesh()
 {
-   cout << "UpdateMesh()" << endl << flush;
+   //cout << "UpdateMesh()" << endl << flush;
    
    //tListIter<tTriangle> tlist( triList );
    tMeshListIter<tEdge> elist( edgeList );
