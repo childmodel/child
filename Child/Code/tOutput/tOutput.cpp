@@ -9,7 +9,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.46 2001-06-21 13:58:10 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.47 2002-02-11 09:20:51 gtucker Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -203,6 +203,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
    CreateAndOpenFile( &slpofs, ".slp" );
    CreateAndOpenFile( &qofs, ".q" );
    CreateAndOpenFile( &texofs, ".tx" );
+   CreateAndOpenFile( &tauofs, ".tau" );
 
    // Vegetation cover: if dynamic vegetation option selected
    if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
@@ -210,13 +211,14 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
 
    // Flow depth: if kinematic wave option used OR if channel geometry
    // model other than "regime" used
-   if( (opOpt = infile.ReadItem( opOpt, "OPTKINWAVE" ) )
+   if( (opOpt = infile.ReadItem( opOpt, "FLOWGEN" ) == k2DKinematicWave )
        || (opOpt = infile.ReadItem( opOpt, "CHAN_GEOM_MODEL"))>1 )
        CreateAndOpenFile( &flowdepofs, ".dep" );
 
    // Time-series output: if requested
    if( (optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) ) {
        CreateAndOpenFile( &volsofs, ".vols" );
+       CreateAndOpenFile( &dvolsofs, ".dvols" );
        if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
 	 CreateAndOpenFile( &vegcovofs, ".vcov" );
        CreateAndOpenFile( &tareaofs, ".tarea" );
@@ -226,7 +228,17 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
    // than 1 (code for empirical regime channels)
    if( (opOpt = infile.ReadItem( opOpt, "CHAN_GEOM_MODEL" ) ) > 1 )
        CreateAndOpenFile( &chanwidthofs, ".chanwid" );
+
+   // Flow path length output: if using hydrograph peak method for
+   // computing discharge
+   if( (opOpt = infile.ReadItem( opOpt, "FLOWGEN" ) == kHydrographPeakMethod ) )
+     CreateAndOpenFile( &flowpathlenofs, ".fplen" );
+
+   // Sediment flux: if not using detachment-limited option
+   if( !(opOpt = infile.ReadItem( opOpt, "OPTDETACHLIM" ) ) )
+     CreateAndOpenFile( &qsofs, ".qs" );
    
+   mdLastVolume = 0.0;
 }
 
 
@@ -241,6 +253,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
 **    - 1/00 added output to veg output file (GT)
 **    - added output of flow depth; made slope output for all nodes (GT 1/00)
 **    - 6/00 layer info for each time step written to a different file (NG)
+**    - 9/01 added output of flow path length (GT)
 \*************************************************************************/
 //TODO: should output boundary points as well so they'll map up with nodes
 // for plotting. Means changing getSlope so it returns zero if flowedg
@@ -273,9 +286,12 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    qofs << " " << time << "\n " << nnodes << endl;
    layofs << " " << time << "\n" << nActiveNodes << endl;
    texofs << " " << time << "\n" << nnodes << endl;
+   tauofs << " " << time << "\n" << nnodes << endl;
    if( vegofs.good() ) vegofs << " " << time << "\n" << nnodes << endl;
    if( flowdepofs.good() ) flowdepofs << " " << time << "\n" << nnodes << endl;
    if( chanwidthofs.good() ) chanwidthofs << " " << time << "\n" << nnodes << endl;
+   if( flowpathlenofs.good() ) flowpathlenofs << " " << time << "\n" << nnodes << endl;
+   if( qsofs.good() ) qsofs << " " << time << "\n" << nnodes << endl;
 
    // Write data, including layer info
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
@@ -314,7 +330,10 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       {
             texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;
       }
-      
+      if( flowpathlenofs.good() )
+	flowpathlenofs << cn->getFlowPathLength() << endl;
+      tauofs << cn->getTau() << endl;
+      if( qsofs.good() ) qsofs << cn->getQs() << endl;
    }
    
    layofs.close();
@@ -353,6 +372,8 @@ void tLOutput<tSubNode>::WriteTSOutput()
    }
    
    volsofs << volume << endl;
+   if( mdLastVolume > 0.0 ) dvolsofs << volume - mdLastVolume << endl;
+   mdLastVolume = volume;
    //tareaofs << area << endl;
 
    if( vegofs.good() ) {
