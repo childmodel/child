@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.3 1998-01-29 19:56:26 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.4 1998-02-02 16:45:54 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -141,6 +141,7 @@ void tNode::setID( int val ) {id = val;}                             //tNode
 void tNode::setX( double val ) {x = val;}                             //tNode
 void tNode::setY( double val ) {y = val;}                             //tNode
 void tNode::setZ( double val ) {z = val;}                             //tNode
+                        
 void tNode::setVArea( double val )                                    //tNode
 {varea = ( val >= 0.0 ) ? val : 0.0;}
 
@@ -169,6 +170,7 @@ void tNode::SetEdg( tEdge * theEdg )
    cout << "Assigning edge " << theEdg->getID() << " to node " << getID() << endl;
 }
 
+void tNode::ChangeZ( double delz ) { z += delz; }                    //tNode
 
 void tNode::insertFrontSpokeList( tEdge *eptr )                      //tNode
 {
