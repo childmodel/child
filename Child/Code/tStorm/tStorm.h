@@ -17,7 +17,7 @@
 **  for other random processes such as river flows, etc.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.h,v 1.6 1998-05-04 22:23:56 gtucker Exp $
+**  $Id: tStorm.h,v 1.7 1998-05-05 19:44:06 gtucker Exp $
 */
 
 #ifndef TSTORM_H
@@ -33,7 +33,7 @@ class tStorm
    tStorm( int optVariable=1 );
    tStorm( double, double, double, unsigned, int optvar=1 );
    tStorm( tInputFile & );
-   void  GenerateStorm( double minp=0.0 );
+   void  GenerateStorm( double minp=0.0, double mind=0.0 );
    double GetStormDuration();
    double InterstormDur();
    double GetRainrate();
