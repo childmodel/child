@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.67 1999-05-18 21:53:28 gtucker Exp $
+**  $Id: erosion.cpp,v 1.68 1999-05-21 17:50:27 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -193,12 +193,32 @@ double tEquilibCheck::FindLongTermChngRate( double newtime )
 **  FUNCTIONS FOR CLASS tBedErodePwrLaw
 \***************************************************************************/
 
+/***************************************************************************\
+**  tBedErodePwrLaw Constructor
+**
+**  Reads in coefficients and exponents for the power law. "mb" is
+**  assumed to be the exponent on specific discharge (L2/T), i.e.,
+**  Dc ~ q^mb. It is then converted to a total discharge exponent,
+**  i.e., Dc ~ Q^mb, by multiplying by (1-ws), where ws is the
+**  at-a-station width-discharge relation. Before converting, we
+**  define the drainage area exponent, ma = mb*(ws-wb). This
+**  essentially describes the difference between at-a-station and
+**  downstream width variations with discharge.
+**
+\***************************************************************************/
 //constructor: reads and sets the 3 parameters
 tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 {
+   double wb,  // downstream channel width-discharge exponent
+       ws;     // at-a-station width-discharge exponent
+
    kb = infile.ReadItem( kb, "KB" );
    kt = infile.ReadItem( kt, "KT" );
-   mb = infile.ReadItem( mb, "MB" );
+   mb = infile.ReadItem( mb, "MB" ); // Read in as specific q exponent
+   wb = infile.ReadItem( wb, "HYDR_WID_EXP_DS" );
+   ws = infile.ReadItem( ws, "HYDR_WID_EXP_STN" );
+   ma = mb*(ws-wb);  // Drainage area exponent
+   mb = mb*(1-ws);   // Convert mb to total-discharge exponent
    nb = infile.ReadItem( nb, "NB" );
    pb = infile.ReadItem( pb, "PB" );
    taucd = infile.ReadItem( taucd, "TAUCD" );
@@ -231,7 +251,8 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
-   tauex = kt*pow( n->getQ()/n->getHydrWidth(), mb )*pow( slp, nb ) - taucd;
+   tauex = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
+       *pow( slp, nb ) - taucd;
    //cout << "tauex: " << tauex << endl;
    tauex = (tauex>0.0) ? tauex : 0.0;
    return( n->getLayerErody(0)*pow(tauex,pb)*dt );
@@ -261,12 +282,14 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-
-   double erorate = kt*pow( n->getQ()/n->getHydrWidth(), mb )*pow( slp, nb ) 
-       - taucd;
+   double erorate = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
+       *pow( slp, nb ) - taucd;
+   //if( n->getDrArea()>1e7 )
+   //    cout << "slp: " << slp << " Q: " << n->getQ() << " tauex: " << erorate;
    //cout << "erorate: " << erorate << endl;
    erorate = (erorate>0.0) ? erorate : 0.0;
    erorate = n->getLayerErody(0)*pow( erorate, pb );
+   //if( n->getDrArea()>1e7 ) cout << " erorate: " << erorate << endl;
    n->setDrDt( -erorate );
    return erorate;
 }
@@ -298,8 +321,8 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   double erorate = kt*pow( n->getQ()/n->getHydrWidth(), mb )*pow( slp, nb )
-       - taucd;
+   double erorate = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
+       *pow( slp, nb ) - taucd;
    //cout << "erorate: " << erorate << endl;
    erorate = (erorate>0.0) ? erorate : 0.0;
    erorate = n->getLayerErody(i)*pow( erorate, pb );
