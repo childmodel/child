@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.36 1998-07-24 20:00:36 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.37 1998-07-25 00:12:57 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -275,9 +275,6 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
    double erorate =n->getLayerErody(i)*pow( n->getQ(), mb )*pow( slp, nb );
-   cout << "NODE:\n";
-   n->TellAll();
-   cout << "Detach rate: " << erorate << endl;
    n->setDrDt( -erorate );
 //    if(n->getID() == 11 ){
 //       cout<<"node 11 is in detach capacity"<<endl;
@@ -351,6 +348,7 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node )
     This is a weighted version which is called from DetachErode.
     Weight is a weighting by depth of layer.
     Here, qsi is set by proportion in layer.
+    The value returned should be in units of m^3/yr
 \***************************************************************************/
 double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
 {
@@ -517,7 +515,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
    assert( nd->getLayerDepth(i)>0 );
    double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
    double timeadjust=31536000.00; /* number of seconds in a year */
-   double qss, qsg; //gravel and sand transport rate
+   double qss, qsg=0; //gravel and sand transport rate
    
 
    //if(nd->getID() == 93){
@@ -527,7 +525,8 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
    
    if( nd->getSlope() < 0 ){
       nd->setQs(0, 0);
-      nd->setQs(1, 0);
+      if(nd->getNumg()==2)
+          nd->setQs(1, 0);
       nd->setQs(0);
       return 0.0;
    }
@@ -567,27 +566,30 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
        qss=0 ;
 
    //Now calculate Gravel transport rates
+   if(nd->getNumg()==2){
+   
+      if(persand<.10)
+          taucrit=lowtaucg;
+      else if(persand<=.40)
+          taucrit=((gravs*persand)+gravb);
+      else
+          taucrit=hightaucg;
 
-   if(persand<.10)
-       taucrit=lowtaucg;
-   else if(persand<=.40)
-       taucrit=((gravs*persand)+gravb);
-   else
-       taucrit=hightaucg;
-
-   //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
-
-   if(tau>taucrit){
-      qsg=(0.058*timeadjust*weight*nd->getChanWidth()/(RHOSED))*
-          (1-persand)*pow(tau,1.5)*pow((1-(taucrit/tau)),4.5);
-      nd->addQs(1,qsg);
-       //  cout << "nic nic nic gravel transport is happening" << endl;
+      //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
+      
+      if(tau>taucrit){
+         qsg=(0.058*timeadjust*weight*nd->getChanWidth()/(RHOSED))*
+             (1-persand)*pow(tau,1.5)*pow((1-(taucrit/tau)),4.5);
+         nd->addQs(1,qsg);
+         //cout << "nic nic nic gravel transport is happening" << endl;
+      }
+      else
+          qsg=0;
    }
-   else
-       qsg=0;
-
+   
    //NOTE - don't need to update total qs cause this gets updates
    //with update of qs of individual sizes
+
    return qsg+qss;
        
 }
@@ -1364,7 +1366,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             else{
                qs+=sedTrans.TransCapacity(cn,i,1-(depck/cn->getChanDepth()));
                   // if(cn->getID() == 11)
-                                             //cout<<"value from detach capacity is "<<bedErode.DetachCapacity(cn,i)<<endl;
+
             }
             depck+=cn->getLayerDepth(i); //need to keep this here for qs calc
             i++;
