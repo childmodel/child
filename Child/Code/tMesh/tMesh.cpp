@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.105 2002-06-18 16:29:47 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.106 2002-06-24 12:19:49 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -262,21 +262,27 @@ tMesh( tInputFile &infile )
       ReportFatalError( "Invalid mesh input option requested." );
    }
    
-   if( read==1 ) {
+   switch (read){
+   case 1:
      int lay;  // option for reading layer info
-      MakeMeshFromInputData( infile ); //create mesh by reading data files
-      lay = infile.ReadItem( lay, "OPTREADLAYER" );
-      if( lay == 1 )
-          MakeLayersFromInputData( infile );
+     MakeMeshFromInputData( infile ); //create mesh by reading data files
+     lay = infile.ReadItem( lay, "OPTREADLAYER" );
+     if( lay == 1 )
+       MakeLayersFromInputData( infile );
+     break;
+   case 2:
+     MakeMeshFromPoints( infile );  //create new mesh from list of points
+     break;
+   case 3:
+     MakeRandomPointsFromArcGrid( infile ); //create mesh from regular grid
+     break;
+   case 4:
+     MakeHexMeshFromArcGrid( infile );
+     break;
+   default:
+     MakeMeshFromScratch( infile ); //create new mesh with parameters
+     break;
    }
-   else if( read==2 )
-       MakeMeshFromPoints( infile );  //create new mesh from list of points
-   else if( read==3 )
-       MakeRandomPointsFromArcGrid( infile ); //create mesh from regular grid
-   else if( read==4 )
-       MakeHexMeshFromArcGrid( infile );
-   else
-       MakeMeshFromScratch( infile ); //create new mesh with parameters
 
    // find geometric center of domain:
    double cx = 0.0;
