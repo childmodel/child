@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.36 2004-05-28 16:43:26 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.37 2004-06-02 09:58:14 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -151,7 +151,7 @@ static
 void stripKey(char *key){
   char c;
   int i = 0;
-  while((c = key[i]) != '\n'){
+  while((c = key[i]) != '\0'){
     if (c == ':' || c == ' '){
       key[i] = '\0';
       break;
