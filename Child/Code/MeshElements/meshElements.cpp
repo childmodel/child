@@ -12,7 +12,7 @@
 **     "gridElements", 1/20/98 gt
 **   - added tNode::AttachNewSpoke and tEdge::WelcomeCCWNeighbor gt 2/99
 **
-**  $Id: meshElements.cpp,v 1.31 1999-08-31 21:50:37 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.32 1999-09-09 21:14:26 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -721,10 +721,10 @@ double tNode::ComputeVoronoiArea()
          //TODO: check for sqrt neg # w/ assert
          area += 0.25*sqrt( 4*a*a*b*b -
                             (c*c - (b*b + a*a))*(c*c - (b*b + a*a)));
-         if( id==83 ) {
+         /*if( id==83 ) {
             cout<<"ND "<<id<<" V_a 3: a "<<a<<", b "<<b<<", c "<<c<<endl<<flush;
             cout<<" Acum (1,"<<i<<","<<i+1<<") = " <<area<<endl;
-         }
+            }*/
          vcI.Prev();
       }
    }
@@ -732,6 +732,7 @@ double tNode::ComputeVoronoiArea()
    varea_rcp = 1.0/varea;
 
    // debug
+   /*
    if( id==83 ) {
       cout << " reading list: ";
       for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
@@ -750,7 +751,7 @@ double tNode::ComputeVoronoiArea()
          ce = ce->getCCWEdg();
       } while( ce != edg );
       cout << endl << flush;
-   }
+      }*/
    
    return area;
 }
