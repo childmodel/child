@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.57 1999-02-04 21:55:41 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.58 1999-02-05 05:20:39 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2377,8 +2377,8 @@ DeleteNode( tSubNode *node, int repairFlag )
       nodeList.removeFromFront( nodeVal );
    }
    
-   //cout << "Removed node " << nodeVal.getID() << " at x, y "
-   //   << nodeVal.getX() << ", " << nodeVal.getY() << "; " << endl;
+   cout << "Removed node " << nodeVal.getID() << " at x, y "
+      << nodeVal.getX() << ", " << nodeVal.getY() << "; " << endl;
    nnodes = nodeList.getSize();
    nedges = edgeList.getSize();
    ntri = triList.getSize();
@@ -2451,7 +2451,7 @@ template< class tSubNode >
 int tGrid< tSubNode >::
 ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
 {
-   //cout << "ExtricateNode: " << node->getID() << endl;
+   cout << "ExtricateNode: " << node->getID() << endl;
    tPtrListIter< tEdge > spokIter( node->getSpokeListNC() );
    tEdge edgeVal1, edgeVal2, *ce;
    tSubNode *nbrPtr;
@@ -3353,7 +3353,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    assert( &nodeRef != 0 );
 
    cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << " time "<<time<<endl;
-
+   cout<<"nodeList.getSize() "<< nodeList.getSize()<<" nnodes "<<nnodes<<endl;
    //cout << "locate tri" << endl << flush;
    tri = LocateTriangle( xyz[0], xyz[1] );
    //assert( tri != 0 );
@@ -3370,12 +3370,19 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    // portion (if it is)
    int newid = nodIter.LastP()->getID() + 1;
    nodeRef.setID( newid );
-   if( nodeRef.getBoundaryFlag()==kNonBoundary )
+   if( nodeRef.getBoundaryFlag()==kNonBoundary ){
        nodeList.insertAtActiveBack( nodeRef );
-   else if( nodeRef.getBoundaryFlag() == kOpenBoundary )
+       cout<<"knonboundary"<<endl;
+   }
+   else if( nodeRef.getBoundaryFlag() == kOpenBoundary ){
        nodeList.insertAtBoundFront( nodeRef );
-   else
+       cout<<"kOpenBoundary"<<endl;
+   }
+   else{
        nodeList.insertAtBack( nodeRef );
+       cout<<"other"<<endl;
+   }
+   cout<<"nodeList.getSize() "<< nodeList.getSize()<<" nnodes "<<nnodes<<endl;
    assert( nodeList.getSize() == nnodes + 1 );
    nnodes++;
    
