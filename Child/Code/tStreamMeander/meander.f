@@ -42,7 +42,7 @@ c     version 1.6: eliminated erroneous division by dels in shear
 c     stress calculation
 c                 1.7  8/11: debugged version SL
 c
-c     $Id: meander.f,v 1.1 1999-05-11 14:22:54 gtucker Exp $
+c     $Id: meander.f,v 1.2 1999-05-11 15:27:47 gtucker Exp $
 c
       subroutine meander (stations, stnserod, x, y, xs, dels, flow,  
      +                    rerody, lerody, slope, width, depth, 
@@ -50,7 +50,7 @@ c
      +                    lambda)
       integer stnserod, stations, dmnsn
       parameter (dmnsn = 6000)
-      real*8 distance, dels(*),
+      real*8 dels(*),
      +       phi(dmnsn), x(*), y(*), 
      +       delx(dmnsn), dely(dmnsn),  
      +       rho, grav, diam(*), flow(*), width(*), 
@@ -107,7 +107,7 @@ c      print *, 'last reach node K = ', transfactor
       integer stnserod, s
       real*8 phi(*), x(*), y(*), 
      +       delx(*), dely(*), 
-     +       rho, grav, width(*), lambda(*), xgauss
+     +       rho, grav, width(*), lambda(*)
 c
 c     print *, 'stnserod in initialize:', stnserod
       rho = 1000.d0
@@ -400,13 +400,13 @@ c
      +                      depth, spreaddelta_x, spreaddelta_y,
      +                      rightdepth, leftdepth, xs, tauwall)
 C
-      integer stnserod, stations, s, ns, lp1, is, k, j, i, ilambda
+      integer stnserod, stations, s
       real*8 lambda(*), width(*), lag(*), 
      +       latforce(*), dels(*), phi(*), 
      +       curvature(*), depth(*), spreaddelta_x(*), 
      +       spreaddelta_y(*), rightdepth(*),
      +       leftdepth(*), xs(*),
-     +       tauwall(*), gaussfactor, xstrt, twolambda,
+     +       tauwall(*), gaussfactor, xstrt,
      +       xdel, xdepth, gaussian, xdest, tenlambda
 c
       do s = 1, stnserod
