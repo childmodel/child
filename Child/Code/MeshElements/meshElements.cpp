@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.54 2003-05-16 16:21:05 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.55 2003-05-28 14:43:44 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -573,9 +573,9 @@ void tNode::ConvertToClosedBoundary()
    do
    {
       assert( ce!=0 );
-      if( ce->getBoundaryFlag()==kFlowAllowed )
+      if( ce->getBoundaryFlag()!=kNonBoundary )
       {
-         ce->setFlowAllowed( 0 );
+         ce->setFlowAllowed( kFlowNotAllowed );
          // get complement and change it too TODO
       }
 
