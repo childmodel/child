@@ -106,9 +106,7 @@ void test_sort_triangulate(int npoints, point *p){
   write_edge(edges, p);
 #endif
 
-#if 1
   sanity_check_edge(edges);
-#endif
 
   int nelem;
   elem* elems = NULL;
@@ -169,22 +167,22 @@ void test_triangulate_from_file(){
 }
 
 #if defined(USE_MAIN)
-int main(){
+int main(void){
   //  const int n=100; // makes it fail on Sun
-#if 1
-#if 0
+# if 1
+#   if 0
   int n=3;
   cout << "n= " << n << endl;
   test_triangulate_random(n);
   
-#else
+#   else
   for(int n=2; n!=100; n++){
     cout << "n= " << n << endl;
     test_triangulate_random(n);
   }
-#endif
-#else
+#   endif
+# else
   test_triangulate_from_file();
-#endif
+# endif
 }
 #endif
