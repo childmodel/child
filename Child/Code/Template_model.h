@@ -10,7 +10,7 @@
 // in .cpp files with the same name as the corresponding .h file.
 
 #if defined(__GNUC__) || defined(__INTEL_COMPILER) || defined(_lint) \
-    || defined(__BORLANDC__)
+    || defined(__BORLANDC__) || defined(_MSC_VER)
 # define CHILD_TEMPLATE_IN_HEADER
 #endif
 
