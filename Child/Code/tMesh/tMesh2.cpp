@@ -235,7 +235,11 @@ BuildDelaunayMeshTipper()
 	   tempedge1.setFlowAllowed( 0 );
 	   tempedge2.setFlowAllowed( 0 );
 	   edgeList.insertAtBack( tempedge1 );
+	   tEdge *e1 = edgeList.getLast()->getDataPtrNC();
 	   edgeList.insertAtBack( tempedge2 );
+	   tEdge *e2 = edgeList.getLast()->getDataPtrNC();
+	   e1->setComplementEdge(e2);
+	   e2->setComplementEdge(e1);
 	 }
        else
 	 {
@@ -245,7 +249,11 @@ BuildDelaunayMeshTipper()
 	   tempedge1.setFlowAllowed( 1 );
 	   tempedge2.setFlowAllowed( 1 );
 	   edgeList.insertAtActiveBack( tempedge1 );
+	   tEdge *e1 = edgeList.getLastActive()->getDataPtrNC();
 	   edgeList.insertAtActiveBack( tempedge2 );
+	   tEdge *e2 = edgeList.getLastActive()->getDataPtrNC();
+	   e1->setComplementEdge(e2);
+	   e2->setComplementEdge(e1);
 	 }
      }
    }
@@ -309,7 +317,7 @@ BuildDelaunayMeshTipper()
    cout << "Setting up CCW edges..." << flush;
    {
      int iedge;
-     tEdge * curedg, * ccwedg;
+     tEdge * curedg;
      tMeshListIter< tEdge > edgIter( edgeList );
      for( iedge=0, curedg=edgIter.FirstP(); iedge<nedgesl; ++iedge)
        {
@@ -317,7 +325,7 @@ BuildDelaunayMeshTipper()
 	   const oriented_edge e1(iedge,true);
 	   const oriented_edge ccw_from = e1.ccw_edge_around_from(edges);
 	   const int ccwedgid = e_t2c(ccw_from);
-	   ccwedg = EdgeTable[ccwedgid];
+	   tEdge *ccwedg = EdgeTable[ccwedgid];
 	   curedg->setCCWEdg( ccwedg );
 	 }
 	 curedg = edgIter.NextP();
@@ -325,7 +333,7 @@ BuildDelaunayMeshTipper()
 	   const oriented_edge e2(iedge,false);
 	   const oriented_edge ccw_to = e2.ccw_edge_around_from(edges);
 	   const int ccwedgid = e_t2c(ccw_to);
-	   ccwedg = EdgeTable[ccwedgid];
+	   tEdge *ccwedg = EdgeTable[ccwedgid];
 	   curedg->setCCWEdg( ccwedg );
 	 }
 	 curedg = edgIter.NextP(); 

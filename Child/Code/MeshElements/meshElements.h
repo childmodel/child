@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.34 2003-01-17 17:30:23 childcvs Exp $
+**  $Id: meshElements.h,v 1.35 2003-03-31 17:41:21 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -209,6 +209,9 @@ protected:
 **
 **  Modifications:
 **   - added FindComplement function, 4/98 GT
+**   - added cwedg and tri pointers with corresponding get and set functions,
+**     2/99 SL
+**   - added compedg pointer and corresponding get and set functions, 4/00 SL
 **
 \***************************************************************************/
 class tEdge
@@ -234,6 +237,9 @@ public:
   tNode *getOriginPtrNC();      // returns ptr to origin node (non-const)
   inline tNode *getDestinationPtrNC(); // returns ptr to destination node (non-const)
   inline tEdge * getCCWEdg();          // returns ptr to counter-clockwise neighbor
+  inline tEdge * getCWEdg();
+  tEdge* getComplementEdge();
+  void setComplementEdge( tEdge* );
   tArray< double > getRVtx() const;  // returns Voronoi vertex for RH triangle
   double getVEdgLen() const;    // returns length of assoc'd Voronoi cell edge
   int FlowAllowed();            // returns boundary status ("flow allowed")
@@ -247,10 +253,13 @@ public:
   double CalcLength();               // computes & sets length
   double CalcSlope();                // computes & sets slope
   void setCCWEdg( tEdge * edg );     // sets ptr to counter-clockwise neighbor
+  void setCWEdg( tEdge * edg );
   void setRVtx( tArray< double > );  // sets coords of Voronoi vertex RH tri
   void setVEdgLen( double ); // sets length of corresponding Voronoi edge
   double CalcVEdgLen();      // computes, sets & returns length of V cell edg
   tEdge * FindComplement();  // returns ptr to edge's complement
+  tTriangle* TriWithEdgePtr();
+  void setTri( tTriangle* );
   void WelcomeCCWNeighbor( tEdge * );  // Adds another edge ccw from this edge
   
 #ifndef NDEBUG
@@ -265,7 +274,11 @@ private:
   tArray< double > rvtx; // (x,y) coords of Voronoi vertex in RH triangle
   double vedglen;        // length of Voronoi edge shared by org & dest cells
   tNode *org, *dest;     // ptrs to origin and destination nodes
-  tEdge *ccwedg;   // ptr to counter-clockwise (left-hand) edge w/ same origin 
+  tEdge *ccwedg;  // ptr to counter-clockwise (left-hand) edge w/ same origin 
+  tEdge *cwedg;   // ptr to clockwise (right-hand) edge w/ same origin
+  tEdge *compedg; // ptr to complement edge
+  tTriangle *tri; // ptr to triangle (if any) that contains pointer to edge;
+                  // it's set from tTriangle::setEPtr( tEdge* ptr )
 };
 
 
@@ -300,7 +313,7 @@ public:
   tTriangle();                    // default constructor
   tTriangle( const tTriangle & ); // copy constructor
   tTriangle( int, tNode *, tNode *, tNode * );
-  //~tTriangle();                   // destructor
+  ~tTriangle();                   // destructor
 
   const tTriangle &operator=( const tTriangle & ); // assignment operator
   inline int getID() const;                 // returns ID number
@@ -643,7 +656,8 @@ inline tEdge::tEdge() :
   id(0), flowAllowed(0), len(0.), slope(0.),
   rvtx(2),
   vedglen(0.),
-  org(0), dest(0), ccwedg(0)
+  org(0), dest(0), ccwedg(0), cwedg(0),
+  compedg(0), tri(0)
 {
      //cout << "tEdge()" << endl;
 }
@@ -654,7 +668,8 @@ inline tEdge::tEdge( const tEdge &original ) :
   len(original.len), slope(original.slope),
   rvtx(original.rvtx),
   vedglen(original.vedglen),
-  org(original.org), dest(original.dest), ccwedg(original.ccwedg)
+  org(original.org), dest(original.dest), ccwedg(original.ccwedg),
+  cwedg(original.cwedg), compedg(original.compedg), tri(original.tri)
 {}
 
 //tEdge::~tEdge() {/*cout << "    ~tEdge()" << endl;*/}      //tEdge
@@ -682,7 +697,10 @@ inline const tEdge &tEdge::operator=( const tEdge &original )
       org = original.org;
       dest = original.dest;
       ccwedg = original.ccwedg;
+      cwedg = original.cwedg;
       flowAllowed = original.flowAllowed;
+      compedg = original.compedg;
+      tri = original.tri;
    }
    return *this;
 }
@@ -752,12 +770,27 @@ inline double tEdge::getDestZ()
    return( dest->getZ() );
 }
 
-inline tEdge * tEdge::getCCWEdg() 
+inline tEdge * tEdge::getCCWEdg()
 {
    return ccwedg;
 }
 
-inline int tEdge::FlowAllowed() 
+inline tEdge * tEdge::getCWEdg()
+{
+  return cwedg;
+}
+
+inline tEdge* tEdge::getComplementEdge()
+{
+  return compedg;
+}
+
+inline void tEdge::setComplementEdge( tEdge* edg )
+{
+  compedg = edg;
+}
+
+inline int tEdge::FlowAllowed()
 {
    return flowAllowed;
 }
@@ -773,6 +806,7 @@ tEdge::getRVtx() const
 
 inline double tEdge::getVEdgLen() const {return vedglen;}
 
+inline tTriangle* tEdge::TriWithEdgePtr() {return tri;}
 
 /***********************************************************************\
 **
@@ -830,6 +864,11 @@ inline void tEdge::setCCWEdg( tEdge * edg )
    ccwedg = edg;
 }
 
+inline void tEdge::setCWEdg( tEdge * edg )
+{
+  cwedg = edg;
+}
+
 inline void tEdge::setRVtx( tArray< double > arr )
 {
    assert( &arr != 0 );
@@ -844,6 +883,11 @@ inline void tEdge::setVEdgLen( double val )
    assert( val>=0.0 );
    vedglen = val;
    /*vedglen = ( val > 0 ) ? val : 0;*/
+}
+
+inline void tEdge::setTri( tTriangle* tptr )
+{
+  tri = tptr;
 }
 
 /**************************************************************************\
@@ -968,15 +1012,15 @@ inline tTriangle::tTriangle( const tTriangle &init ) :
    for( int i=0; i<3; i++ )
      {
        p[i] = init.p[i];
-       e[i] = init.e[i];
+       setEPtr( i, init.e[i] ); // sets edge's tri pointer as well!
        t[i] = init.t[i];
      }
      //cout << "tTriangle( orig )" << endl;
 }
 
 // construct with id and 3 vertices
-inline tTriangle::tTriangle( int num, tNode* n0, tNode* n1, tNode* n2 ) :
-  id(num)
+inline tTriangle::tTriangle( int id_, tNode* n0, tNode* n1, tNode* n2 ) :
+  id(id_)
 {
    assert( n0 > 0 && n1 > 0 && n2 > 0 );
    p[0] = n0;
@@ -987,13 +1031,6 @@ inline tTriangle::tTriangle( int num, tNode* n0, tNode* n1, tNode* n2 ) :
    setEPtr( 2, n2->EdgToNod( n1 ) );
    t[0] = t[1] = t[2] = 0;
 }
-
-//destructor
-/*tTriangle::~tTriangle()                                          //tTriangle
-{
-     //cout << "    ~tTriangle()" << endl;
-}*/
-
 
 /***********************************************************************\
 **
@@ -1019,7 +1056,7 @@ inline const tTriangle &tTriangle::operator=( const tTriangle &init )
       for( int i=0; i<3; i++ )
       {
          p[i] = init.p[i];
-         e[i] = init.e[i];
+         setEPtr( i, init.e[i] ); // sets edge's tri pointer as well!
          t[i] = init.t[i];
       }
    }
@@ -1113,8 +1150,13 @@ inline void tTriangle::setPPtr( int index, tNode * ndptr )
 
 inline void tTriangle::setEPtr( int index, tEdge * egptr )
 {
-   assert( index >= 0 && index <= 3 );
-   e[index] = egptr;
+  assert( index >= 0 && index <= 3 );
+  if( egptr == 0 && e[index]->TriWithEdgePtr() == this) {
+    e[index]->setTri(0);
+  }
+  e[index] = egptr;
+  if( egptr != 0 )
+    egptr->setTri( this );
 }
 
 inline void tTriangle::setTPtr( int index, tTriangle * trptr )

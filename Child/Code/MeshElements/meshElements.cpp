@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.46 2003-03-06 17:43:51 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.47 2003-03-31 17:41:20 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -802,6 +802,16 @@ tEdge * tEdge::FindComplement()
 \**************************************************************************/
 
 
+//destructor
+tTriangle::~tTriangle()
+{
+   for( int i=0; i<3; i++ )
+   {
+      p[i] = 0;
+      setEPtr( i, 0 );
+      t[i] = 0;
+   }
+}
 
 /*****************************************************************************\
 **

@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.126 2003-03-18 12:23:29 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.127 2003-03-31 17:41:23 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -300,7 +300,8 @@ MakeLayersFromInputData( tInputFile &infile )
    ifstream layerinfile;
    infile.ReadItem( thestring, "INPUTDATAFILE" );
 
-   //cout<<"in MakeLayersFromInputData..."<<endl;
+   if (0) //DEBUG
+     cout<<"in MakeLayersFromInputData..."<<endl;
 
    strcpy( inname, thestring );
    strcat( inname, ".lay" );
@@ -598,7 +599,11 @@ MakeMeshFromInputData( tInputFile &infile )
 	     tempedge1.setFlowAllowed( 0 );
 	     tempedge2.setFlowAllowed( 0 );
 	     edgeList.insertAtBack( tempedge1 );
+	     tEdge *e1 = edgeList.getLast()->getDataPtrNC();
 	     edgeList.insertAtBack( tempedge2 );
+	     tEdge *e2 = edgeList.getLast()->getDataPtrNC();
+	     e1->setComplementEdge(e2);
+	     e2->setComplementEdge(e1);
 	   }
 	 else
 	   {
@@ -608,7 +613,11 @@ MakeMeshFromInputData( tInputFile &infile )
 	     tempedge1.setFlowAllowed( 1 );
 	     tempedge2.setFlowAllowed( 1 );
 	     edgeList.insertAtActiveBack( tempedge1 );
+	     tEdge *e1 = edgeList.getLastActive()->getDataPtrNC();
 	     edgeList.insertAtActiveBack( tempedge2 );
+	     tEdge *e2 = edgeList.getLastActive()->getDataPtrNC();
+	     e1->setComplementEdge(e2);
+	     e2->setComplementEdge(e1);
 	     if (0) //DEBUG
 	       cout << "EDGFA " << tempedge2.FlowAllowed() << endl;
 	   }
@@ -1498,7 +1507,8 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 MakeMeshFromScratch( tInputFile &infile )
 {
-   //cout << "In MGFS, calling node constr w/ infile\n";
+   if (0) //DEBUG
+     cout << "In MGFS, calling node constr w/ infile\n";
 
    tSubNode *node0, *node1, *node2;
    tPtrList< tSubNode > bndList;
@@ -2600,7 +2610,8 @@ void tMesh<tSubNode>::CalcVoronoiEdgeLengths()
 template <class tSubNode>
  void tMesh<tSubNode>::CalcVAreas()
 {
-   //cout << "CalcVAreas()..." << endl << flush;
+   if (0) //DEBUG
+     cout << "CalcVAreas()..." << endl << flush;
    tSubNode* curnode;
    tMeshListIter< tSubNode > nodIter( nodeList );
 
@@ -2624,7 +2635,8 @@ template< class tSubNode >
 int tMesh< tSubNode >::
 DeleteNode( tListNode< tSubNode > *nodPtr, int repairFlag )
 {
-   //cout << "DeleteNode: " << nodPtr->getDataPtr()->getID() << endl;
+   if (0) //DEBUG
+     cout << "DeleteNode: " << nodPtr->getDataPtr()->getID() << endl;
    if( !DeleteNode( nodPtr->getDataPtrNC(), repairFlag ) ) return 0;
    return 1;
 }
@@ -2676,8 +2688,9 @@ DeleteNode( tSubNode *node, int repairFlag )
    nodIter.Get( node->getID() );
    tSubNode nodeVal;
 
-   //cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
-   //<< node->getY() << " " << node->getZ() << endl;
+   if (0) //DEBUG
+     cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
+	  << node->getY() << " " << node->getZ() << endl;
    //assert( repairFlag || node->getBoundaryFlag()==kClosedBoundary );
 
    nodPtr = nodIter.NodePtr();
@@ -2774,7 +2787,8 @@ template< class tSubNode >
 int tMesh< tSubNode >::
 ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
 {
-   //cout << "ExtricateNode: " << node->getID() << endl;
+   if (0) //DEBUG
+     cout << "ExtricateNode: " << node->getID() << endl;
    tPtrListIter< tEdge > spokIter( node->getSpokeListNC() );
    tEdge edgeVal1, edgeVal2, *ce;
    tSubNode *nbrPtr;
@@ -2817,7 +2831,8 @@ template< class tSubNode >
 int tMesh< tSubNode >::
 DeleteEdge( tEdge * edgePtr )
 {
-   //cout << "DeleteEdge(...) " << edgePtr->getID() << endl;
+   if (0) //DEBUG
+     cout << "DeleteEdge(...) " << edgePtr->getID() << endl;
    //edgePtr->TellCoords();
    tEdge edgeVal1, edgeVal2;
 
@@ -2871,7 +2886,8 @@ template< class tSubNode >
 int tMesh< tSubNode >::
 ExtricateEdge( tEdge * edgePtr )
 {
-   //cout << "ExtricateEdge: " << edgePtr->getID() << endl;
+   if (0) //DEBUG
+     cout << "ExtricateEdge: " << edgePtr->getID() << endl;
    //edgePtr->TellCoords();
    assert( edgePtr != 0 );
    //temporary objects:
@@ -2913,6 +2929,11 @@ ExtricateEdge( tEdge * edgePtr )
    // Find the triangle that points to the edges complement
    //cout << "find other triangle; " << flush;
    triPtrArr[1] = TriWithEdgePtr( cce );
+
+   // set edges' tri ptrs to zero:
+   ce->setTri( 0 );
+   cce->setTri( 0 );
+
    //if triangles exist, delete them
    //cout << "conditionally calling deletetri from extricateedge\n";
    if( triPtrArr[0] != 0 )
@@ -3063,7 +3084,8 @@ template< class tSubNode >
 tTriangle * tMesh< tSubNode >::
 LocateNewTriangle( double x, double y )
 {
-   //cout << "LocateTriangle" << endl;
+   if (0) //DEBUG
+     cout << "LocateTriangle" << endl;
    int n, lv=0;
    tListIter< tTriangle > triIter( triList );  //lt
    tTriangle *lt = triIter.FirstP();
@@ -3111,16 +3133,7 @@ tTriangle *tMesh< tSubNode >::
 TriWithEdgePtr( tEdge *edgPtr )
 {
    assert( edgPtr != 0 );
-   tTriangle *ct;
-   //cout << "TriWithEdgePtr " << edgPtr->getID();
-   tListIter< tTriangle > triIter( triList );
-
-   for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
-       if( ct != 0 ) //TODO: is this test nec? why wd it be zero?
-           if( ct->ePtr(0) == edgPtr ||
-               ct->ePtr(1) == edgPtr ||
-               ct->ePtr(2) == edgPtr ) return ct;
-   return 0;
+   return edgPtr->TriWithEdgePtr();
 }
 
 
@@ -3143,7 +3156,8 @@ template< class tSubNode >
 int tMesh< tSubNode >::
 DeleteTriangle( tTriangle * triPtr )
 {
-   //cout << "DeleteTriangle(...) " << triPtr->getID() << endl;
+   if (0) //DEBUG
+     cout << "DeleteTriangle(...) " << triPtr->getID() << endl;
    //triPtr->TellAll();
    tTriangle triVal;
 
@@ -3175,7 +3189,8 @@ template< class tSubNode >
 int tMesh< tSubNode >::
 ExtricateTriangle( tTriangle *triPtr )
 {
-   //cout << "ExtricateTriangle" << endl;
+   if (0) //DEBUG
+     cout << "ExtricateTriangle" << endl;
    tListIter< tTriangle > triIter( triList );
    tTriangle *ct;
 
@@ -3241,8 +3256,8 @@ template< class tSubNode >
 int tMesh< tSubNode >::
 RepairMesh( tPtrList< tSubNode > &nbrList )
 {
-   assert( &nbrList != 0 );
-   //cout << "RepairMesh: " << endl;
+   if (0) //DEBUG
+     cout << "RepairMesh: " << endl;
    if( nbrList.getSize() < 3 ) return 0;
    tSubNode * meshnodePtr = 0;
    nbrList.makeCircular();
@@ -3303,9 +3318,11 @@ int tMesh< tSubNode >::
 AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
 {
    assert( node1 != 0 && node2 != 0 && node3 != 0 );
-   /*cout << "AddEdge" <<
-     "between nodes " << node1->getID()
-     << " and " << node2->getID() << " w/ ref to node " << node3->getID() << endl;*/
+   if (0) //DEBUG
+     cout << "AddEdge"
+	  << "between nodes " << node1->getID()
+	  << " and " << node2->getID() << " w/ ref to node "
+	  << node3->getID() << endl;
    int flowflag = 1;  // Boundary code for new edges
    tEdge tempEdge1, tempEdge2;  // The new edges
    tEdge *ce, *le;
@@ -3341,13 +3358,21 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    if( flowflag == 1 )
    {
       edgeList.insertAtActiveBack( tempEdge1 );  //put edge1 active in list
+      tEdge *e1 = edgeList.getLastActive()->getDataPtrNC();
       edgeList.insertAtActiveBack( tempEdge2 );  //put edge2 active in list
+      tEdge *e2 = edgeList.getLastActive()->getDataPtrNC();
+      e1->setComplementEdge(e2);
+      e2->setComplementEdge(e1);
       le = edgIter.LastActiveP();                      //set edgIter to lastactive
    }
    else
    {
       edgeList.insertAtBack( tempEdge1 );        //put edge1 in list
+      tEdge *e1 = edgeList.getLast()->getDataPtrNC();
       edgeList.insertAtBack( tempEdge2 );        //put edge2 in list
+      tEdge *e2 = edgeList.getLast()->getDataPtrNC();
+      e1->setComplementEdge(e2);
+      e2->setComplementEdge(e1);
       le = edgIter.LastP();                            //set edgIter to last
    }
 
@@ -3482,11 +3507,11 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
+AddEdgeAndMakeTriangle( tPtrList< tSubNode > & /*nbrList*/,
                         tPtrListIter< tSubNode > &nbrIter )
 {
-   assert( (&nbrList != 0) && (&nbrIter != 0) );
-   //cout << "AddEdgeAndMakeTriangle" << endl << flush;
+   if (0) //DEBUG
+     cout << "AddEdgeAndMakeTriangle" << endl << flush;
    tSubNode *cn, *cnn, *cnnn;
    tPtrList< tSubNode > tmpList;
    tPtrListIter< tSubNode > tI( tmpList );
@@ -3533,9 +3558,9 @@ int tMesh< tSubNode >::
 MakeTriangle( tPtrList< tSubNode > &nbrList,
               tPtrListIter< tSubNode > &nbrIter )
 {
-   assert( (&nbrList != 0) && (&nbrIter != 0) );
    assert( nbrList.getSize() == 3 );
-   //cout << "MakeTriangle" << endl << flush;
+   if (0) //DEBUG
+     cout << "MakeTriangle" << endl << flush;
    int i, j;
    //Xint newid;                          // ID of new triangle
    //XtTriangle tempTri;
@@ -3720,7 +3745,9 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    tMeshListIter< tSubNode > nodIter( nodeList );
    assert( &nodeRef != 0 );
 
-   //cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << " time "<<time<<endl;
+   if (0) //DEBUG
+     cout << "AddNode at " << xyz[0] << ", " << xyz[1]
+	  << ", " << xyz[2] << " time "<<time<<endl;
 
    //cout << "locate tri & layer interp" << endl << flush;
    tri = LocateTriangle( xyz[0], xyz[1] );
@@ -3938,8 +3965,9 @@ template< class tSubNode >
 tSubNode *tMesh< tSubNode >::
 AddNodeAt( tArray< double > &xyz, double time )
 {
-   assert( &xyz != 0 );
-   // cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] <<" time "<<time<< endl;
+   if (0) //DEBUG
+     cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", "
+	  << xyz[2] <<" time "<<time<< endl;
    tTriangle *tri;
    //cout << "locate tri" << endl << flush;
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
@@ -4132,13 +4160,7 @@ template< class tSubNode >
 tEdge *tMesh< tSubNode >::
 getEdgeComplement( tEdge *edge )
 {
-   tMeshListIter< tEdge > edgIter( edgeList );
-   int edgid = edge->getID();
-
-   int ires = edgIter.Get( edgid ); // TODO: why necessary?
-   assert( ires );
-   if( edgid%2 == 0 ) return edgIter.GetP( edgid + 1 );
-   else return edgIter.GetP( edgid - 1 );
+   return edge->getComplementEdge();
 }
 
 
@@ -4166,7 +4188,8 @@ template <class tSubNode>
 void tMesh<tSubNode>::
 UpdateMesh()
 {
-   //cout << "UpdateMesh()" << endl << flush;
+   if (0) //DEBUG
+     cout << "UpdateMesh()" << endl << flush;
 
    //tListIter<tTriangle> tlist( triList );
    tMeshListIter<tEdge> elist( edgeList );
@@ -4245,7 +4268,8 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
       return 0;
    }
    assert( nv < 3 );
-   //cout << "THIS IS CheckForFlip(...) " << tri->getID() << endl;
+   if (0) //DEBUG
+     cout << "THIS IS CheckForFlip(...) " << tri->getID() << endl;
    tSubNode *node0, *node1, *node2, *node3;
    node0 = static_cast< tSubNode * >(tri->pPtr(nv));
    //cout<<"node0 id "<<node0->getID()<<endl;
@@ -4325,7 +4349,8 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
 {
-   //cout << "FlipEdge(...)..." << endl;
+   if (0) //DEBUG
+     cout << "FlipEdge(...)..." << endl;
    tSubNode *cn = 0;
    tPtrList< tSubNode > nbrList;
    //DumpTriangles();
@@ -4397,7 +4422,8 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 CheckLocallyDelaunay()
 {
-   //cout << "CheckLocallyDelaunay()" << endl;
+   if (0) //DEBUG
+     cout << "CheckLocallyDelaunay()" << endl;
    tTriangle *at;
    tPtrList< tTriangle > triPtrList;
    tPtrListIter< tTriangle > triPtrIter( triPtrList );
@@ -4570,7 +4596,8 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 CheckTriEdgeIntersect()
 {
-   //cout << "CheckTriEdgeIntersect()..." << flush << endl;
+   if (0) //DEBUG
+     cout << "CheckTriEdgeIntersect()..." << flush << endl;
      //DumpNodes();
    int i, j, nv, nvopp;
    int flipped = TRUE;
