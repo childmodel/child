@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.53 2003-09-03 11:39:37 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.54 2003-10-15 09:20:42 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -82,7 +82,7 @@ class tInlet
     tInlet& operator=(const tInlet&);
 public:
     tInlet();
-    tInlet( tMesh< tLNode > *, tInputFile & );
+    tInlet( tMesh< tLNode > *, const tInputFile & );
     ~tInlet();
     void FindNewInlet();
     double getInSedLoad() const;
@@ -152,7 +152,7 @@ private:
 class tParkerChannels
 {
  public:
-  tParkerChannels( tInputFile &infile );
+  tParkerChannels( const tInputFile &infile );
   void CalcChanGeom( tMesh<tLNode> *meshPtr );
 
  private:
@@ -202,7 +202,7 @@ class tStreamNet
     tStreamNet(const tStreamNet&);
     tStreamNet& operator=(const tStreamNet&);
 public:
-    tStreamNet( tMesh< tLNode > &, tStorm &, tInputFile & );
+    tStreamNet( tMesh< tLNode > &, tStorm &, const tInputFile & );
     ~tStreamNet();
     void ResetMesh( tMesh< tLNode > & );
     const tMesh< tLNode > *getMeshPtr() const;

@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.47 2003-09-18 16:34:37 childcvs Exp $
+ **  $Id: tOutput.h,v 1.48 2003-10-15 09:19:28 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -64,8 +64,8 @@ class tOutputBase
   tOutputBase(const tOutputBase&);
   tOutputBase& operator=(const tOutputBase&);
 protected:
-  tOutputBase( tMesh<tSubNode> * meshPtr, tInputFile &infile );
-  virtual ~tOutputBase() {}
+  tOutputBase( tMesh<tSubNode> * meshPtr, const tInputFile &infile );
+  virtual ~tOutputBase() { m = 0; }
 
 protected:
   enum{ kMaxNameSize = 80 };
@@ -95,7 +95,7 @@ class tOutput : public tOutputBase<tSubNode>
   tOutput(const tOutput&);
   tOutput& operator=(const tOutput&);
 public:
-  tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile);
+  tOutput( tMesh<tSubNode> * meshPtr, const tInputFile &infile);
   void WriteOutput( double time );
 
 private:
@@ -183,7 +183,7 @@ class tLOutput : public tOutput<tSubNode>
   tLOutput(const tLOutput&);
   tLOutput& operator=(const tLOutput&);
 public:
-  tLOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile, tRand *);
+  tLOutput( tMesh<tSubNode> * meshPtr, const tInputFile &infile, tRand *);
   virtual ~tLOutput();
   void WriteTSOutput();
   bool OptTSOutput() const;

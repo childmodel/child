@@ -13,7 +13,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.87 2003-09-01 13:08:28 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.88 2003-10-15 09:19:27 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -51,7 +51,7 @@ class tTSOutputImp : public tOutputBase<tSubNode>
   tTSOutputImp(const tTSOutputImp&);
   tTSOutputImp& operator=(const tTSOutputImp&);
 public:
-  tTSOutputImp( tMesh<tSubNode> * meshPtr, tInputFile &infile );
+  tTSOutputImp( tMesh<tSubNode> * meshPtr, const tInputFile &infile );
   void WriteTSOutput();
 private:
   ofstream volsofs;    // catchment volume
@@ -75,7 +75,8 @@ private:
  **
 \*************************************************************************/
 template< class tSubNode >
-tOutputBase<tSubNode>::tOutputBase( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
+tOutputBase<tSubNode>::tOutputBase( tMesh<tSubNode> * meshPtr,
+				    const tInputFile &infile ) :
   m(meshPtr)
 {
   assert( meshPtr != 0 );
@@ -147,7 +148,8 @@ void tOutputBase<tSubNode>::WriteTimeNumberElements( ofstream &fs,
  **
 \*************************************************************************/
 template< class tSubNode >
-tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
+tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr,
+			    const tInputFile &infile ) :
   tOutputBase<tSubNode>( meshPtr, infile ),  // call base-class constructor
   CanonicalNumbering(true)
 {
@@ -381,8 +383,8 @@ int tOutput<tSubNode>::orderRNode( const void *a_, const void *b_ )
   const tNode *N1 = *static_cast<tNode const *const *>(a_);
   const tNode *N2 = *static_cast<tNode const *const *>(b_);
 
-  const int N1B = N1->getBoundaryFlag();
-  const int N2B = N2->getBoundaryFlag();
+  const int N1B = static_cast<int>(N1->getBoundaryFlag());
+  const int N2B = static_cast<int>(N2->getBoundaryFlag());
   if (N1B < N2B)
     return -1;
   if (N1B > N2B)
@@ -466,8 +468,8 @@ void tOutput<tSubNode>::WriteNodeData( double /* time */ )
  **    - added
 \*************************************************************************/
 template< class tSubNode >
-tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile,
-			      tRand *rand_) :
+tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
+			      const tInputFile &infile, tRand *rand_) :
   tOutput<tSubNode>( meshPtr, infile ),  // call base-class constructor
   TSOutput(0),
   rand(rand_),
@@ -527,6 +529,7 @@ template< class tSubNode >
 tLOutput<tSubNode>::~tLOutput()
 {
   delete TSOutput;
+  rand = 0;
 }
 
 /*************************************************************************\
@@ -651,7 +654,8 @@ bool tLOutput<tSubNode>::OptTSOutput() const { return BOOL(TSOutput!=0); }
  **  Modifications:
 \*************************************************************************/
 template< class tSubNode >
-tTSOutputImp<tSubNode>::tTSOutputImp( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
+tTSOutputImp<tSubNode>::tTSOutputImp( tMesh<tSubNode> *meshPtr,
+				      const tInputFile &infile ) :
   tOutputBase<tSubNode>( meshPtr, infile ),  // call base-class constructor
   mdLastVolume(0.)
 {

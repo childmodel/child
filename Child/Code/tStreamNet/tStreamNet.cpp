@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.61 2003-09-23 10:41:00 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.62 2003-10-15 09:20:41 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -116,7 +116,7 @@ double DistanceToLine( double x2, double y2, tNode const *p0, tNode const *p1 )
 \**************************************************************************/
 
 tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
-                        tInputFile &infile )
+                        const tInputFile &infile )
   :
   meshPtr(&meshRef),
   stormPtr(&storm),
@@ -1180,8 +1180,9 @@ void tStreamNet::MakeFlow( double tm )
       case k2DKinematicWave:
 	  RouteFlowKinWave( rainrate );
 	  break;
-      default:
+      case kHortonian:
           FlowUniform();      // Spatially uniform infiltration-excess runoff
+	  break;
    }
 
    if (0) //DEBUG
@@ -2360,7 +2361,7 @@ tInlet::tInlet() :
 {}
 
 #define LARGE_DISTANCE 1e9
-tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
+tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
   :
   innode(0), inDrArea(0.),
   inSedLoad(0.),
@@ -2702,7 +2703,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ptr;}
 **    Modifications:
 **
 \**************************************************************************/
-tParkerChannels::tParkerChannels( tInputFile &infile )
+tParkerChannels::tParkerChannels( const tInputFile &infile )
 {
   double kt,              // Shear-stress coefficient (SI units)
     taucrit,              // Critical shear stress for d50 (Pa)
