@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.51 2003-09-02 11:57:55 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.52 2003-09-03 09:52:09 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -246,7 +246,7 @@ public:
     void FlowBucket();
     void RouteFlowKinWave( double );
     void FillLakes();
-    int FindLakeNodeOutlet( tLNode * ) const;
+    bool FindLakeNodeOutlet( tLNode * ) const;
     void SortNodesByNetOrder( bool optMultiFlow=false );
     //find hydraulic and channel geometries, respectively;
     //FindHydrGeom is contingent upon current storm conditions
@@ -258,7 +258,7 @@ public:
     void DensifyMeshDrArea( double time=0.0 );  // Densifies mesh locally
 
 protected:
-    tLNode *SearchLakeOutlet( tPtrList< tLNode > &);
+    tLNode *BuildLakeList( tPtrList< tLNode > &, tLNode *);
     void FillLakesFlowDirs(tPtrListIter< tLNode > &, tLNode *);
     inline static void RouteFlowArea( tLNode *, double );
     inline static void RouteRunoff( tLNode *, double, double );

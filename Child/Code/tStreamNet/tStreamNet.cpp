@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.56 2003-09-02 11:57:54 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.57 2003-09-03 09:52:08 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1449,6 +1449,7 @@ void tStreamNet::FlowBucket()
 **    Modifications:
 **     - fixed memory leak on deletion of lakenodes 8/5/97 GT
 **     - updated: 12/19/97 SL
+**     - exploded and optimized: 08/2003 AD
 **
 \*****************************************************************************/
 void tStreamNet::FillLakes()
@@ -1463,60 +1464,64 @@ void tStreamNet::FillLakes()
    {
       if( cn->getFloodStatus() == kSink )
       {
-         // Create a new lake-list, initially containing just the sink node.
- 	 tPtrList< tLNode > lakeList;                 // List of flooded nodes
+	// Create a new lake-list, initially containing just the sink node.
+	tPtrList< tLNode > lakeList;
 
-         lakeList.insertAtBack( cn );
-         cn->setFloodStatus( kCurrentLake );
+	// Build lakeList and iteratively search for an outlet along the
+	// perimeter of the lake
+	tLNode *lowestNode = BuildLakeList( lakeList, cn );
 
-         // Iteratively search for an outlet along the perimeter of the lake
-	 tLNode *lowestNode = SearchLakeOutlet( lakeList );
+	// Assign a flow path
+	tPtrListIter< tLNode > lakeIter( lakeList ); // Iterator for lake list
+	FillLakesFlowDirs(lakeIter, lowestNode);
 
-	 // Assign a flow path
-	 tPtrListIter< tLNode > lakeIter( lakeList ); // Iterator for lake list
-	 FillLakesFlowDirs(lakeIter, lowestNode);
-
-         // Finally, flag all of the
-         // nodes in it as "kFlooded" and clear the list so we can move on to
-         // the next sink. (Fixed mem leak here 8/5/97 GT).
-         for( tLNode *cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
-              cln = lakeIter.NextP() )
-             cln->setFloodStatus( kFlooded );
+	// Finally, flag all of the nodes in it as "kFlooded"
+	for( tLNode *cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
+	     cln = lakeIter.NextP() )
+	  cln->setFloodStatus( kFlooded );
       } /* END if Sink */
    } /* END Active Nodes */
+
    if (0) //DEBUG
      cout << "FillLakes() finished" << endl;
 
 } // end of tStreamNet::FillLakes
 
 
-
 /*****************************************************************************\
 **
-**  tStreamNet::SearchLakeOutlet
+**  tStreamNet::BuildLakeList
 **
-**  Iteratively search for an outlet along the perimeter of the lake
+**  Build LakeList and iteratively search for an outlet along the perimeter of
+**  the lake
 **
 **  Moved from FillLakes (AD 09/2003)
 **
 \*****************************************************************************/
-tLNode *tStreamNet::SearchLakeOutlet( tPtrList< tLNode > &lakeList )
+// insert a new node in lakelist
+inline
+void insertInLakeList(tPtrList< tLNode > &lakeList, tLNode *cn )
 {
-  bool done;               // Flag indicating whether outlet has been found
-  tLNode
-    *cln,                  // current lake node
-    *lowestNode;           // Lowest node on perimeter found so far
-  double lowestElev;       // Lowest elevation found so far on lake perimeter
+  lakeList.insertAtBack( cn );
+  cn->setFloodStatus( kCurrentLake );
+}
+
+tLNode *tStreamNet::BuildLakeList( tPtrList< tLNode > &lakeList, tLNode *cn )
+{
+  tLNode *lowestNode;      // Lowest node on perimeter found so far
   tPtrListIter< tLNode > lakeIter( lakeList ); // Iterator for lake list
 
-  done = false;
+  // insert the first node
+  insertInLakeList( lakeList, cn );
+
+  bool done = false;       // Flag indicating whether outlet has been found
   do
     {
       lowestNode = lakeIter.FirstP();
-      lowestElev = kVeryHigh; // Initialize lowest elev to very high val.
+      double lowestElev = kVeryHigh; // Initialize lowest elev to very high val.
 
       // Check the neighbors of every node on the lake-list
-      for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
+      for( tLNode *cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
 	   cln = lakeIter.NextP() )
 	{
 	  // Check all the neighbors of the node
@@ -1525,25 +1530,28 @@ tLNode *tStreamNet::SearchLakeOutlet( tPtrList< tLNode > &lakeList )
 	    {
 	      tLNode *thenode =
 		static_cast<tLNode *>(ce->getDestinationPtrNC());
-	      // Is it a potential outlet (ie, not flooded and not
-	      // a boundary)?
-	      if( thenode->getFloodStatus() == kNotFlooded
-		  && ce->FlowAllowed() )
-		{
-		  // Is it lower than the lowest found so far?
-		  if( thenode->getZ() < lowestElev )
-		    {
-		      lowestNode = thenode;
-		      lowestElev = thenode->getZ();
-		    }
-		}
+	      switch( thenode->getFloodStatus() ){
+		// Is it a potential outlet (ie, not flooded and not
+		// a boundary)?
+	      case kNotFlooded:
+		if( ce->FlowAllowed() )
+		  {
+		    // Is it lower than the lowest found so far?
+		    if( thenode->getZ() < lowestElev )
+		      {
+			lowestNode = thenode;
+			lowestElev = thenode->getZ();
+		      }
+		  }
+		break;
 	      // If it's a previous lake node or a sink, add it to the list
-	      else if( thenode->getFloodStatus() == kFlooded ||
-		       thenode->getFloodStatus() == kSink )
-		{
-		  lakeList.insertAtBack( thenode );
-		  thenode->setFloodStatus( kCurrentLake );
-		}
+	      case kFlooded:
+	      case kSink:
+		insertInLakeList( lakeList, thenode );
+		break;
+	      default:
+		break;
+	      }
 	    } while( ( ce=ce->getCCWEdg() ) != cln->getEdg() );// END spokes
 
 	} /* END lakeList */
@@ -1558,12 +1566,10 @@ tLNode *tStreamNet::SearchLakeOutlet( tPtrList< tLNode > &lakeList )
 	  if( FindLakeNodeOutlet( lowestNode ) ) done = true;
 	  // no, it can't, so add it to the list and continue:
 	  else
-	    {
-	      lakeList.insertAtBack( lowestNode );
-	      lowestNode->setFloodStatus( kCurrentLake );
-	    }
+	    insertInLakeList( lakeList, lowestNode );
 	}
-      if( lakeList.getSize() > meshPtr->getNodeList()->getActiveSize() )
+      if( unlikely(lakeList.getSize() >
+		   meshPtr->getNodeList()->getActiveSize()) )
 	{
 	  cout << "LAKE LIST SIZE=" << lakeList.getSize() << "\n"
 	    "active node size=" << meshPtr->getNodeList()->getActiveSize()
@@ -1692,7 +1698,7 @@ void tStreamNet::FillLakesFlowDirs(tPtrListIter< tLNode > &lakeIter,
 **  Updated: 12/19/97 SL; 1/15/98 gt bug fix (open boundary condition)
 **
 \*****************************************************************************/
-int tStreamNet::FindLakeNodeOutlet( tLNode *node ) const
+bool tStreamNet::FindLakeNodeOutlet( tLNode *node ) const
 {
    double maxslp = 0;  // Maximum slope found so far
    tEdge * ce;        // Current edge
@@ -1743,7 +1749,7 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node ) const
       }
    } while( ( ce=ce->getCCWEdg() ) != node->getEdg() );
 
-   return( maxslp > 0 );
+   return BOOL( maxslp > 0 );
 }
 
 
