@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.17 1998-04-09 18:36:40 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.18 1998-04-10 17:19:53 stlancas Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -54,12 +54,15 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 **  Input: n -- node at which to compute detachment capacity
 **         dt -- time interval
 **  Returns: the detachment depth
-**  Assumptions: n->GetSlope() does not return a negative value; kb, mb,
+**  Assumptions: n->GetSlope() does not return a negative value (returns neg.
+**               only if infinite loop in GetSlope()); kb, mb,
 **               and nb all >=0.
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
    double slp = n->GetSlope();
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
    return( kb*pow( n->GetQ(), mb )*pow( slp, nb )*dt );
 }
 
@@ -71,12 +74,15 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 **  Input: n -- node at which to compute detachment capacity
 ** 
 **  Returns: the detachment rate
-**  Assumptions: n->GetSlope() does not return a negative value; kb, mb,
+**  Assumptions: n->GetSlope() does not return a negative value (returns neg.
+**               only if infinite loop in GetSlope()); kb, mb,
 **               and nb all >=0.
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
    double slp = n->GetSlope();
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
    double erorate =  kb*pow( n->GetQ(), mb )*pow( slp, nb );
    n->setDrDt( -erorate );
    return erorate;
@@ -103,8 +109,11 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 \***************************************************************************/
 double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 {
+   double slp = n->GetSlope();
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tBedErodePwrLaw::SetTimeStep(tLNode*)");
    assert( n->GetQ()>=0 );
-   double eroterm = kb * pow( n->GetQ(), mb ) * pow( n->GetSlope(), nb-1.0 );
+   double eroterm = kb * pow( n->GetQ(), mb ) * pow( slp, nb-1.0 );
    if( eroterm==0 ) return 100000;
    return( 0.2*n->GetFlowEdg()->getLength() / eroterm );
 
@@ -122,9 +131,12 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 \***************************************************************************/
 double tSedTransPwrLaw::TransCapacity( tLNode *node )
 {
+   double slp = node->GetSlope();
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
    double cap = 0;
    if( !node->GetFloodStatus() )
-       cap = kf * pow( node->GetQ(), mf ) * pow( node->GetSlope(), nf );
+       cap = kf * pow( node->GetQ(), mf ) * pow( slp, nf );
    node->setQs( cap );
    return cap;
 }
