@@ -4,7 +4,7 @@
 **  Error-handling routines.
 **
 **  Created Dec. 97 from earlier routine embedded in child.cpp
-**  $Id: errors.cpp,v 1.2 1999-01-12 21:05:51 gtucker Exp $
+**  $Id: errors.cpp,v 1.3 2002-04-10 15:13:40 gtucker Exp $
 \******************************************************************/
 
 #include "errors.h"
@@ -20,7 +20,7 @@
 **      Created: 12/96 GT
 **
 \*****************************************************************************/
-void ReportFatalError( char *errMsg )
+void ReportFatalError( const char *errMsg )
 {
   cout << errMsg <<endl;
   cout << "That was a fatal error, my friend!" <<endl;

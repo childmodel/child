@@ -4,7 +4,7 @@
 **  Header file for CHILD error-handling routines.
 **
 **  Created Dec. 97
-**  $Id: errors.h,v 1.3 1999-05-11 19:11:05 gtucker Exp $
+**  $Id: errors.h,v 1.4 2002-04-10 15:13:41 gtucker Exp $
 \****************************************************************/
 
 #ifndef ERRORS_H
@@ -13,6 +13,6 @@
 #include <stdlib.h>
 #include <iostream.h>
 
-void ReportFatalError( char *errStr );
+void ReportFatalError( const char *errStr );
 
 #endif
