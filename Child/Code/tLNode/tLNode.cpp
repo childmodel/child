@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.3 1998-01-20 15:28:58 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.4 1998-01-20 20:31:12 stlancas Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -303,7 +303,8 @@ const tRegolith &tRegolith::operator=( const tRegolith &right )     //tRegolith
 
 tChannel::tChannel()                                             //tChannel
 {
-   drarea = q = chanwidth = hydrwidth = nrough = chandepth = hydrdepth = 0;
+   drarea = q = chanwidth = hydrwidth = channrough = hydrnrough =
+       chandepth = hydrdepth = diam = 0;
    diam = kVeryHigh;
      //cout << "  tChannel()" << endl;
 }
@@ -317,8 +318,11 @@ tChannel::tChannel( const tChannel &orig )                       //tChannel
       q = orig.q;
       chanwidth = orig.chanwidth;
       chandepth = orig.chandepth;
+      channrough = orig.channrough;
       hydrwidth = orig.hydrwidth;
       hydrdepth = orig.hydrdepth;
+      hydrnrough = orig.hydrnrough;
+      diam = orig.diam;
    }
      //cout << "  tChannel( orig )" << endl;
 }
@@ -339,8 +343,11 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
       q = right.q;
       chanwidth = right.chanwidth;
       chandepth = right.chandepth;
+      channrough = right.channrough;
       hydrwidth = right.hydrwidth;
       hydrdepth = right.hydrdepth;
+      hydrnrough = right.hydrnrough;
+      diam = right.diam;
    }
    return *this;
 }
@@ -421,7 +428,33 @@ void tLNode::SetMeanderStatus( int val )
 
 float tLNode::getHydrWidth() const {return chan.hydrwidth;}
 float tLNode::getChanWidth() const {return chan.chanwidth;}
+float tLNode::getHydrDepth() const {return chan.hydrdepth;}
+float tLNode::getChanDepth() const {return chan.chandepth;}
+float tLNode::getHydrRough() const {return chan.hydrnrough;}
+float tLNode::getChanRough() const {return chan.channrough;}
+
+void tLNode::setHydrWidth( float val )  {chan.hydrwidth = ( val > 0 ) ? val : 0;}
+void tLNode::setChanWidth( float val )  {chan.chanwidth = ( val > 0 ) ? val : 0;}
+void tLNode::setHydrDepth( float val )  {chan.hydrdepth = ( val > 0 ) ? val : 0;}
+void tLNode::setChanDepth( float val )  {chan.chandepth = ( val > 0 ) ? val : 0;}
+void tLNode::setHydrRough( float val )  {chan.hydrnrough = ( val > 0 ) ? val : 0;}
+void tLNode::setChanRough( float val )  {chan.channrough = ( val > 0 ) ? val : 0;}
 float tLNode::getDrArea() const {return chan.drarea;}
+
+tArray< float >
+tLNode::getZOld() const
+{
+   tArray< float > rl(2);
+   rl[0] = chan.migration.zoldright;
+   rl[1] = chan.migration.zoldleft;
+   return rl;
+}
+
+void tLNode::setZOld( float right, float left )
+{
+   chan.migration.zoldright = right;
+   chan.migration.zoldleft = left;
+}
 
 tArray< float >                                                   //tNode
 tLNode::getNew2DCoords() const
