@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.9 1998-02-12 23:23:42 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.10 1998-02-13 22:48:42 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -60,6 +60,11 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
       trans = 0;
       infilt = infile.ReadItem( infilt, "INFILTRATION" );
    }
+   int typbnd = infile.ReadItem( typbnd, "TYP_BOUND" );
+   if( typbnd == kOppositeSidesOpen )
+       inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
+   else
+       inDrArea = 0;
    rainrate = stormPtr->GetRainrate();
    CalcSlopes();  // TODO: should be in tGrid
    InitFlowDirs(); // TODO: should all be done in call to updatenet
@@ -110,6 +115,8 @@ double tStreamNet::getTransmissivity() const {return trans;}
 
 double tStreamNet::getInfilt() const {return infilt;}
 
+double tStreamNet::getInDrArea() const {return inDrArea;}
+
 // TODO: the value checks are nice, but will hurt performance. Should
 // probably be removed.
 void tStreamNet::setFlowGenOpt( int val )
@@ -125,6 +132,9 @@ void tStreamNet::setTransmissivity( double val )
 
 void tStreamNet::setInfilt( double val )
 {infilt = ( val >= 0 ) ? val : 0;}
+
+void tStreamNet::setInDrArea( double val )
+{inDrArea = ( val >= 0 ) ? val : 0;}
 
 
 
@@ -310,7 +320,34 @@ void tStreamNet::InitFlowDirs()
       assert( curnode->GetFlowEdg() > 0 );
       curnode = i.NextP();
    }
-   
+   if( inDrArea > 0 )
+   {
+      while( curnode->getBoundaryFlag() == kOpenBoundary )
+      {
+        if( curnode->getZ() > 0 )
+        {
+           flowedg = curnode->GetEdg();
+           assert( flowedg>0 );
+           ctr = 0;
+           while( !flowedg->FlowAllowed() )
+           {
+              flowedg = flowedg->GetCCWEdg();
+              assert( flowedg>0 );
+              ctr++;
+              if( ctr>kMaxSpokes ) // Make sure to prevent endless loops
+              {
+                 cerr << "Mesh error: node " << curnode->getID()
+                      << " appears to be surrounded by closed boundary nodes"
+                      << endl;
+                 ReportFatalError( "Bailing out of InitFlowDirs()" );
+              }
+           }
+           curnode->SetFlowEdg( flowedg );
+           assert( curnode->GetFlowEdg() > 0 );
+        }
+        curnode = i.NextP();
+      }
+   }
 }
 #undef kMaxSpokes
 
@@ -377,6 +414,34 @@ void tStreamNet::FlowDirs()
       curnode = i.NextP();
 
   }
+  if( inDrArea > 0 )
+  {
+     while( curnode->getBoundaryFlag() == kOpenBoundary )
+     {
+        if( curnode->getZ() > 0 )
+        {
+           firstedg =  curnode->GetFlowEdg();
+           slp = firstedg->getSlope();
+           nbredg = firstedg;
+           curedg = firstedg->GetCCWEdg();
+           
+             // Check each of the various "spokes", stopping when we've gotten
+             // back to the beginning
+           while( curedg!=firstedg )
+           {
+              assert( curedg > 0 );
+              if ( curedg->getSlope() > slp && curedg->FlowAllowed() )
+              {
+                 slp = curedg->getSlope();
+                 nbredg = curedg;
+              }
+              curedg = curedg->GetCCWEdg();
+           }
+           curnode->SetFlowEdg( nbredg );
+        }
+        curnode = i.NextP();
+     }
+  }
   cout << "FlowDirs() finished" << endl << flush;
   
 }
@@ -442,13 +507,31 @@ void tStreamNet::DrainAreaVoronoi()
 //#if TRACKFNS
    cout << "DrainAreaVoronoi()..." << endl << flush;
 //#endif
-   tLNode * curnode;
+   double slope, maxslope;
+   tLNode * curnode, *innode;
    tGridListIter<tLNode> nodIter( gridPtr->GetNodeList() );
    
    // Reset drainage areas to zero
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
        curnode->SetDrArea( 0 );
+   if( inDrArea > 0 )
+   {
+      maxslope = -10000;
+      for( ; curnode->getBoundaryFlag() == kOpenBoundary; curnode = nodIter.NextP() )
+      {
+         if( curnode->getZ() > 0 )
+         {
+            slope = curnode->GetSlope();
+            if( slope > maxslope )
+            {
+               maxslope = slope;
+               innode = curnode;
+            }
+            innode->GetDownstrmNbr()->SetDrArea( inDrArea );
+         }
+      }
+   }
    
    // send voronoi area for each node to the node at the other end of the 
    // flowedge and downstream 
