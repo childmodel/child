@@ -139,7 +139,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.15 2004-01-13 16:23:51 childcvs Exp $ */
+/*     $Id: meander.cpp,v 1.16 2004-04-02 11:24:15 childcvs Exp $ */
 
 void meander_(const integer *stations, const integer *stnserod, 
 	      const doublereal *x, const doublereal *y,
@@ -250,7 +250,7 @@ void initialize_(const integer *stnserod, doublereal *phi,
 		 const doublereal *x, const doublereal *y,
 		 doublereal *delx, doublereal *dely, 
 		 doublereal *rho, doublereal *grav,
-		 const doublereal */*width*/, doublereal */*lambda*/)
+		 const doublereal * /*width*/, doublereal * /*lambda*/)
 {
     /* System generated locals */
     integer i__1;
@@ -643,9 +643,9 @@ void forcelag_(const integer *stnserod, const integer *stations,
 
 
 void forcedist_(const integer *stnserod, const integer *stations, 
-		const doublereal *lambda, const doublereal */*width*/,
+		const doublereal *lambda, const doublereal * /*width*/,
 		const doublereal *lag, const doublereal *latforce,
-		const doublereal */*dels*/, const doublereal *phi,
+		const doublereal * /*dels*/, const doublereal *phi,
 		const doublereal *curvature, const doublereal *depth,
 		doublereal *spreaddelta_x__, doublereal *spreaddelta_y__,
 		const doublereal *rightdepth, const doublereal *leftdepth, 
@@ -766,7 +766,7 @@ void changeposition_(const integer *stnserod, const integer * /*stations*/,
 		     const doublereal *spreaddelta_x__,
 		     const doublereal *spreaddelta_y__,
 		     const doublereal *delx, const doublereal *dely,
-		     const doublereal */*depth*/,
+		     const doublereal * /*depth*/,
 		     doublereal *delta_x__, doublereal *delta_y__)
 {
     /* System generated locals */
