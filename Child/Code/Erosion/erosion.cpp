@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.2 1998-01-15 19:34:31 gtucker Exp $
+**  $Id: erosion.cpp,v 1.3 1998-01-16 00:14:47 gtucker Exp $
 \***************************************************************************/
 
 #include "../Inclusions.h"
@@ -74,6 +74,7 @@ float tBedErodePwrLaw::DetachCapacity( tLNode * n, float dt )
 **  The estimated time step limitation is therefore given by:
 **      dt = 0.2 * ( dx / (kb Q^mb S^(nb-1) ) )
 **  (the 0.2 is a factor to keep us comfortably below the Courant #).
+**  If the denominator is zero, an arbirarily large number is returned.
 **
 **  Input: n -- node for which to estimate time step
 **  Returns: the estimated maximum time step size
@@ -82,6 +83,9 @@ float tBedErodePwrLaw::DetachCapacity( tLNode * n, float dt )
 \***************************************************************************/
 float tBedErodePwrLaw::SetTimeStep( tLNode * n )
 {
-   return( 0.2*n->GetFlowEdg()->getLength() /
-           ( kb * pow( n->GetQ(), mb ) * pow( n->GetSlope(), nb-1.0 ) ) );
+   assert( n->GetQ()>=0 );
+   float eroterm = kb * pow( n->GetQ(), mb ) * pow( n->GetSlope(), nb-1.0 );
+   if( eroterm==0 ) return 100000;
+   return( 0.2*n->GetFlowEdg()->getLength() / eroterm );
+
 }
