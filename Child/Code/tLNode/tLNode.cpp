@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.131 2004-03-26 11:31:28 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.132 2004-04-16 18:37:15 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -730,7 +730,6 @@ tLNode *tLNode::getDSlopeDtMeander( double &curlen )
 void tLNode::FindInitFlowDir() // overrides tNode; was tStreamNet::
 {
    int ctr = 0;
-   assert( this > 0 );
    // Start with the node's default edge
    tEdge* flowedg = getEdg();
    assert( flowedg>0 );
@@ -740,7 +739,7 @@ void tLNode::FindInitFlowDir() // overrides tNode; was tStreamNet::
    while( !flowedg->FlowAllowed() )
    {
       flowedg = flowedg->getCCWEdg();
-      assert( flowedg>0 );
+      assert( flowedg != 0 );
       if( ++ctr > kMaxSpokes ) // Make sure to prevent endless loops
       {
          cerr << "Mesh error: node " << getID()
