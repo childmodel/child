@@ -30,7 +30,7 @@ double vecprod(int p0,int p1,int p2,const point *p){
 
 const point &point::operator=( const point &p ) {
   if ( &p != this ) {
-    x=p.x; y=p.y;
+    x=p.x; y=p.y; id=p.id;
   }
   return *this;
 }
@@ -471,6 +471,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 
 void sort_triangulate(int npoints, point *p, int *pnedges, edge** edges_ret){
 
+  // build "id"
   {
     for(int ip=0;ip!=npoints;++ip)
       p[ip].id = ip;
@@ -532,27 +533,6 @@ void edge_auxi_t::mark_right(int ielem) {
 int edge_auxi_t::ielem_left() const { assert(left_visited_); return ie_left; }
 int edge_auxi_t::ielem_right() const { assert(right_visited_); return ie_right; }
 
-
-// auxiliary class to get clockwise and counter clockwise edges around a node
-class oriented_edge {
-  int _edge;
-  bool _orientation;
-  int o() const { return _orientation; }
-public:
-  oriented_edge():
-    _edge(-1),
-    _orientation(true) {}
-  oriented_edge(int e, bool o):
-    _edge(e),
-    _orientation(o) {}
-  oriented_edge(const oriented_edge & _e):
-    _edge(_e.e()),
-    _orientation(_e.o()) {}
-  int e() const { return _edge; }
-  oriented_edge next_ccw_around_to(const edge* edges) const;
-  oriented_edge next_cw_around_to(const edge* edges) const ;
-  oriented_edge ccw_edge_around_to(const edge* edges) const;
-};
 
 oriented_edge oriented_edge::next_ccw_around_to(const edge* edges) const {
   int ires;
@@ -780,33 +760,50 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
     }
   }
 #endif
-  {
-    // test ccw edge code
-    for(int iedge=0; iedge<nedges; iedge++){
-      const oriented_edge e1(iedge,true);
-      const oriented_edge ccw_to = e1.ccw_edge_around_to(edges);
-      const oriented_edge e2(iedge,false);
-      const oriented_edge ccw_from = e2.ccw_edge_around_to(edges);
-#if 0
-      cout << "edge=" << iedge
-	   << " ret=" << edges[iedge].ret 
-	   << " lef=" << edges[iedge].lef
-	   << " ccw_to=" << ccw_to.e()
-	   << " ccw_from=" << ccw_from.e()
-	   << endl;
-#endif
-    }
-  }
-
   delete [] edges_visit; edges_visit = NULL;
   *pnelem = nelem;
   *pelems_ret = elems;
 }
 
+void test_ccwedge(int nedges, edge* edges){
+  // test ccw edge code
+  for(int iedge=0; iedge<nedges; iedge++){
+    const oriented_edge e1(iedge,true);
+    const oriented_edge ccw_to = e1.ccw_edge_around_to(edges);
+    const oriented_edge e2(iedge,false);
+    const oriented_edge ccw_from = e2.ccw_edge_around_to(edges);
+#if 0
+    cout << "edge=" << iedge
+	 << " ret=" << edges[iedge].ret 
+	 << " lef=" << edges[iedge].lef
+	 << " ccw_to=" << ccw_to.e()
+	 << " ccw_from=" << ccw_from.e()
+	 << endl;
+#endif
+  }
+}
+
+void build_spoke(int npoints, int nedges, const edge* edges,
+		 oriented_edge** poedge){
+  *poedge = new oriented_edge[npoints];
+  for(int iedge=0;iedge!=nedges;++iedge){
+    const int to=edges[iedge].from;
+    if ((*poedge)[to].e() == -1) {
+      (*poedge)[to].e(iedge);
+      (*poedge)[to].o(true);
+    }
+    const int from=edges[iedge].from;
+    if ((*poedge)[from].e() == -1) {
+      (*poedge)[from].e(iedge);
+      (*poedge)[from].o(false);
+    }
+  }
+}
 
 void sort_triangulate(int npoints, point *p,
 		      int *pnedges, edge** edges_ret,
 		      int *pnelem, elem** pelems_ret){
   sort_triangulate(npoints,p,pnedges, edges_ret);
   build_elem_table(npoints, p, *pnedges, *edges_ret, pnelem, pelems_ret);
+  test_ccwedge(*pnedges, *edges_ret);
 }
