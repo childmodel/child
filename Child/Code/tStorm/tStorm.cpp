@@ -19,7 +19,7 @@
 **  is included in this file.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.cpp,v 1.6 1998-05-04 22:23:09 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.7 1998-05-05 19:42:43 gtucker Exp $
 */
 
 #include <math.h>
@@ -103,7 +103,7 @@ tStorm::tStorm( tInputFile &infile )
 **  Members updated:  p, stdur, istdur take on new random values
 **  Assumptions:  pMean > 0
 */
-void tStorm::GenerateStorm( double minp )
+void tStorm::GenerateStorm( double minp, double mind )
 {
    if( optVariable )
    {
@@ -114,8 +114,10 @@ void tStorm::GenerateStorm( double minp )
          p = pMean*ExpDev( &seed );
          istdur += istdurMean*ExpDev( &seed ) + stdur;
          stdur = stdurMean*ExpDev( &seed );
+         cout << "P " << p << "  ST " << stdur << "  IST " << istdur
+              << "  DP " << p*stdur << endl;
          srand( seed );
-      } while( p<=minp );
+      } while( p<=minp && (p*stdur)<=mind );
    }
 }
 
