@@ -60,7 +60,7 @@ double orient2d(int p0,int p1,int p2,const point *p){
 #endif
 }
 
-static
+static inline
 bool needswap(int i1, int i2, int i3, int i4, const point p[]){
 #ifdef DONT_USE_PREDICATE
   // i3 - i4 currently joined by diagonal.
