@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.61 1999-04-08 20:03:36 gtucker Exp $
+**  $Id: erosion.cpp,v 1.62 1999-04-12 16:42:27 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1423,7 +1423,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          qs=0;
 
          assert(cn->getChanDepth()<100);
-         
+
          while((cn->getChanDepth()-depck)>0.0001)
          {
             // Total transport capacity is a weighted average
@@ -1431,7 +1431,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             // layer within the channel depth.
             // sediment and bedrock treated the same
             // units on qs are l^3/t
-
             if((depck+cn->getLayerDepth(i))<=cn->getChanDepth()){
                //TransportCapacity function should keep running
                //sum of qs of each grain size.  
