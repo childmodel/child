@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.46 1998-07-21 23:43:56 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.47 1998-08-11 19:24:09 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -871,7 +871,7 @@ void tStreamNet::MakeFlow( double tm )
    // (currently, only infiltration capacity varies)
    if( optSinVarInfilt && infilt>0 )
        infilt = infilt0 + infilt_dev * sin( tm*twoPiLam );
-
+   
    // Call appropriate function for runoff generation option
    switch( flowgen )
    {
