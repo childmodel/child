@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.59 1998-07-27 17:09:07 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.60 1998-07-27 17:27:01 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1151,7 +1151,8 @@ void tLNode::TellAll()
               << flowedge->getVEdgLen() << endl;
          cout << "  qs: " << qs << "  qsin: " << qsin << "  slp: "
               << getSlope() << "  reg: " << reg.thickness << endl;
-         for(i=0; i<=numg; i++)
+//GT changed         for(i=0; i<=numg; i++)
+         for(i=0; i<numg; i++)
              cout<<"qsi "<<i<<" "<<qsm[i]<<endl;
          cout<<endl;
          cout << "  dzdt: " << dzdt << "  drdt: " << drdt << endl;
