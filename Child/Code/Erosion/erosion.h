@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.24 1999-05-18 21:54:04 gtucker Exp $
+**  $Id: erosion.h,v 1.25 1999-05-21 17:51:05 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -188,6 +188,7 @@ class tBedErodePwrLaw
    double kb;  // Erosion coefficient
    double kt;  // Shear stress (or stream power) coefficient
    double mb;  // Exponent on total discharge
+   double ma;  // Exponent on drainage area (can differ from mb!)
    double nb;  // Exponent on slope
    double pb;  // Exponent on excess erosion capacity (e.g., shear stress)
    double taucd;  // Erosion threshold
