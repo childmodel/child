@@ -1,18 +1,16 @@
 /****************************************************************************\
-**   Header file for defining global constants
-**   $Id: Definitions.h,v 1.16 1999-04-23 14:05:31 gtucker Exp $
+**   Definitions.h: Header file for defining global constants
+**
+**   $Id: Definitions.h,v 1.17 2000-03-24 16:50:41 gtucker Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
 /** DEFINITIONS *************************************************************/
-#define VERSION "2.0, April 1999"
+#define VERSION "2.1.0, March 2000"
 #define TRUE 1
 #define FALSE 0
-//#define kMaxNameLength 80
-//#define kCommentMark '#'
-//#define kTimeLineMark ' '
 #define kUniformMesh 0     /*method of grid construction*/
 #define kPerturbedMesh 1
 #define kRandomMesh 2
@@ -44,8 +42,5 @@
 #define ROUND(x)    (int)(x+0.5)
 #define SIGN(x)     ( x>0 ? 1 : 0 )
 
-// Redefine floats to be double precision (8 byte) for compatibility
-// with meandering routine
-//#define float double
 
 #endif
