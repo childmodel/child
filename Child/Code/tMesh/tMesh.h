@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.12 1998-07-25 01:17:38 nmgaspar Exp $
+**  $Id: tMesh.h,v 1.13 1998-07-31 23:04:35 nmgaspar Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -124,6 +124,12 @@ protected:
     tGridList< tEdge > edgeList;
     tList< tTriangle > triList;
     long seed;
+   int layerflag;
+   //Although tGrid is a mesh of generic nodes, layer interpolation
+   //only needs to be done if the mesh is of tLNodes.  Nicole didn't
+   //know a better way of identifying if the layer interpolation needed
+   //to be done other than to make a flag.  TODO This should probably
+   //be changed since other types of nodes will not have a layerinterp func.
 };
 
 #endif
