@@ -28,7 +28,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.85 2000-12-08 12:08:34 gtucker Exp $
+**  $Id: erosion.cpp,v 1.86 2001-06-11 14:46:54 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -219,20 +219,27 @@ double tEquilibCheck::FindLongTermChngRate( double newtime )
 **  essentially describes the difference between at-a-station and
 **  downstream width variations with discharge.
 **
+**  Modifications:
+**   - Erosion rate is now calculated from specific discharge, which is
+**     explicitly computed from Q/W, W = channel width computed in calls
+**     to tStreamNet::FindChanGeom and tStreamNet::FindHydrGeom. As a
+**     result, ma is now obsolete and mb is no longer modified after being
+**     read in from file. mb is still the specific-discharge exponent,
+**     NOT the total-discharge exponent. (GT 2/01)
 \***************************************************************************/
 //constructor: reads and sets the 3 parameters
 tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 {
-   double wb,  // downstream channel width-discharge exponent
-       ws;     // at-a-station width-discharge exponent
+  //double wb,  // downstream channel width-discharge exponent
+  //    ws;     // at-a-station width-discharge exponent
 
    kb = infile.ReadItem( kb, "KB" );
    kt = infile.ReadItem( kt, "KT" );
-   mb = infile.ReadItem( mb, "MB" ); // Read in as specific q exponent
-   wb = infile.ReadItem( wb, "HYDR_WID_EXP_DS" );
-   ws = infile.ReadItem( ws, "HYDR_WID_EXP_STN" );
-   ma = mb*(ws-wb);  // Drainage area exponent
-   mb = mb*(1-ws);   // Convert mb to total-discharge exponent
+   mb = infile.ReadItem( mb, "MB" ); // Specific q exponent
+   //wb = infile.ReadItem( wb, "HYDR_WID_EXP_DS" );
+   //ws = infile.ReadItem( ws, "HYDR_WID_EXP_STN" );
+   //ma = mb*(ws-wb);  // Drainage area exponent
+   //mb = mb*(1-ws);   // Convert mb to total-discharge exponent
    nb = infile.ReadItem( nb, "NB" );
    pb = infile.ReadItem( pb, "PB" );
    taucd = infile.ReadItem( taucd, "TAUCD" );
@@ -259,6 +266,10 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 **     (GT 5/99) (to be ver 2.0.2)
 **   - replaced spatially uniform taucd parameter with node variable
 **     tauc (GT 1/00)
+**   - placed channel width explicitly in the denominator rather than
+**     have it be buried in exponents and coefficients, so as to be
+**     consistent with the transport equations.
+**     (GT 2/01)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
@@ -268,7 +279,8 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
    if( n->getFloodStatus() ) return 0.0;
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
-   tau =  kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma ) * pow( slp, nb );
+   //tau =  ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma ) * pow( slp, nb );
+   tau =  kt*pow( n->getQ() / n->getHydrWidth(), mb ) * pow( slp, nb );
    n->setTau( tau );
    tauex = tau - n->getTauCrit();
    //cout << "tauex: " << tauex << endl;
@@ -296,6 +308,10 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 **     (GT 5/99) (ver 2.0.2)
 **   - replaced spatially uniform taucd parameter with node variable
 **     tauc (GT 1/00)
+**   - placed channel width explicitly in the denominator rather than
+**     have it be buried in exponents and coefficients, so as to be
+**     consistent with the transport equations.
+**     (GT 2/01)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
@@ -306,9 +322,10 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
    if( n->getFloodStatus() ) return 0.0;
    double slp = n->getSlope();
    if( slp < 0.0 )
-       ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   double tau = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
-       *pow( slp, nb );
+     ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
+   //double tau = ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
+   //    *pow( slp, nb );
+   double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
    if( n->getQ()<0.0 || n->getDrArea()<0.0 ) n->TellAll();
    assert( n->getQ()>=0.0 );
    assert( n->getDrArea()>=0.0 );
@@ -346,6 +363,10 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 **     (GT 5/99) (ver 2.0.2)
 **   - replaced spatially uniform taucd parameter with node variable
 **     tauc (GT 1/00)
+**   - placed channel width explicitly in the denominator rather than
+**     have it be buried in exponents and coefficients, so as to be
+**     consistent with the transport equations.
+**     (GT 2/01)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
 {
@@ -353,8 +374,9 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   double tau = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
-       *pow( slp, nb );
+   //double tau = ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
+   //    *pow( slp, nb );
+   double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
    n->setTau( tau );
    double erorate = tau - n->getTauCrit();
    //cout << "erorate: " << erorate << endl;
@@ -518,15 +540,17 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
    double help;
 
    cout << "tSedTransWilcock(infile)\n" << endl;
-   strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
+   //strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
    grade.setSize(2);
-   for(i=0; i<=1; i++){
+   /*for(i=0; i<=1; i++){
       strcpy( name, "GRAINDIAM");
       strcat( name, add );
       help = infile.ReadItem( help, name);
       add[0]++;
       grade[i] = help;
-   }
+   }*/
+   grade[0] = infile.ReadItem( grade[0], "GRAINDIAM1" );
+   grade[1] = infile.ReadItem( grade[1], "GRAINDIAM2" );
 
    taudim= RHO*GRAV;
    refs = (RHOSED-RHO)*9.81*grade[0];
@@ -1035,10 +1059,14 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
 **   dtg is quite large, one can still run into problems. E.g., for m=0.3,
 **   n=0.7, kb=3.16e-02 m^3/N, U=1e-3 m/yr, Q=100m^3/s, kwds=3, knds=0.03
 **   => dtg=10 yrs seems to work well; dtg=100 yrs does not work well.
+**
+**   - added calls to compute channel width (& depth etc) before computing
+**     erosion. This is done because the detachment capacity functions now
+**     require a defined channel width. (GT 2/01)
 \*****************************************************************************/
-void tErosion::ErodeDetachLim( double dtg )
+void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
 {
-   //cout<<"ErodeDetachLim...";
+  //cout<<"ErodeDetachLim...";
    double dt,
        dtmax = 1000000.0; // time increment: initialize to arbitrary large val
    double frac = 0.9; //fraction of time to zero slope
@@ -1049,6 +1077,9 @@ void tErosion::ErodeDetachLim( double dtg )
    tArray<double> //dz( nActNodes ), // Erosion depth @ each node
        dzdt( nActNodes ); //Erosion rate @ ea. node
    double ratediff;
+
+   strmNet->FindChanGeom();
+   strmNet->FindHydrGeom();
 
    cn = ni.FirstP();
    tArray<double> valgrd(1);
@@ -1075,8 +1106,12 @@ void tErosion::ErodeDetachLim( double dtg )
          }
       }
       //assert( dtmax > 0 );
+
       //apply erosion:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
+      //	if( cn->getX()>7300.0 && cn->getX()<7400.0 && cn->getY()>500.0 && cn->getY()<600.0 )
+      //	  cn->TellAll();
+
          //ng added stuff below to update layering using the other erodep
          //tArray<double> valgrd;
          //valgrd.setSize(1);
@@ -1099,8 +1134,11 @@ void tErosion::ErodeDetachLim( double dtg )
 **  estimation. (This could be handled as a default argument, avoiding
 **  the need for two nearly identical versions -- TODO)
 **
+**   - added calls to compute channel width (& depth etc) before computing
+**     erosion. This is done because the detachment capacity functions now
+**     require a defined channel width. (GT 2/01)
 \*****************************************************************************/
-void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
+void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift *UPtr )
 {
    double dt,
        dtmax = 1000000.0; // time increment: initialize to arbitrary large val
@@ -1113,6 +1151,9 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
    double ratediff;
    //Xdouble dslpdt;
    double dtmin = dtg * 0.0001;
+
+   strmNet->FindChanGeom();
+   strmNet->FindHydrGeom();
 
    // Iterate until total time dtg has been consumed
    do
@@ -1814,7 +1855,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                depck+=cn->getLayerDepth(i); //need to keep this here for qs calc
                i++;
             }
-            
+
             //NIC this detachcapacity returns the correct thing, but
             //it also sets within the layer the drdt of each size.
             //You don't want to use detach capacity this way, so
@@ -1828,6 +1869,12 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             
             cn->setDrDt(drdt);
             cn->setDzDt(drdt);
+            
+	    /*cout << "*** EROSION ***\n";
+	    if( cn->getID()==342 ) {
+	      cout << "**** Trans Cap 342 = " << qs << endl;
+	      cn->TellAll();
+	    }*/
             
             excap=(qs - cn->getQsin())/cn->getVArea();//[m/yr]
             //excap negative = deposition; positive = erosion
