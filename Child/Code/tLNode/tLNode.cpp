@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.19 1998-03-09 22:48:54 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.20 1998-03-10 23:30:07 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -356,6 +356,8 @@ tLNode::tLNode()                                                   //tLNode
      //cout << "=>tLNode()" << endl;
    flood = 0;
    flowedge = 0;
+   tracer = 0;
+   dzdt = drdt = qs = qsin = uplift = 0.0;
 }
 
 tLNode::tLNode( const tLNode &orig )                               //tLNode
@@ -365,6 +367,12 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
 {
    flowedge = orig.flowedge;
    flood = orig.flood;
+   tracer = orig.tracer;
+   dzdt = orig.dzdt;
+   drdt = orig.drdt;
+   qs = orig.qs;
+   qsin = orig.qsin;
+   uplift = orig.uplift;
      //cout << "=>tLNode( orig )" << endl;
 }
 
@@ -385,6 +393,12 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
       chan = right.chan;
       flowedge = right.flowedge;
       flood = right.flood;
+      tracer = right.tracer;
+      dzdt = right.dzdt;
+      drdt = right.drdt;
+      qs = right.qs;
+      qsin = right.qsin;
+      uplift = right.uplift;
    }
    return *this;
 }
@@ -574,7 +588,7 @@ double tLNode::GetQ()
 double tLNode::GetSlope()
 {
    double rlen, curlen, slp;
-   tLNode *dn;
+   tLNode *dn, *on;
    assert( flowedge != 0 );
    assert( flowedge->getLength()>0 ); // failure means lengths not init'd
    if( Meanders() )
@@ -589,13 +603,51 @@ double tLNode::GetSlope()
       }
       assert( curlen > 0 );
       slp = (z - dn->z) / curlen;
+      on = dn;
+      while( on->getBoundaryFlag() == kNonBoundary )
+      {
+         on = on->GetDownstrmNbr();
+      }
+      if( z - on->z < 0.0 ) slp = 0.0;
    }
    else slp = (z - GetDownstrmNbr()->z ) / flowedge->getLength();
    if( slp>=0.0 ) return slp;
    else return 0.0;
 }
 
+double tLNode::GetDSlopeDt()
+{
+   double rlen, curlen, slp;
+   tLNode *dn;
+   assert( flowedge != 0 );
+   assert( flowedge->getLength()>0 ); // failure means lengths not init'd
+   if( Meanders() )
+   {
+      rlen = 10.0 * chan.chanwidth;
+      curlen = 0.0;
+      dn = this;
+      while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary )
+      {
+         curlen += dn->flowedge->getLength();
+         dn = dn->GetDownstrmNbr();
+      }
+      assert( curlen > 0 );
+      //slp = (dzdt - dn->dzdt + uplift - dn->uplift ) / curlen;
+   }
    
+   else
+   {
+      curlen = flowedge->getLength();
+      assert( curlen > 0.0 );
+      dn = GetDownstrmNbr();
+      //slp = (dzdt - dn->dzdt + uplift - dn->uplift ) / curlen;
+   }
+   slp = ( dzdt - dn->dzdt + uplift - dn->uplift ) / curlen;
+   if( slp>=0.0 ) return slp;
+   else return 0.0;
+}
+
+
 
 
 //void tLNode::insertFrontSpokeList( tEdge *eptr )             //tNode
@@ -820,3 +872,7 @@ int tLNode::OnBedrock()
    // than a nominal thickness; here, it's just an arbitrary alluvial depth
    return ( reg.thickness<0.1 );
 }
+
+void tLNode::setUplift( double val ) {uplift = val;}
+
+double tLNode::getUplift() const {return uplift;}
