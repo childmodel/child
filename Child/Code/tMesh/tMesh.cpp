@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.156 2003-05-22 09:28:16 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.157 2003-05-23 11:57:54 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -354,10 +354,10 @@ MakeLayersFromInputData( tInputFile &infile )
 
    assert(sumbr>0.999 && sumbr<1.001);
 
-   layhelp.setCtime(0);
-   layhelp.setRtime(0);
+   layhelp.setCtime(0.);
+   layhelp.setRtime(0.);
    //layhelp.setFlag(0);
-   layhelp.setErody(0);
+   layhelp.setErody(0.);
    layhelp.setSed(0);
    ditem=layhelp.getDepth();
    for(g=0; g<numg; g++){
@@ -1030,7 +1030,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
    {
       miNextNodeID = 0;
       tempnode.setBoundaryFlag( kOpenBoundary );
-      tempnode.set3DCoords( 0, 0, 0 );
+      tempnode.set3DCoords( 0., 0., 0. );
       tempnode.setID( miNextNodeID );
       n = ROUND( Param.xGrid / Param.delGrid );
       tempnode.setBoundaryFlag( kOpenBoundary );
@@ -1040,7 +1040,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=1, miNextNodeID++; i<n; i++, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, 0, 0 );
+         tempnode.set3DCoords( dist, 0., 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1049,7 +1049,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( Param.xGrid, dist, 0 );
+         tempnode.set3DCoords( Param.xGrid, dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1058,7 +1058,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, Param.yGrid, 0 );
+         tempnode.set3DCoords( dist, Param.yGrid, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1067,7 +1067,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( 0, dist, 0 );
+         tempnode.set3DCoords( 0., dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1081,7 +1081,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, 0, 0 );
+         tempnode.set3DCoords( dist, 0., 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1091,7 +1091,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( Param.xGrid, dist, 0 );
+         tempnode.set3DCoords( Param.xGrid, dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1100,7 +1100,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, Param.yGrid, 0 );
+         tempnode.set3DCoords( dist, Param.yGrid, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1109,7 +1109,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=n; i>=0; i--, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( 0, dist, 0 );
+         tempnode.set3DCoords( 0., dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1122,7 +1122,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, 0, 0 );
+         tempnode.set3DCoords( dist, 0., 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1132,7 +1132,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=0; i<=n; i++, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( Param.xGrid, dist, 0 );
+         tempnode.set3DCoords( Param.xGrid, dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1152,7 +1152,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=n; i>=0; i--, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( 0, dist, 0 );
+         tempnode.set3DCoords( 0., dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1166,7 +1166,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, 0, 0 );
+         tempnode.set3DCoords( dist, 0., 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1175,7 +1175,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( Param.xGrid, dist, 0 );
+         tempnode.set3DCoords( Param.xGrid, dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1184,7 +1184,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, Param.yGrid, 0 );
+         tempnode.set3DCoords( dist, Param.yGrid, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1193,7 +1193,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( 0, dist, 0 );
+         tempnode.set3DCoords( 0., dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1208,7 +1208,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       {
          // Assign node coords to tempnode and add tempnode to list
          dist = i * Param.delGrid + 0.01 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, 0, 0 );
+         tempnode.set3DCoords( dist, 0., 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
@@ -1217,7 +1217,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
          // create the outlet now
          if( Param.yout == 0 && Param.xout > dist && Param.xout < dist + Param.delGrid )
          {
-            tempnode.set3DCoords( Param.xout, Param.yout, 0 );
+            tempnode.set3DCoords( Param.xout, Param.yout, 0. );
             tempnode.setBoundaryFlag( kOpenBoundary );
             miNextNodeID++;
             tempnode.setID( miNextNodeID );
@@ -1232,13 +1232,13 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( Param.xGrid, dist, 0 );
+         tempnode.set3DCoords( Param.xGrid, dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
          if( Param.xout == Param.xGrid && Param.yout > dist && Param.yout < dist + Param.delGrid )
          {
-            tempnode.set3DCoords( Param.xout, Param.yout, 0 );
+            tempnode.set3DCoords( Param.xout, Param.yout, 0. );
             tempnode.setBoundaryFlag( kOpenBoundary );
             miNextNodeID++;
             tempnode.setID( miNextNodeID );
@@ -1253,13 +1253,13 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, Param.yGrid, 0 );
+         tempnode.set3DCoords( dist, Param.yGrid, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
          if( Param.yout == Param.yGrid && Param.xout < dist && Param.xout > dist - Param.delGrid )
          {
-            tempnode.set3DCoords( Param.xout, Param.yout, 0 );
+            tempnode.set3DCoords( Param.xout, Param.yout, 0. );
             tempnode.setBoundaryFlag( kOpenBoundary );
             miNextNodeID++;
             tempnode.setID( miNextNodeID );
@@ -1274,13 +1274,13 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( 0, dist, 0 );
+         tempnode.set3DCoords( 0., dist, 0. );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
          if( Param.xout == 0 && Param.yout < dist && Param.yout > dist - Param.delGrid )
          {
-            tempnode.set3DCoords( Param.xout, Param.yout, 0 );
+            tempnode.set3DCoords( Param.xout, Param.yout, 0. );
             tempnode.setBoundaryFlag( kOpenBoundary );
             miNextNodeID++;
             tempnode.setID( miNextNodeID );
@@ -1379,7 +1379,7 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
    if( Param.boundType==kSpecifyOutlet && Param.xout!=0 && Param.yout!=0 )
    {
       tempnode.setBoundaryFlag( kOpenBoundary );
-      tempnode.set3DCoords( Param.xout, Param.yout, 0 );
+      tempnode.set3DCoords( Param.xout, Param.yout, 0. );
       tempnode.setID( miNextNodeID );
       miNextNodeID++;
       if (makeMesh)
@@ -2993,7 +2993,6 @@ LocateTriangle( double x, double y )
 {
    if (0) //DEBUG
      cout << "\nLocateTriangle (" << x << "," << y << ")\n";
-   int n, lv=0;
    tListIter< tTriangle > triIter( triList );  //lt
    tTriangle *lt = ( mSearchOriginTriPtr != 0 ) ? mSearchOriginTriPtr
        : triIter.FirstP();
@@ -3003,6 +3002,7 @@ LocateTriangle( double x, double y )
    // searches through the triangles until the point is on
    // the same side of all the edges of a triangle.
    // "lt" is the current triangle and "lv" is the edge number.
+   int n, lv=0;
    for (n=0 ;(lv!=3)&&(lt); n++)
    {
       tArray< double > xy1 = lt->pPtr(lv)->get2DCoords();
@@ -3047,7 +3047,6 @@ LocateNewTriangle( double x, double y )
 {
    if (0) //DEBUG
      cout << "LocateTriangle" << endl;
-   int n, lv=0;
    tListIter< tTriangle > triIter( triList );
    tTriangle *lt = triIter.FirstP();
 
@@ -3056,7 +3055,8 @@ LocateNewTriangle( double x, double y )
       the same side of all the edges of a triangle.
       "lt" is the current triangle and "lv" is the edge number.
    */
-   for (n=0; lv!=3 && lt; ++n)
+   int lv=0;
+   for (; lv!=3 && lt;)
    {
       tSubNode *p1, *p2;
       p1 = static_cast<tSubNode *>(lt->pPtr(lv));
@@ -3463,7 +3463,7 @@ AddEdgeAndMakeTriangle( tSubNode* cn, tSubNode* cnn, tSubNode* cnnn )
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-MakeTriangle( tPtrList< tSubNode > &nbrList,
+MakeTriangle( tPtrList< tSubNode > const &nbrList,
               tPtrListIter< tSubNode > &nbrIter )
 {
    assert( nbrList.getSize() == 3 );
@@ -3755,7 +3755,7 @@ InsertNode( tSubNode* newNodePtr, double time )
 \**************************************************************************/
 template< class tSubNode >
 tSubNode * tMesh< tSubNode >::
-AddToList( tSubNode& newNode )
+AddToList( tSubNode const & newNode )
 {
   // insert node at the back of either the
   // active portion of the node list (if it's not a boundary) or the
@@ -3850,7 +3850,7 @@ AttachNode( tSubNode* cn, tTriangle* tri )
 	cout << "new tri not CCW" << endl;
     }
 
-   if( colinearedg < 0 ) {
+  if( colinearedg < 0 ) {
 
      // Clear triangle in which the node falls:
      ClearTriangle( tri );
@@ -3869,7 +3869,7 @@ AttachNode( tSubNode* cn, tTriangle* tri )
      AddEdgeAndMakeTriangle( node2, node1, node4 ); // NBC
      // use old triangle for last one instead of MakeTriangle:
      tri->InitializeTriangle( node2, node4, node3 );
-   } else  {
+  } else  {
      // need to make four new triangles:
      // first, delete the edge with which the new point is colinear
      // --this will delete the other, nbr, triangle:
@@ -3887,7 +3887,7 @@ AttachNode( tSubNode* cn, tTriangle* tri )
      AddEdgeAndMakeTriangle( node2, node5, node3 );
      AddEdgeAndMakeTriangle( node2, node3, node4 );
      MakeTriangle( node2, node4, node1 );
-   }
+  }
 
   return node2;
 }
@@ -4422,9 +4422,9 @@ CheckTriEdgeIntersect()
                                    //if node has simply moved into 'opposite' triangle;
                                    //remove opposite tri from ptr list, flipedge,
                                    //add two new tri's to ptr list.
-                                 for( rmtri = tpIter.FirstP();
+				 for( tpIter.First();
                                       tpIter.ReportNextP() != ctop && !(tpIter.AtEnd());
-                                      rmtri = tpIter.NextP() );
+                                      tpIter.Next() );
                                  if( !(tpIter.AtEnd()) ) //ctop is in tri ptrlist
                                  {
                                     tpListNode = tpIter.NodePtr();
@@ -4452,10 +4452,10 @@ CheckTriEdgeIntersect()
                                          ce = spokIter.NextP() )
                                     {
                                        rmtri = TriWithEdgePtr( ce );
-                                       for( /*tri =*/ tpIter.FirstP();
-                                            tpIter.ReportNextP() != rmtri &&
-                                                !(tpIter.AtEnd());
-                                                      /*tri =*/ tpIter.NextP() );
+                                       for( tpIter.First();
+					    tpIter.ReportNextP() != rmtri &&
+					      !(tpIter.AtEnd());
+					    tpIter.Next() );
                                        if( !(tpIter.AtEnd()) ) //rmtri is in tri ptrlist
                                        {
                                           tpListNode = tpIter.NodePtr();
