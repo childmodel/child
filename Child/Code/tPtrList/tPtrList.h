@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.43 2004-03-22 15:24:08 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.44 2004-03-24 14:44:28 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -275,7 +275,7 @@ private:
 \**************************************************************************/
 
 //default constructor
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline tPtrListNode< NodeType >::tPtrListNode() :
   Ptr(0),
   next(0),
@@ -283,7 +283,7 @@ inline tPtrListNode< NodeType >::tPtrListNode() :
 {}
 
 //copy constructor with tPtrListNode
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline tPtrListNode< NodeType >::
 tPtrListNode( const tPtrListNode< NodeType > & init ) :
   Ptr(init.Ptr),
@@ -292,7 +292,7 @@ tPtrListNode( const tPtrListNode< NodeType > & init ) :
 {}
 
 // copy constructor with data ptr
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline tPtrListNode< NodeType >::
 tPtrListNode( NodeType * NTPtr ) :
   Ptr(NTPtr),
@@ -301,7 +301,7 @@ tPtrListNode( NodeType * NTPtr ) :
 {}
 
 //destructor
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline tPtrListNode< NodeType >::
 ~tPtrListNode()
 {
@@ -323,7 +323,7 @@ inline tPtrListNode< NodeType >::
 \**************************************************************************/
 
 //overloaded assignment operator
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline const tPtrListNode< NodeType > &tPtrListNode< NodeType >::
 operator=( const tPtrListNode< NodeType > &right )
 {
@@ -337,7 +337,7 @@ operator=( const tPtrListNode< NodeType > &right )
 }
 
 //overloaded equality operator:
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline bool tPtrListNode< NodeType >::
 operator==( const tPtrListNode< NodeType > &right ) const
 {
@@ -348,7 +348,7 @@ operator==( const tPtrListNode< NodeType > &right ) const
 }
 
 //overloaded inequality operator:
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline bool tPtrListNode< NodeType >::
 operator!=( const tPtrListNode< NodeType > &right ) const
 {
@@ -369,28 +369,28 @@ operator!=( const tPtrListNode< NodeType > &right ) const
  **
 \**************************************************************************/
 
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline const NodeType * tPtrListNode< NodeType >::
 getPtr() const {return Ptr;}
 
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline NodeType * tPtrListNode< NodeType >::
 getPtrNC() {return Ptr;}
 
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline const tPtrListNode< NodeType > *
 tPtrListNode< NodeType >::
 getNext() const {return next;}
 
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline tPtrListNode< NodeType > * tPtrListNode< NodeType >::
 getNextNC( ) {return next;}
 
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline const tPtrListNode< NodeType >*tPtrListNode< NodeType >::
 getPrev() const {return prev;}
 
-template< class NodeType >                  //tPtrListNode
+template< class NodeType >
 inline tPtrListNode< NodeType >*tPtrListNode< NodeType >::
 getPrevNC( ) {return prev;}
 
@@ -412,7 +412,7 @@ getPrevNC( ) {return prev;}
 \**************************************************************************/
 
 //default constructor
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline tPtrList< NodeType >::
 tPtrList() :
   nNodes(0), first(0), last(0)
@@ -422,7 +422,7 @@ tPtrList() :
 }
 
 //copy constructor
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 tPtrList< NodeType >::
 tPtrList( const tPtrList< NodeType > & orig ) :
   nNodes(0), first(0), last(0)
@@ -459,7 +459,7 @@ tPtrList( const tPtrList< NodeType > * origptr ) :
 
 
 //destructor
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 tPtrList< NodeType >::
 ~tPtrList()
 {
@@ -494,7 +494,7 @@ tPtrList< NodeType >::
 \**************************************************************************/
 
 //overloaded assignment operator
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 const tPtrList< NodeType > &tPtrList< NodeType >::
 operator=( const tPtrList< NodeType > &right )
 {
@@ -523,7 +523,7 @@ operator=( const tPtrList< NodeType > &right )
  **  insertion routines (see below); not publically accessible.
  **
 \**************************************************************************/
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline tPtrListNode< NodeType > * tPtrList< NodeType >::
 getNewNode( NodeType *NTPtr )
 {
@@ -548,7 +548,7 @@ getNewNode( NodeType *NTPtr )
  **
 \**************************************************************************/
 
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline void tPtrList< NodeType >::
 insertAtFront( NodeType *NTPtr )
 {
@@ -566,7 +566,7 @@ insertAtFront( NodeType *NTPtr )
     }
 }
 
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline void tPtrList< NodeType >::
 insertAtBack( NodeType *NTPtr )
 {
@@ -585,7 +585,7 @@ insertAtBack( NodeType *NTPtr )
     }
 }
 
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline void tPtrList< NodeType >::
 insertAtNext( NodeType *NTPtr, tPtrListNode< NodeType > * prev )
 {
@@ -604,7 +604,7 @@ insertAtNext( NodeType *NTPtr, tPtrListNode< NodeType > * prev )
     }
 }
 
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline void tPtrList< NodeType >::
 insertAtPrev( NodeType *NTPtr, tPtrListNode< NodeType > * node )
 {
@@ -805,7 +805,7 @@ removePrev( tPtrListNode< NodeType > * ptr )
  **
 \**************************************************************************/
 
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline void tPtrList< NodeType >::
 moveToBack( tPtrListNode< NodeType > * mvnode )
 {
@@ -829,7 +829,7 @@ moveToBack( tPtrListNode< NodeType > * mvnode )
     }
 }
 
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline void tPtrList< NodeType >::
 moveToFront( tPtrListNode< NodeType > * mvnode )
 {
@@ -862,7 +862,7 @@ moveToFront( tPtrListNode< NodeType > * mvnode )
  **  data.
  **
 \**************************************************************************/
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 void tPtrList< NodeType >::
 Flush()
 {
@@ -895,7 +895,7 @@ Flush()
  **  Returns TRUE if first points to null; FALSE otherwise.
  **
 \**************************************************************************/
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline bool tPtrList< NodeType >::
 isEmpty() const
 {
@@ -918,19 +918,19 @@ isEmpty() const
 \**************************************************************************/
 
 //return size
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline int tPtrList< NodeType >::
 getSize() const { return nNodes;}
 
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline tPtrListNode< NodeType > * tPtrList< NodeType >::
 getFirstNC() {return first;}
 
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline const tPtrListNode< NodeType > * tPtrList< NodeType >::
 getFirst() const {return first;}
 
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline tPtrListNode< NodeType > * tPtrList< NodeType >::
 getLast() const {return last;}
 
@@ -978,7 +978,7 @@ getIthNC( int num ) const
  **  to the first.
  **
 \**************************************************************************/
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 inline void tPtrList< NodeType >::
 makeCircular()
 {
@@ -989,7 +989,7 @@ makeCircular()
 
 
 //display list contents
-template< class NodeType >                      //tPtrList
+template< class NodeType >
 void tPtrList< NodeType >::
 print() const
 {
@@ -1020,7 +1020,7 @@ print() const
  **
 \**************************************************************************/
 
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 inline tPtrListIter< NodeType >::
 tPtrListIter() :
   ptrlistPtr(0),
@@ -1031,7 +1031,7 @@ tPtrListIter() :
     cout << "tPtrListIter()" << endl;
 }
 
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 inline tPtrListIter< NodeType >::
 tPtrListIter(const tPtrListIter< NodeType >& orig) :
   ptrlistPtr(orig.ptrlistPtr),
@@ -1042,7 +1042,7 @@ tPtrListIter(const tPtrListIter< NodeType >& orig) :
     cout << "tPtrListIter(const tPtrListIter&)" << endl;
 }
 
-template< class NodeType >    //tPtrListIter
+template< class NodeType >
 inline tPtrListIter< NodeType >::
 tPtrListIter( tPtrList< NodeType > &ptrlist ) :
   ptrlistPtr(&ptrlist),
@@ -1053,7 +1053,7 @@ tPtrListIter( tPtrList< NodeType > &ptrlist ) :
     cout << "tPtrListIter( ptrlist )" << endl;
 }
 
-template< class NodeType >    //tPtrListIter
+template< class NodeType >
 inline tPtrListIter< NodeType >::
 tPtrListIter( tPtrList< NodeType > * ptrlist ) :
   ptrlistPtr(ptrlist),
@@ -1064,7 +1064,7 @@ tPtrListIter( tPtrList< NodeType > * ptrlist ) :
   curptrnode = ptrlist->first;
 }
 
-template< class NodeType >    //tPtrListIter
+template< class NodeType >
 inline tPtrListIter< NodeType >::
 ~tPtrListIter()
 {
@@ -1082,7 +1082,7 @@ inline tPtrListIter< NodeType >::
  **  an iterator which list to work on).
  **
 \**************************************************************************/
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 inline void tPtrListIter< NodeType >::
 Reset( tPtrList< NodeType > &ptrlist )
 {
@@ -1101,7 +1101,7 @@ Reset( tPtrList< NodeType > &ptrlist )
  **  pointing to a valid list item, FALSE otherwise.
  **
 \**************************************************************************/
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 inline int tPtrListIter< NodeType >::
 First()
 {
@@ -1112,7 +1112,7 @@ First()
   return 0;
 }
 
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 inline int tPtrListIter< NodeType >::
 Last()
 {
@@ -1135,7 +1135,7 @@ Last()
  **  zero if not found. (added by GT, 1/2000)
  **
 \**************************************************************************/
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 int tPtrListIter< NodeType >::
 Get( int num )
 {
@@ -1184,7 +1184,7 @@ Get( const NodeType *desiredItemPtr )
  **  respectively. Both assume we're working on a valid list.
  **
 \**************************************************************************/
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 inline int tPtrListIter< NodeType >::
 Next()
 {
@@ -1198,7 +1198,7 @@ Next()
   return NextIfNoCurrent();
 }
 
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 int tPtrListIter< NodeType >::
 NextIfNoCurrent()
 {
@@ -1209,7 +1209,7 @@ NextIfNoCurrent()
   return curptrnode !=0 ? 1:0;
 }
 
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 inline int tPtrListIter< NodeType >::
 Prev()
 {
@@ -1223,7 +1223,7 @@ Prev()
   return PrevIfNoCurrent();
 }
 
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 int tPtrListIter< NodeType >::
 PrevIfNoCurrent()
 {
@@ -1242,7 +1242,7 @@ PrevIfNoCurrent()
  **  no current data item. Assumes data item has a getID() mbr function!
  **
 \**************************************************************************/
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 inline int tPtrListIter< NodeType >::
 Where() const
 {
@@ -1258,7 +1258,7 @@ Where() const
  **  Returns copy of current data pointer.
  **
 \**************************************************************************/
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 inline NodeType *tPtrListIter< NodeType >::
 DatPtr() const
 {
@@ -1274,7 +1274,7 @@ DatPtr() const
  **  Returns pointer to current list node.
  **
 \**************************************************************************/
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 inline tPtrListNode< NodeType > *tPtrListIter< NodeType >::
 NodePtr()
 {
@@ -1291,7 +1291,7 @@ NodePtr()
  **  circular). Returns 0 if the next item is the first on the list.
  **
 \**************************************************************************/
-template< class NodeType >     //tPtrListIter
+template< class NodeType >
 inline int tPtrListIter< NodeType >::
 NextIsNotFirst() const
 {
@@ -1334,7 +1334,7 @@ LastP()
  **  data pointer rather than a pointer to the list item.
  **
 \**************************************************************************/
-template< class NodeType >       //tPtrListIter
+template< class NodeType >
 inline NodeType *tPtrListIter< NodeType >::
 PrevP()
 {
@@ -1342,7 +1342,7 @@ PrevP()
     curptrnode->Ptr : 0;
 }
 
-template< class NodeType >        //tListIter
+template< class NodeType >
 inline NodeType * tPtrListIter< NodeType >::
 NextP()
 {
@@ -1359,7 +1359,7 @@ NextP()
  **  than a pointer to the list item (or 0 if undefined).
  **
 \**************************************************************************/
-template< class NodeType >       //tListIter
+template< class NodeType >
 inline NodeType * tPtrListIter< NodeType >::
 GetP( int num )
 {
@@ -1382,7 +1382,7 @@ inline NodeType * tPtrListIter< NodeType >::GetP( NodeType* nPtr )
  **  moving to the next or previous item.
  **
 \**************************************************************************/
-template< class NodeType >        //tListIter
+template< class NodeType >
 inline NodeType * tPtrListIter< NodeType >::
 ReportNextP() const
 {
@@ -1392,7 +1392,7 @@ ReportNextP() const
   return curptrnode->next->Ptr;
 }
 
-template< class NodeType >        //tListIter
+template< class NodeType >
 inline NodeType * tPtrListIter< NodeType >::
 ReportPrevP() const
 {
@@ -1415,7 +1415,7 @@ ReportPrevP() const
  **     list and come back to the start)
  **
 \**************************************************************************/
-template< class NodeType >       //tListIter
+template< class NodeType >
 inline bool tPtrListIter< NodeType >::
 AtEnd() const
 {
