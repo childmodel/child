@@ -14,7 +14,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.23 2003-06-23 10:36:25 childcvs Exp $
+**  $Id: tRunTimer.cpp,v 1.24 2003-09-02 13:52:14 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -64,12 +64,12 @@ tRunTimer::tRunTimer()
   endTime(1),
   outputInterval(1),
   nextOutputTime(0),
-  optPrintEachTime(true),
   notifyInterval(1000),
   nextNotify(0),
   nextTSOutputTime(0),
   TSOutputInterval(1),
-  optTSOutput(0)
+  optTSOutput(false),
+  optPrintEachTime(true)
 {
 }
 
@@ -79,25 +79,29 @@ tRunTimer::tRunTimer( double duration, double opint, bool optprint )
   endTime(duration),
   outputInterval(opint),
   nextOutputTime(0),
-  optPrintEachTime(optprint),
   notifyInterval(1000),
   nextNotify(0),
   nextTSOutputTime(999999999),
   TSOutputInterval(1),
-  optTSOutput(0)
+  optTSOutput(false),
+  optPrintEachTime(optprint)
 {
 }
 
 tRunTimer::tRunTimer( tInputFile &infile, bool optprint )
   :
   currentTime(0),
-  optPrintEachTime(optprint),
   notifyInterval(1000),
-  nextTSOutputTime(0)
+  nextTSOutputTime(0),
+  optPrintEachTime(optprint)
 {
   endTime = infile.ReadItem( endTime, "RUNTIME" );
   outputInterval = infile.ReadItem( outputInterval, "OPINTRVL" );
-  optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" );
+  {
+    int tmp_;
+    tmp_ = infile.ReadItem( tmp_, "OPTTSOUTPUT" );
+    optTSOutput = tmp_;
+  }
   if( optTSOutput )
     TSOutputInterval = infile.ReadItem( TSOutputInterval, "TSOPINTRVL" );
 	
