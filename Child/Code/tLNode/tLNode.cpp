@@ -11,7 +11,7 @@
 **    - fixed problem with layer initialization in copy constructor
 **      (gt, 2/2000; see below)
 ** 
-**  $Id: tLNode.cpp,v 1.87 2000-03-09 20:01:01 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.88 2000-03-30 21:57:38 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2125,9 +2125,13 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 
    double sume, sumd, olde; //used for calculation of exposure time
    
+   // Branch according to whether there is:
+   // (1) erosion of all size-classes
+   // (2) deposition of all size-classes
+   // (3) erosion of some, deposition of others
    if(max <= 0 && min < -0.0000000001)
    {
-      // TOTAL EROSION
+      // CASE OF EROSION IN ALL SIZE CLASSES
       if(getLayerSed(i) != 0 && getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i)<=maxregdep)
       {
          // Updating will also be done if entering this statement
@@ -2186,7 +2190,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    }
    else if(min >= 0.0 && max > 0.0000000001)
    {
-      // DEPOSITION
+      // CASE OF DEPOSITION IN ALL SIZE CLASSES
       // method seems to make good sense for surface layers
       // but may not be as appropriate for lower layers.
       // You may want to either make a provision for lower layers
@@ -2268,11 +2272,13 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    }
    else if(max>0.0000000001 && min<-0.0000000001)
    {
-      //Erosion of one size, deposition of another.
+      // CASE OFSIMULTANEOUS EROSION AND DEPOSITION:
+      // Erosion of one or more sizes, deposition of other(s).
+      // First, test whether the net effect is erosion or deposition.
       //Need if for the zero erosion case, in which nothing is done.
       if(val < 0)
       {
-         //total erosion
+         // Case of net erosion
          if(getLayerSed(i) != 0)
          {
             //layer is sediment
@@ -2347,11 +2353,15 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       }
       else
       {
-         //Total deposition
-         //Erode first to make sure you get what you want
+         // Case of net deposition
+         // First, we loop over all size-fractions. If erosion in a given
+         // fraction is occurring, remove the material from the top layer;
+         // if deposition, add it to val, which at the end of the loop
+         // will record the total depth to be deposited.
          val=0; //val will now contain total amt to deposit
-         for(g=0; g<numg; g++){
-            if(valgrd[g]<0){
+         for(g=0; g<numg; g++) {
+            if(valgrd[g]<0) {
+               // Here, we erode material in size fraction g
                update[g]=0;//If new layer needs to be made on top of BR
                //update will be composition.
                //Not necessarily used unles on bedrock, but I threw it
@@ -2359,12 +2369,16 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                //neck of the woods.
                addtoLayer(i, g, valgrd[g], -1);
             }
-            else{
+            else {
+               // Size fraction g is going to be deposited, so add it to the
+               // total amount deposited (val)
                update[g]=valgrd[g];
                val+=valgrd[g];
             }
          }
-         if(getLayerSed(i)>0 && val<maxregdep){
+         if(getLayerSed(i)>0 && val<maxregdep) {
+            // Case in which top layer is "sediment" and depth to be
+            // deposited is less than nominal layer thickness.
             // top layer is sediment, so no issues
             if(getLayerDepth(i)+val>maxregdep){
                // Need to move stuff out of top layer to make room for deposited mat
@@ -2445,6 +2459,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 
 /**************************************************************
  ** tLNode::addtoLayer(int i, int g, double val, double tt)
+ **
  ** This function is called from the EroDep which updates layerin.
  ** Used when material is added/removed to/from a layer, grain size 
  ** by grain size. i.e. texture may change
@@ -2454,6 +2469,10 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
  ** tt = time of deposition/erosion
  **
  ** created by NG
+ **
+ **    Modifications:
+ **      - 3/30/00: if erosion causes a layer to have zero 
+ **        thickness, the layer is removed. (GT)
  *****************************************************************/
 void tLNode::addtoLayer(int i, int g, double val, double tt)
 {
@@ -2471,11 +2490,13 @@ void tLNode::addtoLayer(int i, int g, double val, double tt)
     if(tt>0)
        hlp->setRtime( tt );
     hlp->addDgrade(g,val);
+
     //Although check really should be here, I think there may
     //be an issue because this function is called from a loop
     //and if the layer is removed before the loop is through -> big trouble
-    //if(hlp->getDepth() <= 0)
-    //    removeLayer(i);
+    // GT re-added this line, 3/00
+    if(hlp->getDepth() <= 0)
+        removeLayer(i);
 }
 
 /******************************************************************
@@ -2539,18 +2560,41 @@ tArray<double> tLNode::addtoLayer(int i, double val)
 
 /*******************************************************
  ** tLNode::removeLayer(int i)
+ **
  ** Removes layer i.
+ **
  ** called by EroDep which updates layers.
- ******************************************************/
+ **
+ **    Modifications:
+ **      - 3/30/00: apparently the existing code was
+ **        actually removing layer i+1. Bug fixed (GT).
+ *******************************************************/
 void tLNode::removeLayer(int i)
 {
-    tListIter<tLayer> ly ( layerlist );
-    tLayer  * hlp;
-    tLayer niclay;
-    hlp=ly.FirstP();
+   //tLayer  * hlp;
+   //tLayer niclay;
+    //hlp=ly.FirstP();
 
-	    
-    int n=0;
+    // GT added code in bug fix attempt 3/00:
+    tLayer lay;
+
+    if( i==0 )
+        layerlist.removeFromFront( lay );
+    else if( (i+1)==layerlist.getSize() )
+        layerlist.removeFromBack( lay );
+    else 
+    {
+       tListIter<tLayer> ly ( layerlist );
+       int n;
+       for( n=1; n<i; n++ )
+           ly.Next();
+       n = layerlist.removeNext( lay, ly.NodePtr() );
+       assert( n>0 );
+    }
+    
+    // end of GT added code
+
+/*    int n=0;
 
     while(n<i){
        n++;
@@ -2562,7 +2606,7 @@ void tLNode::removeLayer(int i)
 	}
     else{	
        n=layerlist.removeNext((*hlp), layerlist.getListNode(hlp) );
-    }
+       }
     if(n==0){
 //       n=0;
 //         while(n<layerlist.getSize()){
@@ -2579,7 +2623,7 @@ void tLNode::removeLayer(int i)
 //         }
        
        ReportFatalError("couldn't remove next layer");
-    }
+       }*/
     
 }
 
