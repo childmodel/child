@@ -1,12 +1,13 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.9 1998-06-15 21:38:37 nmgaspar Exp $
+**   $Id: Definitions.h,v 1.10 1998-07-12 23:19:40 gtucker Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
 /** DEFINITIONS *************************************************************/
+#define VERSION "Beta 1.0"
 #define TRUE 1
 #define FALSE 0
 #define kMaxNameLength 80
