@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.112 2002-07-25 14:39:52 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.113 2002-08-12 14:25:37 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -79,11 +79,7 @@ int Next3Delaunay( tPtrList< tSubNode > &nbrList,
      //int TriPasses( tArray< double > &, tArray< double > &,
      //           tArray< double > &, tArray< double > & );
      //cout << "N3D: pt a\n";
-   tPtrListIter< tSubNode > nbrIterCopy( nbrList );
-     //cout << "N3D: pt b\n";
-   int i = nbrIter.Where();
-     //cout << "N3D: pt c\n";
-   nbrIterCopy.Get(i);
+   tPtrListIter< tSubNode > nbrIterCopy( nbrIter );
      //cout << "N3D: point d\n";
    // tPtrListNode< tSubNode > *tempptrnode = nbrIter.NodePtr();
    tArray< double > p0( nbrIterCopy.DatPtr()->get2DCoords() );
@@ -143,10 +139,7 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
      //           tArray< double > & );
      //int TriPasses( tArray< double > &, tArray< double > &,
      //           tArray< double > &, tArray< double > & );
-   tPtrListIter< tSubNode > nbrIterCopy( nbrList );
-   int i = nbrIter.Where();
-     //cout << "Where: " << i << endl;
-   nbrIterCopy.Get( i );
+   tPtrListIter< tSubNode > nbrIterCopy( nbrIter );
      //assert( nbrIterCopy.Get( i ) );
    assert( nbrIterCopy.DatPtr() == nbrIter.DatPtr() );
    // tPtrListNode< tSubNode > *tempptrnode = nbrIter.NodePtr();
@@ -4242,8 +4235,8 @@ getEdgeComplement( tEdge *edge )
    tMeshListIter< tEdge > edgIter( edgeList );
    int edgid = edge->getID();
 
-   assert( edgIter.Get( edgid ) );
-   edgIter.Get( edgid ); // TODO: why necessary?
+   int ires = edgIter.Get( edgid ); // TODO: why necessary?
+   assert( ires );
    if( edgid%2 == 0 ) return edgIter.GetP( edgid + 1 );
    else return edgIter.GetP( edgid - 1 );
 }
