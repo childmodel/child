@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.13 1998-02-27 00:08:36 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.14 1998-02-27 17:33:44 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -764,7 +764,11 @@ tLNode::getXYZD() const {return chan.migration.xyzd;}
 
 double tLNode::DistFromOldXY() const
 {
-   double xo = chan.migration.xyzd[0], yo = chan.migration.xyzd[1];
+   double xo, yo;
+   tArray< double > oldpos( chan.migration.xyzd );
+   
+   xo = oldpos[0];
+   yo = oldpos[1];
    
    return sqrt( (x-xo) * (x-xo) + (y-yo) * (y-yo) );
 }

@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.23 1998-02-27 00:08:25 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.24 1998-02-27 17:33:22 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -34,10 +34,10 @@ double LineRemainder( double x, double y, tNode * p0,tNode * p1 )
 {
   double a,b,c, x0, y0, x1, y1;
 
-  x0 = p0->x;
-  y0 = p0->y;
-  x1 = p1->x;
-  y1 = p0->y;
+  x0 = p0->getX();
+  y0 = p0->getY();
+  x1 = p1->getX();
+  y1 = p0->getY();
   a = y1 - y0; 
   b = x0 - x1; 
   c = -( a * x0 + b * y0 );
@@ -848,7 +848,6 @@ void tStreamMeander::Migrate()
    //timeadjust = 86400. * pr->days;
    while( time < duration && !(reachList.isEmpty()) )
    {
-      SetOldXY();
       CalcMigration( time, duration, cummvmt ); //incremented time
       MakeChanBorder( /*bList*/ ); //bList of coordinate arrays made
       CheckBrokenFlowedg();
