@@ -3,7 +3,7 @@
 **  tList.cpp:  Functions for class tList and related classes tListNode
 **              and tListIter.
 **
-**  $Id: tList.cpp,v 1.10 1998-06-15 22:12:47 nmgaspar Exp $
+**  $Id: tList.cpp,v 1.11 1998-07-20 22:24:27 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -558,6 +558,18 @@ getIthData( int num ) const
 {
    int i;
    tListNode< NodeType > * curPtr;
+//    if(num>= nNodes)
+//        {
+//           cout<<"using an index which is too large"<<endl;
+//           cout<<"you have "<<nNodes<<endl;
+//           cout<<"you wanted list member number "<<num<<endl;
+//        }
+//    if(num<0)
+//    {
+//       cout<<"using a negative index"<<endl;
+//       cout<<"you have "<<nNodes<<endl;
+//       cout<<"you wanted list member number "<<num<<endl;
+//    }
    assert( num >= 0 && num < nNodes );
    for( curPtr = first, i = 0; i<num; i++ )
    {
