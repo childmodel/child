@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.129 2004-01-07 14:10:08 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.130 2004-03-04 12:27:09 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -22,6 +22,8 @@
 #include "../errors/errors.h"
 #include "tLNode.h"
 //#define kBugTime 5000000
+
+#include "../tStratGrid/tStratGrid.h"
 
 //Sets the total layer depth.  While updating depth, dgrade info is
 //automatically updated to keep the same texture.
@@ -308,6 +310,7 @@ qsin(0.),
 qsinm(),
 uplift(0.),
 layerlist(),
+stratNode(0),
 qsubsurf(0.),
 public1(-1)
 {
@@ -325,6 +328,7 @@ qsin(0.),
 qsinm(),
 uplift(0.),
 layerlist(),
+stratNode(0),
 qsubsurf(0.),
 public1(-1)
 {
@@ -362,6 +366,10 @@ public1(-1)
 
   qsm.setSize( numg );
   qsinm.setSize( numg );
+
+  accumdh.setSize(2);
+  accumdh[0]=0.0;
+  accumdh[1]=0.0;
 
   i = infile.ReadItem( i, "OPTREADLAYER" );
 
@@ -499,6 +507,8 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
     qsinm(orig.qsinm ),
     uplift(orig.uplift),
     layerlist(),
+    stratNode(orig.stratNode),
+    accumdh(orig.accumdh),
     qsubsurf(orig.qsubsurf),
     public1(orig.public1)
 {
@@ -521,6 +531,7 @@ tLNode::~tLNode()                                                  //tLNode
   if (0) //DEBUG
     cout << "    ~tLNode()" << endl;
   flowedge = 0;
+  stratNode = 0;
 }
 
 //assignment
@@ -547,6 +558,8 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
       qsm = right.qsm;
       qsinm = right.qsinm;
       layerlist = right.layerlist;
+      stratNode = right.stratNode;
+      accumdh = right.accumdh;
       qsubsurf = right.qsubsurf;
       public1 = right.public1;
     }
@@ -588,65 +601,96 @@ double tLNode::getDiam() const {
  **   or the outlet node, it returns a negative number (-1)
 \************************************************************************/
 #define kLargeNumber 1000000
-double tLNode::getSlopeMeander()
+double tLNode::CalcSlopeMeander()
 {
   int ctr;
+  bool breakit;
   double rlen, curlen, slp, delz, downz;
   tLNode *dn, *on;
 
   assert( flowedge != 0 );
-  rlen = 10.0 * chan.chanwidth;
-  curlen = 0.0;
-  dn = this;
-  ctr = 0;
-  //built a couple of 'firewalls' in these loops; first, quit loop if
-  //we have a flowedge with zero length; second, if we've somehow gotten
-  //an infinite loop, return a negative number as a flag to the calling
-  //routine that it needs to update the network (tStreamNet::UpdateNet())
-  //and reaches (tStreamMeander::MakeReaches). We've run across this loop
-  //bug in a call from tStreamMeander::InterpChannel, which is called by
-  //tStreamMeander::MakeReaches.
-  while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary &&
-	 dn->flowedge->getLength() > 0 )
+  assert( flowedge->getLength()>0 ); // failure means lengths not init'd
+
+  if( Meanders() )
     {
-      ctr++;
-      if( ctr > kLargeNumber )
+      rlen = 10.0 * chan.chanwidth;
+      curlen = 0.0;
+      dn = this;
+      ctr = 0;
+      //built a couple of 'firewalls' in these loops; first, quit loop if
+      //we have a flowedge with zero length; second, if we've somehow gotten
+      //an infinite loop, return a negative number as a flag to the calling
+      //routine that it needs to update the network (tStreamNet::UpdateNet())
+      //and reaches (tStreamMeander::MakeReaches). We've run across this loop
+      //bug in a call from tStreamMeander::InterpChannel, which is called by
+      //tStreamMeander::MakeReaches.
+      while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary &&
+             dn->flowedge->getLength() > 0 )
 	{
-	  return (-1);
-	  //ReportFatalError("infinite loop in tLNode::GetSlopeMeander(), 1st loop");
+	  ctr++;
+	  if( ctr > kLargeNumber )
+	    {
+	      ReportFatalError("infinite loop in tLNode::GetSlope(), 1st loop");
+	    }
+	  curlen += dn->flowedge->getLength();
+	  dn = dn->getDownstrmNbr();
+	  assert( dn != 0 );
 	}
-      curlen += dn->flowedge->getLength();
-      dn = dn->getDownstrmNbr();
-      assert( dn != 0 );
-    }
-  if(curlen <= 0){
-    cout<<"going to die in getSlopeMeander(), curlen is "<<curlen<<endl;
-    TellAll();
-    assert(curlen>0.0);
+      if(curlen <= 0){
+	cout<<"Error in getSlope() in 1st loop, curlen is "<<curlen<<endl;
+	cout<<"Do you have an obstruction/ pond along the meander channel ? \n";
+	TellAll();
+	assert(curlen>0.0);
+      }
+
+      assert( curlen > 0 );
+      downz = dn->z;
+      //if( timetrack >= kBugTime ) cout << "GetSlope 1; " << flush;
+      delz = z - downz;
+      //if( timetrack >= kBugTime ) cout << "GS 2; " << flush;
+      slp = delz / curlen;
+      //if( timetrack >= kBugTime ) cout << "GS 3; " << flush;
+      on = dn;
+      ctr = 0;
+      breakit=false;
+      while( on->getBoundaryFlag() == kNonBoundary &&
+             on->flowedge->getLength() > 0 )
+	{
+	  ctr++;
+	  if( ctr > kLargeNumber )
+	    {
+	      cout<<"At node ID,x,y,z "<< getID()<<' ' <<getX()<<' '<<getY()<<' '<<getZ()<<endl;
+	      cout<<"Not able to find a boundary node of type 1 or 2 (Meander cannot find a gridboundary ?)\n";
+	      cout<<"breaking the infinite loop, but this is a bug !			\n";
+	      //TellAll();
+	      //ReportFatalError("an infinite loop in tLNode::GetSlope(), 2nd loop");
+	      breakit=true;
+	    }
+	  if(breakit){
+	      tLNode *cn;
+	      int counter;
+	      counter=0;
+	      cn=this;
+	      while(cn!=NULL && counter <=50){
+	         cout<< "M-Nodes " <<cn->getID()<<' '<<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()<<" A= "<<cn->getDrArea()<<" Q= "<<cn->getQ()<<" W= "<<cn->getChanWidth()<< " Mndr="<<cn->Meanders()<<"Flood= "<<cn->getFloodStatus()<<endl;
+	  	 cn=cn->getDownstrmNbr();
+	  	 counter++;
+	      }
+	      break;
+	   //exit(1);
+	   }
+	                                             // Leave the infinite loop
+	  on = on->getDownstrmNbr();
+	}
+      if( z - on->z < 0.0 ) slp = 0.0;
+    }     // for meandering nodes
+  else{ // for non-menadering modes
+    slp = (z - getDownstrmNbr()->z ) / flowedge->getLength();
   }
 
-  assert( curlen > 0 );
-  downz = dn->z;
-  //if( timetrack >= kBugTime ) cout << "GetSlope 1; " << flush;
-  delz = z - downz;
-  //if( timetrack >= kBugTime ) cout << "GS 2; " << flush;
-  slp = delz / curlen;
-  //if( timetrack >= kBugTime ) cout << "GS 3; " << flush;
-  on = dn;
-  ctr = 0;
-  while( on->getBoundaryFlag() == kNonBoundary &&
-	 on->flowedge->getLength() > 0 )
-    {
-      ctr++;
-      if( ctr > kLargeNumber )
-	{
-	  return (-1);
-	  //ReportFatalError("infinite loop in tLNode::GetSlopeMeander(), 2nd loop");
-	}
-      on = on->getDownstrmNbr();
-    }
-  if( z - on->z < 0.0 ) slp = 0.0;
-  return slp;
+  //if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
+  if( slp>=0.0 ) return slp;
+  else return 0.0;
 }
 #undef kLargeNumber
 
@@ -747,7 +791,7 @@ bool tLNode::FindFlowDir() // was tStreamNet::
    tEdge* nbredg = firstedg;
    tEdge* curedg = firstedg->getCCWEdg();
    int ctr = 0;
-   
+
    // Check each of the various "spokes", stopping when we've gotten
    // back to the beginning
    while( curedg!=firstedg )
@@ -1709,6 +1753,8 @@ void tLNode::InitializeNode()
     qsinm.setSize( numg );
   }
 
+  accumdh.setSize(2);
+
   if (0) //DEBUG
     cout<<"tLNode::InitializeNode node "<< getID()
 	<<" flow edge "<<flowedge->getID()<<endl;
@@ -1729,7 +1775,7 @@ tArray< double > tLNode::FuturePosn() {
   Create a node in the center of the flow edge.
   This node is return dynamically allocated and needs to deleted.
   Its flowedge is set to zero.
-  09/2003 AD/QC
+  09/2003 AD and QC
 \***********************************************************************/
 tNode *tLNode::splitFlowEdge() {
   // split only non flippable flow edge
@@ -2247,7 +2293,34 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 
   return valgrd;
 }
+// Functions related to the conversion of dh from tLNode to tStratNode (e.g. on the tSTRATGRID)
+void tLNode::ResetAccummulatedDh()
+{
+  accumdh[0] = 0.;
+  accumdh[1] = 0.;
+}
 
+void tLNode::IncrementAccummulatedDh(const tArray<double> &dh)
+{
+  accumdh[0]+= dh[0];
+  accumdh[1]+= dh[1];
+}
+
+const tArray<double>& tLNode::getAccummulatedDh() const
+{
+  return accumdh;
+}
+
+double tLNode::getAccCoarse() const
+{
+  return accumdh[0];
+}
+
+double tLNode::getAccFine() const
+{
+  return accumdh[1];
+}
+// end of 5 functions related to the conversion of dh from tLNode to tStratNode
 
 
 /**************************************************************

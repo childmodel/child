@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.85 2004-01-07 14:10:09 childcvs Exp $
+ **  $Id: tLNode.h,v 1.86 2004-03-04 12:27:11 childcvs Exp $
  */
 /************************************************************************/
 
@@ -50,6 +50,10 @@ using namespace std;
 #include "../tInputFile/tInputFile.h"
 #include "../globalFns.h"
 #include "../tVegetation/tVegetation.h"
+
+class tStratNode;
+class tStratGrid;
+
 #include "../compiler.h"
 
 typedef enum {
@@ -99,6 +103,9 @@ public:
   inline double getDgrade( int ) const;
   inline tArray< double > const & getDgrade() const;
   inline void addDgrade(int, double);
+  inline void addPaleoCurrent(double, double);
+  inline void setPaleoCurrent( double );
+  inline double getPaleoCurrent() const;
 
 protected:
   double ctime; // time of creation of layer
@@ -112,6 +119,7 @@ protected:
   // into, not what is there on the bed.
   // Later sed may be used as a flag for alluvium vs. regolith, etc.
   tArray< double > dgrade; // depth of each size if multi size
+  double paleocurrent;
 };
 
 
@@ -127,7 +135,7 @@ protected:
 inline tLayer::tLayer () :
   ctime(0.), rtime(0.), etime(0.),
   depth(0.), erody(0.), sed(0),
-  dgrade()
+  dgrade(), paleocurrent(-1.)
 {
   if (0) //DEBUG
     cout << "tLayer( )" << endl;
@@ -136,7 +144,7 @@ inline tLayer::tLayer () :
 inline tLayer::tLayer ( int num ) :
   ctime(0.), rtime(0.), etime(0.),
   depth(0.), erody(0.), sed(0),
-  dgrade( num )
+  dgrade( num ), paleocurrent(-1.)
 {
   if (0) //DEBUG
     cout << "tLayer( num )" << endl;
@@ -146,7 +154,7 @@ inline tLayer::tLayer ( int num ) :
 inline tLayer::tLayer( const tLayer &orig ) :                        //tLayer
   ctime(orig.ctime), rtime(orig.rtime), etime(orig.etime),
   depth(orig.depth), erody(orig.erody), sed(orig.sed),
-  dgrade( orig.dgrade )
+  dgrade( orig.dgrade ), paleocurrent(orig.paleocurrent)
 {
   if (0) //DEBUG
     cout << "tLayer copy const\n";
@@ -166,6 +174,7 @@ inline const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
       depth=right.depth;
       erody=right.erody;
       sed=right.sed;
+      paleocurrent = right.paleocurrent;
 
     }
   return *this;
@@ -245,10 +254,47 @@ inline int tLayer::getDgradesize( ) const
 
 inline void tLayer::addDgrade( int i, double size )
 {
-  assert(i<dgrade.getSize());
-  dgrade[i]+=size;
-  assert( dgrade[i]>=0.0 );
-  depth+=size;
+   assert(i<dgrade.getSize());
+
+   if(dgrade[i] < 0.0){
+     cout <<"before dgrade "<< i <<" < 0., = " << dgrade[i] << " depth= " << depth << '\n';
+   }
+   assert( dgrade[i]>=0.0 );
+
+   dgrade[i]+=size;
+
+   if(dgrade[i] < 0.0){
+     cout <<"after dgrade "<< i <<" < 0., = " << dgrade[i] << " depth= " << depth
+          << " size=" << size << '\n';
+   }
+   assert( dgrade[i]>=0.0 );
+   depth+=size;
+}
+
+inline void tLayer::addPaleoCurrent(double dh, double compass)
+{
+
+ if(paleocurrent >= 0 && paleocurrent <= 360 && dh > 0.0){
+   if(compass == -1){
+     // do nothing, do not change the existing paleocurrent info in this layer
+   }
+   else if(compass >= 0 && compass <= 360){
+     paleocurrent = (paleocurrent*depth + compass*dh)/ (depth + dh);   //weighted for thickness/contribution
+   }
+ }
+ else if(paleocurrent==-1.){
+   paleocurrent = compass;
+ }
+
+}
+
+inline void tLayer::setPaleoCurrent( double val ){
+  paleocurrent = val;
+}
+
+inline double tLayer::getPaleoCurrent() const
+{
+ return paleocurrent;
 }
 
 inline double tLayer::getDgrade( int i) const
@@ -538,6 +584,12 @@ public:
   inline void setLayerErody(int, double);
   inline void setLayerSed(int, int);
   inline void setLayerDgrade(int, int, double);
+  void setStratNode(tStratNode *s_) {
+    stratNode = s_;
+  }
+  tStratNode *getStratNode() {
+    return stratNode;
+  }
   void FindInitFlowDir(); // was tStreamNet::
   bool FindFlowDir(); // was tStreamNet::
   bool FindDynamicFlowDir();
@@ -547,6 +599,15 @@ public:
   // Can be used for erosion of bedrock.
   // Algorithm assumes that the material being deposited is the
   // Same material as that in the layer you are depositing into.
+
+  // New functions below, added 28-10-2003, Quintijn
+  void ResetAccummulatedDh();				// set to 0.0
+  void IncrementAccummulatedDh(const tArray<double>&);  // increment dh's, called during tFloodplain functions
+  const tArray<double>& getAccummulatedDh() const;	// returns array with current values
+  double getAccCoarse() const;	              		// returns gravel thickness, accummulated during an other function
+  double getAccFine() const;                            // returns fines thickness, accummulated in a
+  // end new functions added 28-10-2003
+
   tArray<double> addtoLayer(int, double);
   // Used if removing material from lower layers -
   // only called from EroDep
@@ -579,7 +640,7 @@ public:
 #endif
 
 protected:
-  double getSlopeMeander(); // specialisation of getSlope()
+  double CalcSlopeMeander(); // specialisation of CalcSlope()
   tLNode *getDSlopeDtMeander( double &curlen );  // specialisation of getDSlopeDt()
 protected:
   tVegCover vegCover;  // Vegetation cover properties (see tVegetation.h/.cpp)
@@ -588,18 +649,20 @@ protected:
   tChannel chan;
   tFlood_t flood;        /* flag: is the node part of a lake?*/
   tEdge *flowedge;
-  int tracer;       /* Used by network sorting algorithm*/
-  double dzdt;      /* Erosion rate */
-  double drdt;      /* Rock erosion rate */
-  double tau;       // Shear stress or equivalent (e.g., unit stream pwr)
-  double tauc;      // Critical (threshold) shear stress or equiv.
+  int tracer;                       /* Used by network sorting algorithm*/
+  double dzdt;                      /* Erosion rate */
+  double drdt;                      /* Rock erosion rate */
+  double tau;                       // Shear stress or equivalent (e.g., unit stream pwr)
+  double tauc;                      // Critical (threshold) shear stress or equiv.
   // NOTE - all sediment transport rates are volume per year
-  double qs;           /* Sediment transport rate*/
-  tArray< double > qsm; /* multi size; transport rate of each size fraction*/
-  double qsin;         /* Sediment influx rate*/
-  tArray< double > qsinm; /* multi size; influx rate of each size fraction*/
-  double uplift;  /*uplift rate*/
-  tList< tLayer > layerlist; /* list of the different layers */
+  double qs;                        /* Sediment transport rate*/
+  tArray< double > qsm;             /* multi size; transport rate of each size fraction*/
+  double qsin;                      /* Sediment influx rate*/
+  tArray< double > qsinm;           /* multi size; influx rate of each size fraction*/
+  double uplift;                    /* uplift rate*/
+  tList< tLayer > layerlist;        /* list of the different layers */
+  tStratNode *stratNode;            /* Pointer to rectangular grid node. */
+  tArray< double > accumdh;         /* temp inremental record of dh-fine and dh-coarse, used for projection on the tStratGrid */
   static int numg;
   // number of grain sizes recognized NIC should be the same for all
   // nodes, maybe put this somewhere else when you figure out what is going on
@@ -665,7 +728,7 @@ inline double tLNode::calcSlope()
 
   const double slp =
     Meanders() ?
-    getSlopeMeander():
+    CalcSlopeMeander():
     (z - getDownstrmNbr()->z ) / flowedge->getLength();
 
   //if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
