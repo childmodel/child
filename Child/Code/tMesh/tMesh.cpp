@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.22 1998-03-20 15:34:10 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.23 1998-03-21 21:49:13 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1337,6 +1337,157 @@ MakeCCWEdges()
       cn->makeCCWEdges();
    }
 }
+
+
+/*****************************************************************************\
+**
+**  tGrid::SetVoronoiVertices
+**
+**  Each Delaunay triangle is associated with an intersection between
+**  three Voronoi cells, called a Voronoi vertex. These Voronoi vertices
+**  are used in computing the area of each Voronoi cell. The Voronoi
+**  vertex associated with each triangle is the circumcenter of the
+**  triangle. This routine finds the Voronoi vertex associated with
+**  each triangle by finding the triangle's circumcenter. 
+**
+**  The vertex coordinates are stored in the three clockwise-
+**  oriented tEdge objects associated with each triangle. This is a 
+**  space-for-time tradeoff: the coordinates could be stored in the triangles, 
+**  saving redundancy (3 copies of each point are stored here), but in
+**  that case each tEdge would have to point back to a triangle, and an
+**  additional level of indirection would be needed in accessing the Voronoi
+**  vertices associated with a particular node.
+**
+**  Note that computation of the Voronoi vertices can be prone to numerical
+**  errors, leading to inconsistent Voronoi polygons with cells that
+**  overlap or have loops. See note under tNode::ComputeVoronoiArea().
+**
+**    Assumes: correct triangulation with valid edge pointers in each tri.
+**    Data members modified: none
+**    Other objects modified: Voronoi vertices set for each tEdge
+**    Modifications:
+**     - reverted to earlier triangle-based computation, from an edge-based
+**       computation that takes 3x as long because NE = 3NT. In so doing,
+**       the definition of the Voronoi vertex stored in a tEdge is changed
+**       to "left-hand", meaning the V. vertex associated with the edge's
+**       lefthand triangle (the vertex itself may or may not lie to the left
+**       of the edge). 1/98 GT
+**     - also moved circumcenter computation into a tTriangle mbr fn.
+**     - copied function to tGrid member from tStreamNet member, gt 3/98.
+**       Other fns now use "right-hand" definition; this fn may have to
+**       be changed.
+**
+\*****************************************************************************/
+template <class tSubNode>
+void tGrid<tSubNode>::SetVoronoiVertices()
+{
+   //double x, y, x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
+   //tArray< double > xyo, xyd1, xyd2, xy(2);
+   //cout << "SetVoronoiVertices()..." << endl;
+   tArray< double > xy;
+   tListIter< tTriangle > triIter( triList );
+   tTriangle * ct;
+
+   // Find the Voronoi vertex associated with each Delaunay triangle
+   for( ct = triIter.FirstP(); !(triIter.AtEnd()); ct = triIter.NextP() )
+   {
+      xy = ct->FindCircumcenter();    
+      //cout << "SetVoronoiVertices(): " << xy[0] << " " << xy[1];
+      // Assign the Voronoi point as the left-hand point of the three edges 
+      // associated with the current triangle
+      ct->ePtr(0)->setRVtx( xy );
+      ct->ePtr(1)->setRVtx( xy );
+      ct->ePtr(2)->setRVtx( xy );
+
+      // debug output
+      /*cout << "FOR edges: ";
+      int i;
+      for( i=0; i<=2; i++ )
+          cout << ct->ePtr(i)->getID() << " ("
+               << ct->ePtr(i)->getOriginPtr()->getID() << ","
+               << ct->ePtr(i)->getDestinationPtr()->getID() << ") ";
+      cout << ", v verts are:\n";
+      xy = ct->ePtr(0)->getRVtx();
+      cout << "  SetVoronoiVertices(): " << xy[0] << " " << xy[1] << endl;*/
+   }
+   //cout << "SetVoronoiVertices() finished" << endl;
+}
+
+
+/**************************************************************************\
+**
+**  tGrid::CalcVoronoiEdgeLengths
+**
+**  Updates the length of the Voronoi cell edge associated with each
+**  triangle edge. Because complementary edges are stored pairwise on
+**  the edge list, we can save computation time by only computing the
+**  vedglen once for the first of the pair, then assigning it to the
+**  second. For boundary triangle edges, the corresponding Voronoi edge
+**  is infinitely long, so the calculation is only done for interior
+**  (active) edges.
+**
+**  Data mbrs modified:  (none)
+**  Calls:  tEdge::CalcVEdgLen, tEdge::setVEdgLen
+**  Assumes:  complementary edges are stored pairwise on the edge list;
+**				Voronoi vertices are up to date
+**  Notes:  replaces tNode::CalcSpokeVEdgLengths()
+**
+\**************************************************************************/
+template <class tSubNode>
+void tGrid<tSubNode>::CalcVoronoiEdgeLengths()
+{
+	tEdge *ce;
+	double vedglen;
+	tGridListIter<tEdge> edgIter( edgeList );
+	
+	for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
+	{
+		vedglen = ce->CalcVEdgLen();  // Compute Voronoi edge length
+		ce = edgIter.NextP();         // Advance to complement edge and
+		ce->setVEdgLen( vedglen );    //   and assign the same edge length.
+	}
+}
+
+
+// NB: TODO: move to tGrid
+// TODO: change L-hand to R-hand orientation of Voronoi vertices and
+// create faster Voronoi edge length computation scheme
+template <class tSubNode>
+ void tGrid<tSubNode>::CalcVAreas()
+{
+   //cout << "CalcVAreas()..." << endl << flush;
+   double area;
+   tLNode * curnode; //X *cn;
+   tEdge *ce;
+   tArray< double > xy;
+   tGridListIter<tLNode> nodIter( nodeList );
+   //XnI( nodeList );
+   //XtPtrListIter< tEdge > sI;
+   
+   for( curnode = nodIter.FirstP(); nodIter.IsActive();
+        curnode = nodIter.NextP() )
+   {
+         //area = VoronoiArea( curnode );
+      curnode->ComputeVoronoiArea();
+      
+/*      for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+      {
+         sI.Reset( cn->getSpokeListNC() );
+         cout << "node " << cn->getID() << ": ";
+         for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
+         {
+            xy = ce->getRVtx();
+            cout << xy[0] << " " << xy[1] << "; ";
+         }
+         cout << endl;
+      }*/
+         /*assert( area > 0 );
+         curnode->setVArea( area );
+         curnode->setVArea_Rcp( 1.0 / area );*/
+   }
+   //cout << "CalcVAreas() finished" << endl;
+}
+
 
 template< class tSubNode >
 int tGrid< tSubNode >::
@@ -2727,10 +2878,12 @@ UpdateMesh()
       assert( curedg > 0 ); // failure = complementary edges not consecutive
       curedg->setLength( len );
    } while( curedg=elist.NextP() );
-   MakeCCWEdges();
-   
-   
 
+   MakeCCWEdges();
+
+   SetVoronoiVertices();
+   CalcVoronoiEdgeLengths();
+   CalcVAreas();
 
 // Triangle areas
 /*   for( tlist.First(); !tlist.AtEnd(); tlist.Next() )
