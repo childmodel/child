@@ -394,7 +394,9 @@ tDataFile::tDataFile() :
   ncomment(0),
   nparam(0)
 {
-  strcpy(info,"");
+  info[0] = '\0';
+  for(size_t i=0;i<sizeof(data)/sizeof(data[0]);++i)
+    data[i] = NULL;
 }
 
 
@@ -698,12 +700,9 @@ double *tDataFile::getColumn(int colindex) const
   return clone;
 }
 
-double *tDataFile::getColumn(const char *colname) const
+double *tDataFile::getColumn(const char *colname_) const
 {
-  int   colindex;
-
-  colindex = getColIndex(colname);
-  return getColumn(colindex);
+  return getColumn( getColIndex(colname_) );
 }
 
 /*********************************************************************\
@@ -741,7 +740,7 @@ void nr_hunt(const double *xx, int n, double x, int& jlo)
 {
   int jm, jhi, inc;
 
-  int ascnd = (xx[n] >= xx[1]); // True if ascending order of tables
+  const int ascnd = (xx[n] >= xx[1]); // True if ascending order of tables
 
   if (jlo<=0 || jlo>n) { // Input use not usefull, go to bissection
     jlo = 0;
