@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.41 1998-05-04 17:48:05 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.42 1998-05-04 19:34:29 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -293,6 +293,8 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
          ReportFatalError("Problem with the proportion of grain sizes in input file");
      
    }
+
+   cout << "end tRegolith(infile)\n" << flush;
    
 }
 
