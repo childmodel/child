@@ -28,7 +28,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.23 2003-05-23 17:50:54 childcvs Exp $
+**  $Id: tStorm.h,v 1.24 2003-07-18 17:48:56 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -37,6 +37,12 @@
 
 #include "../tInputFile/tInputFile.h"
 
+#if !defined(HAVE_NO_NAMESPACE)
+# include <fstream>
+using namespace std;
+#else
+# include <fstream.h>
+#endif
 
 class tStorm
 {

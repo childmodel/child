@@ -16,7 +16,7 @@
 **     to avoid multiple definition errors resulting from mixing
 **     template & non-template classes (1/99)
 **
-**  $Id: tListInputData.h,v 1.17 2003-06-23 10:36:23 childcvs Exp $
+**  $Id: tListInputData.h,v 1.18 2003-07-18 17:48:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -30,6 +30,13 @@
 #include "../errors/errors.h"
 #include "../tArray/tArray.h"
 #include "../tInputFile/tInputFile.h"
+
+#if !defined(HAVE_NO_NAMESPACE)
+# include <fstream>
+using namespace std;
+#else
+# include <fstream.h>
+#endif
 
 #define kTimeLineMark ' '
 
