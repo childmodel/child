@@ -1,11 +1,11 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /**************************************************************************/
 /**
 **  @file tStreamNet.h
 **  @brief Header file for class tStreamNet and related class tInlet.
 **
-**  The tStreamNet class contains data and functions related to flow 
+**  The tStreamNet class contains data and functions related to flow
 **  routing across the landscape surface. Data include hydrologic
 **  parameters such as infiltration capacity, soil transmissivity, etc,
 **  as well as flags that indicate which of several different options
@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.44 2003-07-25 13:16:11 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.45 2003-08-05 13:08:52 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -116,7 +116,7 @@ private:
 **  A "Parker Channel" is one that obeys the Parker-Paola self-formed
 **  channel hypothesis for gravel-bed streams. The hypothesis states
 **  that a gravel channel with mobile bed and banks will tend to adjust
-**  its width such that the ratio of bankfull bed shear stress to critical 
+**  its width such that the ratio of bankfull bed shear stress to critical
 **  shear stress for mobilizing mean-size bed sediment (D50) is equal to
 **  a constant with a value between 1.2 - 1.4.
 **
@@ -139,19 +139,19 @@ private:
 **
 **  References:
 **     Paola, C., Heller, P.L., and Angevine, C.L., 1992, The large-scale
-**       dynamics of grain-size variation in alluvial basins, 1: theory: 
+**       dynamics of grain-size variation in alluvial basins, 1: theory:
 **       Basin Research, v. 4, p. 73-90.
-**    Parker, 1978a, Self-formed straight rivers with equilibrium banks 
-**      and mobile bed. Part 1. The sand-silt river: J. Fluid Mech, v. 89, 
+**    Parker, 1978a, Self-formed straight rivers with equilibrium banks
+**      and mobile bed. Part 1. The sand-silt river: J. Fluid Mech, v. 89,
 **      p.109-125
 **    Parker, 1978b, Self-formed straight rivers with equilibrium banks and
 **      mobile bed. Part 2. The gravel river: J. Fluid Mech, v. 89, p.127-148.
-**    Parker, G., 1979, Hydraulic geometry of active gravel rivers: Journal 
-**      of Hydraulics Division, American Society of Civil Engineering, 
+**    Parker, G., 1979, Hydraulic geometry of active gravel rivers: Journal
+**      of Hydraulics Division, American Society of Civil Engineering,
 **      v. 105, p. 1185-1201.
 **
 **  Modifications:
-**  
+**
 */
 /**************************************************************************/
 class tParkerChannels
@@ -169,7 +169,7 @@ class tParkerChannels
   int miNumGrainSizeClasses;  // Number of grain size classes
   tArray<double> mD50BySizeClass; // Array recording D50 of each size class
 };
-						      
+
 
 /**************************************************************************/
 /**
@@ -194,8 +194,8 @@ class tParkerChannels
 **     mdKinWaveExp and mdKinWaveRough
 **   - 2/00 GT added DensifyMeshDrArea plus two data members to support
 **     dynamic node addition in areas of high drainage area
-**   - 6/01 GT added miChannelType and mpParkerChannels parameters to 
-**     implement alternative "Parker Channels" 
+**   - 6/01 GT added miChannelType and mpParkerChannels parameters to
+**     implement alternative "Parker Channels"
 **     (see new class tParkerChannels)
 **
 */
@@ -242,9 +242,7 @@ public:
     void FlowDirs();
     void DrainAreaVoronoi();
     void FlowPathLength();
-    void RouteFlowArea( tLNode *, double ) const;
     void RouteFlowHydrographPeak();
-    void RouteRunoff( tLNode *, double, double ) const;
     void MakeFlow( double tm );
     void FlowUniform();
     void FlowSaturated1();
@@ -258,12 +256,15 @@ public:
     //FindHydrGeom is contingent upon current storm conditions
     //and storm variability;
     //FindChanGeom is based on the 1.5-yr storm event,
-    //or the mean rainrate if no variability:   
+    //or the mean rainrate if no variability:
     void FindChanGeom();
     void FindHydrGeom();
     void DensifyMeshDrArea( double time=0.0 );  // Densifies mesh locally
-    
+
 protected:
+    inline static void RouteFlowArea( tLNode *, double );
+    inline static void RouteRunoff( tLNode *, double, double );
+
     tMesh< tLNode > * meshPtr;  // ptr to mesh
     tStorm *stormPtr;    // ptr to storm object (for getting precip)
     int miOptFlowgen;         // option for runoff generation & routing method
@@ -286,7 +287,7 @@ protected:
     double infilt0;    // mean infilt cap
     double twoPiLam;   // Parameter for sinusoidal variation: 2pi / period
     double mdKinWaveExp;  // Depth-disch exponent for kinematic wave routing
-    double mdKinWaveRough; // Roughness coef, units m^(1/e)-2 yr, e=above exp 
+    double mdKinWaveRough; // Roughness coef, units m^(1/e)-2 yr, e=above exp
     double mdMeshAdaptMinArea;  // Dr area threshold for densifying mesh
     double mdMeshAdaptMaxVArea; // Max voronoi area for nodes above threshold
     double mdHydrgrphShapeFac;  // "Fhs" for hydrograph peak method
