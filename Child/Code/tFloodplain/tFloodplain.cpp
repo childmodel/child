@@ -8,7 +8,7 @@
 **  deposition model.
 **
 **  The class provides a constructor, which reads in and initializes
-**  all necessary parameters, and a DepositOverbank function that 
+**  all necessary parameters, and a DepositOverbank function that
 **  implements floodplain deposition.
 **
 **  The overbank deposition model works as follows. Nodes with a
@@ -30,13 +30,13 @@
 **  maximum floodplain height above the channel. This was later modified
 **  to use an exponential elevation weighting that accounts for a
 **  distribution of event sizes. In the implementation here, we can take
-**  advantage of the fact that we have an explicit distribution of event 
+**  advantage of the fact that we have an explicit distribution of event
 **  sizes (i.e., the storm events that drive the model). Thus, the
 **  elevation dependence is modeled as the difference between the local
 **  elevation and the water surface height at the nearest flood node
 **  during the current event. Water surface height is computed as the
 **  sum of the flood node elevation plus water depth as computed from a
-**  simple hydraulic geometry relation. Only events larger than a 
+**  simple hydraulic geometry relation. Only events larger than a
 **  specified precipitation rate event_min are assumed to generate
 **  overbank deposition. Taken together, the deposition rate at a point
 **  for a given event is (assuming P>Pe and WSH>Z):
@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.15 2003-05-08 09:52:39 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.16 2003-05-08 10:58:08 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -83,10 +83,11 @@
 \**************************************************************************/
 tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
   :
-  meshPtr(mp)
+  meshPtr(mp),
+  chanDriver(0)
 {
    int numg;
-   
+
    // Keep a pointer to the mesh in order to access list of nodes
    assert( meshPtr!=0 );
 
@@ -98,7 +99,7 @@ tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
    event_min = infile.ReadItem( event_min, "FP_BANKFULLEVENT" );
    fpmu = infile.ReadItem( fpmu, "FP_MU" );
    fplamda = infile.ReadItem( fplamda, "FP_LAMBDA" );
-   
+
    kdb = kdb*pow( event_min, mqbmqs );
 
    //cout << "kdb: " << kdb << "  mqbmqs " << mqbmqs << endl;
@@ -113,9 +114,19 @@ tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
    }
    if( optControlMainChan )
      chanDriver = new tMainChannelDriver( infile );
-   
+
 }
 
+/**************************************************************************\
+**
+**  @fn ~tFloodplain
+**  @brief destructor
+**
+\**************************************************************************/
+tFloodplain::~tFloodplain()
+{
+  delete chanDriver;
+}
 
 /**************************************************************************\
 **
@@ -158,7 +169,7 @@ tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
 void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 {
    if( precip < event_min ) return;
-   
+
    tMeshListIter<tLNode> ni( meshPtr->getNodeList() ); // iterator for nodes
    tList<tFloodNode> floodList;    // list of "flood nodes"
    tFloodNode floodNode,           // flood node to be added to list
@@ -172,9 +183,9 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
        dx,dy,            // x and y distance to flood node
        wsh=0.0,          // water surface height
        drarea;           // drainage area at flood node
-   
+
    //cout << "tFloodplain\n";
-   
+
    // Make a list of all nodes with a drainage area large enough to be
    // considered "flood generators". Record the highest water surface height.
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
@@ -189,12 +200,12 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
          if( floodNode.wsh > maxWSH )
              maxWSH = floodNode.wsh;
          floodList.insertAtBack( floodNode );
-      } 
+      }
    }
-   
+
    // Just in case there are no flood nodes, stop here
    if( floodList.isEmpty() ) return;
-   
+
    // For each node, find the nearest flood node and if it's WSH is above
    // the local elevation, deposit stuff
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
@@ -217,7 +228,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
                closestNode = fn->nodePtr;
                wsh = fn->wsh;
             }
-            
+
          }
          assert( closestNode!=0 ); // (should always find one)
 	 assert( wsh>0 );   // should always find a closest node & set wsh
@@ -256,7 +267,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 
 /**************************************************************************\
 **
-**  @fn OptControlMainChan()  
+**  @fn OptControlMainChan()
 **  @brief Returns TRUE if user has requested control of main channel elev.
 **
 \**************************************************************************/
@@ -265,11 +276,11 @@ bool tFloodplain::OptControlMainChan() const { return optControlMainChan; }
 
 /**************************************************************************\
 **
-**  @fn UpdateMainChannelHeight()  
+**  @fn UpdateMainChannelHeight()
 **  @brief Calls function in tMainChannelDriver to set main channel height.
 **
 \**************************************************************************/
-void tFloodplain::UpdateMainChannelHeight( double tm, tLNode * inletNode ) 
+void tFloodplain::UpdateMainChannelHeight( double tm, tLNode * inletNode )
 {
   chanDriver->UpdateMainChannelElevation( tm, inletNode );
 }
@@ -278,7 +289,7 @@ void tFloodplain::UpdateMainChannelHeight( double tm, tLNode * inletNode )
 
 /**************************************************************************\
 **
-**  @fn tMainChannelDriver( tInputFile &infile )  
+**  @fn tMainChannelDriver( tInputFile &infile )
 **  @brief tMainChannelDriver constructor
 **
 **  @param infile Reference to the input file for the run
@@ -289,7 +300,7 @@ tMainChannelDriver::tMainChannelDriver( tInputFile &infile )
   optChanAltitudeVariation = infile.ReadItem( optChanAltitudeVariation,
 					      "FP_OPTCHANALITUDEVARIATION" );
   drop = infile.ReadItem( drop, "FP_VALDROP" );
-  num_grnsize_fractions = infile.ReadItem( num_grnsize_fractions, 
+  num_grnsize_fractions = infile.ReadItem( num_grnsize_fractions,
 					   "NUMGRNSIZE" );
   if( num_grnsize_fractions <= 0 )
     ReportFatalError( "NUMGRNSIZE must be >= 1" );
@@ -310,9 +321,9 @@ tMainChannelDriver::tMainChannelDriver( tInputFile &infile )
 
 /**************************************************************************\
 **
-**  @fn UpdateMainChannelElevation( double tm )  
+**  @fn UpdateMainChannelElevation( double tm )
 **  @brief Updates elevations along the main stream channel.
-**  
+**
 **  @param tm Current time in simulation
 **
 **  This function sets elevations along the main channel as a function of
@@ -327,10 +338,10 @@ tMainChannelDriver::tMainChannelDriver( tInputFile &infile )
 **           (2) highest grain size fraction is the coarsest
 **
 \**************************************************************************/
-void tMainChannelDriver::UpdateMainChannelElevation( double tm, 
+void tMainChannelDriver::UpdateMainChannelElevation( double tm,
 						     tLNode * inletNode )
 {
-  double newInletElevation=0,
+  double newInletElevation,
     elev,
     chanslp;
   tEdge * fe;    // Ptr to flow edge of current node
@@ -346,12 +357,13 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
       break;
     default:
       assert(0);  // We should never get here!
+      abort();
     }
 
   // Compute length and slope of channel
   cn = inletNode;
   double totlen = 0.0;  // Total length of channel found so far
-  do 
+  do
     {
       fe = cn->getFlowEdg();
       assert( fe );
@@ -371,7 +383,7 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
       // Set elevation of current node
       delz[num_grnsize_fractions-1] = elev - cn->getZ();
       cn->EroDep( 0, delz, tm );
-      
+
       // Calculate new elevation of downstream node
       fe = cn->getFlowEdg();
       assert( fe );
@@ -382,6 +394,6 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
       assert( cn );
     }
   while( cn->getBoundaryFlag()==kNonBoundary );
-  
+
 
 }

@@ -18,7 +18,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.10 2003-05-06 16:51:39 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.11 2003-05-08 10:58:09 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -97,8 +97,9 @@ class tFloodplain
   tFloodplain& operator=(const tFloodplain&);
 
 public:
-    tFloodplain( tInputFile &infile, tMesh<tLNode> *mp );
-    void DepositOverbank( double precip, double delt, double ctime );
+  tFloodplain( tInputFile &infile, tMesh<tLNode> *mp );
+  ~tFloodplain();
+  void DepositOverbank( double precip, double delt, double ctime );
   bool OptControlMainChan() const;
   void UpdateMainChannelHeight( double tm, tLNode * inletNode );
 
