@@ -20,6 +20,7 @@ OBJECTS = childmain.$(OBJ) erosion.$(OBJ) meshElements.$(OBJ) mathutil.$(OBJ) \
  tInputFile.$(OBJ) tLNode.$(OBJ) tRunTimer.$(OBJ) tStreamMeander.$(OBJ) meander.$(OBJ) \
 tStorm.$(OBJ) tStreamNet.$(OBJ) tUplift.$(OBJ) errors.$(OBJ) tFloodplain.$(OBJ) \
 tEolian.$(OBJ) globalFns.$(OBJ) predicates.$(OBJ) tVegetation.$(OBJ) tListInputData.$(OBJ) \
+tTimeSeries..$(OBJ) \
 ParamMesh_t.$(OBJ) TipperTriangulator.$(OBJ) TipperTriangulatorError.$(OBJ)
 
 all : $(EXENAME)
@@ -43,14 +44,17 @@ tInputFile.$(OBJ): $(PT)/tInputFile/tInputFile.cpp
 tLNode.$(OBJ): $(PT)/tLNode/tLNode.cpp
 	$(CXX) $(CFLAGS) $(PT)/tLNode/tLNode.cpp
 
-tRunTimer.$(OBJ): $(PT)/tRunTimer/tRunTimer.cpp
-	$(CXX) $(CFLAGS) $(PT)/tRunTimer/tRunTimer.cpp
-
 tListInputData.$(OBJ): $(PT)/tListInputData/tListInputData.cpp
 	$(CXX) $(CFLAGS) $(PT)/tListInputData/tListInputData.cpp
 
-tStorm.$(OBJ): $(PT)/tStorm/tStorm.h
+tRunTimer.$(OBJ): $(PT)/tRunTimer/tRunTimer.cpp
+	$(CXX) $(CFLAGS) $(PT)/tRunTimer/tRunTimer.cpp
+
+tStorm.$(OBJ): $(PT)/tStorm/tStorm.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStorm/tStorm.cpp
+
+tTimeSeries.$(OBJ):  $(PT)/tTimeSeries/tTimeSeries.cpp
+	$(CXX) $(CFLAGS) $(PT)/tTimeSeries/tTimeSeries.cpp
 
 tStreamNet.$(OBJ): $(PT)/tStreamNet/tStreamNet.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamNet/tStreamNet.cpp
@@ -95,14 +99,13 @@ childmain.$(OBJ): $(PT)/childmain.cpp
 	$(CXX) $(CFLAGS) $(PT)/childmain.cpp
 
 clean::
-	rm -f *.$(OBJ)
 	rm -f $(EXENAME)
+	rm -f *.$(OBJ)
 
 # dependencies: headers and template implementation files.
 # use, for instance:
 # find ${CHILDCODE} -name '*.h' | xargs grep -n -e include | grep '\.cpp'
 HFILES = \
-	$(PT)/compiler.h \
 	$(PT)/Classes.h \
 	$(PT)/Definitions.h \
 	$(PT)/Erosion/erosion.h \
@@ -111,6 +114,7 @@ HFILES = \
 	$(PT)/Mathutil/mathutil.h \
 	$(PT)/MeshElements/meshElements.h \
 	$(PT)/Predicates/predicates.h \
+	$(PT)/compiler.h \
 	$(PT)/errors/errors.h \
 	$(PT)/globalFns.h \
 	$(PT)/tArray/tArray.cpp \
@@ -134,12 +138,12 @@ HFILES = \
 	$(PT)/tPtrList/tPtrList.h \
 	$(PT)/tRunTimer/tRunTimer.h \
 	$(PT)/tStorm/tStorm.h \
-	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/tStreamMeander/meander.h \
+	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/tStreamNet/tStreamNet.h \
+	$(PT)/tTimeSeries/tTimeSeries.h \
 	$(PT)/tUplift/tUplift.h \
 	$(PT)/tVegetation/tVegetation.h \
-	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/trapfpe.h
 
 ParamMesh_t.$(OBJ): $(HFILES)

@@ -31,6 +31,7 @@ OBJECTS = childmain.o erosion.o meshElements.o mathutil.o \
  tInputFile.o tLNode.o tRunTimer.o tStreamMeander.o meander.o \
 tStorm.o tStreamNet.o tUplift.o errors.o tFloodplain.o \
 tEolian.o globalFns.o predicates.o tVegetation.o tListInputData.o \
+tTimeSeries.o \
 ParamMesh_t.o TipperTriangulator.o TipperTriangulatorError.o
 
 all : $(EXENAME)
@@ -62,6 +63,9 @@ tRunTimer.o: $(PT)/tRunTimer/tRunTimer.cpp
 
 tStorm.o: $(PT)/tStorm/tStorm.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStorm/tStorm.cpp
+
+tTimeSeries.o:  $(PT)/tTimeSeries/tTimeSeries.cpp
+	$(CXX) $(CFLAGS) $(PT)/tTimeSeries/tTimeSeries.cpp
 
 tStreamNet.o: $(PT)/tStreamNet/tStreamNet.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamNet/tStreamNet.cpp
@@ -113,7 +117,6 @@ clean::
 # use, for instance:
 # find ${CHILDCODE} -name '*.h' | xargs grep -n -e include | grep '\.cpp'
 HFILES = \
-	$(PT)/compiler.h \
 	$(PT)/Classes.h \
 	$(PT)/Definitions.h \
 	$(PT)/Erosion/erosion.h \
@@ -122,6 +125,7 @@ HFILES = \
 	$(PT)/Mathutil/mathutil.h \
 	$(PT)/MeshElements/meshElements.h \
 	$(PT)/Predicates/predicates.h \
+	$(PT)/compiler.h \
 	$(PT)/errors/errors.h \
 	$(PT)/globalFns.h \
 	$(PT)/tArray/tArray.cpp \
@@ -145,12 +149,12 @@ HFILES = \
 	$(PT)/tPtrList/tPtrList.h \
 	$(PT)/tRunTimer/tRunTimer.h \
 	$(PT)/tStorm/tStorm.h \
-	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/tStreamMeander/meander.h \
+	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/tStreamNet/tStreamNet.h \
+	$(PT)/tTimeSeries/tTimeSeries.h \
 	$(PT)/tUplift/tUplift.h \
 	$(PT)/tVegetation/tVegetation.h \
-	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/trapfpe.h
 
 ParamMesh_t.o: $(HFILES)
@@ -173,7 +177,6 @@ tRunTimer.o: $(HFILES)
 tStorm.o : $(HFILES)
 tStreamMeander.o: $(HFILES)
 tStreamNet.o: $(HFILES)
+tTimeSeries.o : $(HFILES)
 tUplift.o: $(HFILES)
 tVegetation.o: $(HFILES)
-
-

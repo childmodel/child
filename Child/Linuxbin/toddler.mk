@@ -15,7 +15,7 @@ WARNINGFLAGS += -Wold-style-cast
 #WARNINGFLAGS += -DHAVE_NO_NAMESPACE
 
 # -march=i686: generates code for pentiumpro and later
-# -march=pentium3: generates code for pentium III
+# -march=pentium3: generates code for pentium III and later
 #ARCH := -march=i686
 ARCH := -march=pentium3
 # optimise
@@ -31,6 +31,7 @@ OBJECTS = toddlermain.o erosion.o meshElements.o mathutil.o \
  tInputFile.o tLNode.o tRunTimer.o \
 tStorm.o tStreamNet.o tUplift.o errors.o tFloodplain.o \
 tEolian.o globalFns.o predicates.o tVegetation.o tListInputData.o \
+tTimeSeries.o \
 ParamMesh_t.o TipperTriangulator.o TipperTriangulatorError.o
 
 all : $(EXENAME)
@@ -62,6 +63,9 @@ tRunTimer.o: $(PT)/tRunTimer/tRunTimer.cpp
 
 tStorm.o: $(PT)/tStorm/tStorm.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStorm/tStorm.cpp
+
+tTimeSeries.o:  $(PT)/tTimeSeries/tTimeSeries.cpp
+	$(CXX) $(CFLAGS) $(PT)/tTimeSeries/tTimeSeries.cpp
 
 tStreamNet.o: $(PT)/tStreamNet/tStreamNet.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamNet/tStreamNet.cpp
@@ -107,7 +111,6 @@ clean::
 # use, for instance:
 # find ${CHILDCODE} -name '*.h' | xargs grep -n -e include | grep '\.cpp'
 HFILES = \
-	$(PT)/compiler.h \
 	$(PT)/Classes.h \
 	$(PT)/Definitions.h \
 	$(PT)/Erosion/erosion.h \
@@ -116,6 +119,7 @@ HFILES = \
 	$(PT)/Mathutil/mathutil.h \
 	$(PT)/MeshElements/meshElements.h \
 	$(PT)/Predicates/predicates.h \
+	$(PT)/compiler.h \
 	$(PT)/errors/errors.h \
 	$(PT)/globalFns.h \
 	$(PT)/tArray/tArray.cpp \
@@ -141,6 +145,7 @@ HFILES = \
 	$(PT)/tStorm/tStorm.h \
 	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/tStreamNet/tStreamNet.h \
+	$(PT)/tTimeSeries/tTimeSeries.h \
 	$(PT)/tUplift/tUplift.h \
 	$(PT)/tVegetation/tVegetation.h \
 	$(PT)/trapfpe.h
@@ -162,6 +167,7 @@ tListInputData.o: $(HFILES)
 tRunTimer.o: $(HFILES)
 tStorm.o : $(HFILES)
 tStreamNet.o: $(HFILES)
+tTimeSeries.o : $(HFILES)
 tUplift.o: $(HFILES)
 tVegetation.o: $(HFILES)
 toddlermain.o : $(HFILES)
