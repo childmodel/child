@@ -6,7 +6,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.17 2002-11-07 17:42:25 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.18 2002-11-29 13:42:34 childcvs Exp $
 \****************************************************************************/
 
 #if !defined(HAVE_NO_NAMESPACE)
@@ -18,6 +18,8 @@ using namespace std;
 #include "../tAssert.h"
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
+
 //#include "../Definitions.h"
 //#include "../Classes.h"
 #include "tInputFile.h"
@@ -62,6 +64,13 @@ tInputFile::tInputFile( const char *filename )
        cerr << "(Error generated in module tInputFile, function tInputFile::tInputFile( const char * ) )\n";
        ReportFatalError( "The specified path name may not exist.\n" );
      }
+ 
+   {
+     const time_t now = time(NULL);
+     char *p = ctime(&now);
+     *strchr(p, '\n') = '\0';
+     inoutfile << "# Created by CHILD on " << p << "." << endl;
+   }
    inoutfile_opened = true;
 }
 
