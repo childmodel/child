@@ -15,14 +15,6 @@
 **
 \**************************************************************************/
 
-// edge numbering translation
-static inline int e_t2c(int ei, bool o){ // Tipper to child
-  return o? 2*ei : 2*ei+1;
-}
-static inline int e_t2c(const oriented_edge &oe){
-  return e_t2c(oe.e(), oe.o());
-}
-
 template< class tSubNode >
 void tMesh< tSubNode >::
 MakeMeshFromScratchTipper( tInputFile &infile )
@@ -41,6 +33,38 @@ MakeMeshFromScratchTipper( tInputFile &infile )
      MakePointInterior(Param, infile, false);
      nnodes = nodeList.getSize();
    }
+   
+   // call triangulator based on Tipper's method
+   BuildDelaunayMeshTipper();
+
+   cout<<"MakeMeshFromScratchTipper done.\n";
+}
+
+/**************************************************************************\
+**
+**   tMesh::BuildDelaunayMeshTipper()
+**
+**   once nodeList is set up, build a Delaunay triangulation using Tipper's
+**   algorithm.
+**
+**   Created: 07/2002, Arnaud Desitter
+**   Calls: 
+**   Parameters: 
+**   Modified: 
+**
+\**************************************************************************/
+// edge numbering translation
+static inline int e_t2c(int ei, bool o){ // Tipper to child
+  return o? 2*ei : 2*ei+1;
+}
+static inline int e_t2c(const oriented_edge &oe){
+  return e_t2c(oe.e(), oe.o());
+}
+
+template< class tSubNode >
+void tMesh< tSubNode >::
+BuildDelaunayMeshTipper()
+{
    point *p = new point[nnodes];   // for Tipper triangulator 
    {
      tMeshListIter< tSubNode > nodIter(nodeList);
@@ -290,7 +314,6 @@ MakeMeshFromScratchTipper( tInputFile &infile )
    //
    UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
    CheckMeshConsistency();                     //remove CMC call from UM
-   cout<<"MakeMeshFromScratchTipper done.\n";
 }
 
 
