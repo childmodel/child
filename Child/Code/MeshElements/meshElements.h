@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.45 2003-05-06 12:14:43 childcvs Exp $
+**  $Id: meshElements.h,v 1.46 2003-05-06 16:33:49 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -209,6 +209,7 @@ public:
   //~tEdge();               // destructor
 
   const tEdge &operator=( const tEdge & );  // assignment operator
+  void InitializeEdge( tNode*, tNode*, tNode* );
   inline int getID() const;            // returns ID number
   int getBoundaryFlag() const;  // returns boundary status (flow or no flow)
   double getLength() const;     // returns edge's length (projected)

@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.50 2003-05-06 12:14:43 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.51 2003-05-06 16:33:47 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -687,6 +687,53 @@ tEdge * tEdge::FindComplement()
 
 }
 
+//***************************************************************************
+// InitializeEdge: Function to initialize edge by setting its origin
+//   to n1, dest to n2, and putting it in spoke list of n1. The third node,
+//   n3, is the third node of the triangle, and, so, n1, n2, and n3 are
+//   _clockwise_ rather than ccw as are the similar arguments in
+//   tMesh::AddEdge(...)
+// 3/99 SL
+// 4/2003 AD
+//***************************************************************************
+void tEdge::InitializeEdge( tNode* n1, tNode* n2, tNode* n3 )
+{
+   assert( n1!=0 && n2!=0 && n3!=0 );
+   setOriginPtr( n1 );
+   setDestinationPtr( n2 );
+   setFlowAllowed(n1, n2);
+   len = slope = vedglen = 0.0;
+   tSpkIter sI( n1 );
+   //add pointers to the new edge to node's spokeLists:
+   if( sI.isEmpty() )
+       sI.insertAtFront( this );
+   else if( sI.ReportNextP() == sI.CurSpoke() )
+       sI.insertAtFront( this );
+   else
+   {
+      tEdge* ce;
+      for( ce = sI.FirstP();
+           ce->getDestinationPtr() != n3 && !( sI.AtEnd() );
+           ce = sI.NextP() );
+      //make sure we found the right spoke; if not:
+      if( sI.AtEnd() )
+      {
+         for( ce = sI.FirstP();
+              !( sI.AtEnd() );
+              ce = sI.NextP() )
+         {
+	   if( PointsCCW( UnitVector( ce ),
+			  UnitVector( this ),
+			  UnitVector( sI.ReportNextP() )
+			  )
+	       )
+	     break;
+         }
+      }
+      //put edge2 in SPOKELIST:
+      sI.insertAtNext( this );
+   }
+}
 
 /**************************************************************************\
 **
@@ -704,10 +751,11 @@ tEdge * tEdge::FindComplement()
 //   n0, n1, n2; edge ptrs to appropriate edges; and nbr triangles. Also
 //   resets edges' tri ptrs. Nodes in argument are given in ccw order.
 // 3/99 SL
+// 4/2003 AD
 //***************************************************************************
 void tTriangle::InitializeTriangle( tNode* n0, tNode* n1, tNode* n2 )
 {
-   assert( n0 > 0 && n1 > 0 && n2 > 0 );
+   assert( n0 != 0 && n1 != 0 && n2 != 0 );
    p[0] = n0;
    p[1] = n1;
    p[2] = n2;
@@ -724,32 +772,30 @@ void tTriangle::InitializeTriangle( tNode* n0, tNode* n1, tNode* n2 )
    // we need to find the triangle that points to edge (p0->p1), and so on.
    // In general, t((j+2)%3) is the triangle that points to edge
    // p(j)->p((j+1)%3).
-   tTriangle* nbrtriPtr = 0;
-   tEdge* ce;
-   int i,j;
-   for( j=0; j<3; j++ )
+   for( int j=0; j<3; j++ )
    {
       // Find edge ce that connects p(j)->p(j+1)
-      ce = p[j]->EdgToNod( p[(j+1)%3] );
+      tEdge* ce = p[j]->EdgToNod( p[(j+1)%3] );
       // Find the triangle, if any, that shares (points to) this edge
       // and assign it as the neighbor triangle t((j+2)%3).
-      nbrtriPtr = ce->TriWithEdgePtr();
+      tTriangle* nbrtriPtr = ce->TriWithEdgePtr();
       t[(j+2)%3] = nbrtriPtr;  //set tri TRI ptr (j+2)%3
       // If a neighboring triangle was found, tell it that the current
       // new triangle is its neighbor too. We need to tell it which
       // neighbor we are (0, 1, or 2), and the mapping is like this:
       // if the nbr tri calls the shared edge (0,1,2) then we are its
       // nbr (1,2,0). (ie, tri_number = (edg_number+1)%3 )
-      if( nbrtriPtr > 0 )
+      if( nbrtriPtr != 0 )
       {
-         for( i=0; i<3; ++i )
-         {
-            assert( nbrtriPtr->e[i] > 0 );
-            assert( ce > 0 );
+	int i;
+	for( i=0; i<3; ++i )
+	  {
+            assert( nbrtriPtr->e[i] != 0 );
+            assert( ce != 0 );
             if( nbrtriPtr->e[i] == ce ) break;
-         }
-         assert( i < 3 );
-         nbrtriPtr->t[(i+1)%3] = this;  //set NBR TRI ptr to tri
+	  }
+	assert( nbrtriPtr->e[i] == ce );
+	nbrtriPtr->t[(i+1)%3] = this;  //set NBR TRI ptr to tri
       }
    }
 }
