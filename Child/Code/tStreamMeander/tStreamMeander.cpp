@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.19 1998-02-20 00:11:39 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.20 1998-02-20 23:03:22 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -85,6 +85,9 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
    assert( leavefrac > 0 );
    vegerod = infile.ReadItem( vegerod, "VEG_ERODY" );
    rockerod = infile.ReadItem( rockerod, "KB" );
+   double shrcoeff = 1.0 / ( 1000.0 * 9.81 * pow( knds / kwds, 0.6 ) );
+   vegerod *= shrcoeff;
+   rockerod *= shrcoeff;
    //MakeReaches();
    assert( &reachList != 0 );
 }
