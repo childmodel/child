@@ -4,7 +4,7 @@
 **  @brief Global functions used by tGrid and other modules of
 **         CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.9 2003-02-11 17:43:56 childcvs Exp $
+**  $Id: globalFns.cpp,v 1.10 2003-02-12 10:52:23 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -79,8 +79,8 @@ int TriPasses( tArray< double > const &ptest,
                tArray< double > const &p1,
                tArray< double > const &p2 )
 {
-   assert( (&ptest != 0) && (&p0 != 0) && (&p1 != 0) && (&p1 != 0) );
-     //cout << "TriPasses? ";
+   if (0) //DEBUG
+     cout << "TriPasses? ";
    double dx0, dx1, dy0, dy1;
    double crossp,      // cross-product
        dotp,           // dot-product
@@ -135,31 +135,13 @@ int PointsCCW( tArray< double > const &p0,
                tArray< double > const &p1,
                tArray< double > const &p2 )
 {
-   assert( &p0 != 0 && &p1 != 0 && &p1 != 0 );
-     //cout << "PointsCCW? ";
+   if (0) //DEBUG
+     cout << "PointsCCW? ";
    const double* a0 = p0.getArrayPtr();
    const double* a1 = p1.getArrayPtr();
    const double* a2 = p2.getArrayPtr();
-   //NEW: call exact arithmetic predicate:
+   // call exact arithmetic predicate:
    return ( predicate.orient2d( a0, a1, a2 ) > 0 );
-   /*
-   double dx0, dx1, dy0, dy1;
-   double crossp;
-   dx0 = p1[0] - p0[0];
-   dx1 = p2[0] - p0[0];
-   dy0 = p1[1] - p0[1];
-   dy1 = p2[1] - p0[1];
-   crossp = dx0 * dy1 - dx1 * dy0;
-   if( crossp > 0 )
-   {
-        //cout << "Yes" << endl;
-      return 1;
-   }
-   else
-   {
-        //cout << "No" << endl;
-      return 0;
-   }*/
 }
 
 
@@ -249,8 +231,8 @@ int InNewTri( tArray< double > const &xy, tTriangle *ct )
 /*****************************************************************************/
 int Intersect( tEdge * ae, tEdge * be )
 {
-   //cout << "Intersect(...)..." << endl;
-   //Xint i;
+   if (0) //DEBUG
+     cout << "Intersect(...)..." << endl;
    tLNode * lnode;
    
    if( !ae || !be )
@@ -439,8 +421,8 @@ int Intersect( tEdge * ae, tEdge * be )
 /*****************************************************************************/
 tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
 {
-   //cout << "IntersectsAnyEdge( tEdge * edge )..." << endl;
-   //Xint i;
+   if (0) //DEBUG
+     cout << "IntersectsAnyEdge( tEdge * edge )..." << endl;
    tEdge * ce;
    tPtrListIter< tEdge > edgIter( edglistRef );
    if( !edge )
