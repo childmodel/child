@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.72 2004-03-26 18:11:32 childcvs Exp $
+**  $Id: meshElements.h,v 1.73 2004-03-29 16:01:21 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -268,6 +268,7 @@ public:
   tEdge * FindComplement();  // returns ptr to edge's complement
   inline tTriangle* TriWithEdgePtr();
   inline void setTri( tTriangle* );
+  bool CheckConsistency();
 
   inline bool isFlippable() const;
 

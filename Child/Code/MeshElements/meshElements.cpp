@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.67 2004-02-27 18:44:18 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.68 2004-03-29 16:01:23 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -680,6 +680,85 @@ tEdge * tEdge::FindComplement()
    return ce;
    // TODO: test for infinite loop using assert
 
+}
+
+/**************************************************************************\
+**
+**  tEdge::CheckConsistency
+**
+**  Check for valid origin, destination, and ccwedg
+**  Previously in tMesh.
+**
+**  AD - March 2004
+**
+\**************************************************************************/
+bool tEdge::CheckConsistency(){
+  tNode * org, * dest;
+
+  if( (org=getOriginPtrNC() ) == NULL)
+    {
+      cerr << "EDGE #" << getID()
+	   << " does not have a valid origin point\n";
+      return false;
+    }
+  if( (dest=getDestinationPtrNC() ) == NULL)
+    {
+      cerr << "EDGE #" << getID()
+	   << " does not have a valid destination point\n";
+      return false;
+    }
+  if( (ccwedg=getCCWEdg() ) == NULL)
+    {
+      cerr << "EDGE #" << getID()
+	   << " does not point to a valid counter-clockwise edge\n";
+      return false;
+    }
+  if( ccwedg->getOriginPtrNC()!=org )
+    {
+      cerr << "EDGE #" << getID()
+	   << " points to a CCW edge with a different origin\n";
+      return false;
+    }
+  if( ccwedg->getDestinationPtrNC()==dest )
+    {
+      cerr << "EDGE #" << getID()
+	   << " points to a CCW edge with the same destination\n";
+      return false;
+    }
+  tEdge *cwedg;
+  if( (cwedg=getCWEdg() ) == NULL)
+    {
+      cerr << "EDGE #" << getID()
+	   << " does not point to a valid clockwise edge\n";
+      return false;
+    }
+  if( cwedg->getOriginPtrNC()!=org )
+    {
+      cerr << "EDGE #" << getID()
+	   << " points to a CW edge with a different origin\n";
+      return false;
+    }
+  if( cwedg->getDestinationPtrNC()==dest )
+    {
+      cerr << "EDGE #" << getID()
+	   << " points to a CCW edge with the same destination\n";
+      return false;
+    }
+  if ( getCCWEdg()->getCWEdg() != this ||
+       getCWEdg()->getCCWEdg() != this)
+    {
+      cerr << "EDGE #" << getID()
+	   << ": inconsistency related to pointers to CW and CCW edges\n";
+      return false;
+    }
+
+  if( org==dest )
+    {
+      cerr << "EDGE #" << getID()
+	   << " has the same origin and destination nodes\n";
+      return false;
+    }
+  return true;
 }
 
 //***************************************************************************

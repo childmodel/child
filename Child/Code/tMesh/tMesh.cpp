@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.203 2004-03-26 18:11:34 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.204 2004-03-29 16:01:19 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2177,8 +2177,8 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
    nodeListIter_t nodIter( nodeList );
    edgeListIter_t edgIter( edgeList );
    triListIter_t triIter( triList );
-   tNode * cn, * org, * dest;
-   tEdge * ce, * cne, * ccwedg;
+   tNode * cn;
+   tEdge * ce, * cne;
    tTriangle * ct, * optr;
    bool boundary_check_ok;
    const bool verbose = false;
@@ -2213,76 +2213,12 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
 	       << " should have respectively an even and odd ID.\n";
           goto error;
 	}
-   }
-
-   // Edges: check for valid origin, destination, and ccwedg
-   for( ce=edgIter.FirstP(); !(edgIter.AtEnd()); ce=edgIter.NextP() )
-   {
-      if( (org=ce->getOriginPtrNC() ) == NULL)
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " does not have a valid origin point\n";
-         goto error;
-      }
-      if( (dest=ce->getDestinationPtrNC() ) == NULL)
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " does not have a valid destination point\n";
-         goto error;
-      }
-      if( (ccwedg=ce->getCCWEdg() ) == NULL)
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " does not point to a valid counter-clockwise edge\n";
-         goto error;
-      }
-      if( ccwedg->getOriginPtrNC()!=org )
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " points to a CCW edge with a different origin\n";
-         goto error;
-      }
-      if( ccwedg->getDestinationPtrNC()==dest )
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " points to a CCW edge with the same destination\n";
-         goto error;
-      }
-      tEdge *cwedg;
-      if( (cwedg=ce->getCWEdg() ) == NULL)
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " does not point to a valid clockwise edge\n";
-         goto error;
-      }
-      if( cwedg->getOriginPtrNC()!=org )
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " points to a CW edge with a different origin\n";
-         goto error;
-      }
-      if( cwedg->getDestinationPtrNC()==dest )
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " points to a CCW edge with the same destination\n";
-         goto error;
-      }
-      if ( ce->getCCWEdg()->getCWEdg() != ce ||
-	   ce->getCWEdg()->getCCWEdg() != ce)
-      {
-	cerr << "EDGE #" << ce->getID()
-	     << ": inconsistency related to pointers to CW and CCW edges\n";
+      if (!ce->CheckConsistency())
 	goto error;
-      }
-
-      if( org==dest )
-      {
-         cerr << "EDGE #" << ce->getID()
-              << " has the same origin and destination nodes\n";
-         goto error;
-      }
-
+      if (!cne->CheckConsistency())
+	goto error;
    }
+
    // Edges: check active/boundary list
    if (edgeList.CheckConsistency("edge"))
      goto error;
