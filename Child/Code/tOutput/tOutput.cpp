@@ -4,9 +4,10 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.40 2000-06-08 20:12:02 daniel Exp $
+**  $Id: tOutput.cpp,v 1.41 2000-06-24 15:14:18 gtucker Exp $
 \*************************************************************************/
 
+#include <math.h>    // For fmod function
 #include "tOutput.h"
 
 
@@ -241,7 +242,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
        strncat( ext, &nums[counter], 1);
    else if(counter>=10){
       strncat(ext, &nums[counter/10], 1);
-      strncat(ext, &nums[(int) fmodf((double)counter,10.0)], 1);
+      strncat(ext, &nums[(int) fmod((double)counter,10.0)], 1);
    }
    CreateAndOpenFile( &layofs, ext );
    counter++;

@@ -15,8 +15,11 @@
 **  Summary of recent changes:
 **    - added data mbr mSearchOriginTriPtr to implement triangle search
 **      starting from a given location, GT, 1/2000
+**    - added default argument "interpFlag" to MoveNodes() in order
+**      to have nodes moved w/o interpolation (eg, for tectonic movement)
+**      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.25 2000-03-09 20:09:53 gtucker Exp $
+**  $Id: tMesh.h,v 1.26 2000-06-24 15:16:39 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -125,7 +128,7 @@ public:
    //once 'newx' and 'newy' are set, this is the only function one needs to call
    //to execute the move; maybe should have a separate function for doing things
    //peculiar to channels, but now this is the only one. 
-   void MoveNodes( double time = 0.0 );
+   void MoveNodes( double time = 0.0, int interpFlag=1 );
    /*end moving routines*/
 
    void AddNodesAround( tSubNode *, double time=0.0 );  // Local mesh densify
