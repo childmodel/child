@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.134 2004-04-27 10:40:18 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.135 2004-04-27 13:44:46 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -383,7 +383,7 @@ tBedErodePwrLaw::tBedErodePwrLaw( const tInputFile &infile )
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
 
-  if( n->getFloodStatus() != kNotFlooded) return 0.0;
+  if( n->getFloodStatus() != tLNode::kNotFlooded) return 0.0;
   const double slp = n->calcSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
@@ -425,7 +425,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
     cout<<"in detach capacity "<<endl<<flush;
   assert( n->getQ()>=0.0 );
 
-  if( n->getFloodStatus() != kNotFlooded) return 0.0;
+  if( n->getFloodStatus() != tLNode::kNotFlooded) return 0.0;
   const double slp = n->calcSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
@@ -474,7 +474,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
 {
-  if( n->getFloodStatus() != kNotFlooded) return 0.0;
+  if( n->getFloodStatus() != tLNode::kNotFlooded) return 0.0;
   const double slp = n->calcSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
@@ -581,7 +581,7 @@ tBedErodePwrLaw2::tBedErodePwrLaw2( const tInputFile &infile )
 \***************************************************************************/
 double tBedErodePwrLaw2::DetachCapacity( tLNode * n, double dt )
 {
-  if( n->getFloodStatus() != kNotFlooded) return 0.0;
+  if( n->getFloodStatus() != tLNode::kNotFlooded) return 0.0;
   const double slp = n->calcSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw2::DetachCapacity(tLNode*,double)");
@@ -613,7 +613,7 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n )
     cout<<"in detach capacity "<<endl<<flush;
   assert( n->getQ()>=0.0 );
 
-  if( n->getFloodStatus() != kNotFlooded) return 0.0;
+  if( n->getFloodStatus() != tLNode::kNotFlooded) return 0.0;
   const double slp = n->calcSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw2::DetachCapacity(tLNode*)");
@@ -653,7 +653,7 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n )
 \***************************************************************************/
 double tBedErodePwrLaw2::DetachCapacity( tLNode * n, int i )
 {
-  if( n->getFloodStatus() != kNotFlooded) return 0.0;
+  if( n->getFloodStatus() != tLNode::kNotFlooded) return 0.0;
   const double slp = n->calcSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw2::DetachCapacity(tLNode*)");
@@ -754,7 +754,7 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node )
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
   double tau, tauex, cap = 0;
-  if( node->getFloodStatus() == kNotFlooded )
+  if( node->getFloodStatus() == tLNode::kNotFlooded )
     {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
@@ -791,7 +791,7 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
     ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
   double tau, tauex, cap = 0;
 
-  if( node->getFloodStatus() == kNotFlooded )
+  if( node->getFloodStatus() == tLNode::kNotFlooded )
     {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
@@ -853,7 +853,7 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node )
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
   double tau, tauexpf, cap = 0;
-  if( node->getFloodStatus() == kNotFlooded )
+  if( node->getFloodStatus() == tLNode::kNotFlooded )
     {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
@@ -887,7 +887,7 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node, int lyr, double weight )
     ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
   double tau, tauexpf, cap = 0;
 
-  if( node->getFloodStatus() == kNotFlooded )
+  if( node->getFloodStatus() == tLNode::kNotFlooded )
     {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
@@ -957,7 +957,7 @@ double tSedTransBridgeDom::TransCapacity( tLNode *node )
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
   double tau, tauex, ustarex, cap = 0;
-  if( node->getFloodStatus() == kNotFlooded )
+  if( node->getFloodStatus() == tLNode::kNotFlooded )
     {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );

@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.91 2004-04-22 17:29:46 childcvs Exp $
+ **  $Id: tLNode.h,v 1.92 2004-04-27 13:44:48 childcvs Exp $
  */
 /************************************************************************/
 
@@ -55,26 +55,6 @@ class tStratNode;
 class tStratGrid;
 
 #include "../compiler.h"
-
-typedef enum {
-  kFlooded     = 1,  // Flooding (lake) codes: part of a lake...
-  kNotFlooded  = 0,  // ...or not...
-  kCurrentLake = 2,  // ...or part one that is currently being computed...
-  kSink        = 3,  // ...or a dry sink (unfilled depression).
-  kOutletFlag  = 4,  // Used as temporary flag in FillLakes.
-  kOutletPreFlag= 5  // ditto
-} tFlood_t;
-
-inline const char* FloodName( tFlood_t f ){
-  switch(f){
-  case kFlooded:      return "1-Flooded";
-  case kNotFlooded:   return "0-NotFlooded";
-  case kCurrentLake:  return "2-CurrentLake";
-  case kSink:         return "3-Sink";
-  case kOutletFlag:   return "4-OutletFlag";
-  case kOutletPreFlag:return "5-OutletPreFlag";
-  }
-}
 
 #define kVeryHigh 100000  // Used in FillLakes
 
@@ -450,6 +430,26 @@ private:
 class tLNode : public tNode
 {
 public:
+  typedef enum {
+    kFlooded     = 1,  // Flooding (lake) codes: part of a lake...
+    kNotFlooded  = 0,  // ...or not...
+    kCurrentLake = 2,  // ...or part one that is currently being computed...
+    kSink        = 3,  // ...or a dry sink (unfilled depression).
+    kOutletFlag  = 4,  // Used as temporary flag in FillLakes.
+    kOutletPreFlag= 5  // ditto
+  } tFlood_t;
+
+  static const char* FloodName( tFlood_t f ){
+    switch(f){
+    case kFlooded:      return "1-Flooded";
+    case kNotFlooded:   return "0-NotFlooded";
+    case kCurrentLake:  return "2-CurrentLake";
+    case kSink:         return "3-Sink";
+    case kOutletFlag:   return "4-OutletFlag";
+    case kOutletPreFlag:return "5-OutletPreFlag";
+    }
+  }
+
   tLNode();
   tLNode( const tInputFile &infile );
   tLNode( const tLNode & );
@@ -694,7 +694,7 @@ public:
   int public1; // a "public" member that can be used for various purpose
 };
 
-inline tFlood_t tLNode::getFloodStatus() const { return flood; }
+inline tLNode::tFlood_t tLNode::getFloodStatus() const { return flood; }
 
 inline void tLNode::setFloodStatus( tFlood_t status )
 {

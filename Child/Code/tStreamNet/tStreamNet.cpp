@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.77 2004-04-27 11:09:05 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.78 2004-04-27 13:44:48 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -529,7 +529,7 @@ int tStreamNet::CheckNetConsistencyFlowPath( tLNode **pcn )
       int ctr = 1;
       tLNode *dn = cn->getDownstrmNbr();
       while( dn->getBoundaryFlag() == kNonBoundary
-             && dn->getFloodStatus() != kSink )
+             && dn->getFloodStatus() != tLNode::kSink )
       {
          dn = dn->getDownstrmNbr();
          ctr++;
@@ -549,7 +549,7 @@ int tStreamNet::CheckNetConsistencyFlowPath( tLNode **pcn )
       }
       if( !metExistingFlowPath &&
 	  dn->getBoundaryFlag() != kOpenBoundary
-          && dn->getFloodStatus() != kSink )
+          && dn->getFloodStatus() != tLNode::kSink )
       {
          cerr << "NODE #" << cn->getID()
               << " does not flow to outlet\n"
@@ -568,7 +568,7 @@ int tStreamNet::CheckNetConsistencyFlowPath( tLNode **pcn )
 	  }
       } else {
 	while( dn->getBoundaryFlag() == kNonBoundary
-	       && dn->getFloodStatus() != kSink )
+	       && dn->getFloodStatus() != tLNode::kSink )
 	  {
 	    dn->public1 = valid;
 	    dn = dn->getDownstrmNbr();
@@ -626,7 +626,7 @@ void tStreamNet::CheckMeander() const
    	      cout <<cn->getID()<<" "
 		   <<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()
 		   <<" M: "<<cn->Meanders()
-		   <<" F: "<< FloodName(cn->getFloodStatus())<<endl;
+		   <<" F: "<< tLNode::FloodName(cn->getFloodStatus())<<endl;
    	      cn=cn->getDownstrmNbr();
    	      counter++;
          }
@@ -657,7 +657,7 @@ void tStreamNet::CheckMeander() const
           cout <<surnode->getID()<<" "
 	       <<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()
 	       <<" M: "<<surnode->Meanders()
-	       <<" F: "<< FloodName(surnode->getFloodStatus()) <<endl;
+	       <<" F: "<< tLNode::FloodName(surnode->getFloodStatus()) <<endl;
         }
 
         cout<<"   "<<endl;
@@ -669,7 +669,7 @@ void tStreamNet::CheckMeander() const
           cout<<surnode->getID()<<" "
 	      <<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()
 	      <<" M: "<< surnode->Meanders()
-	      <<" F: "<< FloodName(surnode->getFloodStatus())<<endl;
+	      <<" F: "<< tLNode::FloodName(surnode->getFloodStatus())<<endl;
         }
 
         cout<<"     "<<endl;
@@ -681,7 +681,7 @@ void tStreamNet::CheckMeander() const
    	      cout<<cn->getID()<<" "
 		  <<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()
 		  <<" M: "<<cn->Meanders()
-		  <<" F: "<<FloodName(cn->getFloodStatus())<<endl;
+		  <<" F: "<<tLNode::FloodName(cn->getFloodStatus())<<endl;
    	      cn=cn->getDownstrmNbr();
    	      counter++;
          }
@@ -723,7 +723,7 @@ void tStreamNet::CheckMeander() const
             cout<<surnode->getID()<<" "
 		<<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()
 		<<" M: "<<surnode->Meanders()
-		<<" F: "<<FloodName(surnode->getFloodStatus())<<endl;
+		<<" F: "<<tLNode::FloodName(surnode->getFloodStatus())<<endl;
           }
          }
 
@@ -736,7 +736,7 @@ void tStreamNet::CheckMeander() const
           cout<<surnode->getID()<<" "
 	      <<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()
 	      <<" M: "<<surnode->Meanders()
-	      <<" F: "<<FloodName(surnode->getFloodStatus())<<endl;
+	      <<" F: "<<tLNode::FloodName(surnode->getFloodStatus())<<endl;
         }
 
 	cout<<"     "<<endl;
@@ -747,7 +747,7 @@ void tStreamNet::CheckMeander() const
 	  cout<<cn->getID()<<" "
 	      <<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()
 	      <<" M: "<<cn->Meanders()
-	      <<" F: "<<FloodName(cn->getFloodStatus())<<endl;
+	      <<" F: "<<tLNode::FloodName(cn->getFloodStatus())<<endl;
 	  cn=cn->getDownstrmNbr();
 
 	  counter++;
@@ -758,10 +758,10 @@ void tStreamNet::CheckMeander() const
       }
 
       if(cn != NULL){
-        if(cn->getFloodStatus() != kNotFlooded){
+        if(cn->getFloodStatus() != tLNode::kNotFlooded){
       	  cout<<"Warning: node "<<cn->getID()<<' '
 	      <<cn->getX()<<' '<<cn->getY()<<' '<<cn->getZ()<<endl;
-      	  cout<<"has flood status: "<<FloodName(cn->getFloodStatus())<<endl;
+      	  cout<<"has flood status: "<<tLNode::FloodName(cn->getFloodStatus())<<endl;
       	}
       }
 
@@ -807,7 +807,7 @@ void tStreamNet::ShowMeanderNeighbours(int debugID) const
                  cout<<surnode->getID()<<" "
 		     <<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()
 		     <<" M: "<<surnode->Meanders()
-		     <<" F: "<<FloodName(surnode->getFloodStatus())<<endl;
+		     <<" F: "<<tLNode::FloodName(surnode->getFloodStatus())<<endl;
                 }
    	      }
 
@@ -1115,7 +1115,7 @@ void tStreamNet::FlowDirs()
    while( i.IsActive() )  // DO for each non-boundary (active) node   = LOOP OVER NODES !
    {
       selectslope = 0.0;
-      curnode->setFloodStatus( kNotFlooded );  // Init flood status flag
+      curnode->setFloodStatus( tLNode::kNotFlooded );  // Init flood status flag
       firstedg =  curnode->getFlowEdg();
       if( unlikely(firstedg == 0) ) {
           curnode->TellAll();
@@ -1288,11 +1288,11 @@ void tStreamNet::FlowDirs()
 
        // If the selected node has a positve slope
       if( (selectslope>0) && (curnode->getBoundaryFlag() != kClosedBoundary) ){
-          curnode->setFloodStatus( kNotFlooded );
+          curnode->setFloodStatus( tLNode::kNotFlooded );
 
       }
       else{
-         curnode->setFloodStatus( kSink );
+         curnode->setFloodStatus( tLNode::kSink );
          if( curnode->Meanders() ){
           cout<<"WARNING-Type 2, from tStreamNet::CalcSlopes....detected a meander node without positive drainage"<<endl;
           cout<<"ID= "<<curnode->getID()<<", X= "<<curnode->getX()<<", Y= "<<curnode->getY()<<", Z= "<<curnode->getZ()<<endl;
@@ -1477,7 +1477,7 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
    // _addedArea_ to its total drainage area and advance to the next node
    // downstream
    while( (curnode->getBoundaryFlag() == kNonBoundary) &&
-	  (curnode->getFloodStatus()!=kSink) )
+	  (curnode->getFloodStatus()!=tLNode::kSink) )
    {
       curnode->AddDrArea( addedArea );
       curnode = curnode->getDownstrmNbr();
@@ -1519,7 +1519,7 @@ void tStreamNet::RouteRunoff( tLNode *curnode, double addedArea,
    // _addedArea_ to its total drainage area and _addedRunoff_ to its total
    // discharge and then advance to the next node downstream.
    while( (curnode->getBoundaryFlag() == kNonBoundary)
-	  && (curnode->getFloodStatus()!=kSink) )
+	  && (curnode->getFloodStatus()!=tLNode::kSink) )
    {
       curnode->AddDrArea( addedArea );
       curnode->AddDischarge( addedRunoff );
@@ -1545,7 +1545,7 @@ void tStreamNet::RouteRunoff( tLNode *curnode, double addedArea,
 void tStreamNet::RouteError( tLNode *curnode )
 {
   while( (curnode->getBoundaryFlag() == kNonBoundary)
-	 && (curnode->getFloodStatus()!=kSink) )
+	 && (curnode->getFloodStatus()!=tLNode::kSink) )
     {
       curnode->TellAll();
       cout  << flush;
@@ -1896,7 +1896,7 @@ void tStreamNet::FillLakes()
    // Check each active node to see whether it is a sink
    for( tLNode *cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
    {
-      if( cn->getFloodStatus() == kSink )
+      if( cn->getFloodStatus() == tLNode::kSink )
       {
 	// Create a new lake-list, initially containing just the sink node.
 	tPtrList< tLNode > lakeList;
@@ -1912,7 +1912,7 @@ void tStreamNet::FillLakes()
 	// Finally, flag all of the nodes in it as "kFlooded"
 	for( tLNode *cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
 	     cln = lakeIter.NextP() )
-	  cln->setFloodStatus( kFlooded );
+	  cln->setFloodStatus( tLNode::kFlooded );
       } /* END if Sink */
    } /* END Active Nodes */
 
@@ -1937,7 +1937,7 @@ inline
 void insertInLakeList(tPtrList< tLNode > &lakeList, tLNode *cn )
 {
   lakeList.insertAtBack( cn );
-  cn->setFloodStatus( kCurrentLake );
+  cn->setFloodStatus( tLNode::kCurrentLake );
 }
 
 tLNode *tStreamNet::BuildLakeList( tPtrList< tLNode > &lakeList, tLNode *cn )
@@ -1967,7 +1967,7 @@ tLNode *tStreamNet::BuildLakeList( tPtrList< tLNode > &lakeList, tLNode *cn )
 	      switch( thenode->getFloodStatus() ){
 		// Is it a potential outlet (ie, not flooded and not
 		// a boundary)?
-	      case kNotFlooded:
+	      case tLNode::kNotFlooded:
 		if( ce->FlowAllowed() != tEdge::kFlowNotAllowed)
 		  {
 		    // Is it lower than the lowest found so far?
@@ -1979,8 +1979,8 @@ tLNode *tStreamNet::BuildLakeList( tPtrList< tLNode > &lakeList, tLNode *cn )
 		  }
 		break;
 	      // If it's a previous lake node or a sink, add it to the list
-	      case kFlooded:
-	      case kSink:
+	      case tLNode::kFlooded:
+	      case tLNode::kSink:
 		insertInLakeList( lakeList, thenode );
 		break;
 	      default:
@@ -2048,7 +2048,7 @@ void tStreamNet::FillLakesFlowDirs(tPtrListIter< tLNode > &lakeIter,
   // until all the lake nodes are flagged as having a flow direction.
   // The algorithm isn't unique---there are many paths that could be
   // taken; this simply finds the most convenient one.
-  lowestNode->setFloodStatus( kOutletFlag );
+  lowestNode->setFloodStatus( tLNode::kOutletFlag );
 
   // Test for error in mesh: if the lowestNode is a closed boundary, it
   // means no outlet can be found.
@@ -2061,37 +2061,37 @@ void tStreamNet::FillLakesFlowDirs(tPtrListIter< tLNode > &lakeIter,
       for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
 	   cln = lakeIter.NextP() )
 	{
-	  const tFlood_t fs = cln->getFloodStatus();
-	  assert( fs != kOutletPreFlag );
-	  if( fs != kOutletFlag )
+	  const tLNode::tFlood_t fs = cln->getFloodStatus();
+	  assert( fs != tLNode::kOutletPreFlag );
+	  if( fs != tLNode::kOutletFlag )
 	    {
 	      done = false;
 
 	      // Check each neighbor
-	      // take the first node with kOutletFlag, if not found
+	      // take the first node with tLNode::kOutletFlag, if not found
 	      // take the first node with kOutletPreFlag
 	      tEdge * const ce1 = cln->getEdg(); // first edge
 	      tEdge *ce = ce1;                   // current edge
 	      tEdge *cePreFlag = 0;              // edge with kOutletPreFlag
 	      do
 		{
-		  const tFlood_t fsnode =
+		  const tLNode::tFlood_t fsnode =
 		    static_cast<tLNode const *>(ce->getDestinationPtr())
 		    ->getFloodStatus();
-		  if( fsnode == kOutletFlag )
+		  if( fsnode == tLNode::kOutletFlag )
 		    {     // found one!
 		      newOutLetFound = true;
-		      cln->setFloodStatus( kOutletPreFlag );
+		      cln->setFloodStatus( tLNode::kOutletPreFlag );
 		      cln->setFlowEdg( ce );
 		      goto foundOutlet;
 		    }
-		  if( cePreFlag == 0 && fsnode == kOutletPreFlag  )
+		  if( cePreFlag == 0 && fsnode == tLNode::kOutletPreFlag  )
 		    cePreFlag = ce;
 		} while( ( ce=ce->getCCWEdg() ) != ce1 );
 	      if ( cePreFlag != 0 )
 		{
 		  newOutLetFound = true;
-		  cln->setFloodStatus( kOutletPreFlag );
+		  cln->setFloodStatus( tLNode::kOutletPreFlag );
 		  cln->setFlowEdg( cePreFlag );
 		}
 	    foundOutlet: ;	      ;
@@ -2102,10 +2102,10 @@ void tStreamNet::FillLakesFlowDirs(tPtrListIter< tLNode > &lakeIter,
       if (newOutLetFound)
 	for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
 	     cln = lakeIter.NextP() )
-	  if( cln->getFloodStatus() == kOutletPreFlag )
-	    cln->setFloodStatus( kOutletFlag );
+	  if( cln->getFloodStatus() == tLNode::kOutletPreFlag )
+	    cln->setFloodStatus( tLNode::kOutletFlag );
     } while( !done );
-  lowestNode->setFloodStatus( kNotFlooded );
+  lowestNode->setFloodStatus( tLNode::kNotFlooded );
 }
 
 
@@ -2154,7 +2154,7 @@ bool tStreamNet::FindLakeNodeOutlet( tLNode *node ) const
           ( dn->getBoundaryFlag()==kOpenBoundary ||
             dn->getDownstrmNbr()->getZ() < node->getZ() ) )*/
       if( ce->getSlope() > maxslp &&
-          dn->getFloodStatus() != kCurrentLake &&
+          dn->getFloodStatus() != tLNode::kCurrentLake &&
           ce->FlowAllowed() )
       {
          // Handle a very special and rare case: if the "target" node dn is
@@ -2165,13 +2165,13 @@ bool tStreamNet::FindLakeNodeOutlet( tLNode *node ) const
          // exactly equal in elevation to _node_, in which case
          // the point is not considered an outlet---if it were, infinite loops
          // could result. (This fix added 4/98)
-         if( dn->getFloodStatus()==kFlooded )
+         if( dn->getFloodStatus() == tLNode::kFlooded )
          {
             // Iterate "downstream" through the "old" lake until reaching the
             // outlet, then test its elevation. If the elevation is exactly
             // equal to _node_, skip the rest and go on to the next iteration.
             an = dn;
-            while( an->getFloodStatus()!=kNotFlooded )
+            while( an->getFloodStatus() != tLNode::kNotFlooded )
                 an = an->getDownstrmNbr();
             if( an->getZ()==node->getZ() ) continue;
          }
@@ -2673,7 +2673,7 @@ void tStreamNet::RouteFlowKinWave( double rainrate_ )
       // Add local runoff to total incoming discharge
       cn->AddDischarge( runoff * cn->getVArea() );
 
-      if( cn->getFloodStatus()==kNotFlooded )
+      if( cn->getFloodStatus() == tLNode::kNotFlooded )
       {
          // Flow is apportioned among downhill neighbors according to
          // slope and Voronoi edge width, so first we perform the summation
@@ -3296,7 +3296,7 @@ void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
 	}
 	cn->setHydrDepth( 1. );
 	cn->setChanDepth( cn->getHydrDepth() );
-	if( cn->getChanWidth()==0. && cn->getFloodStatus()==kNotFlooded )
+	if( cn->getChanWidth()==0. && cn->getFloodStatus() == tLNode::kNotFlooded )
 	  cn->TellAll();
       }
 
@@ -3312,14 +3312,14 @@ void tStreamNet::DebugShowNbrs( tLNode *theNode ) const
 	<< theNode->getID() << " "
 	<< theNode->getX() << " " << theNode->getY() <<" "<<theNode->getZ()
 	<<" M: "<< theNode->Meanders()
-	<<" F: "<< FloodName(theNode->getFloodStatus()) <<endl;
+	<<" F: "<< tLNode::FloodName(theNode->getFloodStatus()) <<endl;
     tLNode *nextNode = theNode->getDownstrmNbr();
     if(nextNode != NULL){
       cout<<"with dstr nbr:		 "
 	  << nextNode->getID() << " "
 	  << nextNode->getX() << " " << nextNode->getY() <<" "<<nextNode->getZ()
 	  <<" M: "<< nextNode->Meanders()
-	  <<" F: "<< FloodName(nextNode->getFloodStatus()) <<endl;
+	  <<" F: "<< tLNode::FloodName(nextNode->getFloodStatus()) <<endl;
     }
     cout << "flowedge flippable ? " << (theNode->getFlowEdg()->isFlippable()
 					? "yes": "no") << endl;
@@ -3339,7 +3339,7 @@ void tStreamNet::DebugShowNbrs( tLNode *theNode ) const
 	cout<<surnode->getID()<<" "
 	    <<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()
 	    <<" M: " << surnode->Meanders()
-	    <<" F: " << FloodName(surnode->getFloodStatus())
+	    <<" F: " << tLNode::FloodName(surnode->getFloodStatus())
 	    <<" ce-slope: "<<ce->getSlope()<<endl;
 	cout<<"has nbrs itself: "<<endl;
 	tEdge *cee;
@@ -3350,7 +3350,7 @@ void tStreamNet::DebugShowNbrs( tLNode *theNode ) const
 	    cout<<morenode->getID()<<" "
 		<<morenode->getX()<<" "<<morenode->getY()<<" "<<morenode->getZ()
 		<<" M: "<<morenode->Meanders()
-		<<" F: "<<FloodName(morenode->getFloodStatus())
+		<<" F: "<<tLNode::FloodName(morenode->getFloodStatus())
 		<<" ce-slope: "<<cee->getSlope()<<endl;
 	  }
 	}
