@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.6 1998-02-20 23:02:41 stlancas Exp $
+**  $Id: erosion.cpp,v 1.7 1998-03-03 22:27:47 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -107,3 +107,236 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
    return( 0.2*n->GetFlowEdg()->getLength() / eroterm );
 
 }
+
+/***************************************************************************\
+**  tSedTransPwrLaw functions
+\***************************************************************************/
+
+/***************************************************************************\
+**  tSedTransPwrLaw::TransCapacity
+**
+**  Computes sediment transport capacity using the simple power law
+**  Qs = kf Q^mf S^nf
+\***************************************************************************/
+double tSedTransPwrLaw::TransCapacity( tLNode *node )
+{
+   return( kf * pow( node->GetQ(), mf ) * pow( node->GetSlope(), nf ) );
+}
+   
+
+/***************************************************************************\
+**  tErosion functions
+\***************************************************************************/
+tErosion::tErosion( tGrid<tLNode> *gptr, tInputFile &infile )
+        : bedErode( infile ), sedTrans( infile )
+{
+   assert( gptr!=0 );
+   gridPtr = gptr;
+}
+
+
+/*****************************************************************************\
+**
+**  ErodeDetachLim
+**
+**  Solves for erosion and deposition during a time interval dtg, for the
+**  case in which any sediment detached from the landscape is assumed to
+**  be carried away. This might be appropriate, for example, in a bedrock
+**  channel system in which deposition is negligible. This case is handled
+**  separately from the more general case in which transport capacity and
+**  deposition are taken into account, because the numerical solutions
+**  to detachment-limited erosion equations tend to be considerably more
+**  stable than the general case.
+**
+**  The function will solve the erosion equation(s) over one or more time
+**  intervals within the total "global" time period dtg. First, the
+**  maximum time step size dt is computed. Then erosion is computed
+**  iteratively in increments of dt until the total time dtg has been used.
+**
+**  Modified, 2/20/98, SL & GT: maximize time step such that slope in down-
+**   stream direction does not reverse; don't use modified Courant condition.
+**   This has the advantage that it does not grind to a halt when n<1; but, it
+**   is not completely satisfactory; it seems to be good at finding out how
+**   small the time step needs to be but not how large it can be; i.e., if
+**   dtg is quite large, one can still run into problems. E.g., for m=0.3,
+**   n=0.7, kb=3.16e-02 m^3/N, U=1e-3 m/yr, Q=100m^3/s, kwds=3, knds=0.03
+**   => dtg=10 yrs seems to work well; dtg=100 yrs does not work well.
+\*****************************************************************************/
+void tErosion::ErodeDetachLim( double dtg )
+{
+   double dt,
+       dtmax = 1000000.0; // time increment: initialize to arbitrary large val
+   double frac = 0.9; //fraction of time to zero slope
+   int i;
+   tLNode * cn, *dn;
+   int nActNodes = gridPtr->GetNodeList()->getActiveSize();
+   tGridListIter<tLNode> ni( gridPtr->GetNodeList() );
+   tArray<double> //dz( nActNodes ), // Erosion depth @ each node
+       dzdt( nActNodes ); //Erosion rate @ ea. node
+   double ratediff;
+
+   // Iterate until total time dtg has been consumed
+   do
+   {
+      //first find erosion rate:
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+          cn->SetQs( -bedErode.DetachCapacity( cn ) );
+      dtmax = dtg;
+      //find max. time step s.t. slope does not reverse:
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+      {
+         dn = cn->GetDownstrmNbr();
+         ratediff = dn->GetQs() - cn->GetQs();
+         if( ratediff > 0 )
+         {
+            dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
+            if( dt > 0 && dt < dtmax ) dtmax = dt;
+         }
+      }
+      //assert( dtmax > 0 );
+      //apply erosion:
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+          cn->EroDep( cn->GetQs() * dtmax );
+      //update time:
+      dtg -= dtmax;
+   } while( dtg>0 );
+   
+}
+
+   
+void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
+{
+   double dt,
+       dtmax = 1000000.0; // time increment: initialize to arbitrary large val
+   double frac = 0.9; //fraction of time to zero slope
+   int i;
+   tLNode * cn, *dn;
+   int nActNodes = gridPtr->GetNodeList()->getActiveSize();
+   tGridListIter<tLNode> ni( gridPtr->GetNodeList() );
+   tArray<double> //dz( nActNodes ), // Erosion depth @ each node
+       dzdt( nActNodes ); //Erosion rate @ ea. node
+   double ratediff;
+
+   // Iterate until total time dtg has been consumed
+   do
+   {
+      //first find erosion rate:
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+          cn->SetQs( -bedErode.DetachCapacity( cn ) + UPtr->GetRate() );
+      dtmax = dtg;
+      //find max. time step s.t. slope does not reverse:
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+      {
+         dn = cn->GetDownstrmNbr();
+         ratediff = dn->GetQs() - cn->GetQs();
+         if( ratediff > 0 && cn->getZ() > dn->getZ() )
+         {
+            dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
+            if( dt > 0 && dt < dtmax ) dtmax = dt;
+         }
+      }
+      //assert( dtmax > 0 );
+      //apply erosion:
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+          cn->EroDep( cn->GetQs() * dtmax );
+      //update time:
+      dtg -= dtmax;
+   } while( dtg>0 );
+   
+}
+
+
+void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
+{
+   double dt,
+       dtmax;         // time increment: initialize to arbitrary large val
+   double frac = 0.3; //fraction of time to zero slope
+   int i;
+   tLNode * cn, *dn;
+   int nActNodes = gridPtr->GetNodeList()->getActiveSize();
+   tGridListIter<tLNode> ni( gridPtr->GetNodeList() );
+   double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
+       cap,          // Transport capacity
+       pedr,         // Potential erosion/deposition rate
+       dcap,         // Bedrock detachment capacity
+       dzs,          // Rate of alluvium ero/dep
+       dzr;          // Rate of rock ero/dep
+
+   // Sort so that we always work in upstream to downstream order
+   strmNet->SortNodesByNetOrder();
+
+   // Compute erosion and/or deposition until all of the elapsed time (dtg)
+   // is used up
+   do
+   {
+      // Zero out sed influx
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+          cn->SetQsin( 0.0 );
+
+      // Compute erosion rates: when this block is done, the transport rate
+      // (qs), influx (qsin), and deposition/erosion rate (dzdt) values are
+      // set for each active node.
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+      {
+         // Transport capacity and potential erosion/deposition rate
+         // (this also sets the node's Qs value)
+         cap = sedTrans.TransCapacity( cn );
+         pedr = (cn->GetQsin() - cap ) / cn->getVArea();
+         // If we're on bedrock, adjust accordingly
+         if( cn->OnBedrock() && pedr<0 )
+         {
+            // Get detachment capacity (this also sets node's drdt)
+            dcap = bedErode.DetachCapacity( cn );
+            if( dcap > pedr )
+                pedr = dcap;
+         }
+         // Set the erosion (deposition) rate and send the corresponding
+         // sediment influx downstream
+         cn->SetDzDt( pedr );
+         cn->GetDownstrmNbr()->AddQsin( cn->GetQsin() + pedr*cn->getVArea() );
+      }
+
+      // Given these rates, figure out how big a time-step we can get away with
+      dtmax = dtg;
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+      {
+         dn = cn->GetDownstrmNbr();
+         ratediff = dn->GetQs() - cn->GetQs();
+         if( ratediff > 0 && cn->getZ() > dn->getZ() )
+         {
+            dt = ( cn->getZ() - dn->getZ() ) / ratediff;
+            if( dt < dtmax ) dtmax = dt;
+         }
+      }
+      dtmax *= frac;  // Take a fraction of time-to-flattening
+      if( dtmax < 0.0001 )
+          cerr << "dtmax very small in StreamErode()\n";
+      cout << "In StreamErode, dtmax = " << dtmax << endl;
+
+      // Now do erosion/deposition by integrating rates over dtmax
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+      {
+         // If we're on bedrock, scour the bedrock and "inject" the resulting
+         // sediment flux into the node's sed influx field (qsin)
+         if( cn->OnBedrock() )
+             dzr = cn->GetDrDt()*dtmax;
+         dzs = ( (cn->GetQsin() - cn->GetQs() ) / cn->getVArea() ) * dtmax;
+         // don't erode more alluvium than is available
+         if( -dzs > cn->getAlluvThickness() ) 
+             dzs = -cn->getAlluvThickness();
+         // update alluvium thickness and node elevation
+         cn->setAlluvThickness( cn->getAlluvThickness() + dzs );
+         cn->setZ( cn->getZ() + dzs + dzr );
+      }
+
+      // Update time remaining
+      dtg -= dtmax;
+      
+   } while( dtg>0 ); // Keep going until we've used up the whole time intrvl
+   
+}
+
+   
+         
+               
+         
