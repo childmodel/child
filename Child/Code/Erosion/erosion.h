@@ -43,7 +43,12 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.26 2000-02-17 22:49:46 gtucker Exp $
+**    Modifications:
+**     - added an erosion-rate-based adaptive mesh capability, with
+**       a new DensifyMesh function and supporting data member
+**       mdMeshAdaptMaxFlux (gt 2/2000)
+**
+**  $Id: erosion.h,v 1.27 2000-03-09 20:03:24 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -59,7 +64,6 @@
 #include "../tRunTimer/tRunTimer.h"
 
 #define tSedTrans tSedTransPwrLaw
-
 
 /***************************************************************************\
 **  class tEquilibCheck
@@ -215,12 +219,14 @@ public:
     double TransportCapacity(tLNode * n );
     void Diffuse( double dtg, int detach );
     void UpdateExposureTime( double dtg);
+    void DensifyMesh( double time );
 
 private:
     tMesh<tLNode> *meshPtr;    // ptr to mesh
     tBedErodePwrLaw bedErode;  // bed erosion object
     tSedTrans sedTrans;        // sediment transport object 
     double kd;                 // Hillslope transport (diffusion) coef
+    double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
 
 };
 
