@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.98 2003-11-03 12:42:08 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.99 2004-01-07 13:51:48 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -320,8 +320,8 @@ int tStreamMeander::InterpChannel( double time )
 		    cout<<"IC pt added at " << x << "," << y << endl;
 
 		  // Reconnect flow edges
-		  newnodeP->flowTo( nPtr );
-		  crn->flowTo( newnodeP );
+		  newnodeP->setDownstrmNbr( nPtr );
+		  crn->setDownstrmNbr( newnodeP );
 		  // Paranoia
 		  assert( newnodeP->getFlowEdg()->getDestinationPtr() == nPtr );
 		  assert( crn->getFlowEdg()->getDestinationPtr() == newnodeP );
@@ -361,8 +361,8 @@ int tStreamMeander::InterpChannel( double time )
 			cout<<"IC pt added at " << x << "," << y << endl;
 
 		      // Reconnect flow edges
-		      newnodeP->flowTo( nPtr );
-		      prevNode->flowTo( newnodeP );
+		      newnodeP->setDownstrmNbr( nPtr );
+		      prevNode->setDownstrmNbr( newnodeP );
 		      // Update
 		      prevNode = newnodeP;
 		    }

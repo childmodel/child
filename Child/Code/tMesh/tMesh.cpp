@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.188 2003-11-14 17:59:28 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.189 2004-01-07 13:51:47 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3835,8 +3835,8 @@ SplitNonFlippableEdge( tPtrList< tEdge > &NonFlippableEdge, double time ){
     // Delete temporary copy
     delete tempn;
     // Reconnect flow edges.
-    orig->flowTo(newnode);
-    newnode->flowTo(dest);
+    orig->setDownstrmNbr(newnode);
+    newnode->setDownstrmNbr(dest);
     // Schedule it for flipping.
     AddedPoints.insertAtBack( newnode );
   }

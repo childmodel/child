@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.127 2003-11-14 16:37:59 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.128 2004-01-07 13:51:45 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -1581,15 +1581,15 @@ tNode *tLNode::splitFlowEdge() {
 
 
 /***********************************************************************\
-  tLNode::flowTo
+  tLNode::setDownstrmNbr
   Set flowedge to flow to node "dest".
   09/2003 AD/QC
 \***********************************************************************/
-void tLNode::flowTo( tNode *dest ){
+void tLNode::setDownstrmNbr( tNode *dest ){
   // New node flows to the next meander node downstream (nPtr)
   tEdge *theEdg = EdgToNod( dest );
   if (theEdg == 0) {
-    ReportFatalError("flowTo(): cannot find an edge between nodes.");
+    ReportFatalError("setDownstrmNbr(): cannot find an edge between nodes.");
   }
   setFlowEdg( theEdg );
 }

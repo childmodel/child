@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.83 2003-10-22 13:04:28 childcvs Exp $
+ **  $Id: tLNode.h,v 1.84 2004-01-07 13:51:47 childcvs Exp $
  */
 /************************************************************************/
 
@@ -562,7 +562,7 @@ public:
   virtual bool isMobile() const { return Meanders();}
   inline virtual bool flowThrough( tEdge const *e) const;
   virtual tNode *splitFlowEdge();
-  virtual void flowTo( tNode *dest );
+  virtual void setDownstrmNbr( tNode *dest );
 
   virtual void PrepForAddition( tTriangle const *, double );
   virtual void PrepForMovement( tTriangle const *, double );

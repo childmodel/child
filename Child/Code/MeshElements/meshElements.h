@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.64 2003-10-15 09:26:01 childcvs Exp $
+**  $Id: meshElements.h,v 1.65 2004-01-07 13:51:45 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -154,7 +154,7 @@ public:
   virtual bool isMobile() const { return false;}
   virtual bool flowThrough( tEdge const * ) const { return false; }
   virtual tNode *splitFlowEdge() { return 0; }
-  virtual void flowTo( tNode * ) {};
+  virtual void setDownstrmNbr( tNode * ) {};
 
   virtual void PrepForAddition( tTriangle const *, double ) {}
   virtual void PrepForMovement( tTriangle const *, double ) {}
