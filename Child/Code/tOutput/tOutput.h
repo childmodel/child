@@ -29,7 +29,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.35 2003-04-28 14:19:44 childcvs Exp $
+**  $Id: tOutput.h,v 1.36 2003-05-16 14:03:39 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -136,7 +136,7 @@ public:
     void WriteNodeData( double time );
     void WriteTSOutput();
     int NodeCount();
-    int OptTSOutput();
+    int OptTSOutput() const;
 
 
 private:

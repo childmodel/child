@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.68 2003-05-16 13:07:15 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.69 2003-05-16 14:03:39 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -370,7 +370,7 @@ int tOutput<tSubNode>::orderREdge( const void *a_, const void *b_ )
   const int d2 = E2->getDestinationPtr()->getID();
   if (d1 < d2) return -1;
   if (d1 > d2) return 1;
-  assert(0);
+  assert(0); /*NOTREACHED*/
   abort();
 }
 
@@ -410,7 +410,7 @@ int tOutput<tSubNode>::orderRTriangle( const void *a_, const void *b_ )
     if (i1 < i2) return -1;
     if (i1 > i2) return 1;
   }
-  assert(0);
+  assert(0); /*NOTREACHED*/
   abort();
 }
 
@@ -670,5 +670,5 @@ void tLOutput<tSubNode>::WriteTSOutput()
 
 
 template< class tSubNode >
-int tLOutput<tSubNode>::OptTSOutput() { return optTSOutput; }
+int tLOutput<tSubNode>::OptTSOutput() const { return optTSOutput; }
 
