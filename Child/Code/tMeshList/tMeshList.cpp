@@ -8,7 +8,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.cpp,v 1.8 1999-04-05 15:00:23 gtucker Exp $
+**  $Id: tMeshList.cpp,v 1.9 1999-12-07 19:44:13 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -63,6 +63,10 @@ tMeshList< NodeType >::
 **  Equality and inequality: adds test of # of active items and lastactive
 **                           to basic tList operations
 **
+**  Modifications:
+**    - assignment op: GT modified 12/7/99 to correct error in handling
+**      lastactive pointer
+**
 \**************************************************************************/
 
 //overloaded assignment operator
@@ -73,8 +77,10 @@ operator=( const tMeshList< NodeType > &right )
    if( this != &right )
    {
       tList< NodeType >::operator=( right );
-      lastactive = right.lastactive;
       nActiveNodes = right.nActiveNodes;
+      lastactive = first;
+      int i;
+      for( i=1; i<nActiveNodes; i++ ) lastactive = lastactive->next;
    }
      //cout << "tMeshList assigned" << first << endl;
    return *this;
