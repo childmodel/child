@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.138 2003-04-30 15:03:04 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.139 2003-05-01 12:27:01 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1796,7 +1796,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
       // if not too close, add it:
       if( dist > mindist )
       {
-         cn = AddNode( tempnode, /*updatemesh =*/ 0 );
+         cn = AddNode( tempnode, /*updatemesh =*/ false );
          if( zinterp != nodata && zinterp < minz )
          {
             minz = zinterp;
@@ -1997,7 +1997,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
       tempnode.setID( miNextNodeID );
       miNextNodeID++;
       tempnode.set3DCoords( x, y, zinterp );
-      cn = AddNode( tempnode, /*updatemesh =*/ 0 );
+      cn = AddNode( tempnode, /*updatemesh =*/ false );
       if( zinterp != nodata && zinterp < minz )
       {
          minz = zinterp;

@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.27 2003-04-29 09:33:53 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.28 2003-05-01 12:27:03 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -2321,7 +2321,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
          //xyz[1] = yin;
          //xyz[2] = zin;
          //innode = meshPtr->AddNodeAt( xyz );
-         innode = meshPtr->AddNode( *newnode, 1 );  // the 1 means update mesh
+         innode = meshPtr->AddNode( *newnode, true ); // true means update mesh
          //cout << "INLET NODE IS:\n";
          //innode->TellAll();
          //Don't delet newnode because it is now part of the mesh list
