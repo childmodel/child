@@ -34,7 +34,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.94 2002-04-23 14:49:14 arnaud Exp $
+**  $Id: erosion.cpp,v 1.95 2002-04-24 16:47:20 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -595,9 +595,9 @@ tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
    // Record diameter of each size-fraction
    mdGrndiam.setSize( miNumgrnsizes );
    mdTauc.setSize( miNumgrnsizes );
-   /*std::string taglinebase = "GRAINDIAM";
-   std::string digits = "123456789";
-   std::string tagline;*/
+   //std::string taglinebase = "GRAINDIAM";
+   //std::string digits = "123456789";
+   //std::string tagline;
    char tagline[11], digit = '0';
    strcpy( tagline, "GRAINDIAM0");
    int i;
@@ -706,7 +706,7 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
 {
   /*
    int i;
-   char add[1], name[20];
+   char add[2], name[20];
    double help;
   */
 
@@ -950,7 +950,7 @@ tSedTransMineTailings::tSedTransMineTailings( tInputFile &infile )
         : grade()
 {
    int i;
-   char add[1], name[20];
+   char add[2], name[20];
    double help;
 
    cout << "tSedTransMineTailings(infile)\n" << endl;
@@ -1186,10 +1186,11 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
 
 //constructor
 tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
-        : bedErode( infile ), sedTrans( infile )
+  :
+  meshPtr(mptr),
+  bedErode( infile ), sedTrans( infile )
 {
    assert( mptr!=0 );
-   meshPtr = mptr;
 
    // Read parameters needed from input file
    kd = infile.ReadItem( kd, "KD" );  // Hillslope diffusivity coefficient
