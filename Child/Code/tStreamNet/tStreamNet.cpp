@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.45 1998-07-21 20:34:40 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.46 1998-07-21 23:43:56 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1520,8 +1520,8 @@ void tStreamNet::SortNodesByNetOrder()
 void tStreamNet::FindHydrGeom()
 {
    int i, j, num;
-   double hradius, kwdspow, kddspow, kndspow,
-       widpow, deppow, npow, qpsec;
+   double hradius, kwdspow, kndspow, kddspow,
+       widpow, deppow, npow, qpsec, radfactor;
    double width, depth, rough, slope;
    tLNode *cn;
 
@@ -1548,13 +1548,14 @@ void tStreamNet::FindHydrGeom()
          rough = pow(cn->getChanRough(), npow) * kndspow * pow(qpsec, enstn);
          cn->setHydrRough( rough );
          slope = cn->getChanSlope();
-         //assert( slope > 0 );
+         assert( slope > 0 );
          //Depth now calculated as above - done to be consistent
          //with changes made in FindChanGeom
-//          radfactor = qpsec * rough / width / sqrt(slope);
-//          hradius = pow(radfactor, 0.6);
-//          depth = width / ( width / hradius - 2.0 );
-//          cn->setHydrDepth( depth );
+         //radfactor = qpsec * rough / width / sqrt(slope);
+         //hradius = pow(radfactor, 0.6);
+         //depth = hradius;
+//depth = width / ( width / hradius - 2.0 );
+         //cn->setHydrDepth( depth );
          cn->setHydrSlope( slope );
       }
       //if rainfall does not vary, set hydraulic geom. = channel geom.
@@ -1593,6 +1594,7 @@ void tStreamNet::FindChanGeom()
 {
    int i, j, num;
    double qbf, qbffactor=0, width, depth, rough;
+   double radfactor, hradius, slope;
    double lambda;
    tLNode *cn;
    tGridListIter< tLNode > nIter( gridPtr->getNodeList() );
@@ -1615,7 +1617,7 @@ void tStreamNet::FindChanGeom()
       cn->setChanDepth( depth );
       cn->setChanRough( rough );
       cn->setBankRough( lambda );
-      //slope = cn->getSlope();
+      slope = cn->getSlope();
       
       //Nic changed below, thinks it was causing problems
       //just using discharge relation to calculate depth instead
@@ -1625,9 +1627,10 @@ void tStreamNet::FindChanGeom()
 //       if( slope > critS ) //should also catch negative slope flag
 //       {
 //          cout << "in FindChanGeom, slope = " << slope << endl << flush;
-//          cn->setChanSlope( slope );
+          cn->setChanSlope( slope );
 //          radfactor = qbf * rough / width / sqrt(slope);
-//          hradius = pow(radfactor, 0.6); 
+//          hradius = pow(radfactor, 0.6);
+//          depth = hradius;
 //          depth = width / (width / hradius - 2.0);
 //          cn->setChanDepth( depth );
 //       }
