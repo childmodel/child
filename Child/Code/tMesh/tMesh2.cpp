@@ -360,7 +360,6 @@ BuildDelaunayMeshTipper()
    delete [] elems;
 
    // set Maximum IDs
-   SetmiNextNodeID( nodeList.getSize() );
    SetmiNextEdgID( edgeList.getSize() );
    SetmiNextTriID( triList.getSize() );
 
