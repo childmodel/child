@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.48 2003-05-06 16:37:19 childcvs Exp $
+**  $Id: tMesh.h,v 1.49 2003-05-07 17:17:36 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -78,6 +78,7 @@ class tMesh
 			   bool makeMesh);
    void BuildDelaunayMeshTipper();
    void MeshDensification( tInputFile & );
+   void MakeDelaunay( tPtrList< tTriangle > &);
 public:
    tMesh();
    tMesh( tInputFile & );
