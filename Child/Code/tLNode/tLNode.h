@@ -26,7 +26,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.63 2003-05-23 17:47:33 childcvs Exp $
+**  $Id: tLNode.h,v 1.64 2003-05-26 17:41:40 childcvs Exp $
 */
 /************************************************************************/
 
@@ -284,7 +284,7 @@ class tMeander
   public:
    tMeander();
    tMeander( const tMeander & );
-   tMeander( int, double, double );
+   tMeander( bool, double, double );
    ~tMeander();
    const tMeander &operator=( const tMeander & );
   private:

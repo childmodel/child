@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.105 2003-05-23 17:47:32 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.106 2003-05-26 17:41:39 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -69,7 +69,7 @@ void tLayer::setDgrade( int i, double size )
 
 tMeander::tMeander()                                              //tMeander
   :
-meander(0),
+meander(false),
 newx(0.), newy(0.),
 head(0), reachmember(0),
 deltax(0.), deltay(0.), zoldright(0.), zoldleft(0.), bankrough(0.),
@@ -90,7 +90,7 @@ xyzd( orig.xyzd )
   //cout << "  tMeander( orig )" << endl;
 }
 
-tMeander::tMeander( int state, double x, double y )                //tMeander
+tMeander::tMeander( bool state, double x, double y )                //tMeander
   :
 meander(state),
 newx(x), newy(y),
