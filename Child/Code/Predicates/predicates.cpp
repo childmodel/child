@@ -15,7 +15,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.cpp,v 1.7 2003-03-18 16:15:48 childcvs Exp $
+//  $Id: predicates.cpp,v 1.8 2003-03-19 14:35:06 childcvs Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -136,7 +136,8 @@
 // The algorithms below fail on processors using extended precision.
 // Consequently, on Intel x86, we set the control word of the x87 device
 // in double precision mode.
-// The present implementation works on Linux, Cygwin on x86 and Win32.
+// The present implementation works on x86 for Linux, Cygwin, FreeBSD and
+// Win32.
 #if defined(i386) && (defined(linux) || defined(__CYGWIN__))
 # if defined(linux)
 #  include <fpu_control.h>
@@ -168,6 +169,22 @@ public:
   }
 };
 # define SET_DOUBLE_PRECISION_MODE Set_local_fpu_precision _local_precision
+
+#elif defined(i386) && defined(__FreeBSD__)
+# include <floatingpoint.h>
+class Set_local_fpu_precision {
+  fp_prec_t oldcw_pc;
+public:
+  Set_local_fpu_precision() {
+    oldcw_pc = fpgetprec(); // Extract precision mode
+    fpsetprec(FP_PD);  // Set double precision mode
+  }
+  ~Set_local_fpu_precision() {
+    fpsetprec(oldcw_pc); // Restore control word precision
+  }
+};
+# define SET_DOUBLE_PRECISION_MODE Set_local_fpu_precision _local_precision
+
 #elif defined(_WIN32)
 # include <float.h>
 class Set_local_fpu_precision {
