@@ -9,7 +9,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.54 2002-04-24 12:07:00 arnaud Exp $
+**  $Id: tOutput.cpp,v 1.55 2002-04-30 17:17:26 arnaud Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -31,7 +31,8 @@
 \*************************************************************************/
 template< class tSubNode >
 tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
-  m(meshPtr)
+  m(meshPtr),
+  mdLastVolume(0.)
 {
    assert( meshPtr > 0 );
 

@@ -12,7 +12,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.cpp,v 1.4 2002-04-23 11:59:42 arnaud Exp $
+**  $Id: tVegetation.cpp,v 1.5 2002-04-30 17:17:27 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -56,7 +56,8 @@ tVegetation::tVegetation( tMesh<tLNode> * meshPtr, tInputFile &infile )
    tMeshListIter<tLNode> niter( meshPtr->getNodeList() );
    tLNode * cn;   
 
-   intlVegCover = infile.ReadItem( intlVegCover, "INTLVEGCOV" );
+   // unused
+   // intlVegCover = infile.ReadItem( intlVegCover, "INTLVEGCOV" );
 
    for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
    {

@@ -8,7 +8,7 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.h,v 1.6 2002-04-22 18:14:30 arnaud Exp $
+**  $Id: tMatrix.h,v 1.7 2002-04-30 17:17:26 arnaud Exp $
 \*************************************************************************/
 #ifndef TMATRIX_H
 #define TMATRIX_H
@@ -22,17 +22,17 @@ class tMatrix
   tMatrix(const tMatrix&);
   tMatrix& operator=(const tMatrix&);
 public:
-    tMatrix();
-    tMatrix( int nr, int nc );
-    ~tMatrix();
-    T &operator()( int row, int col );
-   int getNumRows() {return nrows;}
-   int getNumCols() {return ncols;}
+  tMatrix();
+  tMatrix( int nr, int nc );
+  ~tMatrix();
+  T &operator()( int row, int col );
+  int getNumRows() const {return nrows;}
+  int getNumCols() const {return ncols;}
     
 private:
-    tArray<T> *ptr;
-    int nrows;
-    int ncols;  
+  tArray<T> *ptr;
+  int nrows;
+  int ncols;  
 };
 
 /*

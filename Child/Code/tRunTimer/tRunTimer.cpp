@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.16 2002-04-23 14:45:52 arnaud Exp $
+**  $Id: tRunTimer.cpp,v 1.17 2002-04-30 17:17:27 arnaud Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -60,7 +60,8 @@ tRunTimer::tRunTimer()
   notifyInterval(1000),
   nextNotify(0),
   nextTSOutputTime(0),
-  TSOutputInterval(1)
+  TSOutputInterval(1),
+  optTSOutput(0)
 {
 }
 
@@ -73,7 +74,9 @@ tRunTimer::tRunTimer( double duration, double opint, int optprint )
   optPrintEachTime(optprint),
   notifyInterval(1000),
   nextNotify(0),
-  nextTSOutputTime(999999999)
+  nextTSOutputTime(999999999),
+  TSOutputInterval(1),
+  optTSOutput(0)
 {
 }
 
@@ -81,7 +84,8 @@ tRunTimer::tRunTimer( tInputFile &infile, int optprint )
   :
   currentTime(0),
   optPrintEachTime(optprint),
-  notifyInterval(1000)
+  notifyInterval(1000),
+  nextTSOutputTime(0)
 {
   endTime = infile.ReadItem( endTime, "RUNTIME" );
   outputInterval = infile.ReadItem( outputInterval, "OPINTRVL" );

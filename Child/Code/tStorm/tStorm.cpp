@@ -9,7 +9,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.20 2002-04-23 14:46:21 arnaud Exp $
+**  $Id: tStorm.cpp,v 1.21 2002-04-30 17:17:27 arnaud Exp $
 \**************************************************************************/
 
 
@@ -39,6 +39,7 @@ tStorm::tStorm( int optvar )
   p(1.0),
   stdur(1.0),
   istdur(1.0),
+  seed(0),      // default seed
   endtm(1.0e9)
 {
    //srand( 0 );
@@ -240,9 +241,9 @@ double tStorm::ExpDev( long *idum )
 **
 \**************************************************************************/
 
-double tStorm::getStormDuration() { return stdur; }
-double tStorm::interstormDur() { return istdur; }
-double tStorm::getRainrate() { return p; }
+double tStorm::getStormDuration() const { return stdur; }
+double tStorm::interstormDur() const { return istdur; }
+double tStorm::getRainrate() const { return p; }
 double tStorm::getMeanStormDur() const {return stdurMean;}
 double tStorm::getMeanInterstormDur() const {return istdurMean;}
 double tStorm::getMeanPrecip() const {return pMean;}

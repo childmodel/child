@@ -30,7 +30,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.23 2002-04-23 12:02:07 arnaud Exp $
+**  $Id: tList.h,v 1.24 2002-04-30 17:17:26 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -1092,7 +1092,8 @@ template< class NodeType >        //tListIter
 inline tListIter< NodeType >::
 tListIter( tList< NodeType > *ptr ) :
   curnode(0),
-  listPtr(0)
+  listPtr(0),
+  counter(0)
 {
    assert( ptr != 0 );
    listPtr = ptr;

@@ -25,7 +25,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.18 2000-05-10 19:45:03 gtucker Exp $
+**  $Id: tStorm.h,v 1.19 2002-04-30 17:17:27 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TSTORM_H
@@ -41,9 +41,9 @@ public:
     tStorm( double, double, double, unsigned, int optvar=1, double et=1.0e9 );
     tStorm( tInputFile & );
     void  GenerateStorm( double tm, double minp=0.0, double mind=0.0);
-    double getStormDuration();
-    double interstormDur();
-    double getRainrate();
+    double getStormDuration() const;
+    double interstormDur() const;
+    double getRainrate() const;
     double getMeanStormDur() const;
     double getMeanInterstormDur() const;
     double getMeanPrecip() const;

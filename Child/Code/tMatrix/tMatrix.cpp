@@ -8,7 +8,7 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.cpp,v 1.1 1998-02-18 22:40:40 gtucker Exp $
+**  $Id: tMatrix.cpp,v 1.2 2002-04-30 17:17:26 arnaud Exp $
 \*************************************************************************/
 
 #include "tMatrix.h"
@@ -25,7 +25,10 @@ tMatrix<T>::tMatrix()
 // Constructor: sets the size of the matrix to nr by nc and sets all values
 // to zero.
 template < class T >
-tMatrix<T>::tMatrix( int nr, int nc )
+tMatrix<T>::tMatrix( int nr, int nc ) :
+  ptr(0),
+  nrows(nr),
+  ncols(nc)
 {
    int i;
    

@@ -40,7 +40,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.28 2002-04-23 12:03:16 arnaud Exp $
+**  $Id: meshElements.h,v 1.29 2002-04-30 17:17:26 arnaud Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -332,7 +332,8 @@ inline tNode::tNode() :
   id(0),
   x(0.), y(0.), z(0.),
   varea(0.), varea_rcp(0.),
-  boundary(0), edg(0)
+  boundary(0), edg(0), 
+  spokeList()
 {}
 
 //copy constructor
@@ -340,7 +341,8 @@ inline tNode::tNode( const tNode &original ) :
   id(original.id),
   x(original.x), y(original.y), z(original.z),
   varea(original.varea), varea_rcp(original.varea_rcp),
-  boundary(original.boundary), edg(original.edg)
+  boundary(original.boundary), edg(original.edg),
+  spokeList()
 {
       if( &(original.spokeList) != 0 )
       {
@@ -930,7 +932,8 @@ inline void tEdge::WelcomeCCWNeighbor( tEdge * neighbor )
 \***********************************************************************/
 
 //default
-inline tTriangle::tTriangle()
+inline tTriangle::tTriangle() :
+  id(0)
 {
    assert( p != 0 && e != 0 && t != 0 );
    for( int i=0; i<3; i++ )
