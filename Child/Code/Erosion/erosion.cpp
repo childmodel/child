@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.126 2003-10-02 14:42:29 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.127 2003-10-15 09:23:56 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -155,7 +155,7 @@ tEquilibCheck::tEquilibCheck( tMesh< tLNode > &meshRef, tRunTimer &timeRef )
 }
 
 tEquilibCheck::tEquilibCheck( tMesh< tLNode > &meshRef, tRunTimer &timeRef,
-                              tInputFile &fileRef )
+                              const tInputFile &fileRef )
   :
   meshPtr(&meshRef),
   timePtr(&timeRef),
@@ -331,7 +331,7 @@ double tEquilibCheck::FindLongTermChngRate( double newtime )
  **
 \***************************************************************************/
 //constructor: reads and sets the parameters
-tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
+tBedErodePwrLaw::tBedErodePwrLaw( const tInputFile &infile )
 {
   const double secPerYear = SECPERYEAR;  // # secs in one year
 
@@ -530,7 +530,7 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
  **
 \***************************************************************************/
 //constructor: reads and sets the parameters
-tBedErodePwrLaw2::tBedErodePwrLaw2( tInputFile &infile )
+tBedErodePwrLaw2::tBedErodePwrLaw2( const tInputFile &infile )
 {
   const double secPerYear = SECPERYEAR;  // # secs in one year
 
@@ -718,7 +718,7 @@ double tBedErodePwrLaw2::SetTimeStep( tLNode * n )
  **     constructor. (GT 06/01)
  **
 \***************************************************************************/
-tSedTransPwrLaw::tSedTransPwrLaw( tInputFile &infile )
+tSedTransPwrLaw::tSedTransPwrLaw( const tInputFile &infile )
 {
   const double secPerYear = SECPERYEAR;  // # secs in one year
 
@@ -820,7 +820,7 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
  **  the input file.
  **
 \***************************************************************************/
-tSedTransPwrLaw2::tSedTransPwrLaw2( tInputFile &infile )
+tSedTransPwrLaw2::tSedTransPwrLaw2( const tInputFile &infile )
 {
   const double secPerYear = SECPERYEAR;  // # secs in one year
 
@@ -916,7 +916,7 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node, int lyr, double weight )
  **  the input file.
  **
 \***************************************************************************/
-tSedTransBridgeDom::tSedTransBridgeDom( tInputFile &infile )
+tSedTransBridgeDom::tSedTransBridgeDom( const tInputFile &infile )
 {
   const double secPerYear = SECPERYEAR;  // # secs in one year
 
@@ -1012,7 +1012,7 @@ double tSedTransBridgeDom::TransCapacity( tLNode *node, int lyr, double weight )
  **  tSedTransPwrLawMulti constructor
  **
 \**************************************************************************/
-tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
+tSedTransPwrLawMulti::tSedTransPwrLawMulti( const tInputFile &infile )
 {
   const double secPerYear = SECPERYEAR;  // # secs in one year
 
@@ -1155,7 +1155,7 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode * /* node */ )
  **  tSedTransWilcock constructor
  **
 \**************************************************************************/
-tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
+tSedTransWilcock::tSedTransWilcock( const tInputFile &infile )
   : grade(2)
 {
   if(0) //DEBUG
@@ -1369,7 +1369,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
  **  note that for now this is the same as tSedTransWilcock
  **  constructor since it is using same taucrit function
 \**************************************************************************/
-tSedTransMineTailings::tSedTransMineTailings( tInputFile &infile )
+tSedTransMineTailings::tSedTransMineTailings( const tInputFile &infile )
   : grade(2)
 {
   int i;
@@ -1591,7 +1591,7 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
 \***************************************************************************/
 
 //constructor
-tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile ) :
+tErosion::tErosion( tMesh<tLNode> *mptr, const tInputFile &infile ) :
   meshPtr(mptr),
   bedErode(0), sedTrans(0)
 {
@@ -2396,8 +2396,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
   //Added 4/00, if there is no runoff, this would crash, so check
   if(strmNet->getRainRate()-strmNet->getInfilt()>0){
 
-    double dt,
-      dtmax;          // time increment: initialize to arbitrary large val
+    double dtmax;       // time increment: initialize to arbitrary large val
     double frac = 0.3;  //fraction of time to zero slope
     double timegb=time; //time gone by - for layering time purposes
     int i,j, flag;
@@ -2562,15 +2561,15 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 		   }
 		 }
 	    }
-         }// End for( cn = ni.FirstP()..
-         dtmax *= frac;  // Take a fraction of time-to-flattening
-         timegb+=dtmax;
+	  }// End for( cn = ni.FirstP()..
+	dtmax *= frac;  // Take a fraction of time-to-flattening
+	timegb+=dtmax;
          
          //At this point: we have drdt and qs for each node, plus dtmax
          
          // Do erosion/deposition
-         for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-         {
+	for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+	  {
             //need to recalculate cause qsin may change due to time step calc
             excap=(cn->getQs() - cn->getQsin())/cn->getVArea();
 
@@ -2705,13 +2704,13 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 	 // Erode vegetation
 #if 0
 #define NEWVEG 0
-	 if( pVegetation && NEWVEG ) pVegetation->ErodeVegetation( meshPtr, dtmax );
+	if( pVegetation && NEWVEG ) pVegetation->ErodeVegetation( meshPtr, dtmax );
 #undef NEWVEG
 #endif
 
-	// Update time remainig
-	dtg -= dtmax;
-	//cout<<"Time remaining now "<<dtg<<endl;
+	 // Update time remainig
+	 dtg -= dtmax;
+	 //cout<<"Time remaining now "<<dtg<<endl;
       } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
   }//end if rainrate-infilt>0
 

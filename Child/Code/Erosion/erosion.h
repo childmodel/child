@@ -57,7 +57,7 @@
  **     - Added codes to go along with erosion & transport options, to
  **       enable checking against user-specified options (GT 7/02)
  **
- **  $Id: erosion.h,v 1.50 2003-10-02 10:09:25 childcvs Exp $
+ **  $Id: erosion.h,v 1.51 2003-10-15 09:24:00 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -94,7 +94,7 @@ class tEquilibCheck
 public:
   tEquilibCheck();
   tEquilibCheck( tMesh< tLNode > &, tRunTimer & );
-  tEquilibCheck( tMesh< tLNode > &, tRunTimer &, tInputFile & );
+  tEquilibCheck( tMesh< tLNode > &, tRunTimer &, const tInputFile & );
   ~tEquilibCheck();
   double getLongTime() const; //get the interval for long-term change
   void setLongTime( double ); //set the interval for long-term change
@@ -149,7 +149,7 @@ public:
 class tSedTransPwrLaw : public tSedTrans
 {
 public:
-  tSedTransPwrLaw( tInputFile &infile );
+  tSedTransPwrLaw( const tInputFile &infile );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int i, double weight);
 
@@ -175,7 +175,7 @@ private:
 class tSedTransPwrLaw2 : public tSedTrans
 {
 public:
-  tSedTransPwrLaw2( tInputFile &infile );
+  tSedTransPwrLaw2( const tInputFile &infile );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int i, double weight);
 
@@ -202,7 +202,7 @@ private:
 class tSedTransBridgeDom : public tSedTrans
 {
 public:
-  tSedTransBridgeDom( tInputFile &infile );
+  tSedTransBridgeDom( const tInputFile &infile );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int i, double weight);
 
@@ -230,7 +230,7 @@ private:
 class tSedTransPwrLawMulti : public tSedTrans
 {
 public:
-  tSedTransPwrLawMulti( tInputFile &infile );
+  tSedTransPwrLawMulti( const tInputFile &infile );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int lyr, double weight );
 
@@ -259,7 +259,7 @@ private:
 class tSedTransWilcock : public tSedTrans
 {
 public:
-  tSedTransWilcock( tInputFile &infile );
+  tSedTransWilcock( const tInputFile &infile );
   double TransCapacity( tLNode * n ); // returns total volumetric load
   double TransCapacity( tLNode *n, int i, double weight);
   //returns total volumetric load
@@ -296,7 +296,7 @@ private:
 class tSedTransMineTailings : public tSedTrans
 {
 public:
-  tSedTransMineTailings( tInputFile &infile );
+  tSedTransMineTailings( const tInputFile &infile );
   double TransCapacity( tLNode * n ); // returns total volumetric load
   double TransCapacity( tLNode *n, int i, double weight);
 
@@ -353,7 +353,7 @@ public:
 class tBedErodePwrLaw : public tBedErode
 {
 public:
-  tBedErodePwrLaw( tInputFile &infile );
+  tBedErodePwrLaw( const tInputFile &infile );
   //Computes depth of potential erosion at node n over time interval dt
   double DetachCapacity( tLNode * n, double dt );
   //Computes rate of potential erosion of layer i at node n
@@ -393,7 +393,7 @@ private:
 class tBedErodePwrLaw2 : public tBedErode
 {
 public:
-  tBedErodePwrLaw2( tInputFile &infile );
+  tBedErodePwrLaw2( const tInputFile &infile );
   //Computes depth of potential erosion at node n over time interval dt
   double DetachCapacity( tLNode * n, double dt );
   //Computes rate of potential erosion of layer i at node n
@@ -429,7 +429,7 @@ class tErosion
   tErosion(const tErosion&);
   tErosion& operator=(const tErosion&);
 public:
-  tErosion( tMesh< tLNode > *, tInputFile & );
+  tErosion( tMesh< tLNode > *, const tInputFile & );
   ~tErosion();
   void ErodeDetachLim( double dtg, tStreamNet *, tVegetation * );
   void ErodeDetachLim( double dtg, tStreamNet *, tUplift const * );
