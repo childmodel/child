@@ -9,7 +9,7 @@
 **       constructor to implement dynamic node addition in regions of
 **       high drainage area (ie, main channels; see below) GT
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.69 2000-03-24 16:58:56 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.69.1.1 2000-12-07 15:49:03 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1506,7 +1506,7 @@ void tStreamNet::SortNodesByNetOrder( int optMultiFlow )
    int nUnsortedNodes = nodeList->getActiveSize();  // Number not yet sorted
    tMeshListIter<tLNode> listIter( nodeList );
    
-   cout << "SortNodesByNetOrder, optMultiFlow=" << optMultiFlow << endl;
+   //cout << "SortNodesByNetOrder, optMultiFlow=" << optMultiFlow << endl;
 
    //test
    /*cout << "BEFORE: " << endl;
