@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.136 2003-04-29 15:44:00 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.137 2003-04-29 16:33:56 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3828,8 +3828,6 @@ AttachNode( tSubNode* cn, tTriangle* tri )
      AddEdge( node1, node2, node3 );  //add edge between node1 and node2
      AddEdgeAndMakeTriangle( node3, node1, node2 ); // ABN
      AddEdgeAndMakeTriangle( node2, node1, node4 ); // NBC
-     tPtrList< tSubNode > tmpList;
-     tPtrListIter< tSubNode > tmpIter( tmpList );
      MakeTriangle( node2, node4, node3 );  // NCA
    } else  {
      // need to make four new triangles:
