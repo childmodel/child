@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.14 1998-07-25 01:16:36 nmgaspar Exp $
+**  $Id: erosion.h,v 1.15 1998-07-31 19:17:35 nmgaspar Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -206,7 +206,7 @@ public:
 private:
    tGrid<tLNode> *gridPtr;
    tBedErodePwrLaw bedErode;
-   tSedTransWilcock sedTrans;  
+   tSedTransPwrLaw sedTrans;  
     double kd;                // Hillslope transport (diffusion) coef
 
 };
