@@ -9,7 +9,7 @@
 **       constructor to implement dynamic node addition in regions of
 **       high drainage area (ie, main channels; see below) GT
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.68 2000-03-09 20:09:02 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.69 2000-03-24 16:58:56 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1983,20 +1983,14 @@ void tStreamNet::DensifyMeshDrArea( double time )
    tMeshListIter<tLNode> niter( meshPtr->getNodeList() );  // node list iter.
    tLNode *cn;              // Current node being checked
 
-   cout << "Checking nodes...\n";
-   
    // Check all active nodes
    for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
    {
-      if( cn->getDrArea()>mdMeshAdaptMinArea )
-          cn->TellAll();
-      // If local flux (ero rate * varea) exceeds threshold, add new nodes
+      // If drainage area and Voronoi area exceed thresholds, add new nodes
       if( cn->getDrArea()>mdMeshAdaptMinArea 
           && cn->getVArea() > mdMeshAdaptMaxVArea )
       {
          meshPtr->AddNodesAround( cn, time );
-         //cout << "*** Adding points here:\n";
-         //cn->TellAll();
       }
    }
 
