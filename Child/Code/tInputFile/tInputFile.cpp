@@ -6,7 +6,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.15 2002-09-26 17:33:43 arnaud Exp $
+**  $Id: tInputFile.cpp,v 1.16 2002-09-27 15:30:14 arnaud Exp $
 \****************************************************************************/
 
 #if !defined(HAVE_NO_NAMESPACE)
@@ -92,7 +92,7 @@ static
 void readLine(char *headerLine, ifstream& infile){
   infile.getline( headerLine, kMaxNameLength );
   // still some characters left on the current line ?
-  if ( !infile.eof() && infile.rdstate() & ios::failbit){
+  if ( !infile.eof() && !infile.bad() && infile.rdstate() & ios::failbit){
     // clear failbit
     infile.clear(infile.rdstate() & ~ios::failbit);
     // discard characters.
@@ -106,7 +106,7 @@ void readUntilKeyword(char *headerLine, ifstream& infile,
 		      const char *itemCode){
   do {
     readLine(headerLine, infile);
-  } while( !( infile.eof() ) &&
+  } while( !infile.eof() && !infile.bad() &&
 	   ( headerLine[0]==kCommentMark ||
 	     strncmp( itemCode, headerLine, strlen( itemCode ) )!=0 ) );
 }
@@ -115,7 +115,7 @@ static
 void skipCommentsAndReadValue(char *headerLine, ifstream& infile){
   do {
     readLine(headerLine, infile);
-  } while( !( infile.eof() ) &&
+  } while( !infile.eof() && !infile.bad() &&
 	   ( headerLine[0]==kCommentMark ) );
 }
 
@@ -128,11 +128,9 @@ int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode )
    
    assert( infile.good() );
 
-   // NB: Should check for eof on reading each line
-
    // look for itemCode
    readUntilKeyword(headerLine, infile, itemCode);
-   if ( infile.eof() )
+   if ( infile.eof() || infile.bad() )
      goto fail;
 
    // skip any comment and read value
@@ -163,11 +161,9 @@ long tInputFile::ReadItem( const long & /*datType*/, const char *itemCode )
   
    assert( infile.good() );
   
-   // NB: Should check for eof on reading each line
-
    // look for itemCode
    readUntilKeyword(headerLine, infile, itemCode);
-   if ( infile.eof() )
+   if ( infile.eof() || infile.bad() )
      goto fail;
 
    // skip any comment and read value
@@ -198,11 +194,9 @@ double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode )
    
    assert( infile.good() );
   
-   // NB: Should check for eof on reading each line
-
    // look for itemCode
    readUntilKeyword(headerLine, infile, itemCode);
-   if ( infile.eof() )
+   if ( infile.eof() || infile.bad() )
      goto fail;
 
    // skip any comment and read value
@@ -235,13 +229,13 @@ void tInputFile::ReadItem(  char * theString, const char *itemCode )
 
    // look for itemCode
    readUntilKeyword(headerLine, infile, itemCode);
-   if ( infile.eof() )
+   if ( infile.eof() || infile.bad() )
      goto fail;
 
    // skip any comment and read value
    do {
      readLine(headerLine, infile);
-   } while( !( infile.eof() ) &&
+   } while( !infile.eof() && !infile.bad() &&
 	    ( headerLine[0]==kCommentMark ) );
    if( headerLine[0]!=kCommentMark )
      {
