@@ -197,16 +197,8 @@ bool ReadChildData::LoadData(const char* basename, const int nStep,
 }
 
 void skipLine(ifstream& infile){
-    char theline[80];
-    void require_theline_gt_1(char l[(sizeof(theline)>1)?1:-1]);
-    for(;;){
-      infile.getline(theline, sizeof theline);
-      if (infile.eof() || infile.bad())
-	break;
-      if (! infile.fail()) 
-	break;
-      infile.clear();
-    }
+  char c;
+  while(infile.get(c) && c != '\n');
 }
 
 // skip record until the "nStep"-th Step if reached
