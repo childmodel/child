@@ -1,26 +1,17 @@
-/*
-**  tStorm.cpp
-** 
-**  Functions for tStorm objects.
+/**************************************************************************\
+**
+**  tStorm.cpp: Functions for class tStorm.
+**
 **  A tStorm object generates random storms assuming an exponential
 **  distribution of rainfall intensity, storm duration, and time to the
 **  next storm. It is essentially an implementation of the model of
 **  P. Eagleson, 1978b, Water Resources Research. Its services include
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
-**    If you want to provide an option for NOT having storms vary
-**  randomly, you can do so by setting optVariable to zero on initialization.
-**    The GammaDev() function is provided for future reference; it is not
-**  actually used in version 1.0.
-**    tStorm objects could be easily modified (or inherited from) to use
-**  different distributions. They can also be modified to create objects
-**  for other random processes such as river flows, etc.
-**    The random number generation routine ran3() from Numerical Recipes
-**  is included in this file.
 **
-**  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.cpp,v 1.11 1998-07-15 22:25:41 gtucker Exp $
-*/
+**  $Id: tStorm.cpp,v 1.12 1999-04-01 17:30:42 gtucker Exp $
+\**************************************************************************/
+
 
 #include <math.h>
 #include "../Mathutil/mathutil.h"
@@ -28,13 +19,15 @@
 
 
 
-/*
+/**************************************************************************\
+**
 **  tStorm::tStorm:  Constructor for storms. The default constructor
 **                   assigns a value of unity to storm depth, duration,
 **                   and interstorm duration. (Note:
 **                   this constructor does not allow option for sinusoidal
 **                   variation in means).
-*/
+**
+\**************************************************************************/
 tStorm::tStorm( int optvar )
 {
    optVariable = optvar;
@@ -49,14 +42,16 @@ tStorm::tStorm( int optvar )
 }
 
 
-/*
+/**************************************************************************\
+**
 **  tStorm::tStorm:  The constructor that's really used assigns values for
 **                   mean storm depth, duration, and interstorm duration,
 **                   initializes current depth, etc, to the mean values,
 **                   and initializes the random number generator. (Note:
 **                   this constructor does not allow option for sinusoidal
 **                   variation in means).
-*/
+**
+\**************************************************************************/
 tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar )
 {
    optVariable = optvar;
@@ -72,7 +67,8 @@ tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar )
 }
 
 
-/*
+/**************************************************************************\
+**
 **  tStorm::tStorm
 **
 **  Alternative constructor that reads parameters directly from a tInputFile
@@ -85,7 +81,8 @@ tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar )
 **  Variables p0, stdur0, and istdur0 are the mean values of the means;
 **  pdev, stdurdev, and istdurdev are the range of variation (e.g., if pMean
 **  were to fluctuate between 5 and 10, p0 would be 7.5 and pdev 2.5).
-*/
+**
+\**************************************************************************/
 tStorm::tStorm( tInputFile &infile )
 {
    // Read + set parameters for storm intensity, duration, and spacing
@@ -122,7 +119,8 @@ tStorm::tStorm( tInputFile &infile )
 }
 
 
-/*
+/**************************************************************************\
+**
 **  tStorm::GenerateStorm
 **
 **  Generates a new storm by drawing new values of p, stdur, and istdur from
@@ -132,13 +130,14 @@ tStorm::tStorm( tInputFile &infile )
 **  including the rejected storms and their associated interstorm periods,
 **  is stored istdur.
 **
-**  Parameters:  minp -- minimum value of rainfall rate p (default 0)
+**  Inputs:      minp -- minimum value of rainfall rate p (default 0)
 **               mind -- minimum storm depth to produce runoff (default 0)
 **               tm -- current time in simulation
 **  Members updated:  p, stdur, istdur take on new random values (if optVar)
 **                    pMean, stdurMean, istdurMean adjusted (if optSinVar)
 **  Assumptions:  pMean > 0
-*/
+**
+\**************************************************************************/
 void tStorm::GenerateStorm( double tm, double minp, double mind )
 {
    // If option for sinusoidal variation is on, adjust the means
@@ -176,10 +175,12 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
 }
 
 
-/*
+/**************************************************************************\
+**
 **  tStorm::ExpDev:  Finds a random number with an exponential distribution
 **                   (adapted from Numerical Recipes).
-*/
+**
+\**************************************************************************/
 double tStorm::ExpDev( long *idum )
 {
     double dum;
@@ -191,47 +192,28 @@ double tStorm::ExpDev( long *idum )
 }
 
 
-/*
-**  getStormDuration
+/**************************************************************************\
 **
-**  Returns the storm duration.
-*/
-double tStorm::getStormDuration()
-{
-   return stdur;
-}
-
-/*
-**  InterstormDur
+**  tStorm "get" routines: return various variables
 **
-**  Returns the interstorm duration.
-*/
-double tStorm::interstormDur()
-{
-   return istdur;
-}
+\**************************************************************************/
 
-/*
-**  getRainrate
-**
-**  Returns the rainfall rate.
-*/
-double tStorm::getRainrate()
-{
-   return p;
-}
-
+double tStorm::getStormDuration() { return stdur; }
+double tStorm::interstormDur() { return istdur; }
+double tStorm::getRainrate() { return p; }
 double tStorm::getMeanStormDur() const {return stdurMean;}
 double tStorm::getMeanInterstormDur() const {return istdurMean;}
 double tStorm::getMeanPrecip() const {return pMean;}
 
-/*
+/**************************************************************************\
+**
 **  GammaDev
 **
 **  Returns a random variable drawn from a Gamma distribution with parameter m.
 **
 **  (Note: not actually called; provided for future use).
-*/
+**
+\**************************************************************************/
 double tStorm::GammaDev(double m, long * idum)
 {
   double x, y,z, c,t,b,u,w,v;

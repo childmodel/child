@@ -1,7 +1,6 @@
-/*
-**  tStorm.h
-** 
-**  Header for tStorm objects.
+/**************************************************************************\
+*
+**  tStorm.h: Header for class tStorm
 **
 **  A tStorm object generates random storms assuming an exponential
 **  distribution of rainfall intensity, storm duration, and time to the
@@ -12,7 +11,7 @@
 **    If you want to provide an option for NOT having storms vary
 **  randomly, you can do so by setting optVariable to zero on initialization.
 **    The GammaDev() function is provided for future reference; it is not
-**  actually used in version 1.0.
+**  actually used in the current version.
 **    At the user's option, the storm parameters can also be varied 
 **  sinusoidally with time to simulate long-term climatic fluctuations.
 **  (This is done by GenerateStorm).
@@ -20,36 +19,35 @@
 **  different distributions. They can also be modified to create objects
 **  for other random processes such as river flows, etc.
 **
-**  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.h,v 1.12 1999-01-05 22:14:15 stlancas Exp $
-*/
+**  Created by Greg Tucker, November 1997.
+**
+**  $Id: tStorm.h,v 1.13 1999-04-01 17:31:11 gtucker Exp $
+\**************************************************************************/
 
 #ifndef TSTORM_H
 #define TSTORM_H
 
 #include <stdlib.h>
-/*#include "../tRunTimer/tRunTimer.h"*/
 #include "../tInputFile/tInputFile.h"
 
 #define kSecperyear 31536000
 
 class tStorm
 {
-  public:
-   tStorm( int optVariable=1 );
-   tStorm( double, double, double, unsigned, int optvar=1 );
-   tStorm( tInputFile & );
-   void  GenerateStorm( double tm, double minp=0.0, double mind=0.0 );
-   double getStormDuration();
-   double interstormDur();
-   double getRainrate();
-   double getMeanStormDur() const;
-   double getMeanInterstormDur() const;
-   double getMeanPrecip() const;
-
-   double getOptVar() const;
+public:
+    tStorm( int optVariable=1 );
+    tStorm( double, double, double, unsigned, int optvar=1 );
+    tStorm( tInputFile & );
+    void  GenerateStorm( double tm, double minp=0.0, double mind=0.0 );
+    double getStormDuration();
+    double interstormDur();
+    double getRainrate();
+    double getMeanStormDur() const;
+    double getMeanInterstormDur() const;
+    double getMeanPrecip() const;
+    double getOptVar() const;
    
-  private:
+private:
     double ExpDev( long * );
     double GammaDev(double, long*);
    
