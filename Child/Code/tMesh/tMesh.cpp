@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.184 2003-10-02 14:22:06 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.185 2003-10-15 09:30:52 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -81,14 +81,14 @@ template< class tSubNode >     //tMesh
 tMesh< tSubNode >::
 tMesh()
   :
+  mSearchOriginTriPtr(0),
   nnodes(0),
   nedges(0),
   ntri(0),
   miNextNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),
-  layerflag(false),
-  mSearchOriginTriPtr(0)
+  layerflag(false)
 {
   if (0) //DEBUG
    cout<<"tMesh()"<<endl;
@@ -101,17 +101,17 @@ tMesh()
 template< class tSubNode >
 tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
   :
-  nnodes(originalMesh->nnodes),
-  nedges(originalMesh->nedges),
-  ntri(originalMesh->ntri),
   nodeList(originalMesh->nodeList),
   edgeList(originalMesh->edgeList),
   triList(originalMesh->triList),
+  mSearchOriginTriPtr(0),
+  nnodes(originalMesh->nnodes),
+  nedges(originalMesh->nedges),
+  ntri(originalMesh->ntri),
   miNextNodeID(originalMesh->miNextNodeID),
   miNextEdgID(originalMesh->miNextEdgID),
   miNextTriID(originalMesh->miNextTriID),
-  layerflag(originalMesh->layerflag),
-  mSearchOriginTriPtr(0)
+  layerflag(originalMesh->layerflag)
 {}
 
 
@@ -144,7 +144,7 @@ tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
 \**************************************************************************/
 template< class tSubNode >
 tMesh< tSubNode >::
-tMesh( tInputFile &infile, tRand &randS)
+tMesh( const tInputFile &infile, tRand &randS)
   :
   nodeList(),
   mSearchOriginTriPtr(0),
@@ -264,7 +264,7 @@ tMesh< tSubNode >::
 \************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeLayersFromInputData( tInputFile &infile )
+MakeLayersFromInputData( const tInputFile &infile )
 {
    int i, item, numl;
    int righttime;
@@ -399,7 +399,7 @@ MakeLayersFromInputData( tInputFile &infile )
 \**************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MeshDensification( tInputFile &infile )
+MeshDensification( const tInputFile &infile )
 {
    int initMeshDensLevel;
    initMeshDensLevel = infile.ReadItem( initMeshDensLevel, "OPTINITMESHDENS" );
@@ -481,7 +481,7 @@ MeshDensification( tInputFile &infile )
 \**************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeMeshFromInputData( tInputFile &infile, tRand &randS )
+MakeMeshFromInputData( const tInputFile &infile, tRand &randS )
 {
    int i;
    tListInputData< tSubNode > input( infile, randS );
@@ -508,8 +508,8 @@ MakeMeshFromInputData( tInputFile &infile, tRand &randS )
       miNextNodeID = i;
       tempnode.setID( miNextNodeID );
       tBoundary_t bound;
+      assert( input.boundflag[i] >= 0 && input.boundflag[i] <= 2 );
       bound = INT_TO_ENUM(tBoundary_t, input.boundflag[i]);
-      assert( bound >= 0 && bound <= 2 );
       tempnode.setBoundaryFlag( bound );
       switch (bound){
       case kNonBoundary:
@@ -518,7 +518,7 @@ MakeMeshFromInputData( tInputFile &infile, tRand &randS )
       case kOpenBoundary:
           nodeList.insertAtBoundFront( tempnode );
 	  break;
-      default: //kClosedBoundary
+      case kClosedBoundary:
           nodeList.insertAtBack( tempnode );
 	  break;
       }
@@ -1028,7 +1028,7 @@ BatchAddNodes()
 \**************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
+MakePointBoundary( const ParamMMFS_t &Param, const tInputFile &infile,
 		   tPtrList< tSubNode > &bndList, tRand &rand)
 {
    int i,                        // counters
@@ -1306,7 +1306,7 @@ MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
 
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
+MakePointInterior( const ParamMMFS_t &Param, const tInputFile &infile,
 		   bool makeMesh, tRand &rand )
 {
    int i, j,                     // counters
@@ -1403,7 +1403,7 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
 
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeMeshFromScratch( tInputFile &infile, tRand &rand )
+MakeMeshFromScratch( const tInputFile &infile, tRand &rand )
 {
    if (0) //DEBUG
      cout << "In MGFS, calling node constr w/ infile\n";
@@ -1484,7 +1484,7 @@ MakeMeshFromScratch( tInputFile &infile, tRand &rand )
 \**************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeMeshFromPoints( tInputFile &infile )
+MakeMeshFromPoints( const tInputFile &infile )
 {
    int i;                           // loop counter
    int numpts;                      // no. of points in mesh
@@ -1654,7 +1654,7 @@ MakeMeshFromPoints( tInputFile &infile )
 \**************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeRandomPointsFromArcGrid( tInputFile &infile )
+MakeRandomPointsFromArcGrid( const tInputFile &infile )
 {
    int i, j;                        // loop counter
    //Xn;                            // counter
@@ -1875,7 +1875,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
 \**************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeHexMeshFromArcGrid( tInputFile &infile )
+MakeHexMeshFromArcGrid( const tInputFile &infile )
 {
    /*bool*/int keepgoing;
    int i, j;                        // loop counter
@@ -3908,7 +3908,7 @@ AddToList( tSubNode const & newNode )
     nodeList.insertAtBoundFront( newNode );
     cn = nodIter.FirstBoundaryP();
     break;
-  default:
+  case kClosedBoundary:
     nodeList.insertAtBack( newNode );
     cn = nodIter.LastP();
     break;
@@ -4360,7 +4360,7 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop,
    tEdge* edgop = triop->ePtr( (nvop+2)%3 );
    const bool move =
      BOOL(
-	  tEdge::isFlowAllowed(na, nc) == !tEdge::isFlowAllowed(nb, nd)
+	  tEdge::isFlowAllowed(na, nc) != tEdge::isFlowAllowed(nb, nd)
 	  );
 
    tListNode< tEdge >* enodePtr1=0;

@@ -24,7 +24,7 @@
 
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeMeshFromScratchTipper( tInputFile &infile, tRand &rand )
+MakeMeshFromScratchTipper( const tInputFile &infile, tRand &rand )
 {
    //cout << "In MGFS, calling node constr w/ infile\n";
 
@@ -59,7 +59,7 @@ MakeMeshFromScratchTipper( tInputFile &infile, tRand &rand )
 
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeMeshFromPointsTipper( tInputFile &infile ){
+MakeMeshFromPointsTipper( const tInputFile &infile ){
   {
     int numpts;                      // no. of points in mesh
     char pointFilenm[80];            // name of file containing (x,y,z,b) data

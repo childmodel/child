@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.63 2003-10-02 14:22:17 childcvs Exp $
+**  $Id: tMesh.h,v 1.64 2003-10-15 09:30:59 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -91,28 +91,28 @@ class tMesh
    tMesh(const tMesh&);
    tMesh& operator=(const tMesh&);
 
-   void MakePointBoundary( const ParamMMFS_t &, tInputFile &,
+   void MakePointBoundary( const ParamMMFS_t &, const tInputFile &,
 			   tPtrList< tSubNode > &, tRand &);
-   void MakePointInterior( const ParamMMFS_t &, tInputFile &,
+   void MakePointInterior( const ParamMMFS_t &, const tInputFile &,
 			   bool makeMesh, tRand &);
    void BuildDelaunayMeshTipper();
-   void MeshDensification( tInputFile & );
+   void MeshDensification( const tInputFile & );
    void MakeDelaunay( tPtrList< tTriangle > &, double time );
    void SplitNonFlippableEdge( tPtrList< tEdge > &, double time );
 public:
    tMesh();
-   tMesh( tInputFile &, tRand & );
+   tMesh( const tInputFile &, tRand & );
    tMesh( tMesh const * );
    ~tMesh();
    void BatchAddNodes(); // quickly adds many nodes when starting w/ dense mesh
-   void MakeMeshFromScratch( tInputFile &, tRand & ); // creates a new mesh
-   void MakeMeshFromScratchTipper( tInputFile &, tRand & );   // creates a new mesh
-   void MakeMeshFromInputData( tInputFile &, tRand & ); // reads in an existing mesh
-   void MakeMeshFromPoints( tInputFile & );    // creates mesh from list of pts
-   void MakeMeshFromPointsTipper( tInputFile & ); // creates mesh from list of pts
-   void MakeRandomPointsFromArcGrid( tInputFile & ); // mesh from arc (rand)
-   void MakeHexMeshFromArcGrid( tInputFile & );// mesh from arc (hex)
-   void MakeLayersFromInputData( tInputFile & );
+   void MakeMeshFromScratch( const tInputFile &, tRand & ); // creates a new mesh
+   void MakeMeshFromScratchTipper( const tInputFile &, tRand & );   // creates a new mesh
+   void MakeMeshFromInputData( const tInputFile &, tRand & ); // reads in an existing mesh
+   void MakeMeshFromPoints( const tInputFile & );    // creates mesh from list of pts
+   void MakeMeshFromPointsTipper( const tInputFile & ); // creates mesh from list of pts
+   void MakeRandomPointsFromArcGrid( const tInputFile & ); // mesh from arc (rand)
+   void MakeHexMeshFromArcGrid( const tInputFile & );// mesh from arc (hex)
+   void MakeLayersFromInputData( const tInputFile & );
    void Print() const;
    void setVoronoiVertices();
    void CalcVoronoiEdgeLengths();
