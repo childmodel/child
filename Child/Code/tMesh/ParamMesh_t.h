@@ -7,6 +7,8 @@
 */
 /***************************************************************************/
 
+class tInputFile;
+
 /**
    @class ParamMMFS_t
    @brief Parameters read in Input File for tMesh::MakeMeshFromScratch

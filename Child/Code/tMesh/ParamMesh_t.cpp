@@ -7,8 +7,9 @@
 /***************************************************************************/
 
 #include <math.h>
-#include "../tListInputData/tListInputData.h"
 #include "ParamMesh_t.h"
+#include "../tInputFile/tInputFile.h"
+#include "../errors/errors.h"
 
 ParamMMFS_t::ParamMMFS_t(tInputFile &infile) :
   kSloped(0),
