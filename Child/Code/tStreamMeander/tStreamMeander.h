@@ -12,7 +12,7 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.20 1999-01-05 21:21:56 gtucker Exp $
+**  $Id: tStreamMeander.h,v 1.21 1999-02-22 20:07:16 nmgaspar Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
@@ -68,11 +68,12 @@ public:
    void FindHydrGeom();
    void FindChanGeom();
    //interpolates/adds points along channel; returns 1 if points added, else 0
-   int InterpChannel();
+   //time is passed to it
+   int InterpChannel( double );
    //routines that add nodes on the floodplain;
    //Make... called before nodes are actually moved; Add... called after:
    void MakeChanBorder( /*tList< tArray< double > > &*/ );
-   void AddChanBorder( /*tList< tArray< double > > &*/ );
+   void AddChanBorder( /*tList< tArray< double > > &*/ double time);
    //finds the erodibility of each bank, returns an array [right, left]:
    tArray< double > FindBankErody( tLNode * );
    //CheckBanksTooClose, CheckFlowedgCross, and CheckBrokenFlowedg are to check
@@ -120,3 +121,9 @@ protected:
 };
 
 #endif
+
+
+
+
+
+

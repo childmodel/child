@@ -12,7 +12,7 @@
 **     "gridElements", 1/20/98 gt
 **   - added tNode::AttachNewSpoke and tEdge::WelcomeCCWNeighbor gt 2/99
 **
-**  $Id: meshElements.cpp,v 1.26 1999-02-04 21:57:28 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.27 1999-02-22 20:05:45 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -419,7 +419,7 @@ void tNode::AttachFirstSpoke( tEdge *thespoke )
 {
    assert( thespoke!=0 );
    assert( thespoke->getOriginPtr()==this );
-   assert( edg==0 );
+   //assert( edg==0 );
    edg = thespoke;
    thespoke->setCCWEdg( thespoke );
 }
@@ -834,6 +834,7 @@ void tNode::WarnSpokeLeaving( tEdge * edglvingptr )
 {
    if( edglvingptr == edg )
        edg = edg->getCCWEdg();
+
 }
 
 /**********************************************************************\
