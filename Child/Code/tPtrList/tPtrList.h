@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.42 2003-10-15 15:04:05 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.43 2004-03-22 15:24:08 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -62,8 +62,6 @@ using namespace std;
 
 template < class NodeType > class tPtrList;
 template < class NodeType > class tPtrListIter;
-template < class NodeType > class tMeshList;
-template < class NodeType > class tMeshListIter;
 
 /*
   class PtrListDebug
