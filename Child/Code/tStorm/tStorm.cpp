@@ -19,7 +19,7 @@
 **  is included in this file.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.cpp,v 1.5 1998-01-29 19:48:45 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.6 1998-05-04 22:23:09 gtucker Exp $
 */
 
 #include <math.h>
@@ -90,19 +90,32 @@ tStorm::tStorm( tInputFile &infile )
 
 
 /*
-**  GenerateStorm
+**  tStorm::GenerateStorm
 **
 **  Generates a new storm by drawing new values of p, stdur, and istdur from
 **  an exponential distribution and updating the random seed.
+**    If the minp parameter is greater than zero, the function will keep
+**  picking storms until it finds one with p>minp. The total elapsed time,
+**  including the rejected storms and their associated interstorm periods,
+**  is stored istdur.
+**
+**  Parameters:  minp -- minimum value of rainfall rate p (default 0)
+**  Members updated:  p, stdur, istdur take on new random values
+**  Assumptions:  pMean > 0
 */
-void tStorm::GenerateStorm()
+void tStorm::GenerateStorm( double minp )
 {
    if( optVariable )
    {
-      p = pMean*ExpDev( &seed );
-      stdur = stdurMean*ExpDev( &seed );
-      istdur = istdurMean*ExpDev( &seed );
-      srand( seed );
+      stdur = 0;
+      istdur = 0;
+      do
+      {
+         p = pMean*ExpDev( &seed );
+         istdur += istdurMean*ExpDev( &seed ) + stdur;
+         stdur = stdurMean*ExpDev( &seed );
+         srand( seed );
+      } while( p<=minp );
    }
 }
 
