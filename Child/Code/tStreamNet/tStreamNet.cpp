@@ -19,7 +19,8 @@ tInlet::tInlet()
 tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
 {
    int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" );
-   double xin, yin, mindist, dist, x, y;
+   double xin, yin, mindist, dist, x, y, zin = 0, suminvdist = 0;
+   tArray< double > xyz(3);
    tTriangle *intri, *ntri;
    tLNode *cn;
    tPtrList< tLNode > nPL;
@@ -32,7 +33,8 @@ tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
       xin = infile.ReadItem( xin, "INLET_X" );
       yin = infile.ReadItem( yin, "INLET_Y" );
       intri = gridPtr->LocateTriangle( xin, yin );
-      mindist = 1000000000;
+      assert( intri > 0 );
+      //mindist = 1000000000;
       for( i=0; i<3; i++ )
       {
          cn = (tLNode *) intri->pPtr(i);
@@ -45,16 +47,25 @@ tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
          }
       }
       for( cn = itr.FirstP(); !(itr.AtEnd()); cn = itr.NextP() )
-      {   
+      {
+         
          x = cn->getX();
          y = cn->getY();
          dist = sqrt( (xin - x) * (xin - x) + (yin - y) * (yin - y) );
+         zin += cn->getZ() / dist;
+         suminvdist += 1 / dist;
+         /*
          if( dist < mindist )
          {
             dist = mindist;
             innode = cn;
-         }
+         }*/
       }
+      zin = zin / suminvdist;
+      xyz[0] = xin;
+      xyz[1] = yin;
+      xyz[2] = zin;
+      innode = gridPtr->AddNodeAt( xyz );
    }
    else
    {
@@ -69,14 +80,46 @@ tInlet::~tInlet()
    gridPtr = 0;
 }
 
+/**************************************************************************\
+**
+**  tInlet::FindNewInlet: search for points 'up-valley' of present inlet;
+**     of those points and the present inlet, set new inlet to one with the
+**     lowest elevation.
+**
+\**************************************************************************/
+
+void tInlet::FindNewInlet()
+{
+   double xin, yin, zin, x, y, z, zmin;
+   tLNode *cn, *newinnode;
+   tGridListIter< tLNode > nI( gridPtr->GetNodeList() );
+   tArray< double > xyz = innode->get3DCoords();
+   yin = xyz[1];
+   zmin = xyz[2];
+   newinnode = innode;
+   for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+   {
+      if( cn->getY() >= yin )
+      {
+         if( cn->getZ() < zmin )
+         {
+            zmin = cn->getZ();
+            newinnode = cn;
+         }
+      }
+   }
+   innode = newinnode;
+}
+
    
+
 /**************************************************************************\
 **
 **  tStreamNet.cpp
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.18 1998-03-09 17:39:12 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.19 1998-03-10 23:31:19 stlancas Exp $
 \**************************************************************************/
 
 
@@ -394,6 +437,77 @@ void tStreamNet::InitFlowDirs()
 }
 #undef kMaxSpokes
 
+/****************************************************************************\
+**
+**  TryDamBypass: See whether we can avoid flowing uphill by deleting nearby
+**     points.
+**
+**      Parameters:     none
+**      Called by:
+**      Assumes:
+**         node points to a valid flow edge which connects the lowest nbr
+**
+\****************************************************************************/
+int tStreamNet::DamBypass( tLNode *snknod )
+{
+   cout << "DamBypass" << endl;
+   int nv, nvopp, nvother, maxcnt = 10, cntr = 0;
+   double cz, nz, nnz, dis0, dis1, slp;
+   tTriangle *mytri, *opptri;
+   int uphill = 1;
+   tEdge *fedg, *ce;
+   tLNode *nbr;
+   tLNode *nxtnbr;
+   tLNode *othernbr;
+   tLNode *pointtodelete;
+   tArray< double > cxy, nxy, nnxy;
+   tPtrListIter< tEdge > sI( snknod->getSpokeListNC() );
+   cxy = snknod->get2DCoords();
+   cz = snknod->getZ();
+   //while( uphill && cntr <= maxcnt )
+   //{
+      fedg = snknod->GetFlowEdg();
+      nbr = snknod->GetDownstrmNbr();
+      nxtnbr = nbr->GetDownstrmNbr();
+      if( nxtnbr == 0 ) return 0;
+      if ( snknod == nxtnbr ) return 0;
+      nnz = nxtnbr->getZ();
+      if( nnz > cz ) return 0; //proceed no further if next nbr is not downhill
+      nxy = nbr->get2DCoords();
+      nnxy = nxtnbr->get2DCoords();
+      if( PointsCCW( cxy, nxy, nnxy ) )
+      {
+         mytri = gridPtr->TriWithEdgePtr( fedg );
+         nv = mytri->nVtx( snknod );
+         othernbr = (tLNode *) mytri->pPtr( (nv+2)%3 );
+      }
+      else
+      {
+         mytri = gridPtr->TriWithEdgePtr( gridPtr->getEdgeCompliment( fedg ) );
+         nv = mytri->nVtx( snknod );
+         othernbr = (tLNode *) mytri->pPtr( (nv+1)%3 );
+      }
+      opptri = mytri->tPtr(nv);
+      dis0 = nbr->Dist( snknod, nxtnbr );
+      dis1 = othernbr->Dist( snknod, nxtnbr );
+      if( dis0 < dis1 ) pointtodelete = nbr;
+      else pointtodelete = othernbr;
+      if( pointtodelete->getBoundaryFlag() == kNonBoundary )
+          gridPtr->DeleteNode( pointtodelete );
+      else return 0;
+      cntr++;
+      for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
+      {
+         nz = ce->getDestinationPtrNC()->getZ();
+         slp = ( cz - nz ) / ce->getLength();
+         ce->setSlope( slp );
+         gridPtr->getEdgeCompliment( ce )->setSlope( -slp );
+         //if( ce->getDestinationPtrNC()->getZ() < cz ) uphill = 0;
+      }
+      //}
+      cout << "DamBypass: deleted " << cntr << " nodes" << endl << flush;
+   return 1;
+}
 
 /****************************************************************************\
 **
@@ -424,40 +538,54 @@ void tStreamNet::FlowDirs()
    //cout << "FlowDirs" << endl;
 //#endif
 
-  // Find the connected edge with the steepest slope
-  curnode = i.FirstP();
-  while( i.IsActive() )  // DO for each non-boundary (active) node
-  {
-      curnode->SetFloodStatus( kNotFlooded );  // Init flood status indicator
-      firstedg =  curnode->GetFlowEdg();
-      if( firstedg <= 0 )
-          curnode->TellAll();
-      assert( firstedg > 0 );
-      slp = firstedg->getSlope();
-      nbredg = firstedg;
-      curedg = firstedg->GetCCWEdg();
-      
-      // Check each of the various "spokes", stopping when we've gotten
-      // back to the beginning
-      while( curedg!=firstedg )
+   int redo = 1;
+   while( redo )
+   {
+      redo = 0;
+      // Find the connected edge with the steepest slope
+      curnode = i.FirstP();
+      while( i.IsActive() )  // DO for each non-boundary (active) node
       {
-         assert( curedg > 0 );
-         if ( curedg->getSlope() > slp && curedg->FlowAllowed() )
-         {
-            slp = curedg->getSlope();
-            nbredg = curedg;
-         }
-         curedg = curedg->GetCCWEdg();
-      }
+         curnode->SetFloodStatus( kNotFlooded );  // Init flood status indicator
+         firstedg =  curnode->GetFlowEdg();
+         if( firstedg <= 0 )
+             curnode->TellAll();
+         assert( firstedg > 0 );
+         slp = firstedg->getSlope();
+         nbredg = firstedg;
+         curedg = firstedg->GetCCWEdg();
       
-      curnode->SetFlowEdg( nbredg );
-      curnode->SetFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
-      //cout << "Node " << curnode->getID() << " flows to "
-      //     << curnode->GetDownstrmNbr()->getID() << endl;
-      curnode = i.NextP();
+         // Check each of the various "spokes", stopping when we've gotten
+         // back to the beginning
+         while( curedg!=firstedg )
+         {
+            assert( curedg > 0 );
+            if ( curedg->getSlope() > slp && curedg->FlowAllowed() )
+            {
+               slp = curedg->getSlope();
+               nbredg = curedg;
+            }
+            curedg = curedg->GetCCWEdg();
+         }
+      
+         curnode->SetFlowEdg( nbredg );
+         if( slp < 0 )
+         {
+            if( DamBypass( curnode ) )
+            {
+               InitFlowDirs();
+               redo = 1;
+               break;
+            }
+         }
+         curnode->SetFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
+         //cout << "Node " << curnode->getID() << " flows to "
+         //     << curnode->GetDownstrmNbr()->getID() << endl;
+         curnode = i.NextP();
 
-  }
-  //cout << "FlowDirs() finished" << endl << flush;
+      }
+   }
+   //cout << "FlowDirs() finished" << endl << flush;
   
 }
 #undef kLargeNegative
@@ -536,7 +664,11 @@ void tStreamNet::DrainAreaVoronoi()
    {
       RouteFlowArea( curnode, curnode->getVArea() );
    }
-   if( inlet.innode != 0 ) RouteFlowArea( inlet.innode, inlet.inDrArea );
+   if( inlet.innode != 0 )
+   {
+      inlet.FindNewInlet();
+      RouteFlowArea( inlet.innode, inlet.inDrArea );
+   }
    
    //cout << "DrainAreaVoronoi() finished" << endl << flush;
 }
