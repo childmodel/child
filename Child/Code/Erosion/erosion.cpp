@@ -45,7 +45,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.115 2003-06-23 10:36:18 childcvs Exp $
+**  $Id: erosion.cpp,v 1.116 2003-07-15 16:03:45 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1099,7 +1099,7 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight
        frac[i] = node->getLayerDgrade(lyr,i) / node->getLayerDepth(lyr);
        assert( frac[i]>=0.0 );
        d50 += frac[i] * mdGrndiam[i];
-       if( i==1 && d50 <=0.0 )
+       if( 0 )
 	 {
 	   cout << "uh oh2: " << node->getLayerDgrade(lyr,0) << " "
 		<< node->getLayerDgrade(lyr,1) << endl;
@@ -1114,11 +1114,12 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight
      cout << "D50 = " << d50 << endl;
 
    // Compute shear stress
-   if( node->getFloodStatus() ) slp = 0.0;
-   assert( node->getQ() >= 0.0 );
-   assert( node->getHydrWidth() >= 0.0 );
-   assert( slp >= 0.0 );
-   tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
+   if( node->getFloodStatus() ) tau = 0.0;
+   else {
+     assert( node->getHydrWidth() > 0.0 );
+     assert( slp >= 0.0 );
+     tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
+   }
    node->setTau( tau );
    if(0) //DEBUG
      cout << "kt=" << kt << " Q=" << node->getQ() << " W=" 
@@ -2546,7 +2547,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             
             dn = cn->getDownstrmNbr();
             ratediff = dn->getDzDt() - cn->getDzDt(); //Are the pts converging?
-            if( ratediff > 0 && (cn->getSlope()) > 1e-7 )  // if yes, get time
+            if( ratediff > 0. && (cn->getSlope()) > 1e-7 )  // if yes, get time
             {                                              //  to zero slope
                dt = ( cn->getZ() - dn->getZ() ) / ratediff;
                if( dt < dtmax ) dtmax = dt;
