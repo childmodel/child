@@ -7,7 +7,7 @@
 **  time to write output, printing the current time to standard output if
 **  desired, and writing the current time to a file every so often.
 **
-**  $Id: tRunTimer.h,v 1.3 1998-06-04 21:27:16 gtucker Exp $
+**  $Id: tRunTimer.h,v 1.4 1999-02-01 21:46:25 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TRUNTIMER_H
@@ -24,7 +24,7 @@ public:
 	int Advance( double );
 	int IsFinished();
 	double RemainingTime();
-	void Start( double, double );
+	void Start( double, double=0.0 );
 	int CheckOutputTime();
 	void ReportTimeStatus();
 	
