@@ -29,6 +29,10 @@ using namespace std;
 
 #include "TipperTriangulator.h"
 
+#ifndef DONT_USE_PREDICATE
+#include "../globalFns.h"
+#endif
+
 #define TIMING 1
 
 // vector product (or cross product) of p0p1,p0p2
@@ -39,9 +43,20 @@ double vecprod(int p0,int p1,int p2,const point *p){
     -(p[p1].y()-p[p0].y())*(p[p2].x()-p[p0].x());
 }
 
+// Orientation of p0,p1,p2
+// It returns >0 if counterclockwise, 0 if collinear, <0 if clockwise
+static inline
+double orient2d(int p0,int p1,int p2,const point *p){
+#ifdef DONT_USE_PREDICATE
+  return vecprod(p0,p1,p2,p);
+#else
+  return predicate.orient2d(p[p0].XY(), p[p1].XY(), p[p2].XY());
+#endif
+}
+
 const point &point::operator=( const point &p ) {
   if ( &p != this ) {
-    _x=p.x(); _y=p.y(); _id=p.id();
+    _XY[0] = p.x(); _XY[1] = p.y(); _id = p.id();
   }
   return *this;
 }
@@ -68,7 +83,7 @@ bool edge::visible(const point p[],int i) const {
   //b)data is positive x ordered
 
   // that is if angle(from-to,from-i) < 0 
-  const double v = vecprod(from,to,i, p);
+  const double v = orient2d(from,to,i, p);
   if (v>=0)
     return false;
   return true;
@@ -347,7 +362,7 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edg
   int orient = 0;
   int j;
   for(j=3;j<npoints;++j){
-    const double v = vecprod(j-2,j-1,j,p);
+    const double v = orient2d(j-2,j-1,j,p);
     if (v!=0.){
       orient = -1;
       if (v>0.) 
@@ -489,7 +504,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
   // Arnaud: orientation is counter clockwise <=> angle(p0p1,p0p2) >= 0
   //  <=> sin(p0p1,p0p2) >=0 <=> vect_prod(p0p1,p0p2) >= 0
   {
-    const double v = vecprod(0,1,2,p);
+    const double v = orient2d(0,1,2,p);
     if (v!=0.) {
       if (v>0.) {
 	edges[0].from=0;
@@ -920,7 +935,7 @@ void tt_build_elem_table(int npoints, const point *p,
       // angle(p2p1.p2p3) must be negative (counter clockwise)
       // <=> sin(p2p1.p2p3) <= 0 <=> vect_prod(p2p1,p2p3) <=0
       const double v=
-	vecprod(elems[ielem].p2,elems[ielem].p1,elems[ielem].p3,p);
+	orient2d(elems[ielem].p2,elems[ielem].p1,elems[ielem].p3,p);
       // points should not be aligned.
       if (v==0.){
 	cout << "These points are aligned: "

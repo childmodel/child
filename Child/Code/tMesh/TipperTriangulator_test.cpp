@@ -18,6 +18,11 @@ using namespace std;
 
 #include "TipperTriangulator.h"
 
+#ifndef DONT_USE_PREDICATE
+#include "../globalFns.h"
+Predicates predicate;
+#endif
+
 // generate output files
 const bool WRITE_FILES = false;
 

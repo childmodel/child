@@ -41,10 +41,10 @@ void tt_error_handler(void);
 
 class point{
 public:
-  point() : _x(0.), _y(0.), _id(-1) {}
-  point(double ix,double iy) : _x(ix), _y(iy), _id(-1) {}
-  point(double ix,double iy,int iid) : _x(ix), _y(iy), _id(iid) {}
-  point(const point& p) : _x(p.x()), _y(p.y()), _id(p.id()) {}
+  point() : _id(-1) { _XY[0] = 0.; _XY[1] = 0.;}
+  point(double ix,double iy) : _id(-1) { _XY[0] = ix; _XY[1] = iy;}
+  point(double ix,double iy,int iid) : _id(iid) { _XY[0] = ix; _XY[1] = iy; }
+  point(const point& p) : _id(p.id()) { _XY[0] = p.x(); _XY[1] = p.y(); }
   const point &operator=( const point &p );
   int operator < (const point& p) const;
   point operator - (const point& p) const {return point(x()-p.x(),y()-p.y());}
@@ -55,11 +55,12 @@ public:
   void print () const;
 #endif
   void write(ofstream& f) const;
-  double x() const { return _x; }
-  double y() const { return _y; }
+  double x() const { return _XY[0]; }
+  double y() const { return _XY[1]; }
+  const double *XY() const { return _XY; }
   int id() const { return _id; }
 private:
-  double _x,_y;
+  double _XY[2]; // so that it can be accessed as an array
   int _id;
 };
 
