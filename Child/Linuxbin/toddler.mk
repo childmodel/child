@@ -8,7 +8,7 @@ WARNINGFLAGS = -pedantic -Wall -W \
 	-Wpointer-arith -Wcast-qual -Wcast-align
 
 # gcc 3.1 and later implements standard C++ headers.
-# In such as case, comment out the following line.
+# In such a case, comment out the following line.
 WARNINGFLAGS += -DHAVE_NO_NAMESPACE
 
 # -march=i686: generates code from pentiumpro and later
