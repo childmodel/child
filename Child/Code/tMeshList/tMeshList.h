@@ -29,8 +29,9 @@
 **
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
+**   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.13 2002-09-06 11:21:43 arnaud Exp $
+**  $Id: tMeshList.h,v 1.14 2002-09-06 16:42:52 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TMESHLIST_H
@@ -190,20 +191,20 @@ operator!=( const tMeshList< NodeType > &right ) const
 \**************************************************************************/
 
 template< class NodeType >                      //tMeshList
-int tMeshList< NodeType >::
+inline int tMeshList< NodeType >::
 getActiveSize() const {return nActiveNodes;}
 
 template< class NodeType >                      //tMeshList
-tListNode< NodeType > *
+inline tListNode< NodeType > *
 tMeshList< NodeType >::
 getLastActive() const {return lastactive;}
 
 template< class NodeType >                     //tMeshtList
-void tMeshList< NodeType >::
+inline void tMeshList< NodeType >::
 setNActiveNodes( int val ) {nActiveNodes = ( val >= 0 ) ? val : 0;}
 
 template< class NodeType >                     //tMeshtList
-int tMeshList< NodeType >::
+inline int tMeshList< NodeType >::
 isActiveEmpty() const
 {
   if( lastactive == 0 ) return 1;
@@ -211,7 +212,7 @@ isActiveEmpty() const
 }
 
 template< class NodeType >                     //tMeshtList
-int tMeshList< NodeType >::
+inline int tMeshList< NodeType >::
 isBoundEmpty() const
 {
    if( lastactive == last ) return 1;
@@ -235,39 +236,25 @@ void tMeshList< NodeType >::
 insertAtFront( const NodeType &value )
 {
    tList< NodeType >::insertAtFront( value );
-   if( isActiveEmpty() ) lastactive = first;
-   nActiveNodes++;
+   if( value.getBoundaryFlag() == kNonBoundary )
+   {
+     if( isActiveEmpty() ) lastactive = first;
+     ++nActiveNodes;
+   }
 }
 
 template< class NodeType >                     //tMeshtList
 void tMeshList< NodeType >::
 insertAtBoundFront( const NodeType &value )
 {
-   tListNode< NodeType > * newPtr = getNewNode( value );
-     //cout << "add new node at boundary front of tMeshList" << endl;
-   assert( newPtr>0 );
-   assert( this != 0 );
-   
-   if( isEmpty() )  // Case list empty
+   // Case list empty or active part of list empty:
+   if( isEmpty() || lastactive==0 )
    {
-      first = last = newPtr;
+      tList< NodeType >::insertAtFront( value );
+      return;
    }
-   else if( lastactive==0 ) // Case active part of list empty
-   {
-        //cout << "Case no active nodes" << endl;
-      newPtr->next = first;
-      first = newPtr;
-   }
-   else  // Usual case: list and active part of list NOT empty
-   {
-      newPtr->next = lastactive->next;
-      lastactive->next = newPtr;
-      if( lastactive==last ) last = newPtr; // Case: new is last (only) bdy
-   }
-   
-     //nNodes++;  // why commented out? why not increment nnodes & nactive?
-     //cout << "added node to front of boundary tMeshList" << endl;
-    
+   // Usual case: list and active part of list NOT empty:
+   insertAtNext( value, lastactive );
 }
 
 
@@ -275,19 +262,8 @@ template< class NodeType >                     //tMeshtList
 int tMeshList< NodeType >::
 removeFromBoundFront( NodeType &value )
 {
-   assert( &value != 0 );
-   if( isEmpty() ) return 0;
-   else if( last == lastactive ) return 0;
-   else
-   {
-      tListNode< NodeType > * temp = lastactive->next;
-      if( first == last ) first = last = 0;
-      else lastactive->next = lastactive->next->next;
-      value = temp->data;
-      delete temp;
-      nNodes--;
-      return 1;
-   }
+   if( lastactive == 0 ) return removeFromFront( value );
+   return removeNext( value, lastactive );
 }
    
 
@@ -295,76 +271,34 @@ template< class NodeType >                     //tMeshtList
 void tMeshList< NodeType >::
 insertAtActiveBack( const NodeType &value )
 {
-   tListNode< NodeType > * newPtr = getNewNode( value );
-     //cout << "add new node at active back of tMeshList" << endl;
-   assert( this != 0 );
-   //cout << " isActiveEmpty() = " << isActiveEmpty() << endl;
-   if( isEmpty() )
+   // Case list empty or active part of list empty:
+   if( lastactive==0 )
    {
-      first = last = lastactive = newPtr;
+      insertAtFront( value );
+      return;
    }
-   else if( !( isEmpty() ) && isActiveEmpty() && !( isBoundEmpty() ) )
-   {
-      lastactive = newPtr;
-      lastactive->next = first;
-      first = lastactive;
-      //cout << "first = lastactive: " << first->getDataRef().getID()
-      //   << " " << lastactive->getDataRef().getID() << endl;
-      //newPtr->next = first;
-      //first = lastactive = newPtr;
-   }
-   else if( !( isEmpty() ) && isBoundEmpty() )
-   {
-      newPtr->next = lastactive->next;
-      lastactive->next = newPtr;
-      lastactive = newPtr;
-      last = lastactive;
-   }
-   else
-   {
-      newPtr->next = lastactive->next;
-      lastactive->next = newPtr;
-      lastactive = newPtr;
-   }
-   if( isBoundEmpty() ) last = lastactive;
-     //nNodes++;
-   nActiveNodes++;
-     //cout << "added node to back of active tMeshList" << endl;
+   // Usual case: list and active part of list NOT empty:
+   tList< NodeType >::insertAtNext( value, lastactive );
+   lastactive = lastactive->next;
+   ++nActiveNodes;
 }
 
 template< class NodeType >                     //tMeshtList
 int tMeshList< NodeType >::
 removeFromActiveBack( NodeType &value )
 {
-   if( isEmpty() ) return 0;
-   else
-   {
-      tListNode< NodeType > * temp = lastactive;
-      if( first == lastactive ) lastactive = 0;
-      if( first == last ) first = last = 0;
-      else
-      {
-         tListNode< NodeType > * current = first;
-         while( current->next != lastactive ) current = current->next;
-         current->next = lastactive->next;
-         lastactive->next = 0;
-         lastactive = current;
-      }
-      value = temp->data;
-      delete temp;
-      nNodes--;
-      nActiveNodes--;
-      return 1;
-   }
+   if( lastactive == 0 ) return 0;
+   if( first == lastactive ) return removeFromFront( value );
+   return removeNext( value, lastactive->prev );
 }
 
 template< class NodeType >                         //tList
 int tMeshList< NodeType >::
 removeFromFront( NodeType &value )
 {
-   if( !( isActiveEmpty() ) )
+   if( !isActiveEmpty() )
    {
-      nActiveNodes--;
+      --nActiveNodes;
       if( lastactive == first ) lastactive = 0;
    }
    return tList< NodeType >::removeFromFront( value );
@@ -375,16 +309,15 @@ template< class NodeType >                         //tList
 int tMeshList< NodeType >::
 removeNext( NodeType &value, tListNode< NodeType > * ptr )
 {
-   if( ptr->next == 0 ) return 0;
    if( ptr == 0 ) return 0;
-   if( ptr->next == lastactive ) return removeFromActiveBack( value );
-   if( ptr == lastactive ) return removeFromBoundFront( value );
-   if( tList< NodeType >::removeNext( value, ptr ) )
+   if( ptr->next == 0 ) return 0;
+   if( value.getBoundaryFlag() == kNonBoundary )
    {
-      if( !( value.getBoundaryFlag() ) ) nActiveNodes--;
-      return 1;
+      --nActiveNodes;
+      if( ptr->next == lastactive )
+          lastactive = ptr;
    }
-   return 0;
+   return tList< NodeType >::removeNext( value, ptr );
 }
 
 //delete previous node
@@ -393,14 +326,14 @@ int tMeshList< NodeType >::
 removePrev( NodeType &value, tListNode< NodeType > * ptr )
 {
    if( ptr == 0 ) return 0;
-   if( ptr == first && last->next == 0 ) return 0;
-   if( lastactive->next == ptr ) return removeFromActiveBack( value );
-   if( tList< NodeType >::removePrev( value, ptr ) )
+   if( ptr->prev == 0 ) return 0;
+   if( value.getBoundaryFlag() == kNonBoundary )
    {
-      if( !( value.getBoundaryFlag() ) ) nActiveNodes--;
-      return 1;
+      --nActiveNodes;
+      if( ptr->prev == lastactive )
+          lastactive = lastactive->prev;
    }
-   return 0;
+   return tList< NodeType >::removePrev( value, ptr );
 }
 
 
@@ -427,20 +360,18 @@ moveToBack( tListNode< NodeType > * mvnode )
      cout << "moveToBack( tListNode )\n";
    
    assert( mvnode>0 );
-   tListNode< NodeType > * prev;
    if( mvnode != last )
    {
-      if( InActiveList( mvnode ) )
-         nActiveNodes--;
+      //if( InActiveList( mvnode ) ) nActiveNodes--;
+      if( mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
+          --nActiveNodes;
       if( mvnode == lastactive )
       {
          if( mvnode != first )
          {
-            for( prev = first; prev->next != mvnode; prev = prev->next );
-            lastactive = prev;
+            lastactive = mvnode->prev;
          }
-         else
-            lastactive = 0;
+         else lastactive = 0;
       }
       tList< NodeType >::moveToBack( mvnode );
    }
@@ -481,13 +412,11 @@ template< class NodeType >                         //tList
 void tMeshList< NodeType >::
 moveToFront( tListNode< NodeType > * mvnode ) 
 {
-   tListNode< NodeType > *prev;
    if( mvnode != first )
    {
       if( mvnode == lastactive )
       {
-         for( prev = first; prev->next != mvnode; prev = prev->next );
-         lastactive = prev;
+         lastactive = mvnode->prev;
       }
       tList< NodeType >::moveToFront( mvnode );
    }
@@ -506,25 +435,40 @@ template< class NodeType >                         //tList
 void tMeshList< NodeType >::
 moveToActiveBack( tListNode< NodeType > * mvnode ) 
 {
-   tListNode< NodeType > * prev;
+   if( !lastactive )
+   {
+      moveToBack( mvnode );
+      lastactive = mvnode;
+      return;
+   }
+   
    if( mvnode != lastactive )
    {
-      // Detach mvnode from its position on the list
-      if( mvnode == first ) first = first->next;
-      else
+      // if node was in active part of list, decrement nActiveNodes:
+      if( mvnode->getDataPtr()->getBoundaryFlag() != kNonBoundary )
+          ++nActiveNodes;
+      // Detach mvnode from its position on the list:
+      if( mvnode == first )
       {
-         prev = first;
-         while( prev->next != mvnode ) prev = prev->next;
-         prev->next = mvnode->next;
+         //if( first->prev != 0 )
+         //    first->prev->next = first->next;
+         //first->next->prev = first->prev;
+         if( first->next ) first = first->next;
       }
-
-      // Insert it at the end of the active part of the list
+      //else
+      //{
+      if( mvnode->prev ) mvnode->prev->next = mvnode->next;
+      if( mvnode->next ) mvnode->next->prev = mvnode->prev;
+         //}
+      // Insert it at the end of the active part of the list:
       mvnode->next = lastactive->next;
+      mvnode->prev = lastactive;
+      if( lastactive->next ) lastactive->next->prev = mvnode;
       lastactive->next = mvnode;
       if( lastactive == last )
       {
          last = mvnode;
-         // If it's a circular list, make sure to preserve circularity
+         // If it's a circular list, make sure to preserve circularity:
          if( last->next != 0 ) last->next = first;
       }
       lastactive = mvnode;
@@ -545,27 +489,43 @@ template< class NodeType >                         //tList
 void tMeshList< NodeType >::
 moveToBoundFront( tListNode< NodeType > * mvnode ) 
 {
-   tListNode< NodeType > * prev;
+   if( !lastactive )
+   {
+      moveToFront( mvnode );
+      return;
+   }
+   
    if( mvnode != lastactive->next )
    {
-      // if node was in active part of list, decrement nActiveNodes
-      if( InActiveList( mvnode ) ) --nActiveNodes;
-      // Detach mvnode from its position on the list
-      if( mvnode == first ) first = first->next;
-      else
+      // if node was in active part of list, decrement nActiveNodes:
+      //if( InActiveList( mvnode ) ) --nActiveNodes;
+      if( mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
+          --nActiveNodes;
+      // Detach mvnode from its position on the list:
+      if( mvnode == first )
       {
-         prev = first;
-         while( prev->next != mvnode ) prev = prev->next;
-         prev->next = mvnode->next;
+         //if( first->next ) first->next->prev = first->prev;
+         if( first->next ) first = first->next;
       }
-
-      // Insert it after the end of the active part of the list
+      if( mvnode == lastactive )
+      {
+         lastactive = lastactive->prev;
+         return;
+      }
+      //else
+      //{
+      if( mvnode->prev ) mvnode->prev->next = mvnode->next;
+      if( mvnode->next ) mvnode->next->prev = mvnode->prev;
+         //}
+      // Insert it after the end of the active part of the list:
       mvnode->next = lastactive->next;
+      mvnode->prev = lastactive;
+      if( lastactive->next ) lastactive->next->prev = mvnode;
       lastactive->next = mvnode;
       if( lastactive == last )
       {
          last = mvnode;
-         // If it's a circular list, make sure to preserve circularity
+         // If it's a circular list, make sure to preserve circularity:
          if( last->next != 0 ) last->next = first;
       }
    }
@@ -654,8 +614,8 @@ template< class NodeType >   //tMeshListIter
 tMeshListIter< NodeType >::
 tMeshListIter()
 {
-   if (0) //DEBUG
-     cout << "    from tMeshListIter()" << endl;
+  if (0) //DEBUG
+    cout << "    from tMeshListIter()" << endl;
 }
 
 template< class NodeType >   //tMeshListIter
@@ -663,7 +623,6 @@ tMeshListIter< NodeType >::
 tMeshListIter( tMeshList< NodeType > &list )
         : tListIter< NodeType >( list )
 {
-   assert( &list != 0 );
    curnode = listPtr->first;
 }
 
@@ -694,7 +653,7 @@ template< class NodeType >   //tMeshListIter
 int tMeshListIter< NodeType >::
 LastActive()
 {
-   tMeshList< NodeType > *meshlistPtr =
+   tMeshList< NodeType > *meshlistPtr = 
      static_cast< tMeshList< NodeType > * >(listPtr);
    assert( meshlistPtr != 0 );
    curnode = meshlistPtr->lastactive;
@@ -715,7 +674,7 @@ template< class NodeType >   //tMeshListIter
 int tMeshListIter< NodeType >::
 FirstBoundary()
 {
-   tMeshList< NodeType > *meshlistPtr =
+   tMeshList< NodeType > *meshlistPtr = 
      static_cast< tMeshList< NodeType > * >(listPtr);
    assert( meshlistPtr != 0 );
    if( meshlistPtr->isActiveEmpty() ) curnode = listPtr->first;
