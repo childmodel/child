@@ -20,7 +20,7 @@
 **  with a tLNode; it could be recoded to operate with a "hydrologic"
 **  node or any descendents.
 **
-**  $Id: tStreamNet.h,v 1.31 2000-01-27 22:33:59 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.32 2000-03-09 20:07:05 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -112,6 +112,8 @@ private:
 **   - 6/99 GT removed unused parameter mndrchngprob and ref's to it
 **   - 1/00 GT added RouteFlowKinWave and two data parameters,
 **     mdKinWaveExp and mdKinWaveRough
+**   - 2/00 GT added DensifyMeshDrArea plus two data members to support
+**     dynamic node addition in areas of high drainage area
 **
 \**************************************************************************/
 class tStreamNet
@@ -138,7 +140,6 @@ public:
     tArray< double > getInSedLoadm() const;
     tLNode *getInletNodePtr() const;
     tLNode *getInletNodePtrNC();
-    //double getMndrDirChngProb() const;
     void setFlowGenOpt( int );
     void setFillLakesOpt( int );
     void setRainRate( double );
@@ -148,7 +149,6 @@ public:
     void setInSedLoad( double );
     void setInSedLoadm( int, double );
     void setInletNodePtr( tLNode * );
-    //void setMndrDirChngProb( double );
     void UpdateNet( double time );
     void UpdateNet( double time, tStorm & );
     void CheckNetConsistency();
@@ -168,7 +168,6 @@ public:
     void FillLakes();
     int FindLakeNodeOutlet( tLNode * );
     void SortNodesByNetOrder( int optMultiFlow=0 );
-    //Xint DamBypass( tLNode * );
     //find hydraulic and channel geometries, respectively;
     //FindHydrGeom is contingent upon current storm conditions
     //and storm variability;
@@ -176,6 +175,7 @@ public:
     //or the mean rainrate if no variability:   
     void FindChanGeom();
     void FindHydrGeom();
+    void DensifyMeshDrArea( double time=0.0 );  // Densifies mesh locally
     
 protected:
     tMesh< tLNode > * meshPtr;  // ptr to mesh
@@ -193,14 +193,16 @@ protected:
     double infilt;        // soil infiltration capacity
     double soilStore;     // soil water storage, depth equiv (m)
     tInlet inlet;         // inlet
-    //double mndrDirChngProb; // probability of mnd chan changing direction
+    //Xdouble mndrDirChngProb; // probability of mnd chan changing direction
     int optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
     double infilt_dev;    // max +/- variation from mean infilt cap
     double infilt0;    // mean infilt cap
     double twoPiLam;   // Parameter for sinusoidal variation: 2pi / period
     double mdKinWaveExp;  // Depth-disch exponent for kinematic wave routing
     double mdKinWaveRough; // Roughness coef, units m^(1/e)-2 yr, e=above exp 
-
+    double mdMeshAdaptMinArea;  // Dr area threshold for densifying mesh
+    double mdMeshAdaptMaxVArea; // Max voronoi area for nodes above threshold
+    
 };
 
 #endif
