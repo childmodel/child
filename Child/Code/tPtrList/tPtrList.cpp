@@ -3,7 +3,7 @@
 **  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
 **                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.9 1998-04-29 18:57:23 gtucker Exp $
+**  $Id: tPtrList.cpp,v 1.10 1998-04-29 20:39:25 gtucker Exp $
 \**************************************************************************/
 
 #include "tPtrList.h"
@@ -207,15 +207,15 @@ template< class NodeType >                      //tPtrList
 int tPtrList< NodeType >::
 isEmpty() const
 {
-     //cout << "checking if tPtrList empty" << endl;
+   //cout << "checking if tPtrList empty" << endl << flush;
    if( first == 0 )
    {
-        //cout << "tPtrList is empty" << endl;
+      //cout << "tPtrList is empty" << endl << flush;
       return 1;
    }
    else
    {
-        //cout << "tPtrList is not empty" << endl;
+      //cout << "tPtrList is not empty" << endl << flush;
       return 0;
    }
 }
@@ -377,6 +377,7 @@ template< class NodeType >                      //tPtrList
 void tPtrList< NodeType >::
 Flush()
 {
+   assert( this!=0 );
    if( !isEmpty() )
    {
         //cout<<"Destroying nodes ... "<<endl;
