@@ -34,7 +34,7 @@
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **    - AD - March 2004: tListNode is a template argument.
  **
- **  $Id: tList.h,v 1.54 2004-04-16 18:37:42 childcvs Exp $
+ **  $Id: tList.h,v 1.55 2004-04-19 12:11:29 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -76,7 +76,7 @@ public:
   inline NodeType getDataNC() const;               // returns copy of data item
   inline NodeType &getDataRefNC();                 // returns modifiable ref to data
   inline NodeType *getDataPtrNC();                 // returns modifiable ptr to data
-  inline tListNodeBasic< NodeType > * getNextNC() const;// returns ptr to next list node
+  inline tListNodeBasic< NodeType > * getNextNC(); // returns ptr to next list node
   /*get*/
   inline NodeType getData() const;                     // returns const copy of data
   inline const NodeType &getDataRef() const;           // returns const ref to data
@@ -224,7 +224,7 @@ getDataPtrNC() {return &data_;}
 
 template< class NodeType >
 inline tListNodeBasic< NodeType > *tListNodeBasic< NodeType >::
-getNextNC() const {return next;}
+getNextNC() {return next;}
 
 //return data by value
 template< class NodeType >
@@ -302,7 +302,7 @@ public:
   inline NodeType getDataNC() const;               // returns copy of data item
   inline NodeType &getDataRefNC();                 // returns modifiable ref to data
   inline NodeType *getDataPtrNC();                 // returns modifiable ptr to data
-  inline tListNodeListable< NodeType > * getNextNC() const;// returns ptr to next list node
+  inline tListNodeListable< NodeType > * getNextNC();// returns ptr to next list node
   /*get*/
   inline NodeType getData() const;                     // returns const copy of data
   inline const NodeType &getDataRef() const;           // returns const ref to data
@@ -460,7 +460,7 @@ getDataPtrNC() {return &data_;}
 
 template< class NodeType >
 inline tListNodeListable< NodeType > *tListNodeListable< NodeType >::
-getNextNC() const {return next;}
+getNextNC() {return next;}
 
 //return data by value
 template< class NodeType >
@@ -542,10 +542,11 @@ public:
   inline const NodeType *getIthDataPtr( int ) const; // rtns ptr to given item #
   inline const NodeType &getIthDataRef( int ) const; // rtns ref to given item #
   inline NodeType getIthDataNC( int ) const;     // rtns modifiable copy of item #
-  inline NodeType *getIthDataPtrNC( int ) const; // rtns modifiable ptr to item #
-  inline NodeType &getIthDataRefNC( int ) const; // rtns modifiable ref to item #
+  inline NodeType *getIthDataPtrNC( int ); // rtns modifiable ptr to item #
+  inline NodeType &getIthDataRefNC( int ); // rtns modifiable ref to item #
   ListNodeType * getListNode( const NodeType * ); // rtns ptr to node #
-  ListNodeType * getIthListNode( int ) const;
+  const ListNodeType * getIthListNode( int ) const;
+  ListNodeType * getIthListNodeNC( int );
 
 #ifndef NDEBUG
   void DebugTellPtrs() const;
@@ -1051,18 +1052,18 @@ getIthDataNC( int num ) const
 
 template< class NodeType, class ListNodeType >
 inline NodeType &tList< NodeType, ListNodeType >::
-getIthDataRefNC( int num ) const
+getIthDataRefNC( int num )
 {
   assert( num >= 0 && num < nNodes );
-  return getIthListNode(num)->getDataRefNC();
+  return getIthListNodeNC(num)->getDataRefNC();
 }
 
 template< class NodeType, class ListNodeType >
 inline NodeType *tList< NodeType, ListNodeType >::
-getIthDataPtrNC( int num ) const
+getIthDataPtrNC( int num )
 {
   assert( num >= 0 && num < nNodes );
-  return getIthListNode(num)->getDataPtrNC();
+  return getIthListNodeNC(num)->getDataPtrNC();
 }
 
 
@@ -1111,8 +1112,23 @@ getListNode( const NodeType * desiredDatPtr )
  **
 \**************************************************************************/
 template< class NodeType, class ListNodeType >
-ListNodeType* tList< NodeType, ListNodeType >::
+const ListNodeType* tList< NodeType, ListNodeType >::
 getIthListNode( int num ) const
+{
+  if( num < 0 || num >= nNodes )
+    return 0;
+  int i;
+  ListNodeType const * curPtr;
+  if( num > nNodes / 2 )
+    for( curPtr = last, i = nNodes-1; i>num; curPtr = curPtr->prev, --i );
+  else
+    for( curPtr = first, i = 0; i<num; curPtr = curPtr->next, ++i );
+  return curPtr;
+}
+
+template< class NodeType, class ListNodeType >
+ListNodeType* tList< NodeType, ListNodeType >::
+getIthListNodeNC( int num )
 {
   if( num < 0 || num >= nNodes )
     return 0;
