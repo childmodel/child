@@ -16,7 +16,7 @@
  **     to avoid multiple definition errors resulting from mixing
  **     template & non-template classes (1/99)
  **
- **  $Id: tListInputData.h,v 1.21 2003-08-01 17:14:55 childcvs Exp $
+ **  $Id: tListInputData.h,v 1.22 2003-10-14 13:03:01 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -48,10 +48,10 @@ using namespace std;
  **  tListInputData reads an established triangulation from a set of four
  **  files, and stores the data in a series of arrays. The files are:
  **
- **    <name>.nodes  --  node (point) data
- **    <name>.edges  --  directed edge data
- **    <name>.tri    --  triangle data
- **    <name>.z      --  "z" value data (elevation or other)
+ **    &lt;name&gt;.nodes  --  node (point) data
+ **    &lt;name&gt;.edges  --  directed edge data
+ **    &lt;name&gt;.tri    --  triangle data
+ **    &lt;name&gt;.z      --  "z" value data (elevation or other)
  **  The files are ASCII text, and use the same format as the corresponding
  **  output files (see tOutput.h/.cpp), and in fact can be output files
  **  from a previous run. Each file contains triangulation data for one
