@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.65 2004-01-29 14:24:46 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.66 2004-02-18 17:19:18 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -905,6 +905,67 @@ void tStreamNet::InitFlowDirs()
 }
 #undef kMaxSpokes
 
+
+/****************************************************************************\
+**
+**  tStreamNet::ReInitFlowDirs
+**
+**  Initialize flow directions such that each active (non-boundary) node
+**  flows to another active node (or open boundary node). This initialization
+**  process allows the FlowDirs function to assume that the previous flowedg
+**  is always valid in the sense that it doesn't point to a closed boundary
+**  (which otherwise could happen when the mesh is first read in).
+**
+**  Modifies: node flow directions (flowedg)
+**  Written 12/1/97 gt.
+**
+\****************************************************************************/
+#define kMaxSpokes 100
+void tStreamNet::ReInitFlowDirs()
+{
+   if (1) //DEBUG
+     cout << "ReInitFlowDirs()...\n";
+   // For every active (non-boundary) node, initialize it to flow to a
+   // non-boundary node (ie, along a "flowAllowed" edge)
+   tMeshListIter<tLNode> i( meshPtr->getNodeList() );
+   tLNode * curnode = i.FirstP();
+   while( i.IsActive() )
+   {
+      // reinitialize flowedge only if flowedge currently NULL or is no-flow edge:
+      if( curnode->getFlowEdg() == NULL || !curnode->getFlowEdg()->FlowAllowed() )
+      {
+         // Start with the node's default edge
+         assert( curnode!=0 );
+         tEdge * flowedg = curnode->getEdg();
+         assert( flowedg!=0 );
+
+         // As long as the current edge is a no-flow edge, advance to the next one
+         // counter-clockwise
+         int ctr = 0;
+         while( !flowedg->FlowAllowed() )
+         {
+            flowedg = flowedg->getCCWEdg();
+            assert( flowedg!=0 );
+            ctr++;
+            if( ctr>kMaxSpokes ) // Make sure to prevent endless loops
+            {
+               cerr << "Mesh error: node " << curnode->getID()
+                    << " appears to be surrounded by closed boundary nodes"
+                    << endl;
+               ReportFatalError( "Bailing out of InitFlowDirs()" );
+            }
+         }
+         curnode->setFlowEdg( flowedg );
+         assert( curnode->getFlowEdg() != 0 );
+      }
+      curnode = i.NextP();
+   }
+
+   if (1) //DEBUG
+     cout << "finished\n";
+
+}
+#undef kMaxSpokes
 
 /****************************************************************************\
 **
