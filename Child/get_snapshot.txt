@@ -48,7 +48,7 @@ here is a method to get around it:
 - send us ".ssh/cvsID.pub".
 - create a executable file (say oxford_ssh) containing:
 #!/bin/sh
-exec ssh -i $HOME/cvsID "$@"
+exec ssh -i $HOME/.ssh/cvsID "$@"
 (it tells ssh which public key to use)
 - set CVS_RSH to "/path/to/oxford_ssh"
 
