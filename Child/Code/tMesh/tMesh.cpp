@@ -3,7 +3,7 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.69 1999-04-05 17:31:30 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.70 1999-04-11 19:58:28 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -971,6 +971,9 @@ MakeMeshFromScratch( tInputFile &infile )
    if( ptPlace == kUniformMesh || ptPlace == kPerturbedMesh )
    {
       delGrid = infile.ReadItem( delGrid, "GRID_SPACING" );
+      if( delGrid >= xGrid || delGrid >= yGrid )
+          ReportFatalError( 
+              "Mesh point spacing must be smaller than total mesh width." );
    }
    else
    {
