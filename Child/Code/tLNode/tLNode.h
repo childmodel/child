@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.1 1998-01-14 20:26:03 gtucker Exp $
+**  $Id: tLNode.h,v 1.2 1998-01-15 19:38:52 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -168,6 +168,8 @@ class tLNode : public tNode
    void SetDrArea( float );
    void AddDrArea( float );
    tLNode * GetDownstrmNbr();
+   float GetQ();        // Gets total discharge from embedded chan obj
+   float GetSlope();    // Computes and returns slope in flow direction
    int Meanders() const;
    void SetMeanderStatus( int );
    float getHydrWidth() const;
@@ -188,6 +190,7 @@ class tLNode : public tNode
    void MoveSortTracerDownstream();
    void AddTracer();
    int NoMoreTracers();
+   void EroDep( float dz );
 #ifndef NDEBUG
    void TellAll();
 #endif
