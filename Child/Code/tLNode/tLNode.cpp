@@ -11,7 +11,7 @@
 **    - fixed problem with layer initialization in copy constructor
 **      (gt, 2/2000; see below)
 ** 
-**  $Id: tLNode.cpp,v 1.95 2002-04-11 12:24:00 arnaud Exp $
+**  $Id: tLNode.cpp,v 1.96 2002-04-24 12:03:07 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -121,42 +121,37 @@ const tErode &tErode::operator=( const tErode &right )     //tErode
 */
 
 tMeander::tMeander()                                              //tMeander
-        : xyzd(4)
+  :
+meander(0),
+newx(0.), newy(0.),
+head(0), reachmember(0),
+deltax(0.), deltay(0.), zoldright(0.), zoldleft(0.), bankrough(0.),
+xyzd(4)
 {
-   meander = head = reachmember = 0;
-   newx = newy = deltax = deltay = zoldright = zoldleft = bankrough = 0.0;
-     //cout << "  tMeander()" << endl;
+  //cout << "  tMeander()" << endl;
 }
 
 tMeander::tMeander( const tMeander &orig )                        //tMeander
-        : xyzd( orig.xyzd )
+  :
+meander(orig.meander),
+newx(orig.newx), newy(orig.newy),
+head(orig.head), reachmember(orig.reachmember),
+deltax(orig.deltax), deltay(orig.deltay),
+zoldright(orig.zoldright), zoldleft(orig.zoldleft), bankrough(orig.bankrough),
+xyzd( orig.xyzd )
 {
-   if( &orig != 0 )
-   {
-      meander = orig.meander;
-      head = orig.head;
-      reachmember = orig.reachmember;
-      newx = orig.newx;
-      newy = orig.newy;
-      deltax = orig.deltax;
-      deltay = orig.deltay;
-      zoldright = orig.zoldright;
-      zoldleft = orig.zoldleft;
-      bankrough = orig.bankrough;
-   }
-     //cout << "  tMeander( orig )" << endl;
+  //cout << "  tMeander( orig )" << endl;
 }
 
 tMeander::tMeander( int state, double x, double y )                //tMeander
-        : xyzd(4)
+  :
+meander(state),
+newx(x), newy(y),
+head(0), reachmember(0),
+deltax(0.), deltay(0.), zoldright(0.), zoldleft(0.), bankrough(0.),
+xyzd(4)
 {
-     //chanptr = 0;
-   meander = state;
-   newx = x;
-   newy = y;
-   head = reachmember = 0;
-   deltax = deltay = zoldright = zoldleft = bankrough = 0.0;
-     //cout << "  tMeander( state, x, y )" << endl;
+  //cout << "  tMeander( state, x, y )" << endl;
 }
 
 tMeander::~tMeander()                                             //tMeander
@@ -185,18 +180,17 @@ const tMeander &tMeander::operator=( const tMeander &right )     //tMeander
 }
 
 tBedrock::tBedrock()                                             //tBedrock
+  :
+erodibility(0.)
 {
-   erodibility = 0;
-     //cout << "  tBedrock()" << endl;
+  //cout << "  tBedrock()" << endl;
 }
 
 tBedrock::tBedrock( const tBedrock &orig )                       //tBedrock
+  :
+erodibility(orig.erodibility)
 {
-   if( &orig != 0 )
-   {
-      erodibility = orig.erodibility;
-   }
-     //cout << "  tBedrock( orig )" << endl;
+  //cout << "  tBedrock( orig )" << endl;
 }
 
 tBedrock::~tBedrock()                                            //tBedrock
@@ -229,10 +223,11 @@ const tBedrock &tBedrock::operator=( const tBedrock &right )     //tBedrock
 \**************************************************************************/
 
 tRegolith::tRegolith()                                          //tRegolith
-        : dgrade()
+  : 
+thickness(0.),
+dgrade()
 {
-   thickness = 0;
-     //cout << "  tRegolith()" << endl;
+  //cout << "  tRegolith()" << endl;
 }
 
 /*
@@ -245,13 +240,11 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
 }*/
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
-        : dgrade( orig.dgrade )
+  : 
+thickness(orig.thickness),
+dgrade( orig.dgrade )
 {
-   if( &orig != 0 )
-   {
-      thickness = orig.thickness;
-   }
-   //cout << "  tRegolith( orig ) " << thickness << endl;
+  //cout << "  tRegolith( orig ) " << thickness << endl;
 }
 
 
@@ -272,33 +265,31 @@ const tRegolith &tRegolith::operator=( const tRegolith &right )     //tRegolith
 }
 
 tChannel::tChannel()                                             //tChannel
+  :
+drarea(0.),q(0.),
+mdFlowPathLength(0.),
+chanwidth(0.),hydrwidth(0.),
+channrough(0.),hydrnrough(0.),
+chandepth(0.),hydrdepth(0.),
+chanslope(0.),hydrslope(0.),
+diam(kVeryHigh),
+migration()
 {
-   drarea = q = chanwidth = hydrwidth = channrough = hydrnrough =
-       chandepth = hydrdepth = chanslope = hydrslope = diam = 
-       mdFlowPathLength = 0;
-   diam = kVeryHigh;
-     //cout << "  tChannel()" << endl;
+  //cout << "  tChannel()" << endl;
 }
 
 tChannel::tChannel( const tChannel &orig )                       //tChannel
-        : /*erosion( orig.erosion ),*/ migration( orig.migration )
+        :
+drarea(orig.drarea),q(orig.q),
+mdFlowPathLength(orig.mdFlowPathLength),
+chanwidth(orig.chanwidth),hydrwidth(orig.hydrwidth),
+channrough(orig.channrough),hydrnrough(orig.hydrnrough),
+chandepth(orig.chandepth),hydrdepth(orig.hydrdepth),
+chanslope(orig.chanslope),hydrslope(orig.hydrslope),
+diam(orig.diam),
+/*erosion( orig.erosion ),*/ migration( orig.migration )
 {
-   if( &orig != 0 )
-   {
-      drarea = orig.drarea;
-      q = orig.q;
-      chanwidth = orig.chanwidth;
-      chandepth = orig.chandepth;
-      channrough = orig.channrough;
-      chanslope = orig.chanslope;
-      hydrwidth = orig.hydrwidth;
-      hydrdepth = orig.hydrdepth;
-      hydrnrough = orig.hydrnrough;
-      hydrslope = orig.hydrslope;
-      mdFlowPathLength = orig.mdFlowPathLength;
-      diam = orig.diam;
-   }
-     //cout << "  tChannel( orig )" << endl;
+  //cout << "  tChannel( orig )" << endl;
 }
 
 tChannel::~tChannel()                                            //tChannel
@@ -311,6 +302,7 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
    if( &right != this )
    {
       //erosion = right.erosion;
+     // TODO ??
        //migration = right.migration;
       drarea = right.drarea;
       q = right.q;
@@ -361,8 +353,15 @@ double tLNode::maxregdep = 1;
 double tLNode::KRnew = 1.0;
 
 tLNode::tLNode()                                                   //tLNode
-        : tNode(), vegCover(), rock(), reg(), chan(), qsm(), qsinm(), 
-          layerlist()
+  : 
+tNode(), vegCover(), rock(), reg(), chan(), 
+flood(0), flowedge(0), tracer(0),
+dzdt(0.), drdt(0.), tau(0.), tauc(0.), qs(0.), 
+qsm(), 
+qsin(0.),
+qsinm(), 
+uplift(0.),
+layerlist()
 {
    //cout << "=>tLNode()" << endl;
    flood = 0;
@@ -373,7 +372,13 @@ tLNode::tLNode()                                                   //tLNode
 }
 
 tLNode::tLNode( tInputFile &infile )                               //tLNode
-        : tNode(), vegCover(), rock(), reg(), chan(), qsm(), qsinm(), 
+        : tNode(), vegCover(), rock(), reg(), chan(),
+flood(0), flowedge(0), tracer(0),
+dzdt(0.), drdt(0.), tau(0.), tauc(0.), qs(0.), 
+	  qsm(),
+qsin(0.),
+	  qsinm(), 
+uplift(0.),
           layerlist()
 {
    int i;
@@ -383,14 +388,9 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
    tArray<double> dgradehelp;
    tArray<double> dgradebrhelp;
 
-   tau = 0.0;
    tauc = infile.ReadItem( tauc, "TAUC" );
    
    //cout << "=>tLNode( infile )" << endl;
-   flood = 0;
-   flowedge = 0;
-   tracer = 0;
-   dzdt = drdt = qs = qsin = uplift = 0.0;
    numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    grade.setSize( numg );
    maxregdep = infile.ReadItem( maxregdep, "MAXREGDEPTH" );
@@ -542,11 +542,15 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
 }
 
 tLNode::tLNode( const tLNode &orig )                               //tLNode
-        : tNode( orig ),
-          vegCover( orig.vegCover ), rock( orig.rock ), 
-          reg( orig.reg ), chan( orig.chan ), qsm( orig.qsm),
-          qsinm( orig.qsinm )
-    //Xlayerlist( orig.layerlist )
+  : tNode( orig ), vegCover( orig.vegCover ), rock( orig.rock ), 
+  reg( orig.reg ), chan( orig.chan ),
+  flood(orig.flood), flowedge(orig.flowedge), tracer(orig.tracer),
+  dzdt(orig.dzdt), drdt(orig.drdt), tau(orig.tau), tauc(orig.tauc), qs(orig.qs), 
+  qsm(orig.qsm),
+  qsin(orig.qsin),
+  qsinm(orig.qsinm ),
+  uplift(orig.uplift),
+  layerlist()
 {
 
 //Be aware that the copy constructor should be called using the 
@@ -556,18 +560,9 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
 //tLNode newnode(*oldtLNode)
 //The latter seems to call a default constructor which does not
 //properly copy the layerlist
-   flowedge = orig.flowedge;
-   flood = orig.flood;
-   tracer = orig.tracer;
-   dzdt = orig.dzdt;
-   drdt = orig.drdt;
-   qs = orig.qs;
-   qsin = orig.qsin;
-   uplift = orig.uplift;
-   tau = orig.tau;
-   tauc = orig.tauc;
-   layerlist = orig.layerlist;
-   //cout << "=>tLNode( orig )" << endl;
+
+  layerlist = orig.layerlist;
+  //cout << "=>tLNode( orig )" << endl;
 }
 
 tLNode::~tLNode()                                                  //tLNode

@@ -8,7 +8,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.cpp,v 1.9 1999-12-07 19:44:13 gtucker Exp $
+**  $Id: tMeshList.cpp,v 1.10 2002-04-24 12:07:27 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -30,20 +30,20 @@
 template< class NodeType >                     //tMeshtList
 tMeshList< NodeType >::
 tMeshList()
+  :
+  nActiveNodes(0),
+  lastactive(0)
 {
-   nActiveNodes = 0;
-   lastactive = 0;
      //cout << "                  from tMeshList()" << first << endl;
 }
 
 template< class NodeType >                     //tMeshtList
 tMeshList< NodeType >::
 tMeshList( const tMeshList< NodeType > *original )
-        : tList< NodeType >( original )
+  : tList< NodeType >( original ),
+  nActiveNodes(original->nActiveNodes),
+  lastactive(original->lastactive)
 {
-   nActiveNodes = original->nActiveNodes;
-   if( original->lastactive != 0 ) lastactive = original->lastactive;
-   else lastactive = 0;
      //cout << "                  from tMeshList( original )" << first << endl;
 }
 
