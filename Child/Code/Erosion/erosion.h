@@ -48,7 +48,7 @@
 **       a new DensifyMesh function and supporting data member
 **       mdMeshAdaptMaxFlux (gt 2/2000)
 **
-**  $Id: erosion.h,v 1.27 2000-03-09 20:03:24 gtucker Exp $
+**  $Id: erosion.h,v 1.28 2000-03-30 22:41:38 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -64,6 +64,9 @@
 #include "../tRunTimer/tRunTimer.h"
 
 #define tSedTrans tSedTransPwrLaw
+#define SEDTRANSOPTION "Power-law transport formula"
+//#define tSedTrans tSedTransWilcock
+//#define SEDTRANSOPTION "Wilcock sand-gravel formula"
 
 /***************************************************************************\
 **  class tEquilibCheck
