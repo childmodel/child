@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.6 2002-03-29 11:12:44 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.7 2002-03-29 17:35:52 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -402,6 +402,7 @@ void tStreamNet::CheckNetConsistency()
    tLNode *cn, *dn, *ln;
    tMeshListIter< tLNode > nI( meshPtr->getNodeList() ),
        tI( meshPtr->getNodeList() );
+   long nodesInMesh = meshPtr->getNodeList()->getSize();
    
    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
    {
@@ -446,7 +447,7 @@ void tStreamNet::CheckNetConsistency()
    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
    {
       // Make sure each node has path to outlet (or to a sink):
-      long nodesInMesh = meshPtr->getNodeList()->getSize();
+      ctr = 0;
       dn = cn->getDownstrmNbr();
       while( dn->getBoundaryFlag() == kNonBoundary
              && dn->getFloodStatus() != kSink )
