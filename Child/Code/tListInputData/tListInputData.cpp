@@ -13,28 +13,15 @@
 **   - Bug fix in constructor: nnodes was being read from edge and
 **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
 **
-**  $Id: tListInputData.cpp,v 1.7 2002-09-11 13:37:08 arnaud Exp $
+**  $Id: tListInputData.cpp,v 1.8 2002-09-16 13:15:05 arnaud Exp $
 \**************************************************************************/
 
 #include "tListInputData.h"
 
-// file suffixes
-static 
-const char 
-* const SNODES = ".nodes", * const SEDGES = ".edges", 
-* const STRI = ".tri", * const SZ = ".z";
-
-
-// IO Error handling
-typedef enum {
-  IOTime,
-  IOSize,
-  IORecord
-} IOErrorType;
-
-static 
-void ReportIOError(IOErrorType t, const char *filename,
-		   const char *suffix, int n=-1){
+template< class tSubNode >
+void tListInputData< tSubNode >::
+ReportIOError(IOErrorType t, const char *filename,
+	      const char *suffix, int n){
   cerr << "\nFile: '" << filename << suffix << "' "
        << "- Can't read ";
   switch (t){
@@ -113,10 +100,10 @@ tListInputData( tInputFile &infile )                   //tListInputData
        || !zinfile.good() )
    {
       cerr << "Error: I can't find one or more of the following files:\n"
-           << "\t" << basename << ".nodes\n"
-           << "\t" << basename << ".edges\n"
-           << "\t" << basename << ".tri\n"
-           << "\t" << basename << ".z\n";
+           << "\t" << basename << SNODES "\n"
+           << "\t" << basename << SEDGES "\n"
+           << "\t" << basename << STRI "\n"
+           << "\t" << basename << SZ "\n";
       ReportFatalError( "Unable to open triangulation input file(s)." );
    }
    

@@ -15,7 +15,7 @@
 **     to avoid multiple definition errors resulting from mixing
 **     template & non-template classes (1/99)
 **
-**  $Id: tListInputData.h,v 1.11 2002-07-08 17:21:50 arnaud Exp $
+**  $Id: tListInputData.h,v 1.12 2002-09-16 13:15:05 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLISTINPUTDATA_H
@@ -150,6 +150,15 @@ private:
     tArray< int > t0;     // IDs of neighboring tri's opposite node 0
     tArray< int > t1;     // IDs of neighboring tri's opposite node 1
     tArray< int > t2;     // IDs of neighboring tri's opposite node 2
+
+  // IO Error handling
+  typedef enum {
+    IOTime,
+    IOSize,
+    IORecord
+  } IOErrorType;
+  void ReportIOError(IOErrorType t, const char *filename,
+		     const char *suffix, int n=-1);
 };
 
 
