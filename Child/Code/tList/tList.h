@@ -33,7 +33,7 @@
  **      track position on list w/o an iterator, 1/22/99
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **
- **  $Id: tList.h,v 1.49 2004-03-22 12:20:14 childcvs Exp $
+ **  $Id: tList.h,v 1.50 2004-03-22 14:08:54 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -88,7 +88,7 @@ public:
   inline const tListNode< NodeType > * getPrev() const;
 
 protected:
-  NodeType data;               // data item
+  NodeType data_;               // data item
   tListNode< NodeType > *next; // ptr to next node on list (=0 if end)
   tListNode< NodeType > *prev;
 };
@@ -131,7 +131,7 @@ tListNode() :
 template< class NodeType >                     //tListNode
 inline tListNode< NodeType >::
 tListNode( const tListNode< NodeType > &original ) :
-  data(original.data),
+  data_(original.data_),
   next(original.next),
   prev(original.prev)
 {}
@@ -140,7 +140,7 @@ tListNode( const tListNode< NodeType > &original ) :
 template< class NodeType >                     //tListNode
 inline tListNode< NodeType >::
 tListNode( const NodeType &info ) :
-  data(info),
+  data_(info),
   next(0),
   prev(0)
 {}
@@ -163,8 +163,7 @@ operator=( const tListNode< NodeType > &right )
 {
   if( &right != this )
     {
-      assert( &data != 0 );
-      data = right.data;
+      data_ = right.data_;
       next = right.next;
       prev = right.prev;
     }
@@ -178,7 +177,7 @@ operator==( const tListNode< NodeType > &right ) const
 {
   if( next != right.next ) return false;
   if( prev != right.prev ) return false;
-  if( &data != &(right.data) ) return false;
+  if( &data_ != &(right.data_) ) return false;
   return true;
 }
 
@@ -210,15 +209,15 @@ operator!=( const tListNode< NodeType > &right ) const
 //set data by returning non-const
 template< class NodeType >                     //tListNode
 inline NodeType tListNode< NodeType >::
-getDataNC() const {return data;}
+getDataNC() const {return data_;}
 
 template< class NodeType >                     //tListNode
 inline NodeType &tListNode< NodeType >::
-getDataRefNC() {return data;}
+getDataRefNC() {return data_;}
 
 template< class NodeType >                     //tListNode
 inline NodeType *tListNode< NodeType >::
-getDataPtrNC() {return &data;}
+getDataPtrNC() {return &data_;}
 
 template< class NodeType >                     //tListNode
 inline tListNode< NodeType > *tListNode< NodeType >::
@@ -227,17 +226,17 @@ getNextNC() const {return next;}
 //return data by value
 template< class NodeType >                     //tListNode
 inline NodeType tListNode< NodeType >::
-getData() const {return data;}
+getData() const {return data_;}
 
 //return data by reference
 template< class NodeType >                     //tListNode
 inline const NodeType &tListNode< NodeType >::
-getDataRef() const {return data;}
+getDataRef() const {return data_;}
 
 //return data by pointer
 template< class NodeType >                     //tListNode
 inline const NodeType *tListNode< NodeType >::
-getDataPtr() const {return &data;}
+getDataPtr() const {return &data_;}
 
 //return next pointer
 template< class NodeType >                     //tListNode
@@ -360,7 +359,7 @@ tList( const tList< NodeType > *original ) :
   tListNode<NodeType> * current = original->first;
   for( i=0; i<original->nNodes; ++i )
     {
-      insertAtBack( current->data );
+      insertAtBack( current->getDataRef() );
       current = current->next;
     }
   assert( nNodes == original->nNodes );
@@ -416,9 +415,9 @@ operator=( const tList< NodeType > &right )
       tListNode< NodeType > *cn = right.first;
       if( cn != 0 )
 	{
-          insertAtBack( cn->data );
+          insertAtBack( cn->getDataRef() );
           for( cn = cn->next; cn != last->next; cn = cn->next )
-	    insertAtBack( cn->data );
+	    insertAtBack( cn->getDataRef() );
 	  if( right.last->next == right.first ) last->next = first;
 	  if( right.first->prev == right.last ) first->prev = last;
 	}
@@ -591,7 +590,7 @@ removeFromFront( NodeType &value )
       if( currentItem==first ) currentItem = first->next;
       first = first->next;
     }
-  value = temp->data;
+  value = temp->getData();
   delete temp;
   --nNodes;
   return 1;
@@ -612,7 +611,7 @@ removeFromBack( NodeType &value )
       if( currentItem==last ) currentItem = last->prev;
       last = last->prev;
     }
-  value = temp->data;
+  value = temp->getData();
   delete temp;
   --nNodes;
   return 1;
@@ -631,7 +630,7 @@ removeNext( NodeType &value, tListNode< NodeType > * ptr )
   if( currentItem == temp ) currentItem = ptr->next->next;
   ptr->next = ptr->next->next;
   ptr->next->prev = ptr;
-  value = temp->data;
+  value = temp->getData();
   delete temp;
   --nNodes;
   return 1;
@@ -650,7 +649,7 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
   if( currentItem == ptr->prev ) currentItem = ptr->prev->prev;
   ptr->prev = ptr->prev->prev;
   ptr->prev->next = ptr;
-  value = temp->data;
+  value = temp->getData();
   delete temp;
   --nNodes;
   return 1;
@@ -714,7 +713,6 @@ print() const
   cout<<"The list is: ";
   while( current != 0 )
     {
-      //cout<< current->data <<' ';
       current = current->next;
     }
   cout<<endl<<endl;
@@ -760,7 +758,7 @@ FirstP()
 {
   assert( first!=0 );
   currentItem = first;
-  return &first->data;
+  return first->getDataPtrNC();
 }
 
 // Added by gt 1/99
@@ -771,7 +769,7 @@ NextP()
   assert( currentItem!=0 );
   currentItem = currentItem->next;
   if( currentItem!=0 )
-    return &currentItem->data;
+    return currentItem->getDataPtrNC();
   else return 0;
 }
 
@@ -846,7 +844,7 @@ getListNode( const NodeType * desiredDatPtr )
   tListNode< NodeType > * listnode = first;
 
   if( listnode==0 ) return 0;
-  while( &(listnode->data) != desiredDatPtr )
+  while( listnode->getDataPtr() != desiredDatPtr )
     {
       listnode = listnode->next;
       if( listnode==0 ) return 0;
