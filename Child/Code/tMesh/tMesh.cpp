@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.21 1998-03-16 18:48:54 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.22 1998-03-20 15:34:10 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1019,7 +1019,7 @@ MakeGridFromScratch( tInputFile &infile )
    nedges = edgeList.getSize();
    ntri = 0;
      //DumpEdges:
-     /*cout << "edges:" << endl;
+   /*cout << "edges:" << endl;
    for( ce = edgIter.FirstP(); !( edgIter.AtEnd() ); ce = edgIter.NextP() )
    {
       cout << ce->getID() << " from " << ce->getOriginPtrNC()->getID()
@@ -1112,7 +1112,7 @@ MakeGridFromScratch( tInputFile &infile )
 **
 **  3) Each triangle:
 **     - Has 3 valid points and edges
-**     - Each edge Ei has Pi as its origin and P((i+1)%3) as its
+**     - Each edge Ei has Pi as its origin and P((i+2)%3) as its
 **       destination
 **     - If an opposite triangle Ti exists, points P((i+1)%3) and
 **       P((i+2)%3) are the same as points PO((n+2)%3) and PO((n+1)%3) in
@@ -1270,7 +1270,8 @@ CheckMeshConsistency( void )
                  << " as origin\n";
             goto error;
          }
-         if( ce->getDestinationPtrNC()!=ct->pPtr((i+1)%3) )
+         // changed from (i+1) to (i+2) for "right-hand" format gt 3/98
+         if( ce->getDestinationPtrNC()!=ct->pPtr((i+2)%3) )
          {
             cerr << "TRIANGLE #" << ct->getID()
                  << ": edge " << i << " does not have point " << (i+1)%3
@@ -1341,7 +1342,7 @@ template< class tSubNode >
 int tGrid< tSubNode >::
 DeleteNode( tListNode< tSubNode > *nodPtr )
 {
-   cout << "DeleteNode: " << nodPtr->getDataPtr()->getID() << endl;
+   //cout << "DeleteNode: " << nodPtr->getDataPtr()->getID() << endl;
    int i;
    tPtrList< tSubNode > nbrList;
      //tGridListIter< tSubNode > nodIter( nodeList );
@@ -1394,8 +1395,8 @@ template< class tSubNode >
 int tGrid< tSubNode >::
 DeleteNode( tSubNode *node )
 {
-   cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
-        << node->getY() << " " << node->getZ() << endl;
+   /*cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
+        << node->getY() << " " << node->getZ() << endl;*/
    int i;
    tPtrList< tSubNode > nbrList;
      //tGridListIter< tSubNode > nodIter( nodeList );
@@ -1513,8 +1514,10 @@ ExtricateEdge( tEdge * edgePtr )
    tTriangle triVal1, triVal2;
    tArray< tTriangle * > triPtrArr(2);
      //cout << "find edge in list; " << flush;
-   ce = edgIter.GetP( edgePtr->getID() );
+   ce = edgIter.GetP( edgePtr->getID() );  //NB: why necessary? isn't ce the
+                                       // same as edgePtr??
 
+   // Remove the edge from it's origin's spokelist
      //cout << "update origin's spokelist if not done already; " << flush;
    spkLPtr = &( ce->getOriginPtrNC()->getSpokeListNC() );
    spokIter.Reset( *spkLPtr );
@@ -1524,17 +1527,24 @@ ExtricateEdge( tEdge * edgePtr )
       spk = spokIter.NextP();
       spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
    }
+
+   // Find the triangle that points to the edge
      //cout << "find triangle; " << flush;
    triPtrArr[0] = TriWithEdgePtr( edgePtr );
+
+   // Find the edge's complement
    listnodePtr = edgIter.NodePtr();
    assert( listnodePtr != 0 );
      //cout << "find compliment; " << flush;
    if( edgePtr->getID()%2 == 0 ) cce = edgIter.NextP();
    else if( edgePtr->getID()%2 == 1 ) cce = edgIter.PrevP();
-   else return 0;
+   else return 0; //NB: why whould this ever occur??
+
+   // Find the triangle
      //cout << "find other triangle; " << flush;
    triPtrArr[1] = TriWithEdgePtr( cce );
      //if triangles exist, delete them
+   cout << "conditionally calling deletetri from extricateedge\n";
    if( triPtrArr[0] != 0 )
        if( !DeleteTriangle( triPtrArr[0] ) ) return 0;
    if( triPtrArr[1] != 0 )
@@ -1655,7 +1665,7 @@ TriWithEdgePtr( tEdge *edgPtr )
      //cout << "TriWithEdgePtr " << edgPtr->getID();
    tListIter< tTriangle > triIter( triList ); 
    for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
-       if( ct != 0 )
+       if( ct != 0 ) //TODO: is this test nec? why wd it be zero?
            if( ct->ePtr(0) == edgPtr ||
                ct->ePtr(1) == edgPtr ||
                ct->ePtr(2) == edgPtr ) return ct;
@@ -1667,6 +1677,7 @@ int tGrid< tSubNode >::
 DeleteTriangle( tTriangle * triPtr )
 {
    //cout << "DeleteTriangle(...) " << triPtr->getID() << endl;
+   //triPtr->TellAll();
    tTriangle triVal;
    if( !ExtricateTriangle( triPtr ) ) return 0;
    if( !( triList.removeFromFront( triVal ) ) ) return 0;
@@ -1681,7 +1692,8 @@ ExtricateTriangle( tTriangle *triPtr )
    //cout << "ExtricateTriangle" << endl;
    tListIter< tTriangle > triIter( triList );
    tTriangle *ct;
-   for( ct = triIter.FirstP(); ct != triPtr && !( triIter.AtEnd() ); ct = triIter.NextP() );
+   for( ct = triIter.FirstP(); ct != triPtr && !( triIter.AtEnd() );
+        ct = triIter.NextP() );
    if( ( triIter.AtEnd() ) ) return 0;
    int i, j;
    for( i=0; i<3; i++ ) for( j=0; j<3; j++ )
@@ -1756,9 +1768,9 @@ int tGrid< tSubNode >::
 AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 ) 
 {
    assert( node1 != 0 && node2 != 0 && node3 != 0 );
-     //cout << "AddEdge" << endl;
-     //"between nodes " << node1->getID()
-     //   << " and " << node2->getID() << " w/ ref to node " << node3->getID() << endl;
+   /*cout << "AddEdge" << 
+     "between nodes " << node1->getID()
+        << " and " << node2->getID() << " w/ ref to node " << node3->getID() << endl;*/
    int flowflag = 1;
    int i, j, newid;
    tEdge tempEdge1, tempEdge2;
@@ -1855,11 +1867,13 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    }
    
    nedges+=2;
-   //cout << "2 edges added" << endl;
+   //Xcout << "2 edges added, edge list NOW:" << endl;
    //reset edge id's
    for( ce = edgIter.FirstP(), i = 0; !( edgIter.AtEnd() ); ce = edgIter.NextP(), i++ )
    {
       ce->setID( i );
+      /*cout << "    Edg " << i << " (" << ce->getOriginPtr()->getID() << "->"
+           << ce->getDestinationPtr()->getID() << ")\n";*/
    }
    return 1;
 }
@@ -1893,6 +1907,12 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
    tTriangle *nbrtriPtr, *ct;
    tListIter< tTriangle > triIter( triList );
    tPtrListIter< tEdge > spokIter;
+
+   /*Xcout << "In AEMT, the three pts are:\n";
+   cn->TellAll();
+   cnn->TellAll();
+   cnnn->TellAll();*/
+   
         //DumpEdges:
      /*cout << "edges:" << endl;
    for( ce = edgIter.FirstP(); !( edgIter.AtEnd() ); ce = edgIter.NextP() )
@@ -1901,25 +1921,112 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
            << " to " << ce->getDestinationPtrNC()->getID() << endl;
    }*/
 
-     //deal with new edges and new triangle:
-     //cout << "aemt 1\n" << flush;
-   tempEdge1.setOriginPtr( cn );                 //set edge1 ORG
-   tempEdge2.setDestinationPtr( cn );            //set edge2 DEST
-   if( cn->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
+   // Deal with new edges and new triangle:
+   // Here, tempEdge1 and tempEdge2 are the complementary edges that connect
+   // points cn and cnnn, which correspond to points 0 and 2 in the new
+   // triangle. We set up the 3 vertex ptrs in the new triangle and set the
+   // endpoints of the new edges.
    tempTri.setPPtr(0, cn );                      //set tri VERTEX ptr 0
    tempTri.setPPtr(1, cnn );                     //set tri VERTEX ptr 1
    tempTri.setPPtr(2, cnnn );                    //set tri VERTEX ptr 2
-   tempEdge2.setOriginPtr( cnnn );               //set edge2 ORG
+   tempEdge1.setOriginPtr( cn );                 //set edge1 ORG
    tempEdge1.setDestinationPtr( cnnn );          //set edge1 DEST
-   if( cnnn->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
+   tempEdge2.setOriginPtr( cnnn );               //set edge2 ORG
+   tempEdge2.setDestinationPtr( cn );            //set edge2 DEST
+
+   // Get new unique ID's for the new edge pair
    le = edgIter.LastP();
    newid = le->getID() + 1;
-   tempEdge1.setID( newid );                     //set edge1 ID
+   tempEdge2.setID( newid );                     //set edge1 ID
    newid++;
-   tempEdge2.setID( newid );                     //set edge2 ID
+   tempEdge1.setID( newid );                     //set edge2 ID
+
+   // Set the boundary status of the edge pair: flow is allowed unless
+   // one of the endpoints is a closed boundary.
+   if( cn->getBoundaryFlag() == kClosedBoundary ||
+       cnnn->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
    tempEdge1.setFlowAllowed( flowflag );         //set edge1 FLOWALLOWED
    tempEdge2.setFlowAllowed( flowflag );         //set edge2 FLOWALLOWED
      //cout << "aemt 2\n" << flush;
+
+   // The following block modified by gt 3/98 to change triangle edge-ptr
+   // definition from "left-hand" to "right-hand". 
+   
+   // Add the new edges either to the back of the edge list (if they're
+   // boundary edges) or to the back of the active portion of the edge list
+   // (if not, ie if flow is allowed)
+   if( flowflag == 1 )
+   {
+      edgeList.insertAtActiveBack( tempEdge2 );  //put edge2 active in list
+      edgeList.insertAtActiveBack( tempEdge1 );  //put edge1 active in list
+      le = edgIter.LastActiveP();                //set edgIter to lastactive
+   }
+   else
+   {
+      edgeList.insertAtBack( tempEdge2 );        //put edge2 in list
+      edgeList.insertAtBack( tempEdge1 );        //put edge1 in list
+      le = edgIter.LastP();                      //set edgIter to last
+   }
+
+   // le now points to edge1, P0->P2. Assign this edge as ePtr(0): the
+   // clw-oriented edge that begins at vertex zero.
+   tempTri.setEPtr(0, le );                      //set tri EDGE ptr 0
+   
+   /*Xcout << "In AEMT, adding edges: last = " << le->getID()
+        << " (" << le->getOriginPtr()->getID() << "->"
+        << le->getDestinationPtr()->getID() << "),\n";
+   le->TellCoords();
+   le = edgIter.PrevP();
+   cout << "next to last = " << le->getID()
+        << " (" << le->getOriginPtr()->getID() << "->"
+        << le->getDestinationPtr()->getID() << ")\n";
+   le->TellCoords();
+   le = edgIter.NextP();*/
+   
+   // Now we add pointers to the new edges in the spokeLists of nodes 0 (cn)
+   // and 2 (cnnn), and set the triangle's edge pointers ePtr(1) and ePtr(2)
+   // to the clockwise-oriented edges P1->P0 and P2->P1.
+   //   First add edge1 (P0->P2) to the spoke list for node cn (P0). Start by
+   // finding the edge that runs cn->cnn (P0->P1), then insert tempEdge1 AFTER
+   // (ccw from) it on the list
+   //Xcout << "Looking for edge " << cn->getID() << "->" << cnn->getID() << endl;
+   spokIter.Reset( cn->getSpokeListNC() );
+   for( ce = spokIter.FirstP();
+        ce->getDestinationPtr() != cnn && !( spokIter.AtEnd() );
+        ce = spokIter.NextP() );
+   //Xcout << " spoke: " << ce->getDestinationPtr()->getID() << endl;
+   
+   assert( !( spokIter.AtEnd() ) );  //make sure we found the right spoke
+   cn->getSpokeListNC().insertAtNext( le, spokIter.NodePtr() ); //put edge1 in SPOKELIST
+
+   //   Next, find the spoke of cnnn (P2) whose destination is cnn (P1) (this
+   // is the edge P2->P1 in the new triangle), and insert edge2
+   // BEFORE this (ie clockwise of it) in the spoke list. Because le now points
+   // to edge1, and edge2 comes just before edge1, we start by "backing up"
+   // so that le points to edge2
+     //cout << "aemt 3\n" << flush;
+   le = edgIter.PrevP();  // point le to edge2 (P2->P0)
+   spokIter.Reset( cnnn->getSpokeListNC() );
+   for( ce = spokIter.FirstP();
+        ce->getDestinationPtr() != cnn && !( spokIter.AtEnd() );
+        ce = spokIter.NextP() );
+   assert( !( spokIter.AtEnd() ) );  //make sure we found the right spoke
+   cnnn->getSpokeListNC().insertAtPrev( le, spokIter.NodePtr() );//put edge2 in SPOKELIST
+
+   // ce now points to the edge P2->P1 (cnnn->cnn), which is also the
+   // clw-oriented edge #2 for the triangle, so assign it as such
+   tempTri.setEPtr(2, ce );                      //set tri EDGE ptr 2
+
+   // Now we add the last remaining clw-oriented edge, cnn->cn (P1->P0),
+   // to the triangle
+   spokIter.Reset( cnn->getSpokeListNC() );
+     //cout << "aemt 4\n" << flush;
+   for( ce = spokIter.FirstP();
+        ce->getDestinationPtr() != cn && !( spokIter.AtEnd() );
+        ce = spokIter.NextP() );
+   tempTri.setEPtr(1, ce );                      //set tri EDGE ptr 1
+
+   /* original code, unmodified follows
    if( flowflag == 1 )
    {
       edgeList.insertAtActiveBack( tempEdge1 );  //put edge1 active in list
@@ -1932,8 +2039,14 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
       edgeList.insertAtBack( tempEdge2 );        //put edge2 in list
       le = edgIter.LastP();                      //set edgIter to last
    }
+   
+   // Assign tempEdge2 as the ...
    tempTri.setEPtr(2, le );                      //set tri EDGE ptr 2
-     //add pointers to the new edges to nodes' spokeLists:
+   
+   //add pointers to the new edges to nodes' spokeLists:
+   // First, find the spoke of cnnn whose destination is cnn (this is the
+   // edge from pt 2 to pt 1 of the new triangle), and insert tempEdge2
+   // BEFORE this (ie clockwise of it) in the spoke list
      //cout << "aemt 3\n" << flush;
    spokIter.Reset( cnnn->getSpokeListNC() );
    for( ce = spokIter.FirstP();
@@ -1942,22 +2055,87 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
    assert( !( spokIter.AtEnd() ) );  //make sure we found the right spoke
    cnnn->getSpokeListNC().insertAtPrev( le, spokIter.NodePtr() );//put edge2 in SPOKELIST
    le = edgIter.PrevP();
+
+   // Now add tempEdge1 to the spoke list for node cn. Start by finding the
+   // edge that runs cn to cnn, then insert tempEdge1 AFTER (counter-clw)
+   // it on the list
    spokIter.Reset( cn->getSpokeListNC() );
    for( ce = spokIter.FirstP();
         ce->getDestinationPtr() != cnn && !( spokIter.AtEnd() );
         ce = spokIter.NextP() );
    assert( !( spokIter.AtEnd() ) );  //make sure we found the right spoke
    cn->getSpokeListNC().insertAtNext( le, spokIter.NodePtr() ); //put edge1 in SPOKELIST
+
+   // ce now contains the edge cn->cnn, which is also the ccw-oriented edge
+   // #0 for the triangle, so assign it as such
    tempTri.setEPtr(0, ce );                      //set tri EDGE ptr 0
+
+   // Now we add the last remaining ccw-oriented edge, cnn->cnnn,
+   // to the triangle
    spokIter.Reset( cnn->getSpokeListNC() );
      //cout << "aemt 4\n" << flush;
    for( ce = spokIter.FirstP();
         ce->getDestinationPtr() != cnnn && !( spokIter.AtEnd() );
         ce = spokIter.NextP() );
    tempTri.setEPtr(1, ce );                      //set tri EDGE ptr 1
+*/
+   
+   // Give the new triangle a unique ID, initialize its tPtr's to NULL,
+   // and insert it at the back of the triangle list
    tempTri.setID( ntri );                        //set tri ID
    for( i=0; i<3; i++ ) tempTri.setTPtr( i, 0 ); //initialize tri TRI ptrs to nul
    triList.insertAtBack( tempTri );              //put tri in list
+
+   // The next task is to assign pointers to neighboring triangles. We start
+   // by retrieving a ptr to the new triangle from the back of the list.
+   ct = triIter.LastP();                         //set triIter to last
+
+   /*cout <<"In AEMT, adding triangle:\n";
+   ct->TellAll();*/
+
+   // TODO: this op could be encapsulated in a tTriangle mbr function that
+   // seeks a neighbor.
+   // Find neighbor triangle 0. This is the triangle that includes edge
+   // P1->P2 (cnn->cnnn) as one of its 3 clw-oriented edges. If such a
+   // triangle exists, point to it as nbr tri #0, and also ask it to point
+   // back to the new triangle as one of its neighbors.
+   spokIter.Reset( cnn->getSpokeListNC() );
+   for( ce = spokIter.FirstP();
+        ce->getDestinationPtr() != cnnn && !( spokIter.AtEnd() );
+        ce = spokIter.NextP() );
+   assert( !( spokIter.AtEnd() ) );
+     //cout << "aemt 5\n" << flush;
+   nbrtriPtr = TriWithEdgePtr( ce );
+   ct->setTPtr( 0, nbrtriPtr );                   //set tri TRI ptr 0
+   if( nbrtriPtr != 0 )
+   {
+      // Tell the nbr tri to point back to us. If the edge we share is i,
+      // then we are nbri (i+1)%3
+      for( i=0; nbrtriPtr->ePtr(i) != ce && i<3; i++ );
+      assert( i<3 );
+      nbrtriPtr->setTPtr( (i+1)%3, ct );         //set NBR TRI ptr to tri
+   }
+
+   // Neighbor triangle 2 is the one that points to edge P0-P1 (cn->cnn)
+   spokIter.Reset( cn->getSpokeListNC() );
+   for( ce = spokIter.FirstP();
+        ce->getDestinationPtr() != cnn && !( spokIter.AtEnd() );
+        ce = spokIter.NextP() );
+   assert( !( spokIter.AtEnd() ) );
+   nbrtriPtr = TriWithEdgePtr( ce );
+   ct->setTPtr( 2, nbrtriPtr );                   //set tri TRI ptr 2
+     //cout << "aemt 6\n" << flush;
+   if( nbrtriPtr != 0 )
+   {
+      for( i=0; nbrtriPtr->ePtr(i) != ce && i<3; i++ );
+      assert( i<3 );
+      nbrtriPtr->setTPtr( (i+1)%3, ct );         //set NBR TRI ptr to tri
+   }
+
+   /* original unmodified second block follows:
+   // The next task is to assign pointers to neighboring triangles...
+   // (I don't understand this: why wd any other triangle share P2->P0 etc
+   // if it's lefthand-oriented?)
    ct = triIter.LastP();                         //set triIter to last
    spokIter.Reset( cnnn->getSpokeListNC() );
    for( ce = spokIter.FirstP();
@@ -1986,16 +2164,21 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
       for( i=0; nbrtriPtr->ePtr(i) != ce && i<3; i++ );
       assert( i<3 );
       nbrtriPtr->setTPtr( (i+2)%3, ct );         //set NBR TRI ptr to tri
-   }
-   ntri++;                                       //increment tGrid::ntri by one
-   nedges+=2;                                    //increment tGrid::nedges by two
+   }*/
+   
+   ntri++;                          //increment tGrid::ntri by one
+   nedges+=2;                       //increment tGrid::nedges by two
+   
      //cout << "aemt 7\n" << flush;
-   //reset edge id's
-   for( ce = edgIter.FirstP(), i=0; !( edgIter.AtEnd() ); ce = edgIter.NextP(), i++ )
+   //reset edge id's (NB: why needed?)
+   for( ce = edgIter.FirstP(), i=0; !( edgIter.AtEnd() );
+        ce = edgIter.NextP(), i++ )
        ce->setID( i );
      //cout << "aemt 8\n" << flush;
-  //reset triangle id's
-   for( ct = triIter.FirstP(), i=0; !( triIter.AtEnd() ); ct = triIter.NextP(), i++ )
+   
+   //reset triangle id's (NB: why needed?)
+   for( ct = triIter.FirstP(), i=0; !( triIter.AtEnd() );
+        ct = triIter.NextP(), i++ )
    {
       ct->setID( i );
       assert( ( ( ct->tPtr(0) != ct->tPtr(1) && ct->tPtr(0) != ct->tPtr(2) ) ||
@@ -2010,6 +2193,7 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
    return 1;
 }
 
+// TODO: consolidate w/ AEMT to have AEMT call this as a helper fn
 template< class tSubNode >
 int tGrid< tSubNode >::
 MakeTriangle( tPtrList< tSubNode > &nbrList,
@@ -2028,7 +2212,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    tGridListIter< tEdge > edgIter( edgeList );
    tPtrListIter< tEdge > spokIter;
    assert( nbrList.getSize() == 3 );
-   cn = nbrIter.DatPtr();
+   cn = nbrIter.DatPtr();      // cn, cnn, and cnn are the 3 nodes in the tri
    cnn = nbrIter.NextP();
    cnnn = nbrIter.NextP();
    nbrIter.Next();
@@ -2048,40 +2232,131 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
           cout << "; nor are new coords CCW ";
       cout << endl;
    }
+
+   /*cout << "In MT, the 3 nodes are: " << cn->getID() << " " << cnn->getID()
+        << " " << cnnn->getID() << endl;*/
    
      //for debugging:
      //DumpEdges();
      //DumpSpokes:
-     //deal with (last) new triangle:
+   
+   //deal with (last) new triangle:
    ct = triIter.LastP();
    int newid = ct->getID() + 1;
    tempTri.setID( newid );                          //set tri ID
-     //set edge and vertex ptrs & add to triList:
+
+   // set edge and vertex ptrs & add to triList: We go through each point,
+   // p0, p1, and p2. At each step, we assign p(i) to the triangle's
+   // corresponding pPtr(i), and get the spoke list for node p(i). We then
+   // advance such that cn points to p(i+1) and cnn points to p(i+2), and
+   // find the edge that connects p(i) and p(i+2). This edge is the clw
+   // edge #i for the triangle, so we assign it as such. After this loop is
+   // done, tempTri points to the three vertices and to the three clockwise-
+   // oriented edges p0->p2 (e0), p1->p0 (e1), and p2->p1 (e2). The nbr
+   // triangle pointers are initialized to zero.
    for( i=0; i<3; i++ )
    {
       tempTri.setPPtr( i, cn );       //set tri VERTEX ptr i
       spokIter.Reset( cn->getSpokeListNC() );
-      cn = nbrIter.NextP();                     //step forward once in nbrList   
+      cn = nbrIter.NextP();           //step forward once in nbrList to p(i+1)
+      cnn = nbrIter.ReportNextP();    //get p(i+2) (but don't step forward)
+
+      // Find edge p(i)->p((i+2)%3)
       for( ce = spokIter.FirstP();
-           ce->getDestinationPtr() != cn && !( spokIter.AtEnd() );
+           ce->getDestinationPtr() != cnn && !( spokIter.AtEnd() );
            ce = spokIter.NextP() );
-        /*if( ( spokIter.AtEnd() ) )
+
+      /*cout << "SEEKing edg from " << ce->getOriginPtr()->getID()
+           << " to " << cnn->getID() << " and found it in edg " << ce->getID()
+           << endl;
+      ce->TellCoords();*/
+      
+      // 4 debug
+      if( ( spokIter.AtEnd() ) )
       {
          cout << "dest node " << cn->getID() << " not found for node "
               << ce->getOriginPtrNC()->getID() << endl;
          DumpNodes();
          ReportFatalError( "failed: !( spokIter.AtEnd() )" );
-      }*/
+      }
       
       assert( !( spokIter.AtEnd() ) );
+
+      // Assign edge p(i)->p(i+2) as the triangle's clockwise edge #i
+      // (eg, ePtr(0) is the edge that connects p0->p2, etc)
       tempTri.setEPtr( i, ce );      //set tri EDGE ptr i
-      tempTri.setTPtr( i, 0 );                      //initialize tri TRI ptrs to nul
+      tempTri.setTPtr( i, 0 );       //initialize tri TRI ptrs to nul
    }
    triList.insertAtBack( tempTri );       //put tri in list
-   ct = triIter.LastP();                               //set triIter to last
-   assert( cn == ct->pPtr(0) );                           //make sure we're where we
-                                                          //think we are
-     //set tri ptrs:
+   ct = triIter.LastP();                  //set triIter to last
+   assert( cn == ct->pPtr(0) );           //make sure we're where we
+                                          //think we are
+
+   // Now we assign the neighbor triangle pointers. The loop successively
+   // gets the spokelist for (p0,p1,p2) and sets cn to the next ccw point
+   // (p1,p2,p0). It then finds the edge (spoke) that joins the two points
+   // (p0->p1, p1->p2, p2->p0). These are the edges that are shared with
+   // neighboring triangles (t2,t0,t1) and are pointed to by the neighboring
+   // triangles. This means that in order to find neighboring triangle t2,
+   // we need to find the triangle that points to edge (p0->p1), and so on.
+   // In general, t((j+2)%3) is the triangle that points to edge
+   // p(j)->p((j+1)%3).
+   dce = 0;
+   nbrtriPtr = 0;
+   cn = nbrIter.FirstP();
+   for( j=0; j<3; j++ )
+   {
+      // Get spokelist for p(j) and advance to p(j+1)
+      spokIter.Reset( cn->getSpokeListNC() );
+      cn = nbrIter.NextP();               //step forward once in nbrList
+      if( j>0 ) dce = ce;
+
+      // Find edge ce that connects p(j)->p(j+1)
+      for( ce = spokIter.FirstP();
+           ce->getDestinationPtrNC() != cn && !( spokIter.AtEnd() );
+           ce = spokIter.NextP() );
+      assert( !( spokIter.AtEnd() ) );
+        //********BUG: following assertion failed; called from FlipEdge,
+        //from CheckForFlip, from CheckLocallyDelaunay, from MoveNodes***************
+      if( !( TriWithEdgePtr( ce ) != nbrtriPtr || nbrtriPtr == 0 ) )
+      {
+         p0 = cn->get2DCoords();
+         p1 = cnn->get2DCoords();
+         p2 = cnnn->get2DCoords();
+         
+         if( PointsCCW( p0, p1, p2 ) )
+             cout << "something FUNNY going on";
+         else cout << "tri not CCW: " << nbrtriPtr->getID() << endl;
+      }
+
+      // Find the triangle, if any, that shares (points to) this edge
+      // and assign it as the neighbor triangle t((j+2)%3).
+      nbrtriPtr = TriWithEdgePtr( ce );
+      ct->setTPtr( (j+2)%3, nbrtriPtr );      //set tri TRI ptr (j+2)%3
+
+      // If a neighboring triangle was found, tell it that the current
+      // new triangle is its neighbor too. We need to tell it which
+      // neighbor we are (0, 1, or 2), and the mapping is like this:
+      // if the nbr tri calls the shared edge (0,1,2) then we are its
+      // nbr (1,2,0). (ie, tri_number = (edg_number+1)%3 )
+      if( nbrtriPtr != 0 )
+      {
+         for( i=0; i<3; i++ )
+         {
+            assert( nbrtriPtr->ePtr(i) != 0 );
+            assert( ce != 0 );
+            if( nbrtriPtr->ePtr(i) == ce ) break;
+         }
+         assert( i < 3 );
+         nbrtriPtr->setTPtr( (i+1)%3, ct );//set NBR TRI ptr to tri
+      }
+   }
+
+/*X   cout << "IN MT, created triangle:\n";
+   ct->TellAll();*/
+
+   
+   /*OLD CODE BLOCK  //set tri ptrs:
    dce = 0;
    nbrtriPtr = 0;
    for( j=0; j<3; j++ )
@@ -2120,10 +2395,13 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
          assert( i < 3 );
          nbrtriPtr->setTPtr( (i+2)%3, ct );//set NBR TRI ptr to tri
       }
-   }
+      }*/
+   
    ntri++;
-   //reset triangle id's
-   for( ct = triIter.FirstP(), i=0; !( triIter.AtEnd() ); ct = triIter.NextP(), i++ )
+   
+   //reset triangle id's (why needed??)
+   for( ct = triIter.FirstP(), i=0; !( triIter.AtEnd() );
+        ct = triIter.NextP(), i++ )
    {
       ct->setID( i );
    }
@@ -2138,7 +2416,7 @@ AddNode( tSubNode &nodeRef )
 {
    assert( &nodeRef != 0 );
    tArray< double > xyz( nodeRef.get3DCoords() );
-   cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
+   //Xcout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
    tTriangle *tri;
    //cout << "locate tri" << endl << flush;
    tri = LocateTriangle( xyz[0], xyz[1] );
@@ -2146,14 +2424,19 @@ AddNode( tSubNode &nodeRef )
    int i, j, k;
    tGridListIter< tSubNode > nodIter( nodeList );
    tSubNode *cn;
+
+   // Assign ID to the new node and insert it at the back of the active
+   // portion of the node list.
    int newid = nodIter.LastP()->getID() + 1;
    nodeRef.setID( newid );
    nodeList.insertAtActiveBack( nodeRef );
    assert( nodeList.getSize() == nnodes + 1 );
    nnodes++;
-   //flush the spoke list:
+   
+   // Retrieve a pointer to the new node and flush its spoke list
    cn = nodIter.LastActiveP();
    cn->getSpokeListNC().Flush();
+   
      //make ptr list of triangle's vertices:
    tPtrList< tSubNode > bndyList;
    tSubNode *tmpPtr;
@@ -2163,19 +2446,22 @@ AddNode( tSubNode &nodeRef )
       bndyList.insertAtBack( tmpPtr );
    }
    bndyList.makeCircular();
-   //delete triangle
+   
+   // Delete the triangle in which the node falls
+   //Xcout << "deleting tri in which new node falls\n";
    i = DeleteTriangle( tri );
    assert( i != 0 );  //if ( !DeleteTriangle( tri ) ) return 0;
+
    //make 3 new triangles
    tPtrListIter< tSubNode > bndyIter( bndyList );
-   tSubNode *node3 = bndyIter.FirstP();
-   tSubNode *node2 = nodIter.LastActiveP();
-   tSubNode *node1 = bndyIter.NextP();
-   tSubNode *node4 = bndyIter.NextP();
+   tSubNode *node3 = bndyIter.FirstP();     // p0 in original triangle
+   tSubNode *node2 = nodIter.LastActiveP(); // new node
+   tSubNode *node1 = bndyIter.NextP();      // p1 in orig triangle
+   tSubNode *node4 = bndyIter.NextP();      // p2 in orig triangle
    tArray< double > p1( node1->get2DCoords() ),
        p2( node2->get2DCoords() ), p3( node3->get2DCoords() ),
        p4( node4->get2DCoords() );
-   if( xyz.getSize() == 3)
+   if( xyz.getSize() == 3) //why would this ever not be the case?
    {
       /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
            << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
@@ -2193,32 +2479,40 @@ AddNode( tSubNode &nodeRef )
       if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
           cout << "new tri not CCW" << endl;
    }
-   
+
+   // Here's how the following works. Let the old triangle vertices be A,B,C
+   // and the new node N. The task is to create 3 new triangles ABN, NBC, and
+   // NCA, and 3 new edge-pairs AN, BN, and CN.
+   // First, edge pair BN is added. Then AEMT is called to create triangle
+   // ABN and edge pair AN. AEMT is called again to create tri NBC and edge
+   // pair CN. With all the edge pairs created, it remains only to call
+   // MakeTriangle to create tri NCA.
    assert( node1 != 0 && node2 != 0 && node3 != 0 );
    AddEdge( node1, node2, node3 );  //add edge between node1 and node2
    tPtrList< tSubNode > tmpList;
-   tmpList.insertAtBack( node3 );
+   tmpList.insertAtBack( node3 );  // ABN
    tmpList.insertAtBack( node1 );
    tmpList.insertAtBack( node2 );
    tPtrListIter< tSubNode > tmpIter( tmpList );
    AddEdgeAndMakeTriangle( tmpList, tmpIter );
    tmpList.Flush();
-   tmpList.insertAtBack( node2 );
+   tmpList.insertAtBack( node2 );  // NBC
    tmpList.insertAtBack( node1 );
    tmpList.insertAtBack( node4 );
    tmpIter.First();
    AddEdgeAndMakeTriangle( tmpList, tmpIter );
    tmpList.Flush();
-   tmpList.insertAtBack( node2 );
+   tmpList.insertAtBack( node2 );  // NCA
    tmpList.insertAtBack( node4 );
    tmpList.insertAtBack( node3 );
    tmpList.makeCircular();
    tmpIter.First();
    MakeTriangle( tmpList, tmpIter );
+   
    //put 3 resulting triangles in ptr list
    if( xyz.getSize() == 3 )
    {
-      //cout << "flip checking" << endl;
+      //Xcout << "flip checking in addnode" << endl;
       tPtrList< tTriangle > triptrList;
       tListIter< tTriangle > triIter( triList );
       tPtrListIter< tTriangle > triptrIter( triptrList );
@@ -2258,7 +2552,8 @@ AddNode( tSubNode &nodeRef )
 }
 
 /*   AddNodeAt: add a node with referenced coordinates to mesh   */
-
+//TODO: this fn duplicates functionality of AddNode; just assign coords
+// to a dummy new node and call AddNode
 template< class tSubNode >
 tSubNode *tGrid< tSubNode >::
 AddNodeAt( tArray< double > &xyz )
@@ -2292,6 +2587,7 @@ AddNodeAt( tArray< double > &xyz )
    }
    bndyList.makeCircular();
    //delete triangle
+   //Xcout << "calling deletetri from addnodeat\n";
    if ( !DeleteTriangle( tri ) ) return 0;
    //make 3 new triangles
    tPtrListIter< tSubNode > bndyIter( bndyList );
@@ -2485,7 +2781,7 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
       return 0;
    }
    assert( nv < 3 );
-     //cout << "THIS IS CheckForFlip(...) " << tri->getID() << endl;
+   //cout << "THIS IS CheckForFlip(...) " << tri->getID() << endl;
    tSubNode *node0, *node1, *node2, *node3;
    node0 = ( tSubNode * ) tri->pPtr(nv);
    node1 = ( tSubNode * ) tri->pPtr((nv+1)%3);
@@ -2506,7 +2802,7 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
    if( flip )                     //and make sure there isn't already an edge?
    {
       if( !PointsCCW( p0, p1, ptest ) || !PointsCCW( p0, ptest, p2 ) )return 0;
-      //cout << "Flip edge" << endl;
+      //cout << "calling Flip edge from cff" << endl;
       FlipEdge( tri, triop, nv, nvop );
         /*
       assert( DeleteEdge( tri->ePtr( (nv+1)%3 ) ) );
@@ -2535,7 +2831,9 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
    nbrList.insertAtBack( (tSubNode *) triop->pPtr( nvop ) );
    nbrList.insertAtBack( (tSubNode *) tri->pPtr((nv+2)%3) );
    nbrList.makeCircular();
-   DeleteEdge( tri->ePtr( (nv+1)%3 ) );
+   //cout << "calling deleteedge from flipedge\n";
+   //XDeleteEdge( tri->ePtr( (nv+1)%3 ) );
+   DeleteEdge( tri->ePtr( (nv+2)%3 ) );  // Changed for right-hand data struc
    tPtrListIter< tSubNode > nbrIter( nbrList );
    AddEdgeAndMakeTriangle( nbrList, nbrIter );
    nbrIter.First();
@@ -2628,6 +2926,7 @@ CheckLocallyDelaunay()
             /*cout << " against tri " << tp->getID() << " with nbrs "
                  << id0 << ", " << id1
                  << ", and " << id2 << endl;*/
+            //cout << "call cff from cld\n";
             if( CheckForFlip( at, i, flip ) )
             {
                //cout << "flipped tri's, got tri ";
