@@ -21,7 +21,11 @@
 **
 **  Created by Greg Tucker, November 1997.
 **
-**  $Id: tStorm.h,v 1.16 2000-02-02 23:14:35 nmgaspar Exp $
+**  Modifications:
+**   - added data member "stormfile" to handle file containing history
+**     of storm events
+**
+**  $Id: tStorm.h,v 1.17 2000-03-14 16:55:01 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTORM_H
@@ -66,8 +70,9 @@ private:
     double istdurdev;
     double twoPiLam;   // Parameter for sinusoidal variation: 2pi / period
     long  seed;        // Random seed
-   double endtm;       // The end time of the run, just in case a big enough 
+    double endtm;       // The end time of the run, just in case a big enough 
                        // storm is never generated
+    ofstream stormfile; // File containing history of storm events
 };
 
 
