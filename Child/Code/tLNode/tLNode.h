@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.24 1998-06-08 14:46:52 gtucker Exp $
+**  $Id: tLNode.h,v 1.25 1998-06-10 22:28:24 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -18,22 +18,45 @@
 #include "../tInputFile/tInputFile.h"
 #include "../GlobalFns.h"
 
-/** class tDeposit *********************************************************/
-/* Deposit records */
-class tDeposit
+/** class tLayer *********************************************************/
+/* Layer records */
+class tLayer
 {
-   friend class tListNode< tDeposit >;
+   friend class tListNode< tLayer >;
 
   public:
-   tDeposit();
-   tDeposit( int );
-   tDeposit( const tDeposit & );
-   ~tDeposit();
-   const tDeposit &operator=( const tDeposit & );
-
-  private:
-   tArray< double > dgrade; /* depth of each sediment class in deposit [m]
-			       dgrade[0]=total depth of deposit */
+   tLayer();
+   tLayer( int );
+   tLayer( const tLayer & );
+   ~tLayer();
+   const tLayer &operator=( const tLayer & );
+   void setCtime( double );
+   double getCtime() const;
+   void setRtime( double );
+   double getRtime() const;
+   void setDepth( double );
+   double getDepth() const;
+   void setErody( double );
+   double getErody() const;
+   void setSed( int );
+   int getSed() const;
+   void setDgradesize( int );
+   void setDgrade( int, double );
+   double getDgrade( int );
+   tArray< double > getDgrade() const;
+   
+  protected:
+   double ctime; // time of creation of layer
+   double rtime; // most recent time (time steps) that there was erosion/depo.
+   double depth; // total depth of the layer
+   double erody; // erodibility of layer (varies with material)
+   int sed;  // 0 = bedrock; 1 = some mixture of sediments so there
+   // may be multi-sizes.  although multiple sizes are stored for
+   // bedrock, this is the texture of what the bedrock will break up
+   // into, not what is there on the bed.
+   // Later this may be used as a flag for alluvium vs. regolith, etc.
+   tArray< double > dgrade; // depth of each size if multi size
+   
 };
 
 /** class tErode ***********************************************************/
@@ -124,14 +147,8 @@ class tRegolith
    ~tRegolith();
    const tRegolith &operator=( const tRegolith & );
   private:
-   double thickness;
-   int numal;          /* total number of alluvium deposits below active layer
-                          does NOT count the active layer*/
-   int numg;           /* number of grain sizes */
+   double thickness;  /* dynamic thickness of regolith */
    tArray< double > dgrade;/* depth of each sediment class in active layer [m] */
-   double dpth;   /* dynamic depth of active layer */
-   double actdpth;      /* standard active layer depth */
-   tList< tDeposit > depositList;
 };
 
 /** class tChannel *************************************************************/
@@ -250,6 +267,9 @@ public:
     double getQsin() const;
    double getQsin( int );
    tArray< double > getQsinm( ) const;
+   void setGrade( int, double );
+   double getGrade( int );
+   tArray< double > getGrade( ) const;
     void setXYZD( tArray< double > );
     tArray< double > getXYZD() const;
     double DistFromOldXY() const;
@@ -260,6 +280,23 @@ public:
     void setDrDt( double );
     void setUplift( double );
     double getUplift() const;
+   int getNumg() const;
+   void setNumg( int );
+   double getMaxregdepth() const;
+   void setMaxregdepth( double );
+   double getLayerCtime(int) const;
+   double getLayerRtime(int) const;
+   double getLayerDepth(int) const;
+   double getLayerErody(int) const;
+   int getLayerSed(int) const;
+   double getLayerDgrade(int, int) const;
+   int getNumLayer() const;
+//    void setLayerCtime(int, double);
+//    void setLayerRtime(int, double);
+//    void setLayerDepth(int, double);
+//    void setLayerErody(int, double);
+//    void setLayerSed(int, int);
+//    void setLayerDgrade(int, int, double);
     
 #ifndef NDEBUG
     void TellAll();
@@ -279,7 +316,19 @@ protected:
     tArray< double > qsm; /* multi size; transport rate of each size fraction*/
     double qsin;         /* Sediment influx rate*/
     tArray< double > qsinm; /* multi size; influx rate of each size fraction*/
-    double uplift;  /*uplift rate*/
+   double uplift;  /*uplift rate*/
+   tList< tLayer > layerlist; /* list of the different layers */
+   //int numlay; /* number of layers in the list */
+   // nic - not storing this for now - just use getSize() func from tList
+   int numg; // number of grain sizes recognized NIC should be the same for all
+   // nodes, maybe put this somewhere else when you figure out what is going on
+   tArray< double > grade;  // size of each grain size class, again, you may
+   // want to put this somewhere else
+   double maxregdepth;  // maximum depth of a regolith layer
+   // nic - for now the surface layer and max depth of layers below
+   // will be the same
+   
+   
 };
 
 #endif
