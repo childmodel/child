@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.52 2003-05-28 14:43:45 childcvs Exp $
+**  $Id: meshElements.h,v 1.53 2003-05-30 12:54:02 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -160,6 +160,7 @@ protected:
   double varea;     // Voronoi cell area
   double varea_rcp; // Reciprocal of Voronoi area = 1/varea (for speed)
   int boundary;     // Boundary status code
+private:
   tEdge * edg;      // Ptr to one edge
 };
 
@@ -1446,8 +1447,7 @@ inline tEdge* tSpkIter::removePrev()
    if( isEmpty() ) return 0;
    if( curedg->getCWEdg() == curedg )
    {
-      tEdge* nulledg = 0;
-      curnode->setEdg( nulledg );
+      curnode->setEdg( 0 );
       return curedg;
    }
    tEdge* re = curedg->getCWEdg();
@@ -1461,8 +1461,7 @@ inline tEdge* tSpkIter::removeNext()
    if( isEmpty() ) return 0;
    if( curedg->getCCWEdg() == curedg )
    {
-      tEdge* nulledg = 0;
-      curnode->setEdg( nulledg );
+      curnode->setEdg( 0 );
       return curedg;
    }
    tEdge* re = curedg->getCCWEdg();
@@ -1477,8 +1476,7 @@ inline tEdge* tSpkIter::removeFromFront()
    tEdge* re = curnode->getEdg();
    if( re->getCCWEdg() == re )
    {
-      tEdge* nulledg = 0;
-      curnode->setEdg( nulledg );
+      curnode->setEdg( 0 );
       return re;
    }
    curnode->setEdg( re->getCCWEdg() );
@@ -1494,8 +1492,7 @@ inline tEdge* tSpkIter::removeFromBack()
    tEdge* re = curnode->getEdg()->getCWEdg();
    if( re->getCCWEdg() == re )
    {
-      tEdge* nulledg = 0;
-      curnode->setEdg( nulledg );
+      curnode->setEdg( 0 );
       return re;
    }
    re->getCWEdg()->setCCWEdg( re->getCCWEdg() );
