@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.118 2003-01-17 17:30:37 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.119 2003-02-11 12:01:55 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2366,7 +2366,10 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
          if( i>kMaxSpokes ) // Uh-oh, an infinite loop
          {
             cerr << "NODE #" << cn->getID()
-                 << ": infinite loop in spoke connectivity\n";
+                 << " has more than " << kMaxSpokes << " spokes.\n";
+	    cerr << "This error can result from a very high differential "
+		 << "mesh resolution.\n"
+		 << "Check input parameters controlling mesh densification.\n";
             goto error;
          }
 
