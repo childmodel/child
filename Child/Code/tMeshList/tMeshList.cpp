@@ -8,7 +8,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.cpp,v 1.5 1998-04-29 21:35:00 gtucker Exp $
+**  $Id: tMeshList.cpp,v 1.6 1999-01-05 22:45:36 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -377,6 +377,36 @@ moveToActiveBack( tListNode< NodeType > * mvnode )
 
 template< class NodeType >                         //tList
 void tGridList< NodeType >::
+moveToBoundFront( tListNode< NodeType > * mvnode ) 
+{
+   tListNode< NodeType > * prev;
+   if( mvnode != lastactive->next )
+   {
+      // if node was in active part of list, decrement nActiveNodes
+      if( InActiveList( mvnode ) ) --nActiveNodes;
+      // Detach mvnode from its position on the list
+      if( mvnode == first ) first = first->next;
+      else
+      {
+         prev = first;
+         while( prev->next != mvnode ) prev = prev->next;
+         prev->next = mvnode->next;
+      }
+
+      // Insert it after the end of the active part of the list
+      mvnode->next = lastactive->next;
+      lastactive->next = mvnode;
+      if( lastactive == last )
+      {
+         last = mvnode;
+         // If it's a circular list, make sure to preserve circularity
+         if( last->next != 0 ) last->next = first;
+      }
+   }
+}
+
+template< class NodeType >                         //tList
+void tGridList< NodeType >::
 insertAtFront( const NodeType &value )
 {
    tList< NodeType >::insertAtFront( value );
@@ -495,8 +525,24 @@ FirstBoundary()
    tGridList< NodeType > *gridlistPtr;
    gridlistPtr = ( tGridList< NodeType > * ) listPtr;
    assert( gridlistPtr != 0 );
-   curnode = gridlistPtr->lastactive->next;
+   if( gridlistPtr->isActiveEmpty() ) curnode = listPtr->first;
+   else if( gridlistPtr->isBoundEmpty() ) curnode = 0;
+   else curnode = gridlistPtr->lastactive->next;
    if( curnode != 0 ) return 1;
+   else return 0;
+}
+
+template< class NodeType >   //tGridListIter
+NodeType* tGridListIter< NodeType >::
+FirstBoundaryP()
+{
+   tGridList< NodeType > *gridlistPtr;
+   gridlistPtr = ( tGridList< NodeType > * ) listPtr;
+   assert( gridlistPtr != 0 );
+   if( gridlistPtr->isActiveEmpty() ) curnode = listPtr->first;
+   else if( gridlistPtr->isBoundEmpty() ) curnode = 0;
+   else curnode = gridlistPtr->lastactive->next;
+   if( curnode != 0 ) return curnode->getDataPtrNC();
    else return 0;
 }
 
