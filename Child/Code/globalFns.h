@@ -12,7 +12,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.10 2003-02-11 17:43:57 childcvs Exp $
+**  $Id: globalFns.h,v 1.11 2003-02-12 18:45:20 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -55,10 +55,6 @@ int InNewTri( tArray< double > const &, tTriangle * );
 
 template< class tSubNode >
 int Next3Delaunay( tPtrList< tSubNode > &, tPtrListIter< tSubNode > & );
-
-template< class tSubNode >
-int PointAndNext2Delaunay( tSubNode &, tPtrList< tSubNode > &,
-                           tPtrListIter< tSubNode > & );
 
 int Intersect( tEdge *, tEdge * );
 

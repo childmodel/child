@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.121 2003-02-12 14:22:54 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.122 2003-02-12 18:45:20 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -102,59 +102,6 @@ int Next3Delaunay( tPtrList< tSubNode > &nbrList,
       cn = nbrIterCopy.NextP();  // Next point in ring
    }
    //cout << "Next3Delaunay? Yes" << endl;
-   return 1;
-}
-
-
-/***************************************************************************\
-**
-**  PointAndNext2Delaunay
-**
-**  Global function that determines whether nbr node currently pointed to
-**  by iterator and the next two in the nbr list form a Delaunay triangle.
-**  Similar to Next3Delaunay but p2 is an arbitrary node (testNode) rather
-**  than one of the neighbor list nodes.
-**
-**  Inputs:  testNode -- a node to check (this is "p2")
-**           nbrList -- list of pointers to nodes
-**           nbrIter -- iterator for this list
-**  Returns: 1 if they are Delaunay, 0 otherwise
-**
-**  IS THIS EVER CALLED? OBSOLETE? TODO -- delete if not
-**
-\***************************************************************************/
-template< class tSubNode >
-int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
-                           tPtrListIter< tSubNode > &nbrIter )
-{
-   assert( (&nbrList != 0) && (&nbrIter != 0) && (&testNode != 0) );
-   //cout << "PointAndNext2Delaunay?" << endl;
-   tPtrListIter< tSubNode > nbrIterCopy( nbrIter );
-     //assert( nbrIterCopy.Get( i ) );
-   assert( nbrIterCopy.DatPtr() == nbrIter.DatPtr() );
-   // tPtrListNode< tSubNode > *tempptrnode = nbrIter.NodePtr();
-   tArray< double > p0( nbrIterCopy.DatPtr()->get2DCoords() );
-   assert( nbrIterCopy.Next() );
-   tArray< double > p1( nbrIterCopy.DatPtr()->get2DCoords() );
-   tArray< double > p2( testNode.get2DCoords() );
-
-   // If the points aren't CCW then we know it's not Delaunay
-   if( !PointsCCW( p0, p1, p2 ) ) return 0;
-
-   // Otherwise, call TriPasses to compare
-   tArray< double > ptest;
-   assert( nbrIterCopy.Next() );
-   while( nbrIterCopy.DatPtr() != nbrIter.DatPtr() )
-   {
-      ptest = nbrIterCopy.DatPtr()->get2DCoords();
-      if( !TriPasses( ptest, p0, p1, p2 ) )
-      {
-         //cout << "No" << endl;
-         return 0;
-      }
-      assert( nbrIterCopy.Next() );
-   }
-   //cout << "Yes" << endl;
    return 1;
 }
 
@@ -2551,9 +2498,8 @@ MakeCCWEdges()
 template <class tSubNode>
 void tMesh<tSubNode>::setVoronoiVertices()
 {
-   //double x, y, x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
-   //tArray< double > xyo, xyd1, xyd2, xy(2);
-   //cout << "setVoronoiVertices()..." << endl;
+   if (0) //DEBUG
+     cout << "setVoronoiVertices()..." << endl;
    tArray< double > xy;
    tListIter< tTriangle > triIter( triList );
    tTriangle * ct;
@@ -2569,18 +2515,19 @@ void tMesh<tSubNode>::setVoronoiVertices()
       ct->ePtr(1)->setRVtx( xy );
       ct->ePtr(2)->setRVtx( xy );
 
-      // debug output
-      /*cout << "FOR edges: ";
-      int i;
-      for( i=0; i<=2; i++ )
+      if (0) {//DEBUG
+	cout << "FOR edges: ";
+	for( int i=0; i<=2; i++ )
           cout << ct->ePtr(i)->getID() << " ("
                << ct->ePtr(i)->getOriginPtr()->getID() << ","
                << ct->ePtr(i)->getDestinationPtr()->getID() << ") ";
-      cout << ", v verts are:\n";
-      xy = ct->ePtr(0)->getRVtx();
-      cout << "  setVoronoiVertices(): " << xy[0] << " " << xy[1] << endl;*/
+	cout << ", v verts are:\n";
+	xy = ct->ePtr(0)->getRVtx();
+	cout << "  setVoronoiVertices(): " << xy[0] << " " << xy[1] << endl;
+      }
    }
-   //cout << "setVoronoiVertices() finished" << endl;
+   if (0) //DEBUG
+     cout << "setVoronoiVertices() finished" << endl;
 }
 
 
@@ -2632,16 +2579,12 @@ template <class tSubNode>
  void tMesh<tSubNode>::CalcVAreas()
 {
    //cout << "CalcVAreas()..." << endl << flush;
-   //Xdouble area;
    tSubNode* curnode;
-   //XtEdge *ce;
-   //XtArray< double > xy;
    tMeshListIter< tSubNode > nodIter( nodeList );
    
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
    {
-         //area = VoronoiArea( curnode );
       curnode->ComputeVoronoiArea();
       
    }
@@ -2735,15 +2678,18 @@ DeleteNode( tSubNode *node, int repairFlag )
    ntri = triList.getSize();
    //cout << "nn " << nnodes << "  ne " << nedges << "  nt " << ntri << endl;
    
-   /*tPtrListIter< tSubNode > nbrIter( nbrList );
-   cout << "leaving hole defined by " << endl << "   Node  x  y " << endl;
-   for( i=0, nbrIter.First(); nbrIter.NextIsNotFirst(); i++ )
-   {
-      if( i>0 ) nbrIter.Next();
-      cout << "   " << nbrIter.DatPtr()->getID() << "     "
-           << nbrIter.DatPtr()->getX() << "  "
-           << nbrIter.DatPtr()->getY() << endl;
-   }*/
+   if (0) { //DEBUG
+     int i;
+     tPtrListIter< tSubNode > nbrIter( nbrList );
+     cout << "leaving hole defined by " << endl << "   Node  x  y " << endl;
+     for( i=0, nbrIter.First(); nbrIter.NextIsNotFirst(); i++ )
+       {
+	 if( i>0 ) nbrIter.Next();
+	 cout << "   " << nbrIter.DatPtr()->getID() << "     "
+	      << nbrIter.DatPtr()->getX() << "  "
+	      << nbrIter.DatPtr()->getY() << endl;
+       }
+   }
 
    if( repairFlag )
    {
@@ -2760,12 +2706,15 @@ DeleteNode( tSubNode *node, int repairFlag )
       miNextNodeID++;
    }
    while( nodIter.Next() );
-     //cout << "Mesh repaired" << endl;
-   /*tSubNode *cn;
-   for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
-   {
-      cout << "node " << cn->getID() << endl;
-   }*/
+
+   if (0) { //DEBUG
+     cout << "Mesh repaired" << endl;
+     tSubNode *cn;
+     for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
+       {
+	 cout << "node " << cn->getID() << endl;
+       }
+   }
 
    if( repairFlag ) UpdateMesh();
    return 1;
@@ -3367,7 +3316,6 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    tMeshListIter< tSubNode > nodIter( nodeList );
    tPtrListIter< tEdge > spokIter;
    //XtPtrListNode< tEdge >* spokeNodePtr;
-   tArray<double> p1, p2, p3;           // Used to store output of UnitVector
 
    // Set origin and destination nodes and find boundary status
    tempEdge1.setOriginPtr( node1 );   //set edge1 ORG
@@ -3445,14 +3393,12 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
          //cout << "AddEdge: using new algorithm\n";
          for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
          {
-            /*Xf( PointsCCW( UnitVector( ce ),
-                           UnitVector( le ),
-                           UnitVector( spokIter.ReportNextP() ) ) )*/
-            p1 = UnitVector( ce );
-            p2 = UnitVector( le );
-            p3 = UnitVector( spokIter.ReportNextP() );
-            if( PointsCCW( p1, p2, p3 ) )
-                break;
+	   tArray<double> p1, p2, p3;           // Used to store output of UnitVector
+	   p1 = UnitVector( ce );
+	   p2 = UnitVector( le );
+	   p3 = UnitVector( spokIter.ReportNextP() );
+	   if( PointsCCW( p1, p2, p3 ) )
+	     break;
          }
       }
       node2->getSpokeListNC().insertAtNext( le,
@@ -3492,17 +3438,15 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
          //cout << "AddEdge: using new algorithm\n";
          for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
          {
-            /*Xf( PointsCCW( UnitVector( ce ),
-                           UnitVector( le ),
-                           UnitVector( spokIter.ReportNextP() ) ) )*/
-            p1 = UnitVector( ce );
-            p2 = UnitVector( le );
-            p3 = UnitVector( spokIter.ReportNextP() );
-            if( PointsCCW( p1, p2, p3 ) )
-            {
+	   tArray<double> p1, p2, p3;           // Used to store output of UnitVector
+	   p1 = UnitVector( ce );
+	   p2 = UnitVector( le );
+	   p3 = UnitVector( spokIter.ReportNextP() );
+	   if( PointsCCW( p1, p2, p3 ) )
+	     {
                spokIter.Next();
                break;
-            }
+	     }
          }
       }
       node1->getSpokeListNC().insertAtPrev( le,
@@ -3550,7 +3494,6 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
 {
    assert( (&nbrList != 0) && (&nbrIter != 0) );
    //cout << "AddEdgeAndMakeTriangle" << endl << flush;
-   //Xint i, j, newid;
    tSubNode *cn, *cnn, *cnnn;
    tPtrList< tSubNode > tmpList;
    tPtrListIter< tSubNode > tI( tmpList );
@@ -3638,50 +3581,6 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
 
    /*cout << "In MT, the 3 nodes are: " << cn->getID() << " " << cnn->getID()
         << " " << cnnn->getID() << endl;*/
-   
-   //X OBSOLETE: Now uses miNextTriID, GT 1/2000
-   // set the ID for the new triangle based on the ID of the last triangle
-   // on the list plus one, or if there are no triangles on the list yet
-   // (which happens when we're creating an initial "supertriangle" as in
-   // MakeMeshFromPoints), set the ID to zero.
-   /*ct = triIter.LastP();
-   if( ct ) newid = ct->getID() + 1;
-   else newid = 0;
-   tempTri.setID( newid );*/
-
-   /* The following block is made obsolete through the use of a new
-      triangle constructor that automatically initializes vertex and
-      edge pointers, 1/2000 GT */
-
-/*X   // set edge and vertex ptrs & add to triList: We go through each point,
-   // p0, p1, and p2. At each step, we assign p(i) to the triangle's
-   // corresponding pPtr(i), and get the spoke list for node p(i). We then
-   // advance such that cn points to p(i+1) and cnn points to p(i+2), and
-   // find the edge that connects p(i) and p(i+2). This edge is the clw
-   // edge #i for the triangle, so we assign it as such. After this loop is
-   // done, tempTri points to the three vertices and to the three clockwise-
-   // oriented edges p0->p2 (e0), p1->p0 (e1), and p2->p1 (e2). The nbr
-   // triangle pointers are initialized to zero.
-   for( i=0; i<3; i++ )
-   {
-      tempTri.setPPtr( i, cn );       //set tri VERTEX ptr i
-      //cout << "cn: " << cn->getID() << endl;
-      spokIter.Reset( cn->getSpokeListNC() );
-      cn = nbrIter.NextP();           //step forward once in nbrList to p(i+1)
-      cnn = nbrIter.ReportNextP();    //get p(i+2) (but don't step forward)
-
-      // Find edge p(i)->p((i+2)%3)
-      for( ce = spokIter.FirstP();
-           ce->getDestinationPtr() != cnn && !( spokIter.AtEnd() );
-           ce = spokIter.NextP() );
-
-      assert( !( spokIter.AtEnd() ) );
-
-      // Assign edge p(i)->p(i+2) as the triangle's clockwise edge #i
-      // (eg, ePtr(0) is the edge that connects p0->p2, etc)
-      tempTri.setEPtr( i, ce );      //set tri EDGE ptr i
-      tempTri.setTPtr( i, 0 );       //initialize tri TRI ptrs to nul
-      }*/
 
    // Create the new triangle and insert a pointer to it on the list.
    // Here, the triangle constructor takes care of setting pointers to
@@ -4391,14 +4290,6 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
           return 0;
       //cout << "calling Flip edge from cff" << endl;
       FlipEdge( tri, triop, nv, nvop );
-        /*
-      assert( DeleteEdge( tri->ePtr( (nv+1)%3 ) ) );
-      tPtrList< tSubNode > nbrList;
-      nbrList.insertAtBack( node0 );
-      nbrList.insertAtBack( node1 );
-      nbrList.insertAtBack( node3 );
-      nbrList.insertAtBack( node2 );
-      assert( RepairMesh( nbrList ) );*/
    }
      //cout << "finished" << endl;
    return 1;
