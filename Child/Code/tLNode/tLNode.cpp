@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.23 1998-03-23 20:04:04 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.24 1998-03-31 22:34:51 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -476,7 +476,6 @@ void tLNode::SetFlowEdg( tEdge * edg )
 {
    assert( edg > 0 );  // Fails when passed an invalid edge
    //cout << "Setting flow edge to edge # " << edg->getID() << endl;
-   
    flowedge = edg;
 }
 
