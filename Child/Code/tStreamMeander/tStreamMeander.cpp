@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.107 2004-06-16 13:37:45 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.108 2005-03-15 17:17:30 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -62,7 +62,13 @@ double LineRemainder( double x, double y, tNode * p0,tNode * p1 )
 tStreamMeander::tStreamMeander():
   meshPtr(0), netPtr(0), infilePtr(0),
   reachList(), rlIter(reachList),
-  critflow(0), optdiamvar(false), optrainvar(false),
+#define FIXCRITFLOWBUG 1
+#if FIXCRITFLOWBUG
+  critarea(0),
+#else
+  critflow(0), 
+#endif
+  optdiamvar(false), optrainvar(false),
   meddiam(0), kwds(0), ewds(0), ewstn(0),
   knds(0), ends(0), enstn(0),
   kdds(0), edds(0), edstn(0),
@@ -78,14 +84,20 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tMesh< tLNode > &mRef,
   reachList(), rlIter(reachList),
   rand(rand_) // seed already set in tMesh
 {
-  //if( netPtr != 0 ) netPtr = new tStreamNet( gRef );
+  // Set pointers to various objects
   netPtr = &netRef;
   assert( netPtr != 0 );
   meshPtr = &mRef;
   assert( meshPtr != 0 );
   infilePtr = &infile;
   assert( infilePtr != 0 );
+  
+  // Read parameters from input file
+#if FIXCRITFLOWBUG
+  critarea = infilePtr->ReadItem( critarea, "CRITICAL_AREA" );
+#else
   critflow = infilePtr->ReadItem( critflow, "CRITICAL_FLOW" );
+#endif
   {
     int tmp_;
     tmp_ = infilePtr->ReadItem( tmp_, "OPT_VAR_SIZE" );
@@ -174,24 +186,27 @@ void tStreamMeander::FindMeander()
     {
       //nmg
       if (0) //DEBUG
-	std::cout<<"FM cn "<<cn->getID()<<" z = "<<cn->getZ()<<std::endl;
+	     std::cout<<"FM cn "<<cn->getID()<<" z = "<<cn->getZ()<<std::endl;
       cn->setReachMember( false );
+#if FIXCRITFLOWBUG
+      if( cn->getDrArea() >= critarea )
+#else
       if( cn->getQ() >= critflow )
-	{
-	  cn->setMeanderStatus( kMeanderNode );
-	  cn->setNew2DCoords( cn->getX(), cn->getY() );
-	  if (0) //DEBUG
-	    std::cout << "FM node " << cn->getID() << " meanders discharge " << cn->getQ()<<" crit Q "<<critflow<<std::endl;
-	}
-      else
-	{
-	  cn->setMeanderStatus( kNonMeanderNode );
-	  if (0) {//DEBUG
-	    if( cn->getQ() >= critflow )
-	      std::cout << "node " << cn->getID() << " has Q " << cn->getQ()
-		   << " but is flooded" << std::endl;
+#endif
+#undef FIXCRITFLOWBUG
+	  {
+	     cn->setMeanderStatus( kMeanderNode );
+	     cn->setNew2DCoords( cn->getX(), cn->getY() );
 	  }
-	}
+      else
+	  {
+	     if (0) {//DEBUG
+	        if( cn->Meanders() )
+	           std::cout << "FindMeander: node " << cn->getID() << " has Q " << cn->getQ() << " and A " << cn->getDrArea()
+		            << " and mndr is being switched off." << std::endl;
+	     }
+	     cn->setMeanderStatus( kNonMeanderNode );
+	   }
     }
   if (0) //DEBUG
     std::cout << "done\n";
@@ -248,7 +263,16 @@ tLNode* tStreamMeander::BlockShortcut( tLNode* crn, tLNode* bpn, tLNode& nn,
       bpn->setNew2DCoords( 0.0, 0.0 );
       bpn->AddDrArea( -crn->getDrArea() );
       crn->setDownstrmNbr( dn );
+	  if(0) //DEBUG
+	     std::cout<<"BlockShortcut: addition failed, un-meanderizing node "<<bpn->getID()<<std::endl;
    }
+   
+   if(1 && newnodeP!=NULL) //DEBUG
+   {
+      std::cout<<"BlockShortcut: added node "<<newnodeP->getID()<<" at "<<newnodeP->getX()<<","<<newnodeP->getY()
+	     <<","<<newnodeP->getZ()<<" crn="<<crn->getID()<<" bpn="<<bpn->getID()<<std::endl;
+   }
+   
    return newnodeP;
 }
 
@@ -426,7 +450,7 @@ int tStreamMeander::InterpChannel( double time )
                tLNode* newnodeP = BlockShortcut( crn, bpn, nn, ic, time );
                if( newnodeP != NULL ){
                   change = true;
-                  if (0) //DEBUG
+                  if (1) //DEBUG
                       std::cout<<"IC BS pt "<<newnodeP->getID()<<" added at "
                           << newnodeP->getX() << "," << newnodeP->getY() << std::endl;
                } else {
@@ -453,7 +477,7 @@ int tStreamMeander::InterpChannel( double time )
                   if( newnodeP != NULL )
                   {
                      change = true;
-                      if (0) //DEBUG
+                      if (1) //DEBUG
 			std::cout<<"IC pt "<<newnodeP->getID()<<" added at "
 			    << ic[k*3+0] << "," << ic[k*3+1] << std::endl;
                     // previous node (prevNode) flows to new node (newnodeP)
@@ -940,13 +964,24 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
          for( curnode = rnIter.FirstP(), j=0; j<num;
               curnode = rnIter.NextP(), j++ )
          {
+#define POINTBARFIX 1
+#if POINTBARFIX
+            const double
+			    bankfullDepth = curnode->getChanDepth(),
+                rz = curnode->getZ() + bankfullDepth * (1.0 - rdeptha[j]/deptha[j]),
+                lz = curnode->getZ() + bankfullDepth * (1.0 - ldeptha[j]/deptha[j]);
+#else
             const double
                 rz = curnode->getZ() + deptha[j] - rdeptha[j],
                 lz = curnode->getZ() + deptha[j] - ldeptha[j];
+#endif
+#undef POINTBARFIX
             //rz = curnode->getZ() + deptha[j];
             //lz = rz + deptha[j];
             dbg2 = dbg2 + (rdeptha[j]-ldeptha[j]);
             curnode->setZOld( rz, lz );
+			if(0) //DEBUG
+			   std::cout<<"CalcMigration: Flood depth "<<deptha[j]<<" Bank height above chan "<<rz-curnode->getZ()<<" "<<lz-curnode->getZ()<<std::endl;
          }
          if (0) //DEBUG
              std::cout << "MEAN rldepth " << dbg2 << std::endl;
@@ -1092,6 +1127,7 @@ void tStreamMeander::FindBankCoords( tLNode* cn, tArray< double >& posRef )
 {
    assert( posRef.getSize() >= 4 );
    const tArray< double > cnpos = cn->get2DCoords();
+   
    //find coordinates of banks, i.e., coords at n = + and -width/2
    tLNode* cnbr = cn->getDownstrmNbr();
    const tArray< double > dsnpos = cnbr->get2DCoords();
@@ -1109,7 +1145,7 @@ void tStreamMeander::FindBankCoords( tLNode* cn, tArray< double >& posRef )
    tArray< double > rl = cn->getZOld();
    double z = cn->getZ();
    //find which side of the channel the old coords are at:
-   if( posRef[3] == 1.0 || PointsCCW( cnpos, dsnpos, posRef ) )
+   if( posRef[3] == 1.0 || PointsCCW( cnpos, dsnpos, posRef ) )  // Left side
    {
       posRef[0] = x0 - xdisp;
       posRef[1] = y0 + ydisp;
@@ -1119,7 +1155,7 @@ void tStreamMeander::FindBankCoords( tLNode* cn, tArray< double >& posRef )
           std::cout << "node " << cn->getID()
                << " old pos set, on left side of channel" << std::endl;
    }
-   else
+   else  // Right side
    {
       posRef[0] = x0 + xdisp;
       posRef[1] = y0 - ydisp;
@@ -1256,9 +1292,9 @@ void tStreamMeander::AddChanBorder(double time)
                //the surface texture of cn.  Use erodep.
                tLNode* nnPtr = meshPtr->AddNode( channode, kNoUpdateMesh, time );
                if( nnPtr != NULL ){
-		 if(1)//DEBUG
-		   std::cout<<"ACB pt "<<nnPtr->getID()<<" added at "<<xyz[0]<<", "<<xyz[1]<<std::endl;
-		 change = true; //flag to update mesh
+		          if(0)//DEBUG
+		             std::cout<<"ACB pt "<<nnPtr->getID()<<" added at "<<xyz[0]<<", "<<xyz[1]<<", "<<xyz[2]<<std::endl;
+		          change = true; //flag to update mesh
                }
                cn->setXYZD( zeroArr );
             }
@@ -1273,7 +1309,8 @@ void tStreamMeander::AddChanBorder(double time)
                                      << std::endl;
       }
    }
-}
+   
+} //End AddChanBorder
 
 
 /****************************************************************************\
@@ -1938,7 +1975,7 @@ void tStreamMeander::CheckFlowedgCross()
                   }
                }
             }
-            if (1) //DEBUG
+            if (0) //DEBUG
                 std::cout << "CFC: delete node " << dn->getID() << " at "
                      << dn->getX() << ", " << dn->getY() << std::endl;
             meshPtr->DeleteNode( dn, kRepairMesh, kNoUpdateMesh, true );

@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.29 2004-06-16 13:37:30 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.30 2005-03-15 17:17:29 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -196,18 +196,18 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
       {
 
       	 // Debug:
-	 if (0) //DEBUG
-	   std::cout<< "Flood Nodes " <<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
-	       <<" Slp= "<<cn->calcSlope()<<" Q= "<<cn->getQ()
-	       <<" W= "<<cn->getChanWidth()<< " MStatus="<<cn->Meanders()<<std::endl;
+	     if (0) //DEBUG
+	        std::cout<< "Flood Nodes " <<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
+	           <<" Slp= "<<cn->calcSlope()<<" Q= "<<cn->getQ()
+	           <<" W= "<<cn->getChanWidth()<< " MStatus="<<cn->Meanders()<<std::endl;
 
-	 tFloodNode floodNode(cn,
+	     tFloodNode floodNode(cn,
 			      kdb*pow( drarea, mqbmqs )
 			      *pow( cn->getQ()/SECPERYEAR, mqs )
 			      + cn->getZ() );
-	 if (0) //DEBUG
-	   std::cout << "flood depth at " << cn->getX() << ' ' << cn->getY()
-		<<' '<< cn->getZ() << " = " << floodNode.wsh-cn->getZ() << std::endl;
+	     if (0) //DEBUG
+	        std::cout << "flood depth at " << cn->getX() << ' ' << cn->getY()
+		       <<' '<< cn->getZ() << " = " << floodNode.wsh-cn->getZ() << std::endl;
          if( floodNode.wsh > maxWSH )
              maxWSH = floodNode.wsh;
          floodList.insertAtBack( floodNode );
@@ -224,6 +224,10 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
    
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
    {
+#define NOMAINCHANDEP 1 //Jan 05: try dis-allowing deposition within the main channel
+#if NOMAINCHANDEP
+      if( cn->getDrArea() < drarea_min ) {
+#endif
       closestNode = 0;
       minDist = kVeryFar;
       if( cn->getZ() < maxWSH ) // don't bother if node is above max flood ht
@@ -245,7 +249,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 
          }
          assert( closestNode!=0 ); // (should always find one)
-	 assert( wsh>0 );   // should always find a closest node & set wsh
+	     assert( wsh>0 );   // should always find a closest node & set wsh
          /*std::cout << " got it: " << closestNode->getID() << " dist=" << minDist
            << std::endl << flush;*/
 
@@ -265,6 +269,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
             // is not deposited in main channel (obviously an approximation!);
             // otherwise, use Howard formula
 
+#if !NOMAINCHANDEP
             // In the channel..
             if( minDist==0.0  ){
 
@@ -272,44 +277,53 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
             	deparrRect[0] = 0.0;
             	deparrRect[1] = 0.0;
             	deparr[0]     = 0.0;
-              } else {                         // Howard, allows some sedimentation into the channel
+              } 
+			  else {                         // Howard, allows some sedimentation into the channel
                 deparrRect[0] = 0.001*floodDepth*fpmu*delt;      // coarse
                 deparrRect[1] = 0.0;                             // fine
                 deparr[0]=0.001*floodDepth*fpmu*delt;           // coarse
               }
-	      if (0) //DEBUG
-		std::cout<<"FP-Channel: wsh= "<< wsh <<" flooddepth= "<<floodDepth
-		    <<" dh_channel= "<<deparrRect[0] << '\n';
+	          if (0) //DEBUG
+		         std::cout<<"FP-Channel: wsh= "<< wsh <<" flooddepth= "<<floodDepth
+		            <<" dh_channel= "<<deparrRect[0] << '\n';
             }
             // On the floodplain...
-            else{
+            else {
+#endif
                if (fpmode ==2) {                // Suspension concentration based, Gross and Small, 1998
-		 //std::cout<<"Calling FloodplainDh"<<std::endl;
-		 deparrRect[0] = 0.0;
-		 deparrRect[1] = FloodplainDh2(minDist,floodDepth,delt,fplamda);
-               } else {                         // Geometrical, Howard, 1996
-		 deparrRect[0] = 0.0;                         // coarse
-		 deparrRect[1] = floodDepth*fpmu*exp( -minDist/fplamda )*delt;
-		 deparr[0]= floodDepth*fpmu*exp( -minDist/fplamda )*delt;
-		 //double suspensiontest = FloodplainDh2(minDist,floodDepth,delt,fplamda);
-		 //std::cout<<"At dist "<<minDist<<" FP_1= "<<deparrRect[1]<<", FP_2= "<<suspensiontest<<std::endl;
+		          //std::cout<<"Calling FloodplainDh"<<std::endl;
+		          deparrRect[0] = 0.0;
+		          deparrRect[1] = FloodplainDh2(minDist,floodDepth,delt,fplamda);
+               } 
+			   else {                         // Geometrical, Howard, 1996
+		          deparrRect[0] = 0.0;                         // coarse
+		          deparrRect[1] = floodDepth*fpmu*exp( -minDist/fplamda )*delt;
+		          deparr[0]= floodDepth*fpmu*exp( -minDist/fplamda )*delt;
+		          //double suspensiontest = FloodplainDh2(minDist,floodDepth,delt,fplamda);
+		          //std::cout<<"At dist "<<minDist<<" FP_1= "<<deparrRect[1]<<", FP_2= "<<suspensiontest<<std::endl;
                }
 
-	       //if(minDist <=100.){
-	       //  std::cout<<"FP-Overbank at: " <<minDist<<" wsh=" << wsh
-	       //      <<" flooddepth= "<<floodDepth <<" dh_overbank= "<<deparrRect[1] << '\n';
-	       //}
+	           //if(minDist <=100.){
+	           //  std::cout<<"FP-Overbank at: " <<minDist<<" wsh=" << wsh
+	           //      <<" flooddepth= "<<floodDepth <<" dh_overbank= "<<deparrRect[1] << '\n';
+	           //}
 
-	    }
+#if !NOMAINCHANDEP
+	        }
+#endif
 
             if( deparr[0]>floodDepth)
-	      std::cout << " *WARNING, deposit thicker than flood depth\n";
+	           std::cout << " *WARNING, deposit thicker than flood depth\n";
 
-	    // Modify heights and communicate to stratigraphy tStratGrid
-	    cn->IncrementAccummulatedDh(deparrRect);           // new version, recieves 2d arry
-	    cn->EroDep( 0, deparr, ctime );                    // this one recieves 1 value
+	        // Modify heights and communicate to stratigraphy tStratGrid
+	        cn->IncrementAccummulatedDh(deparrRect);           // new version, recieves 2d arry
+	        cn->EroDep( 0, deparr, ctime );                    // this one recieves 1 value
          }
       }
+#if NOMAINCHANDEP
+      }
+#endif
+#undef NOMAINCHANDEP
    }
 
    if (0) //DEBUG
@@ -658,7 +672,7 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
       	std::cout<<"  "<<std::endl;
       	std::cout<<"Bump In Floodplain loop "<<std::endl;
       	std::cout<<"for ID "<<cn->getID()<<" z= "<<cn->getZ()<<std::endl;
-      	std::cout<<"Its downstream z = "<<cn->getDownstrmNbr()->getZ()<<std::endl;
+      	std::cout<<"Its downstream " << cn->getDownstrmNbr()->getID() << " z = "<<cn->getDownstrmNbr()->getZ()<<std::endl;
       	std::cout<<"  "<<std::endl;
       	//exit(1);
       }
@@ -669,7 +683,7 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
       cn = cn->getDownstrmNbr();
       assert( cn );
       if (0) //DEBUG
-	std::cout<< "Meander Nodes " <<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
+	std::cout<< "Meander Nodes " << cn->getID() << ' ' << cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
 	    <<" Q= "<<cn->getQ()<<" W= "<<cn->getChanWidth()
 	    << " MStatus="<<cn->Meanders()<<std::endl;
 
@@ -709,7 +723,11 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
   } //end debug
 
   // FIXME BIG HACK
-  if(counter==1000) totlen=7000.;
+  if(counter==1000) 
+  {
+	totlen=7000.;
+	std::cout << "INVOKING BIG HACK IN tMainChannelDriver::UpdateMainChannelElevation()" << std::endl;
+  }
   chanslp = drop / totlen;
 
 
@@ -733,11 +751,17 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
   //pn = cn;
   //std::cout<< "Inlet Node = " <<cn->getX()<< ' ' << cn->getY()<<std::endl;
 
+
   do
     {
       //RaiseBanks(elev,cn,pn,tm);
 
+#define BUGFIX 1   // undo unwanted side effects from hack below (2 places)
+#if BUGFIX
+      if(elev - cn->getZ() >= 0.0){
+#else
       if(elev - cn->getZ() > 0.0){
+#endif
       	delzRect[0] = elev - cn->getZ();   // coarse
       	delzRect[1] = 0.0;                 // fine
 
@@ -755,15 +779,34 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
 
       //std::cout <<" Channeldriver "<< cn->getX() << ' '<< cn->getY()<<"dh0= "<< delzRect[0] << " dh1= " <<delzRect[1] << '\n';
 
+      if(0) //DEBUG
+	     if( cn->getID()==8121 || cn->getID()==8122 )
+		    std::cout<<"UpdateMCE: "<<cn->getID()<<" z before "<<cn->getZ()
+			      <<" flowedg len "<<cn->getFlowEdg()->getLength()<<" elev "<<elev<<" dz "<<elev-cn->getZ()
+				  <<" delz "<<delz[0]<<std::endl;
+
       cn->IncrementAccummulatedDh(delzRect);
       cn->EroDep( 0, delz, tm );
 
-      // Calculate new elevation of downstream node. However
+      if(0) //DEBUG
+	     if( cn->getID()==8121 || cn->getID()==8122 )
+		    std::cout<<"UpdateMCE: "<<cn->getID()<<" z after "<<cn->getZ()
+			      <<" flowedg len "<<cn->getFlowEdg()->getLength()<<" elev "<<elev<<" dz "<<elev-cn->getZ()
+				  <<" delz "<<delz[0]<<std::endl;
+
+      // Calculate new elevation of downstream node. 
+	  // THE FIX DESCRIBED BELOW HAS UNWANTED SIDE EFFECTS - DISABLING! -GT 1/05
+	  // However
       // First, find the local slope along this segment. If the local slope is much large than the
       // average slope, we most likely had an avulsion, and the river is flowing down
       // laterally over one of the floodplain/levee wings. In this case DO NOT raise
       // the channel bed.
 
+#if BUGFIX
+      fe = cn->getFlowEdg();
+      assert( fe );
+      elev = elev - chanslp * fe->getLength();          // this will raise the slope of downstream nodes
+#else
       double local_slope = (cn->getZ()) - (cn->getDownstrmNbr()->getZ())/ cn->getFlowEdg()->getLength();
 
       if(local_slope < 3.0*chanslp){
@@ -774,6 +817,8 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
       else if(local_slope >= 3.0*chanslp){
         elev= cn->getDownstrmNbr()->getZ();              // this will keep them, locally,  unchanged
       }
+#endif
+#undef BUGFIX
 
       // Move to downstream node
       //pn = cn;
@@ -782,6 +827,14 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
     }
   while( cn->getBoundaryFlag()==kNonBoundary
 	 && counter < 1000 );              // until we hit the boundary
+
+  // FIXME BIG HACK
+  if(counter==1000) 
+  {
+	totlen=7000.;
+	std::cout << "INVOKING __SECOND__ BIG HACK IN tMainChannelDriver::UpdateMainChannelElevation()" << std::endl;
+  }
+  chanslp = drop / totlen;
 
 
 }

@@ -26,12 +26,13 @@
 **
 **  For information regarding this program, please contact Greg Tucker at:
 **
-**       School of Geography and the Environment
-**       University of Oxford
-**       Mansfield Road
-**       Oxford OX1 3TB United Kingdom
+**     Cooperative Institute for Research in Environmental Sciences (CIRES)
+**     and Department of Geological Sciences
+**     University of Colorado
+**     2200 Colorado Avenue, Campus Box 399
+**     Boulder, CO 80309-0399
 **
-**  $Id: childmain.cpp,v 1.27 2004-10-05 14:24:27 childcvs Exp $
+**  $Id: childmain.cpp,v 1.28 2005-03-15 17:17:29 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -42,6 +43,8 @@
 #include "tStratGrid/tStratGrid.h"
 #include "tEolian/tEolian.h"
 #include "tOption/tOption.h"
+
+#include "tMeshList/tMeshList.h"
 
 Predicates predicate;
 
@@ -188,18 +191,51 @@ OptTSOutput." );
       // Do storm...
       storm.GenerateStorm( time.getCurrentTime(),
                            strmNet.getInfilt(), strmNet.getSoilStore() );
-      /*std::cout
-	<< "Storm: "
-	<< storm.getRainrate() << " " << storm.getStormDuration() << " "
-	<< storm.interstormDur() << std::endl;*/
+      if(1) //DEBUG
+	     std::cout<< "Storm: "<< storm.getRainrate() << " " << storm.getStormDuration() << " "
+	          << storm.interstormDur() << std::endl;
 
       strmNet.UpdateNet( time.getCurrentTime(), storm );
-      if(0) //DEBUG
-	std::cout << "UpdateNet::Done.." << std::endl;
+      if(1) //DEBUG
+	     std::cout << "UpdateNet::Done.." << std::endl;
+
+      if(1) //DEBUG
+	  {
+         tMesh< tLNode >::nodeListIter_t mli( mesh.getNodeList() );  // gets nodes from the list
+		 tLNode * cn;
+		 for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+		 {
+		    if( cn->getID()==8121 || cn->getID()==8122 ) 
+			{
+				tEdge * debugedg = cn->getFlowEdg();
+				tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+				std::cout<<"Childmain 1: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+				std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ()<<std::endl;
+			}
+		 }
+
+	  }
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
       	  stratGrid->UpdateStratGrid(tStratGrid::k0, time.getCurrentTime());
+
+      if(1) //DEBUG
+	  {
+         tMesh< tLNode >::nodeListIter_t mli( mesh.getNodeList() );  // gets nodes from the list
+		 tLNode * cn;
+		 for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+		 {
+		    if( cn->getID()==8121 || cn->getID()==8122 ) 
+			{
+				tEdge * debugedg = cn->getFlowEdg();
+				tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+				std::cout<<"Childmain 2: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+				std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ()<<std::endl;
+			}
+		 }
+
+	  }
 
       if( optDetachLim )
           erosion.ErodeDetachLim( storm.getStormDuration(), &strmNet,
@@ -207,34 +243,50 @@ OptTSOutput." );
       else
           erosion.DetachErode( storm.getStormDuration(), &strmNet,
                                time.getCurrentTime(), vegetation );
-      if(0) //DEBUG
-	std::cout << "Erosion::Done.." << std::endl;
+      if(1) //DEBUG
+	     std::cout << "Erosion::Done.." << std::endl;
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
-	stratGrid->UpdateStratGrid(tStratGrid::k1,time.getCurrentTime() );
+	     stratGrid->UpdateStratGrid(tStratGrid::k1,time.getCurrentTime() );
 
+      if(1) //DEBUG
+	  {
+         tMesh< tLNode >::nodeListIter_t mli( mesh.getNodeList() );  // gets nodes from the list
+		 tLNode * cn;
+		 for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+		 {
+		    if( cn->getID()==8121 || cn->getID()==8122 ) 
+			{
+				tEdge * debugedg = cn->getFlowEdg();
+				tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+				std::cout<<"Childmain 3: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+				std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ()<<std::endl;
+			}
+		 }
+
+	  }
 
       if( optMeander )
-	  strmMeander->Migrate( time.getCurrentTime() );
+	     strmMeander->Migrate( time.getCurrentTime() );
 
-      if(0) //DEBUG
-	std::cout << "Meander-Migrate::Done..\n";
+      if(1) //DEBUG
+	     std::cout << "Meander-Migrate::Done..\n";
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
-	stratGrid->UpdateStratGrid(tStratGrid::k2,time.getCurrentTime());
+	     stratGrid->UpdateStratGrid(tStratGrid::k2,time.getCurrentTime());
 
       //----------------FLOODPLAIN---------------------------------
       if( optFloodplainDep )
-	{
-	  if( floodplain->OptControlMainChan() )
-	    floodplain->UpdateMainChannelHeight( time.getCurrentTime(),
+	  {
+	     if( floodplain->OptControlMainChan() )
+	        floodplain->UpdateMainChannelHeight( time.getCurrentTime(),
 						 strmNet.getInletNodePtrNC() );
-	  std::cout << "UpdateChannelHeight::Done..\n";
+	        std::cout << "UpdateChannelHeight::Done..\n";
 
-	  if( optStratGrid ){
-	    stratGrid->UpdateStratGrid(tStratGrid::k3,time.getCurrentTime());
+	     if( optStratGrid ){
+	        stratGrid->UpdateStratGrid(tStratGrid::k3,time.getCurrentTime());
 	  }
 
 	  floodplain->DepositOverbank( storm.getRainrate(),

@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.17 2005-02-11 16:55:53 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.18 2005-03-15 17:17:30 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -998,7 +998,8 @@ tStratNode::tStratNode( tInputFile const &infile ) :
       sum += help;
       strcpy( name, "BRPROPORTION");
       strcat( name, add );
-      help = infile.ReadItem( help, name);
+ 	  std::cout<<"In tStratGrid, reading '"<<name<<std::endl;
+     help = infile.ReadItem( help, name);
       dgradebrhelp[i]=help;
       sumbr += help;
       i++;

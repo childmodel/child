@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.63 2004-05-27 17:21:06 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.64 2005-03-15 17:17:30 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -261,6 +261,7 @@ protected:
     inline static void RouteFlowArea( tLNode *, double );
     inline static void RouteRunoff( tLNode *, double, double );
     static void RouteError( tLNode * ) ATTRIBUTE_NORETURN;
+	bool FlowDirBreaksMeanderChannel( tLNode *, tEdge * ) const;
 
     typedef enum {
       kRegimeChannels = 1,

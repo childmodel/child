@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.137 2004-06-16 13:37:31 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.138 2005-03-15 17:17:29 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -397,6 +397,7 @@ public1(-1)
       sum += help;
       strcpy( name, "BRPROPORTION");
       strcat( name, add );
+	  std::cout<<"In tLNode, reading '"<<name<<std::endl;
       help = infile.ReadItem( help, name);
       dgradebrhelp[i]=help;
       sumbr += help;
@@ -1792,8 +1793,8 @@ tNode *tLNode::splitFlowEdge() {
   const tArray< double > zeroArr(4);
   tLNode *nPtr = this->getDownstrmNbr();
 
-  if (1) //DEBUG
-    std::cerr << "tLNode::splitFlowEdge(): split flowedge between node "
+  if (0) //DEBUG
+    std::cout << "tLNode::splitFlowEdge(): split flowedge between node "
 	 << this->getID() << " and node "
 	 << nPtr->getID() << "." << std::endl;
 
@@ -1941,53 +1942,53 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
     {
       // CASE OF EROSION IN ALL SIZE CLASSES
       if(getLayerSed(i) != tLayer::kBedRock &&
-	 getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i)+val<=maxregdep)
-	{
-	  // Updating will also be done if entering this statement
-	  // No updating of Bedrock layers.
-	  // Only update if layer below has the same material
-	  sume=(getLayerDepth(i)+val)*getLayerEtime(i); //for averaging
-	  //of the exposure time.
-	  olde=getLayerEtime(i+1);
-	  while(val<-0.000000001 && getLayerSed(i) == getLayerSed(i+1))
-	    {
-	      // keep eroding until you either get all the material you
-	      // need to refill the top layer, or you run out of material
-	      hupdate = addtoLayer(i+1, val);//remove stuff from lower layer
-	      size_t g=0;
-	      sumd=0;
-	      while(g<numg)
-		{
-		  sumd-=hupdate[g];
-		  val-=hupdate[g];//hupdate stores texture of material that will
-		  //refil the top layer
-		  update[g] += hupdate[g];//need update cause might need
-		  //to get material from more than one layer
-		  g++;
-		}
-	      sume+=sumd*olde;
+	     getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i)+val<=maxregdep)
+	  {
+	     // Updating will also be done if entering this statement
+	     // No updating of Bedrock layers.
+	     // Only update if layer below has the same material
+	     sume=(getLayerDepth(i)+val)*getLayerEtime(i); //for averaging
+	                                                   //of the exposure time.
+	     olde=getLayerEtime(i+1);
+	     while(val<-0.000000001 && getLayerSed(i) == getLayerSed(i+1))
+	     {
+	        // keep eroding until you either get all the material you
+	        // need to refill the top layer, or you run out of material
+	        hupdate = addtoLayer(i+1, val);//remove stuff from lower layer
+	        size_t g=0;
+	        sumd=0;
+	        while(g<numg)
+		    {
+		       sumd-=hupdate[g];
+		       val-=hupdate[g];//hupdate stores texture of material that will
+		       //refil the top layer
+		       update[g] += hupdate[g];//need update cause might need
+		       //to get material from more than one layer
+		       g++;
+		    }
+	        sume+=sumd*olde;
 	    }
-	  size_t g=0;
-	  while(g<numg){
+	    size_t g=0;
+		while(g<numg){
             addtoLayer(i, g, valgrd[g], -1.); // Erosion
             addtoLayer(i,g,-1*update[g],-1.);//Updating with material from below
             g++;
+	    }
+	    setLayerEtime(i, sume/getLayerDepth(i));
 	  }
-	  setLayerEtime(i, sume/getLayerDepth(i));
-	}
       else
-	{
-	  // No updating, just eroding, don't need to change exposure time
-	  //Do this if you have only bedrock below, or if layer you are eroding
-	  //from is >maxregdepth-val (could be if lots of deposition)
-	  size_t g=0;
-	  while(g<numg){
+	  {
+	     // No updating, just eroding, don't need to change exposure time
+	     //Do this if you have only bedrock below, or if layer you are eroding
+	     //from is >maxregdepth-val (could be if lots of deposition)
+	     size_t g=0;
+	     while(g<numg){
             addtoLayer(i, g, valgrd[g], -1.); // Erosion done on this line
             g++;
-	  }
-	}
+	     }
+      }
       if(getLayerDepth(i)<1e-7)
-	removeLayer(i);
+	     removeLayer(i);
       assert( getLayerDepth(i)>0.0 );
     }
   else if(min >= 0.0 && max > 0.0000000001)

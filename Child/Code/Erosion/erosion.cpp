@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.138 2004-06-16 13:37:24 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.139 2005-03-15 17:17:29 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -1690,7 +1690,7 @@ tErosion::~tErosion(){
 void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet,
 			       tVegetation * /*pVegetation*/ )
 {
-  if(0) //DEBUG
+  if(1) //DEBUG
     std::cout<<"ErodeDetachLim...";
   double dt,
     dtmax; // time increment
@@ -1706,6 +1706,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet,
   //TODO: make it work w/ arbitrary # grain sizes
 
   // Iterate until total time dtg has been consumed
+  int debugCount=0;
   do
     {
       //first find erosion rate:
@@ -1746,6 +1747,14 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet,
 
       //update time:
       dtg -= dtmax;
+	  
+	  if(1) //DEBUG
+	  {
+	     debugCount++;
+		 if( debugCount > 1e6 )
+		    ReportFatalError("More than 1e6 iterations in ErodeDetachLim()" );
+	  }
+	  
     } while( dtg>0.0000001 );
 
 }//end tErosion::ErodeDetachLim( double dtg
@@ -1775,6 +1784,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift const *U
   double ratediff;
   //Xdouble dslpdt;
   double dtmin = dtg * 0.0001;
+  int debugCount = 0;
 
   strmNet->FindChanGeom();
   strmNet->FindHydrGeom();
@@ -1833,6 +1843,14 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift const *U
       }
       //update time:
       dtg -= dtmax;
+	  
+	  if(1) //DEBUG
+	  {
+	     debugCount++;
+		 if( debugCount > 1e6 )
+		    ReportFatalError("More than 1e6 iterations in ErodeDetachLim()" );
+	  }
+	  
     } while( dtg>0 );
 
 }//end tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
@@ -2407,6 +2425,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
       excap;
     tLNode * inletNode = strmNet->getInletNodePtrNC();
     double insedloadtotal = strmNet->getInSedLoad();
+	int debugCount = 0;
 
     cn = ni.FirstP();
 
@@ -2706,6 +2725,14 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 
 	// Update time remainig
 	dtg -= dtmax;
+	
+		  if(1) //DEBUG
+	      {
+	         debugCount++;
+		     if( debugCount > 1e6 )
+		        ReportFatalError("More than 1e6 iterations in ErodeDetachLim()" );
+	      }
+	
 	//std::cout<<"Time remaining now "<<dtg<<std::endl;
       } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
   }//end if rainrate-infilt>0

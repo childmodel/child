@@ -12,7 +12,7 @@
  **
  **  Created 5/2003 (QC)
  **
- **  $Id: tStratGrid.h,v 1.6 2004-05-27 17:21:04 childcvs Exp $
+ **  $Id: tStratGrid.h,v 1.7 2005-03-15 17:17:30 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -194,6 +194,9 @@ public:
   int getSectionLocation(int) const;
   tMatrix<tStratNode> const *getStratNodeMatrix() const {
     return StratNodeMatrix;
+  }
+  tMatrix<tTriangle*> const *getStratConnect() const{
+    return StratConnect;
   }
   typedef enum {
     k0,
