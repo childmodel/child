@@ -36,40 +36,64 @@
 **  item does not exist.
 **
 **  Created by Greg Tucker, November 1997
+**  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.h,v 1.14 2003-05-23 17:48:49 childcvs Exp $
+**  $Id: tInputFile.h,v 1.15 2003-07-14 13:29:04 childcvs Exp $
 */
 /****************************************************************************/
 
 #ifndef TINPUTFILE_H
 #define TINPUTFILE_H
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <fstream>
-using namespace std;
-#else
-# include <fstream.h>
-#endif
+#include "../tArray/tArray.h"
 
 #define kMaxNameLength 120
 #include "../Definitions.h"
 
+/** @class tKeyPair
+**
+**  Hold a key/value pair
+*/
+class tKeyPair
+{
+public:
+  tKeyPair() : key_(0), value_(0) {}
+  tKeyPair(int) : key_(0), value_(0) {} // to make tArray happy
+  tKeyPair(const char *, const char *);
+  tKeyPair(tKeyPair const&);
+  tKeyPair& operator=(tKeyPair const&);
+  ~tKeyPair();
+  void setKey(const char *);
+  void setValue(const char *);
+  void clear();
+  const char *key() const {return key_;}
+  const char *value() const {return value_;}
+private:
+  void clearKey();
+  void clearValue();
+
+  char *key_;
+  char *value_;
+};
+
 /** @class tInputFile
- */
+*/
 class tInputFile
 {
 public:
-    tInputFile( const char * );   // constructor takes name of file to open
-    int ReadItem( const int &, const char * );       // reads an int
-    long ReadItem( const long &, const char * );     // reads a long
-    double ReadItem( const double &, const char * ); // reads a double
-    void ReadItem( char *, const char * );           // reads a string
-    // similar overrides could be added for other data types
+  tInputFile( const char * );   // constructor takes name of file to open
+  int ReadItem( const int &, const char * );       // reads an int
+  long ReadItem( const long &, const char * );     // reads a long
+  double ReadItem( const double &, const char * ); // reads a double
+  void ReadItem( char *, const char * );           // reads a string
+  // similar overrides could be added for other data types
 
 private:
-    ifstream infile;     // the input file
-    ofstream inoutfile;  // output file in which items are recorded
-    bool inoutfile_opened;
+  tArray< tKeyPair > KeyWordTable; // hold key/value pair
+
+  enum { notFound = -1 }; // must be strictly negative
+  int findKeyWord(const char*); // find index of keyword
+  void writeLogFile();
 };
 
 #endif
