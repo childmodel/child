@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.141 2003-05-06 16:37:18 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.142 2003-05-07 13:51:46 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3470,70 +3470,46 @@ AddEdgeAndMakeTriangle( tSubNode* cn, tSubNode* cnn, tSubNode* cnnn )
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
-{
-  tPtrList< tSubNode > tmpList;
-  tPtrListIter< tSubNode > tmpIter( tmpList );
-  tmpList.insertAtBack( cn );
-  tmpList.insertAtBack( cnn );
-  tmpList.insertAtBack( cnnn );
-  tmpList.makeCircular();
-  tmpIter.First();
-  return MakeTriangle(tmpList, tmpIter);
-}
-
-template< class tSubNode >
-int tMesh< tSubNode >::
 MakeTriangle( tPtrList< tSubNode > &nbrList,
               tPtrListIter< tSubNode > &nbrIter )
 {
    assert( nbrList.getSize() == 3 );
-   if (0) //DEBUG
-     cout << "MakeTriangle" << endl;
-   int i, j;
-   //Xint newid;                          // ID of new triangle
-   //XtTriangle tempTri;
-   tTriangle *nbrtriPtr;
    tSubNode *cn, *cnn, *cnnn;
-   tEdge *ce;
-   tTriangle *ct;
-   tListIter< tTriangle > triIter( triList );
-   tMeshListIter< tEdge > edgIter( edgeList );
-   assert( nbrList.getSize() == 3 );
-
-   //Xcn = nbrIter.DatPtr(); Below is bug fix:
    cn = nbrIter.FirstP();      // cn, cnn, and cnnn are the 3 nodes in the tri
    cnn = nbrIter.NextP();
    cnnn = nbrIter.NextP();
    nbrIter.Next();
-   tArray< double > p0( cn->get2DCoords() ), p1( cnn->get2DCoords() ),
+   return MakeTriangle(cn, cnn, cnnn);
+}
+
+template< class tSubNode >
+int tMesh< tSubNode >::
+MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
+{
+   assert( cn != 0 && cnn != 0 && cnnn != 0 );
+   assert( cn != cnn && cn != cnnn && cnn != cnnn );
+
+   if (0) //DEBUG
+     cout << "MakeTriangle" << endl;
+   const tArray< double > p0( cn->get2DCoords() ), p1( cnn->get2DCoords() ),
        p2( cnnn->get2DCoords() );
 
    // error check
    if( !PointsCCW( p0, p1, p2 ) )
    {
       cerr << "in MT nodes not CCW: " << cn->getID() << ", "
-           << cnn->getID() << ", " << cnnn->getID();
-      /*if( cn->Meanders() ) p0 = cn->getNew2DCoords();
-      else p0 = cn->get2DCoords();
-      if( cnn->Meanders() ) p1 = cnn->getNew2DCoords();
-      else p1 = cnn->get2DCoords();
-      if( cnnn->Meanders() ) p2 = cnnn->getNew2DCoords();
-      else p2 = cnnn->get2DCoords();
-      if( !PointsCCW( p0, p1, p2 ) )
-      cerr << "; nor are new coords CCW ";*/
-      cerr << endl;
+           << cnn->getID() << ", " << cnnn->getID()
+	   << "; nor are new coords CCW " << endl;
+      return 0;
    }
-
-   /*cout << "In MT, the 3 nodes are: " << cn->getID() << " " << cnn->getID()
-        << " " << cnnn->getID() << endl;*/
 
    // Create the new triangle and insert a pointer to it on the list.
    // Here, the triangle constructor takes care of setting pointers to
    // the 3 vertices and 3 edges. The neighboring triangle pointers are
    // initialized to zero.
    triList.insertAtBack( tTriangle( miNextTriID++, cn, cnn, cnnn ) );//put
-
+   tListIter< tTriangle > triIter( triList );
+   tTriangle *ct;
    ct = triIter.LastP();            //ct now points to our new triangle
    assert( cn == ct->pPtr(0) );     //make sure we're where we think we are
 
@@ -3542,9 +3518,6 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    // The idea here is that there's a good chance that the next point
    // to be added will be close to the current location. (added 1/2000)
    mSearchOriginTriPtr = ct;
-
-   /*cout << "IN MT, created triangle:\n";
-   ct->TellAll();*/
 
    // Now we assign the neighbor triangle pointers. The loop successively
    // gets the spokelist for (p0,p1,p2) and sets cn to the next ccw point
@@ -3555,30 +3528,15 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    // we need to find the triangle that points to edge (p0->p1), and so on.
    // In general, t((j+2)%3) is the triangle that points to edge
    // p(j)->p((j+1)%3).
-   //Xdce = 0;
-   nbrtriPtr = 0;
-   cn = nbrIter.FirstP();
-   //cout << "starting w/ node " << cn->getID();
+   tTriangle *nbrtriPtr = 0;
+   int j;
    for( j=0; j<3; j++ )
    {
-      // get spokelist for p(j) and advance to p(j+1)
-      tSpkIter spokIter( cn );
-      cn = nbrIter.NextP();               //step forward once in nbrList
-      //Xif( j>0 ) dce = ce;
-
       // Find edge ce that connects p(j)->p(j+1)
-      for( ce = spokIter.FirstP();
-           ce->getDestinationPtrNC() != cn && !( spokIter.AtEnd() );
-           ce = spokIter.NextP() );
-      assert( !( spokIter.AtEnd() ) );
-        //********BUG: following assertion failed; called from FlipEdge,
-        //from CheckForFlip, from CheckLocallyDelaunay, from MoveNodes***************
-      if( !( TriWithEdgePtr( ce ) != nbrtriPtr || nbrtriPtr == 0 ) )
-      {
-         p0 = cn->get2DCoords();
-         p1 = cnn->get2DCoords();
-         p2 = cnnn->get2DCoords();
+      tEdge *ce = ct->pPtr(j)->EdgToNod( ct->pPtr( (j+1)%3 ) );
 
+      if( nbrtriPtr != 0 && TriWithEdgePtr( ce ) == nbrtriPtr )
+      {
          if( PointsCCW( p0, p1, p2 ) )
              cerr << "something FUNNY going on";
          else cerr << "tri not CCW: " << nbrtriPtr->getID() << endl;
@@ -3587,15 +3545,8 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
       // Find the triangle, if any, that shares (points to) this edge
       // and assign it as the neighbor triangle t((j+2)%3).
       nbrtriPtr = TriWithEdgePtr( ce );
-      /*cout << "The following tri shares edg the following edge:\n";
-      ce->TellCoords();
-      if( nbrtriPtr )
-          nbrtriPtr->TellAll();
-      else cout << "(none)\n";*/
 
       ct->setTPtr( (j+2)%3, nbrtriPtr );      //set tri TRI ptr (j+2)%3
-
-      //cout << "This is our nbr #" << (j+2)%3 << endl << endl;
 
       // If a neighboring triangle was found, tell it that the current
       // new triangle is its neighbor too. We need to tell it which
@@ -3604,33 +3555,37 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
       // nbr (1,2,0). (ie, tri_number = (edg_number+1)%3 )
       if( nbrtriPtr != 0 )
       {
-         for( i=0; i<3; i++ )
-         {
+     	int i;
+	for( i=0; i<3; i++ )
+	  {
             assert( nbrtriPtr->ePtr(i) != 0 );
             assert( ce != 0 );
             if( nbrtriPtr->ePtr(i) == ce ) break;
-         }
-         assert( i < 3 );
-         nbrtriPtr->setTPtr( (i+1)%3, ct );  //set NBR TRI ptr to tri
+	  }
+	assert( nbrtriPtr->ePtr(i) == ce );
+	nbrtriPtr->setTPtr( (i+1)%3, ct );  //set NBR TRI ptr to tri
       }
    }
-   ntri++;
+   ++ntri;
 
    //reset triangle id's (why needed??) because when we make a new item of any kind we
-     //give it an id; how do we know what id to use (i.e., what's large enough but not
-     //too large)? we find the id of the last item in the list and add one; if the items
-     //in the list have been "mixed up", then we could assign an id already in use;
-     //also, if for some reason numbers are systematically skipped, the id could blow up;
-     //this step
-     //may not be strictly necessary for triangles (it is for nodes and edges where
-     //we have active and inactive members), but I'm sure it doesn't hurt; better safe
-     //than sorry...
-   for( ct = triIter.FirstP(), miNextTriID=0; !( triIter.AtEnd() );
-        ct = triIter.NextP(), miNextTriID++ )
+   //give it an id; how do we know what id to use (i.e., what's large enough but not
+   //too large)? we find the id of the last item in the list and add one; if the items
+   //in the list have been "mixed up", then we could assign an id already in use;
+   //also, if for some reason numbers are systematically skipped, the id could blow up;
+   //this step
+   //may not be strictly necessary for triangles (it is for nodes and edges where
+   //we have active and inactive members), but I'm sure it doesn't hurt; better safe
+   //than sorry...
    {
-      ct->setID( miNextTriID );
+     tListIter< tTriangle > triIter( triList );
+     tTriangle *ct;
+     for( ct = triIter.FirstP(), miNextTriID=0; !( triIter.AtEnd() );
+	  ct = triIter.NextP(), miNextTriID++ )
+       {
+	 ct->setID( miNextTriID );
+       }
    }
-
    return 1;
 }
 
