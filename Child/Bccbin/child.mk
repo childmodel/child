@@ -14,6 +14,8 @@ LDFLAGS = $(WARNINGFLAGS) $(ARCH)
 LIBS =
 EXENAME = child.exe
 
+LDFLAGS += -e$@
+
 OBJEXT = obj
 
 OBJECTS = \
@@ -31,7 +33,7 @@ all : $(EXENAME)
 .PHONY : all clean
 
 $(EXENAME): $(OBJECTS)
-	$(CXX) $(LDFLAGS) -e$@ $(OBJECTS) $(LIBS)
+	$(CXX) $(LDFLAGS) $(OBJECTS) $(LIBS)
 
 erosion.$(OBJEXT): $(PT)/Erosion/erosion.cpp
 	$(CXX) $(CFLAGS) $(PT)/Erosion/erosion.cpp
@@ -57,7 +59,7 @@ tRunTimer.$(OBJEXT): $(PT)/tRunTimer/tRunTimer.cpp
 tStorm.$(OBJEXT): $(PT)/tStorm/tStorm.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStorm/tStorm.cpp
 
-tTimeSeries.$(OBJEXT):  $(PT)/tTimeSeries/tTimeSeries.cpp
+tTimeSeries.$(OBJEXT): $(PT)/tTimeSeries/tTimeSeries.cpp
 	$(CXX) $(CFLAGS) $(PT)/tTimeSeries/tTimeSeries.cpp
 
 tStreamNet.$(OBJEXT): $(PT)/tStreamNet/tStreamNet.cpp
