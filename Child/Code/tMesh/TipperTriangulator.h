@@ -1,4 +1,4 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /***************************************************************************/
 /**
@@ -68,7 +68,7 @@ class edge{
   const edge &operator=( const edge & );
   edge(const edge&);
 public:
-  edge(): 
+  edge():
     from(end),to(end),
     lef(none),let(none),ref(none),ret(none) {}
 #if defined(DEBUG_PRINT)
@@ -129,10 +129,10 @@ public:
     eo1(false), eo2(false), eo3(false)
   {}
   int p1, p2, p3;  // nodes
-  int e1, e2, e3;  // edges 
+  int e1, e2, e3;  // edges
   int t1, t2, t3;  // triangles (or elements)
   bool eo1, eo2, eo3; // orientation of edges
-  enum{ none = -1 }; // no neighbour triangle, must be strictly negative 
+  enum{ none = -1 }; // no neighbour triangle, must be strictly negative
   //
   //         P1       .
   //        -/\       .
