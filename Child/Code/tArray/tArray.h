@@ -13,7 +13,7 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.16 2003-01-17 17:30:26 childcvs Exp $
+**  $Id: tArray.h,v 1.17 2003-02-11 17:43:59 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -58,6 +58,7 @@ public:
     void setSize( int );       // reinitializes and sets array size
     T *getArrayPtr();          // returns the actual array; needed for passing
                                // to fortran.
+    const T *getArrayPtr() const; // returns the actual array
 private:
     int npts;   // size of array
     T * avalue; // the array itself

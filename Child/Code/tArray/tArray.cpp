@@ -3,7 +3,7 @@
 **  @file tArray.cpp
 **  @brief Functions for template class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.15 2003-01-17 17:30:26 childcvs Exp $
+**  $Id: tArray.cpp,v 1.16 2003-02-11 17:43:59 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -231,6 +231,10 @@ getSize() const {return npts;}
 template< class T >
 T *tArray< T >::
 getArrayPtr() {return avalue;}
+
+template< class T >
+const T *tArray< T >::
+getArrayPtr() const {return avalue;}
 
 /**************************************************************************\
 **  setSize: reinitializes and resizes the array

@@ -12,7 +12,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.9 2003-01-17 17:30:18 childcvs Exp $
+**  $Id: globalFns.h,v 1.10 2003-02-11 17:43:57 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -41,17 +41,17 @@ double ran3( long * );  // Random number generator from Numerical Recipes in C
 
 tArray< double > UnitVector( tEdge* );
 
-double FindCosineAngle0_2_1( tArray< double > &, tArray< double > &,
-                             tArray< double > & );
+double FindCosineAngle0_2_1( tArray< double > const &, tArray< double > const &,
+                             tArray< double > const & );
 
 int TriPasses( tArray< double > const &, tArray< double > const &,
                tArray< double > const &, tArray< double > const & );
 
-int PointsCCW( tArray< double > &, tArray< double > &, tArray< double > & );
+int PointsCCW( tArray< double > const &, tArray< double > const &, tArray< double > const & );
 
 int NewTriCCW( tTriangle * );
 
-int InNewTri( tArray< double > &, tTriangle * );
+int InNewTri( tArray< double > const &, tTriangle * );
 
 template< class tSubNode >
 int Next3Delaunay( tPtrList< tSubNode > &, tPtrListIter< tSubNode > & );

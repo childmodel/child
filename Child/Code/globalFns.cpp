@@ -4,7 +4,7 @@
 **  @brief Global functions used by tGrid and other modules of
 **         CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.8 2003-01-17 17:30:18 childcvs Exp $
+**  $Id: globalFns.cpp,v 1.9 2003-02-11 17:43:56 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -47,9 +47,9 @@ tArray< double > UnitVector( tEdge* ePtr )
 **
 */
 /**************************************************************************/
-double FindCosineAngle0_2_1( tArray< double > &p0,
-                             tArray< double > &p1,
-                             tArray< double > &p2 )
+double FindCosineAngle0_2_1( tArray< double > const &p0,
+                             tArray< double > const &p1,
+                             tArray< double > const &p2 )
 {
    assert( (&p0 != 0) && (&p1 != 0) && (&p1 != 0) );
    double dx0, dx1, dy0, dy1;
@@ -131,15 +131,15 @@ int TriPasses( tArray< double > const &ptest,
 **
 */
 /***************************************************************************/
-int PointsCCW( tArray< double > &p0,
-               tArray< double > &p1,
-               tArray< double > &p2 )
+int PointsCCW( tArray< double > const &p0,
+               tArray< double > const &p1,
+               tArray< double > const &p2 )
 {
    assert( &p0 != 0 && &p1 != 0 && &p1 != 0 );
      //cout << "PointsCCW? ";
-   double* a0 = p0.getArrayPtr();
-   double* a1 = p1.getArrayPtr();
-   double* a2 = p2.getArrayPtr();
+   const double* a0 = p0.getArrayPtr();
+   const double* a1 = p1.getArrayPtr();
+   const double* a2 = p2.getArrayPtr();
    //NEW: call exact arithmetic predicate:
    return ( predicate.orient2d( a0, a1, a2 ) > 0 );
    /*
@@ -211,7 +211,7 @@ int NewTriCCW( tTriangle *ct )
 **  TODO: use general "moving" indicator, or dispense w/ the mdr test
 */
 /***************************************************************************/
-int InNewTri( tArray< double > &xy, tTriangle *ct )
+int InNewTri( tArray< double > const &xy, tTriangle *ct )
 {
    int j;
    tLNode *vtx;
@@ -482,7 +482,7 @@ tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
 **
 */
 /**************************************************************************/
-double InterpSquareGrid( double xgen, double ygen, tMatrix< double >& elev,
+double InterpSquareGrid( double xgen, double ygen, tMatrix< double > & elev,
                          int nodata )
 {
    int nodatacount = 0;

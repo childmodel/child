@@ -15,7 +15,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.cpp,v 1.4 2003-01-17 17:30:23 childcvs Exp $
+//  $Id: predicates.cpp,v 1.5 2003-02-11 17:43:57 childcvs Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -215,7 +215,8 @@ void Predicates::exactinit()
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::grow_expansion(int elen, REAL* e, REAL b, REAL* h)/* e and h can be the same. */ 
+int Predicates::grow_expansion(int elen, const REAL* e, REAL b, REAL* h)
+  /* e and h can be the same. */ 
 { 
   REAL Q; 
   INEXACT REAL Qnew; 
@@ -248,7 +249,8 @@ int Predicates::grow_expansion(int elen, REAL* e, REAL b, REAL* h)/* e and h can
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::grow_expansion_zeroelim(int elen, REAL* e, REAL b, REAL* h)    /* e and h can be the same. */ 
+int Predicates::grow_expansion_zeroelim(int elen, const REAL* e, REAL b, REAL* h)
+  /* e and h can be the same. */ 
 { 
   REAL Q, hh; 
   INEXACT REAL Qnew; 
@@ -286,8 +288,8 @@ int Predicates::grow_expansion_zeroelim(int elen, REAL* e, REAL b, REAL* h)    /
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::expansion_sum(int elen, REAL* e, int flen, REAL* f, REAL* h)
-/* e and h can be the same, but f and h cannot. */ 
+int Predicates::expansion_sum(int elen, const REAL* e, int flen, const REAL* f, REAL* h)
+  /* e and h can be the same, but f and h cannot. */ 
 { 
   REAL Q; 
   INEXACT REAL Qnew; 
@@ -330,8 +332,8 @@ int Predicates::expansion_sum(int elen, REAL* e, int flen, REAL* f, REAL* h)
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::expansion_sum_zeroelim1(int elen, REAL* e, int flen,
-                                        REAL* f, REAL* h) 
+int Predicates::expansion_sum_zeroelim1(int elen, const REAL* e, int flen,
+                                        const REAL* f, REAL* h) 
 /* e and h can be the same, but f and h cannot. */ 
 { 
   REAL Q; 
@@ -386,8 +388,8 @@ int Predicates::expansion_sum_zeroelim1(int elen, REAL* e, int flen,
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::expansion_sum_zeroelim2(int elen, REAL* e,
-                                        int flen, REAL* f, REAL* h) 
+int Predicates::expansion_sum_zeroelim2(int elen, const REAL* e,
+                                        int flen, const REAL* f, REAL* h) 
 /* e and h can be the same, but f and h cannot. */ 
 { 
   REAL Q, hh; 
@@ -439,8 +441,8 @@ int Predicates::expansion_sum_zeroelim2(int elen, REAL* e,
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::fast_expansion_sum(int elen, REAL* e,
-                                   int flen, REAL* f, REAL* h)
+int Predicates::fast_expansion_sum(int elen, const REAL* e,
+                                   int flen, const REAL* f, REAL* h)
 /* h cannot be e or f. */ 
 { 
   REAL Q; 
@@ -513,8 +515,8 @@ int Predicates::fast_expansion_sum(int elen, REAL* e,
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::fast_expansion_sum_zeroelim(int elen, REAL* e,
-                                int flen, REAL* f, REAL* h)
+int Predicates::fast_expansion_sum_zeroelim(int elen, const REAL* e,
+                                int flen, const REAL* f, REAL* h)
 /* h cannot be e or f. */ 
 { 
   REAL Q; 
@@ -595,8 +597,8 @@ int Predicates::fast_expansion_sum_zeroelim(int elen, REAL* e,
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::linear_expansion_sum(int elen, REAL* e,
-                                     int flen, REAL* f, REAL* h)
+int Predicates::linear_expansion_sum(int elen, const REAL* e,
+                                     int flen, const REAL* f, REAL* h)
 /* h cannot be e or f. */ 
 { 
   REAL Q, q; 
@@ -656,8 +658,8 @@ int Predicates::linear_expansion_sum(int elen, REAL* e,
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::linear_expansion_sum_zeroelim(int elen, REAL* e,
-                                  int flen, REAL* f, REAL* h)
+int Predicates::linear_expansion_sum_zeroelim(int elen, const REAL* e,
+                                  int flen, const REAL* f, REAL* h)
 /* h cannot be e or f. */ 
 { 
   REAL Q, q, hh; 
@@ -727,7 +729,7 @@ int Predicates::linear_expansion_sum_zeroelim(int elen, REAL* e,
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::scale_expansion(int elen, REAL* e, REAL b, REAL* h)
+int Predicates::scale_expansion(int elen, const REAL* e, REAL b, REAL* h)
 /* e and h cannot be the same. */ 
 { 
   INEXACT REAL Q; 
@@ -773,7 +775,7 @@ int Predicates::scale_expansion(int elen, REAL* e, REAL b, REAL* h)
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::scale_expansion_zeroelim(int elen, REAL* e, REAL b, REAL* h)
+int Predicates::scale_expansion_zeroelim(int elen, const REAL* e, REAL b, REAL* h)
 /* e and h cannot be the same. */ 
 { 
   INEXACT REAL Q, sum; 
@@ -825,7 +827,7 @@ int Predicates::scale_expansion_zeroelim(int elen, REAL* e, REAL b, REAL* h)
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-int Predicates::compress(int elen, REAL* e, REAL* h)
+int Predicates::compress(int elen, const REAL* e, REAL* h)
 /* e and h may be the same. */ 
 { 
   REAL Q, q; 
@@ -868,7 +870,7 @@ int Predicates::compress(int elen, REAL* e, REAL* h)
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-REAL Predicates::estimate( int elen, REAL* e ) 
+REAL Predicates::estimate( int elen, const REAL* e ) 
 { 
   REAL Q; 
   int eindex; 
@@ -1020,7 +1022,7 @@ double Predicates::AdaptDiffOfProdsOfDiffs( double terma, double termb,
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-REAL Predicates::orient2dfast(REAL *pa, REAL *pb, REAL *pc) 
+REAL Predicates::orient2dfast(const REAL *pa, const REAL *pb, const REAL *pc) 
 { 
   REAL acx, bcx, acy, bcy; 
  
@@ -1032,7 +1034,7 @@ REAL Predicates::orient2dfast(REAL *pa, REAL *pb, REAL *pc)
 } 
  
  
-REAL Predicates::orient2dadapt(REAL *pa, REAL *pb, REAL *pc, REAL detsum) 
+REAL Predicates::orient2dadapt(const REAL *pa, const REAL *pb, const REAL *pc, REAL detsum) 
 { 
   INEXACT REAL acx, acy, bcx, bcy; 
   REAL acxtail, acytail, bcxtail, bcytail; 
@@ -1112,7 +1114,7 @@ REAL Predicates::orient2dadapt(REAL *pa, REAL *pb, REAL *pc, REAL detsum)
   return(D[Dlength - 1]); 
 } 
  
-REAL Predicates::orient2d(REAL *pa, REAL *pb, REAL *pc)
+REAL Predicates::orient2d(const REAL *pa, const REAL *pb, const REAL *pc)
 { 
   REAL detleft, detright, det; 
   REAL detsum, errbound; 
@@ -1169,7 +1171,7 @@ REAL Predicates::orient2d(REAL *pa, REAL *pb, REAL *pc)
 /*                                                                           */ 
 /*****************************************************************************/ 
  
-REAL Predicates::incirclefast(REAL *pa, REAL *pb, REAL *pc, REAL *pd) 
+REAL Predicates::incirclefast(const REAL *pa, const REAL *pb, const REAL *pc, const REAL *pd) 
 { 
   REAL adx, ady, bdx, bdy, cdx, cdy; 
   REAL abdet, bcdet, cadet; 
@@ -1193,7 +1195,7 @@ REAL Predicates::incirclefast(REAL *pa, REAL *pb, REAL *pc, REAL *pd)
 } 
  
  
-REAL Predicates::incircleadapt(REAL *pa, REAL *pb, REAL *pc, REAL *pd,
+REAL Predicates::incircleadapt(const REAL *pa, const REAL *pb, const REAL *pc, const REAL *pd,
                    REAL permanent) 
 { 
   INEXACT REAL adx, bdx, cdx, ady, bdy, cdy; 
@@ -1763,7 +1765,7 @@ REAL Predicates::incircleadapt(REAL *pa, REAL *pb, REAL *pc, REAL *pd,
   return finnow[finlength - 1]; 
 } 
  
-REAL Predicates::incircle(REAL *pa, REAL *pb, REAL *pc, REAL *pd)
+REAL Predicates::incircle(const REAL *pa, const REAL *pb, const REAL *pc, const REAL *pd)
 { 
   REAL adx, bdx, cdx, ady, bdy, cdy; 
   REAL bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady; 

@@ -17,7 +17,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.h,v 1.6 2003-01-17 17:30:25 childcvs Exp $
+//  $Id: predicates.h,v 1.7 2003-02-11 17:43:59 childcvs Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -235,23 +235,23 @@ public:
    void exactinit();
    
    // basic "exact" arithmetic:
-   int grow_expansion(int elen, REAL* e, REAL b, REAL* h);
-   int grow_expansion_zeroelim(int elen, REAL* e, REAL b, REAL* h);
-   int expansion_sum(int elen, REAL* e, int flen, REAL* f, REAL* h);
-   int expansion_sum_zeroelim1(int elen, REAL* e, int flen, REAL* f,
+   int grow_expansion(int elen, const REAL* e, REAL b, REAL* h);
+   int grow_expansion_zeroelim(int elen, const REAL* e, REAL b, REAL* h);
+   int expansion_sum(int elen, const REAL* e, int flen, const REAL* f, REAL* h);
+   int expansion_sum_zeroelim1(int elen, const REAL* e, int flen, const REAL* f,
                                REAL* h);
-   int expansion_sum_zeroelim2(int elen, REAL* e, int flen, REAL* f,
+   int expansion_sum_zeroelim2(int elen, const REAL* e, int flen, const REAL* f,
                                REAL* h);
-   int fast_expansion_sum(int elen, REAL* e, int flen, REAL* f, REAL* h);
-   int fast_expansion_sum_zeroelim(int elen, REAL* e, int flen, REAL* f,
+   int fast_expansion_sum(int elen, const REAL* e, int flen, const REAL* f, REAL* h);
+   int fast_expansion_sum_zeroelim(int elen, const REAL* e, int flen, const REAL* f,
                                    REAL* h);
-   int linear_expansion_sum(int elen, REAL* e, int flen, REAL* f, REAL* h);
-   int linear_expansion_sum_zeroelim(int elen, REAL* e, int flen, REAL* f,
+   int linear_expansion_sum(int elen, const REAL* e, int flen, const REAL* f, REAL* h);
+   int linear_expansion_sum_zeroelim(int elen, const REAL* e, int flen, const REAL* f,
                                      REAL* h);
-   int scale_expansion(int elen, REAL* e, REAL b, REAL* h);
-   int scale_expansion_zeroelim(int elen, REAL* e, REAL b, REAL* h);
-   int compress(int elen, REAL* e, REAL* h);
-   REAL estimate( int elen, REAL* e );
+   int scale_expansion(int elen, const REAL* e, REAL b, REAL* h);
+   int scale_expansion_zeroelim(int elen, const REAL* e, REAL b, REAL* h);
+   int compress(int elen, const REAL* e, REAL* h);
+   REAL estimate( int elen, const REAL* e );
    
    // two functions added by SL, 10/98, to deal with line
    // segment intersection; modeled after orient2d() and
@@ -273,13 +273,13 @@ public:
    // generally the ones to use; for CHILD purposes, only need
    // orient2d(), orient2dadapt(), and, potentially, incircle()
    // and incircleadapt():
-   REAL orient2dfast(REAL *pa, REAL *pb, REAL *pc);
-   REAL orient2dadapt(REAL *pa, REAL *pb, REAL *pc, REAL detsum);
-   REAL orient2d(REAL *pa, REAL *pb, REAL *pc);
-   REAL incirclefast(REAL *pa, REAL *pb, REAL *pc, REAL *pd);
-   REAL incircleadapt(REAL *pa, REAL *pb, REAL *pc, REAL *pd,
+   REAL orient2dfast(const REAL *pa, const REAL *pb, const REAL *pc);
+   REAL orient2dadapt(const REAL *pa, const REAL *pb, const REAL *pc, REAL detsum);
+   REAL orient2d(const REAL *pa, const REAL *pb, const REAL *pc);
+   REAL incirclefast(const REAL *pa, const REAL *pb, const REAL *pc, const REAL *pd);
+   REAL incircleadapt(const REAL *pa, const REAL *pb, const REAL *pc, const REAL *pd,
                       REAL permanent);
-   REAL incircle(REAL *pa, REAL *pb, REAL *pc, REAL *pd);
+   REAL incircle(const REAL *pa, const REAL *pb, const REAL *pc, const REAL *pd);
    
 private:
    REAL splitter;     /* = 2^ceiling(p / 2) + 1.  Used to split floats in half. */ 
