@@ -29,7 +29,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.38 2003-05-16 16:20:11 childcvs Exp $
+**  $Id: tOutput.h,v 1.39 2003-06-04 13:46:33 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -108,6 +108,8 @@ protected:
   inline void WriteNodeRecord( tNode * );
   inline void WriteEdgeRecord( tEdge * );
   inline void WriteTriangleRecord( tTriangle const *, const int[3]);
+  // write time/number of element
+  static void WriteTimeNumberElements( ofstream &, double, int );
 };
 
 

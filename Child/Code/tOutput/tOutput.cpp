@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.74 2003-05-30 14:51:25 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.75 2003-06-04 13:46:33 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -128,9 +128,9 @@ void tOutput<tSubNode>::WriteOutput( double time )
      RenumberIDCanonically();
 
    // Write node file, z file, and varea file
-   nodeofs << ' ' << time << '\n' << nnodes << '\n';
-   zofs << ' ' << time << '\n' << nnodes << '\n';
-   vaofs << ' ' << time << '\n' << nnodes << '\n';
+   WriteTimeNumberElements( nodeofs, time, nnodes);
+   WriteTimeNumberElements( zofs, time, nnodes);
+   WriteTimeNumberElements( vaofs, time, nnodes);
    if (!CanonicalNumbering) {
      for( tNode *cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
        WriteNodeRecord( cn );
@@ -142,7 +142,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
    }
 
    // Write edge file
-   edgofs << ' ' << time << '\n' << nedges << '\n';
+   WriteTimeNumberElements( edgofs, time, nedges);
    if (!CanonicalNumbering) {
      for( tEdge *ce=eiter.FirstP(); !(eiter.AtEnd()); ce=eiter.NextP() )
        WriteEdgeRecord( ce );
@@ -154,7 +154,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
    }
 
    // Write triangle file
-   triofs << ' ' << time << '\n' << ntri << '\n';
+   WriteTimeNumberElements( triofs, time, ntri);
    if (!CanonicalNumbering) {
      const int index[] = { 0, 1, 2 };
      for( tTriangle *ct=titer.FirstP(); !(titer.AtEnd()); ct=titer.NextP() )
@@ -180,6 +180,14 @@ void tOutput<tSubNode>::WriteOutput( double time )
 
    if (0)//DEBUG
      cout << "tOutput::WriteOutput() Output done" << endl;
+}
+
+// write time and number of elements
+template< class tSubNode >
+void tOutput<tSubNode>::WriteTimeNumberElements( ofstream &fs,
+						double time, int n )
+{
+  fs << ' ' << time << '\n' << n << '\n';
 }
 
 template< class tSubNode >
@@ -537,23 +545,23 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    counter++;
 
    // Write current time in each file
-   drareaofs << ' ' << time << '\n' << nActiveNodes << '\n';
-   netofs << ' ' << time << '\n' << nActiveNodes << '\n';
-   slpofs << ' ' << time << '\n' << nnodes << '\n';
-   qofs << ' ' << time << '\n' << nnodes << '\n';
-   layofs << ' ' << time << '\n' << nActiveNodes << '\n';
-   texofs << ' ' << time << '\n' << nnodes << '\n';
-   tauofs << ' ' << time << '\n' << nnodes << '\n';
+   WriteTimeNumberElements( drareaofs, time, nActiveNodes);
+   WriteTimeNumberElements( netofs, time, nActiveNodes);
+   WriteTimeNumberElements( slpofs, time, nnodes);
+   WriteTimeNumberElements( qofs, time, nnodes);
+   WriteTimeNumberElements( layofs, time, nActiveNodes);
+   WriteTimeNumberElements( texofs, time, nnodes);
+   WriteTimeNumberElements( tauofs, time, nnodes);
    if( vegofs.good() )
-     vegofs << ' ' << time << '\n' << nnodes << '\n';
+     WriteTimeNumberElements( vegofs, time, nnodes);
    if( flowdepofs.good() )
-     flowdepofs << ' ' << time << '\n' << nnodes << '\n';
+     WriteTimeNumberElements( flowdepofs, time, nnodes);
    if( chanwidthofs.good() )
-     chanwidthofs << ' ' << time << '\n' << nnodes << '\n';
+     WriteTimeNumberElements( chanwidthofs, time, nnodes);
    if( flowpathlenofs.good() )
-     flowpathlenofs << ' ' << time << '\n' << nnodes << '\n';
+     WriteTimeNumberElements( flowpathlenofs, time, nnodes);
    if( qsofs.good() )
-     qsofs << ' ' << time << '\n' << nnodes << '\n';
+     WriteTimeNumberElements( qsofs, time, nnodes);
 
    // Write data
    if (!CanonicalNumbering) {
