@@ -36,7 +36,7 @@
 **
 **  Created by Greg Tucker, November 1997
 **
-**  $Id: tInputFile.h,v 1.9 2002-11-07 16:58:54 childcvs Exp $
+**  $Id: tInputFile.h,v 1.10 2002-11-07 17:42:25 childcvs Exp $
 \****************************************************************************/
 
 #ifndef TINPUTFILE_H
@@ -65,6 +65,7 @@ public:
 private:
     ifstream infile;     // the input file
     ofstream inoutfile;  // output file in which items are recorded
+    bool inoutfile_opened;
 };
 
 #endif

@@ -6,7 +6,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.16 2002-09-27 15:30:14 arnaud Exp $
+**  $Id: tInputFile.cpp,v 1.17 2002-11-07 17:42:25 childcvs Exp $
 \****************************************************************************/
 
 #if !defined(HAVE_NO_NAMESPACE)
@@ -40,7 +40,7 @@ using namespace std;
 \****************************************************************************/
 tInputFile::tInputFile( const char *filename )
   :
-  infile(), inoutfile()
+  infile(), inoutfile(), inoutfile_opened(false)
 {
    char inoutname[kMaxNameLength];
 
@@ -62,7 +62,7 @@ tInputFile::tInputFile( const char *filename )
        cerr << "(Error generated in module tInputFile, function tInputFile::tInputFile( const char * ) )\n";
        ReportFatalError( "The specified path name may not exist.\n" );
      }
-   
+   inoutfile_opened = true;
 }
 
 /****************************************************************************\
@@ -138,7 +138,8 @@ int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode )
    if( headerLine[0]!=kCommentMark )
      {
        item = atoi(headerLine);
-       inoutfile << itemCode << endl << item << endl;
+       if (inoutfile_opened)
+	 inoutfile << itemCode << endl << item << endl;
      }
    else
      {
@@ -171,7 +172,8 @@ long tInputFile::ReadItem( const long & /*datType*/, const char *itemCode )
    if( headerLine[0]!=kCommentMark )
      {
        item = atol(headerLine);
-       inoutfile << itemCode << endl << item << endl;
+       if (inoutfile_opened)
+	 inoutfile << itemCode << endl << item << endl;
      }
    else
      {
@@ -204,7 +206,8 @@ double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode )
    if( headerLine[0]!=kCommentMark )
      {
        item = atof(headerLine);
-       inoutfile << itemCode << endl << item << endl;
+       if (inoutfile_opened)
+	 inoutfile << itemCode << endl << item << endl;
      }
    else
      {
@@ -240,7 +243,8 @@ void tInputFile::ReadItem(  char * theString, const char *itemCode )
    if( headerLine[0]!=kCommentMark )
      {
        strcpy(theString,headerLine);
-       inoutfile << itemCode << endl << theString << endl;
+       if (inoutfile_opened)
+	 inoutfile << itemCode << endl << theString << endl;
      }
    else
      {
