@@ -2,6 +2,7 @@ PT = ../Code
 
 include gcc.mk
 #include icc.mk
+#include bcc.mk
 
 EXENAME = child$(EXEEXT)
 
