@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.120 2003-08-12 13:29:31 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.121 2003-08-12 15:53:36 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -379,15 +379,13 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
-  double slp = n->getSlope(),
-    tau, tauex;
-
   if( n->getFloodStatus() != kNotFlooded) return 0.0;
+  const double slp = n->getSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
-  tau =  kt*pow( n->getQ() / n->getHydrWidth(), mb ) * pow( slp, nb );
+  const double tau =  kt*pow( n->getQ() / n->getHydrWidth(), mb ) * pow( slp, nb );
   n->setTau( tau );
-  tauex = tau - n->getTauCrit();
+  double tauex = tau - n->getTauCrit();
   tauex = (tauex>0.0) ? tauex : 0.0;
   return( n->getLayerErody(0)*pow(tauex,pb)*dt );
 }
@@ -422,13 +420,12 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
   if(0) //DEBUG
     cout<<"in detach capacity "<<endl<<flush;
   assert( n->getQ()>=0.0 );
-  assert( n->getQ()>=0.0 );
 
   if( n->getFloodStatus() != kNotFlooded) return 0.0;
-  double slp = n->getSlope();
+  const double slp = n->getSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-  double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
+  const double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
   if( n->getQ()<0.0 || n->getDrArea()<0.0 ) n->TellAll();
   assert( n->getQ()>=0.0 );
   assert( n->getDrArea()>=0.0 );
@@ -474,10 +471,10 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
 {
   if( n->getFloodStatus() != kNotFlooded) return 0.0;
-  double slp = n->getSlope();
+  const double slp = n->getSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-  double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
+  const double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
   n->setTau( tau );
   double erorate = tau - n->getTauCrit();
   if(0) //DEBUG
@@ -513,7 +510,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
 \***************************************************************************/
 double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 {
-  double slp = n->getSlope();
+  const double slp = n->getSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::setTimeStep(tLNode*)");
   assert( n->getQ()>=0 );
@@ -580,15 +577,13 @@ tBedErodePwrLaw2::tBedErodePwrLaw2( tInputFile &infile )
 \***************************************************************************/
 double tBedErodePwrLaw2::DetachCapacity( tLNode * n, double dt )
 {
-  double slp = n->getSlope(),
-    tau, tauexpb;
-
   if( n->getFloodStatus() != kNotFlooded) return 0.0;
+  const double slp = n->getSlope();
   if( slp < 0.0 )
-    ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
-  tau =  kt*pow( n->getQ() / n->getHydrWidth(), mb ) * pow( slp, nb );
+    ReportFatalError("neg. slope in tBedErodePwrLaw2::DetachCapacity(tLNode*,double)");
+  const double tau =  kt*pow( n->getQ() / n->getHydrWidth(), mb ) * pow( slp, nb );
   n->setTau( tau );
-  tauexpb = pow( tau, pb ) - pow( n->getTauCrit(), pb );
+  double tauexpb = pow( tau, pb ) - pow( n->getTauCrit(), pb );
   if(0) //DEBUG
     cout << "tauexpb: " << tauexpb << endl;
   tauexpb = (tauexpb>0.0) ? tauexpb : 0.0;
@@ -613,13 +608,12 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n )
   if(0) //DEBUG
     cout<<"in detach capacity "<<endl<<flush;
   assert( n->getQ()>=0.0 );
-  assert( n->getQ()>=0.0 );
 
   if( n->getFloodStatus() != kNotFlooded) return 0.0;
-  double slp = n->getSlope();
+  const double slp = n->getSlope();
   if( slp < 0.0 )
-    ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-  double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
+    ReportFatalError("neg. slope in tBedErodePwrLaw2::DetachCapacity(tLNode*)");
+  const double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
   if( n->getQ()<0.0 || n->getDrArea()<0.0 ) n->TellAll();
   assert( n->getQ()>=0.0 );
   assert( n->getDrArea()>=0.0 );
@@ -656,10 +650,10 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n )
 double tBedErodePwrLaw2::DetachCapacity( tLNode * n, int i )
 {
   if( n->getFloodStatus() != kNotFlooded) return 0.0;
-  double slp = n->getSlope();
+  const double slp = n->getSlope();
   if( slp < 0.0 )
-    ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-  double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
+    ReportFatalError("neg. slope in tBedErodePwrLaw2::DetachCapacity(tLNode*)");
+  const double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
   n->setTau( tau );
   double erorate = pow( tau, pb ) - pow( n->getTauCrit(), pb );
   if(0) //DEBUG
@@ -695,7 +689,7 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n, int i )
 \***************************************************************************/
 double tBedErodePwrLaw2::SetTimeStep( tLNode * n )
 {
-  double slp = n->getSlope();
+  const double slp = n->getSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::setTimeStep(tLNode*)");
   assert( n->getQ()>=0 );
@@ -752,7 +746,7 @@ tSedTransPwrLaw::tSedTransPwrLaw( tInputFile &infile )
 \***************************************************************************/
 double tSedTransPwrLaw::TransCapacity( tLNode *node )
 {
-  double slp = node->getSlope();
+  const double slp = node->getSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
   double tau, tauex, cap = 0;
@@ -788,7 +782,7 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node )
 \***************************************************************************/
 double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
 {
-  double slp = node->getSlope();
+  const double slp = node->getSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
   double tau, tauex, cap = 0;
@@ -851,7 +845,7 @@ tSedTransPwrLaw2::tSedTransPwrLaw2( tInputFile &infile )
 \***************************************************************************/
 double tSedTransPwrLaw2::TransCapacity( tLNode *node )
 {
-  double slp = node->getSlope();
+  const double slp = node->getSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
   double tau, tauexpf, cap = 0;
@@ -884,7 +878,7 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node )
 \***************************************************************************/
 double tSedTransPwrLaw2::TransCapacity( tLNode *node, int lyr, double weight )
 {
-  double slp = node->getSlope();
+  const double slp = node->getSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
   double tau, tauexpf, cap = 0;
@@ -955,7 +949,7 @@ tSedTransBridgeDom::tSedTransBridgeDom( tInputFile &infile )
 \***************************************************************************/
 double tSedTransBridgeDom::TransCapacity( tLNode *node )
 {
-  double slp = node->getSlope();
+  const double slp = node->getSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
   double tau, tauex, ustarex, cap = 0;
@@ -1081,7 +1075,7 @@ tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
 \***************************************************************************/
 double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight )
 {
-  double slp = node->getSlope();
+  const double slp = node->getSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
   double d50 = 0.0,   // Mean grain size
@@ -1210,17 +1204,17 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
 \***********************************************************************/
 double tSedTransWilcock::TransCapacity( tLNode *nd )
 {
-  double tau;
-  double taucrit;
-  double persand=nd->getLayerDgrade(0,0)/(nd->getLayerDepth(0));
-  double factor=nd->getLayerDepth(0)/nd->getMaxregdep();
-
   if( nd->getSlope() < 0 ){
     nd->setQs(0, 0.);
     nd->setQs(1, 0.);
     nd->setQs(0.);
     return 0.0;
   }
+
+  double tau;
+  double taucrit;
+  double persand=nd->getLayerDgrade(0,0)/(nd->getLayerDepth(0));
+  double factor=nd->getLayerDepth(0)/nd->getMaxregdep();
 
   // units of Q are m^3/yr; convert to m^3/sec
   //NIC you are doing a test here to see what is causing the
@@ -1292,15 +1286,8 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
 \***********************************************************************/
 double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 {
-  double tau;
-  double taucrit;
-  assert( nd->getLayerDepth(i)>0 );
-  double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
-  double qss, qsg=0; //gravel and sand transport rate
-
   if(0) //DEBUG
     cout << "tSedTransWilcock::TransCapacity(tLNode,int,double)\n";
-
 
   if( nd->getSlope() < 0 ){
     nd->setQs(0, 0.);
@@ -1309,6 +1296,12 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
     nd->setQs(0.);
     return 0.0;
   }
+
+  double tau;
+  double taucrit;
+  assert( nd->getLayerDepth(i)>0 );
+  double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
+  double qss, qsg=0; //gravel and sand transport rate
 
   // units of Q are m^3/yr; convert to m^3/sec
   //tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
@@ -1427,18 +1420,18 @@ tSedTransMineTailings::tSedTransMineTailings( tInputFile &infile )
 \***********************************************************************/
 double tSedTransMineTailings::TransCapacity( tLNode *nd )
 {
-  double tau;
-  double taucrit;
-  double persand=nd->getLayerDgrade(0,0)/(nd->getLayerDepth(0));
-  //not sure what the point of factor was
-  //double factor=nd->getLayerDepth(0)/nd->getMaxregdep();
-
   if( nd->getSlope() < 0 ){
     nd->setQs(0, 0.);
     nd->setQs(1, 0.);
     nd->setQs(0.);
     return 0.0;
   }
+
+  double tau;
+  double taucrit;
+  double persand=nd->getLayerDgrade(0,0)/(nd->getLayerDepth(0));
+  //not sure what the point of factor was
+  //double factor=nd->getLayerDepth(0)/nd->getMaxregdep();
 
   // units of Q are m^3/yr; convert to m^3/sec
   //tau = taudim*pow(nd->getHydrRough()*nd->getQ()/SECPERYEAR/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
@@ -1511,12 +1504,6 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd )
 \***********************************************************************/
 double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
 {
-  double tau;
-  double taucrit;
-  assert( nd->getLayerDepth(i)>0.0 );
-  double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
-  double qss, qsg=0; //gravel and sand transport rate
-
   if(0) //DEBUG
     cout << "tSedTransMineTailings::TransCapacity(tLNode,int,double)\n";
 
@@ -1527,6 +1514,12 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
     nd->setQs(0.);
     return 0.0;
   }
+
+  double tau;
+  double taucrit;
+  assert( nd->getLayerDepth(i)>0.0 );
+  double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
+  double qss, qsg=0; //gravel and sand transport rate
 
   // units of Q are m^3/yr; convert to m^3/sec
   //NIC check to see what taudim is -> probably right but U R anal
