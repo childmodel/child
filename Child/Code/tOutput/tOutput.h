@@ -24,7 +24,7 @@
 **  Recent modifications:
 **    - 1/00: GT added vegofs for output of vegetation cover
 **
-**  $Id: tOutput.h,v 1.20 2000-07-04 18:51:15 daniel Exp $
+**  $Id: tOutput.h,v 1.21 2000-12-07 12:11:04 gtucker Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -115,5 +115,16 @@ private:
    int counter;
    char nums[10]; //for writing out layer info to different files at each time
 };
+
+
+/*
+** The following is designed to allow for compiling under the Borland-style
+** template instantiation used by the Linux/GNU and Solaris versions of GCC
+*/
+#ifdef __GNUC__
+#include "tOutput.cpp"
+#endif
+
+
 
 #endif
