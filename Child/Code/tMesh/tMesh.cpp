@@ -3,7 +3,7 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.72 1999-05-04 17:14:44 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.73 1999-05-11 19:07:23 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -145,9 +145,14 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
 \**************************************************************************/
 
 //default constructor
-template< class tSubNode >
+template< class tSubNode >     //tMesh
 tMesh< tSubNode >::
-tMesh() {nnodes = nedges = ntri = seed = 0;cout<<"tMesh()"<<endl;layerflag=false;}     //tMesh
+tMesh() 
+{
+   nnodes = nedges = ntri = seed = 0;
+   cout<<"tMesh()"<<endl;
+   layerflag=FALSE;
+}
 
 /**************************************************************************\
 **
@@ -203,8 +208,8 @@ tMesh( tInputFile &infile )
        MakeMeshFromScratch( infile ); //create new mesh with parameters
 
    int help = infile.ReadItem( help, "OPTINTERPLAYER" );
-   if(help>0) layerflag=true;
-   else layerflag=false;
+   if(help>0) layerflag=TRUE;
+   else layerflag=FALSE;
 
 }
 
