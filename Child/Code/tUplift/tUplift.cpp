@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.27 2004-06-03 15:29:28 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.28 2004-06-07 23:26:54 childcvs Exp $
 */
 /************************************************************************/
 
@@ -120,13 +120,19 @@ tUplift::tUplift( const tInputFile &infile ) :
      	  break;
 	 case k9:
 		  stringstream myStringStream;
-		  double accelTime = infile.ReadDouble( "ACCEL_UPTIME" );
-		  rate2 = infile.ReadDouble( "ACCEL_UPRATE" );
+		  double accelTime = infile.ReadDouble( "ACCEL_REL_UPTIME" );
+		  if( accelTime<=0.0 ) ReportFatalError( "Parameter ACCEL_REL_UPTIME must be greater than zero." );
+		  double totalTime = infile.ReadDouble( "RUNTIME" );
+		  accelTime = accelTime*totalTime;  // Convert from fraction of total time to a time in years
+		  double verticalThrow = infile.ReadDouble( "VERTICAL_THROW" );
+		  rate2 = (verticalThrow - rate*(totalTime-accelTime) ) / accelTime;
 		  positionParam1 = infile.ReadDouble( "FAULT_PIVOT_DISTANCE" );
 		  if( positionParam1 <=0.0 )
 			ReportFatalError( "Parameter FAULT_PIVOT_DISTANCE must be > 0." );
-		  myStringStream << "@inline " << 0.0 << ":" << rate << " " << accelTime << ":" << rate2 << endl;
+		  myStringStream << "@inline " << 0.0 << ":" << rate2 << " " << accelTime << ":" << rate << endl;
 		  cout << myStringStream.str() << endl;
+		  cout << "rate 1: " << rate << " rate2: " << rate2 << " accelTime: " << accelTime << " total throw: "
+			<< rate2*accelTime + rate*(totalTime-accelTime) << endl;  
 		  rate_ts.configure( (myStringStream.str()).c_str() );
 		  break;
    }

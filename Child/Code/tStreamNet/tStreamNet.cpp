@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.80 2004-05-27 17:21:04 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.81 2004-06-07 23:26:52 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1431,6 +1431,8 @@ void tStreamNet::RouteFlowHydrographPeak()
   double stormdur = stormPtr->getStormDuration();
   double travelTime,  // Travel time from divide to this point
     Qp;               // Peak discharge
+
+  assert( runoff >= 0.0 );
 
   // Get iterator for list of nodes
   tMesh< tLNode >::nodeListIter_t nodeIter( meshPtr->getNodeList() );

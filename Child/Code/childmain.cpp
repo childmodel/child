@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.24 2004-05-27 17:20:54 childcvs Exp $
+**  $Id: childmain.cpp,v 1.25 2004-06-07 23:26:51 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -193,7 +193,8 @@ OptTSOutput." );
 	<< storm.interstormDur() << endl;*/
 
       strmNet.UpdateNet( time.getCurrentTime(), storm );
-      cout << "UpdateNet::Done.." << endl;
+      if(0) //debug
+		cout << "UpdateNet::Done.." << endl;
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
@@ -205,7 +206,8 @@ OptTSOutput." );
       else
           erosion.DetachErode( storm.getStormDuration(), &strmNet,
                                time.getCurrentTime(), vegetation );
-      cout << "Erosion::Done.." << endl;
+      if(0) //debug
+		cout << "Erosion::Done.." << endl;
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
@@ -215,7 +217,8 @@ OptTSOutput." );
       if( optMeander )
 	  strmMeander->Migrate( time.getCurrentTime() );
 
-      cout << "Meander-Migrate::Done..\n";
+      if(0) //debug
+		cout << "Meander-Migrate::Done..\n";
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
@@ -269,7 +272,8 @@ OptTSOutput." );
 
       if( time.getCurrentTime() < uplift.getDuration() )
           uplift.DoUplift( &mesh,
-                           storm.getStormDuration() + storm.interstormDur() );
+                           storm.getStormDuration() + storm.interstormDur(), 
+						   time.getCurrentTime() );
 
       time.Advance( storm.getStormDuration() + storm.interstormDur() );
 
