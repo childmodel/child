@@ -20,7 +20,7 @@
 **  with a tLNode; it could be recoded to operate with a "hydrologic"
 **  node or any descendents.
 **
-**  $Id: tStreamNet.h,v 1.30 1999-09-09 21:32:22 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.31 2000-01-27 22:33:59 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -110,6 +110,8 @@ private:
 **   - 3/99 GT added data member bankfullevent: precip rate corresponding
 **     to bankfull discharge.
 **   - 6/99 GT removed unused parameter mndrchngprob and ref's to it
+**   - 1/00 GT added RouteFlowKinWave and two data parameters,
+**     mdKinWaveExp and mdKinWaveRough
 **
 \**************************************************************************/
 class tStreamNet
@@ -162,9 +164,10 @@ public:
     void FlowSaturated1();
     void FlowSaturated2();
     void FlowBucket();
+    void RouteFlowKinWave( double );
     void FillLakes();
     int FindLakeNodeOutlet( tLNode * );
-    void SortNodesByNetOrder();
+    void SortNodesByNetOrder( int optMultiFlow=0 );
     //Xint DamBypass( tLNode * );
     //find hydraulic and channel geometries, respectively;
     //FindHydrGeom is contingent upon current storm conditions
@@ -195,6 +198,8 @@ protected:
     double infilt_dev;    // max +/- variation from mean infilt cap
     double infilt0;    // mean infilt cap
     double twoPiLam;   // Parameter for sinusoidal variation: 2pi / period
+    double mdKinWaveExp;  // Depth-disch exponent for kinematic wave routing
+    double mdKinWaveRough; // Roughness coef, units m^(1/e)-2 yr, e=above exp 
 
 };
 
