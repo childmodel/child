@@ -2,44 +2,44 @@
 
 /**************************************************************************/
 /**
-**  @file tPtrList.h
-**  @brief Header file for tPtrList, tPtrListNode, and tPtrListIter
-**         objects.
-**
-**  A tPtrList is an object that implements a general linked list of
-**  pointers to NodeType objects, where NodeType can be any type (double,
-**  int, other objects, etc). Lists of pointers are handled separately
-**  from lists of non-pointer data types (which are handled by tList)
-**  because of the requirements of pointers (specifically, in a normal
-**  list you want to retrieve the actual item in the list, whereas in a
-**  pointer list you want to retrieve the item to which the list entry
-**  points).
-**
-**  Pointer lists can be either linear or circular. The tPtrList class
-**  provides a variety of methods for adding, moving, and retrieving list
-**  elements. For moving back and forth in a tList and retrieving items,
-**  it's often most useful to use a tPtrListIter object (q.v.).
-**
-**  tPtrListNode objects are the nodes on the list; each contains a pointer
-**  to the given data type (double, int, class, etc) and a pointer to the
-**  next node in the list.
-**
-**  A tPtrListIter is an iterator for the linked list items (and their
-**  descendants). Its services include fetching data from the current entry
-**  on the list, advancing to the next or previous item on the list, etc.
-**
-**  See also tList, tArray, tMatrix
-**
-**  Modifications:
-**    - 3/31/00 bug fix to tPtrList copy constructors (GT)
-**    - 5/10/00 typo fix in DataCopy (GT)
-**    - 1/99: (SL)added member "prev" to tPtrListNode to make tPtrList a
-**             doubly linked list; other than addition of
-**             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
-**      9/02: (AD)merge in main Child version
-**
-**  $Id: tPtrList.h,v 1.33 2003-06-23 10:36:24 childcvs Exp $
-*/
+ **  @file tPtrList.h
+ **  @brief Header file for tPtrList, tPtrListNode, and tPtrListIter
+ **         objects.
+ **
+ **  A tPtrList is an object that implements a general linked list of
+ **  pointers to NodeType objects, where NodeType can be any type (double,
+ **  int, other objects, etc). Lists of pointers are handled separately
+ **  from lists of non-pointer data types (which are handled by tList)
+ **  because of the requirements of pointers (specifically, in a normal
+ **  list you want to retrieve the actual item in the list, whereas in a
+ **  pointer list you want to retrieve the item to which the list entry
+ **  points).
+ **
+ **  Pointer lists can be either linear or circular. The tPtrList class
+ **  provides a variety of methods for adding, moving, and retrieving list
+ **  elements. For moving back and forth in a tList and retrieving items,
+ **  it's often most useful to use a tPtrListIter object (q.v.).
+ **
+ **  tPtrListNode objects are the nodes on the list; each contains a pointer
+ **  to the given data type (double, int, class, etc) and a pointer to the
+ **  next node in the list.
+ **
+ **  A tPtrListIter is an iterator for the linked list items (and their
+ **  descendants). Its services include fetching data from the current entry
+ **  on the list, advancing to the next or previous item on the list, etc.
+ **
+ **  See also tList, tArray, tMatrix
+ **
+ **  Modifications:
+ **    - 3/31/00 bug fix to tPtrList copy constructors (GT)
+ **    - 5/10/00 typo fix in DataCopy (GT)
+ **    - 1/99: (SL)added member "prev" to tPtrListNode to make tPtrList a
+ **             doubly linked list; other than addition of
+ **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
+ **      9/02: (AD)merge in main Child version
+ **
+ **  $Id: tPtrList.h,v 1.34 2003-08-05 11:55:45 childcvs Exp $
+ */
 /**************************************************************************/
 
 #ifndef TPTRLIST_H
@@ -66,212 +66,211 @@ template < class NodeType > class tMeshList;
 template < class NodeType > class tMeshListIter;
 
 /*
-class PtrListDebug
-{
+  class PtrListDebug
+  {
   public:
-   static void TellAll();
-   static int dbgPRV;
-   static int dbgPRP;
-   static int dbgIAP;
-   static int dbgRP;
-   static int dbgMTB;
-   static int dbgMTF;
-};
+  static void TellAll();
+  static int dbgPRV;
+  static int dbgPRP;
+  static int dbgIAP;
+  static int dbgRP;
+  static int dbgMTB;
+  static int dbgMTF;
+  };
 
 
-int PtrListDebug::dbgIAP = 0;
-int PtrListDebug::dbgRP = 0;
-int PtrListDebug::dbgMTB = 0;
-int PtrListDebug::dbgMTF = 0;
-int PtrListDebug::dbgPRV = 0;
-int PtrListDebug::dbgPRP = 0;
+  int PtrListDebug::dbgIAP = 0;
+  int PtrListDebug::dbgRP = 0;
+  int PtrListDebug::dbgMTB = 0;
+  int PtrListDebug::dbgMTF = 0;
+  int PtrListDebug::dbgPRV = 0;
+  int PtrListDebug::dbgPRP = 0;
 
-void PtrListDebug::TellAll()
-{
-      //debug
-   cout << "IAP " << dbgIAP << endl;
-   cout << "RP " << dbgRP << endl;
-   cout << "MTB " << dbgMTB << endl;
-   cout << "MTF " << dbgMTF << endl;
-   cout << "PRV " << dbgPRV << endl;
-   cout << "PRP " << dbgPRP << endl;
+  void PtrListDebug::TellAll()
+  {
+  //debug
+  cout << "IAP " << dbgIAP << endl;
+  cout << "RP " << dbgRP << endl;
+  cout << "MTB " << dbgMTB << endl;
+  cout << "MTF " << dbgMTF << endl;
+  cout << "PRV " << dbgPRV << endl;
+  cout << "PRP " << dbgPRP << endl;
 
-}*/
+  }*/
 
 
 
 
 /**************************************************************************/
 /**
-** @class tPtrListNode
-**
-** Class tPtrListNode represents the items (or "nodes") on the list. Each
-** tPtrListNode object has two parts: the data pointer (of type NodeType *)
-** and a pointer to the next item on the list. Capabilities include copy
-** construction (from either another tPtrListNode or a NodeType *),
-** returning a pointer or reference to either the data or the tPtrListNode
-** itself, and assignment and equality/inequality operations.
-**
-*/
+ ** @class tPtrListNode
+ **
+ ** Class tPtrListNode represents the items (or "nodes") on the list. Each
+ ** tPtrListNode object has two parts: the data pointer (of type NodeType *)
+ ** and a pointer to the next item on the list. Capabilities include copy
+ ** construction (from either another tPtrListNode or a NodeType *),
+ ** returning a pointer or reference to either the data or the tPtrListNode
+ ** itself, and assignment and equality/inequality operations.
+ **
+ */
 /**************************************************************************/
 template< class NodeType >
 class tPtrListNode
 {
-    friend class tPtrList< NodeType >;
-    friend class tPtrListIter< NodeType >;
+  friend class tPtrList< NodeType >;
+  friend class tPtrListIter< NodeType >;
 public:
-    tPtrListNode();                                    // default constructor
-    tPtrListNode( const tPtrListNode< NodeType > & );  // copy constr #1
-    tPtrListNode( NodeType * );                        // copy constr #2
-    ~tPtrListNode();                                   // destructor
-    const tPtrListNode< NodeType >
-    &operator=( const tPtrListNode< NodeType > & );          // assignment
-    int operator==( const tPtrListNode< NodeType > & ) const;  // equality
-    int operator!=( const tPtrListNode< NodeType > & ) const;  // inequality
-    NodeType *getPtrNC();                              // return data ptr
-    const NodeType *getPtr() const;                    // return const data ptr
-    tPtrListNode< NodeType > *getNextNC();             // return next item
-    const tPtrListNode< NodeType > * getNext() const;  // return next as const
-    tPtrListNode< NodeType > *getPrevNC();
-    const tPtrListNode< NodeType > * getPrev() const;
+  tPtrListNode();                                    // default constructor
+  tPtrListNode( const tPtrListNode< NodeType > & );  // copy constr #1
+  tPtrListNode( NodeType * );                        // copy constr #2
+  ~tPtrListNode();                                   // destructor
+  const tPtrListNode< NodeType >
+  &operator=( const tPtrListNode< NodeType > & );          // assignment
+  bool operator==( const tPtrListNode< NodeType > & ) const;  // equality
+  bool operator!=( const tPtrListNode< NodeType > & ) const;  // inequality
+  NodeType *getPtrNC();                              // return data ptr
+  const NodeType *getPtr() const;                    // return const data ptr
+  tPtrListNode< NodeType > *getNextNC();             // return next item
+  const tPtrListNode< NodeType > * getNext() const;  // return next as const
+  tPtrListNode< NodeType > *getPrevNC();
+  const tPtrListNode< NodeType > * getPrev() const;
 private:
-    NodeType * Ptr;                   // ptr to data
-    tPtrListNode< NodeType > * next;  // ptr to next list item
-    tPtrListNode< NodeType > * prev;
+  NodeType * Ptr;                   // ptr to data
+  tPtrListNode< NodeType > * next;  // ptr to next list item
+  tPtrListNode< NodeType > * prev;
 };
 
 
 /**************************************************************************/
 /**
-** @class tPtrList
-**
-** Class tPtrList implements a linked list of pointers. The class includes
-** pointers to the first and last list nodes (see tPtrListNode) and the
-** number of items on the list.
-**
-*/
+ ** @class tPtrList
+ **
+ ** Class tPtrList implements a linked list of pointers. The class includes
+ ** pointers to the first and last list nodes (see tPtrListNode) and the
+ ** number of items on the list.
+ **
+ */
 /**************************************************************************/
 template< class NodeType >
 class tPtrList
 {
-    friend class tPtrListIter< NodeType >;
+  friend class tPtrListIter< NodeType >;
 public:
-    tPtrList();                               // default constructor
-    tPtrList( const tPtrList< NodeType > & ); // copy constructor
-    tPtrList( const tPtrList< NodeType > * ); // copy constructor
-    ~tPtrList();                              // destructor
-    const tPtrList< NodeType >
-    &operator=( const tPtrList< NodeType > & );  // assignment
-    void insertAtFront( NodeType * ); // puts ptr at list front
-    void insertAtBack( NodeType * );  // puts ptr at list back
-    void insertAtNext( NodeType *, tPtrListNode< NodeType > * );
-    void insertAtPrev( NodeType *, tPtrListNode< NodeType > * );
+  tPtrList();                               // default constructor
+  tPtrList( const tPtrList< NodeType > & ); // copy constructor
+  tPtrList( const tPtrList< NodeType > * ); // copy constructor
+  ~tPtrList();                              // destructor
+  const tPtrList< NodeType >
+  &operator=( const tPtrList< NodeType > & );  // assignment
+  void insertAtFront( NodeType * ); // puts ptr at list front
+  void insertAtBack( NodeType * );  // puts ptr at list back
+  void insertAtNext( NodeType *, tPtrListNode< NodeType > * );
+  void insertAtPrev( NodeType *, tPtrListNode< NodeType > * );
 #if defined(SUPPORT_DEPRECATED)
-    int removeFromFront( NodeType * );  // removes 1st item, puts in ptr
+  int removeFromFront( NodeType * );  // removes 1st item, puts in ptr
 #endif
-    NodeType * removeFromFront();       // removes & returns 1st item
+  NodeType * removeFromFront();       // removes & returns 1st item
 #if defined(SUPPORT_DEPRECATED)
-    int removeFromBack( NodeType * );   // removes last item, puts in ptr
+  int removeFromBack( NodeType * );   // removes last item, puts in ptr
 #endif
-    NodeType * removeFromBack();        // removes & returns last item
+  NodeType * removeFromBack();        // removes & returns last item
 #if defined(SUPPORT_DEPRECATED)
-    int removeNext( NodeType *, tPtrListNode< NodeType > * );
+  int removeNext( NodeType *, tPtrListNode< NodeType > * );
 #endif
-    NodeType* removeNext(tPtrListNode< NodeType > * );
+  NodeType* removeNext(tPtrListNode< NodeType > * );
 #if defined(SUPPORT_DEPRECATED)
-    int removePrev( NodeType *, tPtrListNode< NodeType > * );
+  int removePrev( NodeType *, tPtrListNode< NodeType > * );
 #endif
-    NodeType* removePrev( tPtrListNode< NodeType > * );
-    void Flush();         // clears & reinitializes list
-    int isEmpty() const;  // returns 1 if list empty, 0 otherwise
-    void print() const;   // prints list contents -- DEBUG ONLY
-    int getSize() const;  // returns size of list
-    tPtrListNode< NodeType > * getFirstNC();  // returns ptr to 1st list node
-    const tPtrListNode< NodeType > * getFirst() const;  // return const "
-    void moveToBack( tPtrListNode< NodeType > *  );   // moves item to back
-    void moveToFront( tPtrListNode< NodeType > *  );  // moves item to front
-    tPtrListNode< NodeType > * getLast() const;
-    void makeCircular();
-    const NodeType *getIthPtr( int ) const;
-    NodeType *getIthPtrNC( int ) const;
-    const tPtrListNode< NodeType >* getIth( int ) const;
-    tPtrListNode< NodeType >* getIthNC( int ) const;
+  NodeType* removePrev( tPtrListNode< NodeType > * );
+  void Flush();         // clears & reinitializes list
+  bool isEmpty() const;  // returns true if list empty, false otherwise
+  void print() const;   // prints list contents -- DEBUG ONLY
+  int getSize() const;  // returns size of list
+  tPtrListNode< NodeType > * getFirstNC();  // returns ptr to 1st list node
+  const tPtrListNode< NodeType > * getFirst() const;  // return const "
+  void moveToBack( tPtrListNode< NodeType > *  );   // moves item to back
+  void moveToFront( tPtrListNode< NodeType > *  );  // moves item to front
+  tPtrListNode< NodeType > * getLast() const;
+  void makeCircular();
+  const NodeType *getIthPtr( int ) const;
+  NodeType *getIthPtrNC( int ) const;
+  const tPtrListNode< NodeType >* getIth( int ) const;
+  tPtrListNode< NodeType >* getIthNC( int ) const;
 
 private:
-    int nNodes;
-    tPtrListNode< NodeType > * first;
-    tPtrListNode< NodeType > * last;
-    tPtrListNode< NodeType > * getNewNode( NodeType * );
+  int nNodes;
+  tPtrListNode< NodeType > * first;
+  tPtrListNode< NodeType > * last;
+  tPtrListNode< NodeType > * getNewNode( NodeType * );
 };
 
 
 /**************************************************************************/
 /**
-** @class tPtrListIter
-**
-** Helper class for tPtrList. tPtrListIters are "iterators" that walk up &
-** down a tPtrList, fetching items. Their chief advantage is that you can
-** have multiple iterators on any given list at once, and thus multiple
-** access points. Use of iterator classes is discussed by Deitel and
-** Deitel, _C++ How to Program_, first edition, Prentice Hall, 1994.
-**
-** Note that in the current implementation, list items are fetched by
-** ID number, which presupposes that the list items have a member function
-** getID. This restricts the generality of tPtrList, and should be moved
-** to tMeshList. (TODO)
-**
-** Modifications:
-**  - added 2nd copy constructor, GT, 1/2000
-**
-*/
+ ** @class tPtrListIter
+ **
+ ** Helper class for tPtrList. tPtrListIters are "iterators" that walk up &
+ ** down a tPtrList, fetching items. Their chief advantage is that you can
+ ** have multiple iterators on any given list at once, and thus multiple
+ ** access points. Use of iterator classes is discussed by Deitel and
+ ** Deitel, _C++ How to Program_, first edition, Prentice Hall, 1994.
+ **
+ ** Note that in the current implementation, list items are fetched by
+ ** ID number, which presupposes that the list items have a member function
+ ** getID. This restricts the generality of tPtrList, and should be moved
+ ** to tMeshList. (TODO)
+ **
+ ** Modifications:
+ **  - added 2nd copy constructor, GT, 1/2000
+ **
+ */
 /**************************************************************************/
 //TO DO: make Get, Where, GetP, refer to place in list rather than use getID()
 template< class NodeType >
 class tPtrListIter
 {
   tPtrListIter& operator=( const tPtrListIter& );
-  public:
-   tPtrListIter();
-   tPtrListIter( const tPtrListIter< NodeType > & );
-   tPtrListIter( tPtrList< NodeType > & );
-   tPtrListIter( tPtrList< NodeType > * );
-   ~tPtrListIter();
-   int First();
-   int Last();
-   int Get( int );
-   int Get( const NodeType * );
-   int Where() const;
-   NodeType *DatPtr() const;
-   tPtrListNode< NodeType > *NodePtr();
-   int Next();
-   int Prev();
-   int NextIsNotFirst() const;
-   void Reset( tPtrList< NodeType > & );
-   NodeType *NextP();
-   NodeType *GetP( int ); //use only if NodeType has member getID()!!
-   NodeType *FirstP();
-   NodeType *LastP();
-   NodeType *PrevP();
-   NodeType *ReportNextP() const;
-   NodeType *ReportPrevP() const;
-   int AtEnd() const;
-   int AtFirst();
-  private:
-   tPtrList< NodeType > * ptrlistPtr;
-   tPtrListNode< NodeType > * curptrnode;
-   int counter;
+public:
+  tPtrListIter();
+  tPtrListIter( const tPtrListIter< NodeType > & );
+  tPtrListIter( tPtrList< NodeType > & );
+  tPtrListIter( tPtrList< NodeType > * );
+  ~tPtrListIter();
+  int First();
+  int Last();
+  int Get( int );
+  int Get( const NodeType * );
+  int Where() const;
+  NodeType *DatPtr() const;
+  tPtrListNode< NodeType > *NodePtr();
+  int Next();
+  int Prev();
+  int NextIsNotFirst() const;
+  void Reset( tPtrList< NodeType > & );
+  NodeType *NextP();
+  NodeType *GetP( int ); //use only if NodeType has member getID()!!
+  NodeType *FirstP();
+  NodeType *LastP();
+  NodeType *PrevP();
+  NodeType *ReportNextP() const;
+  NodeType *ReportPrevP() const;
+  bool AtEnd() const;
+private:
+  tPtrList< NodeType > * ptrlistPtr;
+  tPtrListNode< NodeType > * curptrnode;
+  int counter;
 };
 
 
 /**************************************************************************\
-**
-**  tPtrListNode constructors & destructor:
-**
-**  Default constructor: sets ptr & next to null
-**  Copy constructor #1: makes a copy of a given tPtrListNode
-**  Copy constructor #2: init's data ptr with NTPtr
-**  Destructor: sets both pointers to zero
-**
+ **
+ **  tPtrListNode constructors & destructor:
+ **
+ **  Default constructor: sets ptr & next to null
+ **  Copy constructor #1: makes a copy of a given tPtrListNode
+ **  Copy constructor #2: init's data ptr with NTPtr
+ **  Destructor: sets both pointers to zero
+ **
 \**************************************************************************/
 
 //default constructor
@@ -305,21 +304,21 @@ template< class NodeType >                  //tPtrListNode
 inline tPtrListNode< NodeType >::
 ~tPtrListNode()
 {
-   Ptr = 0;  //redirect the pointer away from its target
-   next = prev = 0;
+  Ptr = 0;  //redirect the pointer away from its target
+  next = prev = 0;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListNode overloaded operators:
-**
-**  Assignment: makes a copy (including next ptr)
-**  Equality: compares both data and next ptr (note: must point to the
-**            same data location; identical data in different locations
-**            are not considered equal)
-**  Inequality: compares both data and next ptr (as above)
-**
+ **
+ **  tPtrListNode overloaded operators:
+ **
+ **  Assignment: makes a copy (including next ptr)
+ **  Equality: compares both data and next ptr (note: must point to the
+ **            same data location; identical data in different locations
+ **            are not considered equal)
+ **  Inequality: compares both data and next ptr (as above)
+ **
 \**************************************************************************/
 
 //overloaded assignment operator
@@ -327,46 +326,46 @@ template< class NodeType >                  //tPtrListNode
 inline const tPtrListNode< NodeType > &tPtrListNode< NodeType >::
 operator=( const tPtrListNode< NodeType > &right )
 {
-   if( &right != this )
-   {
+  if( &right != this )
+    {
       Ptr = right.Ptr;
       next = right.next;
       prev = right.prev;
-   }
-   return *this;
+    }
+  return *this;
 }
 
 //overloaded equality operator:
 template< class NodeType >                  //tPtrListNode
-inline int tPtrListNode< NodeType >::
+inline bool tPtrListNode< NodeType >::
 operator==( const tPtrListNode< NodeType > &right ) const
 {
-   if( next != right.next ) return 0;
-   if( prev != right.prev ) return 0;
-   if( Ptr != right.Ptr ) return 0;
-   return 1;
+  if( next != right.next ) return false;
+  if( prev != right.prev ) return false;
+  if( Ptr != right.Ptr ) return false;
+  return true;
 }
 
 //overloaded inequality operator:
 template< class NodeType >                  //tPtrListNode
-inline int tPtrListNode< NodeType >::
+inline bool tPtrListNode< NodeType >::
 operator!=( const tPtrListNode< NodeType > &right ) const
 {
-   return ! operator==(right);
+  return ! operator==(right);
 }
 
 
 
 /**************************************************************************\
-**
-**  tPtrListNode "get" functions:
-**  (note: to "set" an item, use non-const "get")
-**
-**  getPtr: returns copy of data pointer as const
-**  getPtrNC: returns a non-const (modifiable) copy of data ptr
-**  getNext: returns const ptr to next item on list
-**  getNextNC: returns non-const ptr to next item on list
-**
+ **
+ **  tPtrListNode "get" functions:
+ **  (note: to "set" an item, use non-const "get")
+ **
+ **  getPtr: returns copy of data pointer as const
+ **  getPtrNC: returns a non-const (modifiable) copy of data ptr
+ **  getNext: returns const ptr to next item on list
+ **  getNextNC: returns non-const ptr to next item on list
+ **
 \**************************************************************************/
 
 template< class NodeType >                  //tPtrListNode
@@ -396,19 +395,19 @@ getPrevNC( ) {return prev;}
 
 
 /**************************************************************************\
-**
-**  tPtrList constructors & destructor:
-**
-**  Default constructor: initializes all values to 0 (empty list)
-**  Copy constructors: each makes a complete copy of another tPtrList.
-**                     (one takes a reference, the other a ptr)
-**  Destructor: deletes all nodes on list. NOTE: does not destroy the
-**              data items themselves!
-**
-**  Modifications:
-**   - 2nd copy constructor added 1/2000, GT
-**   - bug in both copy constructors: use of undeclared variable NTPtr.
-**     Fixed 3/00, GT
+ **
+ **  tPtrList constructors & destructor:
+ **
+ **  Default constructor: initializes all values to 0 (empty list)
+ **  Copy constructors: each makes a complete copy of another tPtrList.
+ **                     (one takes a reference, the other a ptr)
+ **  Destructor: deletes all nodes on list. NOTE: does not destroy the
+ **              data items themselves!
+ **
+ **  Modifications:
+ **   - 2nd copy constructor added 1/2000, GT
+ **   - bug in both copy constructors: use of undeclared variable NTPtr.
+ **     Fixed 3/00, GT
 \**************************************************************************/
 
 //default constructor
@@ -427,16 +426,16 @@ inline tPtrList< NodeType >::
 tPtrList( const tPtrList< NodeType > & orig ) :
   nNodes(0), first(0), last(0)
 {
-   tPtrListNode< NodeType > *curNode = orig.first;
+  tPtrListNode< NodeType > *curNode = orig.first;
 
-   if( curNode != 0 )
-   {
+  if( curNode != 0 )
+    {
       insertAtBack( curNode->Ptr );
       for( curNode=curNode->next; curNode!=orig.last->next; curNode=curNode->next )
-         insertAtBack( curNode->Ptr );
+	insertAtBack( curNode->Ptr );
       if( orig.last->next == orig.first ) last->next = first;
       if( orig.first->prev == orig.last ) first->prev = last;
-   }
+    }
 }
 
 //second copy constructor
@@ -445,16 +444,16 @@ inline tPtrList< NodeType >::
 tPtrList( const tPtrList< NodeType > * origptr ) :
   nNodes(0), first(0), last(0)
 {
-   tPtrListNode< NodeType > *curNode = origptr->first;
+  tPtrListNode< NodeType > *curNode = origptr->first;
 
-   if( curNode != 0 )
-   {
+  if( curNode != 0 )
+    {
       insertAtBack( curNode->Ptr );
       for( curNode=curNode->next; curNode!=origptr->last->next; curNode=curNode->next )
-         insertAtBack( curNode->Ptr );
+	insertAtBack( curNode->Ptr );
       if( origptr->last->next == origptr->first ) last->next = first;
       if( origptr->first->prev == origptr->last ) first->prev = last;
-   }
+    }
 }
 
 
@@ -463,34 +462,34 @@ template< class NodeType >                      //tPtrList
 inline tPtrList< NodeType >::
 ~tPtrList()
 {
-   if( !isEmpty() )
-   {
+  if( !isEmpty() )
+    {
       tPtrListNode<NodeType > * current = first, * temp;
       first = 0;
       while( last != 0 )
-      {
-         temp = current;
-         if( current != last ) current = current->next;
-         else
-         {
-            current = 0;
-            last = 0;
-         }
-         delete temp;
-      }
-   }
-   first = 0;
-   last = 0;
+	{
+	  temp = current;
+	  if( current != last ) current = current->next;
+	  else
+	    {
+	      current = 0;
+	      last = 0;
+	    }
+	  delete temp;
+	}
+    }
+  first = 0;
+  last = 0;
 }
 
 
 
 /**************************************************************************\
-**
-**  tPtrList overloaded operators:
-**
-**  Assignment: clears the list and makes a copy of the right-hand list
-**
+ **
+ **  tPtrList overloaded operators:
+ **
+ **  Assignment: clears the list and makes a copy of the right-hand list
+ **
 \**************************************************************************/
 
 //overloaded assignment operator
@@ -498,149 +497,149 @@ template< class NodeType >                      //tPtrList
 inline const tPtrList< NodeType > &tPtrList< NodeType >::
 operator=( const tPtrList< NodeType > &right )
 {
-   if( this != &right )
-   {
+  if( this != &right )
+    {
       Flush();
       tPtrListNode< NodeType > *cn = right.first;
       if( cn != 0 )
-      {
-         insertAtBack( cn->Ptr );
-         for( cn = cn->next; cn != right.last->next; cn = cn->next )
-             insertAtBack( cn->Ptr );
-         if( right.last->next == right.first ) last->next = first;
-         if( right.first->prev == right.last ) first->prev = last;
-      }
-   }
-   return *this;
+	{
+	  insertAtBack( cn->Ptr );
+	  for( cn = cn->next; cn != right.last->next; cn = cn->next )
+	    insertAtBack( cn->Ptr );
+	  if( right.last->next == right.first ) last->next = first;
+	  if( right.first->prev == right.last ) first->prev = last;
+	}
+    }
+  return *this;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrList::getNewNode
-**
-**  Creates a new tPtrListNode and returns a pointer to it. Used by list
-**  insertion routines (see below); not publically accessible.
-**
+ **
+ **  tPtrList::getNewNode
+ **
+ **  Creates a new tPtrListNode and returns a pointer to it. Used by list
+ **  insertion routines (see below); not publically accessible.
+ **
 \**************************************************************************/
 template< class NodeType >                      //tPtrList
 inline tPtrListNode< NodeType > * tPtrList< NodeType >::
 getNewNode( NodeType *NTPtr )
 {
-   tPtrListNode< NodeType > * newptr =
-       new tPtrListNode< NodeType >( NTPtr );
-   assert( newptr != 0 );
-   nNodes++;
-   return newptr;
+  tPtrListNode< NodeType > * newptr =
+    new tPtrListNode< NodeType >( NTPtr );
+  assert( newptr != 0 );
+  nNodes++;
+  return newptr;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrList: list insertion routines
-**
-**  A collection of routines to add items to the list.
-**
-**    insertAtFront: new item with given ptr at top of list
-**    insertAtBack: new item with given ptr at bottom of list
-**    insertAtNext: place new node on the list after _prev_
-**    insertAtPrev: place new node on the list before _node_
-**
+ **
+ **  tPtrList: list insertion routines
+ **
+ **  A collection of routines to add items to the list.
+ **
+ **    insertAtFront: new item with given ptr at top of list
+ **    insertAtBack: new item with given ptr at bottom of list
+ **    insertAtNext: place new node on the list after _prev_
+ **    insertAtPrev: place new node on the list before _node_
+ **
 \**************************************************************************/
 
 template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 insertAtFront( NodeType *NTPtr )
 {
-   tPtrListNode< NodeType > *newPtr = getNewNode( NTPtr );
-   if( isEmpty() )
-       first = last = newPtr;
-   else
-   {
+  tPtrListNode< NodeType > *newPtr = getNewNode( NTPtr );
+  if( isEmpty() )
+    first = last = newPtr;
+  else
+    {
       newPtr->next = first;
       newPtr->prev = first->prev;
       first->prev = newPtr;
       if( last->next == first )
 	last->next = newPtr;
       first = newPtr;
-   }
+    }
 }
 
 template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 insertAtBack( NodeType *NTPtr )
 {
-   tPtrListNode< NodeType > * newPtr = getNewNode( NTPtr );
-   assert( this != 0 );
-   if( isEmpty() )
-      first = last = newPtr;
-   else
-   {
+  tPtrListNode< NodeType > * newPtr = getNewNode( NTPtr );
+  assert( this != 0 );
+  if( isEmpty() )
+    first = last = newPtr;
+  else
+    {
       newPtr->next = last->next;
       newPtr->prev = last;
       last->next = newPtr;
       if( first->prev == last )
-          first->prev = newPtr;
+	first->prev = newPtr;
       last = newPtr;
-   }
+    }
 }
 
 template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 insertAtNext( NodeType *NTPtr, tPtrListNode< NodeType > * prev )
 {
-   if( prev != 0 )
-   {
+  if( prev != 0 )
+    {
       if( prev == last )
-      {
-         insertAtBack( NTPtr );
-         return;
-      }
+	{
+	  insertAtBack( NTPtr );
+	  return;
+	}
       tPtrListNode< NodeType > * newPtr = getNewNode( NTPtr );
       newPtr->next = prev->next;
       newPtr->prev = prev;
       prev->next->prev = newPtr;
       prev->next = newPtr;
-   }
+    }
 }
 
 template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 insertAtPrev( NodeType *NTPtr, tPtrListNode< NodeType > * node )
 {
-   if( node != 0 )
-   {
+  if( node != 0 )
+    {
       if( node == first )
-      {
-         insertAtFront( NTPtr );
-         return;
-      }
+	{
+	  insertAtFront( NTPtr );
+	  return;
+	}
       tPtrListNode< NodeType > * newPtr = getNewNode( NTPtr );
       newPtr->next = node;
       newPtr->prev = node->prev;
       node->prev->next = newPtr;
       node->prev = newPtr;
-   }
+    }
 }
 
 
 /**************************************************************************\
-**
-**  tPtrList::removeFromFront
-**
-**  Version 1: Removes the first item on the list and points NTPtr to the
-**  new 1st item. Returns 0 if the list is already empty, 1 otherwise. Note
-**  that if the list is empty, NTPtr is unchanged.
-**
-**  Version 2: Removes the first item on the list and returns it.
-**
-**  ALERT: There is a potential bug here: if the list is circular but
-**  contains only one item (which points to itself), NTPtr will contain
-**  a dangling pointer! TODO (gt)
-**
-**  Modifications:
-**   - version 2 added 1/2000, GT
-**
+ **
+ **  tPtrList::removeFromFront
+ **
+ **  Version 1: Removes the first item on the list and points NTPtr to the
+ **  new 1st item. Returns 0 if the list is already empty, 1 otherwise. Note
+ **  that if the list is empty, NTPtr is unchanged.
+ **
+ **  Version 2: Removes the first item on the list and returns it.
+ **
+ **  ALERT: There is a potential bug here: if the list is circular but
+ **  contains only one item (which points to itself), NTPtr will contain
+ **  a dangling pointer! TODO (gt)
+ **
+ **  Modifications:
+ **   - version 2 added 1/2000, GT
+ **
 \**************************************************************************/
 #if defined(SUPPORT_DEPRECATED)
 template< class NodeType >
@@ -657,36 +656,36 @@ template< class NodeType >
 inline NodeType* tPtrList< NodeType >::
 removeFromFront()
 {
-   NodeType *NTPtr = 0;
-   if( isEmpty() ) return 0;
-   else
-   {
+  NodeType *NTPtr = 0;
+  if( isEmpty() ) return 0;
+  else
+    {
       tPtrListNode< NodeType > * temp = first;
       if( first == last ) first = last = 0;
       else
-      {
-         first->next->prev = first->prev;
-         if( last->next == first ) last->next = first->next;
-         first = first->next;
-      }
+	{
+	  first->next->prev = first->prev;
+	  if( last->next == first ) last->next = first->next;
+	  first = first->next;
+	}
       NTPtr = temp->Ptr;
       delete temp;
       --nNodes;
       return NTPtr;
-   }
+    }
 }
 
 /**************************************************************************\
-**
-**  tPtrList::removeFromBack
-**
-**  Removes the last item on the list and points NTPtr to the new last
-**  item. Returns 0 if the list is already empty, 1 otherwise. Note that
-**  if the list is empty, NTPtr is unchanged.
-**
-**  ALERT: There is a potential bug here: if the list is circular but
-**  contains only one item (which points to itself), NTPtr will contain
-**  a dangling pointer! TODO (gt)
+ **
+ **  tPtrList::removeFromBack
+ **
+ **  Removes the last item on the list and points NTPtr to the new last
+ **  item. Returns 0 if the list is already empty, 1 otherwise. Note that
+ **  if the list is empty, NTPtr is unchanged.
+ **
+ **  ALERT: There is a potential bug here: if the list is circular but
+ **  contains only one item (which points to itself), NTPtr will contain
+ **  a dangling pointer! TODO (gt)
 \**************************************************************************/
 #if defined(SUPPORT_DEPRECATED)
 template< class NodeType >
@@ -703,32 +702,32 @@ template< class NodeType >
 inline NodeType* tPtrList< NodeType >::
 removeFromBack()
 {
-   NodeType *NTPtr = 0;
-   if( isEmpty() ) return 0;
-   else
-   {
+  NodeType *NTPtr = 0;
+  if( isEmpty() ) return 0;
+  else
+    {
       tPtrListNode< NodeType > * temp = last;
       if( first == last ) first = last = 0;
       else
-      {
-         last->prev->next = last->next;
-         if( first->prev == last ) first->prev = last->prev;
-         last = last->prev;
-      }
+	{
+	  last->prev->next = last->next;
+	  if( first->prev == last ) first->prev = last->prev;
+	  last = last->prev;
+	}
       NTPtr = temp->Ptr;
       delete temp;
       --nNodes;
       return NTPtr;
-   }
+    }
 }
 
 /**************************************************************************\
-**
-**  tPtrList::removeNext
-**
-**  Removes the item after _ptr_ on the list, returning the pointer in
-**  NTPtr.
-**
+ **
+ **  tPtrList::removeNext
+ **
+ **  Removes the item after _ptr_ on the list, returning the pointer in
+ **  NTPtr.
+ **
 \**************************************************************************/
 #if defined(SUPPORT_DEPRECATED)
 template< class NodeType >
@@ -745,27 +744,27 @@ template< class NodeType >
 inline NodeType* tPtrList< NodeType >::
 removeNext( tPtrListNode< NodeType >* ptr )
 {
-   NodeType* NTPtr = 0;
-   if( ptr == 0 ) return NTPtr;
-   if( ptr->next == 0 ) return NTPtr;
-   if( ptr->next == last ) return removeFromBack();
-   if( ptr->next == first ) return removeFromFront();
-   tPtrListNode< NodeType > * temp = ptr->next;
-   ptr->next = ptr->next->next;
-   ptr->next->prev = ptr;
-   NTPtr = temp->Ptr;
-   delete temp;
-   --nNodes;
-   return NTPtr;
+  NodeType* NTPtr = 0;
+  if( ptr == 0 ) return NTPtr;
+  if( ptr->next == 0 ) return NTPtr;
+  if( ptr->next == last ) return removeFromBack();
+  if( ptr->next == first ) return removeFromFront();
+  tPtrListNode< NodeType > * temp = ptr->next;
+  ptr->next = ptr->next->next;
+  ptr->next->prev = ptr;
+  NTPtr = temp->Ptr;
+  delete temp;
+  --nNodes;
+  return NTPtr;
 }
 
 /**************************************************************************\
-**
-**  tPtrList::removePrev
-**
-**  Removes the item before _ptr_ on the list, returning the pointer in
-**  NTPtr.
-**
+ **
+ **  tPtrList::removePrev
+ **
+ **  Removes the item before _ptr_ on the list, returning the pointer in
+ **  NTPtr.
+ **
 \**************************************************************************/
 #if defined(SUPPORT_DEPRECATED)
 template< class NodeType >
@@ -782,140 +781,140 @@ template< class NodeType >
 inline NodeType* tPtrList< NodeType >::
 removePrev( tPtrListNode< NodeType > * ptr )
 {
-   NodeType* NTPtr = 0;
-   if( ptr == 0 ) return NTPtr;
-   if( ptr->prev == 0 ) return NTPtr;
-   if( ptr->prev == last ) return removeFromBack();
-   if( ptr->prev == first ) return removeFromFront();
-   tPtrListNode< NodeType >* temp = ptr->prev;
-   ptr->prev = ptr->prev->prev;
-   ptr->prev->next = ptr;
-   NTPtr = temp->Ptr;
-   delete temp;
-   --nNodes;
-   return NTPtr;
+  NodeType* NTPtr = 0;
+  if( ptr == 0 ) return NTPtr;
+  if( ptr->prev == 0 ) return NTPtr;
+  if( ptr->prev == last ) return removeFromBack();
+  if( ptr->prev == first ) return removeFromFront();
+  tPtrListNode< NodeType >* temp = ptr->prev;
+  ptr->prev = ptr->prev->prev;
+  ptr->prev->next = ptr;
+  NTPtr = temp->Ptr;
+  delete temp;
+  --nNodes;
+  return NTPtr;
 }
 
 /**************************************************************************\
-**
-**  tPtrList::moveToFront and moveToBack
-**
-**  Moves the list item pointed to by mvnode to the front or back of
-**  the list, respectively.
-**
+ **
+ **  tPtrList::moveToFront and moveToBack
+ **
+ **  Moves the list item pointed to by mvnode to the front or back of
+ **  the list, respectively.
+ **
 \**************************************************************************/
 
 template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 moveToBack( tPtrListNode< NodeType > * mvnode )
 {
-   if( mvnode != last )
-   {
+  if( mvnode != last )
+    {
       if( mvnode == first )
-      {
-         first->next->prev = first->prev;
-         first = first->next;
-      }
+	{
+	  first->next->prev = first->prev;
+	  first = first->next;
+	}
       else
-      {
-         mvnode->prev->next = mvnode->next;
-         mvnode->next->prev = mvnode->prev;
-      }
+	{
+	  mvnode->prev->next = mvnode->next;
+	  mvnode->next->prev = mvnode->prev;
+	}
       mvnode->next = last->next;
       mvnode->prev = last;
       if( first->prev != 0 ) first->prev = mvnode;
       last->next = mvnode;
       last = mvnode;
-   }
+    }
 }
 
 template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 moveToFront( tPtrListNode< NodeType > * mvnode )
 {
-   if( mvnode != first )
-   {
+  if( mvnode != first )
+    {
       if( mvnode == last )
-      {
-         last->prev->next = last->next;
-         last = last->prev;
-      }
+	{
+	  last->prev->next = last->next;
+	  last = last->prev;
+	}
       else
-      {
-         mvnode->prev->next = mvnode->next;
-         mvnode->next->prev = mvnode->prev;
-      }
+	{
+	  mvnode->prev->next = mvnode->next;
+	  mvnode->next->prev = mvnode->prev;
+	}
       mvnode->next = first;
       mvnode->prev = first->prev;
       if( last->next != 0 ) last->next = mvnode;
       first->prev = mvnode;
       first = mvnode;
-   }
+    }
 }
 
 
 /**************************************************************************\
-**
-**  tPtrList::Flush
-**
-**  Deletes all nodes on list. NOTE: destroys only the pointers, not the
-**  data.
-**
+ **
+ **  tPtrList::Flush
+ **
+ **  Deletes all nodes on list. NOTE: destroys only the pointers, not the
+ **  data.
+ **
 \**************************************************************************/
 template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 Flush()
 {
-   assert( this!=0 );
-   if( !isEmpty() )
-   {
+  assert( this!=0 );
+  if( !isEmpty() )
+    {
       tPtrListNode<NodeType > *current = first, * temp;
       first = 0;
       while( last != 0 )
-      {
-         temp = current;
-         if( current != last ) current = current->next;
-         else
-         {
-            current = 0;
-            last = 0;
-         }
-         delete temp;
-      }
-   }
-   assert( isEmpty() );
-   nNodes = 0;
+	{
+	  temp = current;
+	  if( current != last ) current = current->next;
+	  else
+	    {
+	      current = 0;
+	      last = 0;
+	    }
+	  delete temp;
+	}
+    }
+  assert( isEmpty() );
+  nNodes = 0;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrList::isEmpty
-**
-**  Returns TRUE if first points to null; FALSE otherwise.
-**
+ **
+ **  tPtrList::isEmpty
+ **
+ **  Returns TRUE if first points to null; FALSE otherwise.
+ **
 \**************************************************************************/
 template< class NodeType >                      //tPtrList
-inline int tPtrList< NodeType >::
+inline bool tPtrList< NodeType >::
 isEmpty() const
 {
   return
-    ( first == 0 ) ? 1 : 0;
+    ( first == 0 ) ? true : false;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrList "get" functions:
-**
-**  getSize: returns # of items on list
-**  getFirstNC: returns non-const ptr to first tPtrListNode
-**  getFirst: returns const ptr to first tPtrListNode
-**  getLast: returns const ptr to last tPtrListNode
-**  getIthPtr: returns a const copy of the Ith data pointer
-**  getIthPtrNC: returns a non-const copy of the Ith data pointer
-**  (see also getListNode)
-**
+ **
+ **  tPtrList "get" functions:
+ **
+ **  getSize: returns # of items on list
+ **  getFirstNC: returns non-const ptr to first tPtrListNode
+ **  getFirst: returns const ptr to first tPtrListNode
+ **  getLast: returns const ptr to last tPtrListNode
+ **  getIthPtr: returns a const copy of the Ith data pointer
+ **  getIthPtrNC: returns a non-const copy of the Ith data pointer
+ **  (see also getListNode)
+ **
 \**************************************************************************/
 
 //return size
@@ -939,53 +938,53 @@ template< class NodeType >
 inline const NodeType *tPtrList< NodeType >::
 getIthPtr( int num ) const
 {
-   return getIth( num )->getPtr();
+  return getIth( num )->getPtr();
 }
 
 template< class NodeType >
 inline NodeType *tPtrList< NodeType >::
 getIthPtrNC( int num ) const
 {
-   return getIthNC( num )->getPtrNC();
+  return getIthNC( num )->getPtrNC();
 }
 
 template< class NodeType >
 inline const tPtrListNode< NodeType >* tPtrList< NodeType >::
 getIth( int num ) const
 {
-   assert( num >= 0 && num < nNodes );
-   return getIthNC(num);
+  assert( num >= 0 && num < nNodes );
+  return getIthNC(num);
 }
 
 template< class NodeType >
 inline tPtrListNode< NodeType >* tPtrList< NodeType >::
 getIthNC( int num ) const
 {
-   int i;
-   tPtrListNode< NodeType >* curPtr;
-   assert( num >= 0 && num < nNodes );
-   if( num > nNodes / 2 )
-       for( curPtr = last, i = nNodes-1; i>num; curPtr = curPtr->prev, --i );
-   else
-       for( curPtr = first, i = 0; i<num; curPtr = curPtr->next, ++i );
-   return curPtr;
+  int i;
+  tPtrListNode< NodeType >* curPtr;
+  assert( num >= 0 && num < nNodes );
+  if( num > nNodes / 2 )
+    for( curPtr = last, i = nNodes-1; i>num; curPtr = curPtr->prev, --i );
+  else
+    for( curPtr = first, i = 0; i<num; curPtr = curPtr->next, ++i );
+  return curPtr;
 }
 
 /**************************************************************************\
-**
-**  tPtrList::makeCircular
-**
-**  Converts the list into a circular list by having the last item point
-**  to the first.
-**
+ **
+ **  tPtrList::makeCircular
+ **
+ **  Converts the list into a circular list by having the last item point
+ **  to the first.
+ **
 \**************************************************************************/
 template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 makeCircular()
 {
-   assert( first != 0 && last != 0 );
-   last->next = first;
-   first->prev = last;
+  assert( first != 0 && last != 0 );
+  last->next = first;
+  first->prev = last;
 }
 
 
@@ -994,31 +993,31 @@ template< class NodeType >                      //tPtrList
 void tPtrList< NodeType >::
 print() const
 {
-   if( isEmpty() )
-   {
+  if( isEmpty() )
+    {
       cout<<"The list is empty"<<endl<<endl;
       return;
-   }
-   tPtrListNode< NodeType > * current = first;
-   cout<<"The list is: ";
-   while( current != 0 )
-   {
+    }
+  tPtrListNode< NodeType > * current = first;
+  cout<<"The list is: ";
+  while( current != 0 )
+    {
       cout<<current->Ptr->getID() <<' ';
       current = current->next;
-   }
-   cout<<endl<<endl;
+    }
+  cout<<endl<<endl;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter constructors & destructor:
-**
-**  Default constructor: initializes all values to 0
-**  Constructor: attaches the iterator to _ptrlist_ and moves to the first
-**               item
-**  Destructor: resets values to zero (needed?)
-**
+ **
+ **  tPtrListIter constructors & destructor:
+ **
+ **  Default constructor: initializes all values to 0
+ **  Constructor: attaches the iterator to _ptrlist_ and moves to the first
+ **               item
+ **  Destructor: resets values to zero (needed?)
+ **
 \**************************************************************************/
 
 template< class NodeType >     //tPtrListIter
@@ -1061,356 +1060,345 @@ tPtrListIter( tPtrList< NodeType > * ptrlist ) :
   curptrnode(0),
   counter(0)
 {
-   assert( ptrlist != 0 );
-   curptrnode = ptrlist->first;
+  assert( ptrlist != 0 );
+  curptrnode = ptrlist->first;
 }
 
 template< class NodeType >    //tPtrListIter
 inline tPtrListIter< NodeType >::
 ~tPtrListIter()
 {
-   ptrlistPtr = 0;
-   curptrnode = 0;
-   if (0) //DEBUG
-     cout << "    ~tPtrListIter()" << endl;
+  ptrlistPtr = 0;
+  curptrnode = 0;
+  if (0) //DEBUG
+    cout << "    ~tPtrListIter()" << endl;
 }
 
 /**************************************************************************\
-**
-**  tPtrListIter::Reset
-**
-**  Points iterator at the 1st node on _ptrlist_ (provides a way of telling
-**  an iterator which list to work on).
-**
+ **
+ **  tPtrListIter::Reset
+ **
+ **  Points iterator at the 1st node on _ptrlist_ (provides a way of telling
+ **  an iterator which list to work on).
+ **
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
 inline void tPtrListIter< NodeType >::
 Reset( tPtrList< NodeType > &ptrlist )
 {
-   assert( &ptrlist != 0 );
-   ptrlistPtr = &ptrlist;
-   assert( ptrlistPtr != 0 );
-   curptrnode = ptrlistPtr->first;
-   counter = 0;
+  assert( &ptrlist != 0 );
+  ptrlistPtr = &ptrlist;
+  assert( ptrlistPtr != 0 );
+  curptrnode = ptrlistPtr->first;
+  counter = 0;
 }
 
 /**************************************************************************\
-**
-**  tPtrListIter::First and Last
-**
-**  Move to the first or last item on the current list. Return TRUE if
-**  pointing to a valid list item, FALSE otherwise.
-**
+ **
+ **  tPtrListIter::First and Last
+ **
+ **  Move to the first or last item on the current list. Return TRUE if
+ **  pointing to a valid list item, FALSE otherwise.
+ **
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 First()
 {
-   assert( ptrlistPtr != 0 );
-   curptrnode = ptrlistPtr->first;
-   counter = 0;
-   if( curptrnode != 0 ) return 1;
-   return 0;
+  assert( ptrlistPtr != 0 );
+  curptrnode = ptrlistPtr->first;
+  counter = 0;
+  if( curptrnode != 0 ) return 1;
+  return 0;
 }
 
 template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 Last()
 {
-   assert( ptrlistPtr != 0 );
-   curptrnode = ptrlistPtr->last;
-   counter = ptrlistPtr->nNodes - 1;
-   if( curptrnode != 0 ) return 1;
-   return 0;
+  assert( ptrlistPtr != 0 );
+  curptrnode = ptrlistPtr->last;
+  counter = ptrlistPtr->nNodes - 1;
+  if( curptrnode != 0 ) return 1;
+  return 0;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter::Get
-**
-**  (1) Move to list item with ID number _num_. Note: assumes that list items
-**  have a member function getID()! Returns 1 if found, 0 if not.
-**
-**  (2) Move to list item containing pointer to desiredItemPtr; return
-**  zero if not found. (added by GT, 1/2000)
-**
+ **
+ **  tPtrListIter::Get
+ **
+ **  (1) Move to list item with ID number _num_. Note: assumes that list items
+ **  have a member function getID()! Returns 1 if found, 0 if not.
+ **
+ **  (2) Move to list item containing pointer to desiredItemPtr; return
+ **  zero if not found. (added by GT, 1/2000)
+ **
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 Get( int num )
 {
-   assert( ptrlistPtr != 0 );
-   tPtrListNode< NodeType > *tempnodeptr;
-   for( tempnodeptr = ptrlistPtr->first, counter = 0;
-        counter <= ptrlistPtr->getSize() && tempnodeptr != 0;
-        tempnodeptr = tempnodeptr->next, ++counter )
-     {
-       if( tempnodeptr->getPtr()->getID() == num )
-	 break;
-     }
-   if( tempnodeptr == 0 ) return 0;
-   if( tempnodeptr->getPtr()->getID() != num ) return 0;
-   curptrnode = tempnodeptr;
-   return 1;
+  assert( ptrlistPtr != 0 );
+  tPtrListNode< NodeType > *tempnodeptr;
+  for( tempnodeptr = ptrlistPtr->first, counter = 0;
+       counter <= ptrlistPtr->getSize() && tempnodeptr != 0;
+       tempnodeptr = tempnodeptr->next, ++counter )
+    {
+      if( tempnodeptr->getPtr()->getID() == num )
+	break;
+    }
+  if( tempnodeptr == 0 ) return 0;
+  if( tempnodeptr->getPtr()->getID() != num ) return 0;
+  curptrnode = tempnodeptr;
+  return 1;
 }
 
 template< class NodeType >
 inline int tPtrListIter< NodeType >::
 Get( const NodeType *desiredItemPtr )
 {
-   assert( ptrlistPtr != 0 );
-   tPtrListNode<NodeType> *tempnodeptr;
-   for( tempnodeptr=ptrlistPtr->first, counter = 0;
-	counter <= ptrlistPtr->getSize() && tempnodeptr != 0;
-	tempnodeptr=tempnodeptr->next, ++counter )
-     {
-       if( tempnodeptr->Ptr == desiredItemPtr )
-	 break;
-     }
-   if( tempnodeptr == 0 ) return 0;
-   if( tempnodeptr->Ptr != desiredItemPtr ) return 0;
-   curptrnode = tempnodeptr;
-   return 1;
+  assert( ptrlistPtr != 0 );
+  tPtrListNode<NodeType> *tempnodeptr;
+  for( tempnodeptr=ptrlistPtr->first, counter = 0;
+       counter <= ptrlistPtr->getSize() && tempnodeptr != 0;
+       tempnodeptr=tempnodeptr->next, ++counter )
+    {
+      if( tempnodeptr->Ptr == desiredItemPtr )
+	break;
+    }
+  if( tempnodeptr == 0 ) return 0;
+  if( tempnodeptr->Ptr != desiredItemPtr ) return 0;
+  curptrnode = tempnodeptr;
+  return 1;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter::Next and Prev
-**
-**  Move to the next or previous item on the current list. Return TRUE if
-**  pointing to a valid list item, FALSE otherwise. If we're not
-**  initially pointing to any item, then move to the first or last item,
-**  respectively. Both assume we're working on a valid list.
-**
+ **
+ **  tPtrListIter::Next and Prev
+ **
+ **  Move to the next or previous item on the current list. Return TRUE if
+ **  pointing to a valid list item, FALSE otherwise. If we're not
+ **  initially pointing to any item, then move to the first or last item,
+ **  respectively. Both assume we're working on a valid list.
+ **
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 Next()
 {
-   assert( ptrlistPtr != 0 );
-   if( curptrnode )
-   {
+  if( curptrnode != 0 )
+    {
       curptrnode = curptrnode->next;
       ++counter;
-      if( curptrnode )
-          return 1;
-      return 0;
-   }
-   curptrnode = ptrlistPtr->first;
-   counter = 0;
-   if( curptrnode ) return 1;
-   else return 0;
+      return curptrnode ? 1:0;
+    }
+  assert( ptrlistPtr != 0 );
+  curptrnode = ptrlistPtr->first;
+  counter = 0;
+  return curptrnode ? 1:0;
 }
 
 template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 Prev()
 {
-   assert( ptrlistPtr != 0 );
-   if( curptrnode )
-   {
+  if( curptrnode != 0 )
+    {
       curptrnode = curptrnode->prev;
       --counter;
-      if( curptrnode ) return 1;
-      return 0;
-   }
-   curptrnode = ptrlistPtr->last;
-   counter = -1;
-   if( curptrnode ) return 1;
-   return 0;
+      return curptrnode ? 1:0;
+    }
+  assert( ptrlistPtr != 0 );
+  curptrnode = ptrlistPtr->last;
+  counter = -1;
+  return curptrnode ? 1:0;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter::Where
-**
-**  Returns the ID number of the current data item, or -1 if there is
-**  no current data item. Assumes data item has a getID() mbr function!
-**
+ **
+ **  tPtrListIter::Where
+ **
+ **  Returns the ID number of the current data item, or -1 if there is
+ **  no current data item. Assumes data item has a getID() mbr function!
+ **
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 Where() const
 {
-   if( curptrnode == 0 ) return -1;
-   return curptrnode->getPtr()->getID();
+  return ( curptrnode == 0 ) ?
+    -1 : curptrnode->getPtr()->getID();
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter::DatPtr
-**
-**  Returns copy of current data pointer.
-**
+ **
+ **  tPtrListIter::DatPtr
+ **
+ **  Returns copy of current data pointer.
+ **
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
 inline NodeType *tPtrListIter< NodeType >::
 DatPtr() const
 {
-   if( curptrnode == 0 ) return 0;
-   return curptrnode->Ptr;
+  return ( curptrnode == 0 ) ?
+    0 : curptrnode->Ptr;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter::NodePtr
-**
-**  Returns pointer to current list node.
-**
+ **
+ **  tPtrListIter::NodePtr
+ **
+ **  Returns pointer to current list node.
+ **
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
 inline tPtrListNode< NodeType > *tPtrListIter< NodeType >::
 NodePtr()
 {
-   return curptrnode;
+  return curptrnode;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter::NextIsNotFirst
-**
-**  Tests whether we're at the end of a circular list by checking whether
-**  the next item is the first item (which might be true if the list is
-**  circular). Returns 0 if the next item is the first on the list.
-**
+ **
+ **  tPtrListIter::NextIsNotFirst
+ **
+ **  Tests whether we're at the end of a circular list by checking whether
+ **  the next item is the first item (which might be true if the list is
+ **  circular). Returns 0 if the next item is the first on the list.
+ **
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 NextIsNotFirst() const
 {
-   assert( curptrnode != 0 );
-   assert( ptrlistPtr != 0 );
-   if( curptrnode->next == ptrlistPtr->first ) return 0;
-   return 1;
+  assert( curptrnode != 0 );
+  assert( ptrlistPtr != 0 );
+  return ( curptrnode->next == ptrlistPtr->first ) ? 0:1;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter::FirstP and tPtrListIter::LastP
-**
-**  Move to the first or last item on the list and return a copy of the
-**  data pointer, or 0 if first/last item is empty.
-**
+ **
+ **  tPtrListIter::FirstP and tPtrListIter::LastP
+ **
+ **  Move to the first or last item on the list and return a copy of the
+ **  data pointer, or 0 if first/last item is empty.
+ **
 \**************************************************************************/
 template< class NodeType >        //tListIter
 inline NodeType * tPtrListIter< NodeType >::
 FirstP()
 {
-   if( First() )
-       return curptrnode->Ptr;
-   return 0;
+  return ( First() ) ?
+    curptrnode->Ptr : 0;
 }
 
 template< class NodeType >        //tListIter
 inline NodeType * tPtrListIter< NodeType >::
 LastP()
 {
-   if( Last() )
-       return curptrnode->Ptr;
-   return 0;
+  return ( Last() ) ?
+    curptrnode->Ptr : 0;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter::NextP and tPtrListIter::PrevP
-**
-**  Same as Next and Prev, except that the functions return a copy of the
-**  data pointer rather than a pointer to the list item.
-**
+ **
+ **  tPtrListIter::NextP and tPtrListIter::PrevP
+ **
+ **  Same as Next and Prev, except that the functions return a copy of the
+ **  data pointer rather than a pointer to the list item.
+ **
 \**************************************************************************/
 template< class NodeType >       //tPtrListIter
 inline NodeType *tPtrListIter< NodeType >::
 PrevP()
 {
-   if( Prev() )
-       return curptrnode->Ptr;
-   return 0;
+  return ( Prev() ) ?
+    curptrnode->Ptr : 0;
 }
 
 template< class NodeType >        //tListIter
 inline NodeType * tPtrListIter< NodeType >::
 NextP()
 {
-   if( Next() )
-       return curptrnode->Ptr;
-   return 0;
+  return ( Next() ) ?
+    curptrnode->Ptr : 0;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter::GetP
-**
-**  Similar to Get, but returns a copy of the current data pointer rather
-**  than a pointer to the list item (or 0 if undefined).
-**
+ **
+ **  tPtrListIter::GetP
+ **
+ **  Similar to Get, but returns a copy of the current data pointer rather
+ **  than a pointer to the list item (or 0 if undefined).
+ **
 \**************************************************************************/
 template< class NodeType >       //tListIter
 inline NodeType * tPtrListIter< NodeType >::
 GetP( int num )
 {
-   if( Get( num ) )
-       return curptrnode->Ptr;
-   return 0;
+  return ( Get( num ) ) ?
+    curptrnode->Ptr : 0;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter::ReportNextP and ReportPrevP
-**
-**  Returns a copy of the next or previous data pointer without actually
-**  moving to the next or previous item.
-**
+ **
+ **  tPtrListIter::ReportNextP and ReportPrevP
+ **
+ **  Returns a copy of the next or previous data pointer without actually
+ **  moving to the next or previous item.
+ **
 \**************************************************************************/
 template< class NodeType >        //tListIter
 inline NodeType * tPtrListIter< NodeType >::
 ReportNextP() const
 {
-   assert( ptrlistPtr != 0 );
-   if( curptrnode == 0 ) return 0;
-   if( curptrnode->next == 0 ) return 0;
-   return curptrnode->next->Ptr;
+  assert( ptrlistPtr != 0 );
+  if( curptrnode == 0 ) return 0;
+  if( curptrnode->next == 0 ) return 0;
+  return curptrnode->next->Ptr;
 }
 
 template< class NodeType >        //tListIter
 inline NodeType * tPtrListIter< NodeType >::
 ReportPrevP() const
 {
-   assert( ptrlistPtr != 0 );
-   if( curptrnode == 0 ) return 0;
-   if( curptrnode->prev == 0 ) return 0;
-   return curptrnode->prev->Ptr;
+  assert( ptrlistPtr != 0 );
+  if( curptrnode == 0 ) return 0;
+  if( curptrnode->prev == 0 ) return 0;
+  return curptrnode->prev->Ptr;
 }
 
 
 /**************************************************************************\
-**
-**  tPtrListIter::AtEnd
-**
-**  Returns TRUE if:
-**   - the list is empty (last==0)
-**   - the list is non-circular and the current item is null
-**   - the list is circular, the current item is the first, and the
-**     counter is nonzero (meaning we've gone all the way through the
-**     list and come back to the start)
-**
+ **
+ **  tPtrListIter::AtEnd
+ **
+ **  Returns TRUE if:
+ **   - the list is empty (last==0)
+ **   - the list is non-circular and the current item is null
+ **   - the list is circular, the current item is the first, and the
+ **     counter is nonzero (meaning we've gone all the way through the
+ **     list and come back to the start)
+ **
 \**************************************************************************/
 template< class NodeType >       //tListIter
-inline int tPtrListIter< NodeType >::
+inline bool tPtrListIter< NodeType >::
 AtEnd() const
 {
-   if( ptrlistPtr->last == 0 ) return 1;
-   if( ptrlistPtr->last->next == 0 ) return ( curptrnode==0 );
-   return ( curptrnode == ptrlistPtr->first && counter != 0 );
+  if( ptrlistPtr->last == 0 ) return true;
+  if( ptrlistPtr->last->next == 0 ) return ( curptrnode==0 );
+  return ( curptrnode == ptrlistPtr->first && counter != 0 );
 }
 
 #endif
