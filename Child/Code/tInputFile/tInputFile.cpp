@@ -6,7 +6,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.6 1999-03-31 21:24:04 gtucker Exp $
+**  $Id: tInputFile.cpp,v 1.7 2001-06-19 15:44:23 gtucker Exp $
 \****************************************************************************/
 
 #include <iostream.h>
@@ -46,7 +46,7 @@ tInputFile::tInputFile( const char *filename )
    ReadItem( inoutname, "OUTFILENAME" );
    strcat( inoutname, ".inputs" );
    inoutfile.open( inoutname );
-   assert( inoutfile.good() );
+   assert( inoutfile.good() ); //TODO: should be error check, not assert!
    
 }
 
