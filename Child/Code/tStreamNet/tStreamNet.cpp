@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.62 1999-04-16 20:51:27 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.63 1999-05-04 17:14:24 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -65,7 +65,7 @@ double DistanceToLine( double x2, double y2, double a, double b, double c )
 \*****************************************************************************/
 double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 {
-   double a, b, c, f, g, h, x0, y0, x1, y1, x, y, d;
+   double a, b, c, x0, y0, x1, y1, d;
 
    x0 = p0->getX();
    y0 = p0->getY();
@@ -453,7 +453,7 @@ void tStreamNet::CalcSlopes()
 	assert( meshPtr != 0 );
 	tEdge *curedg;
 	tMeshListIter<tEdge> i( meshPtr->getEdgeList() );
-  double slp, length;
+  double slp;
 
   //cout << "CalcSlopes()...";
 
@@ -652,8 +652,8 @@ void tStreamNet::FlowDirs()
    tMeshListIter<tLNode> i( meshPtr->getNodeList() );  // gets nodes from the list
    double slp;        // steepest slope found so far
    tLNode *curnode;  // ptr to the current node
-   tLNode *newnode;  // ptr to new downstream node
-   tLNode * nbr;
+   //XtLNode *newnode;  // ptr to new downstream node
+   //XtLNode * nbr;
    tEdge * firstedg; // ptr to first edg
    tEdge * curedg;   // pointer to current edge
    tEdge * nbredg;   // steepest neighbouring edge so far
@@ -1035,8 +1035,8 @@ void tStreamNet::FlowSaturated2()
 {
    tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
    tLNode *curnode;
-   tEdge *fedg;
-   double discharge;
+   //XtEdge *fedg;
+   //Xdouble discharge;
    double infiltExRunoff,  // Infiltration-excess runoff rate (L/T)
        sd,                 // Storm depth minus any infilt-excess runoff (L)
        asRatio,            // Slope-area-per-width ratio (ie, A/Sb) (L),
@@ -1551,9 +1551,9 @@ void tStreamNet::SortNodesByNetOrder()
 \*****************************************************************************/
 void tStreamNet::FindHydrGeom()
 {
-   int i, j, num;
-   double hradius, kwdspow, kndspow, kddspow,
-       widpow, deppow, npow, qpsec, radfactor;
+   //Xint i, j, num;
+   double kwdspow, kndspow, kddspow,
+       widpow, deppow, npow, qpsec;
    double width, depth, rough, slope;
    tLNode *cn;
 
@@ -1635,17 +1635,15 @@ void tStreamNet::FindHydrGeom()
 #define kSmallNum 0.0000000001
 void tStreamNet::FindChanGeom()
 {
-   int i, j, num;
+   //Xint i, j, num;
    double qbf,      // Bankfull discharge in m3/s 
-       /*qbffactor=0,*/
        width,       // Channel width, m
        depth,       // Channel depth, m
        rough;       // Roughness
-   double radfactor, hradius, slope;
+   double slope;
    double lambda;
    tLNode *cn;
    tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
-   //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
    tStorm *sPtr = getStormPtrNC();
    double isdmn = sPtr->getMeanInterstormDur();
    double pmn = sPtr->getMeanPrecip();
@@ -1889,7 +1887,7 @@ tInlet::~tInlet()
 \**************************************************************************/
 void tInlet::FindNewInlet()
 {
-   double xin, yin, zin, x, y, z, zmin, dmn, dmnn, dmin;
+   double yin, zmin, dmn, dmnn, dmin;
    tLNode *cn, *newinnode, *mn;
    tNode *bn0, *bn1, *mnn;
    tEdge *ce, *me;
