@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.2 1998-01-16 22:05:59 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.3 1998-01-17 23:30:00 stlancas Exp $
 \**************************************************************************/
 
 #include "Inclusions.h"
@@ -91,7 +91,7 @@ void tStreamMeander::FindMeander()
 }
 /*****************************************************************************\
 **
-**      GetOnlyReaches : constructs the reach objects       
+**      MakeReaches : constructs the reach objects       
 **                
 **
 **      Data members updated: 
@@ -105,81 +105,73 @@ void tStreamMeander::FindMeander()
 **
 \*****************************************************************************/
 
-void tGrid::GetOnlyReaches()
+void tStreamMeander::MakeReaches()
 {
-  float curwidth, ctaillen;
-  int i, j, nmndrnbrs;
-  tNode *curn = firstnode;
-  tNode *crn, *frnode;
-  tEdge *ce;
-  nheads = 0;
-  if( firstreach )
-  {
-     delete [] firstreach;
-     firstreach = lastreach = NULL;
-  }
-
-  for (curn = firstnode , i=0 ; i<nActiveNodes ; i++)
-  {
-    if (curn->meander)
-    {
-      nmndrnbrs = 0;
-      curn->CountNbrs();
-      for (j=0, ce=curn->edg; j<curn->nnbrs; j++, ce=ce->nextedg)
+   float curwidth, ctaillen;
+   int i, j, nmndrnbrs;
+   tLNode *cn;
+   tEdge *ce;
+   tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
+   tPtrListIter< tEdge > spokIter;
+   tPtrListIter< tLNode > rnIter;
+   tPtrList< tLNode > rnodList, *plPtr;
+   tArray< int > *iArrPtr;
+   tArray< float > *fArrPtr;
+   if( !(reachList.isEmpty()) ) reachList.Flush();
+   for( cn = nodIter.FirstP(); !(nodIter.isActive()); cn = nodIter.NextP() )
+   {
+      if( cn->Meanders() )
       {
-        if (ce->dest->flowedg->dest == curn 
-	      && ce->dest->meander) {nmndrnbrs++; break;}
+         spokIter.Reset( cn->getSpokeListNC() );
+         nmndrnbrs = 0;
+         for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
+         {
+            if( ce->getDestinationPtrNC()->GetDownstrmNbr() == cn 
+                && ce->getDestinationPtrNC()->Meanders() )
+            {
+               nmndrnbrs++;
+               break;
+            }
+         }
+         if (nmndrnbrs==0)
+         {
+            rnodList.Flush();
+            rnodList.insertAtFront( cn );
+            reachList.insertAtBack( rnodList );
+         }
       }
-      if (nmndrnbrs==0)
-      {
-        nheads++;
-        curn->head = TRUE;
-      }
-    }
-    curn = curn->next;
-  }
-  firstreach = new tReach[nheads];
-
-  for (curn=firstnode , j=0 , i=0; i<nActiveNodes; i++)
-  {
-    if (curn->head)
-    {
-      firstreach[j].reachlen=0.0;
-      firstreach[j].nrnodes = 0;
-      crn = curn;
-      frnode = curn;
+   }
+   iArrPtr = new tArray< int >( reachList.getSize() );
+   nrnodes = *iArrPtr;
+   delete iArrPtr;
+   fArrPtr = new tArray< float >( reachList.getSize() );
+   reachlen = *fArrPtr;
+   taillen = *fArrPtr;
+   delete fArrPtr;
+   for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd()); plPtr = rlIter.NextP(), i++ )
+   {
+      rnIter.Reset( *plPtr );
+      cn = rnIter.FirstP();
       do
       {
-        firstreach[j].nrnodes++;
-        curwidth = crn->chanwidth;
-        firstreach[j].reachlen+= crn->flowedg->len;
-        crn->reachmember = TRUE;
-        crn = crn->flowedg->dest;
+         nrnodes[i]++;
+         reachlen[i] += cn->GetFlowEdg()->getLength();
+         cn->setReachMember( TRUE );
+         plPtr->insertAtBack( cn );
+         cn = cn->GetDownstrmNbr();
       }
-      while (!crn->reachmember && crn->boundary != kClosedBoundary);
-      firstreach[j].taillen = 10.0*curwidth;
+      while (!cn->getReachMember() && cn->getBoundFlag() == kNonBoundary);
+      curwidth = rnIter.LastP()->getChanWidth();
+      taillen[i] = 10.0*curwidth;
       ctaillen = 0.0;
-      firstreach[j].ntnodes=0;
-      do
+      while (ctaillen <= taillen[i] && cn->getBoundFlag() == kNonBoundary)
       {
-        ctaillen+= crn->flowedg->len;
-        crn = crn->flowedg->dest;
-        firstreach[j].ntnodes++;
+         ctaillen+= cn->flowedg->len;
+         plPtr->insertAtBack( cn );
+         cn = cn->GetDownstrmNbr();
       }
-      while (ctaillen <= firstreach[j].taillen &&
-             crn->boundary != kClosedBoundary);
-        //firstreach[j].ClearNodes();
-      firstreach[j].GetReachNodes(frnode);
-      if (j<nheads-1) firstreach[j].next = &firstreach[j+1];
-      else
-      {
-         firstreach[j].next = NULL;
-         lastreach = &firstreach[j];
-      }
-      j++;
-    }
-    curn=curn->next;
-  }
+      taillen[i] = ctaillen;
+   }
 }
 
 

@@ -20,7 +20,7 @@ have a meander constructor which takes a reference to a net object;
 could also have a gridPtr member of meander, but that would need to assume
 that the net stuff had been done...
 **
-**  $Id: tStreamMeander.h,v 1.2 1998-01-16 22:06:21 stlancas Exp $
+**  $Id: tStreamMeander.h,v 1.3 1998-01-17 23:29:23 stlancas Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
@@ -54,9 +54,14 @@ public:
 protected:
    tGrid< tLNode > *gridPtr;
    tStreamNet *netPtr;
-   tList< tReach > reachList;
-   tListIter< tReach > rlIter;
+   //tList< tReach > reachList;
+   tList< tPtrList< tLNode > > reachList;
+   //tListIter< tReach > rlIter;
+   tListIter< tPtrList< tLNode > > rlIter;
    float critflow;
+   tArray< int > nrnodes;
+   tArray< float > reachlen;
+   tArray< float > taillen;
 };
 
 #endif
