@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.14 2003-05-02 07:39:36 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.15 2003-05-16 12:56:21 childcvs Exp $
 */
 /************************************************************************/
 
@@ -162,7 +162,7 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
 \************************************************************************/
 void tUplift::UpliftUniform( tMesh<tLNode> *mp, double delt )
 {
-   assert( mp>0 );
+   assert( mp!=0 );
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double rise = rate*delt;
@@ -190,7 +190,7 @@ void tUplift::UpliftUniform( tMesh<tLNode> *mp, double delt )
 \************************************************************************/
 void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt )
 {
-   assert( mp>0 );
+   assert( mp!=0 );
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double rise = rate*delt;
@@ -218,7 +218,7 @@ void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt )
 \************************************************************************/
 void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt )
 {
-   assert( mp>0 );
+   assert( mp!=0 );
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double slip = slipRate*delt;
@@ -260,7 +260,7 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt )
 \************************************************************************/
 void tUplift::FoldPropErf( tMesh<tLNode> *mp, double delt )
 {
-   assert( mp>0 );
+   assert( mp!=0 );
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double uprate;
@@ -293,7 +293,7 @@ void tUplift::FoldPropErf( tMesh<tLNode> *mp, double delt )
 #define TWOPI 6.2832
 void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
 {
-   assert( mp>0 );
+   assert( mp!=0 );
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double uprate;
@@ -368,7 +368,7 @@ void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
 \************************************************************************/
 void tUplift::PropagatingFold( tMesh<tLNode> *mp, double delt )
 {
-   assert( mp>0 );
+   assert( mp!=0 );
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double uprate;
@@ -479,7 +479,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt )
 
 
 {
-   assert( mp>0 );
+   assert( mp!=0 );
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double slip = slipRate*delt;
@@ -605,7 +605,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt )
 \************************************************************************/
 void tUplift::FaultBendFold2( tMesh<tLNode> *mp, double delt )
 {
-   assert( mp>0 );
+   assert( mp!=0 );
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double slip = slipRate*delt;

@@ -11,11 +11,13 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.67 2003-05-12 11:54:26 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.68 2003-05-16 13:07:15 childcvs Exp $
 */
 /*************************************************************************/
 
 #include <math.h>    // For fmod function
+#include <stdlib.h> // For qsort
+#include <string.h>
 #include "tOutput.h"
 #include "../tStreamNet/tStreamNet.h" // For k2DKinematicWave and kHydrographPeakMethod
 
@@ -39,7 +41,7 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
   mdLastVolume(0.),
   CanonicalNumbering(true)
 {
-   assert( meshPtr > 0 );
+   assert( meshPtr != 0 );
 
    infile.ReadItem( baseName, "OUTFILENAME" );
    CreateAndOpenFile( &nodeofs, SNODES );

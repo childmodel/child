@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.28 2003-05-01 12:27:03 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.29 2003-05-16 12:59:44 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -323,7 +323,7 @@ void tStreamNet::setInSedLoadm( int i, double val )
 }
 
 void tStreamNet::setInletNodePtr( tLNode *Ptr )
-{ inlet.innode = ( Ptr > 0 ) ? Ptr : 0;}
+{ inlet.innode = Ptr;}
 
 //void tStreamNet::setMndrDirChngProb( double val )
 //{mndrDirChngProb = ( val >= 0.0 && val <= 1.0 ) ? val : 1.0;}
@@ -519,7 +519,7 @@ void tStreamNet::CalcSlopes()
 	for( curedg = i.FirstP(); !( i.AtEnd() ); curedg = i.NextP() )
 	{
      // Make sure edge is valid, and length is nonzero
-     assert( curedg > 0 );
+     assert( curedg != 0 );
      assert( curedg->getLength() > 0 );
      //if( curedg->getLength() == 0 )
      //{
@@ -573,9 +573,9 @@ void tStreamNet::InitFlowDirs()
    while( i.IsActive() )
    {
       // Start with the node's default edge
-      assert( curnode>0 );
+      assert( curnode!=0 );
       flowedg = curnode->getEdg();
-      assert( flowedg>0 );
+      assert( flowedg!=0 );
 
       // As long as the current edge is a no-flow edge, advance to the next one
       // counter-clockwise
@@ -583,7 +583,7 @@ void tStreamNet::InitFlowDirs()
       while( !flowedg->FlowAllowed() )
       {
          flowedg = flowedg->getCCWEdg();
-         assert( flowedg>0 );
+         assert( flowedg!=0 );
          ctr++;
          if( ctr>kMaxSpokes ) // Make sure to prevent endless loops
          {
@@ -594,7 +594,7 @@ void tStreamNet::InitFlowDirs()
          }
       }
       curnode->setFlowEdg( flowedg );
-      assert( curnode->getFlowEdg() > 0 );
+      assert( curnode->getFlowEdg() != 0 );
       curnode = i.NextP();
    }
 
@@ -728,9 +728,9 @@ void tStreamNet::FlowDirs()
    {
       curnode->setFloodStatus( kNotFlooded );  // Init flood status flag
       firstedg =  curnode->getFlowEdg();
-      if( firstedg <= 0 )
+      if( firstedg == 0 )
           curnode->TellAll();
-      assert( firstedg > 0 );
+      assert( firstedg != 0 );
       slp = firstedg->getSlope();
       nbredg = firstedg;
 //        if(curnode->getID()==240 || curnode->getID()==213) {
@@ -746,7 +746,7 @@ void tStreamNet::FlowDirs()
       // back to the beginning
       while( curedg!=firstedg )
       {
-         assert( curedg > 0 );
+         assert( curedg != 0 );
          if ( curedg->getSlope() > slp && curedg->FlowAllowed())
 //&& ((tLNode *)(curedg->getDestinationPtrNC()))->getDownstrmNbr() != curnode )
          {
@@ -1556,7 +1556,7 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node )
    {
       // If it passes this test, it's a valid outlet
       dn = static_cast<tLNode *>(ce->getDestinationPtrNC());
-      assert( dn>0 );
+      assert( dn!=0 );
 /*X      if( ce->getSlope() > maxslp &&
           dn->getFloodStatus() != kCurrentLake &&
           ce->FlowAllowed() &&
@@ -2256,7 +2256,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
       xin = infile.ReadItem( xin, "INLET_X" );
       yin = infile.ReadItem( yin, "INLET_Y" );
       intri = meshPtr->LocateTriangle( xin, yin );
-      assert( intri > 0 );  //TODO: should be error-check not assert
+      assert( intri != 0 );  //TODO: should be error-check not assert
       for( i=0; i<3; i++ )
       {
          cn = static_cast<tLNode *>(intri->pPtr(i));
@@ -2486,7 +2486,7 @@ void tInlet::setInSedLoad( int i, double val )
 double tInlet::getInDrArea() const {return inDrArea;}
 void tInlet::setInDrArea( double val ) {inDrArea = ( val > 0.0 ) ? val : 0.0;}
 tLNode *tInlet::getInNodePtr() {return innode;}
-void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
+void tInlet::setInNodePtr( tLNode *ptr ) {innode = ptr;}
 
 
 /**************************************************************************\

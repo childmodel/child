@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.16 2003-02-05 14:52:15 childcvs Exp $
+**  $Id: tMeshList.h,v 1.17 2003-05-16 13:04:09 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -363,7 +363,7 @@ moveToBack( tListNode< NodeType > * mvnode )
    if (0) //DEBUG
      cout << "moveToBack( tListNode )\n";
    
-   assert( mvnode>0 );
+   assert( mvnode!=0 );
    if( mvnode != this->last )
    {
       //if( InActiveList( mvnode ) ) nActiveNodes--;

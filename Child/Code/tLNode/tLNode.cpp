@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.99 2003-01-17 17:30:28 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.100 2003-05-16 13:02:34 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -562,7 +562,7 @@ tEdge * tLNode::getFlowEdg()
 
 void tLNode::setFlowEdg( tEdge * newflowedge )
 {
-   assert( newflowedge > 0 );  // Fails when passed an invalid edge
+   assert( newflowedge != 0 );  // Fails when passed an invalid edge
    flowedge = newflowedge;
 }
 

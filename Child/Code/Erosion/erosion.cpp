@@ -45,7 +45,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.111 2003-05-02 07:39:33 childcvs Exp $
+**  $Id: erosion.cpp,v 1.112 2003-05-16 12:55:58 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -124,20 +124,20 @@ const tMesh< tLNode > *tEquilibCheck::getMeshPtr() const {return meshPtr;}
 tMesh< tLNode > *tEquilibCheck::getMeshPtrNC() {return meshPtr;}
 
 void tEquilibCheck::setMeshPtr( tMesh< tLNode > &Ref )
-{meshPtr = ( &Ref > 0 ) ? &Ref : 0;}
+{meshPtr = &Ref;}
 
 void tEquilibCheck::setMeshPtr( tMesh< tLNode > *Ptr )
-{meshPtr = ( Ptr > 0 ) ? Ptr : 0;}
+{meshPtr = Ptr;}
 
 const tRunTimer *tEquilibCheck::getTimePtr() const {return timePtr;}
 
 tRunTimer *tEquilibCheck::getTimePtrNC() {return timePtr;}
 
 void tEquilibCheck::setTimePtr( tRunTimer &Ref )
-{timePtr = ( &Ref > 0 ) ? &Ref : 0;}
+{timePtr = &Ref;}
 
 void tEquilibCheck::setTimePtr( tRunTimer *Ptr )
-{timePtr = ( Ptr > 0 ) ? Ptr : 0;}
+{timePtr = Ptr;}
 
 double tEquilibCheck::getLongRate() const {return longRate;}
 
@@ -154,7 +154,7 @@ double tEquilibCheck::getShortRate() const {return shortRate;}
 \***************************************************************************/
 double tEquilibCheck::FindIterChngRate()
 {
-   assert( timePtr > 0 && meshPtr > 0 );
+   assert( timePtr != 0 && meshPtr != 0 );
    tArray< double > tmp(2), last;
    tmp[0] = timePtr->getCurrentTime();
    tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
