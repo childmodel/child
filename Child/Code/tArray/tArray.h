@@ -12,7 +12,7 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.8 1999-01-12 21:21:38 gtucker Exp $
+**  $Id: tArray.h,v 1.9 1999-05-11 15:28:16 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TARRAY_H
@@ -32,7 +32,7 @@
 template< class T >
 class tArray
 {
-    friend ostream &operator<<( ostream &, const tArray< T > & );
+   //friend ostream &operator<<( ostream &, const tArray< T > & );
     //friend istream &operator>>( istream &, tArray< T > & );
     //friend ofstream &operator<<( ofstream &, const tArray< T > & );
     //friend ifstream &operator>>( ifstream &, tArray< T > & );*/
