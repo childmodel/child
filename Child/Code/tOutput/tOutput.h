@@ -23,8 +23,10 @@
 **
 **  Recent modifications:
 **    - 1/00: GT added vegofs for output of vegetation cover
+**    - 6/01: GT added chanwidthofs for output of channel widths
+**      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.22 2001-06-19 15:56:12 gtucker Exp $
+**  $Id: tOutput.h,v 1.23 2001-06-21 13:59:19 gtucker Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -109,8 +111,8 @@ private:
     ofstream vegofs;     // Vegetation cover %
     ofstream flowdepofs; // Flow depth
     ofstream vegcovofs;  // Catchment vegetation cover %
+    ofstream chanwidthofs; // Channel width
     int optTSOutput;     // temp
-   
 
    int counter;
    char nums[10]; //for writing out layer info to different files at each time
