@@ -132,7 +132,7 @@ void tInlet::FindNewInlet()
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.22 1998-03-21 21:48:06 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.23 1998-03-23 21:19:19 gtucker Exp $
 \**************************************************************************/
 
 
@@ -359,7 +359,7 @@ void tStreamNet::CalcSlopes()
 // NB: TODO: moved to tGrid; delete!
 // TODO: change L-hand to R-hand orientation of Voronoi vertices and
 // create faster Voronoi edge length computation scheme
-void tStreamNet::CalcVAreas()
+/*Xvoid tStreamNet::CalcVAreas()
 {
    //cout << "CalcVAreas()..." << endl << flush;
    double area;
@@ -376,24 +376,10 @@ void tStreamNet::CalcVAreas()
          //area = VoronoiArea( curnode );
       curnode->ComputeVoronoiArea();
       
-/*      for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
-      {
-         sI.Reset( cn->getSpokeListNC() );
-         cout << "node " << cn->getID() << ": ";
-         for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
-         {
-            xy = ce->getRVtx();
-            cout << xy[0] << " " << xy[1] << "; ";
-         }
-         cout << endl;
-      }*/
-         /*assert( area > 0 );
-         curnode->setVArea( area );
-         curnode->setVArea_Rcp( 1.0 / area );*/
    }
    //cout << "CalcVAreas() finished" << endl;
 }
-
+*/
 
 
 /****************************************************************************\
@@ -607,48 +593,6 @@ void tStreamNet::FlowDirs()
 
 
 
-/*void tStreamNet::FlowDirs()
-{
-//#if TRACKFNS
-   cout << "FlowDirs()...";
-//#endif
-   tGridListIter<tLNode> i( gridPtr->GetNodeList() );  // Gets nodes from the list
-   tPtrListIter< tEdge > spokIter;
-   double slp;        // steepest slope found so far
-   tLNode *curnode;  // ptr to the current node
-   tEdge * curedg;   // pointer to current edge
-   tEdge * nbredg;   // steepest neighbouring edge so far
-     // Find the connected edge with the steepest slope
-   curnode = i.FirstP();
-   while( i.IsActive() )  // DO for each non-boundary (active) node
-   {
-      spokIter.Reset( curnode->getSpokeListNC() );
-      curnode->SetFloodStatus( kNotFlooded );  // Init flood status indicator
-      curedg = spokIter.DatPtr();
-      assert( curedg != 0 );
-      slp = curedg->getSlope();
-      nbredg = curedg;
-        // Check each of the various "spokes", stopping when we've gotten
-        // back to the beginning
-      while( spokIter.NextIsNotFirst() )
-      {
-         curedg = spokIter.NextP();
-         assert( curedg > 0 );
-         if ( curedg->getSlope() > slp && curedg->FlowAllowed() )
-         {
-            slp = curedg->getSlope();
-            nbredg = curedg;
-         }
-      }
-      curnode->SetFlowEdg( nbredg );
-      curnode->SetFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );
-// (NB: opt branch pred?)
-        //cout << "Node " << curnode->getID() << " flows to node "
-        //   << curnode->GetDownstrmNbr()->getID() << endl;
-      curnode = i.NextP();
-   }
-   cout << "finished" << endl;
-}*/
 
 
 /*****************************************************************************\
@@ -689,159 +633,6 @@ void tStreamNet::DrainAreaVoronoi()
 }
 
 
-//MOVED TO tNODE
-/******************************************************************************\
-**
-**  VoronoiArea: modified such that it takes the area of the
-**                       closest (counterclockwise) intersection of 
-**                       perpendicular bisectors; in some cases,
-**                       if the voronoi vertices are used arbitrarily,
-**                       errors result when perp. bisectors of non-
-**                       adjacent edges form a closer intersection.
-**                       Also sets edges' vedglen, in some cases to zero..
-**                       
-**         TODO: make member of tNode              
-\******************************************************************************/
-/*
-double tStreamNet::VoronoiArea( tLNode * centre )
-{
-//#if DEBUG
-   //cout<<"VoronoiArea(...)...";
-//#endif
-   int cw;
-   double area = 0;
-   double a, b, c, dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
-   double x, y, x0, y0, x1, y1, x2, y2, m1, m2;
-   tEdge * ce, *edgptr;
-   tPtrList< tEdge > vedgList;
-   tPtrListIter< tEdge > //XspokIter( centre->getSpokeListNC() ),
-       vtxIter( vedgList );
-   tArray< double > xy, xyn, xynn, xynnn, xy1, xy2;
-
-
-   // Create a duplicate list of edges.... why?
-   ce = centre->GetEdg();
-   do
-   {
-      assert( ce>0 );
-      vedgList.insertAtBack( ce );
-      ce = ce->GetCCWEdg();
-   } while( ce != centre->GetEdg() );
-   vedgList.makeCircular();
-
-   // Check boundary status: Voronoi area only defined for non-boundary nodes
-   if( centre->getBoundaryFlag() == kNonBoundary )
-   {
-      centre->CalcSpokeVEdgLengths();
-      cw = TRUE;
-      do
-      {
-         cw = FALSE;
-         for( ce = vtxIter.FirstP(); !( vtxIter.AtEnd() ); ce = vtxIter.NextP() )
-         {
-            xy = ce->getRVtx();
-            xyn = vtxIter.NextP()->getRVtx();
-            xynn = vtxIter.NextP()->getRVtx();
-            dx0 = xynn[0] - xyn[0];
-            dy0 = xynn[1] - xyn[1];
-            dx1 = xy[0] - xyn[0];
-            dy1 = xy[1] - xyn[1];
-            if( dy0 * dx1 > dx0 * dy1 ) //clockwise
-            {
-               xynnn = vtxIter.NextP()->getRVtx();
-               dx0 = xynnn[0] - xynn[0];
-               dy0 = xynnn[1] - xynn[1];
-               dx1 = xyn[0] - xynn[0];
-               dy1 = xyn[1] - xynn[1];
-               if( dy0 * dx1 > dx0 * dy1 ) //clockwise
-               {
-                    //two consecutive clockwise vertices=>want intersection
-                    //of bisectors of ce->nextedg and
-                    //ce->nextedg->nextedg->nextedg:
-                  cw = TRUE;
-                  x0 = centre->getX();
-                  y0 = centre->getY();
-                  xy1 = ce->getDestinationPtr()->get2DCoords();
-                  assert( vtxIter.Prev() );
-                  xy2 = vtxIter.DatPtr()->getDestinationPtr()->get2DCoords();
-                  x1 = ( x0 + xy1[0] ) / 2;
-                  y1 = ( y0 + xy1[1] ) / 2;
-                  x2 = ( x0 + xy2[0] ) / 2;
-                  y2 = ( y0 + xy2[1] ) / 2;
-                  dx1 = x1 - x0;
-                  dy1 = y1 - y0;
-                  dx2 = x2 - x0;
-                  dy2 = y2 - y0;
-                  if( fabs(dy1)>0 && fabs(dy2) > 0 )
-                  {
-                     m1 = -dx1/dy1;
-                     m2 = -dx2/dy2;
-                     x = (y2-m2*x2-y1+m1*x1) / (m1-m2);
-                     y = m1*(x-x1)+y1;
-                  }
-                  else
-                  {
-                     m1 = dy1/dx1;
-                     m2 = dy2/dx2;
-                     y=(m1*y1+x1-m2*y2-x2)/(m1-m2);
-                     x= -y*m1+m1*y1+x1;
-                  }
-                  assert( vtxIter.Prev() );
-                  xyn[0] = x;
-                  xyn[1] = y;
-                  dx = xy[0] - x;
-                  dy = xy[1] - y;
-                  cout << "reset vedglen and rvtx for edge "
-                       << vtxIter.DatPtr()->getID() << " to len "
-                       << sqrt( dx*dx + dy*dy )
-                       << ", x, y, " << xyn[0] << ", " << xyn[1] << endl;
-                  
-                  vtxIter.DatPtr()->setVEdgLen( sqrt( dx*dx + dy*dy ) );
-                  vtxIter.DatPtr()->setRVtx( xyn );
-                  cout << "reset vedglen and rvtx for edge "
-                       << vtxIter.ReportNextP()->getID()
-                       << " to len 0.0, x, y, " << xynnn[0] << ", "
-                       << xynnn[1] << endl;
-                  vtxIter.ReportNextP()->setVEdgLen(0.0);
-                  vtxIter.ReportNextP()->setRVtx( xynnn );
-                  assert( vedgList.removeNext( edgptr, vtxIter.NodePtr() ) );
-               }
-            }
-            assert( vtxIter.Get( ce->getID() ) );
-         }
-      } while( cw );
-      
-      for( ce = vtxIter.FirstP();
-           vtxIter.NodePtr()->getNext()->getNext() != vedgList.getFirst();
-           ce = vtxIter.NextP() )
-      {
-         xy = ce->getRVtx();
-         xyn = vtxIter.NextP()->getRVtx();
-         xynn = vtxIter.ReportNextP()->getRVtx();
-         dx = xyn[0] - xy[0];
-         dy = xyn[1] - xy[1];
-         a = sqrt( dx*dx + dy*dy );
-         dx = xynn[0] - xyn[0];
-         dy = xynn[1] - xyn[1];
-         b = sqrt( dx*dx + dy*dy );
-         dx = xynn[0] - xy[0];
-         dy = xynn[1] - xy[1];
-         c = sqrt( dx*dx + dy*dy );
-           //cout<<"V_a 3: a "<<a<<", b "<<b<<", c "<<c<<endl<<flush;
-         area += sqrt( 4*a*a*b*b - (c*c - (b*b + a*a))*(c*c - (b*b + a*a))) / 4;
-         assert( vtxIter.Prev() );
-      }
-   }
-   
-   else //boundary node
-       for( ce = vtxIter.FirstP(); !( vtxIter.AtEnd() ); ce = vtxIter.NextP() )
-           ce->setVEdgLen(0.0);
-   cout<<"Voronoi_area: node id "<<centre->getID()<<", varea "
-       <<area<<endl;
-     //cout<<"V_area done"<<endl<<flush;
-   //cout << "finished: voronoi area = " << area << endl;
-   return area;
-}*/
 
 
 /*****************************************************************************\
@@ -917,7 +708,8 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
 **     - also moved circumcenter computation into a tTriangle mbr fn.
 **
 \*****************************************************************************/
-void tStreamNet::SetVoronoiVertices()
+/*X MOVED TO TGRID
+  void tStreamNet::SetVoronoiVertices()
 {
    //double x, y, x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
    //tArray< double > xyo, xyd1, xyd2, xy(2);
@@ -938,18 +730,9 @@ void tStreamNet::SetVoronoiVertices()
       ct->ePtr(2)->setRVtx( xy );
 
       // debug output
-      /*cout << "FOR edges: ";
-      int i;
-      for( i=0; i<=2; i++ )
-          cout << ct->ePtr(i)->getID() << " ("
-               << ct->ePtr(i)->getOriginPtr()->getID() << ","
-               << ct->ePtr(i)->getDestinationPtr()->getID() << ") ";
-      cout << ", v verts are:\n";
-      xy = ct->ePtr(0)->getRVtx();
-      cout << "  SetVoronoiVertices(): " << xy[0] << " " << xy[1] << endl;*/
    }
    //cout << "SetVoronoiVertices() finished" << endl;
-}
+}*/
 
 
 /*****************************************************************************\
