@@ -13,7 +13,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.27 1998-05-13 22:21:11 gtucker Exp $
+**  $Id: erosion.cpp,v 1.28 1998-05-14 14:21:31 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -523,7 +523,7 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
 }
 
 
-#define kSmallTimeStep 1e-5
+#define kSmallTimeStep 1e-6
 void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 {
    double dt,
