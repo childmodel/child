@@ -3,7 +3,7 @@
 **  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
 **                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.2 1998-01-21 01:05:53 gtucker Exp $
+**  $Id: tPtrList.cpp,v 1.3 1998-01-30 16:34:50 stlancas Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -743,7 +743,7 @@ GetP( int num )
    //cout << endl;
    if( tempnodeptr == 0 ) return 0;
    if( tempnodeptr->Ptr->getID() != num ) return 0;
-   curnode = tempnodeptr;
+   curptrnode = tempnodeptr;
    return tempnodeptr->Ptr;
 }
 

@@ -3,13 +3,14 @@
 **  tPtrList.h: Header file for tPtrList, tPtrListNode, and tPtrListIter
 **              objects.
 **
-**  $Id: tPtrList.h,v 1.2 1998-01-21 01:04:48 gtucker Exp $
+**  $Id: tPtrList.h,v 1.3 1998-01-30 16:29:31 stlancas Exp $
 \**************************************************************************/
 
 
 #ifndef TPTRLIST_H
 #define TPTRLIST_H
 
+#include "../Classes.h"
 /** class tPtrListNode ******************************************************/
 template< class NodeType >
 class tPtrListNode

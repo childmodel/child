@@ -26,14 +26,14 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.h,v 1.2 1998-01-21 20:17:54 gtucker Exp $
+**  $Id: tMeshList.h,v 1.3 1998-01-30 16:29:20 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TGRIDLIST_H
 #define TGRIDLIST_H
 
+#include "../Classes.h"
 #include "../tList/tList.h"
-
 /** class tGridList ********************************************************/
 template< class NodeType >
 class tGridList : public tList< NodeType >
