@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.15 2003-12-17 14:58:55 childcvs Exp $
+**  $Id: childmain.cpp,v 1.16 2004-01-07 15:10:15 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -87,7 +87,7 @@ int main( int argc, char **argv )
    silent_mode = BOOL( argc>2 && argv[2][1]=='s' );
 
    // Say hello
-   cout << "\nThis is TODDLER, version " << VERSION
+   cout << "\nThis is CHILD, version " << VERSION
 	<< " (compiled " __DATE__ " " __TIME__ ")"
 	<< endl << endl;
 
