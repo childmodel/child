@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.68 1999-05-21 17:50:27 gtucker Exp $
+**  $Id: erosion.cpp,v 1.69 1999-12-02 16:17:56 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -749,8 +749,10 @@ void tErosion::ErodeDetachLim( double dtg )
        dzdt( nActNodes ); //Erosion rate @ ea. node
    double ratediff;
 
-   tArray<double> valgrd;
-   valgrd.setSize(1);
+   cn = ni.FirstP();
+   tArray<double> valgrd(1);
+   //tArray<double> valgrd( cn->getNumg() );
+   //TODO: make it work w/ arbitrary # grain sizes
    
    // Iterate until total time dtg has been consumed
    do
