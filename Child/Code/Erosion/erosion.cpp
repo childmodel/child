@@ -7,11 +7,14 @@
 **  Equilibrium check objects:
 **    tEquilibCheck
 **  Transport objects:
-**    tSedTransPwrLawn
+**    tSedTransPwrLaw
+**    tSedTransPwrLaw2
+**    tSedTransBridgeDom
 **    tSedTransWilcock
 **    tSedTransMineTailings //added 4/00 ng
 **  Detachment objects:
 **    tBedErodePwrLaw
+**    tBedErodePwrLaw2
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
@@ -30,6 +33,9 @@
 **     - added functions for tBedErodePwrLaw2 (GT 4/02)
 **     - added functions for tSedTransPwrLaw2 (GT 4/02)
 **     - added functions for tSedTransBridgeDom (GT 5/02)
+**     - added a check in tErosion constructor that tests to make sure
+**       user really wants the erosion & transport options for which the
+**       executable is compiled (GT 7/02)
 **
 **    Known bugs:
 **     - ErodeDetachLim assumes 1 grain size. If multiple grain sizes
@@ -37,7 +43,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.99 2002-07-23 09:08:01 gtucker Exp $
+**  $Id: erosion.cpp,v 1.100 2002-07-25 05:01:16 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1594,6 +1600,28 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
    cout << "SEDIMENT TRANSPORT OPTION: " << SEDTRANSOPTION << endl;
    cout << "DETACHMENT OPTION: " << BEDERODEOPTION << endl;
 
+   // Make sure the user wants the detachment and transport options that
+   // are compiled in this version
+   int optProcessLaw = infile.ReadItem( optProcessLaw,
+					   "DETACHMENT_LAW" );
+   if( optProcessLaw != DETACHMENT_CODE )
+     {
+       cerr << "You requested detachment law " << optProcessLaw << endl
+	    << "but this version is hard-coded with detachment law "
+	    << DETACHMENT_CODE << " (" << BEDERODEOPTION << ")\n";
+       ReportFatalError( "Requested detachment law not available.\n"
+			 "Modify erosion.h and re-compile.\n" );
+     }
+   optProcessLaw = infile.ReadItem( optProcessLaw,
+					   "TRANSPORT_LAW" );
+   if( optProcessLaw != TRANSPORT_CODE )
+     {
+       cerr << "You requested sediment transport law " << optProcessLaw << endl
+	    << "but this version is hard-coded with transport law "
+	    << TRANSPORT_CODE << " (" << SEDTRANSOPTION << ")\n";
+       ReportFatalError( "Requested transport law not available.\n" 
+			 "Modify erosion.h and re-compile.\n" );
+     }
 }
 
 

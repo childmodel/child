@@ -56,8 +56,10 @@
 **       of form tau^p - tauc^p rather than (tau - tauc)^p (GT 4/02)
 **     - Added Bridge-Dominic form of Bagnold bedload transport formula
 **       (single-size) (GT 5/02)
+**     - Added codes to go along with erosion & transport options, to
+**       enable checking against user-specified options (GT 7/02)
 **
-**  $Id: erosion.h,v 1.37 2002-07-23 09:08:01 gtucker Exp $
+**  $Id: erosion.h,v 1.38 2002-07-25 05:01:17 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -72,21 +74,31 @@
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
 
-//#define tSedTrans tSedTransPwrLawMulti
 #define tSedTrans tSedTransPwrLaw
 #define SEDTRANSOPTION "Power-law transport formula"
-//#define tSedTrans tSedTransWilcock
-//#define SEDTRANSOPTION "Wilcock sand-gravel formula"
+#define TRANSPORT_CODE 1
 //#define tSedTrans tSedTransPwrLaw2
 //#define SEDTRANSOPTION "Power-law transport formula, form 2"
+//#define TRANSPORT_CODE 2
 //#define tSedTrans tSedTransBridgeDom
 //#define SEDTRANSOPTION "Bridge-Dominic form of Bagnold bedload formula"
-//#define SEDTRANSOPTION "Willgoose/Riley mine tailings formula"
+//#define TRANSPORT_CODE 3
+//#define tSedTrans tSedTransWilcock
+//#define SEDTRANSOPTION "Wilcock sand-gravel formula"
+//#define TRANSPORT_CODE 4
+//#define tSedTrans tSedTransPwrLawMulti
 //#define SEDTRANSOPTION "Multi-size power-law formula"
+//#define TRANSPORT_CODE 5
+//#define tSedTrans tSedTransMineTailings
+//#define SEDTRANSOPTION "Willgoose/Riley mine tailings formula"
+//#define TRANSPORT_CODE 6
+
 #define tBedErode tBedErodePwrLaw
 #define BEDERODEOPTION "Power law, form 1"
+#define DETACHMENT_CODE 1
 //#define tBedErode tBedErodePwrLaw2
 //#define BEDERODEOPTION "Power law, form 2"
+//#define DETACHMENT_CODE 2
 
 /***************************************************************************\
 **  class tEquilibCheck
