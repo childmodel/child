@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.154 2003-05-20 11:14:40 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.155 2003-05-20 11:56:47 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3615,12 +3615,12 @@ AddNode( tSubNode &nodeRef, bool updatemesh, double time )
    nodeRef.setID( miNextNodeID );
    miNextNodeID++;
 
-   if (0) //DEBUG Arnaud
+   if (0) //DEBUG
      cout << "call InsertNode" << endl;
    tSubNode* newNodePtr = InsertNode(&nodeRef, time);
    if(newNodePtr == 0)
      return 0;
-   if (0) //DEBUG Arnaud
+   if (0) //DEBUG
      cout << "call CheckTrianglesAt" << endl;
    if( xyz.getSize() == 3 )
      CheckTrianglesAt( newNodePtr );
@@ -3897,6 +3897,7 @@ AttachNode( tSubNode* cn, tTriangle* tri )
 **
 **  Created: SL fall, '97
 **  Modified: NG summer, '98 to deal with layer interpolation
+**  05/2003 AD: make it call AddToList, AttachNodem, etc.
 **
 \**************************************************************************/
 //TODO: ; just assign coords
@@ -3908,15 +3909,14 @@ AddNodeAt( tArray< double > &xyz, double time )
    if (0) //DEBUG
      cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", "
 	  << xyz[2] <<" time "<<time<< endl;
+   if (0) //DEBUG
+     cout << "locate tri" << endl;
    tTriangle *tri;
-   //cout << "locate tri" << endl;
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
    else tri = LocateNewTriangle( xyz[0], xyz[1] );
    if( tri == 0 )
      return 0;
 
-   int i;
-   tMeshListIter< tSubNode > nodIter( nodeList );
    tSubNode tempNode;
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );
    if( layerflag && time > 0.0) tempNode.LayerInterpolation( tri, xyz[0], xyz[1], time );
@@ -3924,79 +3924,29 @@ AddNodeAt( tArray< double > &xyz, double time )
    tempNode.setBoundaryFlag( kNonBoundary );
 
    // Assign ID to the new node and insert it at the back of the active
-   // portion of the node list (NOTE: node is assumed NOT to be a boundary)
+   // portion of the node list.
    tempNode.setID( miNextNodeID );
    miNextNodeID++;
-   if (0)//DEBUG
-     cout << miNextNodeID << endl;
-   nodeList.insertAtActiveBack( tempNode );
-   assert( nodeList.getSize() == nnodes + 1 );
-   nnodes++;
+   tSubNode *cn = AddToList( tempNode );
 
-     //make ptr list of triangle's vertices:
-   tPtrList< tSubNode > bndyList;
-   tSubNode *tmpPtr;
-   for( i=0; i<3; i++ )
-   {
-      tmpPtr = static_cast<tSubNode *>(tri->pPtr(i));
-      bndyList.insertAtBack( tmpPtr );
-   }
-   bndyList.makeCircular();
-   //delete triangle
-   //Xcout << "calling deletetri from addnodeat\n";
-   if ( !DeleteTriangle( tri ) ) return 0;
-   //make 3 new triangles
-   tPtrListIter< tSubNode > bndyIter( bndyList );
-   tSubNode *node3 = bndyIter.FirstP();
-   tSubNode *node2 = nodIter.LastActiveP();
-   tSubNode *node1 = bndyIter.NextP();
-   tSubNode *node4 = bndyIter.NextP();
-   tArray< double > p1( node1->get2DCoords() ),
-       p2( node2->get2DCoords() ), p3( node3->get2DCoords() ),
-       p4( node4->get2DCoords() );
-   if( xyz.getSize() == 3)
-   {
-      if( !PointsCCW( p3, p1, p2 ) ||
-	  !PointsCCW( p2, p1, p4 ) ||
-	  !PointsCCW( p2, p4, p3 ) )
-	cout << "new tri not CCW" << endl;
-   }
-   else
-   {
-      // use virtual function that will return new coords for nodes
-      // inheriting tMobility, orig. coords o.w.:
-      p1 = node1->FuturePosn();
-      p2 = node2->FuturePosn();
-      p3 = node3->FuturePosn();
-      p4 = node4->FuturePosn();
-      if( !PointsCCW( p3, p1, p2 ) ||
-	  !PointsCCW( p2, p1, p4 ) ||
-	  !PointsCCW( p2, p4, p3 ) )
-	cout << "new tri not CCW" << endl;
-   }
-
-   assert( node1 != 0 && node2 != 0 && node3 != 0 );
-   AddEdge( node1, node2, node3 );  //add edge between node1 and node2
-   AddEdgeAndMakeTriangle( node3, node1, node2 );
-   AddEdgeAndMakeTriangle( node2, node1, node4 );
-   MakeTriangle( node2, node4, node3 );
+   tSubNode *newNodePtr2 = AttachNode( cn, tri);
+   if(newNodePtr2 == 0)
+     return 0;
    //put 3 resulting triangles in ptr list
    if( xyz.getSize() == 3 )
    {
-     CheckTrianglesAt( node2 );
+     CheckTrianglesAt( newNodePtr2 );
    }
    //reset node id's
-   if (1)//DEBUG
-     cout << "reset ids\n";
    ResetNodeID();
    //nmg uncommented line below and added initialize line
-   node2->InitializeNode();
+   newNodePtr2->InitializeNode();
 
    UpdateMesh();
 
    if (0)//DEBUG
      cout << "AddNodeAt finished, " << nnodes << endl;
-   return node2;
+   return newNodePtr2;
 }
 #undef kLargeNumber
 
