@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.166 2003-06-23 10:31:21 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.167 2003-06-23 11:12:46 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3916,7 +3916,8 @@ AddNodeAt( tArray< double > &xyz, double time )
 
    tSubNode tempNode;
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );
-   if( layerflag && time > 0.0) tempNode.LayerInterpolation( tri, xyz[0], xyz[1], time );
+   if( layerflag && time > 0. )
+     tempNode.LayerInterpolation( tri, xyz[0], xyz[1], time );
    if( xyz.getSize() != 3 ) tempNode.setNew2DCoords( xyz[0], xyz[1] );
    tempNode.setBoundaryFlag( kNonBoundary );
 
@@ -4549,7 +4550,8 @@ MoveNodes( double time, bool interpFlag )
 
    //Before any edges and triangles are changed, layer interpolation
    //must be performed.
-   if( layerflag && time > 0.0 ) {
+   if( interpFlag &&
+       layerflag && time > 0. ) {
      tSubNode * cn;
      tMeshListIter< tSubNode > nodIter( nodeList );
      for(cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP()){
@@ -4557,11 +4559,9 @@ MoveNodes( double time, bool interpFlag )
        if( (cn->getX()!=newxy[0]) || (cn->getY()!=newxy[1]) ){
 	 //Nic - there may be some issues if boundary nodes make up
 	 //the triangle.
-	 //cout<<"a point will be moved in movenodes"<<endl;
-	 tTriangle *tri;
-	 tri = LocateTriangle( newxy[0], newxy[1] );
-	 if( interpFlag )
-	   cn->LayerInterpolation( tri, newxy[0], newxy[1], time );
+	 //cout<<"a point will be moved in MoveNodes"<<endl;
+	 tTriangle *tri = LocateTriangle( newxy[0], newxy[1] );
+	 cn->LayerInterpolation( tri, newxy[0], newxy[1], time );
 	 // TODO: is there a way to make this general, e.g. virtual fn?
        }
      }
