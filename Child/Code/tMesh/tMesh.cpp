@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.96 2002-04-11 11:56:48 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.97 2002-04-11 12:24:00 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -60,7 +60,7 @@ int Next3Delaunay( tPtrList< tSubNode > &nbrList,
      //cout << "N3D: pt c\n";
    nbrIterCopy.Get(i);
      //cout << "N3D: point d\n";
-   tPtrListNode< tSubNode > *tempptrnode = nbrIter.NodePtr();
+   // tPtrListNode< tSubNode > *tempptrnode = nbrIter.NodePtr();
    tArray< double > p0( nbrIterCopy.DatPtr()->get2DCoords() );
    tArray< double > p1( nbrIterCopy.NextP()->get2DCoords() );
    tArray< double > p2( nbrIterCopy.NextP()->get2DCoords() );
@@ -124,7 +124,7 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
    nbrIterCopy.Get( i );
      //assert( nbrIterCopy.Get( i ) );
    assert( nbrIterCopy.DatPtr() == nbrIter.DatPtr() );
-   tPtrListNode< tSubNode > *tempptrnode = nbrIter.NodePtr();
+   // tPtrListNode< tSubNode > *tempptrnode = nbrIter.NodePtr();
    tArray< double > p0( nbrIterCopy.DatPtr()->get2DCoords() );
    assert( nbrIterCopy.Next() );
    tArray< double > p1( nbrIterCopy.DatPtr()->get2DCoords() );
@@ -347,7 +347,7 @@ MakeLayersFromInputData( tInputFile &infile )
 
    int g;
    tLNode * cn;
-   int nActNodes = getNodeList()->getActiveSize();
+   //int nActNodes = getNodeList()->getActiveSize();
    //int NNodes = getNodeList()->get
    tMeshListIter<tLNode> ni( getNodeList() );
 

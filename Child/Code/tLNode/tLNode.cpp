@@ -11,7 +11,7 @@
 **    - fixed problem with layer initialization in copy constructor
 **      (gt, 2/2000; see below)
 ** 
-**  $Id: tLNode.cpp,v 1.94 2002-04-11 11:56:46 arnaud Exp $
+**  $Id: tLNode.cpp,v 1.95 2002-04-11 12:24:00 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2099,7 +2099,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    //NIC these are for testing
    //Xbefore=getLayerDepth(i);
    tArray<double> helper=valgrd;
-   int numlay=getNumLayer();
+   // int numlay=getNumLayer();
    //Xint h;
    //int nh = 0;
    

@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.10 2002-04-11 11:56:50 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.11 2002-04-11 12:24:01 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1905,8 +1905,8 @@ void tStreamNet::FindChanGeom()
    tLNode *cn;
    tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
    tStorm *sPtr = getStormPtrNC();
-   double isdmn = sPtr->getMeanInterstormDur();
-   double pmn = sPtr->getMeanPrecip();
+   // double isdmn = sPtr->getMeanInterstormDur();
+   // double pmn = sPtr->getMeanPrecip();
 
    // the following modification made by gt, 3/99, to avoid hydraulic geom
    // errors during runs w/ long storms:

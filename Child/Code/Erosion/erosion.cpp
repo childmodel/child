@@ -34,7 +34,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.91 2002-04-11 12:03:19 arnaud Exp $
+**  $Id: erosion.cpp,v 1.92 2002-04-11 12:23:59 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1396,7 +1396,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
    double frac = 0.3; // fraction of time to zero slope
    //Xint i;
    tLNode * cn, *dn;
-   int nActNodes = meshPtr->getNodeList()->getActiveSize();
+   // int nActNodes = meshPtr->getNodeList()->getActiveSize();
    tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
    double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
        cap,          // Transport capacity
@@ -1613,7 +1613,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
    double timegb; //time gone by - for layering time purposes
    int i;
    tLNode * cn, *dn;
-   int nActNodes = meshPtr->getNodeList()->getActiveSize();
+   // int nActNodes = meshPtr->getNodeList()->getActiveSize();
    tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
    double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
        cap,
@@ -1943,7 +1943,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       double timegb=time; //time gone by - for layering time purposes
       int i,j, flag;
       tLNode * cn, *dn;
-      int nActNodes = meshPtr->getNodeList()->getActiveSize();
+      // int nActNodes = meshPtr->getNodeList()->getActiveSize();
       tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
       double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
           drdt,
