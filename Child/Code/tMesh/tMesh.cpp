@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.24 1998-03-23 19:53:28 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.25 1998-03-23 20:03:00 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -843,7 +843,6 @@ MakeGridFromScratch( tInputFile &infile )
    {
       upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
       n = xGrid / delGrid;
-      cout << "n=" << n << endl;
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=1, id=0; i<n; i++, id++ )
       {
