@@ -76,7 +76,7 @@ class tDataFile {
   int     getColIndex(const char *name) const;
   double  *getColumn(int colindex) const;
   double  *getColumn(const char *name) const;
-  char   *getParam(const char *name);
+  const char   *getParam(const char *name) const;
  private:
   int     nrow, ncol;             // number of rows, columns in data table
   double  *data[DF_MAXCOL];        // list of ptrs to column data
@@ -236,11 +236,9 @@ class tInlineTimeSeriesImp : public tDataTimeSeriesImp {
  *                                                                    *
 \********************************************************************/
 
-tTokList::tTokList()
-{
-  //initializes class
-  ntok = 0;
-}
+tTokList::tTokList() :
+  ntok(0)
+{}
 
 tTokList::~tTokList()
 {
@@ -390,14 +388,13 @@ char *strclean(const char *s)
  *                                                                     *
 \*********************************************************************/
 
-tDataFile::tDataFile()
+tDataFile::tDataFile() :
+  nrow(0), ncol(0),
+  ncolname(0),
+  ncomment(0),
+  nparam(0)
 {
-  ncol     = 0;
-  nrow     = 0;
   strcpy(info,"");
-  ncolname = 0;
-  ncomment = 0;
-  nparam   = 0;
 }
 
 
@@ -710,7 +707,7 @@ double *tDataFile::getColumn(const char *colname) const
 }
 
 /*********************************************************************\
- * char *tDataFile::getParam(char *name)                               *
+ * const char *tDataFile::getParam(const char *name) const             *
  *                                                                     *
  * Returns the value of parameter 'name', as read during the parsing
  * as a %name=value pair.                                              *
@@ -719,8 +716,7 @@ double *tDataFile::getColumn(const char *colname) const
  * 26/01/2000, pwb                                                     *
  *                                                                     *
 \*********************************************************************/
-
-char *tDataFile::getParam(const char *name)
+const char *tDataFile::getParam(const char *name) const
 {
   static char result[32];
 
@@ -898,7 +894,8 @@ void tBlockwaveTimeSeriesImp::TellAll() const
 
 tDataTimeSeriesImp::tDataTimeSeriesImp() :
   xdata(0), ydata(0),
-  n(0)
+  n(0),
+  interpolate(false)
 {
 }
 
