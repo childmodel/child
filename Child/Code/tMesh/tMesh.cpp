@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.114 2002-09-02 16:19:29 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.115 2002-09-11 13:37:08 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -1648,6 +1648,10 @@ MakeMeshFromPoints( tInputFile &infile )
       ReportFatalError( "I can't find a file by this name." );
    }
    pointfile >> numpts;
+   if( !pointfile.good() ){
+     cerr << "\nPoint file name: '" << pointFilenm << "'\n";;
+     ReportFatalError( "I can't find a file by this name." );
+   }
    x.setSize( numpts );
    y.setSize( numpts );
    z.setSize( numpts );
@@ -1657,6 +1661,11 @@ MakeMeshFromPoints( tInputFile &infile )
       if( pointfile.eof() )
           ReportFatalError( "Reached end-of-file while reading points." );
       pointfile >> x[i] >> y[i] >> z[i] >> bnd[i];
+      if( pointfile.fail() ) {
+	cerr << "\nPoint file name: '" << pointFilenm 
+	     << "' - point " << i << endl;
+	ReportFatalError( "I can't read the point above." );
+      }
       //if( bnd[i]<0 || bnd[i]>2 )
       //    ReportWarning( "Invalid boundary code." );
       if( x[i]<minx ) minx = x[i];

@@ -13,10 +13,44 @@
 **   - Bug fix in constructor: nnodes was being read from edge and
 **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
 **
-**  $Id: tListInputData.cpp,v 1.6 2002-04-10 09:01:25 gtucker Exp $
+**  $Id: tListInputData.cpp,v 1.7 2002-09-11 13:37:08 arnaud Exp $
 \**************************************************************************/
 
 #include "tListInputData.h"
+
+// file suffixes
+static 
+const char 
+* const SNODES = ".nodes", * const SEDGES = ".edges", 
+* const STRI = ".tri", * const SZ = ".z";
+
+
+// IO Error handling
+typedef enum {
+  IOTime,
+  IOSize,
+  IORecord
+} IOErrorType;
+
+static 
+void ReportIOError(IOErrorType t, const char *filename,
+		   const char *suffix, int n=-1){
+  cerr << "\nFile: '" << filename << suffix << "' "
+       << "- Can't read ";
+  switch (t){
+  case IOTime:
+    cerr << "time";
+    break;
+  case IOSize:
+    cerr << "size";
+    break;
+  case IORecord:
+    cerr << "record " << n;
+    break;
+  }
+  cerr << "." << endl;
+  ReportFatalError( "Input/Output Error." );
+}
 
 
 /**************************************************************************\
@@ -58,19 +92,19 @@ tListInputData( tInputFile &infile )                   //tListInputData
    
    // Open each of the four files
    strcpy( inname, basename );
-   strcat( inname, ".nodes" );
+   strcat( inname, SNODES );
    nodeinfile.open(inname);    // Node input file pointer
    //assert( nodeinfile.good() );
    strcpy( inname, basename );
-   strcat( inname, ".edges" );
+   strcat( inname, SEDGES );
    edgeinfile.open(inname);    // Edge input file pointer
    //assert( edgeinfile.good() );
    strcpy( inname, basename );
-   strcat( inname, ".tri" );
+   strcat( inname, STRI );
    triinfile.open( inname );   // Triangle input file pointer
    //assert( triinfile.good() );
    strcpy( inname, basename );
-   strcat( inname, ".z" );
+   strcat( inname, SZ );
    zinfile.open( inname );     // Elevations input file pointer
    //assert( zinfile.good() );
 
@@ -107,11 +141,15 @@ tListInputData( tInputFile &infile )                   //tListInputData
          if( time == intime ) righttime = 1;
       }*/
      nodeinfile >> time;
+     if (nodeinfile.fail())
+       ReportIOError(IOTime, basename, SNODES);
      cout << "Read time: " << time << endl;
      if( time != intime )
        {
 	 int i;
 	 nodeinfile >> nnodes;
+	 if (nodeinfile.fail())
+	   ReportIOError(IOSize, basename, SNODES);
 	 cout << "nnodes = " << nnodes << endl;
 	 for( i=1; i<=nnodes+1; i++ ) {
 	   nodeinfile.getline( headerLine, kMaxNameLength );
@@ -120,8 +158,11 @@ tListInputData( tInputFile &infile )                   //tListInputData
      else righttime = 1;
       cout << " NOW are we at eof? " << nodeinfile.eof() << endl;
    }
-   if( !( nodeinfile.eof() ) ) nodeinfile >> nnodes;
-   else
+   if( !( nodeinfile.eof() ) ) {
+     nodeinfile >> nnodes;
+     if (nodeinfile.fail())
+       ReportIOError(IOSize, basename, SNODES);
+   } else
    {
       cerr << "Couldn't find the specified input time in the node file\n";
       ReportFatalError( "Input error" );
@@ -138,11 +179,15 @@ tListInputData( tInputFile &infile )                   //tListInputData
          if( time == intime ) righttime = 1;
       }*/
      zinfile >> time;
+     if (zinfile.fail())
+       ReportIOError(IOTime, basename, SZ);
      cout << "Read time: " << time << endl;
      if( time != intime )
        {
 	 int i;
 	 zinfile >> nnodes;
+	 if (zinfile.fail())
+	   ReportIOError(IOSize, basename, SZ);
 	 cout << "nnodes = " << nnodes << endl;
 	 for( i=1; i<=nnodes+1; i++ ) {
 	   zinfile.getline( headerLine, kMaxNameLength );
@@ -150,8 +195,11 @@ tListInputData( tInputFile &infile )                   //tListInputData
        }
      else righttime = 1;  
    }
-   if( !( zinfile.eof() ) ) zinfile >> nnodes;
-   else
+   if( !( zinfile.eof() ) ) {
+     zinfile >> nnodes;
+     if (zinfile.fail())
+       ReportIOError(IOSize, basename, SZ);
+   } else
    {
       cerr << "Couldn't find specified input time in elevation file\n";
       ReportFatalError( "Input error" );
@@ -169,11 +217,15 @@ tListInputData( tInputFile &infile )                   //tListInputData
       }*/
 
      edgeinfile >> time;
+     if (edgeinfile.fail())
+       ReportIOError(IOTime, basename, SEDGES);
      cout << "Read time: " << time << endl;
      if( time != intime )
        {
 	 int i;
 	 edgeinfile >> nedges;
+	 if (edgeinfile.fail())
+	   ReportIOError(IOSize, basename, SEDGES);
 	 cout << "nedges = " << nedges << endl;
 	 for( i=1; i<=nedges+1; i++ ) {
 	   edgeinfile.getline( headerLine, kMaxNameLength );
@@ -181,8 +233,11 @@ tListInputData( tInputFile &infile )                   //tListInputData
        }
      else righttime = 1;  
    }
-   if( !( edgeinfile.eof() ) ) edgeinfile >> nedges;
-   else
+   if( !( edgeinfile.eof() ) ) {
+     edgeinfile >> nedges;
+     if (edgeinfile.fail())
+       ReportIOError(IOSize, basename, SEDGES);
+   } else
    {
       cerr << "Couldn't find the specified input time in the edge file\n";
       ReportFatalError( "Input error" );
@@ -200,11 +255,15 @@ tListInputData( tInputFile &infile )                   //tListInputData
          if( time == intime ) righttime = 1;
       }*/
      triinfile >> time;
+     if (triinfile.fail())
+       ReportIOError(IOTime, basename, STRI);
      cout << "Read time: " << time << endl;
      if( time != intime )
        {
 	 int i;
 	 triinfile >> ntri;
+	 if (triinfile.fail())
+	   ReportIOError(IOSize, basename, STRI);
 	 cout << "ntri = " << ntri << endl;
 	 for( i=1; i<=ntri+1; i++ ) {
 	   triinfile.getline( headerLine, kMaxNameLength );
@@ -213,8 +272,11 @@ tListInputData( tInputFile &infile )                   //tListInputData
      else righttime = 1;  
 
    }
-   if( !( triinfile.eof() ) ) triinfile >> ntri;
-   else
+   if( !( triinfile.eof() ) ) {
+     triinfile >> ntri;
+     if (triinfile.fail())
+       ReportIOError(IOSize, basename, STRI);
+   } else
    {
       cerr << "Couldn't find the specified input time in the tri file\n";
       ReportFatalError( "Input error" );
@@ -265,21 +327,29 @@ template< class tSubNode >
 void tListInputData< tSubNode >::
 GetFileEntry()                  //tListInputData
 {
+   char const * const  basename = "<file>";
    int i;
 
-   for( i=0; i< nnodes; i++ )
-   {
-      nodeinfile >> x[i] >> y[i] >> edgid[i] >> boundflag[i];
-      zinfile >> z[i];
+   for( i=0; i< nnodes; i++ ){
+       nodeinfile >> x[i] >> y[i] >> edgid[i] >> boundflag[i];
+       if (nodeinfile.fail())
+	 ReportIOError(IORecord, basename, SNODES, i);
+       zinfile >> z[i];
+       if (zinfile.fail())
+	 ReportIOError(IORecord, basename, SZ, i);
    }
    
-   for( i=0; i<nedges; i++ )
+   for( i=0; i<nedges; i++ ) {
        edgeinfile >> orgid[i] >> destid[i] >> nextid[i];
-   
-   for( i=0; i< ntri; i++ )
+       if (edgeinfile.fail())
+	 ReportIOError(IORecord, basename, SEDGES, i);
+   }
+   for( i=0; i< ntri; i++ ) {
        triinfile >> p0[i] >> p1[i] >> p2[i] >> t0[i] >> t1[i] >> t2[i] 
                  >> e0[i] >> e1[i] >> e2[i];
-   
+       if (triinfile.fail())
+	 ReportIOError(IORecord, basename, STRI, i);
+   }
 }
 
 
@@ -376,22 +446,22 @@ tListIFStreams::tListIFStreams( tInputFile &infile )
    infile.ReadItem( thestring, "INPUTDATAFILE" );
    
    strcpy( inname, thestring );
-   strcat( inname, ".nodes" );
+   strcat( inname, SNODES );
    nodeinfile.open(inname); // Node input file pointer
    assert( nodeinfile.good() );
 
    strcpy( inname, thestring );
-   strcat( inname, ".edges" );
+   strcat( inname, SEDGES );
    edgeinfile.open(inname); // Edge input file pointer
    assert( edgeinfile.good() );
 
    strcpy( inname, thestring );
-   strcat( inname, ".tri" );
+   strcat( inname, STRI );
    triinfile.open( inname ); //Triangle input file pointer
    assert( triinfile.good() );
    
    strcpy( inname, thestring );
-   strcat( inname, ".z" );
+   strcat( inname, SZ );
    zinfile.open( inname ); //Elevations input file pointer
    assert( zinfile.good() );
    
@@ -490,22 +560,22 @@ tListIFStreams::tListIFStreams( const char * argv = 0 )        //tListIFStreams
    {
       char inname[80];
       strcpy( inname, argv );
-      strcat( inname, ".nodes" );
+      strcat( inname, SNODES );
       nodeinfile.open(inname); // Node input file pointer
       assert( nodeinfile.good() );
    
       strcpy( inname, argv );
-      strcat( inname, ".edges" );
+      strcat( inname, SEDGES );
       edgeinfile.open(inname); // Edge input file pointer
       assert( edgeinfile.good() );
    
       strcpy( inname, argv );
-      strcat( inname, ".tri" );
+      strcat( inname, STRI );
       triinfile.open( inname ); //Triangle input file pointer
       assert( triinfile.good() );
    
       strcpy( inname, argv );
-      strcat( inname, ".z" );
+      strcat( inname, SZ );
       zinfile.open( inname ); //Elevations input file pointer
       assert( zinfile.good() );
       

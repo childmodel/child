@@ -72,6 +72,10 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
 
     cout<<"\nReading in '"<<pointFilenm<<"' points file..."<<endl;
     pointfile >> numpts;
+    if( !pointfile.good() ) {
+      cerr << "\nPoint file name: '" << pointFilenm << "'\n";;
+      ReportFatalError( "I can't find a file by this name." );
+    }
     //Read point file, make Nodelist 
     for( int i=0; i<numpts; i++ ){
       double x, y, z;
@@ -81,6 +85,11 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
 	ReportFatalError("Invalid point file.");
       }
       pointfile >> x >> y >> z >> bnd;
+      if( pointfile.fail() ) {
+	cerr << "\nPoint file name: '" << pointFilenm
+	     << "' - point " << i << endl;
+	ReportFatalError( "I can't read the point above." );
+      }
       tempnode.set3DCoords( x, y, z);
       tempnode.setBoundaryFlag( bnd );
       tempnode.setID( i );
