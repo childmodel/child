@@ -4,13 +4,14 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.33 1998-04-10 19:14:44 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.34 1998-04-21 00:37:31 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
 #include <math.h>
 #include "../errors/errors.h"
 #include "tLNode.h"
+#define kBugTime 500
 
 /*************************************************************************
 **  tDeposit::tDeposit : Constructor function for tDeposit
@@ -484,6 +485,8 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
    return *this;
 }
 
+//"get" and "set" functions; most simply return or set a data value, respectively:
+
 const tBedrock &tLNode::getRock() const {return rock;}
 const tSurface &tLNode::getSurf() const {return surf;}
 const tRegolith &tLNode::getReg() const {return reg;}
@@ -674,7 +677,7 @@ double tLNode::GetQ()
 double tLNode::GetSlope()
 {
    int ctr;
-   double rlen, curlen, slp;
+   double rlen, curlen, slp, delz, downz;
    tLNode *dn, *on, *tn;
    assert( flowedge != 0 );
    assert( flowedge->getLength()>0 ); // failure means lengths not init'd
@@ -702,9 +705,15 @@ double tLNode::GetSlope()
          }
          curlen += dn->flowedge->getLength();
          dn = dn->GetDownstrmNbr();
+         assert( dn != 0 );
       }
       assert( curlen > 0 );
-      slp = (z - dn->z) / curlen;
+      downz = dn->z;
+      if( timetrack >= kBugTime ) cout << "GetSlope 1; " << flush;
+      delz = z - downz;
+      if( timetrack >= kBugTime ) cout << "GS 2; " << flush;
+      slp = delz / curlen;
+      if( timetrack >= kBugTime ) cout << "GS 3; " << flush;
       on = dn;
       ctr = 0;
       while( on->getBoundaryFlag() == kNonBoundary &&
@@ -721,6 +730,7 @@ double tLNode::GetSlope()
       if( z - on->z < 0.0 ) slp = 0.0;
    }
    else slp = (z - GetDownstrmNbr()->z ) / flowedge->getLength();
+   if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
    if( slp>=0.0 ) return slp;
    else return 0.0;
 }
@@ -989,3 +999,4 @@ int tLNode::OnBedrock()
 void tLNode::setUplift( double val ) {uplift = val;}
 
 double tLNode::getUplift() const {return uplift;}
+#undef kBugTime
