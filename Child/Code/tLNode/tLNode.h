@@ -26,7 +26,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.68 2003-08-05 13:14:09 childcvs Exp $
+**  $Id: tLNode.h,v 1.69 2003-08-06 13:06:02 childcvs Exp $
 */
 /************************************************************************/
 
@@ -50,7 +50,16 @@ using namespace std;
 #include "../globalFns.h"
 #include "../tVegetation/tVegetation.h"
 
-#define kSink        3  // ...or a dry sink (unfilled depression).
+typedef enum {
+  kFlooded     = 1,  // Flooding (lake) codes: part of a lake...
+  kNotFlooded  = 0,  // ...or not...
+  kCurrentLake = 2,  // ...or part one that is currently being computed...
+  kSink        = 3,  // ...or a dry sink (unfilled depression).
+  kOutletFlag  = 4,  // Used as temporary flag in FillLakes.
+  kOutletPreFlag= 5  // ditto
+} tFlood_t;
+
+
 #define kVeryHigh 100000  // Used in FillLakes
 
 
@@ -390,8 +399,8 @@ public:
     const tBedrock &getRock() const;
     const tRegolith &getReg() const;
     const tChannel &getChan() const;
-    inline int getFloodStatus() const;
-    inline void setFloodStatus( int status );
+    inline tFlood_t getFloodStatus() const;
+    inline void setFloodStatus( tFlood_t status );
     tEdge * getFlowEdg();
     void setFlowEdg( tEdge * );
     void setDrArea( double );
@@ -560,7 +569,7 @@ protected:
    tBedrock rock;
    tRegolith reg;
    tChannel chan;
-   int flood;        /* flag: is the node part of a lake?*/
+   tFlood_t flood;        /* flag: is the node part of a lake?*/
    tEdge *flowedge;
    int tracer;       /* Used by network sorting algorithm*/
    double dzdt;      /* Erosion rate */
@@ -584,9 +593,9 @@ protected:
    static double KRnew;
 };
 
-inline int tLNode::getFloodStatus() const { return flood; }
+inline tFlood_t tLNode::getFloodStatus() const { return flood; }
 
-inline void tLNode::setFloodStatus( int status )
+inline void tLNode::setFloodStatus( tFlood_t status )
 {
    flood = status;
 }

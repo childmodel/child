@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 **
-**  $Id: tLNode.cpp,v 1.113 2003-08-05 13:14:07 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.114 2003-08-06 13:06:01 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -304,7 +304,7 @@ double tLNode::KRnew = 1.0;
 tLNode::tLNode()                                                   //tLNode
   :
 tNode(), vegCover(), rock(), reg(), chan(),
-flood(0), flowedge(0), tracer(0),
+flood(kNotFlooded), flowedge(0), tracer(0),
 dzdt(0.), drdt(0.), tau(0.), tauc(0.), qs(0.),
 qsm(),
 qsin(0.),
@@ -314,22 +314,18 @@ layerlist()
 {
    if (0) //DEBUG
      cout << "=>tLNode()" << endl;
-   flood = 0;
-   flowedge = 0;
-   tracer = 0;
-   dzdt = drdt = qs = qsin = uplift = 0.0;
-   tau = tauc = 0;
 }
 
 tLNode::tLNode( tInputFile &infile )                               //tLNode
-        : tNode(), vegCover(), rock(), reg(), chan(),
-flood(0), flowedge(0), tracer(0),
+        :
+tNode(), vegCover(), rock(), reg(), chan(),
+flood(kNotFlooded), flowedge(0), tracer(0),
 dzdt(0.), drdt(0.), tau(0.), tauc(0.), qs(0.),
-	  qsm(),
+qsm(),
 qsin(0.),
-	  qsinm(),
+qsinm(),
 uplift(0.),
-          layerlist()
+layerlist()
 {
    int i;
    char add[2], name[20];
