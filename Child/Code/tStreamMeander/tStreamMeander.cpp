@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.95 2003-09-19 13:45:43 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.96 2003-10-02 15:51:55 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -312,9 +312,19 @@ int tStreamMeander::InterpChannel( double time )
 		  if (0){ //DEBUG
 		    if( timetrack >= kBugTime ) cout << "add a node" << endl;
 		  }
-		  meshPtr->AddNode( nn, kUpdateMesh, time );
+		  // set flow edge temporarily to zero, so that it is flippable
+		  crn->setFlowEdgToZero();
+		  // Add new node
+		  tLNode * newnodeP = meshPtr->AddNode( nn, kUpdateMesh, time );
 		  if (0) //DEBUG
 		    cout<<"IC pt added at " << x << "," << y << endl;
+
+		  // Reconnect flow edges
+		  newnodeP->flowTo( nPtr );
+		  crn->flowTo( newnodeP );
+		  // Paranoia
+		  assert( newnodeP->getFlowEdg()->getDestinationPtr() == nPtr );
+		  assert( crn->getFlowEdg()->getDestinationPtr() == newnodeP );
 		}
 	      //otherwise, if we need to add more than one point,
 	      //generate a random walk with uniform spacing in x
@@ -325,6 +335,7 @@ int tStreamMeander::InterpChannel( double time )
 		{
 		  const int npts = ROUND( curseglen / defseglen );
 		  tArray< double > xp( npts), yp(npts), zp(npts);
+		  tLNode *prevNode = crn;
 		  for(int i=1; i<npts; i++ )
 		    {
 		      xp[i] = static_cast<double>(i) * defseglen;
@@ -343,9 +354,17 @@ int tStreamMeander::InterpChannel( double time )
 		      if (0){ //DEBUG
 			if( timetrack >= kBugTime ) cout << "add a node" << endl;
 		      }
-		      meshPtr->AddNode( nn, kUpdateMesh, time );
+		      // set flow edge temporarily to zero, so that it is flippable
+		      prevNode->setFlowEdgToZero();
+		      tLNode * newnodeP = meshPtr->AddNode( nn, kUpdateMesh, time );
 		      if (0) //DEBUG
 			cout<<"IC pt added at " << x << "," << y << endl;
+
+		      // Reconnect flow edges
+		      newnodeP->flowTo( nPtr );
+		      prevNode->flowTo( newnodeP );
+		      // Update
+		      prevNode = newnodeP;
 		    }
 		}
 	    }
