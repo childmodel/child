@@ -46,7 +46,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.107 2002-09-23 12:11:47 arnaud Exp $
+**  $Id: erosion.cpp,v 1.108 2002-09-30 17:20:30 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1143,7 +1143,6 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
 **   - Reverted to earlier computation of tau using roughness and
 **     width
 \***********************************************************************/
-#define YEARPERSEC 3.171e-8
 double tSedTransWilcock::TransCapacity( tLNode *nd )
 {
    double tau;
@@ -1161,7 +1160,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    // units of Q are m^3/yr; convert to m^3/sec
    //NIC you are doing a test here to see what is causing the
    //downstream coarsening.
-   tau = taudim*pow(nd->getHydrRough()*nd->getQ()*YEARPERSEC/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
+   tau = taudim*pow(nd->getHydrRough()*nd->getQ()/SECPERYEAR/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
    
    if(0) { //DEBUG
      cout << "hydrrough is " << nd->getChanRough() << endl;
@@ -1362,7 +1361,6 @@ tSedTransMineTailings::tSedTransMineTailings( tInputFile &infile )
 **  these two rates is returned. (rate here is in m^3/yr)
 **
 \***********************************************************************/
-#define YEARPERSEC 3.171e-8
 double tSedTransMineTailings::TransCapacity( tLNode *nd )
 {
    double tau;
@@ -1379,7 +1377,7 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd )
    }
 
    // units of Q are m^3/yr; convert to m^3/sec
-   //tau = taudim*pow(nd->getHydrRough()*nd->getQ()*YEARPERSEC/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
+   //tau = taudim*pow(nd->getHydrRough()*nd->getQ()/SECPERYEAR/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
    tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
    
    if(0) { //DEBUG
@@ -2687,7 +2685,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
  **  Notes:  as of 3/98, does not differentiate between rock and sediment
  **
 \*****************************************************************************/
-#define kVerySmall 1e-6
+//#define kVerySmall 1e-6
 #define kEpsOver2 0.1
 void tErosion::Diffuse( double rt, int noDepoFlag )
 {
