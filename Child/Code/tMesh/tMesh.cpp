@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.217 2005-02-14 19:39:42 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.218 2005-02-17 15:50:07 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -285,12 +285,17 @@ MakeLayersFromInputData( const tInputFile &infile )
          if( time >= intime ) righttime = 1;
       }
    }
-   if( !( layerinfile.eof() ) ) layerinfile >> nnodes;
+   if(1) //DEBUG
+     std::cout<<"MakeLayersFromInputData: nnodes before="<<nnodes<<std::endl;
+   int temp_nintnodes;  // Temporary variable used to read number of interior nodes
+   if( !( layerinfile.eof() ) ) layerinfile >> temp_nintnodes;
    else
    {
       std::cerr << "Couldn't find specified input time in layer file" << std::endl;
       ReportFatalError( "Input error" );
    }
+   if(1) //DEBUG
+     std::cout<<"nnodes after="<<nnodes<<std::endl;
 
    tLayer layhelp;
    int numg;
@@ -3918,7 +3923,7 @@ AddToList( tSubNode const & newNode )
   // insert node at the back of either the
   // active portion of the node list (if it's not a boundary) or the
   // boundary portion (if it is)
-  if(1) //DEBUG
+  if(0) //DEBUG
     std::cout<<"AddToList: nnodes="<<nnodes<<std::endl;
   nodeListIter_t nodIter( nodeList );
   tSubNode *cn = 0;
@@ -3936,7 +3941,7 @@ AddToList( tSubNode const & newNode )
     cn = nodIter.LastP();
     break;
   }
-  if(1) //DEBUG
+  if(0) //DEBUG
     std::cout<<"in AddToList, list size ="<<nodeList.getSize()<<std::endl;
   assert( nodeList.getSize() == nnodes + 1 );
   ++nnodes;
@@ -4167,7 +4172,7 @@ AddNodeAt( tArray< double > &xyz, double time )
 
    UpdateMesh();
 
-   if (0)//DEBUG
+   if (1)//DEBUG
      std::cout << "AddNodeAt finished, " << nnodes << std::endl;
    return newNodePtr2;
 }
