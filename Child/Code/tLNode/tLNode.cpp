@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.26 1998-04-04 00:06:34 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.27 1998-04-06 19:27:27 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -259,28 +259,50 @@ tRegolith::tRegolith()                                          //tRegolith
 }
 
 tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
+  : dgrade( )
 {
+  int i;
+  char name[10];
 
    cout << "tRegolith(infile)\n";
    thickness = infile.ReadItem( thickness, "REGINIT" );
    numal = 0;
-   numg = infile.ReadItem( numg, "NUMGRNSIZE" );
-   actdpth = infile.ReadItem( actdpth, "ACTIVEDEPTH" );
-   dpth = actdpth;
-   dgrade( numg+1 );
-   grade ( numg+1 );
-   // Need to read in the grain sizes and depth of each size here
-   // will need to read in the name of a file, open that file,
-   // and read in the data.  Filename can just be the same as
-   // the base file name, with the extension "sizedat"
+   //numg = infile.ReadItem( numg, "NUMGRNSIZE" );
+   //actdpth = infile.ReadItem( actdpth, "ACTIVEDEPTH" );
+   //dpth = actdpth;
+   
    //if( numg>1 )
-   //  {
-   //    dgrade.insertAtFront(thickness);
-   //  }
+   //{
+       //dgrade.setSize( numg+1 );
+       //dgrade[0]=0;
+       //i=1;
+       //while ( i<numg+1 ){
+       //strcpy( name, "PROPORTION");
+	 // strcat( name, 
+	 //infile.ReadItem( grndatname, "OUTFILENAME" );
+	 //strcat( grndatname, ".grndat");
+	 //grnfile.open( grndatname );
+	 //if( !grnfile.good() )
+	 //cerr << "tRegolith::tRegolith: Unable to open '" << grndatname << "'." << endl;
+	 //i=1;
+	 //while ( i<numg+1 ){
+	 //grnfile >> dgrade[i];
+	 //i++;
+	 //}
+	 //if( grade.getSize()<2 ){
+	 //grade.setSize(numg+1);
+	 //grade[0]=0;
+	 //i=1;
+	 //while ( i<numg+1 ){
+	 //  grnfile >> dgrade[i];
+	 // i++;
+	 //}
+	 //}        
+   //}
 }
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
-        : dgrade( orig.dgrade ), grade( orig.grade ), 
+        : dgrade( orig.dgrade ),  grade(orig.grade),
 	  depositList( orig.depositList )
 {
    if( &orig != 0 )
@@ -293,16 +315,6 @@ tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
    cout << "  tRegolith( orig ) " << thickness << endl;
 }
 
-tRegolith::tRegolith( double vald )                    //tRegolith
-        : dgrade( ), dpth( vald )
-{
-   assert( vald > 0.0 );
-   thickness = 0.0;
-   numal = 0;
-   actdpth = 0;
-   numg = 0;
-     //cout << "  tRegolith( numg, vald )" << endl;
-}
 
 tRegolith::~tRegolith()                                         //tRegolith
 {
