@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.47 2004-04-27 14:22:16 childcvs Exp $
+**   $Id: Definitions.h,v 1.48 2004-04-27 14:39:56 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -31,6 +31,7 @@ inline const char* BoundName( tBoundary_t b ){
   }
 }
 inline tBoundary_t IntToBound( int b_ ){
+  assert(b_>=0 && b_<=2);
   return static_cast<tBoundary_t>(b_);
 }
 inline int BoundToInt( tBoundary_t b ){
