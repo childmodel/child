@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.45 2003-04-24 13:58:06 childcvs Exp $
+**  $Id: tMesh.h,v 1.46 2003-04-25 12:23:50 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -54,8 +54,8 @@
 /***************************/
 
 /* codes passed to DeleteNode (why don't default args work?) */
-#define kRepairMesh 1
-#define kNoRepair 0
+#define kRepairMesh true
+#define kNoRepair false
 
 
 /****************************/
@@ -103,8 +103,8 @@ public:
    /*returns ptr to triangle which points to edge, or zero if none:*/
    tTriangle *TriWithEdgePtr( tEdge * );
    /*only routine needed to delete node; calls ExNode, RepairMesh:*/
-   int DeleteNode( tListNode< tSubNode > *, int repairFlag=1 );
-   int DeleteNode( tSubNode *, int repairFlag=1 );
+   int DeleteNode( tListNode< tSubNode > *, bool repairFlag=true );
+   int DeleteNode( tSubNode *, bool repairFlag=true );
    /*deletes spokes, *calls ExEdge, makes nbr ptr list:*/
    int ExtricateNode( tSubNode *, tPtrList< tSubNode > & );
    int DeleteEdge( tEdge * );
@@ -135,7 +135,7 @@ public:
    tList< tTriangle > * getTriList();
    tEdge *getEdgeComplement( tEdge * );
    /* Tests consistency of a user-defined mesh */
-   void CheckMeshConsistency( int boundaryCheckFlag=1 );
+   void CheckMeshConsistency( bool boundaryCheckFlag=true );
    /* Updates mesh by comp'ing edg lengths & slopes & node Voronoi areas */
    void UpdateMesh();
    /* computes edge slopes as (Zorg-Zdest)/Length */

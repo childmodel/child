@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.133 2003-04-24 13:58:04 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.134 2003-04-25 12:23:49 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2199,7 +2199,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
 #define kMaxSpokes 100
 template<class tSubNode>
 void tMesh< tSubNode >::
-CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
+CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
 {
    tMeshListIter<tSubNode> nodIter( nodeList );
    tMeshListIter<tEdge> edgIter( edgeList );
@@ -2208,7 +2208,8 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
    tNode * cn, * org, * dest;
    tEdge * ce, * cne, * ccwedg;
    tTriangle * ct, * optr;
-   int boundary_check_ok, i, nvop;
+   bool boundary_check_ok;
+   int i, nvop;
 
    // Edges: make sure complementary pairs are together in the list
    // (each pair Ei and Ei+1, for i=0,2,4,...nedges-1, should have the same
@@ -2297,14 +2298,14 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
       // consistency checks even in the middle of mesh creation operations,
       // for testing/debugging purposes).
       boundary_check_ok = ( cn->getBoundaryFlag()==kNonBoundary &&
-                            boundaryCheckFlag ) ? 0 : 1;
+                            boundaryCheckFlag ) ? false : true;
       i = 0;
       // Loop around the spokes until we're back at the beginning
       do
       {
       
          if( ce->getDestinationPtrNC()->getBoundaryFlag()!=kClosedBoundary )
-             boundary_check_ok = 1;  // OK, there's at least one open nbr
+             boundary_check_ok = true;  // OK, there's at least one open nbr
          i++;
          if( i>kMaxSpokes ) // Uh-oh, an infinite loop
          {
@@ -2617,7 +2618,7 @@ template <class tSubNode>
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-DeleteNode( tListNode< tSubNode > *nodPtr, int repairFlag )
+DeleteNode( tListNode< tSubNode > *nodPtr, bool repairFlag )
 {
    if (0) //DEBUG
      cout << "DeleteNode: " << nodPtr->getDataPtr()->getID() << endl;
@@ -2664,7 +2665,7 @@ DeleteNode( tListNode< tSubNode > *nodPtr, int repairFlag )
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-DeleteNode( tSubNode *node, int repairFlag )
+DeleteNode( tSubNode *node, bool repairFlag )
 {
    tPtrList< tSubNode > nbrList;
    tListNode< tSubNode > *nodPtr;
@@ -4248,7 +4249,7 @@ UpdateMesh()
    setVoronoiVertices();
    CalcVoronoiEdgeLengths();
    CalcVAreas();
-   CheckMeshConsistency( 0 );  // debug only -- remove for release
+   CheckMeshConsistency( false );  // debug only -- remove for release
 
 // Triangle areas
 /*   for( tlist.First(); !tlist.AtEnd(); tlist.Next() )
