@@ -26,7 +26,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.57 2003-01-17 17:30:30 childcvs Exp $
+**  $Id: tLNode.h,v 1.58 2003-05-15 16:07:11 childcvs Exp $
 */
 /************************************************************************/
 
@@ -83,7 +83,7 @@ class tLayer
    void setSed( int );
    int getSed() const;
    void setDgradesize( int );
-   int getDgradesize();
+   int getDgradesize() const;
    void setDgrade( int, double );
    double getDgrade( int );
    tArray< double > getDgrade() const;
@@ -224,7 +224,7 @@ inline void tLayer::setDgradesize( int i )
    dgrade.setSize(i);
 }
 
-inline int tLayer::getDgradesize( )
+inline int tLayer::getDgradesize( ) const
 {
    return dgrade.getSize();
 }
@@ -393,7 +393,7 @@ public:
     void setFlowEdg( tEdge * );
     void setDrArea( double );
     void setFlowPathLength( double );
-    double getFlowPathLength();
+    double getFlowPathLength() const;
     void AddDrArea( double );
     void AddDischarge( double );
     tLNode * getDownstrmNbr();
@@ -446,7 +446,7 @@ public:
     void MoveSortTracerDownstream();
     void FlagDownhillNodes();
     inline void AddTracer();
-    int NoMoreTracers();
+    int NoMoreTracers() const;
     void EroDep( double dz );
     void setAlluvThickness( double );
     double getAlluvThickness() const;
@@ -485,9 +485,9 @@ public:
    void addDrDt(double);
     double getDrDt();
     void setDrDt( double );
-    double getTau();
+    double getTau() const;
     void setTau( double );
-    double getTauCrit();
+    double getTauCrit() const;
     void setTauCrit( double );
     void setUplift( double );
     double getUplift() const;
@@ -576,14 +576,14 @@ protected:
    static double KRnew;
 };
 
-inline double tLNode::getTau() { return tau; }
+inline double tLNode::getTau() const { return tau; }
 
 inline void tLNode::setTau( double newtau ) 
 {
    tau = newtau;
 }
 
-inline double tLNode::getTauCrit() { return tauc; }
+inline double tLNode::getTauCrit() const { return tauc; }
 
 inline void tLNode::setTauCrit( double newtauc ) 
 {
@@ -600,7 +600,7 @@ inline void tLNode::setVegCover( const tLNode *node )
    vegCover = node->vegCover;
 }
 
-inline double tLNode::getFlowPathLength()
+inline double tLNode::getFlowPathLength() const
 {
   return chan.mdFlowPathLength;
 }
@@ -674,7 +674,7 @@ inline void tLNode::AddTracer()
    if( !boundary ) tracer++;
 }
 
-inline int tLNode::NoMoreTracers()
+inline int tLNode::NoMoreTracers() const 
 {
    assert( tracer>=0 );
    return( tracer==0 );
