@@ -1,7 +1,7 @@
 /****************************************************************************\
 **   Definitions.h: Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.23 2001-06-21 10:17:38 gtucker Exp $
+**   $Id: Definitions.h,v 1.24 2002-04-17 14:47:03 arnaud Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -39,8 +39,8 @@
 #define SECPERYEAR 31557600.00  /*number of seconds in a year*/
 
 // Macros
-#define ROUND(x)    (int)(x+0.5)
-#define SIGN(x)     ( x>0 ? 1 : 0 )
+#define ROUND(x)    (int)((x)+0.5)
+#define SIGN(x)     ( (x)>0 ? 1 : 0 )
 
 
 #endif
