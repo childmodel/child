@@ -39,6 +39,8 @@ command="cvs --allow-root=/path/to/cvs_directory server",no-port-forwarding,no-p
 The above line grant an access for the user having the associated private key.
 The only usable command is "cvs --allow-root=xxx server", which provides a
 reasonably good safety level.
+(--allow-root may not be honored. See http://ioctl.org/unix/cvs/server)
+
 
 #6 Test the cvs connection logged as a different user following the
 instructions of get_snapshot.txt.
