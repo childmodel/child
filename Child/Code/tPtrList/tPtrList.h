@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.38 2003-08-11 11:49:40 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.39 2003-09-01 13:57:09 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -900,8 +900,7 @@ template< class NodeType >                      //tPtrList
 inline bool tPtrList< NodeType >::
 isEmpty() const
 {
-  return
-    ( first == 0 ) ? true : false;
+  return BOOL( first == 0 );
 }
 
 
@@ -1416,8 +1415,8 @@ inline bool tPtrListIter< NodeType >::
 AtEnd() const
 {
   if( ptrlistPtr->last == 0 ) return true;
-  if( ptrlistPtr->last->next == 0 ) return ( curptrnode==0 );
-  return ( curptrnode == ptrlistPtr->first && counter != 0 );
+  if( ptrlistPtr->last->next == 0 ) return BOOL( curptrnode==0 );
+  return BOOL( curptrnode == ptrlistPtr->first && counter != 0 );
 }
 
 #endif

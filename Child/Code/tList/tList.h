@@ -33,7 +33,7 @@
  **      track position on list w/o an iterator, 1/22/99
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **
- **  $Id: tList.h,v 1.45 2003-08-11 11:49:38 childcvs Exp $
+ **  $Id: tList.h,v 1.46 2003-09-01 13:57:09 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -696,8 +696,7 @@ template< class NodeType >                         //tList
 inline bool tList< NodeType >::
 isEmpty() const
 {
-  return
-    ( first == 0 ) ? true : false;
+  return BOOL( first == 0 );
 }
 
 //display list contents -- for debugging only
@@ -1410,8 +1409,8 @@ inline bool tListIter< NodeType >::
 AtEnd() const
 {
   if( listPtr->isEmpty() ) return true;
-  if( listPtr->last->next == 0 ) return ( curnode==0 );
-  return ( curnode == listPtr->first && counter != 0 );
+  if( listPtr->last->next == 0 ) return BOOL( curnode==0 );
+  return BOOL( curnode == listPtr->first && counter != 0 );
 }
 
 

@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.58 2003-08-08 12:26:25 childcvs Exp $
+**  $Id: meshElements.h,v 1.59 2003-09-01 13:56:30 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -1242,10 +1242,12 @@ inline int tTriangle::nVtx( const tNode *cn ) const
 \*****************************************************************************/
 inline bool tTriangle::isIndexIDOrdered() const {
   return
-    ( index_[1] == (index_[0]+1)%3 ) &&
-    ( index_[2] == (index_[1]+1)%3 ) &&
-    ( pPtr(index_[0])->getID() < pPtr(index_[1])->getID() ) &&
-    ( pPtr(index_[0])->getID() < pPtr(index_[2])->getID() );
+    BOOL(
+	 ( index_[1] == (index_[0]+1)%3 ) &&
+	 ( index_[2] == (index_[1]+1)%3 ) &&
+	 ( pPtr(index_[0])->getID() < pPtr(index_[1])->getID() ) &&
+	 ( pPtr(index_[0])->getID() < pPtr(index_[2])->getID() )
+	 );
 }
 
 /**************************************************************************\

@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.76 2003-08-13 16:10:34 childcvs Exp $
+ **  $Id: tLNode.h,v 1.77 2003-09-01 13:57:36 childcvs Exp $
  */
 /************************************************************************/
 
@@ -43,6 +43,7 @@ using namespace std;
 #endif
 #include <string.h>
 
+#include "../Definitions.h"
 #include "../tArray/tArray.h"
 #include "../MeshElements/meshElements.h"
 #include "../tList/tList.h"
@@ -1139,7 +1140,7 @@ tLNode::getAlluvThicknessm( ) const
 inline bool tLNode::NoMoreTracers() const
 {
   assert( tracer>=0 );
-  return( tracer==0 );
+  return BOOL( tracer==0 );
 }
 
 #endif
