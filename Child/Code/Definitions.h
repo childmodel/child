@@ -1,6 +1,6 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.8 1998-06-11 20:31:55 nmgaspar Exp $
+**   $Id: Definitions.h,v 1.9 1998-06-15 21:38:37 nmgaspar Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -45,8 +45,6 @@
 #define GRAV 9.81       /* Gravitational acceleration, m/s^2 */
 #define POROSITY 0.3        /* porosity of sediment on bed */
 #define VISC .00000112      /* viscosity of water [m^2/s] */
-#define kActDepth 1.0   /* depth of active layer [m] */
-#define kMaxRegDepth 1.0 /* maximum depth for regolith layers [m] */
 
 // Macros
 #define ROUND(x)    (int)(x+0.5)
