@@ -145,11 +145,13 @@ void tInlet::FindNewInlet()
 }
 
 double tInlet::getInSedLoad() const {return inSedLoad;}
+
 tArray< double >
 tInlet::getInSedLoadm( ) const
 {
    return inSedLoadm;
 }
+
 void tInlet::setInSedLoad( double val ) {inSedLoad = ( val > 0.0 ) ? val : 0.0;}
 void tInlet::setInSedLoadm( int i, double val )
 {
@@ -170,7 +172,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.30 1998-04-22 20:36:42 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.31 1998-04-23 15:36:14 nmgaspar Exp $
 \**************************************************************************/
 
 
@@ -279,6 +281,12 @@ double tStreamNet::getInDrArea() const {return inlet.inDrArea;}
 
 double tStreamNet::getInSedLoad() const {return inlet.inSedLoad;}
 
+tArray< double >
+tStreamNet::getInSedLoadm( ) const
+{
+   return inlet.inSedLoadm;
+}
+
 tLNode *tStreamNet::getInletNodePtr() const {return inlet.innode;}
 tLNode *tStreamNet::getInletNodePtrNC() {return inlet.innode;}
 
@@ -305,6 +313,13 @@ void tStreamNet::setInDrArea( double val )
 
 void tStreamNet::setInSedLoad( double val )
 {inlet.inSedLoad = ( val >= 0 ) ? val : 0;}
+
+void tStreamNet::setInSedLoadm( int i, double val )
+{
+   if( i > inlet.inSedLoadm.getSize()-1 )
+       ReportFatalError("Tried to index a size that doesn't exist in tstreamnet");
+   inlet.inSedLoadm[i]=val;
+}
 
 void tStreamNet::setInletNodePtr( tLNode *Ptr )
 {inlet.innode = ( Ptr > 0 ) ? Ptr : 0;}
