@@ -9,11 +9,12 @@ WARNINGFLAGS =
 # In such a case, comment out the following line.
 #WARNINGFLAGS += -DHAVE_NO_NAMESPACE
 
-# -march=pentiumiii: generates code from pentiumIII and later
+# -march=pentiumiii -xK: generates code for pentium III and later
+ARCH := -march=pentiumiii -xK
 #CFLAGS = $(WARNINGFLAGS) -g -c
 #LDFLAGS = $(WARNINGFLAGS) -g
-CFLAGS = $(WARNINGFLAGS) -g -O2 -march=pentiumiii -c
-LDFLAGS = $(WARNINGFLAGS) -g -O2 -march=pentiumiii
+CFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH) -c
+LDFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH)
 LIBS =
 
 EXENAME = toddler

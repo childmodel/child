@@ -11,8 +11,10 @@ WARNINGFLAGS = -pedantic -Wall -W \
 # In such a case, remove the comment of the following line.
 #WARNINGFLAGS += -DHAVE_NO_NAMESPACE
 
-# -march=i686: generates code from pentiumpro and later
-ARCH := -march=i686
+# -march=i686: generates code for pentiumpro and later
+# -march=pentium3: generates code for pentium III and later
+#ARCH := -march=i686
+ARCH := -march=pentium3
 # optimise
 CFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH) -c
 LDFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH)
