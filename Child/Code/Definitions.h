@@ -1,6 +1,6 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.5 1998-05-05 19:46:45 gtucker Exp $
+**   $Id: Definitions.h,v 1.6 1998-06-11 20:24:49 nmgaspar Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -48,6 +48,7 @@
 #define ACTDEPTH 3.0   /* depth of active layer [m] */
 #define DEPDEPTH 1.0   /* maximum depth of layers below active layer [m] */
 #define NUMG 2         /* number of grain sizes */
+#define kMaxRegolithDepth 1 /* maximum depth for regolith layers [m] */
 
 // Macros
 #define ROUND(x)    (int)(x+0.5)
