@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.84 2003-05-23 11:59:20 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.85 2003-05-23 17:50:30 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -65,7 +65,9 @@ tStreamMeander::tStreamMeander():
   critflow(0), optdiamvar(0), optrainvar(0),
   meddiam(0), kwds(0), ewds(0), ewstn(0),
   knds(0), ends(0), enstn(0),
-  klambda(0), elambda(0), dscrtwids(0), leavefrac(0), /*vegerod(0), */
+  kdds(0), edds(0), edstn(0),
+  klambda(0), elambda(0), dscrtwids(0),
+  allowfrac(0), leavefrac(0), /*vegerod(0), */
   rockerod(0), /*latadjust(0), */ Pdz(0),
   seed(-1)
 {
