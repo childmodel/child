@@ -25,7 +25,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.47 2000-01-27 22:36:09 gtucker Exp $
+**  $Id: tLNode.h,v 1.48 2000-03-09 19:54:56 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -114,12 +114,13 @@ inline tLayer::tLayer ()
    depth=0;
    erody=0;
    sed=0;
-   //cout << "tLayer( num )" << endl;
+   //cout << "tLayer( )" << endl;
 }
 
 inline tLayer::tLayer ( int num )
         : dgrade( num )
 {
+   //cout << "tLayer num const\n";
    ctime=0;
    rtime=0;
    etime=0;
@@ -133,6 +134,7 @@ inline tLayer::tLayer ( int num )
 inline tLayer::tLayer( const tLayer &orig )                         //tLayer
         :dgrade( orig.dgrade )
 {
+   //cout << "tLayer copy const\n";
    ctime=orig.ctime;
    rtime=orig.rtime;
    etime=orig.etime;
@@ -144,6 +146,8 @@ inline tLayer::tLayer( const tLayer &orig )                         //tLayer
 
 inline const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
 {
+    // cout << "tLayer op=\n";
+    
    if( &right != this )
    {
       dgrade = right.dgrade;
@@ -275,7 +279,7 @@ tLayer::getDgrade( ) const
 };*/
 
 
-/** class tMeander *************************************************************/
+/** class tMeander ***********************************************************/
 class tMeander
 {
    friend class tChannel;
@@ -298,7 +302,7 @@ class tMeander
    tArray< double > xyzd;
 };
 
-/** class tBedrock *************************************************************/
+/** class tBedrock ***********************************************************/
 class tBedrock
 {
    friend class tLNode;
@@ -326,7 +330,7 @@ class tBedrock
    double vegerody;     //erodibility of vegetated surface (or channel bank)
 };*/
 
-/** class tRegolith ************************************************************/
+/** class tRegolith **********************************************************/
 class tRegolith
 {
    friend class tLNode;
@@ -341,7 +345,7 @@ class tRegolith
    tArray< double > dgrade;/* depth of each sediment class in active layer [m] */
 };
 
-/** class tChannel *************************************************************/
+/** class tChannel ***********************************************************/
 class tChannel
 {
    friend class tLNode;
@@ -379,7 +383,6 @@ public:
     const tLNode &operator=( const tLNode & );   
     tVegCover &getVegCover();
     const tBedrock &getRock() const;
-    //Xconst tSurface &getSurf() const;
     const tRegolith &getReg() const;
     const tChannel &getChan() const;
     int getFloodStatus();
@@ -425,7 +428,6 @@ public:
     void setLatDisplace( double, double );      //        "
     void addLatDisplace( double, double );      //        "
     void setRock( const tBedrock & );
-    //Xvoid setSurf( const tSurface & );
     void setVegCover( const tLNode * );
     void setReg( const tRegolith & );
     void setChan( const tChannel & );
@@ -445,8 +447,6 @@ public:
     void setAlluvThickness( double );
     double getAlluvThickness() const;
    tArray< double > getAlluvThicknessm( ) const;
-   //Xvoid setVegErody( double );
-   //Xdouble getVegErody() const;
     void setBedErody( double );
     double getBedErody() const;
     void setReachMember( int );
@@ -546,7 +546,6 @@ public:
 protected:
    tVegCover vegCover;  // Vegetation cover properties (see tVegetation.h/.cpp)
    tBedrock rock;
-   //XtSurface surf;
    tRegolith reg;
    tChannel chan;
    int flood;        /* flag: is the node part of a lake?*/
