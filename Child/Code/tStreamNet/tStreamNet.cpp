@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.10 1998-02-13 22:48:42 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.11 1998-02-15 01:35:18 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -518,7 +518,8 @@ void tStreamNet::DrainAreaVoronoi()
    if( inDrArea > 0 )
    {
       maxslope = -10000;
-      for( ; curnode->getBoundaryFlag() == kOpenBoundary; curnode = nodIter.NextP() )
+      for( ; curnode->getBoundaryFlag() == kOpenBoundary;
+           curnode = nodIter.NextP() )
       {
          if( curnode->getZ() > 0 )
          {
@@ -528,9 +529,10 @@ void tStreamNet::DrainAreaVoronoi()
                maxslope = slope;
                innode = curnode;
             }
-            innode->GetDownstrmNbr()->SetDrArea( inDrArea );
          }
       }
+      assert( innode != 0 );
+      innode->GetDownstrmNbr()->SetDrArea( inDrArea );
    }
    
    // send voronoi area for each node to the node at the other end of the 
