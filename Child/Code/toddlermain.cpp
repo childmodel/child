@@ -35,7 +35,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.10 2003-05-23 12:02:51 childcvs Exp $
+**  $Id: toddlermain.cpp,v 1.11 2003-05-23 12:04:29 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -275,9 +275,9 @@ ReportFatalError( "The input file contains an invalid value for OptTSOutput."
 
    } // end of main loop
 
-   delete tVegetation;
-   delete tFloodplain;
-   delete tEolian;
+   delete vegetation;
+   delete floodplain;
+   delete loess;
    
    return 0;
 }
