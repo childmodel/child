@@ -4,13 +4,14 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.37 1999-01-05 21:22:41 gtucker Exp $
+**  $Id: tLNode.h,v 1.38 1999-01-05 22:04:12 stlancas Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
 #define TLNODE_H
 #include <iostream.h>
 #include <fstream.h>
+#include <string.h>
 
 #include "../tArray/tArray.h"
 #include "../GridElements/gridElements.h"
