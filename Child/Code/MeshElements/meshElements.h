@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.77 2004-04-14 12:57:36 childcvs Exp $
+**  $Id: meshElements.h,v 1.78 2004-04-16 18:35:24 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -503,7 +503,7 @@ inline istream &operator>>( istream &input, tNode &node )
 }
 
 //left shift
-inline ostream &operator<<( ostream &output, tNode &node )
+inline ostream &operator<<( ostream &output, tNode const &node )
 {
    output << node.getID() << ": " << node.getX() << " " << node.getY() << " "
           << node.getZ()
