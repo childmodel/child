@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.29 2003-05-16 12:59:44 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.30 2003-05-16 14:05:53 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -2312,19 +2312,19 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
          //which could not handle copying of user created classes.
          //This created errors in the closestNode's layerlist.
          //The following calls the correct copy constructor.
-         tLNode *newnode = new tLNode( *closestNode );
-         newnode->setZ( zin / suminvdist );
-         newnode->setX( xin );
-         newnode->setY( yin );
+	 // The comment above is not correct anymore. AD
+         tLNode newnode( *closestNode );
+         newnode.setZ( zin / suminvdist );
+         newnode.setX( xin );
+         newnode.setY( yin );
          //zin = zin / suminvdist;
          //xyz[0] = xin;
          //xyz[1] = yin;
          //xyz[2] = zin;
          //innode = meshPtr->AddNodeAt( xyz );
-         innode = meshPtr->AddNode( *newnode, true ); // true means update mesh
+         innode = meshPtr->AddNode( newnode, true ); // true means update mesh
          //cout << "INLET NODE IS:\n";
          //innode->TellAll();
-         //Don't delet newnode because it is now part of the mesh list
       }
    }
 
