@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.2 1998-01-21 20:16:37 gtucker Exp $
+**  $Id: tMesh.h,v 1.3 1998-01-27 22:07:08 stlancas Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -68,11 +68,6 @@ class tGrid
    int CheckForFlip( tTriangle *, int, int );
    void FlipEdge( tTriangle *, tTriangle *, int, int );
    tEdge * IntersectsAnyEdge( tEdge * );
-     //CheckBanksTooClose, CheckFlowedgCross, and CheckBrokenFlowedg are to check
-     //for 'violations' peculiar to moving channels; called from MoveNodes.
-   void CheckBanksTooClose();
-   void CheckFlowedgCross();
-   void CheckBrokenFlowedg();
      //CheckTriEdgeIntersect and CheckLocallyDelaunay are the essential functions
      //for point moving and are called from MoveNodes; in general, they should be
      //after the three above functions and in the order listed below.
