@@ -14,12 +14,18 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.14 2002-12-12 13:50:23 childcvs Exp $
+**  $Id: tArray.h,v 1.15 2002-12-12 14:47:14 childcvs Exp $
 \***************************************************************************/
 
 #ifndef TARRAY_H
 #define TARRAY_H
 
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 
 /***************************************************************************\
 **
@@ -55,6 +61,11 @@ private:
     int npts;   // size of array
     T * avalue; // the array itself
 };
+
+template< class T >                                               //tArray
+ostream &operator<<( ostream &output, const tArray< T > &a );
+template< class T >                                               //tArray
+ostream &operator<<( ostream &output, const tArray< T > &a );
 
 /*
 ** The following is designed to allow for compiling under the Borland-style
