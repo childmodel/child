@@ -46,7 +46,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.108 2002-09-30 17:20:30 arnaud Exp $
+**  $Id: erosion.cpp,v 1.109 2002-12-12 14:14:26 childcvs Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -2697,7 +2697,7 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
    tMeshListIter<tLNode> nodIter( meshPtr->getNodeList() );
    tMeshListIter<tEdge> edgIter( meshPtr->getEdgeList() );
 
-#if TRACKFNS
+#ifdef TRACKFNS
    cout << "tErosion::Diffuse()" << endl << flush;
 #endif
 
@@ -2796,7 +2796,7 @@ void tErosion::UpdateExposureTime( double dtg)
    tLNode * cn;
    tMeshListIter<tLNode> nodIter( meshPtr->getNodeList() );
 
-#if TRACKFNS
+#ifdef TRACKFNS
    cout << "tErosion::UpdateExposureTime()" << endl << flush;
 #endif
    
