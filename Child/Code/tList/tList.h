@@ -33,7 +33,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.39 2003-05-22 09:18:13 childcvs Exp $
+**  $Id: tList.h,v 1.40 2003-05-23 11:40:21 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -350,7 +350,7 @@ inline tList< NodeType >::tList() :
 template< class NodeType >                         //tList
 tList< NodeType >::
 tList( const tList< NodeType > *original ) :
-  nNodes(0)
+  nNodes(0), first(0), last(0), currentItem(0)
 {
    int i;
 
@@ -385,6 +385,9 @@ tList< NodeType >::
          delete temp;
       }
    }
+   first = 0;
+   last = 0;
+   currentItem = 0;
 }
 
 /**************************************************************************\
