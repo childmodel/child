@@ -12,7 +12,7 @@
 **   - Bug fix in constructor: nnodes was being read from edge and
 **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
 **
-**  $Id: tListInputData.cpp,v 1.10 2003-01-17 17:30:33 childcvs Exp $
+**  $Id: tListInputData.cpp,v 1.11 2003-05-16 13:02:10 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -369,7 +369,7 @@ GetKeyEntry()                   //tListInputData
       cout << "orgid destid nextid" << endl;
       cin >> orgid[i] >> destid[i] >> nextid[i];
    }
-   for( i=0; i< ntri(); i++ )
+   for( i=0; i< ntri; i++ )
    {
       cout << "nodeids (3), edgids (3), triangleids (3)" << endl;
       cin >> p0[i] >> p1[i] >> p2[i]
