@@ -10,6 +10,7 @@ WARNINGFLAGS = -pedantic -Wall -W \
 CFLAGS = $(WARNINGFLAGS) -O -c -g
 LDFLAGS = $(WARNINGFLAGS) -O -g
 LIBS = -lm
+EXENAME = toddler
 
 OBJECTS = toddlermain.o erosion.o meshElements.o mathutil.o \
  tInputFile.o tLNode.o tRunTimer.o \
@@ -17,8 +18,8 @@ tPtrList.o tStorm.o tStreamNet.o tUplift.o errors.o tFloodplain.o \
 tEolian.o globalFns.o predicates.o tVegetation.o \
 ParamMesh_t.o TipperTriangulator.o TipperTriangulatorError.o
 
-toddler: $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -o toddler $(LIBS)
+$(EXENAME): $(OBJECTS)
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@ $(LIBS)
 
 erosion.o: $(PT)/Erosion/erosion.cpp $(PT)/Erosion/erosion.h
 	$(CC) $(CFLAGS) $(PT)/Erosion/erosion.cpp
@@ -83,5 +84,5 @@ toddlermain.o: $(PT)/toddlermain.cpp
 	$(CC) $(CFLAGS) $(PT)/toddlermain.cpp
 
 clean::
-	rm -f toddler
+	rm -f $(EXENAME)
 	rm -f *.o
