@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.118 2003-08-08 12:08:01 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.119 2003-08-12 13:28:31 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -28,23 +28,21 @@
 //So if texture is going to change too - you MUST update dgrade info.
 //(use setDgrade)
 //which will automatically update total depth.
-void tLayer::setDepth( double dep)
+void tLayer::setDepth( double dep )
 {
   assert( dep>0.0 );
   if(dgrade.getSize()>0 && depth>0){
     double sum=0;
-    tArray<double> prop;
-    prop.setSize(dgrade.getSize());
     int i=0;
     while(i<dgrade.getSize()){
-      prop[i]=dgrade[i]/depth;
-      dgrade[i]=prop[i]*dep;
+      const double prop = dgrade[i]/depth;
+      dgrade[i]=prop*dep;
       assert( dgrade[i]>=0.0 );
-      sum+=prop[i];
+      sum+=prop;
       i++;
 
     }
-    if(fabs(sum-1)>0.01)
+    if(fabs(sum-1.)>0.01)
       ReportFatalError("Somewhere grain sizes got messed up");
     depth=dep;
   }
@@ -1224,14 +1222,14 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
     //This is the new part that nmg added where the top layers are
     //truncated according to the new elevation and the elevation
     //around the node
-    double theoryz;
-    tArray<double> elevs(3);
-    elevs[0]=lnds[0]->getZ();
-    elevs[1]=lnds[1]->getZ();
-    elevs[2]=lnds[2]->getZ();
-
-    theoryz=PlaneFit(tx, ty, lnds[0]->get2DCoords(), lnds[1]->get2DCoords(),
-		     lnds[2]->get2DCoords(), elevs );
+    const tArray<double> elevs(
+			       lnds[0]->getZ(),
+			       lnds[1]->getZ(),
+			       lnds[2]->getZ()
+			       );
+    const double theoryz =
+      PlaneFit(tx, ty, lnds[0]->get2DCoords(), lnds[1]->get2DCoords(),
+	       lnds[2]->get2DCoords(), elevs );
     double diff=theoryz-getZ();
 
     /*cout<<"new z "<<getZ()<<" theoretical z "<<theoryz<<" diff "<<diff<<endl;
@@ -1401,9 +1399,8 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
     //This is the new part that nmg added where the top layers are
     //truncated according to the new elevation and the elevation
     //around the node
-    double theoryz;
-    theoryz=LineFit(0., lnds[0]->getZ(), dist[0]+dist[1],
-		    lnds[1]->getZ(), dist[0]);
+    const double theoryz=LineFit(0., lnds[0]->getZ(), dist[0]+dist[1],
+				 lnds[1]->getZ(), dist[0]);
     double diff=theoryz-getZ();
     while(diff>0){
       if(helplist.FirstP()->getDepth()<diff){
@@ -1701,10 +1698,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 {
   int g;
   double amt, val, olddep;
-  tArray<double> update;
-  update.setSize(numg);
-  tArray<double> hupdate;
-  hupdate.setSize(numg);
+  tArray<double> update(numg);
+  tArray<double> hupdate(numg);
 
   //NIC these are for testing
   //Xbefore=getLayerDepth(i);
@@ -2176,10 +2171,9 @@ tArray<double> tLNode::addtoLayer(int i, double val)
   assert( val<0.0 ); // Function should only be called for erosion
 
   tListIter<tLayer> ly ( layerlist );
-  tLayer  * hlp;
+  tLayer *hlp;
   hlp=ly.FirstP();
-  tArray<double> ret;
-  ret.setSize(numg);
+  tArray<double> ret(numg);
   double amt;
 
   int n=0;
