@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.143 2003-05-07 17:17:34 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.144 2003-05-08 16:13:25 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3420,20 +3420,11 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > & /*nbrList*/,
    if (0) //DEBUG
      cout << "AddEdgeAndMakeTriangle" << endl;
    tSubNode *cn, *cnn, *cnnn;
-   tPtrList< tSubNode > tmpList;
-   tPtrListIter< tSubNode > tI( tmpList );
-
    cn = nbrIter.DatPtr();
    cnn = nbrIter.NextP();
    cnnn = nbrIter.ReportNextP();
    nbrIter.Prev();
-   if( !AddEdge( cnnn, cn, cnn ) ) return 0;
-   tmpList.insertAtBack( cn );
-   tmpList.insertAtBack( cnn );
-   tmpList.insertAtBack( cnnn );
-   tmpList.makeCircular();
-   if( !MakeTriangle( tmpList, tI ) ) return 0;
-   return 1;
+   return AddEdgeAndMakeTriangle( cn, cnn, cnnn );
 }
 
 template< class tSubNode >
@@ -4282,6 +4273,8 @@ CheckForFlip( tTriangle * tri, int nv, bool flip )
 **    Calls: DeleteEdge, AddEdgeAndMakeTriangle, MakeTriangle
 **    Called by: CheckForFlip, CheckTriEdgeIntersect
 **
+** Edges and triangles are re-used (SL) 
+** 5/2003 AD
 \*******************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
@@ -4315,9 +4308,6 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
    // give edges' initialization routine nodes of tri in cw order:
    edg->InitializeEdge( nc, na, nd );
    edgop->InitializeEdge( na, nc, nb );
-   // give triangles' initialization routine nodes of tri in ccw order:
-   tri->InitializeTriangle( nd, na, nc );
-   triop->InitializeTriangle( nb, nc, na );
 
    if( move )
    {
@@ -4332,6 +4322,9 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
          edgeList.moveToBack( enodePtr2 );
       }
    }
+   // give triangles' initialization routine nodes of tri in ccw order:
+   tri->InitializeTriangle( nd, na, nc );
+   triop->InitializeTriangle( nb, nc, na );
 }
 
 
