@@ -34,7 +34,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.7 2002-07-15 12:09:17 arnaud Exp $
+**  $Id: toddlermain.cpp,v 1.8 2002-11-29 15:39:14 childcvs Exp $
 \**************************************************************************/
 
 /* set traps for some floating point exceptions on Linux */
@@ -86,7 +86,9 @@ int main( int argc, char **argv )
    silent_mode = ( argc>2 && argv[2][1]=='s' );
    
    // Say hello
-   cout << "\nThis is TODDLER, version " << VERSION << endl << endl;
+   cout << "\nThis is TODDLER, version " << VERSION 
+	<< " (compiled " __DATE__ " " __TIME__ ")"
+	<< endl << endl;
    
    // Open main input file
    tInputFile inputFile( argv[1] );
