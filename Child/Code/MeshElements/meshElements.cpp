@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.21 1998-08-18 17:43:51 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.22 1999-01-04 23:50:28 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -654,6 +654,27 @@ void tNode::ConvertToClosedBoundary()
       }
       
    } while( (ce=ce->getCCWEdg()) != edg );
+   
+}
+
+/*******************************************************************\
+  tNode::WarnSpokeLeaving( tEdge * edglvingptr )
+
+  This function is called when an edge is being removed from the edge list.
+  If edg (the edge pointer member of tNode) is pointing to the edge
+  which will be removed, this edg must be updated.
+
+  edglvingptr is as it sais, a pointer to the edge which will be
+  removed.
+
+  Called from tGrid::ExtricateEdge
+
+  9/98 NG and GT
+\*******************************************************************/
+void tNode::WarnSpokeLeaving( tEdge * edglvingptr )
+{
+   if(edglvingptr == edg )
+       edg = edg->getCCWEdg();
    
 }
 

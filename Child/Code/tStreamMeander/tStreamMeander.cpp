@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.46 1998-09-10 19:18:25 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.47 1999-01-04 23:47:09 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -396,7 +396,7 @@ void tStreamMeander::FindChanGeom()
 **      added in between the two channel nodes, colinear except for
 **      a small random perturbation. If more than one node is added
 **      between a channel pair, then the routine generates a random
-**      walk in which the step size is weighted by an exponential    double kwds, ewds, ewstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width
+**      walk in which the step size is weighted by an exponential 
 **      which decays as the distance from the line connecting the
 **      two channel points increases. This weighting tends to keep
 **      the final point of the walk within reasonable bounds.
@@ -532,7 +532,7 @@ int tStreamMeander::InterpChannel()
         //netPtr->InitFlowDirs();
       //NOTE****!!! the zero param below should be replaced with current time,
       // which needs to be passed to Migrate, etc....TODO
-      netPtr->UpdateNet( 0.0 );
+      netPtr->UpdateNet( 0.0 );      
       //if( timetrack >= kBugTime ) cout << "added nodes(s), InterpChannel finished"
       //                              << endl << flush;
       return 1;
@@ -556,11 +556,13 @@ int tStreamMeander::InterpChannel()
 **                    4) Update the areas, stream net, etc.
 **                    5) go back to #1 if any points were added
 **
+**
 **      Data members updated: reachList, nrnodes, reachlen, taillen
 **      Called by: tStreamMeander(...) constructor and
 **                 tStreamMeander::Migrate()
 **      Calls: FindMeander, FindReaches,
 **             InterpChannel=>calls netPtr->UpdateNet() if points are added
+**      Receives: ctime = current time
 **
 **      Created:  1/98 SL
 **      Modified:          
@@ -568,11 +570,11 @@ int tStreamMeander::InterpChannel()
 **
 \*****************************************************************************/
 
-void tStreamMeander::MakeReaches()
+void tStreamMeander::MakeReaches( double ctime)
 {
       //NOTE****!!! the zero param below should be replaced with current time,
       // which needs to be passed to Migrate, etc....TODO
-   netPtr->UpdateNet( 0.0 ); //first update the net
+   netPtr->UpdateNet( ctime ); //first update the net
    do
    {
       FindMeander(); //if Q > Qcrit, meander = TRUE
@@ -588,7 +590,6 @@ void tStreamMeander::MakeReaches()
       FindReaches(); //find reaches of meandering nodes
    }
    while( InterpChannel() ); //updates
-   //cout << "done MakeReaches" << endl;
 }
 
 
@@ -656,9 +657,13 @@ void tStreamMeander::FindReaches()
          for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
          {
             lnPtr = (tLNode *) ce->getDestinationPtrNC();
+            //lnPtr points to the downstream neighbor of the current edge
             if( lnPtr->getBoundaryFlag() == kNonBoundary )
                 if( lnPtr->getDownstrmNbr() == cn && lnPtr->Meanders() )
                 {
+                   //If you enter here, the cn is downstream of one
+                   //of the nodes that one of the spokes on the spoke
+                   //list is pointing to.
                    nmndrnbrs++;
                    break;
                 }
@@ -685,6 +690,7 @@ void tStreamMeander::FindReaches()
    delete fArrPtr;
    //cout << "No. reaches: " << reachList.getSize() << endl << flush;
    //loop through reaches
+   //rlIter is the iterator for reachlist with is a list of ptrs to node lists
    for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
         plPtr = rlIter.NextP(), i++ )
    {
@@ -829,6 +835,9 @@ void tStreamMeander::FindReaches()
 **				        duration -- storm duration,
 **                  copy from netPtr->stormPtr->stdur
 **                time -- running tab on how long we've meandered
+**    NOTE: Nicole made a change so that time is now current time
+**          and duration = time at begining of migration call + stdur
+**          This shouldn't theoretically affect things, but be aware.
 **
 **		Called by:	Migrate
 **    Calls: FindBankErody, external fortran routine _meander
@@ -1034,6 +1043,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
 **    routines which "do" the meandering
 **		Parameters: storm duration
 **		Called by: Main
+**    Receives : ctime = current time 
 **    Calls: MakeReaches--calls all routines necessary to make reaches
 **           CalcMigration--calls meander model, sets newx, newy
 **           MakeChanBorder--sets "old" coords
@@ -1042,22 +1052,27 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
 **           CheckBrokenFlowedg--deletes points that are too close to the channel
 **           tGrid::MoveNodes--changes node coords, updates grid
 **           AddChanBorder--"drops" nodes at old coords
+** 
 **		Created: 1/98 SL
+**    Modified: 9/98 NG made so that time is passed to it.
+**             The time passed is now the time used in the while loop,
+**             and duration is set to duration + ctime.
+**             This should be OK, but NG didn't test that it was.
 **
 \***************************************************************/
-void tStreamMeander::Migrate()
+void tStreamMeander::Migrate( double ctime )
 {
    tList< tArray< double > > bList;
    double duration = netPtr->getStormPtrNC()->getStormDuration();
-   double time = 0.0;
+   duration += ctime;
    double cummvmt = 0.0;
    //timeadjust = 86400. * pr->days;
-   while( time < duration )
+   while( ctime < duration )
    {
-      MakeReaches(); //updates net, makes reachList
+      MakeReaches( ctime ); //updates net, makes reachList
       if( !(reachList.isEmpty()) )
       {
-         CalcMigration( time, duration, cummvmt ); //incr time; uses reachList
+         CalcMigration( ctime, duration, cummvmt ); //incr time; uses reachList
          MakeChanBorder(); //uses reachList
          CheckBndyTooClose();  //uses tGrid::nodeList
          CheckBanksTooClose(); //uses reachList
@@ -2065,6 +2080,8 @@ void tStreamMeander::CheckBrokenFlowedg()
                            {
                               gridPtr->DeleteNode( ln );
                               cn->setFlowEdg( cn->EdgToNod( dn ) );
+                              cout<<"Node "<<cn->getID()<<" flows to "<<dn->getID()<<endl;
+                              cout<<"in tstreammeander::checkenbrokenflowedge"<<endl;
                            }
                            else cn->RevertToOldCoords();
                         }
@@ -2074,6 +2091,9 @@ void tStreamMeander::CheckBrokenFlowedg()
                            {
                               gridPtr->DeleteNode( rn );
                               cn->setFlowEdg( cn->EdgToNod( dn ) );
+                              cout<<"Node "<<cn->getID()<<" flows to "<<dn->getID()<<endl;
+                              cout<<"in tstreammeander::checkenbrokenflowedge"<<endl;
+                              
                            }
                            else cn->RevertToOldCoords();
                         }

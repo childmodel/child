@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.47 1998-08-25 19:54:22 gtucker Exp $
+**  $Id: erosion.cpp,v 1.48 1999-01-04 23:45:49 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1312,7 +1312,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
    strmNet->FindChanGeom();
    strmNet->FindHydrGeom();
 
-   //cout<<"starting detach erode"<<endl;
+   cout<<"starting detach erode"<<endl;
    
    // Compute erosion and/or deposition until all of the elapsed time (dtg)
    // is used up
@@ -1507,7 +1507,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                
                i=0;
                depck=0;
-               while(dz<-0.000000001&depck<cn->getChanDepth()&i<cn->getNumLayer()){   
+               while(dz<-0.000000001&&depck<cn->getChanDepth()&&i<cn->getNumLayer()){   
                   depck+=cn->getLayerDepth(i);
                   if(-dz<=cn->getLayerDepth(i)){//top layer can supply total depth
 //                      if(cn->getID()==79 && timegb >= 1756){

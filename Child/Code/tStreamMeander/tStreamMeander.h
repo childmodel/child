@@ -12,7 +12,7 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.18 1998-07-25 21:47:33 nmgaspar Exp $
+**  $Id: tStreamMeander.h,v 1.19 1999-01-04 23:47:25 nmgaspar Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
@@ -58,7 +58,8 @@ public:
    void FindReaches();
    //calls FindMeander, FindReaches, and InterpChannel;
    //loops while points added: 
-   void MakeReaches();
+   //MakeReaches is sent the current time
+   void MakeReaches( double ); 
    //find hydraulic and channel geometries, respectively;
    //FindHydrGeom is contingent upon current storm conditions
    //and storm variability;
@@ -86,7 +87,8 @@ public:
    //calls CalcMigration, routines to keep the mesh and net happy,
    //routines to add nodes;
    //only routine you need to make meandering happen for you:
-    void Migrate();
+   //Migrate is sent the current time
+   void Migrate( double ); 
     
 protected:
       //ptrs and list stuff:

@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.35 1998-08-04 17:52:53 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.36 1999-01-04 23:47:55 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -18,6 +18,9 @@
 #include "../tInputFile/tInputFile.h"
 #include "../GlobalFns.h"
 #include "../tRunTimer/tRunTimer.h"
+
+#define kSink        3  // ...or a dry sink (unfilled depression).
+#define kVeryHigh 100000  // Used in FillLakes
 
 /** class tLayer *********************************************************/
 /* Layer records */
@@ -194,6 +197,8 @@ public:
     tLNode();
     tLNode( tInputFile &infile );
     tLNode( const tLNode & );
+   //Syntax for calling copy constructor
+   //tLNode *newnode = new tLNode( *oldtLNode );
     ~tLNode();
     const tLNode &operator=( const tLNode & );   
     const tBedrock &getRock() const;
@@ -344,8 +349,9 @@ public:
    void makeNewLayerBelow(int, int, double, tArray<double>, double);
    void removeLayer(int);
    void InsertLayerBack( tLayer );
-   void LayerInterpolation( tTriangle *, tGridList<tLNode> );
-   double PlaneFit( double, double, tArray<tNode *>, tArray<double> );
+   void LayerInterpolation( tTriangle *, double, double );
+   double PlaneFit( double, double, tArray<tLNode *>, tArray<double> );
+   void WarnSpokeLeaving(tEdge *);
    
 #ifndef NDEBUG
    void TellAll();
@@ -375,6 +381,7 @@ protected:
    // size of each grain size class, NIC again, you may
    // want to put this somewhere else
    static double maxregdep;
+   static double KRnew;
 };
 
 #endif
