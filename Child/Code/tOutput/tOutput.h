@@ -24,7 +24,7 @@
 **  Recent modifications:
 **    - 1/00: GT added vegofs for output of vegetation cover
 **
-**  $Id: tOutput.h,v 1.10 2000-01-25 19:05:30 gtucker Exp $
+**  $Id: tOutput.h,v 1.11 2000-01-27 22:34:56 gtucker Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -98,7 +98,7 @@ private:
     ofstream layofs;     // Layer info
     ofstream texofs;     // Texture info
     ofstream vegofs;     // Vegetation cover %
-                                
+    ofstream flowdepofs; // Flow depth
 };
 
 #endif
