@@ -1,9 +1,9 @@
 /**************************************************************************\
 **
-**  gridElements.cpp: Functions for mesh element classes tNode, tEdge, and
-**                    tTriangle.
+**  meshElements.cpp: Functions for mesh element classes tNode, tEdge, and
+**                    tTriangle. (formerly called gridElements.cpp)
 **
-**  For a description of these 3 classes, see gridElements.h.
+**  For a description of these 3 classes, see meshElements.h.
 **
 **  Modifications:
 **   - gt added code to recreate the "edg" implementation as an alternative
@@ -12,12 +12,12 @@
 **     "gridElements", 1/20/98 gt
 **   - added tNode::AttachNewSpoke and tEdge::WelcomeCCWNeighbor gt 2/99
 **
-**  $Id: meshElements.cpp,v 1.27 1999-02-22 20:05:45 nmgaspar Exp $
+**  $Id: meshElements.cpp,v 1.28 1999-04-04 21:32:54 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
 #include <math.h>
-#include "gridElements.h"
+#include "meshElements.h"
 
 int PointsCCW( tArray< double > &, tArray< double > &, tArray< double > & );
 
@@ -410,7 +410,7 @@ const tEdge *tNode::NextSpoke( tPtrListNode< tEdge > * current )//tNode
 **  being added.
 **
 **      Data members updated: edg, thespoke's ccw edge
-**      Called by: tGrid::AddEdge
+**      Called by: tMesh::AddEdge
 **      Calls: (none)
 **      Created: 2/4/99 GT
 **
@@ -500,7 +500,7 @@ tEdge *tNode::EdgToNod( tNode * nod )
 **
 **  5/7/98, SL: Found a bug in this procedure that requires a not-so-simple
 **  fix. When a migrating node approaches the boundary, part of its calculated
-**  Voronoi area may lie outside the grid domain. The area can even blow up
+**  Voronoi area may lie outside the mesh domain. The area can even blow up
 **  if the migrating node comes very close to the boundary.
 **
 **  If spokes connect to boundary nodes, find which side of the edge connecting
@@ -657,7 +657,7 @@ double tNode::ComputeVoronoiArea()
 
       //Before the next step, make a list of V. vertex coord. arrays.
       //In doing so, check for parts of the V. area lying outside the
-      //grid domain and cut them off by substituting coordinates of
+      //mesh domain and cut them off by substituting coordinates of
       //two intersections of V. edges with boundary edge for the V.
       //vertex lying outside the boundary. This should take care of any
       //outlying area as long as all boundaries are convex.
@@ -826,7 +826,7 @@ void tNode::ConvertToClosedBoundary()
 **  edglvingptr is as it says, a pointer to the edge which will be
 **  removed.
 **
-**  Called from tGrid::ExtricateEdge
+**  Called from tMesh::ExtricateEdge
 **
 **  9/98 NG and GT
 \*******************************************************************/
@@ -1271,7 +1271,7 @@ tEdge * tEdge::FindComplement()
 **
 **  Functions for class tTriangle.
 **
-**  For a description of tTriangle objects, see gridElements.h.
+**  For a description of tTriangle objects, see meshElements.h.
 **
 **  Modifications:
 **    - added tTriangle::FindCircumcenter() 1/11/98 gt
@@ -1381,7 +1381,7 @@ istream &operator>>( istream &input, tTriangle &tri )            //'tTriangle'
    int id1, id2, id3;
    cout << "triangle id, origin id, dest id:";
    input >> tri.id >> id1 >> id2 >> id3; //temporarily assign id vals to ptrs
-     //tri.setPPtr( tGrid::h.getList().
+     //tri.setPPtr( tMesh::h.getList().
    return input;
 }
 
