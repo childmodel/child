@@ -34,7 +34,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.92 2002-04-11 12:23:59 arnaud Exp $
+**  $Id: erosion.cpp,v 1.93 2002-04-23 10:27:50 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -247,7 +247,7 @@ double tEquilibCheck::FindLongTermChngRate( double newtime )
 //constructor: reads and sets the parameters
 tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 {
-  double secPerYear = 365.25*24*3600.0;  // # secs in one year
+  const double secPerYear = 365.25*24*3600.0;  // # secs in one year
 
    kb = infile.ReadItem( kb, "KB" );
    kt = infile.ReadItem( kt, "KT" );
@@ -466,7 +466,7 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 \***************************************************************************/
 tSedTransPwrLaw::tSedTransPwrLaw( tInputFile &infile )
 {
-   double secPerYear = 365.25*24*3600.0;  // # secs in one year
+   const double secPerYear = 365.25*24*3600.0;  // # secs in one year
 
    kf = infile.ReadItem( kf, "KF" );
    kt = infile.ReadItem( kt, "KT" );
@@ -571,7 +571,7 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
 \**************************************************************************/
 tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
 {
-   double secPerYear = 365.25*24*3600.0;  // # secs in one year
+   const double secPerYear = 365.25*24*3600.0;  // # secs in one year
 
    kf = infile.ReadItem( kf, "KF" );
    kt = infile.ReadItem( kt, "KT" );
@@ -593,8 +593,8 @@ tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
    /*std::string taglinebase = "GRAINDIAM";
    std::string digits = "123456789";
    std::string tagline;*/
-   char tagline[10], digit = '0';
-   strcpy( tagline, "GRAINDIAM0\0");
+   char tagline[11], digit = '0';
+   strcpy( tagline, "GRAINDIAM0");
    int i;
    double thetac = 0.045,
      sig = 2650.0,
