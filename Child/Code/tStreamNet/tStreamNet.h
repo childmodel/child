@@ -15,7 +15,7 @@
 **  Class tInlet is used to model the entry of a river at an edge of the
 **  model mesh.
 **
-**  $Id: tStreamNet.h,v 1.24 1998-07-20 21:19:39 nmgaspar Exp $
+**  $Id: tStreamNet.h,v 1.25 1998-07-20 22:09:42 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -61,8 +61,8 @@ public:
 private:
     tLNode *innode;
     double inDrArea;
-   double inSedLoad;
-   tArray< double > inSedLoadm; // incoming sediment load if multi-sizes
+    double inSedLoad;
+    tArray< double > inSedLoadm; // incoming sediment load if multi-sizes
     tGrid< tLNode > *gridPtr;
 };
 
@@ -104,8 +104,8 @@ public:
    void setInSedLoadm( int, double );
    void setInletNodePtr( tLNode * );
    void setMndrDirChngProb( double );
-   void UpdateNet();
-   void UpdateNet( tStorm & );
+   void UpdateNet( double time );
+   void UpdateNet( double time, tStorm & );
    void CheckNetConsistency();
    void CalcSlopes();
    void InitFlowDirs();
@@ -114,7 +114,7 @@ public:
    void RouteFlowArea( tLNode *, double );
    void RouteRunoff( tLNode *, double, double );
    void SetVoronoiVertices();
-   void MakeFlow();
+   void MakeFlow( double tm );
    void FlowUniform();
    void FlowSaturated1();
    void FlowSaturated2();
@@ -148,6 +148,11 @@ protected:
    //double inDrArea;
    tInlet inlet;
    double mndrDirChngProb;
+    int optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
+    double infilt_dev;    // max +/- variation from mean infilt cap
+    double infilt0;    // mean infilt cap
+    double twoPiLam;   // Parameter for sinusoidal variation: 2pi / period
+
 };
 
 #endif
