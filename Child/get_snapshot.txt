@@ -41,6 +41,18 @@ them in an email message. Send it to Arnaud Desitter (email at the end),
 explaining that you would like to be added to the CHILD repository list and
 that this is your RSA 1 public key.
 
+Note: if for whatever reason, you do not wish to use your existing ssh key,
+here is a method to get around it:
+- generate the key pair as above but save them as ".ssh/cvsID" and
+  ".ssh/cvsID.pub".
+- send us ".ssh/cvsID.pub".
+- create a executable file (say oxford_ssh) containing:
+#!/bin/sh
+exec ssh -i $HOME/cvsID "$@"
+(it tells ssh which public key to use)
+- set CVS_RSH to "/path/to/oxford_ssh"
+
+
 3. You now need to modify one of your startup files to tell CVS to use ssh
 when accessing files on a remote system. If you're running a C shell (csh),
 add the following line to the file .cshrc in your home directory:

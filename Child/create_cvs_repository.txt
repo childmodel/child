@@ -10,8 +10,9 @@ July 2003
 The instructions below assume a unix like operating system.
 
 #2 Create a local user (say childcvs)
-- The password can be left undefined (set it to * in /etc/passwd or equivalent).  In such case, access can be granted either as root or by adding a public
-  key in "$HOME/.ssh/authorized_keys".
+- The password can be left undefined (set it to * in the password field of
+  /etc/passwd or equivalent).  In such case, access can be granted either as
+  root or by adding a public key in "$HOME/.ssh/authorized_keys".
 - Create a minimal .cshrc if the login shell is csh or .profile if the login
   shell is sh.
   For instance (.cshrc):
@@ -32,7 +33,7 @@ umask 022
 - Add each ssh public key in $HOME/.ssh/authorized_keys on one line
   with the following model.
 
-command="cvs server",no-port-forwarding,no-pty 1024 37 118080179148197043069420803161517313996529270621986287328230237252350379303806588690131831685012857735610665796603412358586879261970134845686207958276042873453671699266753114292283851643959898603905204263653754412078340524403985194797803688077717714923319067042 foo@bar
+command="cvs server",no-port-forwarding,no-pty,no-X11-forwarding 1024 37 11808<...>67042 foo@bar
 
 (see 'man sshd', section 'AUTHORIZED_KEYS FILE FORMAT')
 The above line grant an access for the user having the associated private key.
@@ -42,3 +43,8 @@ safety.
 #6 Test the cvs connection logged as a different user following the
 instructions of get_snapshot.txt.
 
+
+
+References:
++ Anonymous CVS access via ssh, Joey Hess.
+  http://www.kitenet.net/~joey/sshcvs/
