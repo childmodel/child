@@ -1,7 +1,0 @@
-// pc-lint options for CHILD
-+fsc  // strings are "const char*"
-
--function( exit, ReportFatalError )
-
--e801 // goto deprecated
--e613
