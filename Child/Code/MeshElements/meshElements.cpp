@@ -16,7 +16,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.41 2002-08-30 16:40:59 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.42 2002-09-03 08:41:56 arnaud Exp $
 \**************************************************************************/
 
 #include "../tAssert.h"
@@ -261,10 +261,10 @@ double tNode::ComputeVoronoiArea()
    // the following is a temporary hack, which should be replaced by a more
    // proper handling but i'm going away for a week tomorrow and don't
    // have time to deal w/ it right now (gt, aug 02)
-   if( boundary!=1 ) // if not an interior node, something's wrong
+   if( getBoundaryFlag()!=kNonBoundary ) // if not an interior node, something's wrong
      {
        cout << "Warning: attempt to compute Voronoi area for a boundary node: "
-	    << id << " " << x << " " << y << " " << boundary << endl;
+	    << id << " " << x << " " << y << " " << getBoundaryFlag() << endl;
        return 0.0;
      }
 
