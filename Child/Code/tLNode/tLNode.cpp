@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.49 1998-07-12 23:18:27 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.50 1998-07-15 22:28:04 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -17,7 +17,7 @@
 **  tLayer::tLayer : Constructor function for tLayer
 *************************************************************************/
 tLayer::tLayer ()
-        : dgrade(), drdt()
+        : dgrade()
 {
    ctime=0;
    rtime=0;
@@ -29,7 +29,7 @@ tLayer::tLayer ()
 }
 
 tLayer::tLayer ( int num )
-        : dgrade( num ), drdt( num )
+        : dgrade( num )
 {
    ctime=0;
    rtime=0;
@@ -41,7 +41,7 @@ tLayer::tLayer ( int num )
 }
 
 tLayer::tLayer( const tLayer &orig )                         //tLayer
-        :dgrade( orig.dgrade ), drdt( orig.drdt )
+        :dgrade( orig.dgrade )
 {
    ctime=orig.ctime;
    rtime=orig.rtime;
@@ -66,7 +66,6 @@ const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
    if( &right != this )
    {
       dgrade = right.dgrade;
-      drdt = right.drdt;
       ctime=right.ctime;
       rtime=right.rtime;
       depth=right.depth;
@@ -171,16 +170,6 @@ int tLayer::getDgradesize( )
    return dgrade.getSize();
 }
 
-void tLayer::setDrDtsize( int i )
-{
-   drdt.setSize(i);
-}
-
-int tLayer::getDrDtsize( )
-{
-   return drdt.getSize();
-}
-
 void tLayer::setDgrade( int i, double size )
 {
    if(i>=dgrade.getSize())
@@ -218,25 +207,6 @@ tLayer::getDgrade( ) const
    return dgrade;
 }
    
-void tLayer::setDrDt( int i, double size )
-{
-   if(i>=drdt.getSize()){
-      cout << "size of drdt is " << drdt.getSize() << endl;
-      ReportFatalError( "Trying to set sediment sizes in drdt of layer that don't exist");
-   }
-   
-   drdt[i]=size;
-}
-
-double tLayer::getDrDt( int i )
-{
-   if(i>=drdt.getSize()){
-      cout << "size of drdt is " << drdt.getSize() << endl;
-      ReportFatalError( "Trying to get sediment sizes in drdt of layer that don't exist");
-   }
-   
-   return drdt[i];
-}
 
 tErode::tErode()                                                   //tErode
 {
@@ -677,7 +647,6 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       // the proportion of grain size available from the bedrock
       
       layhelp.setDgradesize(numg);
-      layhelp.setDrDtsize(numg);
       i=0;
       help = infile.ReadItem( help, "BEDROCKDEPTH");
       while(i<numg){
@@ -736,7 +705,6 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       layhelp.setErody(help);
       layhelp.setSed(0);
       layhelp.setDgradesize(numg);
-      layhelp.setDrDtsize(numg);
       i=0;
       help = infile.ReadItem( help, "BEDROCKDEPTH");
       while(i<numg){
@@ -1346,12 +1314,12 @@ void tLNode::setQsin( int i, double val )
    qsin += val;
 }
 
-void tLNode::AddQsin( double val ) 
+void tLNode::addQsin( double val ) 
 {
    qsin += val;
 }
 
-void tLNode::AddQsin( int i, double val )
+void tLNode::addQsin( int i, double val )
 {
    if(i>=numg)
        ReportFatalError( "Trying to index sediment sizes that don't exist ");
@@ -1360,12 +1328,43 @@ void tLNode::AddQsin( int i, double val )
    
 }
 
-void tLNode::AddQsinm( tArray< double > val )
+void tLNode::addQsin( tArray< double > val )
 {
    int i;
-   for(i=0; i<val.getSize(); i++)
-       qsinm[i] += val[i];
+   for(i=0; i<val.getSize(); i++){
+      qsin +=  val[i];
+      qsinm[i] += val[i];
+   }
+   
 }
+
+void tLNode::addQs( double val ) 
+{
+   qs += val;
+}
+
+void tLNode::addQs( int i, double val )
+{
+   if(i>=numg)
+       ReportFatalError( "Trying to index sediment sizes that don't exist ");
+   qsm[i] += val;
+   qs += val;
+   
+}
+
+void tLNode::addQs( tArray< double > val )
+{
+   int i;
+   double sum=0;
+   
+   for(i=0; i<val.getSize(); i++){
+      qsm[i] += val[i];
+      qs += val[i];
+   }
+
+   
+}
+
 
 double tLNode::getQsin() const {return qsin;}
 
@@ -1568,14 +1567,6 @@ double tLNode::getLayerDgrade( int i, int num ) const
    return hlp.getDgrade(num);
 }
 
-double tLNode::getLayerDrDt( int i, int num ) const
-{
-   tLayer hlp;
-//   cout << "in get layer dgrade " << endl;
-   hlp = layerlist.getIthData(i);
-   return hlp.getDrDt(num);
-}
-
 void tLNode::setLayerDgrade( int i, int g, double val)
  {
     tListIter<tLayer> ly ( layerlist );
@@ -1592,21 +1583,6 @@ void tLNode::setLayerDgrade( int i, int g, double val)
     hlp->setDgrade(g, val );
 }
 
-void tLNode::setLayerDrDt( int i, int g, double val)
- {
-    tListIter<tLayer> ly ( layerlist );
-    tLayer  * hlp;
-    hlp=ly.FirstP();
-    
-    int n=0;
-
-    while(n<i){
-       n++;
-       hlp=ly.NextP();
-    }
-
-    hlp->setDrDt(g, val );
-}
 
 tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 {
