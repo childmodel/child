@@ -1,12 +1,14 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.2 1998-01-16 22:07:24 stlancas Exp $
+**   $Id: Definitions.h,v 1.3 1998-01-30 16:06:22 stlancas Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
 /** DEFINITIONS *************************************************************/
+#define TRUE 1
+#define FALSE 0
 #define kMaxNameLength 80
 #define kCommentMark '#'
 #define kUniformGrid 0     /*method of grid construction*/
