@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.62 1999-04-12 16:42:27 gtucker Exp $
+**  $Id: erosion.cpp,v 1.63 1999-04-16 20:34:38 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -229,6 +229,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
    tauex = n->getLayerErody(0)*pow( n->getQ(), mb )*pow( slp, nb ) - taucd;
+   cout << "tauex: " << tauex << endl;
    tauex = (tauex>0.0) ? tauex : 0.0;
    return( pow(tauex,pb)*dt );
 }
@@ -240,7 +241,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 **  Computes the rate of erosion  = kb Q^mb S^nb
 **
 **  Input: n -- node at which to compute detachment capacity
-** 
+**
 **  Returns: the detachment rate
 **  Assumptions: n->getSlope() does not return a negative value (returns neg.
 **               only if infinite loop in getSlope()); kb, mb,
@@ -258,6 +259,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 
    double erorate =  n->getLayerErody(0)*pow( n->getQ(), mb )*pow( slp, nb )
        - taucd;
+   //cout << "erorate: " << erorate << endl;
    erorate = (erorate>0.0) ? erorate : 0.0;
    erorate = pow( erorate, pb );
    n->setDrDt( -erorate );
@@ -290,6 +292,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
    double erorate =n->getLayerErody(i)*pow( n->getQ(), mb )*pow( slp, nb )
        - taucd;
+   //cout << "erorate: " << erorate << endl;
    erorate = (erorate>0.0) ? erorate : 0.0;
    erorate = pow( erorate, pb );
    n->setDrDt( -erorate );
@@ -688,6 +691,9 @@ void tErosion::ErodeDetachLim( double dtg )
        dzdt( nActNodes ); //Erosion rate @ ea. node
    double ratediff;
 
+   tArray<double> valgrd;
+   valgrd.setSize(1);
+   
    // Iterate until total time dtg has been consumed
    do
    {
@@ -710,8 +716,8 @@ void tErosion::ErodeDetachLim( double dtg )
       //apply erosion:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
          //ng added stuff below to update layering using the other erodep
-         tArray<double> valgrd;
-         valgrd.setSize(1);
+         //tArray<double> valgrd;
+         //valgrd.setSize(1);
          valgrd[0]=cn->getQs() * dtmax;
          cn->EroDep( 0, valgrd, 0);
          //cn->EroDep( cn->getQs() * dtmax );
@@ -719,7 +725,7 @@ void tErosion::ErodeDetachLim( double dtg )
       //update time:
       dtg -= dtmax;
    } while( dtg>0.0000001 );
-   
+  
 }//end tErosion::ErodeDetachLim( double dtg 
 
 
