@@ -8,7 +8,8 @@ APPFLAGS =
 OBJECTS = childmain.lob erosion.lob meshElements.lob mathutil.lob \
  tInputFile.lob tLNode.lob tRunTimer.lob tStreamMeander.lob meander.lob \
 tStorm.lob tStreamNet.lob tUplift.lob errors.lob tFloodplain.lob \
-tEolian.lob globalFns.lob predicates.lob tVegetation.lob \
+tEolian.lob globalFns.lob predicates.lob tVegetation.lob tListInputData.lob \
+tTimeSeries.lob \
 ParamMesh_t.lob TipperTriangulator.lob TipperTriangulatorError.lob
 
 .PHONY : all clean project module
@@ -34,11 +35,17 @@ tInputFile.lob: $(PT)/tInputFile/tInputFile.cpp
 tLNode.lob: $(PT)/tLNode/tLNode.cpp
 	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tLNode/tLNode.cpp
 
+tListInputData.lob: $(PT)/tListInputData/tListInputData.cpp
+	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tListInputData/tListInputData.cpp
+
 tRunTimer.lob: $(PT)/tRunTimer/tRunTimer.cpp
 	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tRunTimer/tRunTimer.cpp
 
 tStorm.lob: $(PT)/tStorm/tStorm.h
 	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tStorm/tStorm.cpp
+
+tTimeSeries.lob: $(PT)/tTimeSeries/tTimeSeries.cpp
+	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tTimeSeries/tTimeSeries.cpp
 
 tStreamNet.lob: $(PT)/tStreamNet/tStreamNet.cpp
 	$(LINT) $(LINTFLAGS) $(APPFLAGS) $(MODFLAGS) $(PT)/tStreamNet/tStreamNet.cpp
@@ -89,7 +96,6 @@ clean::
 # use, for instance:
 # find ${CHILDCODE} -name '*.h' | xargs grep -n -e include | grep '\.cpp'
 HFILES = \
-	$(PT)/compiler.h \
 	$(PT)/Classes.h \
 	$(PT)/Definitions.h \
 	$(PT)/Erosion/erosion.h \
@@ -98,6 +104,7 @@ HFILES = \
 	$(PT)/Mathutil/mathutil.h \
 	$(PT)/MeshElements/meshElements.h \
 	$(PT)/Predicates/predicates.h \
+	$(PT)/compiler.h \
 	$(PT)/errors/errors.h \
 	$(PT)/globalFns.h \
 	$(PT)/tArray/tArray.cpp \
@@ -107,7 +114,6 @@ HFILES = \
 	$(PT)/tInputFile/tInputFile.h \
 	$(PT)/tLNode/tLNode.h \
 	$(PT)/tList/tList.h \
-	$(PT)/tListInputData/tListInputData.cpp \
 	$(PT)/tListInputData/tListInputData.h \
 	$(PT)/tMatrix/tMatrix.h \
 	$(PT)/tMesh/ParamMesh_t.h \
@@ -122,12 +128,12 @@ HFILES = \
 	$(PT)/tPtrList/tPtrList.h \
 	$(PT)/tRunTimer/tRunTimer.h \
 	$(PT)/tStorm/tStorm.h \
-	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/tStreamMeander/meander.h \
+	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/tStreamNet/tStreamNet.h \
+	$(PT)/tTimeSeries/tTimeSeries.h \
 	$(PT)/tUplift/tUplift.h \
 	$(PT)/tVegetation/tVegetation.h \
-	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/trapfpe.h
 
 ParamMesh_t.lob: $(HFILES)
