@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.43 1998-07-20 21:18:34 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.44 1998-07-20 22:08:56 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -99,6 +99,9 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 **     hydrologic options and parameters from the input file.
 **     It then initializes flow directions, drainage areas, etc.
 **
+**     Modifications:
+**       - GT added input of parameters for sinusoidal variation in
+**         infiltration capacity, 7/20/98.
 \**************************************************************************/
 /*tStreamNet::tStreamNet()
         : bedErode()
@@ -130,7 +133,16 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
       trans = infile.ReadItem( trans, "TRANSMISSIVITY" );
    if( flowgen==kSaturatedFlow2 || flowgen==kConstSoilStore
        || flowgen==kHortonian )
+   {
       infilt = infile.ReadItem( infilt, "INFILTRATION" );
+      optSinVarInfilt = infile.ReadItem( optSinVarInfilt, "OPTSINVARINFILT" );
+      if( optSinVarInfilt )
+      {
+         twoPiLam = (2.0*PI)/(infile.ReadItem( twoPiLam, "PERIOD_INFILT" ));
+         infilt_dev = infile.ReadItem( infilt_dev, "MAXICMEAN" ) - infilt;
+         infilt0 = infilt;
+      }
+   }      
    else infilt = 0.0;
    if( flowgen == kConstSoilStore )
        soilStore = infile.ReadItem( soilStore, "SOILSTORE" );
@@ -166,7 +178,7 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    CalcSlopes();  // TODO: should be in tGrid
    InitFlowDirs(); // TODO: should all be done in call to updatenet
    FlowDirs();
-   MakeFlow();
+   MakeFlow( 0.0 );
    cout << "finished" << endl;
 }
 
@@ -272,11 +284,16 @@ void tStreamNet::setMndrDirChngProb( double val )
 **  This function updates the network and flow field by calling various
 **  helper functions.
 **
+**  Modifications:
+**    - 7/20/98: now takes current time as a param, to use for updating
+**      sine-varying infilt cap if applicable. Also, "storm" version now
+**      simply calls "regular" version after doing its own thing. GT
+**  
 **  TODO: move mesh-related routines -- slopes, voronoi areas, etc --
 **         to tGrid
 **
 \**************************************************************************/
-void tStreamNet::UpdateNet()
+void tStreamNet::UpdateNet( double time )
 {
    //cout << "UpdateNet()...";
    CalcSlopes();          // TODO: should be in tGrid
@@ -284,24 +301,25 @@ void tStreamNet::UpdateNet()
    //XCalcVAreas();          // TODO: should be in tgrid
    //InitFlowDirs();
    FlowDirs();
-   MakeFlow();
-   //CheckNetConsistency();
+   MakeFlow( time );
+   CheckNetConsistency();
    //cout << "UpdateNet() finished" << endl;	
 }
 
-void tStreamNet::UpdateNet( tStorm &storm )
+void tStreamNet::UpdateNet( double time, tStorm &storm )
 {
    //cout << "UpdateNet(...)...";
    stormPtr = &storm;
    assert( stormPtr != 0 );
    rainrate = stormPtr->getRainrate();
-   CalcSlopes();   // TODO: as above
+   UpdateNet( time );
+   //XCalcSlopes();   // TODO: as above
    //XsetVoronoiVertices();
    //XCalcVAreas();
    //InitFlowDirs(); // necessary?
-   FlowDirs();
-   MakeFlow();
-   CheckNetConsistency();
+   //FlowDirs();
+   //MakeFlow();
+   //CheckNetConsistency();
    //cout << "UpdatNet(...) finished" << endl;	
 }
 
@@ -839,13 +857,22 @@ void tStreamNet::RouteRunoff( tLNode *curnode, double addedArea,
 **      Added:   YC
 **      Modified:  GT made it a mbr func of tGrid 7/97
 **         updated 12/19/97 SL
+**         - GT added sinusoidal variation in infiltration capacity, and tm
+**             parameter to go along w/ it
 **
 \*****************************************************************************/
-void tStreamNet::MakeFlow()
+void tStreamNet::MakeFlow( double tm )
 {
    //cout << "MakeFlow()..." << endl << flush;
    if( filllakes ) FillLakes();
    DrainAreaVoronoi();
+
+   // If a hydrologic parameter varies through time, update it here
+   // (currently, only infiltration capacity varies)
+   if( optSinVarInfilt && infilt>0 )
+       infilt = infilt0 + infilt_dev * sin( tm*twoPiLam );
+
+   // Call appropriate function for runoff generation option
    switch( flowgen )
    {
       case kSaturatedFlow1:   // Topmodel-like runoff model with steady-state
