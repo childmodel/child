@@ -33,7 +33,7 @@
 **    - 3/31/00 bug fix to tPtrList copy constructors (GT)
 **    - 5/10/00 typo fix in DataCopy (GT)
 **
-**  $Id: tPtrList.h,v 1.17 2002-07-08 17:21:51 arnaud Exp $
+**  $Id: tPtrList.h,v 1.18 2002-08-07 11:50:09 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
@@ -1372,21 +1372,9 @@ GetP( int num )
    assert( ptrlistPtr != 0 );
    //if( num < 0 ) return 0;
    //cout << "Get: num " << num << "; ";
-   tPtrListNode< NodeType > *tempnodeptr = ptrlistPtr->first;
-   counter = 0;
-   while( tempnodeptr->Ptr->getID() != num && tempnodeptr != 0 )
-   {
-      //cout << "Get: tempnodeptr->id " << tempnodeptr->getDataPtr()->getID()
-      //     << "; ";
-      tempnodeptr = tempnodeptr->next;
-      assert( tempnodeptr != 0 );
-      counter++;
-   }
-   //cout << endl;
-   if( tempnodeptr == 0 ) return 0;
-   if( tempnodeptr->Ptr->getID() != num ) return 0;
-   curptrnode = tempnodeptr;
-   return tempnodeptr->Ptr;
+
+   return
+     (Get(num) != 0 ? curptrnode->getDataPtrNC() : 0 );
 }
 
 

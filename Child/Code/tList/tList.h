@@ -32,7 +32,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.26 2002-08-07 09:57:34 arnaud Exp $
+**  $Id: tList.h,v 1.27 2002-08-07 11:50:09 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -1388,21 +1388,8 @@ GetP( int num )
    if( num < 0 ) return 0;
    //cout << "Get: num " << num << "; ";
 
-   tListNode< NodeType > *tempnodeptr = listPtr->first;
-   counter = 0;
-   while( tempnodeptr->getDataPtr()->getID() != num && tempnodeptr != 0 )
-   {
-      //cout << "Get: tempnodeptr->id " << tempnodeptr->getDataPtr()->getID()
-      //     << "; ";
-      tempnodeptr = tempnodeptr->next;
-      assert( tempnodeptr != 0 );
-      counter++;
-   }
-   //cout << endl;
-   if( tempnodeptr == 0 ) return 0;
-   if( tempnodeptr->getDataPtr()->getID() != num ) return 0;
-   curnode = tempnodeptr;
-   return tempnodeptr->getDataPtrNC();
+   return
+     (Get(num) != 0 ? curnode->getDataPtrNC() : 0 );
 }
 
 
