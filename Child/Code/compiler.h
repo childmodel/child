@@ -11,8 +11,8 @@
 # define __builtin_expect(x, expected_value) (x)
 # endif
 
-# define likely(x) (__builtin_expect((x),1))
-# define unlikely(x) (__builtin_expect((x),0))
+# define likely(x) (__builtin_expect(!!(x),1))
+# define unlikely(x) (__builtin_expect(!!(x),0))
 #else
 
 # define likely(x) (x)
