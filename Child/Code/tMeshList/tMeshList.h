@@ -26,7 +26,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.h,v 1.4 1998-04-29 21:36:24 gtucker Exp $
+**  $Id: tMeshList.h,v 1.5 1999-01-05 22:46:27 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TGRIDLIST_H
@@ -63,6 +63,7 @@ class tGridList : public tList< NodeType >
    void moveToBack( tListNode< NodeType > * );
    void moveToFront( tListNode< NodeType > * );
    void moveToActiveBack( tListNode< NodeType > * );
+   void moveToBoundFront( tListNode< NodeType > * );
    void moveToBack( NodeType * );
    void insertAtFront( const NodeType & );
    int removeFromFront( NodeType & );
@@ -89,6 +90,7 @@ class tGridListIter
    int FirstBoundary();
    int IsActive();
    NodeType * LastActiveP();
+   NodeType * FirstBoundaryP();
 //   NodeType * FirstP();
 //   NodeType * NextP();
   //private:
