@@ -36,7 +36,7 @@
 **
 **  Created by Greg Tucker, November 1997
 **
-**  $Id: tInputFile.h,v 1.8 2002-09-25 14:47:15 gtucker Exp $
+**  $Id: tInputFile.h,v 1.9 2002-11-07 16:58:54 childcvs Exp $
 \****************************************************************************/
 
 #ifndef TINPUTFILE_H
@@ -55,7 +55,6 @@ using namespace std;
 class tInputFile
 {
 public:
-    tInputFile();
     tInputFile( const char * );   // constructor takes name of file to open
     int ReadItem( const int &, const char * );       // reads an int
     long ReadItem( const long &, const char * );     // reads a long
