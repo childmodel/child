@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.91 2002-02-08 14:54:02 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.92 2002-02-11 09:19:51 gtucker Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -1618,7 +1618,7 @@ MakeMeshFromPoints( tInputFile &infile )
    // width and height, respectively, of the rectangle that encloses the
    // points.) Assigning the IDs allows us to retrieve and delete these
    // nodes when we're done creating the mesh.
-   cout << "creating supertri: max & min are " << maxx << "," << maxy << endl;
+   cout << "creating supertri: min & max are (" << minx << "," << miny << ") (" << maxx << "," << maxy << ")\n";
    
    tempnode.set3DCoords( minx-3*dx, miny-3*dy, 0.0 );
    tempnode.setBoundaryFlag( kClosedBoundary );
@@ -1630,6 +1630,8 @@ MakeMeshFromPoints( tInputFile &infile )
    tempnode.set3DCoords( minx+0.5*dx, maxy+3*dy, 0.0 );
    tempnode.setID( -3 );
    nodeList.insertAtBack( tempnode );
+
+   cout << "Supertri coords: " << minx-3*dx << "," << miny-3*dy << "  " << maxx+3*dx << "," << miny-3*dy << "  " << minx+0.5*dx << "," << maxy+3*dy << endl;
 
    // set # of nodes, edges, and triangles
    nnodes = 3;
