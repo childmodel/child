@@ -11,8 +11,9 @@
  **     template & non-template classes (1/99)
  **   - Bug fix in constructor: nnodes was being read from edge and
  **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
+ **   - Remove dead code. Add findRightTime (AD 07/03)
  **
- **  $Id: tListInputData.cpp,v 1.16 2003-08-01 13:13:29 childcvs Exp $
+ **  $Id: tListInputData.cpp,v 1.17 2003-08-01 13:17:14 childcvs Exp $
  */
 /**************************************************************************/
 
