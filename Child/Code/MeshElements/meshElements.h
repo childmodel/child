@@ -4,7 +4,38 @@
 **                  and tTriangle. Each of these grid elements is
 **                  implemented as an object, as described below.
 **
-**  $Id: meshElements.h,v 1.15 1999-01-05 21:23:04 gtucker Exp $
+**  This file contains declarations of the three classes that collectively
+**  make up the triangulated mesh. These classes are:
+**   - tNode: nodes, or vertices
+**   - tEdge: directed edges, described by a starting node and an
+**            ending node
+**   - tTriangle: triangles in the mesh, with each triangle maintaining
+**                pointers to its 3 vertex nodes, its 3 neighboring
+**                triangles, and its 3 clockwise-oriented edges
+**
+**  Lists of each of these 3 types of mesh element are maintained by the
+**  tGrid class, which implements the mesh and its routines. Connectivity
+**  between mesh elements is managed using pointers, as follows:
+**   - Each tNode object points to one of its "spokes" (the tEdges that
+**     originate at the node). In the current implementation, each
+**     tNode also maintains a list of all its spokes, but in a future
+**     version such lists will only be created when needed by mesh
+**     modification routines.
+**   - Each tEdge points to its origin and destination nodes, and to
+**     the tEdge that lies counterclockwise relative to the origin node.
+**     tEdge objects also contain the coordinates of the the Voronoi
+**     vertex that lies on the righthand side of the tEdge. (A Voronoi
+**     vertex is the intersection between 3 Voronoi cells, and in a
+**     Delaunay triangulation is found at the circumcenter of triangle).
+**   - Each tTriangle object points to its 3 vertex nodes, its 3
+**     neighboring triangles (or null if no neighboring triangle exists
+**     across a given face), and the 3 clockwise-oriented tEdges. The
+**     data structure uses the "opposite" numbering scheme, so that
+**     triangle node 1 represents the vertex that is opposite to
+**     neighboring triangle 1, and so on. Node 1 is also the origin for
+**     edge 1, etc.
+**   
+**  $Id: meshElements.h,v 1.16 1999-01-11 22:54:04 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -17,23 +48,34 @@
 #include "../tPtrList/tPtrList.h"
 #include "../tArray/tArray.h"
 #include "../tGridList/tGridList.h"
-//#include "../globalFns.h"
 
 class tEdge;
 
 /**************************************************************************\
-**  class tNode
+**  Class tNode  ***********************************************************
 **
-**  tNode's are the points in a Delaunay triangulation, and their data
+**  tNodes are the points in a Delaunay triangulation, and their data
 **  include x and y coordinates, a z value (which could be elevation or
 **  some other variable), an ID, the point's Voronoi area and its reciprocal,
-**  and a list of "spokes" (edges, of type tEdge) in the triangulation.  
+**  and a pointer to one of its "spokes" (edges that originate at the node).
+**  Because each spoke points to its counter-clockwise neighbor, tNode
+**  objects only need to point to one of their spokes. However, for
+**  convenience, the current implementation of tNode also contains a list
+**  of pointers to all spokes (of type tPtrList). In the future, to
+**  conserve memory usage, these spoke lists will only be allocated when
+**  needed by various mesh modification routines.
 **
-**  Earlier modifications to tNode:
-**  - GT changed getZ to type double, and defined the fn in .cpp,
-**  11/16.
-**  - added getX, getY functions
-**  - added VoronoiArea function (was previously in tStreamNet)
+**  Other tNode variables include the area of the corresponding Voronoi
+**  cell, an ID number, and a flag indicating the node's boundary status.
+**  Possible boundary status codes are non-boundary (mesh interior), closed
+**  (outer boundary, not counted as part of the solution domain), and
+**  open (boundary node not part of the solution domain but represents
+**  a valid exit point for mass or energy flows). Note that these boundary
+**  codes are used by tGrid to segregate nodes according to whether they
+**  are boundary or non-boundary points. Note also that while all hull
+**  points must be boundaries, interior points do not necessarily have to
+**  be flagged as non-boundaries (e.g., one could include an "island" of
+**  boundary points in the interior of a mesh without difficulty).
 **
 \**************************************************************************/
 class tNode
