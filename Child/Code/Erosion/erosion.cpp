@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.4 1998-01-21 22:11:01 gtucker Exp $
+**  $Id: erosion.cpp,v 1.5 1998-01-29 20:11:28 stlancas Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -57,9 +57,9 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 **  Assumptions: n->GetSlope() does not return a negative value; kb, mb,
 **               and nb all >=0.
 \***************************************************************************/
-float tBedErodePwrLaw::DetachCapacity( tLNode * n, float dt )
+double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
-   float slp = n->GetSlope();
+   double slp = n->GetSlope();
    return( kb*pow( n->GetQ(), mb )*pow( slp, nb )*dt );
 }
 
@@ -82,10 +82,10 @@ float tBedErodePwrLaw::DetachCapacity( tLNode * n, float dt )
 **  Assumptions: GetSlope() returns a value >=0, edge length>0.
 **
 \***************************************************************************/
-float tBedErodePwrLaw::SetTimeStep( tLNode * n )
+double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 {
    assert( n->GetQ()>=0 );
-   float eroterm = kb * pow( n->GetQ(), mb ) * pow( n->GetSlope(), nb-1.0 );
+   double eroterm = kb * pow( n->GetQ(), mb ) * pow( n->GetSlope(), nb-1.0 );
    if( eroterm==0 ) return 100000;
    return( 0.2*n->GetFlowEdg()->getLength() / eroterm );
 

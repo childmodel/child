@@ -11,7 +11,7 @@
 **   - changed .tri file format from points-edges-triangles to
 **     points-triangles-edges, compatible with earlier format (gt 1/98)
 **
-**  $Id: tListInputData.h,v 1.2 1998-01-21 19:42:13 gtucker Exp $
+**  $Id: tListInputData.h,v 1.3 1998-01-29 20:21:20 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TLISTINPUTDATA_H
@@ -54,9 +54,9 @@ class tListInputData
    void GetKeyEntry( tListIFStreams &  );
    void GetFileEntry( tListIFStreams &  );
   private:
-   tArray< float > x;
-   tArray< float > y;
-   tArray< float > z;
+   tArray< double > x;
+   tArray< double > y;
+   tArray< double > z;
    tArray< int > edgid;
    tArray< int > boundflag;
    tArray< int > orgid;

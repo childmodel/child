@@ -4,7 +4,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.2 1998-01-27 22:48:03 gtucker Exp $
+**  $Id: tInputFile.cpp,v 1.3 1998-01-29 20:16:41 stlancas Exp $
 \****************************************************************************/
 
 #include <iostream.h>
@@ -115,10 +115,10 @@ long tInputFile::ReadItem( const long &datType, const char *itemCode )
    return item;
 }
 
-float tInputFile::ReadItem( const float &datType, const char *itemCode )
+double tInputFile::ReadItem( const double &datType, const char *itemCode )
 {
-   cout << "ReadItem( float )...";
-   float item;
+   cout << "ReadItem( double )...";
+   double item;
    char headerLine[kMaxNameLength];
    
    assert( infile.good() );

@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.4 1998-01-29 18:53:51 stlancas Exp $
+**  $Id: erosion.h,v 1.5 1998-01-29 20:11:34 stlancas Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -66,12 +66,12 @@ class tSedTransPwrLaw
 {
   public:
    tSedTransPwrLaw( tInputFile &infile );
-   float TransCapacity( tLNode * n );
+   double TransCapacity( tLNode * n );
 
   private:
-   float kf;  // Transport capacity coefficient
-   float mf;  // Exponent on total discharge
-   float nf;  // Exponent on slope
+   double kf;  // Transport capacity coefficient
+   double mf;  // Exponent on total discharge
+   double nf;  // Exponent on slope
 };
 
 
@@ -89,14 +89,14 @@ class tBedErodePwrLaw
   public:
    tBedErodePwrLaw( tInputFile &infile );
      //Computes depth of potential erosion at node n over time interval dt
-   float DetachCapacity( tLNode * n, float dt );
+   double DetachCapacity( tLNode * n, double dt );
      //Returns an estimate of maximum stable & accurate time step size
-   float SetTimeStep( tLNode * n );
+   double SetTimeStep( tLNode * n );
 
   private:
-   float kb;  // Erosion coefficient
-   float mb;  // Exponent on total discharge
-   float nb;  // Exponent on slope
+   double kb;  // Erosion coefficient
+   double mb;  // Exponent on total discharge
+   double nb;  // Exponent on slope
 };
 
 

@@ -5,7 +5,7 @@
 **  tStreamNet objects contain data and functions related to flow routing
 **  and sediment transport across the landscape surface.
 **
-**  $Id: tStreamNet.h,v 1.5 1998-01-29 18:55:19 stlancas Exp $
+**  $Id: tStreamNet.h,v 1.6 1998-01-29 20:06:53 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -35,14 +35,14 @@ public:
    tStorm *getStormPtrNC();
    int getFlowGenOpt() const;
    int getFillLakesOpt() const;
-   float getRainRate() const;
-   float getTransmissivity() const;
-   float getInfilt() const;
+   double getRainRate() const;
+   double getTransmissivity() const;
+   double getInfilt() const;
    void setFlowGenOpt( int );
    void setFillLakesOpt( int );
-   void setRainRate( float );
-   void setTransmissivity( float );
-   void setInfilt( float );
+   void setRainRate( double );
+   void setTransmissivity( double );
+   void setInfilt( double );
    void UpdateNet();
    void UpdateNet( tStorm & );
    void CalcSlopes();
@@ -50,8 +50,8 @@ public:
    void InitFlowDirs();
    void FlowDirs();
    void DrainAreaVoronoi();
-   float VoronoiArea( tLNode * );
-   void RouteFlowArea( tLNode *, float );
+   double VoronoiArea( tLNode * );
+   void RouteFlowArea( tLNode *, double );
    void SetVoronoiVertices();
    void MakeFlow();
    void FlowUniform();
@@ -59,7 +59,7 @@ public:
    void FillLakes();
    int FindLakeNodeOutlet( tLNode * );
    void SortNodesByNetOrder();
-   void ErodeDetachLim( float dtg );
+   void ErodeDetachLim( double dtg );
    
 protected:
    
@@ -67,9 +67,9 @@ protected:
    tStorm *stormPtr;
    int flowgen;
    int filllakes;
-   float rainrate;
-   float trans;
-   float infilt;    
+   double rainrate;
+   double trans;
+   double infilt;    
    tBedErodePwrLaw bedErode;
 };
 

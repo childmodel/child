@@ -4,7 +4,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.h,v 1.1 1998-01-14 20:23:55 gtucker Exp $
+**  $Id: tInputFile.h,v 1.2 1998-01-29 20:15:32 stlancas Exp $
 \****************************************************************************/
 
 #include <iostream.h>
@@ -22,7 +22,7 @@ public:
     tInputFile( const char * );
     int ReadItem( const int &, const char * );
     long ReadItem( const long &, const char * );
-    float ReadItem( const float &, const char * );
+    double ReadItem( const double &, const char * );
     void ReadItem( char *, const char * );
     // similar overrides for strings, chars, etc
 
