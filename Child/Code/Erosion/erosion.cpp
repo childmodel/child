@@ -28,7 +28,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.84 2000-04-26 20:18:33 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.85 2000-12-08 12:08:34 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -667,6 +667,8 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
    //double timeadjust=31536000.00; /* number of seconds in a year */
    double qss, qsg=0; //gravel and sand transport rate
 
+   //cout<<nd->getX()<<" "<<nd->getY()<<endl;
+   
    //cout << "tSedTransWilcock::TransCapacity(tLNode,int,double)\n";
 
 
@@ -685,7 +687,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
    //cout << "channel rough is " << nd->getChanRough() << endl;
    //cout << "channel width is " << nd->getChanWidth() << endl;
    
-   //cout << "q is " << nd->getQ() << endl;
+   //cout << "q in secs is " << nd->getQ()/SECPERYEAR << endl;
    //cout << "slope is " << nd->getSlope() << endl;
    //cout << "taudim is " << taudim << endl;
 
@@ -699,11 +701,12 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
        taucrit=hightaucs;
 
    //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
+   //cout<<"weight = "<<weight<<" persand = "<<persand<<endl;
    
    if(tau>taucrit){
-      qss=((0.058/RHOSED)*weight*nd->getHydrWidth()*SECPERYEAR*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) );
-       nd->addQs(0, qss);
-       //cout << "nic sand transport rate is " << qss << endl;
+      qss=(0.058/RHOSED)*weight*nd->getHydrWidth()*SECPERYEAR*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) ;
+      nd->addQs(0, qss);
+      //cout << "nic sand transport rate is " << qss << endl;
    }
    else 
        qss=0 ;
@@ -724,7 +727,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
          qsg=(0.058*SECPERYEAR*weight*nd->getHydrWidth()/(RHOSED))*
              (1-persand)*pow(tau,1.5)*pow((1-(taucrit/tau)),4.5);
          nd->addQs(1,qsg);
-         //cout << "nic nic nic gravel transport is happening" << endl;
+         //cout << "gravel transport rate " <<qsg<< endl;
       }
       else
           qsg=0;
@@ -1978,9 +1981,12 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                   }
                }
                else{//trans-lim
+                  //cout<<"X "<<cn->getX()<<" Y "<<cn->getY();
                   for(j=0;j<cn->getNumg();j++){
                      erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+                     // cout<<" j "<<j<<" "<<erolist[j];
                   }
+                  //cout<<endl;
                   
                   i=0;
                   depck=0;
