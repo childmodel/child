@@ -27,6 +27,8 @@ ParamMMFS_t::ParamMMFS_t(const tInputFile &infile) :
   {
     int tmp_;
     tmp_ = infile.ReadItem( tmp_, "TYP_BOUND" );
+     if (tmp_<-1 || tmp_>4)
+       ReportFatalError("Illegal value for TYP_BOUND");
     boundType = static_cast<tOpenBoundary_t>(tmp_);
   }
   //ng 12/99 added so that the initial surface could be sloped
@@ -40,12 +42,11 @@ ParamMMFS_t::ParamMMFS_t(const tInputFile &infile) :
    mElev = infile.ReadItem( mElev, "MEAN_ELEV" );
    randElev = infile.ReadItem( randElev, "RAND_ELEV" );
    //reads method of point placement:
-   //  0 = uniform grid;
-   //  1 = perturbed grid;
-   //  2 = random scatter;
    {
      int tmp_;
      tmp_ = infile.ReadItem( tmp_, "OPT_PT_PLACE" );
+     if (tmp_<0 || tmp_>2)
+       ReportFatalError("Illegal value for OPT_PT_PLACE");
      ptPlace = static_cast<tMeshType_t>(tmp_);
    }
    //read point spacing or number of points (excluding four boundary points)

@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.213 2004-04-27 11:09:03 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.214 2004-04-27 14:22:17 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1029,7 +1029,7 @@ MakePointBoundary( const ParamMMFS_t &Param, const tInputFile &infile,
 
    //MAKE BOUNDARY
    switch( Param.boundType ) {
-   case kCornerOutlet:
+   case ParamMMFS_t::kCornerOutlet:
      {
        miNextNodeID = 0;
        tempnode.setBoundaryFlag( kOpenBoundary );
@@ -1077,7 +1077,7 @@ MakePointBoundary( const ParamMMFS_t &Param, const tInputFile &infile,
 	 }
      }
      break;
-   case kOpenSide:
+   case ParamMMFS_t::kOpenSide:
      {
        cout << "OPEN SIDE boundary\n";
        n = ROUND( Param.xGrid / Param.delGrid );
@@ -1120,7 +1120,7 @@ MakePointBoundary( const ParamMMFS_t &Param, const tInputFile &infile,
 	 }
      }
      break;
-   case kOppositeSidesOpen:
+   case ParamMMFS_t::kOppositeSidesOpen:
      {
        n = ROUND( Param.xGrid / Param.delGrid );
        tempnode.setBoundaryFlag( kOpenBoundary );
@@ -1164,7 +1164,7 @@ MakePointBoundary( const ParamMMFS_t &Param, const tInputFile &infile,
 	 }
      }
      break;
-   case kAllSidesOpen:
+   case ParamMMFS_t::kAllSidesOpen:
      {
        miNextNodeID = 0;
        n = ROUND( Param.xGrid / Param.delGrid );
@@ -1205,7 +1205,7 @@ MakePointBoundary( const ParamMMFS_t &Param, const tInputFile &infile,
 	   bndList.insertAtBack( nodIter.LastP() );
 	 }
      }
-   case kSpecifyOutlet:
+   case ParamMMFS_t::kSpecifyOutlet:
      {
        // Create nodes for bottom (Y=0) boundary and place them on list
        n = ROUND( Param.xGrid / Param.delGrid );
@@ -1297,7 +1297,7 @@ MakePointBoundary( const ParamMMFS_t &Param, const tInputFile &infile,
 	 }
      }
      break;
-   case kAllSideClosed:
+   case ParamMMFS_t::kAllSideClosed:
      {
        n = ROUND( Param.xGrid / Param.delGrid );
        tempnode.setBoundaryFlag( kClosedBoundary );
@@ -1363,60 +1363,65 @@ MakePointInterior( const ParamMMFS_t &Param, const tInputFile &infile,
    // 4 - If points are "random", simply pick Param.numPts random locations within
    //     the interior
    tempnode.setBoundaryFlag( kNonBoundary );
-   if( Param.ptPlace == kUniformMesh || Param.ptPlace == kPerturbedMesh )
-   {
-      nx = ROUND( Param.xGrid / Param.delGrid );  // no. points in x direction
-      ny = ROUND( Param.yGrid / Param.delGrid );  // no. points in y direction
-      for( i=1; i<nx; i++ )
-      {
-         for( j=1; j<ny; j++, miNextNodeID++ )
-         {
-            //rows are offset such that there should be an
-            //edge leading to a corner outlet -- NB: no longer true!
-            // Random offset amplified to 25%!
-            // TODO: ensure integrity of corner outlet!
-            xyz[0] = i * Param.delGrid - 0.25 * Param.delGrid * (j%2)
-                + 0.25 * Param.delGrid * ((j+1)%2);
-            xyz[1] = j * Param.delGrid;
-            if( Param.ptPlace == kPerturbedMesh )
-            {
-               xyz[0] += 0.5 * Param.delGrid * ( rand.ran3() - 0.5 );
-               xyz[1] += 0.5 * Param.delGrid * ( rand.ran3() - 0.5 );
-            }
-            xyz[2] = Param.mElev + Param.randElev * ( rand.ran3() - 0.5 );
-            if( Param.boundType == kOppositeSidesOpen || Param.kSloped)
-            {
-               slope = Param.upperZ / Param.yGrid;
-               xyz[2] += slope * xyz[1] - Param.mElev;
-            }
-            tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
-            tempnode.setID( miNextNodeID );
-	    if (makeMesh)
-	      AddNode( tempnode );
-	    else
-	      nodeList.insertAtActiveBack(tempnode);
-         }
-      }
-   }
-   else if( Param.ptPlace == kRandomMesh )
-   {
-      for( i=0; i<Param.numPts; i++ )
-      {
-         // Randomize x,y, and z coordinates
-         xyz[0] = rand.ran3() * Param.xGrid;
-         xyz[1] = rand.ran3() * Param.yGrid;
-         xyz[2] = Param.mElev + Param.randElev * ( rand.ran3() - 0.5 );
-         if( xyz[0] != 0 && xyz[0] != Param.xGrid && xyz[1] != 0 && xyz[1] != Param.yGrid )
-         {
-            tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
-            tempnode.setID( miNextNodeID );
-	    if (makeMesh)
-	      AddNode( tempnode );
-	    else
-	      nodeList.insertAtActiveBack(tempnode);
-            miNextNodeID++;
-         }
-      }
+   switch(Param.ptPlace){
+   case ParamMMFS_t::kUniformMesh:
+   case ParamMMFS_t::kPerturbedMesh:
+     {
+       nx = ROUND( Param.xGrid / Param.delGrid );  // no. points in x direction
+       ny = ROUND( Param.yGrid / Param.delGrid );  // no. points in y direction
+       for( i=1; i<nx; i++ )
+	 {
+	   for( j=1; j<ny; j++, miNextNodeID++ )
+	     {
+	       //rows are offset such that there should be an
+	       //edge leading to a corner outlet -- NB: no longer true!
+	       // Random offset amplified to 25%!
+	       // TODO: ensure integrity of corner outlet!
+	       xyz[0] = i * Param.delGrid - 0.25 * Param.delGrid * (j%2)
+		 + 0.25 * Param.delGrid * ((j+1)%2);
+	       xyz[1] = j * Param.delGrid;
+	       if( Param.ptPlace == ParamMMFS_t::kPerturbedMesh )
+		 {
+		   xyz[0] += 0.5 * Param.delGrid * ( rand.ran3() - 0.5 );
+		   xyz[1] += 0.5 * Param.delGrid * ( rand.ran3() - 0.5 );
+		 }
+	       xyz[2] = Param.mElev + Param.randElev * ( rand.ran3() - 0.5 );
+	       if( Param.boundType == ParamMMFS_t::kOppositeSidesOpen || Param.kSloped)
+		 {
+		   slope = Param.upperZ / Param.yGrid;
+		   xyz[2] += slope * xyz[1] - Param.mElev;
+		 }
+	       tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
+	       tempnode.setID( miNextNodeID );
+	       if (makeMesh)
+		 AddNode( tempnode );
+	       else
+		 nodeList.insertAtActiveBack(tempnode);
+	     }
+	 }
+     }
+     break;
+   case ParamMMFS_t::kRandomMesh:
+     {
+       for( i=0; i<Param.numPts; i++ )
+	 {
+	   // Randomize x,y, and z coordinates
+	   xyz[0] = rand.ran3() * Param.xGrid;
+	   xyz[1] = rand.ran3() * Param.yGrid;
+	   xyz[2] = Param.mElev + Param.randElev * ( rand.ran3() - 0.5 );
+	   if( xyz[0] != 0 && xyz[0] != Param.xGrid && xyz[1] != 0 && xyz[1] != Param.yGrid )
+	     {
+	       tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
+	       tempnode.setID( miNextNodeID );
+	       if (makeMesh)
+		 AddNode( tempnode );
+	       else
+		 nodeList.insertAtActiveBack(tempnode);
+	       miNextNodeID++;
+	     }
+	 }
+     }
+     break;
    }
 
    // If user wants a specified outlet location, place the outlet point
@@ -1425,7 +1430,7 @@ MakePointInterior( const ParamMMFS_t &Param, const tInputFile &infile,
    // Added by GT, 5/14/99
    // Note: potential gotcha is that we don't check to see if there's
    // already another point at the same location. TODO (see tInlet)
-   if( Param.boundType==kSpecifyOutlet && Param.xout!=0 && Param.yout!=0 )
+   if( Param.boundType == ParamMMFS_t::kSpecifyOutlet && Param.xout!=0 && Param.yout!=0 )
    {
       tempnode.setBoundaryFlag( kOpenBoundary );
       tempnode.set3DCoords( Param.xout, Param.yout, 0. );
