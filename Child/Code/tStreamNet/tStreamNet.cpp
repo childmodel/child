@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.49 1998-08-18 18:38:42 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.50 1998-09-10 19:21:06 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -333,6 +333,20 @@ void tStreamNet::UpdateNet( double time, tStorm &storm )
    UpdateNet( time );
 }
 
+
+/**************************************************************************\
+**
+**  tStreamNet::CheckNetConsistency
+**
+**  This is a debugging function that tests the integrity of the stream
+**  network. Tests include making sure all active nodes have a valid
+**  downstream neighbor; all active nodes drain to an outlet (or a sink);
+**  no node drains to a closed boundary; etc. No data are modified.
+**
+**  Modifications:
+**    - added "sink" case to outlet-path test, 8/98 GT
+**  
+\**************************************************************************/
 #define kLargeNumber 1000000
 void tStreamNet::CheckNetConsistency()
 {
@@ -379,12 +393,15 @@ void tStreamNet::CheckNetConsistency()
    
    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
    {
-      //make sure each node has path to outlet:
+      // Make sure each node has path to outlet (or to a sink):
       dn = cn->getDownstrmNbr();
-      while( dn->getBoundaryFlag() == kNonBoundary )
+      while( dn->getBoundaryFlag() == kNonBoundary
+             && dn->getFloodStatus() != kSink )
       {
          dn = dn->getDownstrmNbr();
          ctr++;
+         if( ctr > kLargeNumber-4 )
+             dn->TellAll();
          if( ctr > kLargeNumber )
          {
             cerr << "NODE #" << cn->getID()
@@ -392,7 +409,8 @@ void tStreamNet::CheckNetConsistency()
             goto error;
          }
       }
-      if( dn->getBoundaryFlag() != kOpenBoundary )
+      if( dn->getBoundaryFlag() != kOpenBoundary
+          && dn->getFloodStatus() != kSink )
       {
          cerr << "NODE #" << cn->getID()
               << " does not flow to outlet\n";
@@ -468,35 +486,10 @@ void tStreamNet::CalcSlopes()
 }
 
 
-// NB: TODO: moved to tGrid; delete!
-// TODO: change L-hand to R-hand orientation of Voronoi vertices and
-// create faster Voronoi edge length computation scheme
-/*Xvoid tStreamNet::CalcVAreas()
-{
-   //cout << "CalcVAreas()..." << endl << flush;
-   double area;
-   tLNode * curnode, *cn;
-   tEdge *ce;
-   tArray< double > xy;
-   tGridListIter<tLNode> nodIter( gridPtr->getNodeList() ),
-       nI( gridPtr->getNodeList() );
-   tPtrListIter< tEdge > sI;
-   
-   for( curnode = nodIter.FirstP(); nodIter.IsActive();
-        curnode = nodIter.NextP() )
-   {
-         //area = VoronoiArea( curnode );
-      curnode->ComputeVoronoiArea();
-      
-   }
-   //cout << "CalcVAreas() finished" << endl;
-}
-*/
-
 
 /****************************************************************************\
 **
-**  InitFlowDirs
+**  tStreamNet::InitFlowDirs
 **
 **  Initialize flow directions such that each active (non-boundary) node
 **  flows to another active node (or open boundary node). This initialization
@@ -504,7 +497,8 @@ void tStreamNet::CalcSlopes()
 **  is always valid in the sense that it doesn't point to a closed boundary
 **  (which otherwise could happen when the grid is first read in).
 **
-**    Written 12/1/97 gt.
+**  Modifies: node flow directions (flowedg)
+**  Written 12/1/97 gt.
 **
 \****************************************************************************/
 #define kMaxSpokes 100
@@ -550,6 +544,7 @@ void tStreamNet::InitFlowDirs()
 }
 #undef kMaxSpokes
 
+
 /****************************************************************************\
 **
 **  TryDamBypass: See whether we can avoid flowing uphill by deleting nearby
@@ -559,6 +554,7 @@ void tStreamNet::InitFlowDirs()
 **      Called by:
 **      Assumes:
 **         node points to a valid flow edge which connects the lowest nbr
+**      Created: SL
 **
 \****************************************************************************/
 int tStreamNet::DamBypass( tLNode *snknod )
@@ -626,16 +622,24 @@ int tStreamNet::DamBypass( tLNode *snknod )
 
 /****************************************************************************\
 **
-**  FlowDirs:  Computes flow directions for each node using a 
-**             steepest-direction routing algorithm. Flow proceeds along the
-**             steepest of the directed edges having their origin at a given
-**             point. This edge is stored in .flowedg. 
+**  tStreamNet::FlowDirs
+**
+**  Computes flow directions for each node using a 
+**  steepest-direction routing algorithm. Flow proceeds along the
+**  steepest of the directed edges (spokes) around a given node.
+**  This edge is assigned as the node's flowedg. Nodes at which
+**  the steepest slope is negative (uphill) are flagged as sinks.
+**  (If the lake-fill option is active, sink nodes are processed
+**  in order to find an outlet; otherwise, all runoff reaching a
+**  sink node is assumed to evaporate and/or infiltrate).
 **
 **      Parameters:     none
-**      Called by:
+**      Called by: UpdateNet
+**      Modifies: node flow directions and flood status
 **      Assumes:
 **       - each node points to a valid flow edge (returned by getFlowEdg())
 **       - each edge has a valid counter-clockwise edge
+**       - edge slopes are up to date
 **      Updated: 12/19/97 SL; 12/30/97 GT
 **
 \****************************************************************************/
@@ -676,6 +680,7 @@ void tStreamNet::FlowDirs()
          nbredg = firstedg;
          curedg = firstedg->getCCWEdg();
          ctr = 0;
+         
          // Check each of the various "spokes", stopping when we've gotten
          // back to the beginning
          while( curedg!=firstedg )
@@ -741,16 +746,24 @@ void tStreamNet::FlowDirs()
 #undef kMaxSpokes
 
 
-
-
-
 /*****************************************************************************\
 **
 **  tStreamNet::DrainAreaVoronoi
 **
-**  Computes drainage areas for nodes on the grid by 
-**  getting the Voronoi areas of the nodesand routing
-**  flow down the flowedge of the node.
+**  Computes drainage area for each node by summing the Voronoi areas of all
+**  nodes that drain to it, using the following algorithm:
+**
+**    Reset drainage area for all active nodes to zero
+**    FOR each active node
+**      Cascade downstream, adding starting node's Voronoi area to each
+**         downstream node's drainage area, until an outlet or sink is reached
+**    IF there is an inlet, add its associated drainage area to all nodes
+**         downstream
+**
+**  Note that each node's drainage area includes its own Voronoi area.
+**
+**    Calls: RouteFlowArea, tLNode::setDrArea, tInlet::FindNewInlet
+**    Modifies:  node drainage area
 **
 \*****************************************************************************/
 void tStreamNet::DrainAreaVoronoi()
@@ -1141,35 +1154,39 @@ void tStreamNet::FlowBucket()
 
 /*****************************************************************************\
 **
-**  FillLakes 
+**  tStreamNet::FillLakes 
 **
-**              Finds drainage for closed depressions. The algorithm assumes
-**              that sinks (nodes that are lower than any of their neighbors)
-**              have already been identified during the flow directions
-**              procedure. For each sink, the algorithm creates a list of
-**              nodes in the current lake, which initially is just the sink
-**              itself. It then iteratively looks for the lowest node on the
-**              perimeter of the current lake. That node is checked to see 
-**              whether it can be an outlet, meaning that one of its
-**              neighbors is both lower than itself and is not already
-**              flooded (or is an open boundary). If the low node is not an 
-**              outlet, it is added to the current lake and the process 
-**              is repeated. If it is an outlet, then all of the nodes on the 
-**              current-lake list are identified draining it. The list is then
-**              cleared, and the next sink is processed. If during the search
-**              for the lowest node on the perimeter a flooded node is found
-**              that isn't already part of the current lake (i.e., it was
-**              flagged as a lake node when a previous sink was processed),
-**              then it is simply added to the current-lake list --- in other
-**              words, the "new" lake absorbs any "old" ones that are
-**              encountered.
+**  Finds drainage for closed depressions. The algorithm assumes
+**  that sinks (nodes that are lower than any of their neighbors)
+**  have already been identified during the flow directions
+**  procedure. For each sink, the algorithm creates a list of
+**  nodes in the current lake, which initially is just the sink
+**  itself. It then iteratively looks for the lowest node on the
+**  perimeter of the current lake. That node is checked to see 
+**  whether it can be an outlet, meaning that one of its
+**  neighbors is both lower than itself and is not already
+**  flooded (or is an open boundary). If the low node is not an 
+**  outlet, it is added to the current lake and the process 
+**  is repeated. If it is an outlet, then all of the nodes on the 
+**  current-lake list are identified draining it. The list is then
+**  cleared, and the next sink is processed. If during the search
+**  for the lowest node on the perimeter a flooded node is found
+**  that isn't already part of the current lake (i.e., it was
+**  flagged as a lake node when a previous sink was processed),
+**  then it is simply added to the current-lake list --- in other
+**  words, the "new" lake absorbs any "old" ones that are encountered.
 **
-**  Parameters: (none)
-**  Calls: FindLakeNodeOutlet
-**  Called by: main
-**  Created: 6/97 GT
-**  Modified: fixed memory leak on deletion of lakenodes 8/5/97 GT
-**  Updated: 12/19/97 SL
+**  Once an outlet has been found, flow directions for nodes in the
+**  lake are resolved in order to create a contiguous path through
+**  the lake.
+**
+**    Calls: FindLakeNodeOutlet
+**    Called by: MakeFlow
+**    Modifies:  flow direction and flood status flag of affected nodes
+**    Created: 6/97 GT
+**    Modifications:
+**     - fixed memory leak on deletion of lakenodes 8/5/97 GT
+**     - updated: 12/19/97 SL
 **
 \*****************************************************************************/
 void tStreamNet::FillLakes()
@@ -1177,18 +1194,17 @@ void tStreamNet::FillLakes()
 //#if TRACKFNS
    //cout << "FillLakes()..." << endl << flush;
 //#endif
-   tLNode *cn,    // Node on list: if a sink, then process
+   tLNode *cn,             // Node on list: if a sink, then process
        *thenode,           // Node on lake perimeter
        *lowestNode,        // Lowest node on perimeter found so far
-       *cln, // current lake node
-       *node; //placeholder
-   tGridListIter< tLNode > nodIter( gridPtr->getNodeList() );
-   tPtrList< tLNode > lakeList;
-   tPtrListIter< tLNode > lakeIter( lakeList );
-   //tPtrListIter< tEdge > spokIter;
-   tEdge *ce;           // Pointer to an edge
-   double lowestElev;    // Lowest elevation found so far on lake perimeter
-   int done;          // Flag indicating whether outlet has been found
+       *cln,               // current lake node
+       *node;              // placeholder
+   tGridListIter< tLNode > nodIter( gridPtr->getNodeList() ); // node iterator
+   tPtrList< tLNode > lakeList;                 // List of flooded nodes
+   tPtrListIter< tLNode > lakeIter( lakeList ); // Iterator for lake list
+   tEdge *ce;              // Pointer to an edge
+   double lowestElev;      // Lowest elevation found so far on lake perimeter
+   int done;               // Flag indicating whether outlet has been found
    
    // Check each active node to see whether it is a sink
    for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
@@ -1205,15 +1221,11 @@ void tStreamNet::FillLakes()
          {
             lowestNode = lakeIter.FirstP();
             lowestElev = kVeryHigh; // Initialize lowest elev to very high val.
+
             // Check the neighbors of every node on the lake-list
             for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
                  cln = lakeIter.NextP() )
             {
-               //Xcout << "LAKE LIST:\n";
-               //Xcln->TellAll();
-                      //XspokIter.Reset( cln->getSpokeListNC() );
-                   //Xfor( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
-                   //Xce = spokIter.NextP() )
                // Check all the neighbors of the node
                ce = cln->getEdg();
                do
@@ -1278,9 +1290,7 @@ void tStreamNet::FillLakes()
          // The algorithm isn't unique---there are many paths that could be
          // taken; this simply finds the most convenient one.
          lowestNode->setFloodStatus( kOutletFlag );
-//#if LKDEBUG
-//         printf("Outlet found to node %d\n",lowestNode->getID() );
-//#endif
+
          // Test for error in mesh: if the lowestNode is a closed boundary, it
          // means no outlet can be found.
          do
@@ -1292,11 +1302,7 @@ void tStreamNet::FillLakes()
                if( cln->getFloodStatus() != kOutletFlag )
                {
                   done = FALSE;
-                  /*XspokIter.Reset( cln->getSpokeListNC() );
-                  for( ce = spokIter.FirstP();
-                       cln->getFloodStatus() != kOutletFlag &&
-                           !( spokIter.AtEnd() );
-                       ce = spokIter.NextP() )*/
+
                   // Check each neighbor
                   ce = cln->getEdg();
                   do
