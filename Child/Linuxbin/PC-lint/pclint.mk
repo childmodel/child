@@ -1,6 +1,6 @@
 
 LINT = C:\\lint\\lint-nt -iC:\\lint std.lnt
-LINTFLAGS = child.lnt
+LINTFLAGS = PC-lint\child.lnt
 MODFLAGS =  -u -zero -oo\($@\)
 
 APPFLAGS =
