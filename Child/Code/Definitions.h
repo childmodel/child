@@ -1,6 +1,6 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.11 1998-08-25 18:49:27 gtucker Exp $
+**   $Id: Definitions.h,v 1.12 1999-01-21 17:48:42 gtucker Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -12,7 +12,7 @@
 #define FALSE 0
 #define kMaxNameLength 80
 #define kCommentMark '#'
-#define kTimeLineMark ' '
+//#define kTimeLineMark ' '
 #define kUniformGrid 0     /*method of grid construction*/
 #define kPerturbedGrid 1
 #define kRandomGrid 2
@@ -26,7 +26,6 @@
 #define kNonBoundary 0
 #define kFlowAllowed 1
 #define kFlowNotAllowed 0
-//X#define kSaturatedFlow 1   // Option for saturation-excess flow generation
 #define kDetachmentLimited      1
 #define kDetachLimThreshold     2
 #define kTransportLimited       3
