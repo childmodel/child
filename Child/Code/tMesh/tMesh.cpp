@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.13 1998-02-12 01:45:07 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.14 1998-02-13 22:48:30 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -640,7 +640,8 @@ MakeGridFromScratch( tInputFile &infile )
    int i, j, id, n, nx, ny;
    int numPts;
    double dist;
-   double delGrid;
+   double delGrid, slope;
+   double upperZ;
    tArray< double > xyz(3);
    tSubNode tempnode, *cn, *node0, *node1, *node2, *node3;
    tEdge *ce;
@@ -768,7 +769,7 @@ MakeGridFromScratch( tInputFile &infile )
    }
    if( boundType == kOppositeSidesOpen )
    {
-      double upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
+      upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
       n = xGrid / delGrid;
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=1, id=0; i<n; i++, id++ )
@@ -972,7 +973,12 @@ MakeGridFromScratch( tInputFile &infile )
                xyz[0] += 0.01 * delGrid * ( ran3( &seed ) - 0.5 );
                xyz[1] += 0.01 * delGrid * ( ran3( &seed ) - 0.5 );
             }
-            xyz[2] = mElev + mElev * 0.01 * ( ran3( &seed ) - 0.5 );
+            xyz[2] = mElev + mElev * ( ran3( &seed ) - 0.5 );
+            if( boundType == kOppositeSidesOpen )
+            {
+               slope = upperZ / yGrid;
+               xyz[2] += slope * xyz[1] - mElev;
+            }
             AddNodeAt( xyz );
          }
       }
@@ -983,7 +989,7 @@ MakeGridFromScratch( tInputFile &infile )
       {
          xyz[0] = ran3(&seed) * xGrid;
          xyz[1] = ran3(&seed) * yGrid;
-         xyz[2] = mElev + mElev * 0.01 * ( ran3( &seed ) - 0.5 );
+         xyz[2] = mElev + mElev * ( ran3( &seed ) - 0.5 );
          if( xyz[0] != 0 && xyz[0] != xGrid && xyz[1] != 0 && xyz[1] != yGrid )
              AddNodeAt( xyz );
       }

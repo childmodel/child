@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.15 1998-02-13 17:03:32 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.16 1998-02-13 22:46:19 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -116,7 +116,7 @@ void tStreamMeander::FindMeander()
    tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
    for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
    {
-      if( cn->GetQ() >= critflow )
+      if( cn->GetQ() >= critflow && cn->GetFloodStatus() == kNotFlooded )
           cn->SetMeanderStatus( kMeanderNode );
       else
           cn->SetMeanderStatus( kNonMeanderNode );
@@ -512,6 +512,7 @@ void tStreamMeander::FindReaches()
          }
       }
    }
+   if( reachList.getSize() == 0 ) return;
    iArrPtr = new tArray< int >( reachList.getSize() );
    nrnodes = *iArrPtr;
    delete iArrPtr;
@@ -535,7 +536,7 @@ void tStreamMeander::FindReaches()
       nrnodes[i]++;
       reachlen[i] += cn->GetFlowEdg()->getLength();
       cn = cn->GetDownstrmNbr();
-      while( cn->getBoundaryFlag() == kNonBoundary && !cn->getReachMember() )
+      while( cn->getBoundaryFlag() == kNonBoundary && !cn->getReachMember() && cn->Meanders() )
       {
          //assert( cn->GetFlowEdg()->getLength() > 0 );
          nrnodes[i]++;
@@ -1248,7 +1249,7 @@ void tStreamMeander::CheckFlowedgCross()
             }
          }
       }
-   } while( flipped );
+   } while( crossed );
    cout << "finished" << endl;
 }
       
