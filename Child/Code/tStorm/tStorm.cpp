@@ -19,7 +19,7 @@
 **  is included in this file.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.cpp,v 1.2 1998-01-21 22:10:20 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.3 1998-01-27 23:31:15 stlancas Exp $
 */
 
 #include <math.h>
@@ -152,6 +152,8 @@ float tStorm::GetRainrate()
    return p;
 }
 
+float tStorm::getMeanStormDur() const {return stdurMean;}
+float tStorm::getMeanInterstormDur() const {return istdurMean;}
 
 /*
 **  GammaDev
