@@ -37,7 +37,7 @@
 **
 **  Created by Greg Tucker, November 1997
 **
-**  $Id: tInputFile.h,v 1.13 2003-05-23 11:41:21 childcvs Exp $
+**  $Id: tInputFile.h,v 1.14 2003-05-23 17:48:49 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -52,6 +52,7 @@ using namespace std;
 #endif
 
 #define kMaxNameLength 120
+#include "../Definitions.h"
 
 /** @class tInputFile
  */

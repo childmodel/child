@@ -7,7 +7,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.21 2003-05-23 11:41:21 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.22 2003-05-23 17:48:49 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -18,8 +18,6 @@
 
 #include "tInputFile.h"
 #include "../errors/errors.h"
-
-#include "../Definitions.h"
 
 #if !defined(HAVE_NO_NAMESPACE)
 # include <iostream>
