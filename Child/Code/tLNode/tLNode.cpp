@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.46 1998-06-15 23:10:36 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.47 1998-06-17 23:42:58 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -731,13 +731,13 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
    }
 
    cout << "does elevation function work?" << endl;
-   cout << "elevation is " << getElev() << endl;
+   cout << "depth of layers is " << getTotalLayerDepth() << endl;
 
    
 //      cout << "nic is now removing material from first layer" << endl;
 //      dgradehelp[0]=-0.5;
 //      dgradehelp[1]=-0.2;
-//      dgradebrhelp=updateLayerDepth(0,dgradehelp,0.0);
+//      dgradebrhelp=EroDep(0,dgradehelp,0.0);
 //      cout << "returned stuff is 1 -> " << dgradebrhelp[0] << endl;
 //      cout << "ret stuff 2 is -> " << dgradebrhelp[1] << endl;
    
@@ -1348,6 +1348,11 @@ void tLNode::setGrade( int i, double size )
    grade[i] = size;
 }
 
+double tLNode::getMaxregdep() const
+{
+   return maxregdep;
+}
+
 int tLNode::getNumg() const 
 {
    return numg;
@@ -1508,7 +1513,7 @@ void tLNode::setLayerDgrade( int i, int g, double val)
     hlp->setDgrade(g, val );
 }
 
-tArray<double> tLNode::updateLayerDepth( int i, tArray<double> valgrd, double tt)
+tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 {
    // Checked on 6/13/98 and everything appears to be working!
    int g;
@@ -1524,6 +1529,8 @@ tArray<double> tLNode::updateLayerDepth( int i, tArray<double> valgrd, double tt
       g++;
    }   
    // val is now set to the total amount of erosion or deposition
+   z += val;
+   // total elevation has now been changed
    
    tArray<double> update;
    update.setSize(numg);
@@ -1751,7 +1758,7 @@ int tLNode::getNumLayer() const
    return layerlist.getSize();
 }
 
-double tLNode::getElev() const
+double tLNode::getTotalLayerDepth() const
 {
    double sz = layerlist.getSize();
    int i=0;
