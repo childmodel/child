@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.15 1998-02-17 02:48:28 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.16 1998-02-18 01:13:13 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -247,6 +247,11 @@ int Intersect( tEdge * ae, tEdge * be )
    tArray< double > bdc( lnode->get2DCoords() );
    if( lnode->Meanders() ) bdc = lnode->getNew2DCoords();
    
+//   cout << "Intersect: edge endpoints, edge " << ae->getID()
+//        << " org " << aoc[0] << " " << aoc[1] << ", dest " << adc[0]
+//        << " " << adc[1] << "; edge " << be->getID() << " org " << boc[0]
+//        << " " << boc[1] << ", dest " << bdc[0] << " " << bdc[1] << endl << flush;
+   
    dxa = adc[0] - aoc[0] + smallnum;
    dxb = bdc[0] - boc[0] + smallnum;
    dya = adc[1] - aoc[1] + smallnum;
@@ -296,38 +301,100 @@ int Intersect( tEdge * ae, tEdge * be )
    }
    else
    {
-      if( fabs(g - f * b / a) > smallnum )
+      if( fabs(dya) > 0 && fabs(dyb) > 0 )
       {
-         y = (f * c / a - h) / (g - f * b / a);
-         x = (-c - b * y) / a;
-         if( adc[1] < aoc[1] )
+         if( fabs(g - f * b / a) > smallnum )
          {
-            rangemina = adc[1];
-            rangemaxa = aoc[1];
+            y = (f * c / a - h) / (g - f * b / a);
+            x = (-c - b * y) / a;
+            if( adc[1] < aoc[1] )
+            {
+               rangemina = adc[1];
+               rangemaxa = aoc[1];
+            }
+            else
+            {
+               rangemina = aoc[1];
+               rangemaxa = adc[1];
+            }
+            if( bdc[1] < boc[1] )
+            {
+               rangeminb = bdc[1];
+               rangemaxb = boc[1];
+            }
+            else
+            {
+               rangeminb = boc[1];
+               rangemaxb = bdc[1];
+            }
+            if( rangemina < rangeminb ) rangemin = rangeminb + smallnum;
+            else rangemin = rangemina + smallnum;
+            if( rangemaxa > rangemaxb ) rangemax = rangemaxb - smallnum;
+            else rangemax = rangemaxa - smallnum;
+            if( y > rangemin && y < rangemax ) return( 1 );
+            else return( 0 );
          }
-         else
-         {
-            rangemina = aoc[1];
-            rangemaxa = adc[1];
-         }
-         if( bdc[1] < boc[1] )
-         {
-            rangeminb = bdc[1];
-            rangemaxb = boc[1];
-         }
-         else
-         {
-            rangeminb = boc[1];
-            rangemaxb = bdc[1];
-         }
-         if( rangemina < rangeminb ) rangemin = rangeminb + smallnum;
-         else rangemin = rangemina + smallnum;
-         if( rangemaxa > rangemaxb ) rangemax = rangemaxb - smallnum;
-         else rangemax = rangemaxa - smallnum;
-         if( y > rangemin && y < rangemax ) return( 1 );
-         else return( 0 );
+         else return 0;
       }
-      else return 0;
+      else //one horiz. line and one vert. line:
+      {
+         if( fabs(dya) == 0 )
+         {
+            x = boc[0];
+            y = aoc[1];
+            if( adc[0] < aoc[0] )
+            {
+               rangemina = adc[0] + smallnum;
+               rangemaxa = aoc[0] - smallnum;
+            }
+            else
+            {
+               rangemina = aoc[0] + smallnum;
+               rangemaxa = adc[0] - smallnum;
+            }
+            if( bdc[1] < boc[1] )
+            {
+               rangeminb = bdc[1] + smallnum;
+               rangemaxb = boc[1] - smallnum;
+            }
+            else
+            {
+               rangeminb = boc[1] + smallnum;
+               rangemaxb = bdc[1] - smallnum;
+            }
+            if( x > rangemina && x < rangemaxa && y > rangeminb && y < rangemaxb )
+                return 1;
+            else return 0;
+         }
+         else
+         {
+            x = aoc[0];
+            y = boc[1];
+            if( adc[1] < aoc[1] )
+            {
+               rangemina = adc[1] + smallnum;
+               rangemaxa = aoc[1] - smallnum;
+            }
+            else
+            {
+               rangemina = aoc[1] + smallnum;
+               rangemaxa = adc[1] - smallnum;
+            }
+            if( bdc[0] < boc[0] )
+            {
+               rangeminb = bdc[0] + smallnum;
+               rangemaxb = boc[0] - smallnum;
+            }
+            else
+            {
+               rangeminb = boc[0] + smallnum;
+               rangemaxb = bdc[0] - smallnum;
+            }
+            if( y > rangemina && y < rangemaxa && x > rangeminb && x < rangemaxb )
+                return 1;
+            else return 0;
+         }
+      }
    }
 }
 
@@ -1972,6 +2039,14 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
       for( ce = spokIter.FirstP();
            ce->getDestinationPtr() != cn && !( spokIter.AtEnd() );
            ce = spokIter.NextP() );
+        /*if( ( spokIter.AtEnd() ) )
+      {
+         cout << "dest node " << cn->getID() << " not found for node "
+              << ce->getOriginPtrNC()->getID() << endl;
+         DumpNodes();
+         ReportFatalError( "failed: !( spokIter.AtEnd() )" );
+      }*/
+      
       assert( !( spokIter.AtEnd() ) );
       tempTri.setEPtr( i, ce );      //set tri EDGE ptr i
       tempTri.setTPtr( i, 0 );                      //initialize tri TRI ptrs to nul
@@ -2640,6 +2715,7 @@ void tGrid< tSubNode >::
 CheckTriEdgeIntersect()
 {
    cout << "CheckTriEdgeIntersect()..." << flush << endl;
+     //DumpNodes();
    int i, j, nv, nvopp, id0, id1, id2;
    int flipped = TRUE;
    int crossed;
@@ -2806,7 +2882,7 @@ CheckTriEdgeIntersect()
       assert( i == 1 );
    }
    
-   for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
+/*   for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
    {
       if( ct->tPtr(0) != 0 ) id0 = ct->tPtr(0)->getID();
       else id0 = -1;
@@ -2816,7 +2892,7 @@ CheckTriEdgeIntersect()
       else id2 = -1;
       cout << "end of CTEI tri " << ct->getID() << " with nbrs "
            << id0 << ", " << id1 << ", and " << id2 << endl;
-   }
+   }*/
    cout << "finished, " << nnodes << endl;
 }
 
@@ -2850,6 +2926,7 @@ MoveNodes()
        if ( cn->Meanders() ) cn->UpdateCoords();*/
    //resolve any remaining problems after points moved
    CheckLocallyDelaunay();
+   UpdateMesh();
    cout << "MoveNodes() finished" << endl;
 }
 

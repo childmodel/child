@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.7 1998-01-29 19:58:12 stlancas Exp $
+**  $Id: tLNode.h,v 1.8 1998-02-18 01:13:34 stlancas Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -147,6 +147,8 @@ class tChannel
    double hydrnrough;       /* Hydraulic roughness (Manning 'n')*/
    double chandepth;    /* Channel flow depth*/
    double hydrdepth;    /* Hydraulic flow depth*/
+   double chanslope;
+   double hydrslope;
    double diam;    	/* Grain diameter of bed material*/
 /*member objects:*/
    tErode erosion;
@@ -188,6 +190,10 @@ class tLNode : public tNode
    void setChanRough( double );
    double getHydrRough() const;
    double getChanRough() const;
+   void setHydrSlope( double );
+   void setChanSlope( double );
+   double getHydrSlope() const;
+   double getChanSlope() const;
    double getDiam() const;
    double getDrArea() const;
    tArray< double > getZOld() const;

@@ -12,7 +12,7 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.10 1998-02-12 01:46:28 stlancas Exp $
+**  $Id: tStreamMeander.h,v 1.11 1998-02-18 01:15:00 stlancas Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
@@ -70,10 +70,8 @@ public:
    int InterpChannel();
    //routines that add nodes on the floodplain;
    //Make... called before nodes are actually moved; Add... called after:
-    void MakeChanBorder( tList<double> &, tList<double> &, tList<double> & );
-      //tList< tArray< double > > & );
-    void AddChanBorder( tList<double> &, tList<double> &, tList<double> & );
-      //tList< tArray< double > > & );
+   void MakeChanBorder( tList< tArray< double > > & );
+   void AddChanBorder( tList< tArray< double > > & );
    //finds the erodibility of each bank, returns an array [right, left]:
    tArray< double > FindBankErody( tLNode * );
    //CheckBanksTooClose, CheckFlowedgCross, and CheckBrokenFlowedg are to check
@@ -95,8 +93,6 @@ protected:
     tInputFile *infilePtr;   //ptr to tInputFile obj. containing parameters
     tList< tPtrList< tLNode > > reachList; //list of tPtrLists of reach node ptrs
     tListIter< tPtrList< tLNode > > rlIter;//iterator for reachList
-      //tList< tArray< double > > bList;  //list of channel border coords
-      //tListIter< tArray< double > > blIter; //iter. for bList
       //data items/parameters
     double critflow;  //minimum discharge for meandering
     int optdiamvar;  //flag w/ 1=>multiple grain sizes

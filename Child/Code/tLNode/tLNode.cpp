@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.8 1998-02-03 00:47:11 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.9 1998-02-18 01:12:46 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -292,7 +292,7 @@ const tRegolith &tRegolith::operator=( const tRegolith &right )     //tRegolith
 tChannel::tChannel()                                             //tChannel
 {
    drarea = q = chanwidth = hydrwidth = channrough = hydrnrough =
-       chandepth = hydrdepth = diam = 0;
+       chandepth = hydrdepth = chanslope = hydrslope = diam = 0;
    diam = kVeryHigh;
      //cout << "  tChannel()" << endl;
 }
@@ -307,9 +307,11 @@ tChannel::tChannel( const tChannel &orig )                       //tChannel
       chanwidth = orig.chanwidth;
       chandepth = orig.chandepth;
       channrough = orig.channrough;
+      chanslope = orig.chanslope;
       hydrwidth = orig.hydrwidth;
       hydrdepth = orig.hydrdepth;
       hydrnrough = orig.hydrnrough;
+      hydrslope = orig.hydrslope;
       diam = orig.diam;
    }
      //cout << "  tChannel( orig )" << endl;
@@ -332,9 +334,11 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
       chanwidth = right.chanwidth;
       chandepth = right.chandepth;
       channrough = right.channrough;
+      chanslope = right.chanslope;
       hydrwidth = right.hydrwidth;
       hydrdepth = right.hydrdepth;
       hydrnrough = right.hydrnrough;
+      hydrslope = right.hydrslope;
       diam = right.diam;
    }
    return *this;
@@ -421,6 +425,8 @@ double tLNode::getHydrDepth() const {return chan.hydrdepth;}
 double tLNode::getChanDepth() const {return chan.chandepth;}
 double tLNode::getHydrRough() const {return chan.hydrnrough;}
 double tLNode::getChanRough() const {return chan.channrough;}
+double tLNode::getHydrSlope() const {return chan.hydrslope;}
+double tLNode::getChanSlope() const {return chan.chanslope;}
 double tLNode::getDiam() const {return chan.diam;}
 
 void tLNode::setHydrWidth( double val )  {chan.hydrwidth = ( val > 0 ) ? val : 0;}
@@ -429,6 +435,8 @@ void tLNode::setHydrDepth( double val )  {chan.hydrdepth = ( val > 0 ) ? val : 0
 void tLNode::setChanDepth( double val )  {chan.chandepth = ( val > 0 ) ? val : 0;}
 void tLNode::setHydrRough( double val )  {chan.hydrnrough = ( val > 0 ) ? val : 0;}
 void tLNode::setChanRough( double val )  {chan.channrough = ( val > 0 ) ? val : 0;}
+void tLNode::setHydrSlope( double val )  {chan.hydrslope = ( val > 0 ) ? val : 0;}
+void tLNode::setChanSlope( double val )  {chan.chanslope = ( val > 0 ) ? val : 0;}
 double tLNode::getDrArea() const {return chan.drarea;}
 
 tArray< double >
@@ -450,8 +458,16 @@ tArray< double >                                                   //tNode
 tLNode::getNew2DCoords() const
 {
    tArray< double > xy(2);
-   xy[0] = chan.migration.newx;
-   xy[1] = chan.migration.newy;
+   if( Meanders() )
+   {
+      xy[0] = chan.migration.newx;
+      xy[1] = chan.migration.newy;
+   }
+   else
+   {
+      xy[0] = x;
+      xy[1] = y;
+   }
    return xy;
 }
 
@@ -459,8 +475,16 @@ tArray< double >                                                   //tNode
 tLNode::getNew3DCoords() const
 {
    tArray< double > xyz(3);
-   xyz[0] = chan.migration.newx;
-   xyz[1] = chan.migration.newy;
+   if( Meanders() )
+   {
+      xyz[0] = chan.migration.newx;
+      xyz[1] = chan.migration.newy;
+   }
+   else
+   {
+      xyz[0] = x;
+      xyz[1] = y;
+   }
    xyz[2] = z;
    return xyz;
 }
