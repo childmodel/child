@@ -9,7 +9,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.2 1999-04-05 15:28:37 gtucker Exp $
+**  $Id: globalFns.h,v 1.3 1999-05-04 17:16:49 gtucker Exp $
 \**************************************************************************/
 
 #ifndef GLOBALFNS_H
@@ -17,7 +17,12 @@
 
 #include <iostream.h>
 #include <math.h>
+#ifdef __DECCXX
 #include <macros.h> // for max(a,b), min(a,b), etc.
+#else
+#define max(a,b) ( (a>b) ? a : b )
+#define min(a,b) ( (a<b) ? a : b )
+#endif
 #include "tArray/tArray.h"
 #include "MeshElements/meshElements.h"
 #include "tLNode/tLNode.h"
