@@ -30,7 +30,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.18 2000-02-02 22:33:47 gtucker Exp $
+**  $Id: tList.h,v 1.19 2000-03-09 20:10:56 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -290,6 +290,10 @@ public:
     NodeType *getIthDataPtrNC( int ) const; // rtns modifiable ptr to item #
     NodeType &getIthDataRefNC( int ) const; // rtns modifiable ref to item #
     tListNode< NodeType > * getListNode( NodeType * ); // rtns ptr to node #
+
+#ifndef NDEBUG
+    void DebugTellPtrs();
+#endif
     
 protected:
     int nNodes;                          // # of items on list
@@ -805,6 +809,7 @@ getIthData( int num ) const
    {
       curPtr = curPtr->next;
    }
+   assert( curPtr!=0 );
    return curPtr->getData();
 }
 
@@ -976,6 +981,15 @@ setNNodes( int val ) {nNodes = ( val >= 0 ) ? val : 0;}*/
 template< class NodeType >                         //tList
 inline void tList< NodeType >::
 makeCircular() {last->next = first;}
+
+
+template< class NodeType >
+inline void tList< NodeType >::
+DebugTellPtrs()
+{
+   cout << "first: " << first << endl;
+   cout << "last: " << last << endl << flush;
+}
 
 
 

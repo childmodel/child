@@ -9,7 +9,7 @@
 **      initial value of mSearchOriginTriPtr, and modified ExtricateTri...
 **      to avoid dangling ptr. GT, 1/2000
 **
-**  $Id: tMesh.cpp,v 1.85 2000-02-17 23:28:22 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.86 2000-03-09 20:10:22 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -4822,6 +4822,60 @@ MoveNodes( double time )
    CheckMeshConsistency();  // TODO: remove this debugging call for release
    //cout << "MoveNodes() finished" << endl;
 }
+
+
+/*****************************************************************************\
+**
+**  tMesh::AddNodesAround
+**
+**  Densifies the mesh in the vicinity of a given node (centerNode) by
+**  adding new nodes at the coordinates of the centerNode's Voronoi
+**  vertices.
+**
+**  Properties of each node are initially those of the centerNode, except
+**  z which is computed using interpolation by getVoronoiVertexXYZList.
+**
+**      Inputs: centerNode -- the node around which to add new nodes
+**              time -- simulation time (for layer updating)
+**      Data members updated: Mesh elements & their geometry
+**      Called by:  called outside of tMesh by routines that handle
+**                  adaptive meshing
+**      Calls: AddNode, UpdateMesh, tNode::getVoronoiVertexXYZList
+**      Created: GT, for dynamic mesh updating, Feb 2000  
+**
+\*****************************************************************************/
+template<class tSubNode>
+void tMesh< tSubNode >::
+AddNodesAround( tSubNode * centerNode, double time )
+{
+   tList< Point3D > vvtxlist;  // List of V. vertex (x,y,z) coords at a node
+   tListIter< Point3D > vtxiter( vvtxlist );
+
+   assert( centerNode!=0 );
+
+   // Get a list of Voronoi vertex coords and add a new node at each
+   // (note: we get the list first because the vertices will change
+   // as soon as we add the first node)
+   centerNode->getVoronoiVertexXYZList( &vvtxlist );
+   tLNode tmpnode = *centerNode;  // New node to be added -- passed to AddNode
+   Point3D *xyz;  // Coordinates of current vertex
+   int i;
+
+   // Here we add a new node at each vertex. Note that the call to
+   // getVoronoiVertexListXYZList will compute a z value at each vertex
+   // using plane (linear) interpolation.
+   for( xyz=vtxiter.FirstP(); !(vtxiter.AtEnd()); xyz=vtxiter.NextP() )
+   {
+      cout << "COORDS: x " << xyz->x << " y " << xyz->y << " z " << xyz->z << endl;
+      tmpnode.set3DCoords( xyz->x, xyz->y, xyz->z );  // Assign to tmpnode
+      //cn->TellAll();
+      //cout << "Before addition\n";
+      AddNode( tmpnode, FALSE, time );  // Add the node
+   }
+   UpdateMesh();
+
+}
+
 
 
 #ifndef NDEBUG
