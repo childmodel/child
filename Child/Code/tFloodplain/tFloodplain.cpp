@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.5 1999-04-05 14:54:15 gtucker Exp $
+**  $Id: tFloodplain.cpp,v 1.6 1999-04-08 19:04:06 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tFloodplain.h"
@@ -156,7 +156,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
        drarea;           // drainage area at flood node
    //Xdepo;             // depth of sediment deposited
    
-   cout << "tFloodplain\n";
+   //cout << "tFloodplain\n";
    
    // Make a list of all nodes with a drainage area large enough to be
    // considered "flood generators". Record the highest water surface height.
@@ -168,7 +168,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
          floodNode.wsh = kdb*pow( drarea, mqbmqs )
              *pow( cn->getQ()*kYearpersec, mqs )
              + cn->getZ();
-         cout << "flood depth " << cn->getID() << " = " << floodNode.wsh-cn->getZ() << endl;
+         //cout << "flood depth " << cn->getID() << " = " << floodNode.wsh-cn->getZ() << endl;
          if( floodNode.wsh > maxWSH )
              maxWSH = floodNode.wsh;
          floodList.insertAtBack( floodNode );
@@ -222,8 +222,8 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
                 cout << " *WARNING, deposit thicker than flood depth\n";
             //Xcn->ChangeZ( depo ); // (note: use layering-TODO)
             cn->EroDep( 0, deparr, ctime );
-            cout << " OBDep " << deparr[0] << " at (" << cn->getX()
-              << "," << cn->getY() << ")\n";
+            //cout << " OBDep " << deparr[0] << " at (" << cn->getX()
+            //  << "," << cn->getY() << ")\n";
          }
       }
    }
