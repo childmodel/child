@@ -140,7 +140,10 @@ void test_sort_triangulate(int npoints, point *p){
   int nedges;
   edge* edges = NULL;
 
-  tt_sort_triangulate(npoints,p,&nedges,&edges);
+  int npoints_unique;
+  tt_sort_triangulate(npoints,p,&npoints_unique,&nedges,&edges);
+  cout << "npoints=" << npoints
+       << " npoints_unique=" << npoints_unique << endl;
 
   if (WRITE_FILES)
     write_point(npoints, p);
@@ -153,7 +156,7 @@ void test_sort_triangulate(int npoints, point *p){
   int nelem;
   elem* elems = NULL;
 
-  tt_build_elem_table(npoints, p, nedges, edges, &nelem, &elems);
+  tt_build_elem_table(npoints_unique, p, nedges, edges, &nelem, &elems);
   cout << "nelem=" << nelem << endl;
 
   delete [] elems;
@@ -197,13 +200,17 @@ void test_triangulate_random(int n){
 void test_triangulate_from_file(){
   long npoints;
   ifstream file("points");
+  assert( file.good() );
   file >> npoints;
   point *p = new point[npoints];
   for(int i=0;i<npoints;++i){
-    double x, y;
+    double x, y, z;
+    int b;
     file >> x;
     file >> y;
-    p[i] = point(x,y);
+    file >> z; // ignored
+    file >> b; // ignored
+    p[i] = point(x,y,i+1);
   }
 
   test_sort_triangulate(npoints,p);

@@ -496,8 +496,13 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos,
 
 static
 void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
+  // we assume that all points are unique
 
-  assert(npoints >= 3);
+  if (npoints < 3) {
+    cout << "Less than 3 distinct nodes to triangulate. Bailing out."
+	 << endl;
+    tt_error_handler();
+  }
 
   //convex hull is a cyclical list - it will consist of anticlockwise
   //ordered edges - since each new point adds at most 1 extra edge (nett)
@@ -562,9 +567,8 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 
   for (int i=next_point;i<npoints;i++){
     saved_edge=-1;
-    if (p[i-1].x() == p[i].x() && p[i-1].y() == p[i].y()){
-      continue; // skip the duplicated point
-    }
+    // No duplicated points
+    assert(p[i-1].x() != p[i].x() || p[i-1].y() != p[i].y());
 
     //go round the hull looking for visible edges - we need to go round
     //in two directions from the current upper and lower edges
@@ -696,7 +700,77 @@ void tt_verify_sort(int npoints, const point *p){
   }
 }
 
+/* Warn about duplicated consecutive points and moved duplicates at the end. */
+static
+void moved_duplicated_points(int npoints, point *p, int &npoints_unique){
+  if (npoints <= 1) {
+    npoints_unique = npoints;
+    return;
+  }
+
+  // report and count duplicates.
+  int npoints_dup = 0;
+  {
+    int j=0;
+    for(int i=1;i<npoints;++i){
+      if (p[j].x() == p[i].x() && p[j].y() == p[i].y()){
+	cout << "Warning: point " << p[j].id() << " and point " << p[i].id()
+	     << " are duplicated." << endl;
+	++npoints_dup;
+      } else {
+	j = i;
+      }
+    }
+  }
+  npoints_unique = npoints-npoints_dup;
+  // All duplicates or no duplicates
+  if (npoints_unique == 1 || npoints_dup == 0)
+    return;
+
+  // move duplicates.
+  int *ip_unique = new int[npoints_unique];
+  point *dups = new point[npoints_dup];
+  // register uniques and duplicates
+  {
+    int j=0, d=0, u=0;
+    ip_unique[u] = 0;
+    ++u;
+    for(int i=1;i<npoints;++i){
+      if (p[j].x() == p[i].x() && p[j].y() == p[i].y()){
+	dups[d] = p[i];
+	++d;
+      } else {
+	ip_unique[u] = i;
+	++u;
+	j = i;
+      }
+    }
+    assert( d == npoints_dup && u == npoints_unique );
+  }
+  // re-order array
+  {
+    // shift uniques to the left
+    int first_move = 1;
+    for(;first_move<npoints_unique;++first_move){
+      if (ip_unique[first_move] != first_move)
+	break;
+    }
+    for(int i=first_move;i<npoints_unique;++i){
+      assert(ip_unique[i] != i);
+      p[i] = p[ip_unique[i]];
+    }
+    // copy duplicates
+    for(int i=0;i<npoints_dup;++i){
+      p[i+npoints_unique] = dups[i];
+    }
+  }
+
+  delete [] ip_unique;
+  delete [] dups;
+}
+
 void tt_sort_triangulate(int npoints, point *p,
+			 int *pnpoints_unique,
 			 int *pnedges, edge** edges_ret){
 
 #if defined(TIMING)
@@ -712,9 +786,13 @@ void tt_sort_triangulate(int npoints, point *p,
     if (0) // DEBUG
       tt_verify_sort(npoints, p);
 
-    //triangulate the set of points
-    triangulate(npoints,p,pnedges, edges_ret);
+    // report duplicated points and moved them to the end.
+    int npoints_unique;
+    moved_duplicated_points(npoints, p, npoints_unique);
+    *pnpoints_unique = npoints_unique;
 
+    //triangulate the set of points
+    triangulate(npoints_unique,p,pnedges, edges_ret);
 
 #if defined(TIMING)
     time_t t2 = time(NULL);
@@ -895,6 +973,7 @@ void tt_build_elem_table(int npoints, const point *p,
 	if (edges[iedge].lef != edge::none) {
 	  // don't bother with orientation at the moment
 	  ielem_current = ielem;
+	  assert( ielem < nelem );
 	  elems[ielem].e1 = iedge;
 	  elems[ielem].e2 = edges[iedge].lef;
 	  mark_as_visited(edges[iedge].lef,iedge,edges, edges_visit,
@@ -914,6 +993,7 @@ void tt_build_elem_table(int npoints, const point *p,
 	if (edges[iedge].ref != edge::none) {
 	  // don't bother with orientation at the moment
 	  ielem_current = ielem;
+	  assert( ielem < nelem );
 	  elems[ielem].e1 = iedge;
 	  elems[ielem].e2 = edges[iedge].ref;
 	  mark_as_visited(edges[iedge].ref,iedge,edges, edges_visit,
@@ -1035,8 +1115,9 @@ void tt_build_spoke(int npoints, int nedges, const edge* edges,
 }
 
 void tt_sort_triangulate(int npoints, point *p,
+			 int *pnpoints_unique,
 			 int *pnedges, edge** edges_ret,
 			 int *pnelem, elem** pelems_ret){
-  tt_sort_triangulate(npoints,p,pnedges, edges_ret);
-  tt_build_elem_table(npoints, p, *pnedges, *edges_ret, pnelem, pelems_ret);
+  tt_sort_triangulate(npoints, p, pnpoints_unique, pnedges, edges_ret);
+  tt_build_elem_table(*pnpoints_unique, p, *pnedges, *edges_ret, pnelem, pelems_ret);
 }

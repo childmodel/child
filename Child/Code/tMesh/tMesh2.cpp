@@ -177,7 +177,8 @@ BuildDelaunayMeshTipper()
    int nelem;
    edge* edges(0);
    elem* elems(0);
-   tt_sort_triangulate(nnodes, p, &nedgesl, &edges, &nelem, &elems);
+   int nnodes_unique;
+   tt_sort_triangulate(nnodes, p, &nnodes_unique, &nedgesl, &edges, &nelem, &elems);
    cout << "done.\n";
 
    if (0) { // DEBUG
