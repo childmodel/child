@@ -8,12 +8,12 @@
 /***************************************************************************/
 
 template<class TYPE>
-void shunt(int ,int ,TYPE ,TYPE *);
+void shunt(int ,int ,TYPE const& ,TYPE *);
 template<class TYPE>
 void heapsort(int ,TYPE *);
 
 template<class TYPE>
-void shunt(int k,int m,TYPE temp,TYPE array[]){
+void shunt(int k,int m,TYPE const& temp,TYPE array[]){
   /*Heap building and re-ordering function for heapsort 
     Mike Bithell 03/10/00
   */
