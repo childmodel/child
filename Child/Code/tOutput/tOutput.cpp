@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.4 1998-02-02 17:54:18 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.5 1998-02-02 20:36:45 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -198,6 +198,7 @@ tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile )
    CreateAndOpenFile( &drareaofs, ".area" );
    CreateAndOpenFile( &netofs, ".net" );
    CreateAndOpenFile( &slpofs, ".slp" );
+   CreateAndOpenFile( &qofs, ".q" );
    
 }
 
@@ -213,12 +214,14 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    drareaofs << " " << time << "\n " << nActiveNodes << endl;
    netofs << " " << time << "\n " << nActiveNodes << endl;
    slpofs << " " << time << "\n " << nActiveNodes << endl;
+   qofs << " " << time << "\n " << nActiveNodes << endl;
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
    {
       assert( cn>0 );
       drareaofs << cn->getDrArea() << endl;
       netofs << cn->GetDownstrmNbr()->getID() << endl;
       slpofs << cn->GetSlope() << endl;
+      qofs << cn->GetQ() << endl;
    }
    
 }
