@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.9 1998-02-20 00:12:05 stlancas Exp $
+**  $Id: tLNode.h,v 1.10 1998-02-20 23:02:12 stlancas Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -232,6 +232,8 @@ class tLNode : public tNode
    double getBedErody() const;
    void setReachMember( int );
    int getReachMember() const;
+   void setQs( double );
+   double getQs() const;
    
   protected:
    tBedrock rock;

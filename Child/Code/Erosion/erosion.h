@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.5 1998-01-29 20:11:34 stlancas Exp $
+**  $Id: erosion.h,v 1.6 1998-02-20 23:02:53 stlancas Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -90,6 +90,8 @@ class tBedErodePwrLaw
    tBedErodePwrLaw( tInputFile &infile );
      //Computes depth of potential erosion at node n over time interval dt
    double DetachCapacity( tLNode * n, double dt );
+     //Computes rate of erosion at node n 
+   double DetachCapacity( tLNode * n );
      //Returns an estimate of maximum stable & accurate time step size
    double SetTimeStep( tLNode * n );
 
