@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.16 2003-05-08 10:58:08 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.17 2003-05-16 13:01:04 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -356,7 +356,7 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
       newInletElevation = drop + amplitude*sin( period*tm );
       break;
     default:
-      assert(0);  // We should never get here!
+      assert(0);  /*NOTREACHED*/
       abort();
     }
 
