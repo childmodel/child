@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.41 2003-05-16 16:18:50 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.42 2003-05-23 11:49:33 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -53,10 +53,12 @@
 #define kFlooded     1  // Flooding (lake) codes: part of a lake...
 #define kNotFlooded  0  // ...or not...
 #define kCurrentLake 2  // ...or part one that is currently being computed...
-#define kSink        3  // ...or a dry sink (unfilled depression).
+//defined in tLNode.h
+//#define kSink        3  // ...or a dry sink (unfilled depression).
 #define kOutletFlag  4  // Used as temporary flag in FillLakes.
 #define kOutletPreFlag 5 // ditto
-#define kVeryHigh 100000  // Used in FillLakes
+//defined in tLNode.h
+//#define kVeryHigh 100000  // Used in FillLakes
 
 #define kNumChanGeomModels 2
 #define kRegimeChannels 1
@@ -202,7 +204,6 @@ class tStreamNet
     tStreamNet(const tStreamNet&);
     tStreamNet& operator=(const tStreamNet&);
 public:
-    tStreamNet();
     tStreamNet( tMesh< tLNode > &, tStorm &, tInputFile & );
     ~tStreamNet();
     void ResetMesh( tMesh< tLNode > & );

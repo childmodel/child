@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.32 2003-05-16 16:18:48 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.33 2003-05-23 11:49:32 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -121,7 +121,8 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
   meshPtr(&meshRef),
   stormPtr(&storm),
   trans(0), infilt(0),
-  inlet( &meshRef, infile )
+  inlet( &meshRef, infile ),
+  mpParkerChannels(0)
 {
    cout << "tStreamNet(...)...";
    assert( meshPtr != 0 );
@@ -240,6 +241,7 @@ tStreamNet::~tStreamNet()
 {
    meshPtr = 0;
    stormPtr = 0;
+   delete mpParkerChannels;
    cout << "~tStreamNet()" << endl;
 }
 
@@ -507,39 +509,39 @@ void tStreamNet::CheckNetConsistency()
 \****************************************************************************/
 void tStreamNet::CalcSlopes()
 {
-	assert( meshPtr != 0 );
-	tEdge *curedg;
-	tMeshListIter<tEdge> i( meshPtr->getEdgeList() );
+  assert( meshPtr != 0 );
+  tEdge *curedg;
+  tMeshListIter<tEdge> i( meshPtr->getEdgeList() );
   double slp;
 
   if (0) //DEBUG
     cout << "CalcSlopes()...";
 
   // Loop through each pair of edges on the list
-	for( curedg = i.FirstP(); !( i.AtEnd() ); curedg = i.NextP() )
-	{
-     // Make sure edge is valid, and length is nonzero
-     assert( curedg != 0 );
-     assert( curedg->getLength() > 0 );
-     //if( curedg->getLength() == 0 )
-     //{
-     //   length = curedg->CalcLength();
-     //}
+  for( curedg = i.FirstP(); !( i.AtEnd() ); curedg = i.NextP() )
+    {
+      // Make sure edge is valid, and length is nonzero
+      assert( curedg != 0 );
+      assert( curedg->getLength() > 0 );
+      //if( curedg->getLength() == 0 )
+      //{
+      //   length = curedg->CalcLength();
+      //}
 
-     // Compute the slope and assign it to the current edge
-     slp = ( curedg->getOrgZ() - curedg->getDestZ() )
-         / curedg->getLength();
-     curedg->setSlope( slp );
+      // Compute the slope and assign it to the current edge
+      slp = ( curedg->getOrgZ() - curedg->getDestZ() )
+	/ curedg->getLength();
+      curedg->setSlope( slp );
 
-     // Advance to the edge's complement, and assign it -slp
-     curedg = i.NextP();
-     assert( !( i.AtEnd() ) );
-     curedg->setSlope( -slp );
-     //curedg->setLength( length );
-     assert( curedg->getLength() > 0 );
-	}
-	if (0) //DEBUG
-	  cout << "CalcSlopes() finished" << endl;
+      // Advance to the edge's complement, and assign it -slp
+      curedg = i.NextP();
+      assert( !( i.AtEnd() ) );
+      curedg->setSlope( -slp );
+      //curedg->setLength( length );
+      assert( curedg->getLength() > 0 );
+    }
+  if (0) //DEBUG
+    cout << "CalcSlopes() finished" << endl;
 }
 
 
@@ -836,8 +838,8 @@ void tStreamNet::FlowDirs()
 \*****************************************************************************/
 void tStreamNet::DrainAreaVoronoi()
 {
-  if (0) //DEBUG
-    cout << "DrainAreaVoronoi()..." << endl << flush;
+   if (0) //DEBUG
+     cout << "DrainAreaVoronoi()..." << endl << flush;
 
    tLNode * curnode;
    tMeshListIter<tLNode> nodIter( meshPtr->getNodeList() );
@@ -845,7 +847,7 @@ void tStreamNet::DrainAreaVoronoi()
    // Reset drainage areas to zero
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
-       curnode->setDrArea( 0 );
+       curnode->setDrArea( 0. );
 
    // send voronoi area for each node to the node at the other end of the
    // flowedge and downstream
@@ -1212,7 +1214,7 @@ void tStreamNet::FlowSaturated2()
   {
      //if( curnode->drarea>1.15e7 )
      //    cout << "Q(" << curnode->id << ") " << curnode->q << endl;
-     curnode->setDischarge( 0 );
+     curnode->setDischarge( 0. );
   }
 
   for ( curnode=nodIter.FirstP(); nodIter.IsActive(); curnode=nodIter.NextP() )
@@ -1250,9 +1252,10 @@ void tStreamNet::FlowSaturated2()
      RouteRunoff( curnode, curnode->getVArea(), runoff*curnode->getVArea() );
   }
 
-  //cout << nhort << " generate Horton runoff, " << nsat
-  //     << " pre-saturated, (" << nflat << "flat) "
-  //     << nsr << " saturate during storm.\n";
+  if (0) //DEBUG
+    cout << nhort << " generate Horton runoff, " << nsat
+	 << " pre-saturated, (" << nflat << "flat) "
+	 << nsr << " saturate during storm.\n";
 
 }
 
@@ -1358,8 +1361,8 @@ void tStreamNet::FlowBucket()
 \*****************************************************************************/
 void tStreamNet::FillLakes()
 {
-  if (0) //DEBUG
-    cout << "FillLakes()..." << endl << flush;
+   if (0) //DEBUG
+     cout << "FillLakes()..." << endl << flush;
 
    tLNode *cn,             // Node on list: if a sink, then process
        *thenode,           // Node on lake perimeter
@@ -2619,7 +2622,7 @@ void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
 			  mdDepthexp ) );
       else
 	cn->setHydrDepth( 0.0 );*/
-      cn->setHydrDepth( 1 );
+      cn->setHydrDepth( 1. );
       cn->setChanDepth( cn->getHydrDepth() );
     }
 }
