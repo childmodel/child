@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.34 2000-06-07 19:04:39 daniel Exp $
+**  $Id: tOutput.cpp,v 1.35 2000-06-08 13:45:29 nmgaspar Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -188,11 +188,13 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
    int opOpt;  // Optional modules: only output stuff when needed
    int optTSOutput;
    
+   counter=0;
+   strcpy(nums, "0123456789");
+
    CreateAndOpenFile( &drareaofs, ".area" );
    CreateAndOpenFile( &netofs, ".net" );
    CreateAndOpenFile( &slpofs, ".slp" );
    CreateAndOpenFile( &qofs, ".q" );
-   CreateAndOpenFile( &layofs, ".lay" );
    CreateAndOpenFile( &texofs, ".tx" );
    if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
        CreateAndOpenFile( &vegofs, ".veg" );
@@ -215,6 +217,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
 **  Modifications:
 **    - 1/00 added output to veg output file (GT)
 **    - added output of flow depth; made slope output for all nodes (GT 1/00)
+**    - 6/00 layer info for each time step written to a different file (NG)
 \*************************************************************************/
 //TODO: should output boundary points as well so they'll map up with nodes
 // for plotting. Means changing getSlope so it returns zero if flowedg
@@ -227,6 +230,18 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    int nActiveNodes = m->getNodeList()->getActiveSize(); // # active nodes
    int nnodes = m->getNodeList()->getSize();             // total # nodes
    int i, j;      // counters
+
+   //taking care of layer file, since new one each time step
+   char ext[7];
+   strcpy( ext, ".lay");
+   if(counter<10)
+       strncat( ext, &nums[counter], 1);
+   else if(counter>=10){
+      strncat(ext, &nums[counter/10], 1);
+      strncat(ext, &nums[(int) fmodf((double)counter,10.0)], 1);
+   }
+   CreateAndOpenFile( &layofs, ext );
+   counter++;
 
    // Write current time in each file
    drareaofs << " " << time << "\n " << nActiveNodes << endl;
@@ -276,6 +291,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       
    }
    
+   layofs.close();
 }
 
 
@@ -307,3 +323,9 @@ void tOutput<tSubNode>::WriteTSOutput( double time )
    volsofs << volume << endl;
    
 }
+
+
+
+
+
+
