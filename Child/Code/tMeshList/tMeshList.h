@@ -26,7 +26,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.h,v 1.3 1998-01-30 16:29:20 stlancas Exp $
+**  $Id: tMeshList.h,v 1.4 1998-04-29 21:36:24 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TGRIDLIST_H
@@ -34,6 +34,7 @@
 
 #include "../Classes.h"
 #include "../tList/tList.h"
+
 /** class tGridList ********************************************************/
 template< class NodeType >
 class tGridList : public tList< NodeType >
@@ -62,8 +63,10 @@ class tGridList : public tList< NodeType >
    void moveToBack( tListNode< NodeType > * );
    void moveToFront( tListNode< NodeType > * );
    void moveToActiveBack( tListNode< NodeType > * );
+   void moveToBack( NodeType * );
    void insertAtFront( const NodeType & );
    int removeFromFront( NodeType & );
+   int InActiveList( tListNode< NodeType > * );
    void Flush();
    
   protected:
