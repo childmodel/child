@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.44 1998-07-25 21:47:00 nmgaspar Exp $
+**  $Id: tStreamMeander.cpp,v 1.45 1998-07-26 23:03:19 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -555,7 +555,8 @@ int tStreamMeander::InterpChannel()
 **                    5) go back to #1 if any points were added
 **
 **      Data members updated: reachList, nrnodes, reachlen, taillen
-**      Called by: tStreamMeander(...) constructor
+**      Called by: tStreamMeander(...) constructor and
+**                 tStreamMeander::Migrate()
 **      Calls: FindMeander, FindReaches,
 **             InterpChannel=>calls netPtr->UpdateNet() if points are added
 **
