@@ -123,6 +123,7 @@ HFILES = \
 	$(PT)/tInputFile/tInputFile.h \
 	$(PT)/tLNode/tLNode.h \
 	$(PT)/tList/tList.h \
+	$(PT)/tList/tListFwd.h \
 	$(PT)/tListInputData/tListInputData.h \
 	$(PT)/tMatrix/tMatrix.h \
 	$(PT)/tMesh/ParamMesh_t.h \
