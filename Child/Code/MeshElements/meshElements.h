@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.73 2004-03-29 16:01:21 childcvs Exp $
+**  $Id: meshElements.h,v 1.74 2004-04-02 11:22:47 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -104,9 +104,6 @@ class tTriangle;
 /**************************************************************************/
 class tNode
 {
-  friend ostream &operator<<( ostream &, tNode & );
-  friend istream &operator>>( istream &, tNode & );
-
 public:
 
   tNode();                                   // default constructor
@@ -179,6 +176,8 @@ protected:
   tBoundary_t boundary;     // Boundary status code
 private:
   tEdge * edg;      // Ptr to one edge
+public:
+  int public1; // a "public" member that can be used for various purpose
 };
 
 
@@ -216,9 +215,6 @@ private:
 \***************************************************************************/
 class tEdge
 {
-  friend ostream &operator<<( ostream &, const tEdge & );
-     /*friend istream &operator>>( istream &, tEdge & );*/
-
 public:
 
   tEdge();                // default constructor
@@ -321,9 +317,6 @@ private:
 /**************************************************************************/
 class tTriangle
 {
-  friend ostream &operator<<( ostream &, const tTriangle & );
-  friend istream &operator>>( istream &, tTriangle & );
-
 public:
   tTriangle();                    // default constructor
   tTriangle( const tTriangle & ); // copy constructor
@@ -442,7 +435,8 @@ inline tNode::tNode() :
   id(0),
   x(0.), y(0.), z(0.),
   varea(0.), varea_rcp(0.),
-  boundary(kNonBoundary), edg(0)
+  boundary(kNonBoundary), edg(0),
+  public1(-1)
 {}
 
 //copy constructor
@@ -451,7 +445,8 @@ inline tNode::tNode( const tNode &original ) :
   id(original.id),
   x(original.x), y(original.y), z(original.z),
   varea(original.varea), varea_rcp(original.varea_rcp),
-  boundary(original.boundary), edg(original.edg)
+  boundary(original.boundary), edg(original.edg),
+  public1(original.public1)
 {}
 
 /*X tNode::~tNode()
@@ -488,6 +483,7 @@ inline const tNode &tNode::operator=( const tNode &right )
       varea = right.varea;
       varea_rcp = right.varea_rcp;
       edg = right.edg;
+      public1 = right.public1;
    }
    return *this;
 }
@@ -495,16 +491,20 @@ inline const tNode &tNode::operator=( const tNode &right )
 //right shift
 inline istream &operator>>( istream &input, tNode &node )
 {
+   double x, y, z;
    cout << "x y z:" << endl;
-   input >> node.x >> node.y >> node.z;
+   input >> x >> y >> z;
+   node.setX(x);
+   node.setY(y);
+   node.setZ(z);
    return input;
 }
 
 //left shift
 inline ostream &operator<<( ostream &output, tNode &node )
 {
-   output << node.id << ": " << node.x << " " << node.y << " "
-          << node.z
+   output << node.getID() << ": " << node.getX() << " " << node.getY() << " "
+          << node.getZ()
 	  << endl;
    return output;
 }
@@ -785,9 +785,9 @@ inline const tEdge &tEdge::operator=( const tEdge &original )
 //left shift
 inline ostream &operator<<( ostream &output, const tEdge &edge )
 {
-   output << edge.id << " " << edge.len << " " << edge.slope << " "
-          << edge.org->getID()
-          << " " << edge.dest->getID() << endl;
+   output << edge.getID() << " " << edge.getLength() << " " << edge.getSlope() << " "
+          << edge.getOriginPtr()->getID()
+          << " " << edge.getDestinationPtr()->getID() << endl;
    return output;
 }
 
@@ -1180,17 +1180,19 @@ inline const tTriangle &tTriangle::operator=( const tTriangle &init )
 inline ostream &operator<<( ostream &output, const tTriangle &tri )
 {
    int i;
-   output << tri.id << ":";
+   output << tri.getID() << ":";
    for( i=0; i<3; i++ )
-       output << " " << tri.p[i]->getID();
+       output << " " << tri.pPtr(i)->getID();
    output << ";";
    for( i=0; i<3; i++ )
-       output << " " << tri.e[i]->getID();
+       output << " " << tri.ePtr(i)->getID();
    output << ";";
    for( i=0; i<3; i++ )
    {
-      if( tri.t[i] != 0 ) output << " " << tri.t[i]->getID();
-      else  output << " -1";
+      if( tri.tPtr(i) != 0 )
+	output << " " << tri.tPtr(i)->getID();
+      else
+	output << " -1";
    }
    output << endl;
    return output;
@@ -1198,9 +1200,10 @@ inline ostream &operator<<( ostream &output, const tTriangle &tri )
 
 inline istream &operator>>( istream &input, tTriangle &tri )
 {
-   int id1, id2, id3;
+   int id, id1, id2, id3;
    cout << "triangle id, origin id, dest id:";
-   input >> tri.id >> id1 >> id2 >> id3; //temporarily assign id vals to ptrs
+   input >> id >> id1 >> id2 >> id3; //temporarily assign id vals to ptrs
+   tri.setID(id);
    return input;
 }
 
