@@ -18,7 +18,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.18 2004-03-24 14:54:35 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.19 2004-04-16 18:34:52 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -56,6 +56,7 @@ class tMainChannelDriver
 {
   tMainChannelDriver(const tMainChannelDriver&);
   tMainChannelDriver& operator=(const tMainChannelDriver&);
+  tMainChannelDriver();
 
 public:
   tMainChannelDriver( const tInputFile &infile );
@@ -96,6 +97,7 @@ class tFloodplain
 {
   tFloodplain(const tFloodplain&);
   tFloodplain& operator=(const tFloodplain&);
+  tFloodplain();
 
 public:
   tFloodplain( const tInputFile &infile, tMesh<tLNode> *mp );
@@ -104,9 +106,9 @@ public:
   bool OptControlMainChan() const;
   void UpdateMainChannelHeight( double tm, tLNode * inletNode );
   double FloodplainDh(double, double, tLNode * );		// Howard, 1992
-  double FloodplainDh2(double , double, double , double );      // Gross and Small, 1998
-  double getSuspendedConcentration(double);
-  double ConcentrationToHeight(double, tLNode *, double );
+  double FloodplainDh2(double , double, double , double ) const;// Gross and Small, 1998
+  double getSuspendedConcentration(double) const;
+  double ConcentrationToHeight(double, tLNode *, double ) const;
 
 private:
   tTimeSeries fpmuVariation;   // "mu" parameter of Howard model, value dependent of time

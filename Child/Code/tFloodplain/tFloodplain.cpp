@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.25 2004-04-05 10:03:31 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.26 2004-04-16 18:34:52 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -365,7 +365,7 @@ double tFloodplain::FloodplainDh(double minDist, double flooddepth,
  ** Quintijn Clevis November 2003 - January 2004
 \**********************************************************/
 double tFloodplain::FloodplainDh2(double y, double flood_depth,
-				  double /*delt*/, double Wy)
+				  double /*delt*/, double Wy) const
 {
   // Arguments:
   // y = closest distance to the meander channel
@@ -434,7 +434,7 @@ double tFloodplain::FloodplainDh2(double y, double flood_depth,
  ** at a certain position in the floodplain, with distance
  ** mindist from the closest channel node
  \**************************************************************/
-double tFloodplain::getSuspendedConcentration(double minDist)
+double tFloodplain::getSuspendedConcentration(double minDist) const
 {
   //double Co = k*(channelnode->getQ)
 
@@ -451,7 +451,8 @@ double tFloodplain::getSuspendedConcentration(double minDist)
 **
 \*********************************************************/
 
-double tFloodplain::ConcentrationToHeight(double flooddepth, tLNode *fpnode, double C)
+double tFloodplain::ConcentrationToHeight(double flooddepth, tLNode *fpnode,
+					  double C) const
 {
   double Varea = fpnode->getVArea();
 
