@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.57 2003-07-18 17:51:49 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.58 2003-08-04 14:43:10 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -885,6 +885,44 @@ tTriangle::FindCircumcenter() const
    }
 
    return xy;
+}
+
+
+/*****************************************************************************\
+**
+**  tTriangle::SetIndexByOrder
+**
+**  Build a circular array so that pPtr(index[0])->getID() is the lowest
+**
+\*****************************************************************************/
+void tTriangle::SetIndexIDOrdered()
+{
+  const int ID[] = { pPtr(0)->getID(),
+		     pPtr(1)->getID(),
+		     pPtr(2)->getID() };
+  // find the vertex with the lowest ID, can be 0 or 1 or 2
+  int ID_;
+  index_[0] = 0; ID_ = ID[0];
+  if (ID[1] < ID_ ) { index_[0] = 1; ID_ = ID[1]; }
+  if (ID[2] < ID_ ) { index_[0] = 2; }
+  // complete the sequence
+  index_[1] = (index_[0]+1)%3;
+  index_[2] = (index_[1]+1)%3;
+}
+
+/*****************************************************************************\
+**
+**  tTriangle::isIndexIDOrdered
+**
+**  Tell whether index_ has been ID ordered
+**
+\*****************************************************************************/
+bool tTriangle::isIndexIDOrdered() const {
+  return
+    ( index_[1] == (index_[0]+1)%3 ) &&
+    ( index_[2] == (index_[1]+1)%3 ) &&
+    ( pPtr(index_[0])->getID() < pPtr(index_[1])->getID() ) &&
+    ( pPtr(index_[0])->getID() < pPtr(index_[2])->getID() );
 }
 
 

@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.54 2003-07-16 12:24:05 childcvs Exp $
+**  $Id: meshElements.h,v 1.55 2003-08-04 14:43:11 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -321,6 +321,9 @@ public:
   int nVOp( const tTriangle * ) const;// returns side # (0,1 or 2) of nbr triangle
   int nVtx( const tNode * ) const;  // returns vertex # (0,1 or 2) of given node
   tArray<double> FindCircumcenter() const; // computes & returns tri's circumcenter
+  const unsigned char *index() const { return index_; }
+  void SetIndexIDOrdered(); // build the ordering index array
+  bool isIndexIDOrdered() const;
 
 #ifndef NDEBUG
   void TellAll();  // debugging routine
@@ -331,6 +334,9 @@ private:
   tNode *p[3];     // ptrs to 3 nodes (vertices)
   tEdge *e[3];     // ptrs to 3 clockwise-oriented edges
   tTriangle *t[3]; // ptrs to 3 neighboring triangles (or 0 if no nbr exists)
+  unsigned char index_[3]; // index used for ordered output
+
+  inline void SetIndex(); // build the ordering index array in simple order
 };
 
 
@@ -995,19 +1001,25 @@ inline double tEdge::CalcVEdgLen()
 **   - ID & vertices constructor added 1/2000, GT
 **
 \***********************************************************************/
+inline
+void tTriangle::SetIndex()
+{
+  index_[0] = 0;
+  index_[1] = 1;
+  index_[2] = 2;
+}
 
 //default
 inline tTriangle::tTriangle() :
   id(-1)
 {
-  // obvious but ...
-   assert( p != 0 && e != 0 && t != 0 );
    for( int i=0; i<3; i++ )
    {
       p[i] = 0;
       e[i] = 0;
       t[i] = 0;
    }
+   SetIndex();
    if (0)//DEBUG
      cout << "tTriangle()" << endl;
 }
@@ -1016,13 +1028,12 @@ inline tTriangle::tTriangle() :
 inline tTriangle::tTriangle( const tTriangle &init ) :
   id(init.id)
 {
-  // obvious but ...
-   assert( p != 0 && e != 0 && t != 0 );
    for( int i=0; i<3; i++ )
      {
        p[i] = init.p[i];
        setEPtr( i, init.e[i] ); // sets edge's tri pointer as well!
        t[i] = init.t[i];
+       index_[i] = init.index_[i];
      }
    if (0)//DEBUG
      cout << "tTriangle( orig )" << endl;
@@ -1040,6 +1051,7 @@ inline tTriangle::tTriangle( int id_, tNode* n0, tNode* n1, tNode* n2 ) :
   setEPtr( 1, n1->EdgToNod( n0 ) );
   setEPtr( 2, n2->EdgToNod( n1 ) );
   t[0] = t[1] = t[2] = 0;
+  SetIndex();
 }
 
 inline tTriangle::tTriangle( int id_, tNode* n0, tNode* n1, tNode* n2,
@@ -1054,6 +1066,7 @@ inline tTriangle::tTriangle( int id_, tNode* n0, tNode* n1, tNode* n2,
   setEPtr( 1, e1 );
   setEPtr( 2, e2 );
   t[0] = t[1] = t[2] = 0;
+  SetIndex();
 }
 /***********************************************************************\
 **
@@ -1081,6 +1094,7 @@ inline const tTriangle &tTriangle::operator=( const tTriangle &init )
          p[i] = init.p[i];
          setEPtr( i, init.e[i] ); // sets edge's tri pointer as well!
          t[i] = init.t[i];
+	 index_[i] = init.index_[i];
       }
    }
    return *this;
