@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.66 2003-05-02 07:39:35 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.67 2003-05-12 11:54:26 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -173,6 +173,9 @@ void tOutput<tSubNode>::WriteOutput( double time )
    // Call virtual function to write any additional data
    WriteNodeData( time );
 
+   // to ensure a proper numbering of the edges
+   m->ResetEdgeID();
+
    if (0)//DEBUG
      cout << "tOutput::WriteOutput() Output done" << endl;
 }
@@ -220,20 +223,9 @@ inline void tOutput<tSubNode>::WriteTriangleRecord( tTriangle *ct,
 template< class tSubNode >
 void tOutput<tSubNode>::RenumberIDInListOrder()
 {
-   tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
-   tMeshListIter<tEdge> eiter( m->getEdgeList() );    // edge list iterator
-   tListIter<tTriangle> titer( m->getTriList() );     // tri list iterator
-
-   int id;
-   tNode *cn;
-   for( cn=niter.FirstP(), id=0; !(niter.AtEnd()); cn=niter.NextP(), id++ )
-     cn->setID( id );
-   tEdge *ce;
-   for( ce=eiter.FirstP(), id=0; !(eiter.AtEnd()); ce=eiter.NextP(), id++ )
-     ce->setID( id );
-   tTriangle *ct;
-   for( ct=titer.FirstP(), id=0; !(titer.AtEnd()); ct=titer.NextP(), id++ )
-     ct->setID( id );
+  m->ResetNodeID();
+  m->ResetEdgeID();
+  m->ResetTriangleID();
 }
 
 /*************************************************************************\
@@ -269,6 +261,7 @@ void tOutput<tSubNode>::RenumberIDCanonically()
 	   );
      for(i=0; i<RNode.getSize(); ++i)
        RNode[i]->setID(i);
+     m->SetmiNextNodeID( RNode.getSize() );
    }
    {
      // Set tNode.edg to the spoke that links to the destination node with the
@@ -292,6 +285,8 @@ void tOutput<tSubNode>::RenumberIDCanonically()
      // (IDorig IDdest) (IDdest IDorig) with IDorig < IDdest
      // #2 Then pairs are ordered with IDorig1 < IDorig2 and
      // if IDorig1 == IDorig2 IDdest1 < IDdest2
+
+     // IMPORTANT: the edge pairs will NOT have odd-even IDs in order
      tArray< tEdge* > REdge2(nedges/2);
      tEdge *ce = eiter.FirstP();
      int i;
@@ -311,6 +306,7 @@ void tOutput<tSubNode>::RenumberIDCanonically()
        REdge2[i/2]->setID(i);
        REdge2[i/2]->getComplementEdge()->setID(i+1);
      }
+     m->SetmiNextEdgID( 2*REdge2.getSize() );
    }
    {
      // Set Triangle Id so that the vertexes are ordered
@@ -324,6 +320,7 @@ void tOutput<tSubNode>::RenumberIDCanonically()
 	   );
      for(i=0; i<RTri.getSize(); ++i)
        RTri[i]->setID(i);
+     m->SetmiNextTriID( RTri.getSize() );
    }
 }
 
