@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.43 1998-07-25 01:17:09 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.44 1998-07-25 20:00:12 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -522,8 +522,6 @@ MakeLayersFromInputData( tInputFile &infile )
 
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
    {
-      cout<<"elevation of node is "<<cn->getZ()<<endl;
-      
       layerinfile >> numl;
       for(i = 1; i<=numl; i++){
          layerinfile >> ditem;
@@ -544,34 +542,42 @@ MakeLayersFromInputData( tInputFile &infile )
          }
          cn->InsertLayerBack( layhelp );
       }
-      cout<<"current node id is "<<cn->getID()<<endl;
-      if(cn->getID()==189){
-          cout<<"nic node 189, surface layer depth is "<<cn->getLayerDepth(0)<<endl;
-          cout<<"recent time is "<<cn->getLayerRtime(0)<<endl;
-          cout<<"num lay is "<<numl<<endl;
-      }
-      
           
    }
 
+   tArray<double> dgradebrhelp( numg );   
+   double sumbr = 0;
+   i=0;
+   char add='1';
+   char name[20];
+   double help;
+   
+   while ( i<numg ){
+      // Reading in proportions for intital regolith and bedrock
+      strcpy( name, "BRPROPORTION");
+      strcat( name, &add ); 
+      help = infile.ReadItem( help, name);
+      dgradebrhelp[i]=help;
+      sumbr += help;
+      i++;
+      add++;
+   }
+
+   assert(sumbr>0.999 & sumbr<1.001);
+   
    layhelp.setCtime(0);
    layhelp.setRtime(0);
    layhelp.setFlag(0);
    layhelp.setErody(0);
    layhelp.setSed(0);
-   layhelp.setSed(0);
-
-   double weight = 1/numg;
-   ditem=5000;
+   ditem=layhelp.getDepth();
+   for(g=0; g<numg; g++){
+      layhelp.setDgrade(g, ditem*dgradebrhelp[g]);
+   }   
    
    for( cn = cn; !(ni.AtEnd()); cn=ni.NextP() ){
-      layhelp.setDepth(ditem);
-      for(g=0; g<numg; g++){
-         layhelp.setDgrade(g, ditem*weight);
-      }
       cn->InsertLayerBack( layhelp );
    }
-   
    
 }
 
