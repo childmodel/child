@@ -12,11 +12,11 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.5 2002-02-11 09:18:06 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.6 2002-03-29 11:12:44 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
-#include <string>
+//#include <string>
 #include "../errors/errors.h"
 #include "tStreamNet.h"
 
@@ -391,9 +391,11 @@ void tStreamNet::UpdateNet( double time, tStorm &storm )
 **
 **  Modifications:
 **    - added "sink" case to outlet-path test, 8/98 GT
+**    - fixed bug wherein use of a fixed "kLargeNumber" to test for
+**      infinite loop in flow routing resulted in detection of false
+**      loops for very large meshes! 3/02 GT
 **  
 \**************************************************************************/
-#define kLargeNumber 1000000
 void tStreamNet::CheckNetConsistency()
 {
    int ctr = 0;
@@ -444,15 +446,16 @@ void tStreamNet::CheckNetConsistency()
    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
    {
       // Make sure each node has path to outlet (or to a sink):
+      long nodesInMesh = meshPtr->getNodeList()->getSize();
       dn = cn->getDownstrmNbr();
       while( dn->getBoundaryFlag() == kNonBoundary
              && dn->getFloodStatus() != kSink )
       {
          dn = dn->getDownstrmNbr();
          ctr++;
-         if( ctr > kLargeNumber-4 )
+         if( ctr > nodesInMesh )
              dn->TellAll();
-         if( ctr > kLargeNumber )
+         if( ctr > nodesInMesh+4 )
          {
             cerr << "NODE #" << cn->getID()
                  << " has infinite loop in path downstream\n";
@@ -2189,9 +2192,12 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
       // Read drainage area and sediment load at inlet. If more than one
       // grain size is simulated, read in a sediment load for each size
       // individually
-     std::string taglinebase = "INSEDLOAD";
+     /*std::string taglinebase = "INSEDLOAD";
      std::string digits = "123456789";
-     std::string tagline;
+     std::string tagline;*/
+     char tagline[10], lastdigit;
+     strcpy( tagline, "INSEDLOAD0\0" );
+     lastdigit = '0';
       inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
       if(numg <= 1)
 	{
@@ -2207,9 +2213,12 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
 	   /*strcpy( name, "INSEDLOAD");
             strcat( name, &end ); 
             help = infile.ReadItem( help, name);*/
-	    tagline = taglinebase + digits.substr( i, i );
+	   /*tagline = taglinebase + digits.substr( i, i );
 	    cout << tagline << endl;
-	    help = infile.ReadItem( help, tagline.c_str() );
+	    help = infile.ReadItem( help, tagline.c_str() );*/
+            lastdigit++;
+            tagline[9] = lastdigit;
+            help = infile.ReadItem( help, tagline );
             inSedLoadm[i] = help;
             inSedLoad += help;
             cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i]<<endl;
