@@ -17,7 +17,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.h,v 1.7 2003-02-11 17:43:59 childcvs Exp $
+//  $Id: predicates.h,v 1.8 2003-03-14 15:54:52 childcvs Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -231,6 +231,7 @@ public:
    Predicates(); // just calls exactinit()
    ~Predicates() {} // doesn't do anything
    
+private:
    // basically the constructor:
    void exactinit();
    
@@ -253,6 +254,7 @@ public:
    int compress(int elen, const REAL* e, REAL* h);
    REAL estimate( int elen, const REAL* e );
    
+public:
    // two functions added by SL, 10/98, to deal with line
    // segment intersection; modeled after orient2d() and
    // orient2dadapt(), which do cross-products and tell you
@@ -261,12 +263,14 @@ public:
                                              double c, double d,
                                              double e, double f,
                                              double g, double h );
+private:
    double AdaptDiffOfProdsOfDiffs( double a, double b,
                                    double c, double d,
                                    double e, double f,
                                    double g, double h,
                                    double sum );
 
+public:
    // orient...() and in...() functions; the ...adapt()
    // functions should not be called directly--they are called
    // by ...()'s (no suffix), e.g., orient2d(); the latter are
