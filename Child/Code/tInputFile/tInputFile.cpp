@@ -6,7 +6,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.18 2002-11-29 13:42:34 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.19 2002-12-12 10:13:34 childcvs Exp $
 \****************************************************************************/
 
 #if !defined(HAVE_NO_NAMESPACE)
@@ -161,6 +161,7 @@ int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode )
    cerr << "I expected to read the parameter '" << itemCode
 	<< "', but reached EOF first" << endl;
    ReportFatalError( "Missing parameter in input file" );
+   /*NOTREACHED*/
 }
 
 long tInputFile::ReadItem( const long & /*datType*/, const char *itemCode )
@@ -195,6 +196,7 @@ long tInputFile::ReadItem( const long & /*datType*/, const char *itemCode )
    cerr << "I expected to read the parameter '" << itemCode
 	<< "', but reached EOF first" << endl;
    ReportFatalError( "Missing parameter in input file" );
+   /*NOTREACHED*/
 }
 
 double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode )
@@ -229,6 +231,7 @@ double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode )
    cerr << "I expected to read the parameter '" << itemCode
 	<< "', but reached EOF first" << endl;
    ReportFatalError( "Missing parameter in input file" );
+   /*NOTREACHED*/
 }
 
 
@@ -266,4 +269,5 @@ void tInputFile::ReadItem(  char * theString, const char *itemCode )
    cerr << "I expected to read the parameter '" << itemCode
 	<< "', but reached EOF first" << endl;
    ReportFatalError( "Missing parameter in input file" );
+   /*NOTREACHED*/
 }
