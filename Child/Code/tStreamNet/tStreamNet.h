@@ -15,7 +15,7 @@
 **  Class tInlet is used to model the entry of a river at an edge of the
 **  model mesh.
 **
-**  $Id: tStreamNet.h,v 1.26 1998-09-10 19:21:19 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.27 1999-03-12 23:13:37 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -77,8 +77,14 @@ private:
 };
 
 
-
-/** class tStreamNet *********************************************************/
+/**************************************************************************\
+**  Class tStreamNet  ******************************************************
+**
+**  Modifications:
+**   - 3/99 GT added data member bankfullevent: precip rate corresponding
+**     to bankfull discharge.
+**
+\**************************************************************************/
 class tStreamNet
 {
    friend class tStreamTransport;
@@ -142,22 +148,23 @@ public:
    void FindHydrGeom();
    
 protected:
-   tGrid< tLNode > * gridPtr;
-   tStorm *stormPtr;
-   int flowgen;
-   int filllakes;
-   int optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
-   double kwds, ewds, ewstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width
-   double kdds, edds, edstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. depth
-   double knds, ends, enstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. roughness
-   double klambda, elambda; //coeff & exp for downstrm bank roughness length
-   double rainrate;
-   double trans;
-   double infilt;
-   double soilStore;        /* soil water storage, depth equiv (m) */
-   //double inDrArea;
-   tInlet inlet;
-   double mndrDirChngProb;
+    tGrid< tLNode > * gridPtr;
+    tStorm *stormPtr;
+    int flowgen;
+    int filllakes;
+    int optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
+    double kwds, ewds, ewstn;//coefs & exps for dwnstrm & at-a-stn hydr. width
+    double kdds, edds, edstn;//coefs & exps for dwnstrm & at-a-stn hydr. depth
+    double knds, ends, enstn;//coefs & exps for ds & at-a-stn hydr. roughness
+    double klambda, elambda; //coef & exp for downstrm bank roughness length
+    double rainrate;
+    double bankfullevent; // rainfall rate corresponding to bankfull event
+    double trans;
+    double infilt;
+    double soilStore;        /* soil water storage, depth equiv (m) */
+    //double inDrArea;
+    tInlet inlet;
+    double mndrDirChngProb;
     int optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
     double infilt_dev;    // max +/- variation from mean infilt cap
     double infilt0;    // mean infilt cap
