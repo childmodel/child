@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.6 1999-04-08 19:04:06 nmgaspar Exp $
+**  $Id: tFloodplain.cpp,v 1.7 1999-04-16 20:50:52 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tFloodplain.h"
@@ -95,7 +95,7 @@ tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
    
    kdb = kdb*pow( event_min, mqbmqs );
 
-   cout << "kdb: " << kdb << "  mqbmqs " << mqbmqs << endl;
+   //cout << "kdb: " << kdb << "  mqbmqs " << mqbmqs << endl;
 
    numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    deparr.setSize(numg); // dimension & init to 0 the deparr array

@@ -3,7 +3,7 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.70 1999-04-11 19:58:28 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.71 1999-04-16 20:51:57 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -238,7 +238,7 @@ MakeLayersFromInputData( tInputFile &infile )
    ifstream layerinfile;
    infile.ReadItem( thestring, "INPUTDATAFILE" );
 
-   cout<<"in MakeLayersFromInputData..."<<endl;
+   //cout<<"in MakeLayersFromInputData..."<<endl;
    
    strcpy( inname, thestring );
    strcat( inname, ".lay" );
@@ -256,7 +256,7 @@ MakeLayersFromInputData( tInputFile &infile )
       {
          layerinfile.seekg( -layerinfile.gcount(), ios::cur );
          layerinfile >> time;
-         cout << "from file, time = " << time << endl;
+         //cout << "from file, time = " << time << endl;
          if( time == intime ) righttime = 1;
       }
    }
@@ -942,7 +942,7 @@ MakeMeshFromScratch( tInputFile &infile )
    double delGrid, slope;
    double upperZ;
    tArray< double > xyz(3);
-   cout << "In MGFS, calling node constr w/ infile\n";
+   //cout << "In MGFS, calling node constr w/ infile\n";
    tSubNode tempnode( infile ),  // temporary node used to create node list
        *cn, *node0, *node1, *node2, *node3;
    tEdge *ce;
@@ -1403,7 +1403,7 @@ MakeMeshFromPoints( tInputFile &infile )
    // width and height, respectively, of the rectangle that encloses the
    // points.) Assigning the IDs allows us to retrieve and delete these
    // nodes when we're done creating the mesh.
-   cout << "creating supertri: max & min are " << maxx << "," << maxy << endl;
+   //cout << "creating supertri: max & min are " << maxx << "," << maxy << endl;
    tempnode.set3DCoords( minx-3*dx, miny-3*dy, 0.0 );
    tempnode.setBoundaryFlag( kClosedBoundary );
    tempnode.setID( -1 );
@@ -3139,7 +3139,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
       //assert( !( spokIter.AtEnd() ) );  //make sure we found the right spoke
       if( spokIter.AtEnd() )
       {
-         cout << "AddEdge: using new algorithm\n";
+         //cout << "AddEdge: using new algorithm\n";
          for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
          {
             /*Xf( PointsCCW( UnitVector( ce ),
@@ -3713,9 +3713,9 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
       ce=ce->getCCWEdg();
       hlp++;
    }while(ce != fe );
-   if(hlp !=  node2->getSpokeListNC().getSize() ){
-      cout<<"AddNode  number of spokes "<<node2->getSpokeListNC().getSize()<<" number of ccwedges "<<hlp<<endl<<flush;
-   }
+   //  if(hlp !=  node2->getSpokeListNC().getSize() ){
+//        cout<<"AddNode  number of spokes "<<node2->getSpokeListNC().getSize()<<" number of ccwedges "<<hlp<<endl<<flush;
+//     }
 
    return node2;  // Return ptr to new node
 }
@@ -3883,9 +3883,9 @@ AddNodeAt( tArray< double > &xyz, double time )
       ce=ce->getCCWEdg();
       hlp++;
    }while(ce != fe );
-   if(hlp !=  node2->getSpokeListNC().getSize() ){
-      cout<<"AddNodeAt  number of spokes "<<node2->getSpokeListNC().getSize()<<" number of ccwedges "<<hlp<<endl<<flush;
-   }
+   //  if(hlp !=  node2->getSpokeListNC().getSize() ){
+//        cout<<"AddNodeAt  number of spokes "<<node2->getSpokeListNC().getSize()<<" number of ccwedges "<<hlp<<endl<<flush;
+//     }
 
    //cout << "AddNodeAt finished, " << nnodes << endl;
    return node2;

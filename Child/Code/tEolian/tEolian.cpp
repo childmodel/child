@@ -4,7 +4,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tEolian.cpp,v 1.3 1999-04-05 13:29:33 gtucker Exp $
+**  $Id: tEolian.cpp,v 1.4 1999-04-16 20:50:43 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tEolian.h"
@@ -55,7 +55,7 @@ void tEolian::DepositLoess( tMesh<tLNode> *mp, double delt, double ctime )
    tLNode *cn;
    
    depositDepth[0] = loessDepRate*delt;
-   cout << "Depositing " << depositDepth[0] << " meters of loess...\n";
+   //cout << "Depositing " << depositDepth[0] << " meters of loess...\n";
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
        cn->EroDep( 0, depositDepth, ctime );
 }

@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.63 1999-04-16 20:34:38 gtucker Exp $
+**  $Id: erosion.cpp,v 1.64 1999-04-16 20:50:59 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -229,7 +229,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
    tauex = n->getLayerErody(0)*pow( n->getQ(), mb )*pow( slp, nb ) - taucd;
-   cout << "tauex: " << tauex << endl;
+   //cout << "tauex: " << tauex << endl;
    tauex = (tauex>0.0) ? tauex : 0.0;
    return( pow(tauex,pb)*dt );
 }
@@ -419,7 +419,7 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
    char add, name[20];
    double help, sum;
 
-   cout << "tSedTransWilcock(infile)\n" << endl;
+   //cout << "tSedTransWilcock(infile)\n" << endl;
    add='1';
    grade.setSize(2);
    for(i=0; i<=1; i++){
@@ -554,10 +554,6 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 {
    double tau;
    double taucrit;
-   if(nd->getLayerDepth(i)<=0 ){
-      cout<<"layer depth is "<<nd->getLayerDepth(i)<<" i is "<<i<<endl<<flush;
-      nd->TellAll();
-   }
    assert( nd->getLayerDepth(i)>0 );
    double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
    //double timeadjust=31536000.00; /* number of seconds in a year */
@@ -838,7 +834,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
        dzr;          // Potential depth of bedrock erosion
    int smallflag=0, smallcount=0;
 
-   cout << "tErosion::StreamErode\n";
+   //cout << "tErosion::StreamErode\n";
 
    // Sort so that we always work in upstream to downstream order
    strmNet->SortNodesByNetOrder();
@@ -1003,14 +999,14 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          // plus/minus rate of erosion/deposition times node area
          assert( dtmax>0 );
          dn->addQsin( cn->getQsin() - dz*cn->getVArea()/dtmax );
-         if( (cn->getQsin() - dz*cn->getVArea()/dtmax) < -0.1 )
-         {
-            cout << "NEG OUTFLUX! (dz=" << dz << ")\n";
-            cout << "outflux: " << cn->getQsin() - dz*cn->getVArea()/dtmax
-                 << endl;
-            cn->TellAll();
-            dn->TellAll();
-         }
+//           if( (cn->getQsin() - dz*cn->getVArea()/dtmax) < -0.1 )
+//           {
+//              cout << "NEG OUTFLUX! (dz=" << dz << ")\n";
+//              cout << "outflux: " << cn->getQsin() - dz*cn->getVArea()/dtmax
+//                   << endl;
+//              cn->TellAll();
+//              dn->TellAll();
+//           }
       }
 
       // Update time remaining
@@ -1018,7 +1014,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       
    } while( dtg>1e-6 ); // Keep going until we've used up the whole time intrvl
 
-   cout << "Leaving StreamErode()\n";
+   //cout << "Leaving StreamErode()\n";
 }
 
 

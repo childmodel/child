@@ -8,7 +8,7 @@
 **    - GT added currentItem, FirstP(), and NextP(), plus modifications
 **      to prevent currentItem from getting corrupted (1/22/99)
 **
-**  $Id: tList.cpp,v 1.16 1999-04-05 18:48:40 nmgaspar Exp $
+**  $Id: tList.cpp,v 1.17 1999-04-16 20:51:13 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -987,11 +987,11 @@ int tListIter< NodeType >::
 Get( int num )
 {
    assert( listPtr != 0 );
-   if( num < 0 )
-   {
-      cout << "tListIter::Get(num): num < 0" << endl;
-      //return 0;
-   }
+//     if( num < 0 )
+//     {
+//        cout << "tListIter::Get(num): num < 0" << endl;
+//        //return 0;
+//     }
    tListNode< NodeType > *tempnodeptr;
    for( tempnodeptr = listPtr->first, counter = 0;
         counter <= listPtr->nNodes && tempnodeptr != 0;
@@ -1001,12 +1001,12 @@ Get( int num )
    }
    if( tempnodeptr == 0 )
    {
-      cout << "tListIter::Get(num): tempnodeptr == 0" << endl;
+      //cout << "tListIter::Get(num): tempnodeptr == 0" << endl;
       return 0;
    }
    if( tempnodeptr->data.getID() != num )
    {
-      cout << "tListIter::Get(num): tempnodeptr->data.getID() != num" << endl;
+      //cout << "tListIter::Get(num): tempnodeptr->data.getID() != num" << endl;
       return 0;
    }
    curnode = tempnodeptr;

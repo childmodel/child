@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.61 1999-04-09 14:52:58 nmgaspar Exp $
+**  $Id: tStreamMeander.cpp,v 1.62 1999-04-16 20:51:50 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -378,7 +378,7 @@ void tStreamMeander::FindChanGeom()
          //cout<<"node z "<<cn->getZ()<<" DS z "<<cn->getDownstrmNbr()->getZ()<<" edge "<<cn->getFlowEdg()->getLength()<<endl;
          if( slope > critS ) //should also catch negative slope flag
          {
-            cout << "in tSM::FindChanGeom, slope = " << slope << endl << flush;
+            //cout << "in tSM::FindChanGeom, slope = " << slope << endl << flush;
             cn->setChanSlope( slope );
             radfactor = qbf * rough / width / sqrt(slope);
             //cout<<"radfactor is "<<radfactor<<endl;             
@@ -1403,8 +1403,6 @@ void tStreamMeander::AddChanBorder(double time)
                //(b) on the same side of the channel:
                if( ct = meshPtr->LocateTriangle( oldpos[0], oldpos[1] ) )
                {
-                  if(cn->getID()==219)
-                      cout<<" D ";
                     //channodePtr = cn;
                     //channode = *channodePtr;
                   //***NG: HERE IS WHERE YOU CAN FIND A DEPOSIT THICKNESS
