@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.42 1998-05-04 19:34:29 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.43 1998-05-12 22:09:43 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -823,13 +823,13 @@ void tLNode::TellAll()
       cout << "  points to edg #" << edg->getID() << endl;
       cout << "  dr area: " << getDrArea() << "  disch: " << GetQ()
            << "  boundary: " << boundary << "  flood: " << flood
-           << "  varea: " << varea << endl;
+           << "\n  varea: " << varea << endl;
       
       if( flowedge ) {
          nbr = (tLNode *)flowedge->getDestinationPtrNC();
          cout << "  Flows along edg " << flowedge->getID() << " to node "
               << nbr->getID() << " at (" << nbr->getX() << ","
-              << nbr->getY() << "," << nbr->getZ() << ") with vedglen "
+              << nbr->getY() << "," << nbr->getZ() << ")\n    with vedglen "
               << flowedge->getVEdgLen() << endl;
          cout << "  qs: " << qs << "  qsin: " << qsin << "  slp: "
               << GetSlope() << "  reg: " << reg.thickness << endl;
