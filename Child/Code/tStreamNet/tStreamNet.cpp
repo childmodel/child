@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2 1998-01-15 19:35:50 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.1 1998-01-16 00:12:55 gtucker Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -232,7 +232,7 @@ void tStreamNet::CalcSlopes()
 }
 
 
-
+// NB: move to tGrid
 void tStreamNet::CalcVAreas()
 {
    cout << "CalcVAreas()...";
@@ -280,8 +280,6 @@ void tStreamNet::InitFlowDirs()
    curnode = i.FirstP();
    while( i.IsActive() )
    {
-      cout << "NODE " << curnode->getID() << endl;
-      
       // Start with the node's default edge
       assert( curnode>0 );
       flowedg = curnode->GetEdg();
@@ -371,7 +369,7 @@ void tStreamNet::FlowDirs()
       
       curnode->SetFlowEdg( nbredg );
       curnode->SetFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
-      cout << "Node " << curnode->getID() << " flows to node "
+      cout << "Node " << curnode->getID() << " flows to "
            << curnode->GetDownstrmNbr()->getID() << endl;
       curnode = i.NextP();
 
@@ -624,7 +622,7 @@ float tStreamNet::VoronoiArea( tLNode * centre )
 \*****************************************************************************/
 void tStreamNet::RouteFlowArea( tLNode *curnode, float addedArea )
 {
-   //cout << "RouteFlowArea()...";
+   cout << "RouteFlowArea()...";
 #if DEBUG
    int niterations=0;  // Safety feature: prevents endless loops
 #endif
@@ -646,7 +644,7 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, float addedArea )
       assert( niterations < 10000 );
 #endif
    }
-   //cout << "finished" << endl;
+   cout << "finished" << endl;
 }
 
 
@@ -1005,12 +1003,13 @@ void tStreamNet::FillLakes()
 **  (3) It must not be a closed boundary (_flowAllowed_ must be TRUE)
 **  (4) The outlet node must drain to a location lower than the current node 
 **      (but not necessarily lower than itself; it could be a separate lake)
+**      OR the outlet node is an open boundary.
 **
 **  Returns: TRUE if a valid outlet is found, FALSE otherwise
 **  Calls: (none)
 **  Called by: FillLakes
 **  Created: 6/97 GT
-**  Updated: 12/19/97 SL
+**  Updated: 12/19/97 SL; 1/15/98 gt bug fix (open boundary condition)
 **
 \*****************************************************************************/
 int tStreamNet::FindLakeNodeOutlet( tLNode *node )
@@ -1018,7 +1017,7 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node )
    float maxslp = 0;  // Maximum slope found so far
    tEdge * ce;        // Current edge
    //XtPtrListIter< tEdge > spokIter( node->getSpokeListNC() );
-   tLNode *dn;
+   tLNode *dn;        // Potential outlet
    
    // Check all the neighbors
       //Xfor( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
@@ -1027,10 +1026,13 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node )
    {
         // If it passes this test, it's a valid outlet
       dn = (tLNode *) ce->getDestinationPtrNC();
+      assert( dn>0 );
       if( ce->getSlope() > maxslp &&
           dn->GetFloodStatus() != kCurrentLake &&
           ce->FlowAllowed() &&
-          dn->GetDownstrmNbr()->getZ() < node->getZ() )
+          ( dn->getBoundaryFlag()==kOpenBoundary ||
+            dn->GetDownstrmNbr()->getZ() < node->getZ() ) )
+          //dn->GetDownstrmNbr()->getZ() < node->getZ() )
       {
          maxslp = ce->getSlope();
          node->SetFlowEdg( ce );
@@ -1172,6 +1174,8 @@ void tStreamNet::ErodeDetachLim( float dtg )
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
        if( (dt=bedErode.SetTimeStep( cn )) < dtmax )
            dtmax = dt;
+   dt = dtmax;
+   cout << "In ErodeDetachLim, time step set to " << dtmax;
 
    // Iterate until total time dtg has been consumed
    do
@@ -1179,7 +1183,7 @@ void tStreamNet::ErodeDetachLim( float dtg )
       if( dt > dtg ) dt = dtg; // dt shouldn't exceed remaining time
         // Compute erosion depths
       for( i=0, cn=ni.FirstP(); i<nActNodes; i++, cn=ni.NextP() )
-          dz[i] = bedErode.DetachCapacity( cn, dt );
+          dz[i] = -bedErode.DetachCapacity( cn, dt );
         // Apply erosion depths
       for( i=0, cn=ni.FirstP(); i<nActNodes; i++, cn=ni.NextP() )
           cn->EroDep( dz[i] );
