@@ -15,7 +15,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.cpp,v 1.12 2003-10-15 09:25:05 childcvs Exp $
+//  $Id: predicates.cpp,v 1.13 2004-06-16 13:32:06 childcvs Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -239,9 +239,9 @@ void Predicates::exactinit()
 { 
   REAL half; 
   REAL check, lastcheck; 
-  int every_other; 
+  bool every_other; 
  
-  every_other = 1; 
+  every_other = true; 
   half = 0.5; 
   epsilon = 1.0; // Predicates private data member
   splitter = 1.0;  // Predicates private data member
