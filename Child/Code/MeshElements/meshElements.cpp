@@ -3,13 +3,15 @@
 **  gridElements.cpp: Functions for mesh element classes tNode, tEdge, and
 **                    tTriangle.
 **
+**  For a description of these 3 classes, see gridElements.h.
+**
 **  Modifications:
 **   - gt added code to recreate the "edg" implementation as an alternative
 **     to spokelist. Dec 1 '97.
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.23 1999-01-05 21:23:36 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.24 1999-01-12 19:12:33 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -19,10 +21,20 @@
 int PointsCCW( tArray< double > &, tArray< double > &, tArray< double > & );
 
 
-//global fns:
-//  FindIntersectionCoords: finds and returns intersection of line segments
-//   defined by endpoints given as arguments; 1st seg. endpts are xy1, xy2;
-//   2nd seg. endpts are xy3, xy4
+/**  GLOBAL FUNCTIONS  ****************************************************/
+
+/*************************************************************************\
+**
+**  FindIntersectionCoords
+**
+**  Finds and returns intersection of line segments
+**  defined by endpoints given as arguments; 1st seg. endpts are xy1, xy2;
+**  2nd seg. endpts are xy3, xy4. (SL)  TODO: add inline doc
+**  (Note: does this need to be global? can it be tNode mbr?)
+**
+**  Called by:  tNode::ComputeVoronoiArea
+**
+\*************************************************************************/
 tArray< double > FindIntersectionCoords( tArray< double > xy1,
                                          tArray< double > xy2,
                                          tArray< double > xy3,
@@ -30,6 +42,7 @@ tArray< double > FindIntersectionCoords( tArray< double > xy1,
 {
    double dxa, dxb, dya, dyb, a, b, c, f, g, h, x, y;
    tArray< double > intxy(2);
+
    dxa = xy2[0] - xy1[0];
    dxb = xy4[0] - xy3[0];
    dya = xy2[1] - xy1[1];
@@ -75,6 +88,21 @@ tArray< double > FindIntersectionCoords( tArray< double > xy1,
    return intxy;
 }
 
+
+
+/***************************************************************************\
+\**  Functions for class tNode  ********************************************/
+
+/***********************************************************************\
+**
+**  Constructors & destructors:
+**
+**  Default:  initializes values to zero.
+**  Copy:  copies all values and makes duplicate spoke list
+**  Destructor:  no longer used
+**
+\***********************************************************************/
+
 //default constructor
 tNode::tNode()                                                      //tNode
 {
@@ -84,6 +112,7 @@ tNode::tNode()                                                      //tNode
    
      //cout << "tNode()" << endl;
 }
+
 //copy constructor
 tNode::tNode( const tNode &original )                               //tNode
 {
@@ -114,6 +143,21 @@ tNode::~tNode()                                                      //tNode
      //if( spokeList != 0 ) delete spokeList;
      //cout << "    ~tNode()" << endl;
 }
+
+
+/***********************************************************************\
+**
+**  Overloaded operators:
+**
+**    assignment: copies all values (spokelist's assignment operator
+**                creates duplicate copy of list)
+**    right shift: takes input for x, y and z values from input stream
+**    left shift: sends the following data to the output stream:
+**                node ID, x, y, z values, and IDs of neighboring nodes,
+**                which are obtained through the spokelist.
+**
+\***********************************************************************/
+
 //assignment
 const tNode &tNode::operator=( const tNode &right )                  //tNode
 {
@@ -142,7 +186,56 @@ const tNode &tNode::operator=( const tNode &right )                  //tNode
    }
    return *this;
 }
-//get
+
+//right shift
+istream &operator>>( istream &input, tNode &node )                   //'tNode'
+{
+   cout << "x y z:" << endl;
+   input >> node.x >> node.y >> node.z;
+   return input;
+}
+
+//left shift
+ostream &operator<<( ostream &output, tNode &node )            //'tNode'
+{
+   //tPtrListIter< tEdge > spokeIter( node.getSpokeListNC() );
+   
+   output << node.id << ": " << node.x << " " << node.y << " "
+          << node.z << ";";
+   output <<
+       node.spokeList.getFirstNC()->getPtrNC()->getDestinationPtrNC()->getID()
+   //output << spokeIter.DatPtr()->getDestinationPtrNC()->getID()
+          << " ";
+   output << endl;
+   return output;
+}
+
+
+/***********************************************************************\
+**
+**  tNode "get" functions:
+**
+**  get3DCoords - returns x, y, z as a 3-element array
+**  get2DCoords - returns x & y coords as a 2-element array
+**  getID - returns ID #
+**  getX - returns node's x coord
+**  getY - returns node's y coord
+**  getZ - returns node's z value
+**  getVArea - returns Voronoi area
+**  getVArea_Rcp - returns 1 / Voronoi area
+**  getBoundaryFlag - returns boundary code
+**  getEdg - returns pointer to one spoke
+**  getSpokeList - returns const reference to spoke list
+**  getSpokeListNC - returns non-const reference to spoke list
+**  getFirstSpokeNode - returns ptr to 1st spokelist item 
+**                      (return type tPtrListNode *)
+**  getFirstSpokeNodeNC - non-const version of the above
+**  getNextSpokeNode - returns ptr to next spokelist item that follows
+**                       prevedg
+**  getNextSpokeNodeNC - non-const version of the above
+**
+\***********************************************************************/
+
 tArray< double >                                                       //tNode
 tNode::get3DCoords() const
 {
@@ -169,11 +262,7 @@ double tNode::getZ() const {return z;}
 double tNode::getVArea() const {return varea;}             //tNode
 double tNode::getVArea_Rcp() const {return varea_rcp;}     //tNode
 int tNode::getBoundaryFlag() const {return boundary;}      //tNode
-
-tEdge * tNode::getEdg() 
-{
-   return edg;
-}
+tEdge * tNode::getEdg() {return edg;}
 
 const tPtrList< tEdge > &                                     //tNode
 tNode::getSpokeList() const {assert( &spokeList != 0 ); return spokeList;}
@@ -195,26 +284,59 @@ tPtrListNode< tEdge > *tNode::                                //tNode
 getNextSpokeNodeNC( tPtrListNode< tEdge > *prevedg ) const
 {return prevedg->getNextNC();}
 
-//set
+
+/***********************************************************************\
+**
+**  tNode "set" functions:
+**
+**  setID - sets ID number to val
+**  setX - sets x coord to val
+**  setY - sets y coord to val
+**  setZ - sets z value to val
+**  setVArea - sets Voronoi area to val
+**  setVArea_Rcp - sets 1/Voronoi area to val
+**  setBoundaryFlag - returns boundary code
+**  set3DCoords - sets x, y, z to val1, val2, val3
+**  set2DCoords - sets x & y to val1 and val2
+**  setEdg - sets edge ptr to theEdg
+**
+**  Note: unless otherwise noted, no runtime value checking is done
+**        (aside from assert statements)
+**
+\***********************************************************************/
+
 void tNode::setID( int val ) {id = val;}                             //tNode
 void tNode::setX( double val ) {x = val;}                             //tNode
 void tNode::setY( double val ) {y = val;}                             //tNode
 void tNode::setZ( double val ) {z = val;}                             //tNode
-                        
+
 void tNode::setVArea( double val )                                    //tNode
-{varea = ( val >= 0.0 ) ? val : 0.0;}
+{
+  assert( val>=0.0 );
+  varea = val;
+  /*varea = ( val >= 0.0 ) ? val : 0.0;*/
+}
 
 void tNode::setVArea_Rcp( double val )                                //tNode
-{varea_rcp =  ( val >= 0.0 ) ? val : 0.0;}
+{
+  assert( val>=0.0 );
+  varea_rcp = val;
+  /*varea_rcp =  ( val >= 0.0 ) ? val : 0.0;*/
+}
 
 void tNode::setBoundaryFlag( int val )                               //tNode
-{boundary = (val >=0 && val <= 2) ? val : 0;}
+{
+  assert( val>=0 && val<=2 );
+  boundary = val;
+  /*boundary = (val >=0 && val <= 2) ? val : 0;*/
+}
 
 void tNode::set2DCoords( double val1, double val2 )                    //tNode
 {
    setX( val1 );
    setY( val2 );
 }
+
 void tNode::set3DCoords( double val1, double val2, double val3 )        //tNode
 {
    setX( val1 );
@@ -229,8 +351,24 @@ void tNode::setEdg( tEdge * theEdg )
    //cout << "Assigning edge " << theEdg->getID() << " to node " << getID() << endl;
 }
 
+
+/***********************************************************************\
+**
+**  tNode::ChangeZ:  Adds delz to current z value
+**
+\***********************************************************************/
 void tNode::ChangeZ( double delz ) { z += delz; }                    //tNode
 
+
+/***********************************************************************\
+**
+**  tNode::insertFrontSpokeList
+**  tNode::insertBackSpokeList
+**
+**  Places eptr at the front or back of the spoke list (respectively)
+**  and makes the list circular (is the latter step necessary? TODO).
+**
+\***********************************************************************/
 void tNode::insertFrontSpokeList( tEdge *eptr )                      //tNode
 {
    spokeList.insertAtFront( eptr );
@@ -245,27 +383,13 @@ void tNode::insertBackSpokeList( tEdge *eptr )                       //tNode
    makeWheel();
 }
 
-void tNode::makeWheel() {spokeList.makeCircular();}                  //tNode
 
-istream &operator>>( istream &input, tNode &node )                   //'tNode'
-{
-   cout << "x y z:" << endl;
-   input >> node.x >> node.y >> node.z;
-   return input;
-}
-ostream &operator<<( ostream &output, tNode &node )            //'tNode'
-{
-   //tPtrListIter< tEdge > spokeIter( node.getSpokeListNC() );
-   
-   output << node.id << ": " << node.x << " " << node.y << " "
-          << node.z << ";";
-   output <<
-       node.spokeList.getFirstNC()->getPtrNC()->getDestinationPtrNC()->getID()
-   //output << spokeIter.DatPtr()->getDestinationPtrNC()->getID()
-          << " ";
-   output << endl;
-   return output;
-}
+/***********************************************************************\
+**
+**  tNode::makeWheel:  makes the spoke list circular
+**
+\***********************************************************************/
+void tNode::makeWheel() {spokeList.makeCircular();}                  //tNode
 
 const tEdge *tNode::NextSpoke( tPtrListNode< tEdge > * current )//tNode
 {
@@ -277,14 +401,14 @@ const tEdge *tNode::NextSpoke( tPtrListNode< tEdge > * current )//tNode
 
 /*****************************************************************************\
 **
-**      Dist: replaces dis; the distance of the node from the line formed
-**                by points p0 p1 
-**                using x y 
+**  tNode::Dist
 **
+**  Computes the distance of the node from the line formed
+**  by points p0 p1 using x y. (replaces dis)
 **
-**      Data members updated: 
+**      Data members updated: (none)
 **      Called by: 
-**      Calls:  
+**      Calls: (none)
 **
 \*****************************************************************************/
 double tNode::Dist( tNode * p0, tNode * p1 )
@@ -299,34 +423,20 @@ double tNode::Dist( tNode * p0, tNode * p1 )
   return(res);
 }
 
-/*X REPLACED BY tEdge::CalcVEdgLength
-void tNode::CalcSpokeVEdgLengths()
-{
-   tEdge *curedg, *nextedg;
-   tArray< double > cvtx, nvtx;
-   tPtrListIter< tEdge > spokIter( spokeList );
-   
-   for( curedg = spokIter.FirstP(); !( spokIter.AtEnd() );
-        curedg = spokIter.NextP() )
-   {
-      nextedg = spokIter.ReportNextP();
-      cvtx = curedg->getRVtx();
-      nvtx = nextedg->getRVtx();
-      double dx = nvtx[0] - cvtx[0];
-      double dy = nvtx[1] - cvtx[1];
-      nextedg->setVEdgLen( sqrt( dx * dx + dy * dy ) );
-      cout << "  VE of edg " << nextedg->getID() << " ("
-           << nextedg->getOriginPtr()->getID() << ","
-           << nextedg->getDestinationPtr()->getID() << ") = "
-           << nextedg->getVEdgLen() << endl;
-   }
-}*/
 
-
+/*****************************************************************************\
+**
+**  tNode::EdgToNod
+**
+**  Finds and returns the spoke (edge) that connects the current node to _nod_,
+**  or zero if no such spoke is found.
+**
+\*****************************************************************************/
 tEdge *tNode::EdgToNod( tNode * nod )
 {
    tPtrListIter< tEdge > spokIter( this->spokeList );
    tEdge * ce;
+
    for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
    {
       if( ce->getDestinationPtr()->getID() == nod->getID() ) return ce;
@@ -377,12 +487,6 @@ tEdge *tNode::EdgToNod( tNode * nod )
 \*****************************************************************************/
 double tNode::ComputeVoronoiArea()
 {
-     //calculates area by defining the voronoi polygon vertices, dividing that
-     //polygon into triangles, and calc'ing the area of each triangle, sum of
-     //tri areas is v. area.
-//#if DEBUG
-   //cout<<"VoronoiArea(...)...";
-//#endif
    int cw;
    double area = 0;
    double a, b, c, dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
@@ -396,16 +500,10 @@ double tNode::ComputeVoronoiArea()
    tArray< double > xy, xyn, xynn, xynnn, xy1, xy2, xy3, xy4;
    int i;
 
-   /*for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
-   {
-      cout << "INSerting edg " << ce->getID() << endl;
-      vedgList.insertAtBack( ce );
-   }*/
-
    // Create a duplicate list of edges; we will modify this list to obtain
-     //the correct vertices. In some cases, we may need to delete an edge
-     //to get the correct list of vertices; we don't want to delete the
-     //spoke ptr, so we make a duplicate list.
+   // the correct vertices. In some cases, we may need to delete an edge
+   // to get the correct list of vertices; we don't want to delete the
+   // spoke ptr, so we make a duplicate list.
    //cout << "making list: ";
    ce = edg;
    do
@@ -423,22 +521,21 @@ double tNode::ComputeVoronoiArea()
    // Check boundary status: Voronoi area only defined for non-boundary nodes
    if( boundary == kNonBoundary )
    {
-      //XCalcSpokeVEdgLengths();  replaced by tGrid::CalcVEdgLengths
       cw = TRUE;
       //cout << "find clockwise loops" << endl << flush;
       do
       {
-           //go through the list; we want the vertex list to run CCW;
-           //in some cases of long skinny triangles, the 'unimproved'
-           //v. polygon sides may form loops; loops are detected by
-           //finding two (2) consecutive 'CCW' vertices; i.e., where
-           //the 'curvature' is CW rather than CCW. In such cases,
-           //we delete one of the edges from the vertex list and find
-           //the new vertex at the intersection of the perp. bisectors
-           //of the edges to either 'side' of the deleted edge. Iterate.
-           //Really. It works.
+         // go through the list; we want the vertex list to run CCW;
+         // in some cases of long skinny triangles, the 'unimproved'
+         // v. polygon sides may form loops; loops are detected by
+         // finding two (2) consecutive 'CCW' vertices; i.e., where
+         // the 'curvature' is CW rather than CCW. In such cases,
+         // we delete one of the edges from the vertex list and find
+         // the new vertex at the intersection of the perp. bisectors
+         // of the edges to either 'side' of the deleted edge. Iterate.
+         // Really. It works.
          cw = FALSE;
-         for( ce = vtxIter.FirstP(); !( vtxIter.AtEnd() ); ce = vtxIter.NextP() )
+         for( ce=vtxIter.FirstP(); !( vtxIter.AtEnd() ); ce=vtxIter.NextP() )
          {
             xy = ce->getRVtx();
             xyn = vtxIter.NextP()->getRVtx();
@@ -456,9 +553,9 @@ double tNode::ComputeVoronoiArea()
                dy1 = xyn[1] - xynn[1];
                if( dy0 * dx1 > dx0 * dy1 ) //clockwise
                {
-                    //two consecutive clockwise vertices=>want intersection
-                    //of bisectors of ce->nextedg and
-                    //ce->nextedg->nextedg->nextedg:
+                  //two consecutive clockwise vertices=>want intersection
+                  //of bisectors of ce->nextedg and
+                  //ce->nextedg->nextedg->nextedg:
                   cw = TRUE;
                   x0 = x; //node.x
                   y0 = y; //node.y
@@ -622,10 +719,23 @@ double tNode::ComputeVoronoiArea()
 }
 
 
+/*******************************************************************\
+**
+**  tNode::makeCCWEdges
+**
+**  This function provides for compatibility between the CCW Edge
+**  data structure and the Spoke List data structure. It sets up
+**  CCW edge connectivity from the spoke list data (which is 
+**  assumed to be up to date) by: (1) setting the node's edg 
+**  pointer to the first spoke on the list, and (2) setting the
+**  ccwedg pointer for each spoke.
+**
+\*******************************************************************/
 void tNode::makeCCWEdges()
 {
    tEdge *ce, *ccwe;
    tPtrListIter< tEdge > spokIter( spokeList );
+
    ce = spokIter.FirstP();
    assert( ce != 0 );
    setEdg( ce );
@@ -638,6 +748,15 @@ void tNode::makeCCWEdges()
 }
 
 
+/*******************************************************************\
+**
+**  tNode::ConvertToClosedBoundary
+**
+**  Makes the node into a closed boundary by setting its boundary
+**  status flag. The function also updates the boundary ("flow
+**  allowed") status of the node's spokes and their complements.
+**
+\*******************************************************************/
 void tNode::ConvertToClosedBoundary()
 {
    tEdge *ce, *cec;   // an edge and its complement
@@ -653,7 +772,7 @@ void tNode::ConvertToClosedBoundary()
       if( ce->getBoundaryFlag()==kFlowAllowed )
       {
          ce->setFlowAllowed( 0 );
-         // get complement and change it too
+         // get complement and change it too TODO
       }
       
    } while( (ce=ce->getCCWEdg()) != edg );
@@ -661,24 +780,24 @@ void tNode::ConvertToClosedBoundary()
 }
 
 /*******************************************************************\
-  tNode::WarnSpokeLeaving( tEdge * edglvingptr )
-
-  This function is called when an edge is being removed from the edge list.
-  If edg (the edge pointer member of tNode) is pointing to the edge
-  which will be removed, this edg must be updated.
-
-  edglvingptr is as it sais, a pointer to the edge which will be
-  removed.
-
-  Called from tGrid::ExtricateEdge
-
-  9/98 NG and GT
+**
+**  tNode::WarnSpokeLeaving( tEdge * edglvingptr )
+**
+**  This function is called when an edge is being removed from the edge list.
+**  If edg (the edge pointer member of tNode) is pointing to the edge
+**  which will be removed, this edg must be updated.
+**
+**  edglvingptr is as it says, a pointer to the edge which will be
+**  removed.
+**
+**  Called from tGrid::ExtricateEdge
+**
+**  9/98 NG and GT
 \*******************************************************************/
 void tNode::WarnSpokeLeaving( tEdge * edglvingptr )
 {
-   if(edglvingptr == edg )
+   if( edglvingptr == edg )
        edg = edg->getCCWEdg();
-   
 }
 
 
@@ -709,22 +828,17 @@ void tNode::TellAll()
 
 
 /**************************************************************************\
-**
-**  Functions for class tEdge
-**
-\**************************************************************************/
+\***  Functions for class tEdge  ******************************************/
 
-/*#include <iostream.h>
-#include <fstream.h>
-#include <assert.h>
-#include "../Definitions.h"
-#include "../Classes.h"
-#include "../tArray/tArray.h"
-#include "../tPtrList/tPtrList.h"
-#include "../tNode/tNode.h"
-#include "tEdge.h"
-#include <math.h>  // For sqrt() call in CalcLength
-*/
+/***********************************************************************\
+**
+**  Constructors & destructors:
+**
+**  Default:  initializes values to zero and makes rvtx a 2-elem array
+**  Copy:  copies all values
+**  Destructor:  no longer used
+**
+\***********************************************************************/
 
 //default constructor
 tEdge::tEdge()                                                       //tEdge
@@ -741,7 +855,6 @@ tEdge::tEdge()                                                       //tEdge
 }
 
 //copy constructor
-
 tEdge::tEdge( const tEdge &original )                                //tEdge
 {
    if( &original != 0 )
@@ -759,8 +872,19 @@ tEdge::tEdge( const tEdge &original )                                //tEdge
      //cout << "tEdge( orig )" << endl;
 }
 
-tEdge::~tEdge() {/*cout << "    ~tEdge()" << endl;*/}                    //tEdge
+tEdge::~tEdge() {/*cout << "    ~tEdge()" << endl;*/}      //tEdge
 
+
+/***********************************************************************\
+**
+**  Overloaded operators:
+**
+**    assignment: copies all values (spokelist's assignment operator
+**                creates duplicate copy of list)
+**    left shift: sends the following data to the output stream:
+**                edge ID, length, slope, and origin and destination IDs
+**
+\***********************************************************************/
 const tEdge &tEdge::operator=( const tEdge &original )               //tEdge
 {
    if( &original != this )
@@ -778,6 +902,48 @@ const tEdge &tEdge::operator=( const tEdge &original )               //tEdge
    return *this;
 }
 
+//left shift
+ostream &operator<<( ostream &output, const tEdge &edge )            //'tEdge'
+{
+   output << edge.id << " " << edge.len << " " << edge.slope << " " 
+          << edge.org->getID()
+          << " " << edge.dest->getID() << endl;
+   return output;
+}
+
+//istream &operator>>( istream &input, tEdge &edge )                 //'tEdge'
+//{
+     //int oid, did;
+     //cout << "edge id, origin id, dest id:";
+     //input >> edge.id >> edge.org >> edge.dest; //temporarily assign id vals to ptrs
+  // return input;
+//}
+
+
+/***********************************************************************\
+**
+**  tEdge "get" functions:
+**
+**  getID - returns ID #
+**  getBoundaryFlag - returns boundary code
+**  getLength - returns projectd length
+**  getSlope - returns slope
+**  getOriginPtr - returns const ptr to origin node
+**  getDestinationPtr - returns const ptr to destination node
+**  getOriginPtrNC - returns non-const ptr to origin node
+**  getDestinationPtrNC - returns non-const ptr to destination node
+**  getOrgZ- returns z value of origin node
+**  getDestZ - returns z value of destination node
+**  getCCWEdg - returns ptr to counterclockwise neighboring edge
+**  FlowAllowed - returns the boundary flag, which indicates whether
+**                or not the edge is an active flow conduit (which is
+**                true as long as neither endpoint is a closed bdy node)
+**  getRVtx - returns coordinates of right-hand Voronoi vertex as a
+**            2-element array
+**  getVEdgLen - returns the length of the corresponding Voronoi edge
+**
+\***********************************************************************/
+
 int tEdge::getID() const {return id;}                                //tEdge
 
 //return 0 if flow allowed to match kNonBoundary:
@@ -788,9 +954,9 @@ double tEdge::getLength() const {return len;}                         //tEdge
 
 double tEdge::getSlope() const {return slope;}                         //tEdge
 
-const tNode *tEdge::getOriginPtr() const {return org;}                     //tEdge
+const tNode *tEdge::getOriginPtr() const {return org;}                //tEdge
 
-const tNode *tEdge::getDestinationPtr() const {return dest;}               //tEdge
+const tNode *tEdge::getDestinationPtr() const {return dest;}          //tEdge
 
 tNode *tEdge::getOriginPtrNC() {return org;}                     //tEdge
 
@@ -820,12 +986,51 @@ int tEdge::FlowAllowed()
    return flowAllowed;
 }
 
+tArray< double >
+tEdge::getRVtx() const
+{
+   //tArray< double >  xy( rvtx );
+   //return xy;
+   //cout << "getRVtx: ";
+   return rvtx;
+}
 
-void tEdge::setID( int val ) {id = ( val >=0 ) ? val : 0;}           //tEdge
+double tEdge::getVEdgLen() const {return vedglen;}
 
-//TODO: for performance, don't test value, just assume >=0
+
+/***********************************************************************\
+**
+**  tEdge "set" functions:
+**
+**  setID - sets ID # to val
+**  setLength - sets length to val
+**  setSlope - sets slope to slp
+**  setOriginPtr - sets origin pointer to ptr (if ptr is nonzero)
+**  setDestinationPtr - sets destination pointer to ptr (if nonzero)
+**  setFlowAllowed - sets flowAllowed status to val
+**  setCCWEdg - sets ptr to counter-clockwise neighbor to edg
+**  setRVtx - sets the coordinates of the right-hand Voronoi vertex
+**            (ie, the Voronoi vertex at the circumcenter of the RH
+**            triangle) to the 1st two elements in arr, which is
+**            assumed to be a 2-element array
+**  setVEdgLen - sets vedglen to val (vedglen is the length of the
+**               corresponding Voronoi cell edge)
+**
+**  Note: unless otherwise noted, no checking of range or validity is
+**        performed in these routines (aside from assert statements)
+**
+\***********************************************************************/
+
+void tEdge::setID( int val ) {
+   assert( id>=0 );
+   id = val;
+   /*id = ( val >=0 ) ? val : 0;*/}           //tEdge
+
 void tEdge::setLength( double val )                                   //tEdge
-{len = ( val >= 0.0 ) ? val : 0.0;}
+{
+   assert( val>=0.0 );
+   len = val;
+   /*len = ( val >= 0.0 ) ? val : 0.0;*/}
 
 void tEdge::setSlope( double slp )
 { slope = slp; }
@@ -836,7 +1041,10 @@ void tEdge::setDestinationPtr( tNode * ptr )                         //tEdge
 {if( ptr != 0 ) dest = ptr;}
 
 void tEdge::setFlowAllowed( int val )                                //tEdge
-{flowAllowed = ( val == 0 || val == 1 ) ? val : 0;}
+{
+   assert( val==0 || val==1 );
+   flowAllowed = val;
+   /*flowAllowed = ( val == 0 || val == 1 ) ? val : 0;*/}
 
 void tEdge::setCCWEdg( tEdge * edg )
 {
@@ -845,10 +1053,26 @@ void tEdge::setCCWEdg( tEdge * edg )
    ccwedg = edg;
 }
 
+void tEdge::setRVtx( tArray< double > arr )
+{
+   assert( &arr != 0 );
+   assert( arr.getSize() == 2 );
+     //cout << "setRVtx for edge " << id
+     //   << " to x, y, " << arr[0] << ", " << arr[1] << endl;
+   rvtx = arr;
+}
+
+void tEdge::setVEdgLen( double val )
+{
+   assert( val>=0.0 );
+   vedglen = val;
+   /*vedglen = ( val > 0 ) ? val : 0;*/
+}
+
 
 /**************************************************************************\
 **
-**  CalcLength
+**  tEdge::CalcLength
 **
 **  Computes the edge length and returns it. (Length is the projected
 **  on the x,y plane). Assumes org and dest are valid.
@@ -869,7 +1093,7 @@ double tEdge::CalcLength()
 
 /**************************************************************************\
 **
-**  CalcSlope
+**  tEdge::CalcSlope
 **
 **  Computes the slope of the edge as ( Zorg - Zdest ) / length.
 **
@@ -923,44 +1147,13 @@ double tEdge::CalcVEdgLen()
 }
 
 
-
-ostream &operator<<( ostream &output, const tEdge &edge )            //'tEdge'
-{
-   output << edge.id << " " << edge.len << " " << edge.slope << " " 
-          << edge.org->getID()
-          << " " << edge.dest->getID() << endl;
-   return output;
-}
-//istream &operator>>( istream &input, tEdge &edge )                 //'tEdge'
-//{
-     //int oid, did;
-     //cout << "edge id, origin id, dest id:";
-     //input >> edge.id >> edge.org >> edge.dest; //temporarily assign id vals to ptrs
-  // return input;
-//}
-
-tArray< double >
-tEdge::getRVtx() const
-{
-   //tArray< double >  xy( rvtx );
-   //return xy;
-   //cout << "getRVtx: ";
-   return rvtx;
-}
-
-double tEdge::getVEdgLen() const {return vedglen;}
-
-void tEdge::setRVtx( tArray< double > arr )
-{
-   assert( &arr != 0 );
-   assert( arr.getSize() == 2 );
-     //cout << "setRVtx for edge " << id
-     //   << " to x, y, " << arr[0] << ", " << arr[1] << endl;
-   rvtx = arr;
-}
-
-void tEdge::setVEdgLen( double val ) {vedglen = ( val > 0 ) ? val : 0;}
-
+/**************************************************************************\
+**
+**  tEdge::TellCoords
+**
+**  Debugging routine that reports edge ID and coords of endpoints.
+**
+\**************************************************************************/
 void tEdge::TellCoords()
 {
    cout << "EDGE " << id << ":\n";
@@ -1010,22 +1203,19 @@ tEdge * tEdge::FindComplement()
 **  Modifications:
 **    - added tTriangle::FindCircumcenter() 1/11/98 gt
 **
-**
 \**************************************************************************/
 
-/*#include <iostream.h>
-#include <fstream.h>
-#include <assert.h>
-#include "../Definitions.h"
-#include "../Classes.h"
-#include "../tArray/tArray.h"
-#include "../tPtrListNode/tPtrListNode.h"
-#include "../tPtrList/tPtrList.h"
-#include "../tNode/tNode.h"
-#include "../tEdge/tEdge.h"
-#include "tTriangle.h"
-*/
+/***********************************************************************\
+**
+**  Constructors & destructors:
+**
+**  Default:  initializes node, edge, and triangle ptrs to zero.
+**  Copy:  copies all values
+**  Destructor:  no longer used
+**
+\***********************************************************************/
 
+//default
 tTriangle::tTriangle()                                           //tTriangle
 {
    assert( p != 0 && e != 0 && t != 0 );
@@ -1037,6 +1227,7 @@ tTriangle::tTriangle()                                           //tTriangle
    }
      //cout << "tTriangle()" << endl;
 }
+
 //copy constructor
 tTriangle::tTriangle( const tTriangle &init )                    //tTriangle
 {
@@ -1054,10 +1245,27 @@ tTriangle::tTriangle( const tTriangle &init )                    //tTriangle
      //cout << "tTriangle( orig )" << endl;
 }
 
+//destructor
 tTriangle::~tTriangle()                                          //tTriangle
 {
      //cout << "    ~tTriangle()" << endl;
 }
+
+
+/***********************************************************************\
+**
+**  Overloaded operators:
+**
+**    assignment: copies all values 
+**    left shift: sends the following data to the output stream:
+**                triangle ID and the IDs of its 3 nodes, clockwise
+**                edges, ad neighboring triangles (or -1 if no
+**                neighboring triangle exists across a given face)
+**    right shift: reads triangle ID and 3 other unspecified IDs from
+**                 the input stream (the latter are not currently used
+**                 for anything)
+**
+\***********************************************************************/
 
 //overloaded assignment operator
 const tTriangle &tTriangle::operator=( const tTriangle &init )   //tTriangle
@@ -1075,46 +1283,7 @@ const tTriangle &tTriangle::operator=( const tTriangle &init )   //tTriangle
    return *this;
 }
 
-int tTriangle::getID() const {return id;}                        //tTriangle
-
-tNode *tTriangle::pPtr( int index )                              //tTriangle
-{
-   assert( index >= 0 && index <= 3 );
-   return p[index];
-}
-
-tEdge *tTriangle::ePtr( int index )                              //tTriangle
-{
-   assert( index >= 0 && index <= 3 );
-   return e[index];
-}
-
-tTriangle *tTriangle::tPtr( int index )                          //tTriangle
-{
-   assert( index >= 0 && index <= 3 );
-   return t[index];
-}
-
-void tTriangle::setID( int val ) {id = ( val >= 0 ) ? val : 0;}  //tTriangle
-
-void tTriangle::setPPtr( int index, tNode * ndptr )              //tTriangle
-{
-   assert( index >= 0 && index <= 3 );
-   p[index] = ndptr;
-}
-
-void tTriangle::setEPtr( int index, tEdge * egptr )              //tTriangle
-{
-   assert( index >= 0 && index <= 3 );
-   e[index] = egptr;
-}
-
-void tTriangle::setTPtr( int index, tTriangle * trptr )          //tTriangle
-{
-   assert( index >= 0 && index <= 3 );
-   t[index] = trptr;
-}
-
+//left shift
 ostream &operator<<( ostream &output, const tTriangle &tri )     //'tTriangle'
 {
    int i;
@@ -1143,12 +1312,89 @@ istream &operator>>( istream &input, tTriangle &tri )            //'tTriangle'
    return input;
 }
 
-/******************************************************************/
-// NOTE: for runtime error checking, may want to take out the assert
-// and instead generate a runtime error when i>2.
+
+/***********************************************************************\
+**
+**  tTriangle "get" functions:
+**
+**  getID - returns ID #
+**  pPtr - returns ptr to one of the 3 vertex nodes, as specified by
+**         _index_ (index is 0, 1, or 2)
+**  ePtr - returns ptr to one of the 3 clockwise edges, as specified by
+**         _index_ (index is 0, 1, or 2)
+**  tPtr - returns ptr to one of the 3 adjacent triangles, as specified
+**         by _index_ (index is 0, 1, or 2)
+**
+\***********************************************************************/
+int tTriangle::getID() const {return id;}                        //tTriangle
+
+tNode *tTriangle::pPtr( int index )                              //tTriangle
+{
+   assert( index >= 0 && index <= 3 );
+   return p[index];
+}
+
+tEdge *tTriangle::ePtr( int index )                              //tTriangle
+{
+   assert( index >= 0 && index <= 3 );
+   return e[index];
+}
+
+tTriangle *tTriangle::tPtr( int index )                          //tTriangle
+{
+   assert( index >= 0 && index <= 3 );
+   return t[index];
+}
+
+
+/***********************************************************************\
+**
+**  tTriangle "get" functions:
+**
+**  setID - sets ID #
+**  setPPtr - sets pointer to one of the 3 vertex nodes, as specified
+**            by _index_ (index is 0, 1, or 2)
+**  setEPtr - sets pointer to one of the 3 clockwise edges, as specified
+**            by _index_ (index is 0, 1, or 2)
+**  setTPtr - sets pointer to one of the 3 adjacent triangles, as
+**            specified by _index_ (index is 0, 1, or 2)
+**
+\***********************************************************************/
+void tTriangle::setID( int val ) {id = ( val >= 0 ) ? val : 0;}  //tTriangle
+
+void tTriangle::setPPtr( int index, tNode * ndptr )              //tTriangle
+{
+   assert( index >= 0 && index <= 3 );
+   p[index] = ndptr;
+}
+
+void tTriangle::setEPtr( int index, tEdge * egptr )              //tTriangle
+{
+   assert( index >= 0 && index <= 3 );
+   e[index] = egptr;
+}
+
+void tTriangle::setTPtr( int index, tTriangle * trptr )          //tTriangle
+{
+   assert( index >= 0 && index <= 3 );
+   t[index] = trptr;
+}
+
+
+/**************************************************************************\
+**
+**  tTriangle::nVOp
+**
+**  Returns the side number (0, 1, or 2) of the neighboring triangle ct.
+**  Assumes that ct _is_ one of the neighboring triangles.
+**
+** NOTE: for runtime error checking, may want to take out the assert
+** and instead generate a runtime error when i>2.
+\**************************************************************************/
 int tTriangle::nVOp( tTriangle *ct )
 {
    int i;
+
    for( i=0; i<4; i++ )
    {
       assert( i<3 );
@@ -1157,6 +1403,19 @@ int tTriangle::nVOp( tTriangle *ct )
    return i;
 }
 
+
+/**************************************************************************\
+**
+**  tTriangle::nVtx
+**
+**  Returns the vertex number (0, 1, or 2) associated with node cn.
+**  (In other words, it says whether cn is vertex 0, 1, or 2 in the 
+**  triangle).
+**  Assumes that cn _is_ one of the triangle's vertices.
+**
+** NOTE: for runtime error checking, may want to take out the assert
+** and instead generate a runtime error when i>2.
+\**************************************************************************/
 int tTriangle::nVtx( tNode *cn )
 {
    int i;
@@ -1168,12 +1427,16 @@ int tTriangle::nVtx( tNode *cn )
    return i;
 }
 
+
 /*****************************************************************************\
 **
-**  FindCircumcenter
+**  tTriangle::FindCircumcenter
 **
 **  Finds the circumcenter of the triangle by finding the intersection of
-**  the perpendicular bisectors of sides (p0,p1) and (p0,p2).
+**  the perpendicular bisectors of sides (p0,p1) and (p0,p2). Returns the
+**  coordinates of the circumcenter as a 2-element array. Note that the
+**  circumcenter is also the Voronoi cell vertex associated with the
+**  triangle's three nodes (that's the point of computing it).
 **
 \*****************************************************************************/
 tArray< double >
@@ -1189,8 +1452,8 @@ tTriangle::FindCircumcenter()
    xyd1 = pPtr(1)->get2DCoords();
    xyd2 = pPtr(2)->get2DCoords();
 
-   // Find the midpoints of the two sides (p0,p1) and (p0,p2) and store in 
-   // (x1,y1) & (x2,y2), then get the distance between p0 and the 
+   // Find the midpoints of the two sides (p0,p1) and (p0,p2) and store them 
+   // in (x1,y1) & (x2,y2). Then get the distance between p0 and the 
    // midpoints of each side
    x1 = (xyo[0] + xyd1[0]) / 2;
    y1 = (xyo[1] + xyd1[1]) / 2;
