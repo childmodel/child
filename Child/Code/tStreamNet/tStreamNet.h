@@ -15,7 +15,12 @@
 **  Class tInlet is used to model the entry of a river at an edge of the
 **  model mesh.
 **
-**  $Id: tStreamNet.h,v 1.27 1999-03-12 23:13:37 gtucker Exp $
+**  TODO: decouple from landscape erosion functions; make this a purely
+**  hydrologic entity. Currently tStreamNet is "hard wired" to operate
+**  with a tLNode; it could be recoded to operate with a "hydrologic"
+**  node or any descendents.
+**
+**  $Id: tStreamNet.h,v 1.28 1999-04-01 18:06:50 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -50,7 +55,16 @@
 double DistanceToLine( double x2, double y2, double a, double b, double c );
 double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 );
 
-/** class tInlet *************************************************************/
+
+/**************************************************************************\
+** class tInlet ************************************************************
+**
+** A tInlet represents a point source of water and sediment, normally at
+** one side of a computational mesh. Each tInlet maintains a pointer to
+** the inlet node, a pointer to the mesh object, and values of drainage
+** area, total sediment load, and sediment load by grain size.
+**
+\**************************************************************************/
 class tInlet
 {
     friend class tStreamNet;
@@ -58,27 +72,39 @@ public:
     tInlet();
     tInlet( tGrid< tLNode > *, tInputFile & );
     ~tInlet();
-   void FindNewInlet();
-   double getInSedLoad() const;
-   double getInSedLoad( int );
-   tArray< double > getInSedLoadm() const;
-   void setInSedLoad( double );
-   void setInSedLoad( int, double );
-   double getInDrArea() const;
-   void setInDrArea( double );
-   tLNode *getInNodePtr();
-   void setInNodePtr( tLNode * );
+    void FindNewInlet();
+    double getInSedLoad() const;
+    double getInSedLoad( int );
+    tArray< double > getInSedLoadm() const;
+    void setInSedLoad( double );
+    void setInSedLoad( int, double );
+    double getInDrArea() const;
+    void setInDrArea( double );
+    tLNode *getInNodePtr();
+    void setInNodePtr( tLNode * );
+
 private:
-    tLNode *innode;
-    double inDrArea;
-    double inSedLoad;
+    tLNode *innode;   // ptr to inlet node
+    double inDrArea;  // drainage area at inlet
+    double inSedLoad; // total sediment load
     tArray< double > inSedLoadm; // incoming sediment load if multi-sizes
-    tGrid< tLNode > *gridPtr;
+    tGrid< tLNode > *gridPtr;  // ptr to grid
 };
 
 
 /**************************************************************************\
 **  Class tStreamNet  ******************************************************
+**
+**  The tStreamNet class handles routing of water across a landscape
+**  surface, including partitioning of flow into surface and subsurface
+**  components. Methods include setting flow directions, computing total
+**  contributing areas and discharges, computing runoff, resolving
+**  drainage for closed depressions ("lakes"), calculating hydraulic
+**  geometry, and sorting nodes in upstream-to-downstream order.
+**
+**  tStreamNet also includes methods to compute edge slopes, though this
+**  should be moved to mesh utilities (TODO). Some meander functionality
+**  is here, and this should also be moved (TODO).
 **
 **  Modifications:
 **   - 3/99 GT added data member bankfullevent: precip rate corresponding
@@ -87,84 +113,83 @@ private:
 \**************************************************************************/
 class tStreamNet
 {
-   friend class tStreamTransport;
-   friend class tStreamMeander;
+    //Xfriend class tStreamTransport;
+    friend class tStreamMeander; //necessary?
 public:
-   tStreamNet();
-   tStreamNet( tGrid< tLNode > &, tStorm &, tInputFile & );
-   ~tStreamNet();
-   void ResetGrid( tGrid< tLNode > & );
-   const tGrid< tLNode > *getGridPtr() const;
-   tGrid< tLNode > *getGridPtrNC();
-   const tStorm *getStormPtr() const;
-   tStorm *getStormPtrNC();
-   int getFlowGenOpt() const;
-   int getFillLakesOpt() const;
-   double getRainRate() const;
-   double getTransmissivity() const;
-   double getInfilt() const;
-   double getSoilStore() const;
-   double getInDrArea() const;
-   double getInSedLoad() const;
-   tArray< double > getInSedLoadm() const;
-   tLNode *getInletNodePtr() const;
-   tLNode *getInletNodePtrNC();
-   double getMndrDirChngProb() const;
-   void setFlowGenOpt( int );
-   void setFillLakesOpt( int );
-   void setRainRate( double );
-   void setTransmissivity( double );
-   void setInfilt( double );
-   void setInDrArea( double );
-   void setInSedLoad( double );
-   void setInSedLoadm( int, double );
-   void setInletNodePtr( tLNode * );
-   void setMndrDirChngProb( double );
-   void UpdateNet( double time );
-   void UpdateNet( double time, tStorm & );
-   void CheckNetConsistency();
-   void CalcSlopes();
-   void InitFlowDirs();
-   void FlowDirs();
-   void DrainAreaVoronoi();
-   void RouteFlowArea( tLNode *, double );
-   void RouteRunoff( tLNode *, double, double );
-   void SetVoronoiVertices();
-   void MakeFlow( double tm );
-   void FlowUniform();
-   void FlowSaturated1();
-   void FlowSaturated2();
-   void FlowBucket();
-   void FillLakes();
-   int FindLakeNodeOutlet( tLNode * );
-   void SortNodesByNetOrder();
-   int DamBypass( tLNode * );
-   //find hydraulic and channel geometries, respectively;
-   //FindHydrGeom is contingent upon current storm conditions
-   //and storm variability;
-   //FindChanGeom is based on the 1.5-yr storm event,
-   //or the mean rainrate if no variability:   
-   void FindChanGeom();
-   void FindHydrGeom();
-   
+    tStreamNet();
+    tStreamNet( tGrid< tLNode > &, tStorm &, tInputFile & );
+    ~tStreamNet();
+    void ResetGrid( tGrid< tLNode > & );
+    const tGrid< tLNode > *getGridPtr() const;
+    tGrid< tLNode > *getGridPtrNC();
+    const tStorm *getStormPtr() const;
+    tStorm *getStormPtrNC();
+    int getFlowGenOpt() const;
+    int getFillLakesOpt() const;
+    double getRainRate() const;
+    double getTransmissivity() const;
+    double getInfilt() const;
+    double getSoilStore() const;
+    double getInDrArea() const;
+    double getInSedLoad() const;
+    tArray< double > getInSedLoadm() const;
+    tLNode *getInletNodePtr() const;
+    tLNode *getInletNodePtrNC();
+    double getMndrDirChngProb() const;
+    void setFlowGenOpt( int );
+    void setFillLakesOpt( int );
+    void setRainRate( double );
+    void setTransmissivity( double );
+    void setInfilt( double );
+    void setInDrArea( double );
+    void setInSedLoad( double );
+    void setInSedLoadm( int, double );
+    void setInletNodePtr( tLNode * );
+    void setMndrDirChngProb( double );
+    void UpdateNet( double time );
+    void UpdateNet( double time, tStorm & );
+    void CheckNetConsistency();
+    void CalcSlopes();
+    void InitFlowDirs();
+    void FlowDirs();
+    void DrainAreaVoronoi();
+    void RouteFlowArea( tLNode *, double );
+    void RouteRunoff( tLNode *, double, double );
+    void SetVoronoiVertices();
+    void MakeFlow( double tm );
+    void FlowUniform();
+    void FlowSaturated1();
+    void FlowSaturated2();
+    void FlowBucket();
+    void FillLakes();
+    int FindLakeNodeOutlet( tLNode * );
+    void SortNodesByNetOrder();
+    //Xint DamBypass( tLNode * );
+    //find hydraulic and channel geometries, respectively;
+    //FindHydrGeom is contingent upon current storm conditions
+    //and storm variability;
+    //FindChanGeom is based on the 1.5-yr storm event,
+    //or the mean rainrate if no variability:   
+    void FindChanGeom();
+    void FindHydrGeom();
+    
 protected:
-    tGrid< tLNode > * gridPtr;
-    tStorm *stormPtr;
-    int flowgen;
-    int filllakes;
+    tGrid< tLNode > * gridPtr;  // ptr to mesh
+    tStorm *stormPtr;    // ptr to storm object (for getting precip)
+    int flowgen;         // option for runoff generation method
+    int filllakes;       // option for filling lakes
     int optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
     double kwds, ewds, ewstn;//coefs & exps for dwnstrm & at-a-stn hydr. width
     double kdds, edds, edstn;//coefs & exps for dwnstrm & at-a-stn hydr. depth
     double knds, ends, enstn;//coefs & exps for ds & at-a-stn hydr. roughness
     double klambda, elambda; //coef & exp for downstrm bank roughness length
-    double rainrate;
+    double rainrate;      // current rainfall rate
     double bankfullevent; // rainfall rate corresponding to bankfull event
-    double trans;
-    double infilt;
-    double soilStore;        /* soil water storage, depth equiv (m) */
-    //double inDrArea;
-    tInlet inlet;
-    double mndrDirChngProb;
+    double trans;         // soil transmissivity
+    double infilt;        // soil infiltration capacity
+    double soilStore;     // soil water storage, depth equiv (m)
+    tInlet inlet;         // inlet
+    double mndrDirChngProb; // probability of mnd chan changing direction
     int optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
     double infilt_dev;    // max +/- variation from mean infilt cap
     double infilt0;    // mean infilt cap
