@@ -4,7 +4,7 @@
 **
 **  Functions for class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.5 1998-02-27 22:57:27 stlancas Exp $
+**  $Id: tArray.cpp,v 1.6 1998-07-15 22:21:45 gtucker Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -86,7 +86,10 @@ tArray< T >::
 **  Overloaded operators:
 **    assignment, equality, inequality: memberwise operation
 **    index: uses an assertion to check array bounds (assumed to be within
-**           bounds at runtime) 
+**           bounds at runtime)
+**
+**  Modifications:
+**   - Assignment: now allows assignment of empty arrays - GT 7/98
 \**************************************************************************/
 //overloaded assignment operator:
 template< class T >                                               //tArray
@@ -97,15 +100,18 @@ const tArray< T > &tArray< T >::operator=( const tArray< T > &right )
    {
       delete [] avalue;
       npts = right.npts;
-      avalue = new T [npts];
-      assert( avalue != 0 && right.avalue != 0 && npts != 0 );
-        //cout << "tArray op=: npts " << npts << "; ";
-      for( int i = 0; i < npts; i++ )
+      if( npts>0 )
       {
-           //cout << right.avalue[i] << " ";
-         avalue[i] = right.avalue[i];
+         assert( avalue != 0 && right.avalue != 0 );
+         avalue = new T [npts];
+        //cout << "tArray op=: npts " << npts << "; ";
+         for( int i = 0; i < npts; i++ )
+         {
+            //cout << right.avalue[i] << " ";
+            avalue[i] = right.avalue[i];
+         }
+         //cout << endl;
       }
-        //cout << endl;
    }
    return *this;
 }
