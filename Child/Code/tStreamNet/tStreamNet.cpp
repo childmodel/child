@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.37 2003-07-10 13:57:49 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.38 2003-07-11 08:56:22 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -172,7 +172,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    optrainvar = infile.ReadItem( optrainvar, "OPTVAR" );
 
    // Options related to stream meandering
-   int itMeanders = infile.ReadItem( itMeanders, "OPTMNDR" );
+   int itMeanders = infile.ReadItem( itMeanders, "OPTMEANDER" );
 
    // Read hydraulic geometry parameters: first, those used (potentially)
    // by both "regime" and "parker" hydraulic geometry models
@@ -1812,7 +1812,7 @@ void tStreamNet::FindHydrGeom()
    //Xint i, j, num;
    double kwdspow, kndspow, kddspow,
        widpow, deppow, npow, qpsec;
-   double width, depth, rough, slope;
+   double width, depth, rough=0.0, slope;
    tLNode *cn;
 
    // TODO: could be made more efficient!
@@ -1856,14 +1856,14 @@ void tStreamNet::FindHydrGeom()
       //removed an if cn->Meanders(), so stuff calculated everywhere
       //if rainfall varies, find hydraulic width "at-a-station"
       //based on the channel width "downstream":
-      if( optrainvar) // TODO: IF should be outside loop
+      if( optrainvar && cn->getQ()>0.0 ) // TODO: IF should be outside loop
       {
          qpsec = cn->getQ()/SECPERYEAR;
          width = pow(cn->getChanWidth(), widpow) * kwdspow * pow(qpsec, ewstn);
          cn->setHydrWidth( width );
          depth = pow(cn->getChanDepth(), deppow) * kddspow * pow(qpsec, edstn);
          cn->setHydrDepth( depth );
-         rough = pow(cn->getChanRough(), npow) * kndspow * pow(qpsec, enstn);
+        rough = pow(cn->getChanRough(), npow) * kndspow * pow(qpsec, enstn);
          cn->setHydrRough( rough );
          slope = cn->getChanSlope();
          assert( slope >= 0 ); // slope can be zero -- changed assert 3/99
