@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.39 2003-07-15 15:55:29 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.40 2003-07-18 17:51:53 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -406,7 +406,6 @@ void tStreamNet::UpdateNet( double time, tStorm &storm )
 \**************************************************************************/
 void tStreamNet::CheckNetConsistency()
 {
-   int ctr = 0;
    tLNode *cn, *dn, *ln;
    tMeshListIter< tLNode > nI( meshPtr->getNodeList() ),
        tI( meshPtr->getNodeList() );
@@ -425,7 +424,7 @@ void tStreamNet::CheckNetConsistency()
          cerr<< "NODE #" << cn->getID() << " flows to itself!\n";
          goto error;
       }
-      if( ( ln = tI.GetP( dn->getID() ) ) )
+      if( ( ln = tI.GetP( dn->getID() ) ) != NULL )
       {
          if( ln != dn )
          {
@@ -455,7 +454,7 @@ void tStreamNet::CheckNetConsistency()
    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
    {
       // Make sure each node has path to outlet (or to a sink):
-      ctr = 0;
+      int ctr = 0;
       dn = cn->getDownstrmNbr();
       while( dn->getBoundaryFlag() == kNonBoundary
              && dn->getFloodStatus() != kSink )
@@ -1651,7 +1650,7 @@ void tStreamNet::SortNodesByNetOrder( int optMultiFlow )
 {
    int nThisPass;                      // Number moved in current iteration
    int i;
-   bool done = false;
+   bool done;
    tLNode * cn;
    tMeshList<tLNode> *nodeList = meshPtr->getNodeList();
    int nUnsortedNodes = nodeList->getActiveSize();  // Number not yet sorted
@@ -1812,7 +1811,7 @@ void tStreamNet::FindHydrGeom()
    //Xint i, j, num;
    double kwdspow, kndspow, kddspow,
        widpow, deppow, npow, qpsec;
-   double width, depth, rough=0.0, slope;
+   double width, depth, rough, slope;
    tLNode *cn;
 
    // TODO: could be made more efficient!
@@ -2375,7 +2374,7 @@ void tInlet::FindNewInlet()
    newinnode = innode;
      //for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
      //go through boundary nodes:
-   cn = nI.LastActiveP();
+   /*cn =*/ nI.LastActiveP();
    for( cn = nI.NextP(); !(nI.AtEnd()); cn = nI.NextP() )
    {
         //select for 'northern' bndy nodes:

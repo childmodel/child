@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.56 2003-06-23 10:36:19 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.57 2003-07-18 17:51:49 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -327,7 +327,6 @@ double tNode::ComputeVoronoiArea()
                     //of the 'next-next-next' edge's vertex; length to zero
                   edgptr->setVEdgLen(0.0);
                   edgptr->setRVtx( xynnn );
-                  edgptr = 0;
                     //delete the offending vertex's edge from list
                   /* edgptr =*/ vedgList.removeNext( vtxIter.NodePtr() );
                }

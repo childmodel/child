@@ -1093,7 +1093,7 @@ void tt_build_elem_table(int npoints, const point *p,
 	   << endl;
     }
   }
-  delete [] edges_visit; edges_visit = NULL;
+  delete [] edges_visit;
   *pnelem = nelem;
   *pelems_ret = elems;
 }

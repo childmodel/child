@@ -45,7 +45,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.116 2003-07-15 16:03:45 childcvs Exp $
+**  $Id: erosion.cpp,v 1.117 2003-07-18 17:51:47 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -996,9 +996,7 @@ double tSedTransBridgeDom::TransCapacity( tLNode *node )
 \***************************************************************************/
 double tSedTransBridgeDom::TransCapacity( tLNode *node, int lyr, double weight )
 {
-   double cap = 0;
-   
-   cap = weight * TransCapacity( node );
+   const double cap = weight * TransCapacity( node );
 
    int i;
    for(i=0; i<node->getNumg(); i++)
@@ -1087,8 +1085,7 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight
        ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
    double d50 = 0.0,   // Mean grain size
      tau,              // Shear stress
-     tauex,            // Excess shear stress 
-     cap = 0;          // Xport capacity for a given size
+     tauex;            // Excess shear stress 
    static tArray<double> frac( miNumgrnsizes );
    int i;
    
@@ -1136,7 +1133,8 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight
 	 cout << "tauc " << i << " = " << tauc << endl;
        tauex = tau - tauc;
        tauex = (tauex>0.0) ? tauex : 0.0;
-       cap = frac[i] * weight * kf * node->getHydrWidth() * pow( tauex, pf );
+       // Xport capacity for a given size
+       const double cap = frac[i] * weight * kf * node->getHydrWidth() * pow( tauex, pf );
        totalcap += cap;
        node->addQs( i, cap );
    }
@@ -1706,7 +1704,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
    if(0) //DEBUG
      cout<<"ErodeDetachLim...";
    double dt,
-       dtmax = 1000000.0; // time increment: initialize to arbitrary large val
+       dtmax; // time increment
    double frac = 0.9; //fraction of time to zero slope
    //Xint i;
    tLNode * cn, *dn;
@@ -1719,7 +1717,6 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
    strmNet->FindChanGeom();
    strmNet->FindHydrGeom();
 
-   cn = ni.FirstP();
    tArray<double> valgrd(1);
    //tArray<double> valgrd( cn->getNumg() );
    //TODO: make it work w/ arbitrary # grain sizes
@@ -1779,7 +1776,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
 void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift const *UPtr )
 {
    double dt,
-       dtmax = 1000000.0; // time increment: initialize to arbitrary large val
+       dtmax; // time increment
    double frac = 0.1; //fraction of time to zero slope
    //Xint i;
    tLNode * cn, *dn;
@@ -2419,8 +2416,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
           dz,
           depck,
           qs,
-          excap,
-          sum;
+          excap;
       tLNode * inletNode = strmNet->getInletNodePtr();
       double insedloadtotal = strmNet->getInSedLoad();
       
@@ -2471,7 +2467,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          {
             depck=0;
             i=0;
-            drdt=0;
             qs=0;
             
             assert(cn->getChanDepth()<1000);
@@ -2587,7 +2582,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             //it by what flow has capacity to transport.  If transport limited,
             //the texture of what erode is determined by the calculated values
             //of qs.
-            dz=0;
             if( -cn->getDrDt() < excap ){
                dz = cn->getDrDt()*dtmax; // detach-lim
                flag = 0;
@@ -2639,7 +2633,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                         dz=0;
                      }
                      else{//top layer is not deep enough, need to erode more layers
-                        sum=0;
                         flag=0;
                         for(j=0;j<cn->getNumg();j++){
                            erolist[j]=-cn->getLayerDgrade(i,j);
@@ -2681,7 +2674,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                      depck+=cn->getLayerDepth(i);
                      flag=cn->getNumLayer();
                      ret=cn->EroDep(i,erolist,timegb);
-                     sum=0;
+                     double sum=0;
                      for(j=0;j<cn->getNumg();j++){
                         cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
                         erolist[j]-=ret[j];
@@ -2824,7 +2817,7 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
          ((tLNode*)ce->getDestinationPtr())->TellAll();
          cout << endl;*/
          
-         ce = edgIter.NextP();  // Skip complementary edge
+         /*ce =*/ edgIter.NextP();  // Skip complementary edge
       }
    
       // Compute erosion/deposition for each node

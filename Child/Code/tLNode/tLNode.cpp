@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 **
-**  $Id: tLNode.cpp,v 1.111 2003-07-17 11:31:49 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.112 2003-07-18 17:51:49 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -333,7 +333,7 @@ uplift(0.),
 {
    int i;
    char add[2], name[20];
-   double help, extra, sum, sumbr;
+   double help, sum, sumbr;
    tLayer layhelp, niclay;
    tArray<double> dgradehelp;
    tArray<double> dgradebrhelp;
@@ -434,10 +434,9 @@ uplift(0.),
              ReportFatalError( "Erodibility factor KR must be positive." );
          layhelp.setErody(help);
          help = infile.ReadItem( help, "REGINIT");
-         extra = 0;
          if(help > maxregdep){
             // too much regolith, create two layers the bottom layer is made here
-            extra = help - maxregdep;
+            const double extra = help - maxregdep;
             //layhelp.setDepth(extra);
             //layhelp.setDgradesize(numg);
             i=0;

@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.89 2003-07-16 12:58:23 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.90 2003-07-18 17:51:51 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -769,8 +769,8 @@ void tStreamMeander::FindReaches()
     }
   if (0){ //DEBUG
     cout << "Final no. reaches: " << reachList.getSize() << endl;
-    for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
-	 plPtr = rlIter.NextP(), i++ )
+    for( /*plPtr =*/ rlIter.FirstP(), i=0; !(rlIter.AtEnd());
+	 /*plPtr =*/ rlIter.NextP(), i++ )
       {
 	cout << "reach " << i << " length " << nrnodes[i] << endl;
       }
@@ -1382,7 +1382,8 @@ void tStreamMeander::AddChanBorder(double time)
 		  //just make sure new node will be
 		  //(a) not in a channel and
 		  //(b) on the same side of the channel:
-		  if( (ct = meshPtr->LocateTriangle( oldpos[0], oldpos[1] )) )
+		  if( (ct = meshPtr->LocateTriangle( oldpos[0], oldpos[1] ))
+		      != NULL)
 		    {
 		      // WHY COMMENTED OUT??
 		      //channodePtr = cn;
@@ -1400,7 +1401,7 @@ void tStreamMeander::AddChanBorder(double time)
 			  if( tn->Meanders() )
 			    {
 			      // ! This passes uninitialized channode ptr ! TODO
-			      if( (inchan = InChannel( tn, &channode )) )
+			      if( (inchan = InChannel( tn, &channode )) != 0)
 				{
 				  if (0) //DEBUG
 				    cout << "old coord's in channel" << endl;
@@ -1675,7 +1676,7 @@ void tStreamMeander::CheckBndyTooClose()
   if (0) //DEBUG
     cout << "CBTC\n";
 
-  cn = nI.LastActiveP();
+  /*cn =*/ nI.LastActiveP();
   //go through boundary nodes
   for( cn = nI.NextP(); !(nI.AtEnd()); cn = nI.NextP() )
     {
@@ -1775,7 +1776,6 @@ void tStreamMeander::CheckBanksTooClose()
            cn = rnIter.NextP(), j++ )
 	{
 	  // Check neighboring nodes
-	  pointtodelete = 0;
 	  tSpkIter spokIter( cn );
 	  for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
 	       ce = spokIter.NextP() )
@@ -1820,7 +1820,7 @@ void tStreamMeander::CheckBanksTooClose()
       if (0) //DEBUG
 	cout << "CBTC: delete node " << dn->getID() << endl;
       meshPtr->DeleteNode( dn );
-      cn = delPtrList.removeFromFront();
+      /*cn =*/ delPtrList.removeFromFront();
     }
 
   if (0) //DEBUG
@@ -1857,7 +1857,7 @@ void tStreamMeander::CheckFlowedgCross()
     cout << "CheckFlowedgCross()..." << endl;
   int i, j;
   int ft;
-  int crossed;
+  bool crossed;
   tLNode *pointtodelete, *nod(0), *cn, *dscn(0);
   tEdge * fedg, *ce;
   tTriangle * ct, *nt;
@@ -1867,10 +1867,9 @@ void tStreamMeander::CheckFlowedgCross()
   //  a spoke of the third vtx. intersects the flowedg OR
   //  more than one nbr. tri. is also !CCW
   //then delete third vtx. because it has been "crossed" by the flowedg
-  crossed = 1;
   do
     {
-      crossed = 0;
+      crossed = false;
       for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
 	{
 	  if( !NewTriCCW( ct ) )
@@ -1932,7 +1931,7 @@ void tStreamMeander::CheckFlowedgCross()
 		    }
 		  if( pointtodelete != 0 )
 		    {
-		      crossed = 1;
+		      crossed = true;
 		      //if the node to delete is a meandering node
 		      //with greater flow, delete the node we started with
 		      if( pointtodelete->Meanders() &&
@@ -2011,7 +2010,8 @@ void tStreamMeander::CheckBrokenFlowedg()
 {
   if (0) //DEBUG
     cout << "CheckBrokenFlowedg()..." << endl;
-  int nrn, nln, breakedge = 1;
+  int nrn, nln;
+  bool breakedge;
   int nloops = 0;
   double area;
   const bool flip = false;
@@ -2036,7 +2036,7 @@ void tStreamMeander::CheckBrokenFlowedg()
   do
     {
       nloops++;
-      breakedge = 0;
+      breakedge = false;
       if (0) //DEBUG
 	cout << "checking..." << endl;
       //look through meandering nodes:
@@ -2082,7 +2082,7 @@ void tStreamMeander::CheckBrokenFlowedg()
 			  area = cn->getDrArea();
 			  if( ln->getDrArea() < area && rn->getDrArea() < area )
 			    {
-			      breakedge = 1;
+			      breakedge = true;
 			      dis0 = ln->DistNew( cn, dn );
 			      dis1 = rn->DistNew( cn, dn );
 			      //delete closer node if it's not a boundary node;
