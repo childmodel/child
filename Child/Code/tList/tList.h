@@ -33,7 +33,7 @@
  **      track position on list w/o an iterator, 1/22/99
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **
- **  $Id: tList.h,v 1.48 2003-10-15 15:04:04 childcvs Exp $
+ **  $Id: tList.h,v 1.49 2004-03-22 12:20:14 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -73,8 +73,8 @@ public:
   inline tListNode( const NodeType & );              // copy constructor #2
   const tListNode< NodeType >
   &operator=( const tListNode< NodeType > & );           // assignment
-  inline int operator==( const tListNode< NodeType > & ) const; // equality
-  inline int operator!=( const tListNode< NodeType > & ) const; // inequality
+  inline bool operator==( const tListNode< NodeType > & ) const; // equality
+  inline bool operator!=( const tListNode< NodeType > & ) const; // inequality
   /*set*/
   inline NodeType getDataNC() const;               // returns copy of data item
   inline NodeType &getDataRefNC();                 // returns modifiable ref to data
@@ -173,18 +173,18 @@ operator=( const tListNode< NodeType > &right )
 
 //overloaded equality operator:
 template< class NodeType >                     //tListNode
-inline int tListNode< NodeType >::
+inline bool tListNode< NodeType >::
 operator==( const tListNode< NodeType > &right ) const
 {
-  if( next != right.next ) return 0;
-  if( prev != right.prev ) return 0;
-  if( &data != &(right.data) ) return 0;
-  return 1;
+  if( next != right.next ) return false;
+  if( prev != right.prev ) return false;
+  if( &data != &(right.data) ) return false;
+  return true;
 }
 
 //overloaded inequality operator:
 template< class NodeType >                     //tListNode
-inline int tListNode< NodeType >::
+inline bool tListNode< NodeType >::
 operator!=( const tListNode< NodeType > &right ) const
 {
   return ! operator==(right);

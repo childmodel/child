@@ -13,7 +13,7 @@
  **  argument passed to the constructor or by assignment of one array
  **  to another.
  **
- **  $Id: tArray.h,v 1.25 2004-02-27 17:27:25 childcvs Exp $
+ **  $Id: tArray.h,v 1.26 2004-03-22 12:20:14 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -51,8 +51,8 @@ public:
 
   inline ~tArray();              // destructor
   const tArray< T > &operator=( const tArray< T > & ); // memberwise assignmt
-  int operator==( const tArray< T > & ) const;    // memberwise comparison
-  int operator!=( const tArray< T > & ) const;    // memberwise comparison
+  bool operator==( const tArray< T > & ) const;    // memberwise comparison
+  bool operator!=( const tArray< T > & ) const;    // memberwise comparison
   inline T &operator[]( int );   // overloaded array index operator
   inline const T &operator[]( int ) const;
   inline T & at( int );

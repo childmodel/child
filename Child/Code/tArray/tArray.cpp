@@ -3,7 +3,7 @@
  **  @file tArray.cpp
  **  @brief Functions for template class tArray< T >
  **
- **  $Id: tArray.cpp,v 1.24 2003-09-02 13:55:55 childcvs Exp $
+ **  $Id: tArray.cpp,v 1.25 2004-03-22 12:20:13 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -97,19 +97,19 @@ const tArray< T > &tArray< T >::operator=( const tArray< T > &right )
 
 //overloaded equality operator:
 template< class T >
-int tArray< T >::operator==( const tArray< T > &right ) const
+bool tArray< T >::operator==( const tArray< T > &right ) const
 {
   if( npts != right.npts ) return 0;
   int i;
   for( i = 0; i < npts; i++ )
     if( avalue[i] != right.avalue[i] )
-      return 0;
-  return 1;
+      return false;
+  return true;
 }
 
 //overloaded inequality operator:
 template< class T >
-int tArray< T >::operator!=( const tArray< T > &right ) const
+bool tArray< T >::operator!=( const tArray< T > &right ) const
 {
   return !operator==(right);
 }

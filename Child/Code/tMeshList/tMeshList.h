@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.24 2003-10-15 14:02:45 childcvs Exp $
+**  $Id: tMeshList.h,v 1.25 2004-03-22 12:20:16 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -64,8 +64,8 @@ class tMeshList : public tList< NodeType >
    ~tMeshList();
    const tMeshList< NodeType >
        &operator=( const tMeshList< NodeType > & );
-   int operator==( const tMeshList< NodeType > & ) const;
-   int operator!=( const tMeshList< NodeType > & ) const;
+   bool operator==( const tMeshList< NodeType > & ) const;
+   bool operator!=( const tMeshList< NodeType > & ) const;
    inline int getActiveSize() const;
    inline tListNode< NodeType  > * getLastActive() const;
    int isActiveEmpty() const;
@@ -174,18 +174,18 @@ operator=( const tMeshList< NodeType > &right )
 
 //overloaded equality operator:
 template< class NodeType >                      //tMeshList
-int tMeshList< NodeType >::
+bool tMeshList< NodeType >::
 operator==( const tMeshList< NodeType > &right ) const
 {
-   if( tList< NodeType >::operator!=( right ) ) return 0;
-   if( nActiveNodes != right.nActiveNodes ) return 0;
-   if( lastactive != right.lastactive ) return 0;
-   return 1;
+   if( tList< NodeType >::operator!=( right ) ) return false;
+   if( nActiveNodes != right.nActiveNodes ) return false;
+   if( lastactive != right.lastactive ) return false;
+   return true;
 }
 
 //overloaded inequality operator:
 template< class NodeType >                      //tMeshList
-int tMeshList< NodeType >::
+bool tMeshList< NodeType >::
 operator!=( const tMeshList< NodeType > &right ) const
 {
    return ! operator==(right);
