@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.3 1998-01-29 19:53:06 stlancas Exp $
+**  $Id: tOutput.cpp,v 1.4 1998-02-02 17:54:18 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -25,13 +25,13 @@
 template< class tSubNode >
 tOutput<tSubNode>::tOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile )
 {
-   char fullName[kMaxNameSize+6];
+   //Xchar fullName[kMaxNameSize+6];
    
    assert( gridPtr > 0 );
    g = gridPtr;
 
    infile.ReadItem( baseName, "OUTFILENAME" );
-   strcpy( fullName, baseName );
+/*X   strcpy( fullName, baseName );
    strcat( fullName, ".nodes" );
    nodeofs.open( fullName );
    strcpy( fullName, baseName );
@@ -43,12 +43,52 @@ tOutput<tSubNode>::tOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile )
    strcpy( fullName, baseName );
    strcat( fullName, ".z" );
    zofs.open( fullName );
-
+   
    if( !nodeofs.good() || !edgofs.good() || !triofs.good() || !zofs.good() )
        ReportFatalError(
-           "I can't create files for output. Memory may be exhausted." );
+           "I can't create files for output. Memory may be exhausted." );*/
+
+   CreateAndOpenFile( &nodeofs, ".nodes" );
+   CreateAndOpenFile( &edgofs, ".edges" );
+   CreateAndOpenFile( &triofs, ".tri" );
+   CreateAndOpenFile( &zofs, ".z" );
+   
    
 }
+
+
+/*************************************************************************\
+**
+**  CreateAndOpenFile
+**
+**  Opens the output file stream pointed by theOFStream, giving it the
+**  name <baseName><extension>, and checks to make sure that the ofstream
+**  is valid.
+**
+**  Input:  theOFStream -- ptr to an ofstream object
+**          extension -- file name extension (e.g., ".nodes")
+**  Output: theOFStream is initialized to create an open output file
+**  Assumes: extension is a null-terminated string, and the length of
+**           baseName plus extension doesn't exceed kMaxNameSize+6
+**           (ie, the extension is expected to be <= 6 characters)
+**
+\*************************************************************************/
+template< class tSubNode >
+void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
+                                           char *extension )
+{
+   char fullName[kMaxNameSize+6];
+   
+   strcpy( fullName, baseName );
+   strcat( fullName, extension );
+   theOFStream->open( fullName );
+
+   if( !theOFStream->good() )
+       ReportFatalError(
+           "I can't create files for output. Memory may be exhausted." );
+        
+}
+
 
 
 
@@ -141,9 +181,9 @@ template< class tSubNode >
 tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile ) 
         : tOutput<tSubNode>( g, infile )  // call base-class constructor
 {
-   char fullName[kMaxNameSize+6];
+   //Xchar fullName[kMaxNameSize+6];
 
-   strcpy( fullName, baseName );
+   /*Xstrcpy( fullName, baseName );
    strcat( fullName, ".area" );
    drareaofs.open( fullName );
    strcpy( fullName, baseName );
@@ -153,6 +193,11 @@ tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile )
    if( !drareaofs.good() || !netofs.good() )
        ReportFatalError(
            "Unable to open output file. Storage space may be exhausted." );
+           */
+
+   CreateAndOpenFile( &drareaofs, ".area" );
+   CreateAndOpenFile( &netofs, ".net" );
+   CreateAndOpenFile( &slpofs, ".slp" );
    
 }
 
@@ -167,11 +212,13 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    
    drareaofs << " " << time << "\n " << nActiveNodes << endl;
    netofs << " " << time << "\n " << nActiveNodes << endl;
+   slpofs << " " << time << "\n " << nActiveNodes << endl;
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
    {
       assert( cn>0 );
       drareaofs << cn->getDrArea() << endl;
       netofs << cn->GetDownstrmNbr()->getID() << endl;
+      slpofs << cn->GetSlope() << endl;
    }
    
 }
