@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.43 1998-08-01 22:36:59 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.44 1998-08-09 21:28:28 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -489,10 +489,14 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
 /*********************************************************************\
   tSedTransWilcock::TransCapacity
 
+  *nd - pointer to the node which you are calculating tranport rates at.
+  i - the layer which you are basing the transport rate on (for texture)
+  weight - used in erosion algorithm, a weight based on layer depths.
+
   This function uses the sediment transport model developed by
   P. Wilcock to calculate sediment transport rates of the sand and
   gravel fraction individually.  This function should only be used with
-  two grain sizes and it is assumed that the grain size one is in the
+  two grain sizes and it is assumed that grain size one is in the
   sand range and grain size 2 is in the gravel range.  The sediment
   transport rate of both grain sizes is calculated, and the sum of
   these two rates is returned. (rate here is in m^3/yr)
