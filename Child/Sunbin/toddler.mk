@@ -121,7 +121,8 @@ HFILES = \
 	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/tStreamNet/tStreamNet.h \
 	$(PT)/tUplift/tUplift.h \
-	$(PT)/tVegetation/tVegetation.h
+	$(PT)/tVegetation/tVegetation.h \
+	$(PT)/trapfpe.h
 
 ParamMesh_t.o: $(HFILES)
 TipperTriangulator.o : $(HFILES)
