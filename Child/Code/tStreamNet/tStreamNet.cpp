@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.18 2002-05-01 14:58:18 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.19 2002-05-02 09:23:37 arnaud Exp $
 \**************************************************************************/
 
 #include "../tAssert.h"
@@ -2162,7 +2162,8 @@ tInlet::tInlet() :
 #define LARGE_DISTANCE 1e9
 tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
   :
-  inSedLoad(0.)
+  inSedLoad(0.),
+  meshPtr(gPtr)
 {
    int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" ),
        numg = infile.ReadItem( numg, "NUMGRNSIZE" );
@@ -2182,7 +2183,6 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
    tPtrList< tLNode > nPL;            // List of nearby non-boundary nodes
    tPtrListIter< tLNode > itr( nPL ); // Iterator for the above list
    
-   meshPtr = gPtr;
    assert( meshPtr != 0 );
    if( inletbc )
    {
@@ -2517,12 +2517,12 @@ tParkerChannels::tParkerChannels( tInputFile &infile )
     beta;                 // Slope exponent in shear stress eqn
   int numg,               // Number of grain-size classes
     i;                    // Counter
-  double thetac = 0.045,  // Critical shields stress
-    sigma = 2650.0,       // Sediment density
-    rho = 1000.0,         // Water density
-    grav = 9.81,          // Gravitational acceleration
+  const double thetac = 0.045,  // Critical shields stress
+    sigma = RHOSED,       // Sediment density
+    rho = RHO,            // Water density
+    grav = GRAV,          // Gravitational acceleration
     P = 1.4,              // Parker-Paola constant (tau/taucrit ratio)
-    secPerYear=365.25*24*3600;  // # of seconds in one year
+    secPerYear=SECPERYEAR;  // # of seconds in one year
   char astring[12];   // string var used in reading grain-size classes
 
   //cout << "tParkerChannels::tParkerChannels\n";

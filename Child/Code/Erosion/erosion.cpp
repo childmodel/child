@@ -36,7 +36,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.97 2002-05-01 14:48:23 arnaud Exp $
+**  $Id: erosion.cpp,v 1.98 2002-05-02 09:23:34 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -254,7 +254,7 @@ double tEquilibCheck::FindLongTermChngRate( double newtime )
 //constructor: reads and sets the parameters
 tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 {
-  const double secPerYear = 365.25*24*3600.0;  // # secs in one year
+  const double secPerYear = SECPERYEAR;  // # secs in one year
 
    kb = infile.ReadItem( kb, "KB" );
    kt = infile.ReadItem( kt, "KT" );
@@ -464,7 +464,7 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 //constructor: reads and sets the parameters
 tBedErodePwrLaw2::tBedErodePwrLaw2( tInputFile &infile )
 {
-  double secPerYear = 365.25*24*3600.0;  // # secs in one year
+  const double secPerYear = SECPERYEAR;  // # secs in one year
 
    kb = infile.ReadItem( kb, "KB" );
    kt = infile.ReadItem( kt, "KT" );
@@ -662,7 +662,7 @@ double tBedErodePwrLaw2::SetTimeStep( tLNode * n )
 \***************************************************************************/
 tSedTransPwrLaw::tSedTransPwrLaw( tInputFile &infile )
 {
-   const double secPerYear = 365.25*24*3600.0;  // # secs in one year
+   const double secPerYear = SECPERYEAR;  // # secs in one year
 
    kf = infile.ReadItem( kf, "KF" );
    kt = infile.ReadItem( kt, "KT" );
@@ -769,7 +769,7 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
 \***************************************************************************/
 tSedTransPwrLaw2::tSedTransPwrLaw2( tInputFile &infile )
 {
-   double secPerYear = 365.25*24*3600.0;  // # secs in one year
+   const double secPerYear = SECPERYEAR;  // # secs in one year
 
    kf = infile.ReadItem( kf, "KF" );
    kt = infile.ReadItem( kt, "KT" );
@@ -868,7 +868,7 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node, int lyr, double weight )
 \**************************************************************************/
 tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
 {
-   const double secPerYear = 365.25*24*3600.0;  // # secs in one year
+   const double secPerYear = SECPERYEAR;  // # secs in one year
 
    kf = infile.ReadItem( kf, "KF" );
    kt = infile.ReadItem( kt, "KT" );
@@ -893,10 +893,10 @@ tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
    char tagline[11], digit = '0';
    strcpy( tagline, "GRAINDIAM0");
    int i;
-   double thetac = 0.045,
-     sig = 2650.0,
-     rho = 1000.0,
-     g = 9.81;
+   const double thetac = 0.045,
+     sig = RHOSED,
+     rho = RHO,
+     g =GRAV;
    for( i=0; i<miNumgrnsizes; i++ )
      {
        /*tagline = taglinebase + digits.substr(i,i);
@@ -1016,8 +1016,8 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
    grade[1] = infile.ReadItem( grade[1], "GRAINDIAM2" );
 
    taudim= RHO*GRAV;
-   refs = (RHOSED-RHO)*9.81*grade[0];
-   refg = (RHOSED-RHO)*9.81*grade[1];
+   refs = (RHOSED-RHO)*GRAV*grade[0];
+   refg = (RHOSED-RHO)*GRAV*grade[1];
    lowtaucs = 0.8*(grade[1]/grade[0])*0.040*refs*0.8531;
    lowtaucg = 0.04*refg*0.8531;
    hightaucs = 0.04*refs*0.8531;
@@ -1257,8 +1257,8 @@ tSedTransMineTailings::tSedTransMineTailings( tInputFile &infile )
    }
 
    taudim= RHO*GRAV;
-   refs = (RHOSED-RHO)*9.81*grade[0];
-   refg = (RHOSED-RHO)*9.81*grade[1];
+   refs = (RHOSED-RHO)*GRAV*grade[0];
+   refg = (RHOSED-RHO)*GRAV*grade[1];
    lowtaucs = 0.8*(grade[1]/grade[0])*0.040*refs*0.8531;
    lowtaucg = 0.04*refg*0.8531;
    hightaucs = 0.04*refs*0.8531;

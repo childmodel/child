@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.68 2002-04-22 17:56:48 arnaud Exp $
+**  $Id: tStreamMeander.cpp,v 1.69 2002-05-02 09:23:36 arnaud Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -190,7 +190,7 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tMesh< tLNode > &mRef,
    //rockerod *= .05*pow(SECPERYEAR,MB);
    //vegerod *= .05*pow(SECPERYEAR,MB);  // added gt 3/15/99
    //latadjust = infile.ReadItem( latadjust, "LATADJUST" );
-   //double shrcoeff = 1.0 / ( 1000.0 * 9.81 * pow( knds / kwds, 0.6 ) );
+   //double shrcoeff = 1.0 / ( 1000.0 * GRAV * pow( knds / kwds, 0.6 ) );
    //vegerod *= shrcoeff * latadjust;
    //rockerod *= shrcoeff * latadjust;
 

@@ -24,7 +24,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.35 2002-04-22 18:14:33 arnaud Exp $
+**  $Id: tStreamNet.h,v 1.36 2002-05-02 09:23:38 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -47,7 +47,7 @@
 #define k2DKinematicWave 4 // Option for 2D steady kinematic wave multi-flow
 #define kHydrographPeakMethod 5  // Option for hydrograph peak method
 
-#define kSecperyear 31536000  // No. of seconds in one year
+#define kSecperyear SECPERYEAR  // No. of seconds in one year
 
 #define kFlooded     1  // Flooding (lake) codes: part of a lake...
 #define kNotFlooded  0  // ...or not...
