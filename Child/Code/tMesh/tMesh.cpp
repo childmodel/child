@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.39 1998-05-12 22:08:44 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.40 1998-05-18 23:37:08 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2091,9 +2091,9 @@ LocateTriangle( double x, double y )
                                     //if lt == 0, i.e., point is out of bounds,
                                     //and we don't want that;
                                     //calling code is built to deal with lt == 0.
-   //if( online != -1 && pPtr(online)->getBoundaryFlag() != kNonBoundary &&
-   //    pPtr( (online+1)%3 )->getBoundaryFlag() != kNonBoundary ) //point on bndy
-   //    return 0;
+   if( online != -1 && lt->pPtr(online)->getBoundaryFlag() != kNonBoundary &&
+       lt->pPtr( (online+1)%3 )->getBoundaryFlag() != kNonBoundary ) //point on bndy
+       return 0;
    //else cout << "location out of bounds\n";
    return(lt);
 }
