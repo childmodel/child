@@ -538,14 +538,14 @@ oriented_edge oriented_edge::next_ccw_around_from(const edge* edges) const {
   int ires;
   bool bres = true;
   if (o()){
-    ires = edges[e()].let;
+    ires = edges[e()].lef;
   } else {
-    ires = edges[e()].ref;
+    ires = edges[e()].ret;
   }
   if (ires != -1){
-    bres = edges[ires].ret == e();
+    bres = edges[ires].ref == e();
     if (!bres)
-      assert( edges[ires].lef == e());
+      assert( edges[ires].let == e());
   }
   return oriented_edge(ires,bres);
 }
@@ -554,14 +554,14 @@ oriented_edge oriented_edge::next_cw_around_from(const edge* edges) const {
   int ires;
   bool bres = true;
   if (o()){
-    ires = edges[e()].ret;
+    ires = edges[e()].ref;
   } else {
-    ires = edges[e()].lef;
+    ires = edges[e()].let;
   }
   if (ires != -1){
-    bres = edges[ires].let == e();
+    bres = edges[ires].lef == e();
     if (!bres)
-      assert( edges[ires].ref == e());
+      assert( edges[ires].ret == e());
   }
   return oriented_edge(ires,bres);
 }
