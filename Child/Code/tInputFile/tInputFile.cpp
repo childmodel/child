@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.30 2004-01-07 10:58:43 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.31 2004-01-29 16:41:18 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -20,6 +20,7 @@
 #include "tInputFile.h"
 #include "../errors/errors.h"
 #include "../tList/tList.h"
+#include "../tTimeSeries/tTimeSeries.h"
 
 #if !defined(HAVE_NO_NAMESPACE)
 # include <iostream>
@@ -318,6 +319,18 @@ int tInputFile::findKeyWord( const char *key ) const
   return notFound;
 }
 
+bool tInputFile::Contain(const char *itemCode) const {
+  return findKeyWord( itemCode ) != notFound;
+}
+
+void tInputFile::WarnObsoleteKeyword(const char *ancient,
+				     const char *modern) const {
+  if (Contain(ancient))
+    cout
+      << "Warning: `" << ancient << "` is obsolete and is ignored.\n Use `"
+      << modern << "' instead." << endl;
+}
+
 /****************************************************************************\
 **
 **  tInputFile::ReadItem
@@ -406,4 +419,21 @@ void tInputFile::ReadItem( char * theString, size_t len,
   // strip trailing '\r' if we are dealing with a windows CR/LF text file
   if (theString[llen-1] == '\r')
     theString[llen-1] = '\0';
+}
+
+//****************************************************************
+// Designed and implemented:
+// PWB, jan-feb 2000
+// AD Jan 2004: Added to Child.
+//****************************************************************
+void tInputFile::ReadItem(tTimeSeries &ts, const char *itemCode,
+			  bool reqParam ) const
+{
+  const int i = findKeyWord( itemCode );
+  if (i == notFound)
+  {
+    ReportNonExistingKeyWord( itemCode, reqParam );
+    return;
+  }
+  ts.configure(KeyWordTable[i].value());
 }

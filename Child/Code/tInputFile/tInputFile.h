@@ -40,7 +40,7 @@
 **  Modified, SL, September 2003: Can now generate non-fatal warnings and
 **    return zero-values as specified; default will be fatal error.
 **
-**  $Id: tInputFile.h,v 1.21 2004-01-28 14:46:28 childcvs Exp $
+**  $Id: tInputFile.h,v 1.22 2004-01-29 16:41:18 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -49,9 +49,10 @@
 
 #include "../tArray/tArray.h"
 
-#define kMaxNameLength 120
+#define kMaxNameLength 128
 #include "../Definitions.h"
 #include <stddef.h>
+class tTimeSeries;
 
 /** @class tKeyPair
 **
@@ -85,15 +86,19 @@ class tInputFile
 {
 public:
   tInputFile( const char * );   // constructor takes name of file to open
+  bool Contain(const char *) const;
+  void WarnObsoleteKeyword(const char *, const char *) const;
   int ReadItem( const int &, const char *, bool reqParam = true ) const;       // reads an int
   long ReadItem( const long &, const char *, bool reqParam = true ) const;     // reads a long
   double ReadItem( const double &, const char *, bool reqParam = true ) const; // reads a double
   void ReadItem( char *, size_t len, const char *, bool reqParam = true ) const;// reads a string
+  void ReadItem(tTimeSeries &, const char *,
+		bool reqParam = true ) const; // reads a time series
+
   // similar overrides could be added for other data types
 
 private:
   tArray< tKeyPair > KeyWordTable; // hold key/value pair
-
   enum { notFound = -1 }; // must be strictly negative
   int findKeyWord(const char*) const; // find index of keyword
   void writeLogFile() const;
