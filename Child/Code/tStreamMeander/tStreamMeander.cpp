@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.49 1999-01-26 21:10:53 nmgaspar Exp $
+**  $Id: tStreamMeander.cpp,v 1.50 1999-02-09 17:27:36 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -234,7 +234,7 @@ void tStreamMeander::FindMeander()
       {
          cn->setMeanderStatus( kMeanderNode );
          cn->setNew2DCoords( cn->getX(), cn->getY() );
-         //cout << "FM node " << cn->getID() << " meanders " << cn->Meanders()<<endl;
+         //cout << "FM node " << cn->getID() << " meanders discharge " << cn->getQ()<<" crit Q "<<critflow<<endl;
       }
       else
       {
@@ -284,7 +284,7 @@ void tStreamMeander::FindHydrGeom()
          //based on the channel width "downstream":
          if( optrainvar)
          {
-            qpsec = cn->getQ();
+            qpsec = cn->getQ()/SECPERYEAR;
             width = pow(cn->getChanWidth(), widpow) * kwdspow * pow(qpsec, ewstn);
             cn->setHydrWidth( width );
             //depth = pow(cn->getChanDepth(), deppow) * kddspow * pow(qpsec, edstn);
@@ -313,7 +313,7 @@ void tStreamMeander::FindHydrGeom()
          }
       }
    }
-   cout << "done FindHydrGeom" << endl << flush;
+   cout << "done tStreamMeaner::FindHydrGeom" << endl << flush;
 }
 
 
@@ -353,7 +353,7 @@ void tStreamMeander::FindChanGeom()
       {         
 // qbffactor is now in m^3/s
          qbf = cn->getDrArea() * qbffactor;
-         if( !qbf ) qbf = cn->getQ();  // q is now in m^3/s
+         if( !qbf ) qbf = cn->getQ()/SECPERYEAR;  // q is now in m^3/s
          width = kwds * pow(qbf, ewds);
 //       depth = kdds * pow(qbf, edds);
          rough = knds * pow(qbf, ends);
@@ -395,7 +395,7 @@ void tStreamMeander::FindChanGeom()
       
    }
    
-   cout << "done FindChanGeom" << endl;
+   cout << "done tStreamMeander::FindChanGeom" << endl;
    
 }
 
@@ -425,7 +425,7 @@ void tStreamMeander::FindChanGeom()
 **
 \****************************************************************/
 
-int tStreamMeander::InterpChannel()
+int tStreamMeander::InterpChannel( double time )
 {
    //if( timetrack >= kBugTime ) 
    cout << "InterpChannel" << endl;
@@ -502,7 +502,8 @@ int tStreamMeander::InterpChannel()
                z = z0 - curseglen / 2.0 * slope;
                nn.set3DCoords( x, y, z );
                //if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
-               gridPtr->AddNode( nn );
+               cout<<"node being added in tStreamMeander, node id is "<<nn.getID()<<endl;
+               gridPtr->AddNode( nn, 1, time );
             }
             //otherwise, if we need to add more than one point,
             //generate a random walk with uniform spacing in x
@@ -531,7 +532,8 @@ int tStreamMeander::InterpChannel()
                   //cout<<"InterpChannel: call AddNode"<<endl<<flush;
                   nn.set3DCoords( x, y, z );
                   //if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
-                  gridPtr->AddNode( nn );
+                  cout<<"node being added in tStreamMeander, node id is "<<nn.getID()<<endl;
+                  gridPtr->AddNode( nn, 1, time );
                }
                delete arrPtr;
             }
@@ -546,7 +548,7 @@ int tStreamMeander::InterpChannel()
         //netPtr->InitFlowDirs();
       //NOTE****!!! the zero param below should be replaced with current time,
       // which needs to be passed to Migrate, etc....TODO
-      netPtr->UpdateNet( 0.0 );      
+      netPtr->UpdateNet( time );      
       //if( timetrack >= kBugTime ) cout << "added nodes(s), InterpChannel finished"
       //                              << endl << flush;
       return 1;
@@ -607,7 +609,7 @@ void tStreamMeander::MakeReaches( double ctime)
       netPtr->FindHydrGeom();
       FindReaches(); //find reaches of meandering nodes
    }
-   while( InterpChannel() ); //updates
+   while( InterpChannel( ctime ) ); //updates
 }
 
 
@@ -927,7 +929,8 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
          ya[j] = curnode->getY();
          xsa[j] = xs;
          xs += fedg->getLength();
-         qa[j] = curnode->getQ();
+         qa[j] = curnode->getQ()/SECPERYEAR;
+         if(curnode->getID()==300) cout<<"MEANDER discharge is (/sec) "<<qa[j]<<endl;
          delsa[j] = fedg->getLength();
          if( j < creach->getSize() - 1 )
          {
@@ -1090,7 +1093,6 @@ void tStreamMeander::Migrate( double ctime )
    duration += ctime;
    double cummvmt = 0.0;
    //timeadjust = 86400. * pr->days;
-   //cout<<"ctime is "<<ctime<<" duration is "<<duration<<endl<<flush;
 
    while( ctime < duration )
    {
@@ -1099,13 +1101,14 @@ void tStreamMeander::Migrate( double ctime )
       {
          cout<<"in loop "<<ctime<<" duration is "<<duration<<endl<<flush;
          CalcMigration( ctime, duration, cummvmt ); //incr time; uses reachList
-         MakeChanBorder(); //uses reachList
+         MakeChanBorder( ); //uses reachList
          CheckBndyTooClose();  //uses tGrid::nodeList
          CheckBanksTooClose(); //uses reachList
          CheckFlowedgCross(); //uses tGrid::nodeList
          CheckBrokenFlowedg(); //uses tGrid::nodeList
-         gridPtr->MoveNodes(); //uses tGrid::nodeList
-         AddChanBorder(); //uses tGrid::nodeList
+         //nmg put 1 flag in here for testing, needs to be changed later
+         gridPtr->MoveNodes( ctime ); //uses tGrid::nodeList
+         AddChanBorder( ctime ); //uses tGrid::nodeList
       }
       //MakeReaches(); had called from main routine and here
    }
@@ -1139,7 +1142,7 @@ void tStreamMeander::Migrate( double ctime )
 **              Updated: 1/98 SL
 **
 \*****************************************************************************/
-void tStreamMeander::MakeChanBorder()
+void tStreamMeander::MakeChanBorder( )
 {
    //cout << "MakeChanBorder()" << endl;
    int i, j, num, pccw;
@@ -1298,7 +1301,7 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
 **              Updated:        1/98 SL; 2/98 SL
 **
 \*****************************************************************************/
-void tStreamMeander::AddChanBorder()
+void tStreamMeander::AddChanBorder(double time)
 {
    //cout << "AddChanBorder()" << endl;
    int i, inchan, pccw, sameside;
@@ -1328,6 +1331,7 @@ void tStreamMeander::AddChanBorder()
                //just make sure new node will be
                //(a) not in a channel and
                //(b) on the same side of the channel:
+               //Stephen == ?
                if( ct = gridPtr->LocateTriangle( oldpos[0], oldpos[1] ) )
                {
                     //channodePtr = cn;
@@ -1343,6 +1347,7 @@ void tStreamMeander::AddChanBorder()
                      tn = (tLNode *) ct->pPtr(i);
                      if( tn->Meanders() )
                      {
+                        //Stephen, shouldn't this be an == ?
                         if( inchan = InChannel( tn, &channode ) )
                         {
                              //cout << "old coord's in channel" << endl;
@@ -1375,7 +1380,7 @@ void tStreamMeander::AddChanBorder()
                           //cout << "node " << cn->getID()
                           //   << "'s old coords pass: add new node" << endl;
                         for( i=0; i<3; i++ ) xyz[i] = oldpos[i];
-                        channodePtr = gridPtr->AddNodeAt( xyz );
+                        channodePtr = gridPtr->AddNodeAt( xyz, time );
                         channodePtr->setRock( cn->getRock() );
                         channodePtr->setSurf( cn->getSurf() );
                         channodePtr->setReg( cn->getReg() );
