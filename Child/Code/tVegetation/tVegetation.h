@@ -21,7 +21,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.h,v 1.1 2000-01-25 18:58:28 gtucker Exp $
+**  $Id: tVegetation.h,v 1.2 2000-06-11 20:46:54 daniel Exp $
 \**************************************************************************/
 
 #ifndef TVEGETATION_H
@@ -44,6 +44,7 @@ class tVegetation
    double mdTVeg;  // Vegetation regrowth time scale (years)
    double mdTauCritBare;  // Erosion threshold on bare soil
    double mdTauCritVeg;   // Erosion threshold under 100% cover
+   double intlVegCover;   // Initial vegetation cover
 };
 
 class tVegCover
