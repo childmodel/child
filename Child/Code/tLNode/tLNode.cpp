@@ -9,9 +9,12 @@
 **       - removed tSurface class & fn
 **       - modified constructors (tLNode) to handle tau, tauc, vegCover
 **    - fixed problem with layer initialization in copy constructor
-**      (gt, 2/2000; see below)
+**      (gt, 2/2000; see below) -- OOPS! (8/02)
+**    - modifications to EroDep to fix bug related to layers under
+**      simultaneous erosion of one size and deposition of another
+**      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.97 2002-05-01 14:48:26 arnaud Exp $
+**  $Id: tLNode.cpp,v 1.98 2002-08-13 14:16:58 gtucker Exp $
 \**************************************************************************/
 
 #include "../tAssert.h"
@@ -27,6 +30,7 @@
 //which will automatically update total depth.
 void tLayer::setDepth( double dep)
 {
+  assert( dep>0.0 );
    if(dgrade.getSize()>0 && depth>0){      
       double sum=0;
       tArray<double> prop;
@@ -35,6 +39,7 @@ void tLayer::setDepth( double dep)
       while(i<dgrade.getSize()){
          prop[i]=dgrade[i]/depth;
          dgrade[i]=prop[i]*dep;
+	 assert( dgrade[i]>=0.0 );
          sum+=prop[i];
          i++;
          
@@ -50,6 +55,7 @@ void tLayer::setDepth( double dep)
 void tLayer::setDgrade( int i, double size )
 {
    assert( i<dgrade.getSize() );
+   assert( size>=0.0 );
    dgrade[i]=size;
    // Automatically update depth when dgrade is changed
    int j=0;
@@ -59,66 +65,7 @@ void tLayer::setDgrade( int i, double size )
       j++;
    }
    depth=sum;
-}
-   
-/*
-tErode::tErode()                                                   //tErode
-{
-     //erodtype = 0;
-   sedinput = zp = qs = qsp = qsin = qsinp = tau = dz = 0.0;
-   nsmpts = 0;
-     //cout << "  tErode()" << endl;
-}
-
-tErode::tErode( const tErode &orig )                                //tErode
-{
-  if( &orig != 0 )
-   {
-        //erodtype = orig.erodtype;
-      sedinput = orig.sedinput;
-      zp = orig.zp;
-      qs = orig.qs;
-      qsp = orig.qsp;
-      qsin = orig.qsin;
-      qsinp = orig.qsinp;
-      tau = orig.tau;
-      nsmpts = orig.nsmpts;
-      dz = orig.dz;
-   }
-    //cout << "  tErode( orig )" << endl;
-}
-
-tErode::tErode( int numg, int nums )                                //tErode
-{
-   nsmpts = nums;
-   sedinput = zp = qs = qsp = qsin = qsinp = tau = dz = 0.0;
-     //cout << "  tErode( numg, nums )" << endl;
-}
-
-tErode::~tErode()                                                   //tErode
-{
-     //cout << "    ~tErode()" << endl;
-}
-
-//assignment
-const tErode &tErode::operator=( const tErode &right )     //tErode
-{
-   if( &right != this )
-   {
-      sedinput = right.sedinput;             
-      zp = right.zp;                         
-      qs = right.qs;                         
-      qsp = right.qsp;            
-      qsin = right.qsin;                     
-      qsinp = right.qsinp;                   
-      tau = right.tau;                       
-      nsmpts = right.nsmpts;                 
-      dz = right.dz;                         
-      smooth = right.smooth;                 
-   }                                         
-   return *this;                             
-}
-*/
+}   
 
 tMeander::tMeander()                                              //tMeander
   :
@@ -230,15 +177,6 @@ dgrade()
   //cout << "  tRegolith()" << endl;
 }
 
-/*
-tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
-  : dgrade( )
-{
-  int i;
-  char add, name[20];
-  double help, sum, numg;
-}*/
-
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
   : 
 thickness(orig.thickness),
@@ -287,7 +225,7 @@ channrough(orig.channrough),hydrnrough(orig.hydrnrough),
 chandepth(orig.chandepth),hydrdepth(orig.hydrdepth),
 chanslope(orig.chanslope),hydrslope(orig.hydrslope),
 diam(orig.diam),
-/*erosion( orig.erosion ),*/ migration( orig.migration )
+migration( orig.migration )
 {
   //cout << "  tChannel( orig )" << endl;
 }
@@ -1310,6 +1248,7 @@ double tLNode::getLayerDepth( int i ) const
 
 void tLNode::setLayerDepth( int i, double dep)
  {
+    assert( dep > 0.0 );
     tListIter<tLayer> ly ( layerlist );
     tLayer  * hlp;
     hlp=ly.FirstP();
@@ -1373,10 +1312,6 @@ void tLNode::setLayerSed( int i, int s)
 
 double tLNode::getLayerDgrade( int i, int num ) const
 {
-   //cout << "newgetlayerdgrade\n";
-   //tLayer * lyr;
-   //lyr = layerlist.getIthDataPtr(i);
-   //return lyr->getDgrade(num);
    tLayer hlp;
    hlp = layerlist.getIthData(i);
    return hlp.getDgrade(num);
@@ -1388,6 +1323,8 @@ void tLNode::setLayerDgrade( int i, int g, double val)
     tLayer  * hlp;
     hlp=ly.FirstP();
     
+    assert( val>=0.0 );
+
     int n=0;
 
     while(n<i){
@@ -2122,17 +2059,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       if(valgrd[g]<min) min = valgrd[g];
       val+=valgrd[g];
       g++;
-   }
-
-//   if(nh){
-//     if(x<560.418 && x>560.416){
-//      cout<<"amt to ero/dep "<<val<<endl;
-//      cout<<"individual amts "<<valgrd[0]<< " " <<valgrd[1]<<endl;
-//         for(g=0; g<getNumLayer(); g++){
-//            cout<<getLayerCtime(g)<<" "<<getLayerRtime(g)<<" "<<getLayerEtime(g)<<" "<<getLayerSed(g)<<" "<<getLayerDepth(g)<<" "<<getLayerErody<<endl;
-//         }
-//   }
-          
+   }      
 
    // val is now set to the total amount of erosion or deposition
    z += val;
@@ -2194,6 +2121,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       }
       if(getLayerDepth(i)<1e-7)
           removeLayer(i);
+      assert( getLayerDepth(i)>0.0 );
    }
    else if(min >= 0.0 && max > 0.0000000001)
    {
@@ -2233,24 +2161,31 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                   // changing top layer composition by depositing and removing
                   g++;
                }
+	       assert( getLayerDepth(i)>0.0 );
+	       assert( getLayerDepth(i+1)>0.0 );
             }
             else
             {
                // Need to create new layer
                amt = getLayerDepth(i)+val-maxregdep;
+	       assert( amt>=0.0 ); //GT
                setLayerEtime(i, (1/maxregdep)*(olde*(getLayerDepth(i)-amt)));
                //now etime is set in the layer you are depositing into
                //note deposited material has an etime of 0
                olddep = getLayerDepth(i);
+	       assert( olddep>0.0 ); // if not true, we get div by zero
                g=0;
                while(g<numg){
                   update[g]=amt*getLayerDgrade(i,g)/olddep;
                   // material which will be moved from top layer
+		  assert( update[g]>=0.0 ); //GT
                   addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
                   // changing top layer composition by depositing
                   g++;
                }
+	       assert( getLayerDepth(i)>0.0 );
                makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt);
+	       
                //When new layer is created then you change the recent time.
                // put material into a new layer which is made below
                setLayerEtime(i+1, olde); //now layer below has the proper etime
@@ -2267,6 +2202,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                addtoLayer(i,g,valgrd[g],tt);
                g++;
             }
+	    assert( getLayerDepth(i)>0.0 );
          }
       }
       else{
@@ -2322,6 +2258,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                   //Set layer recent time because some deposition was done
                   g++;
                }
+	       assert( getLayerDepth(i)>0.0 );
                setLayerEtime(i, sume/getLayerDepth(i));
             }
             else
@@ -2337,6 +2274,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                   //Set layer recent time because some deposition was done
                   g++;
                }
+	       assert( getLayerDepth(i)>0.0 );
                setLayerEtime(i, getLayerEtime(i)*(getLayerDepth(i)-sumd)/
                              getLayerDepth(i));
             }
@@ -2353,15 +2291,17 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                   update[g]=0.0;
                }
             }
+	    assert( getLayerDepth(i)>0.0 );
             makeNewLayerBelow(i-1, 1, KRnew, update, tt);
             //New layer made with deposited material
          }
-         if(getLayerDepth(i)<1e-7)
+	 assert( getLayerDepth(i) > -1e-7 ); // can't be much < 0
+         if(getLayerDepth(i)<1e-7) // If we've eroded through a layer
              removeLayer(i);
       }
       else
       {
-         // Case of net deposition
+         // Case of net deposition (simultaneous ero & dep)
          // First, we loop over all size-fractions. If erosion in a given
          // fraction is occurring, remove the material from the top layer;
          // if deposition, add it to val, which at the end of the loop
@@ -2384,16 +2324,23 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                val+=valgrd[g];
             }
          }
+	 // If we've eroded all of layer, remove it (avoid division by zero
+	 // below) GT 8/02
+	 if( getLayerDepth(i)<1e-7 ) removeLayer(i);
+	 assert( getLayerDepth(i)>0.0 );  // replacement should be ok
          if(getLayerSed(i)>0 && val<maxregdep) {
             // Case in which top layer is "sediment" and depth to be
             // deposited is less than nominal layer thickness.
             // top layer is sediment, so no issues
-            if(getLayerDepth(i)+val>maxregdep){
+	    amt = (getLayerDepth(i)+val)-maxregdep; // excess (if pos)
+            //if((getLayerDepth(i)+val)>maxregdep){
+            if( amt>0.0 ){
                // Need to move stuff out of top layer to make room for deposited mat
-               if(getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i+1)+val<maxregdep)
+	      //if(getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i+1)+val<maxregdep)
+               if(getLayerSed(i) == getLayerSed(i+1) && (getLayerDepth(i+1)+amt)<maxregdep)
                {
                   // The layer below is of the appropriate material and has space
-                  amt = getLayerDepth(i)+val-maxregdep;//how much to move out
+		  //amt = getLayerDepth(i)+val-maxregdep;//how much to move out
                   olddep = getLayerDepth(i);
                   olde=getLayerEtime(i);
                   setLayerEtime(i, (1/maxregdep)*olde*(getLayerDepth(i)-amt));
@@ -2407,26 +2354,36 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                      // nic, at this point you have decided not to change
                      // the recent time on the lower layer when you move
                      // stuff down into it.  Might think about this.
-                     addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
+                     //addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);                     
+		     addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+update[g], tt);
                      // changing top layer composition by depositing and removing
                      g++;
                   }
+		  assert( getLayerDepth(i)>0.0 );
                }
                else
                {
                   // Need to create new layer
-                  amt = getLayerDepth(i)+val-maxregdep;
+		  //amt = getLayerDepth(i)+val-maxregdep;
                   olddep = getLayerDepth(i);
+		  assert( olddep>0.0 ); // otherwise div by zero below
                   olde=getLayerEtime(i);
                   setLayerEtime(i, (1/maxregdep)*olde*(getLayerDepth(i)-amt));
                   g=0;
                   while(g<numg){
-                     update[g]=amt*getLayerDgrade(i,g)/olddep;
-                     // material which will be moved from top layer
-                     addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
-                     // changing top layer composition by depositing
+                     update[g]=amt*(getLayerDgrade(i,g)/olddep);
+                     // update = material which will be moved from top layer
+		     assert( update[g]>=0.0 );
+		     // GT added the following Aug 2002 -- previously, erosion
+		     // was being double-counted
+		     if( valgrd[g]>0.0 ) // If depositing in this size
+		       addtoLayer(i,g,valgrd[g]-update[g], tt);
+                       // changing top layer composition by depositing
+		     else // eroding in this size: erosion already done above
+		       addtoLayer(i,g,-update[g],tt); 
                      g++;
                   }
+		  assert( getLayerDepth(i)>0.0 );
                   makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt);
                   setLayerEtime(i+1, olde);
                   //When new layer is created then you change the time.
@@ -2445,6 +2402,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                       addtoLayer(i,g,valgrd[g],tt);
                   g++;
                }
+	       assert( getLayerDepth(i)>0.0 );
             }
          }
          else
@@ -2461,8 +2419,10 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       //Make a top layer that is maxregdep deep so that further erosion
       //is not screwed up
       hupdate = addtoLayer(i, -1*maxregdep);
-      for(g=0; g<numg; g++)
+      for(g=0; g<numg; g++) {
           hupdate[g]=-1* hupdate[g];
+	  assert( hupdate[g]>=0.0 ); //GT
+      }
       makeNewLayerBelow(-1,1,getLayerErody(i),hupdate, tt);
       setLayerRtime(i,0);
    }
@@ -2472,14 +2432,6 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    //   TellAll();
    //}
 
-//   if(nh)
-//   {
-//      cout<<"layer "<<i<<" size 0 "<< getLayerDgrade(i,0)<<" size 1 "<<getLayerDgrade(i,1)<<endl;
-//      cout<<"at end, valgrd[0] "<<valgrd[0]<<" [1] "<<valgrd[1]<<endl;
-//   }
-   
-          
-   
    return valgrd;
 }
 
@@ -2522,9 +2474,11 @@ void tLNode::addtoLayer(int i, int g, double val, double tt)
     //Although check really should be here, I think there may
     //be an issue because this function is called from a loop
     //and if the layer is removed before the loop is through -> big trouble
-    // GT re-added this line, 3/00
-    if(hlp->getDepth() <= 0)
-        removeLayer(i);
+    // GT re-added this line, 3/00 ... and then took it away again 8/02.
+    // Why? Layer might be temporarily zero while eroding one size but
+    // depositing another. Check needs to be outside this routine.
+    //if(hlp->getDepth() <= 0)
+    //    removeLayer(i);
 }
 
 /******************************************************************
@@ -2542,8 +2496,7 @@ void tLNode::addtoLayer(int i, int g, double val, double tt)
  ******************************************************************/
 tArray<double> tLNode::addtoLayer(int i, double val)
 {
-   if(val>0)
-       ReportFatalError("Using wrong function for depositing into a layer");
+  assert( val<0.0 ); // Function should only be called for erosion
 
    tListIter<tLayer> ly ( layerlist );
    tLayer  * hlp;
@@ -2671,17 +2624,17 @@ void tLNode::makeNewLayerBelow(int i, int sd, double erd, tArray<double> sz, dou
    tLayer hlp, niclay;
    int n;
 
-   //cout << "making a new layer below " << i << " - layers before are:" << endl;
-
    hlp.setCtime(tt);
    hlp.setRtime(tt);
    hlp.setEtime(0);
    n=0;
    hlp.setDgradesize(numg);
    while(n<numg){
+      assert( sz[n]>=0.0 );
       hlp.setDgrade(n, sz[n]);
       n++;
    }
+   assert( hlp.getDepth()>0.0 );
    hlp.setErody(erd);
    hlp.setSed(sd);
 
@@ -2741,9 +2694,6 @@ double tLNode::getDrDt() {return drdt;}
 void tLNode::setXYZD( tArray< double > arr )
 {
    chan.migration.xyzd = ( arr.getSize() == 4 ) ? arr : tArray< double >(4);
-     //cout << "setXYZD: " << chan.migration.xyzd[0] 
-     //   << " " << chan.migration.xyzd[1] << " " << chan.migration.xyzd[2]
-     //   << " " << chan.migration.xyzd[3] << endl;
 }
 
 tArray< double >

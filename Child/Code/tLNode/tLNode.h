@@ -27,7 +27,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.53 2002-07-08 17:21:50 arnaud Exp $
+**  $Id: tLNode.h,v 1.54 2002-08-13 14:16:59 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -227,6 +227,7 @@ inline void tLayer::addDgrade( int i, double size )
 {
    assert(i<dgrade.getSize());
    dgrade[i]+=size;
+   assert( dgrade[i]>=0.0 );
    depth+=size;
 }
 
