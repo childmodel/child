@@ -9,7 +9,7 @@
 **      initial value of mSearchOriginTriPtr, and modified ExtricateTri...
 **      to avoid dangling ptr. GT, 1/2000
 **
-**  $Id: tMesh.cpp,v 1.86 2000-03-09 20:10:22 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.87 2000-03-24 17:00:18 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -4866,7 +4866,7 @@ AddNodesAround( tSubNode * centerNode, double time )
    // using plane (linear) interpolation.
    for( xyz=vtxiter.FirstP(); !(vtxiter.AtEnd()); xyz=vtxiter.NextP() )
    {
-      cout << "COORDS: x " << xyz->x << " y " << xyz->y << " z " << xyz->z << endl;
+      //cout << "COORDS: x " << xyz->x << " y " << xyz->y << " z " << xyz->z << endl;
       tmpnode.set3DCoords( xyz->x, xyz->y, xyz->z );  // Assign to tmpnode
       //cn->TellAll();
       //cout << "Before addition\n";
