@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.40 1998-07-27 17:09:39 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.41 1998-07-27 21:11:30 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1411,7 +1411,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          //cout<<"amount added to downstream load "<<cn->getQsin()-cn->getDzDt()*cn->getVArea()<<endl;
          
          cn->getDownstrmNbr()->addQsin(cn->getQsin()-cn->getDzDt()*cn->getVArea());
-         cn->TellAll();
       }//ends for( cn = ni.FirstP...
 
       //cout<<"found dzdts"<<endl;
@@ -1450,7 +1449,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       }// End for( cn = ni.FirstP()..
       dtmax *= frac;  // Take a fraction of time-to-flattening
       timegb+=dtmax;
-//       cout<<"dtmax is  "<<dtmax<<endl;
+      cout<<"dtmax is  "<<dtmax<<endl;
 //       cout<<"timegb is "<<timegb<<endl;
       
       //At this point: we have drdt and qs for each node, plus dtmax
@@ -1458,6 +1457,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       // Do erosion/deposition
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
+         cn->TellAll();
          //need to recalculate cause qsin may change due to time step calc
          //cout<<"Qs is "<<cn->getQs()<<" Qsin is "<<cn->getQsin()<<" Area is "<<cn->getVArea()<<endl;
          excap=(cn->getQs() - cn->getQsin())/cn->getVArea();
@@ -1609,10 +1609,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       } // Ends for( cn = ni.FirstP()...
       // Update time remainig   
       dtg -= dtmax;
-//       if(cn->getID()==79 && timegb >= 1756){
-//          cout<<"made it through erosion with node 79"<<endl;
-//       }
-      
    } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
 
    //cout<<"ending detach erode"<<endl;
