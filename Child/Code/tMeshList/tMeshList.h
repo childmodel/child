@@ -23,10 +23,12 @@
 **  the end of the list is reached, or the current node is null for some
 **  other reason).
 **
+**  See also tList, tArray, tMatrix, tGrid
+**
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.h,v 1.5 1999-01-05 22:46:27 stlancas Exp $
+**  $Id: tMeshList.h,v 1.6 1999-04-02 22:17:56 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TGRIDLIST_H
@@ -35,7 +37,15 @@
 #include "../Classes.h"
 #include "../tList/tList.h"
 
-/** class tGridList ********************************************************/
+
+/**************************************************************************\
+** class tGridList ********************************************************
+**
+** Class tGridList implements a linked list that is divided into two
+** parts, an "active" (front) and "inactive" (back) part. It is derived
+** from tList.
+**
+\**************************************************************************/
 template< class NodeType >
 class tGridList : public tList< NodeType >
 {
@@ -71,12 +81,22 @@ class tGridList : public tList< NodeType >
    void Flush();
    
   protected:
-   int nActiveNodes;
-   tListNode< NodeType > * lastactive;
+   int nActiveNodes;                    // # of active nodes on list
+   tListNode< NodeType > * lastactive;  // ptr to last active node
 };
 
 
-/** class tGridListIter *****************************************************/
+/**************************************************************************\
+** class tGridListIter *****************************************************
+**
+** Helper class for tGridList, derived from tListIter ("iterators" that
+** walk up and down a tList, fetching items -- see tList.h/.cpp). 
+** In addition to tListIter capabilities, tGridListIter adds methods to
+** move to and/or fetch the last active or first boundary (inactive)
+** items, and to indicate whether it is on currently on the active portion
+** of the list.
+**
+\**************************************************************************/
 template< class NodeType >
 class tGridListIter
                 : public tListIter< NodeType >
@@ -96,6 +116,5 @@ class tGridListIter
   //private:
    //tGridList< NodeType > *gridlistPtr; 
 };
-
 
 #endif
