@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.42 1998-07-17 00:53:12 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.43 1998-07-20 22:06:23 gtucker Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -521,7 +521,9 @@ int tStreamMeander::InterpChannel()
       //if( timetrack >= kBugTime ) cout << "update network" << endl << flush;
         //gridPtr->UpdateMesh();
         //netPtr->InitFlowDirs();
-      netPtr->UpdateNet();
+      //NOTE****!!! the zero param below should be replaced with current time,
+      // which needs to be passed to Migrate, etc....TODO
+      netPtr->UpdateNet( 0.0 );
       //if( timetrack >= kBugTime ) cout << "added nodes(s), InterpChannel finished"
       //                              << endl << flush;
       return 1;
@@ -558,7 +560,9 @@ int tStreamMeander::InterpChannel()
 
 void tStreamMeander::MakeReaches()
 {
-   netPtr->UpdateNet(); //first update the net
+      //NOTE****!!! the zero param below should be replaced with current time,
+      // which needs to be passed to Migrate, etc....TODO
+   netPtr->UpdateNet( 0.0 ); //first update the net
    do
    {
       FindMeander(); //if Q > Qcrit, meander = TRUE
