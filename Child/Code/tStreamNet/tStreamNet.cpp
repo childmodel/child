@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.39 1998-06-22 18:11:37 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.40 1998-07-12 23:19:09 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -15,8 +15,9 @@ double DistanceToLine( double, double, double, double, double );
 double DistanceToLine( double, double, tNode *, tNode * );
 
 //HACK! what is this function??
+/*
 double DistanceToLine( double a, double b, tNode *c, tNode *d )
-{ return 0;}
+{ return 0;}*/
 
 
 
@@ -70,6 +71,7 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    if( flowgen==kSaturatedFlow2 || flowgen==kConstSoilStore
        || flowgen==kHortonian )
       infilt = infile.ReadItem( infilt, "INFILTRATION" );
+   else infilt = 0.0;
    if( flowgen == kConstSoilStore )
        soilStore = infile.ReadItem( soilStore, "SOILSTORE" );
    else soilStore = 0.0;
