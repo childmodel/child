@@ -110,7 +110,7 @@ ReadChildData::ReadChildData() :
   currentTime_(0.),
   x(0), y(0),
   p0(0), p1(0), p2(0),
-  z(0)
+  z(0), data(0)
 {}
 
 ReadChildData::~ReadChildData(){
@@ -120,6 +120,7 @@ ReadChildData::~ReadChildData(){
   delete [] p1;
   delete [] p2;
   delete [] z;
+  delete [] data;
 }
 
 void ReadChildData::AllocateNodes(){
@@ -138,9 +139,14 @@ void ReadChildData::AllocateTriangles(){
   p2 = new int[ntri_];
 }
 
-void ReadChildData::AllocateZ(){
-  delete [] z;
-  z = new float[nnodes_];
+void ReadChildData::AllocateData(bool inZ){
+  if (inZ) {
+    delete [] z;
+    z = new float[nnodes_];
+  } else {
+    delete [] data;
+    data = new float[nnodes_];
+  }
 }
 
 bool ReadChildData::LoadData(const char* basename, const int nStep,
@@ -167,9 +173,18 @@ bool ReadChildData::LoadData(const char* basename, const int nStep,
     goto fail;
 
   // elevation
+  {
+    const int zVariable = v_z;
+    strcpy(filename.ptr(),basename);
+    strcat(filename.ptr(),SuffixVariable[zVariable]);
+    if (!ReadData(filename.c_str(), nStep, zVariable, true))
+      goto fail;
+  }
+
+  // data
   strcpy(filename.ptr(),basename);
   strcat(filename.ptr(),SuffixVariable[TypeVariable]);
-  if (!ReadZ(filename.c_str(), nStep, TypeVariable == v_area))
+  if (!ReadData(filename.c_str(), nStep, TypeVariable, false))
     goto fail;
 
   return true;
@@ -302,47 +317,54 @@ bool ReadChildData::ReadTriangles(const char* filename, const int nStep){
   return false;
 }
 
-bool ReadChildData::ReadZ(const char* filename, const int nStep,
-			  bool isArea){
-  ifstream zinfile;
+bool ReadChildData::ReadData(const char* filename, const int nStep,
+			     int TypeVariable, bool inZ){
+  // area is stored only for interior nodes
+  const bool isArea = TypeVariable == v_area;
+  ifstream datainfile;
 
-  zinfile.open(filename);
-  if (!zinfile.good()) {
+  datainfile.open(filename);
+  if (!datainfile.good()) {
     throw BadFile(CantOpen, filename);
   }
 
-  if (0 != skipRecords(zinfile, nStep, filename)) {
+  if (0 != skipRecords(datainfile, nStep, filename)) {
     goto fail;
   }
-  zinfile >> currentTime_;
-  if ( zinfile.eof())
+  datainfile >> currentTime_;
+  if ( datainfile.eof())
     goto fail;
-  if (! zinfile.good())
+  if (! datainfile.good())
     throw BadFile(FileBad,filename);
+
   size_t ntemp;
-  zinfile >> ntemp;
-  if ( ! zinfile.good() )
+  datainfile >> ntemp;
+  if ( ! datainfile.good() )
     throw BadFile(FileBad,filename);
-  assert( !zinfile.fail() );
+  assert( !datainfile.fail() );
   if (isArea)
     assert(ntemp < nnodes_);
   else
     assert(ntemp == nnodes_);
-  AllocateZ();
+  AllocateData(inZ);
   for(size_t i=0; i != ntemp; ++i){
-    if (zinfile.eof()) throw BadFile(FileBad,filename);
+    if (datainfile.eof()) throw BadFile(FileBad,filename);
 
-    zinfile >> z[i];
-    assert( !zinfile.fail() );
+    if (inZ)
+      datainfile >> z[i];
+    else
+      datainfile >> data[i];
+    assert( !datainfile.fail() );
   }
   if (isArea) {
+    assert(!inZ);
     for(size_t i=ntemp; i != nnodes_; ++i){
       z[i] = 0.;
     }
   }
-  zinfile.close();
+  datainfile.close();
   return true;
  fail:
-  zinfile.close();
+  datainfile.close();
   return false;
 }

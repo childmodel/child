@@ -22,10 +22,10 @@ class ReadChildData {
  protected:
   bool ReadNodes(const char *basename, int nStep);
   bool ReadTriangles(const char *basename, int nStep);
-  bool ReadZ(const char *basename, int nStep, bool isArea);
+  bool ReadData(const char *basename, int nStep, int typeVariable, bool inZ);
   void AllocateNodes();
   void AllocateTriangles();
-  void AllocateZ();
+  void AllocateData(bool inZ);
 
   size_t nnodes_;
   size_t ntri_;
@@ -50,4 +50,6 @@ class ReadChildData {
   int *p2;
   // elevation
   float *z;
+  // data 
+  float *data;
 };

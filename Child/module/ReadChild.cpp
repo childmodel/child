@@ -219,7 +219,7 @@ void ReadChild
   // Allocate base lattice
   baselat= cxLatNew(1,            /* 1D lattice */
 		    &nbn,         /* where dims[] is nbne */
-		    1,            /* 1 variables / node */
+		    2,            /* variables / node */
 		    CXFLOAT,      /* type is float */
 		    2,            /* number of coordinates / node */
 		    // 3 for x,y,z
@@ -306,7 +306,8 @@ void ReadChild
   {
     // Data
     for(int inode=0;inode<nbn;inode++){
-      latdata[inode] = ChildData.z[inode];
+      latdata[2*inode  ] = ChildData.z[inode];
+      latdata[2*inode+1] = ChildData.data[inode];
     }
   }
 
@@ -320,7 +321,8 @@ void ReadChild
   }
 
   //-----------------------------------------------------------------
-  // Set Pyramid Layer and set base Lattice by recovering data from CORBA object
+  // Set Pyramid Layer and set base Lattice by recovering data from
+  // ReadChildData object
 
   ec = cxPyrLayerSet(Pyr2Dt,1,NULL,NULL); /* nullify first connectivity level */
   if ( cx_err_none != ec){
