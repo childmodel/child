@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.35 1998-05-04 22:02:47 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.36 1998-05-06 21:37:38 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -739,7 +739,6 @@ MakeGridFromScratch( tInputFile &infile )
    tGridListIter< tEdge > edgIter( edgeList );
    tGridListIter< tSubNode > nodIter( nodeList );
    tPtrList< tSubNode > bndList;
-   //cout << "THIS IS TEST CONTRUCTOR FOR tGrid\n";
    seed = infile.ReadItem( seed, "SEED" );
      //reads in size of grid (meters)
    double xGrid = infile.ReadItem( xGrid, "X_GRID_SIZE" );
@@ -1040,15 +1039,15 @@ MakeGridFromScratch( tInputFile &infile )
    nedges = edgeList.getSize();
    ntri = 0;
      //DumpEdges:
-   /*cout << "edges:" << endl;
+   cout << "edges:" << endl;
    for( ce = edgIter.FirstP(); !( edgIter.AtEnd() ); ce = edgIter.NextP() )
    {
       cout << ce->getID() << " from " << ce->getOriginPtrNC()->getID()
            << " to " << ce->getDestinationPtrNC()->getID() << endl;
-   }*/
+   }
    cout << "calling repair mesh for initial boundary\n";
-   int mesherr = RepairMesh( bndList );
-   assert( !mesherr );
+   int meshok = RepairMesh( bndList );
+   assert( meshok );
    cout << "filling in points\n";
    
      //FILL IN POINTS
@@ -2201,8 +2200,8 @@ int tGrid< tSubNode >::
 RepairMesh( tPtrList< tSubNode > &nbrList )
 {
    assert( &nbrList != 0 );
-     //cout << "RepairMesh: " << endl;
-   if( nbrList.getSize() < 3 ) return 0;
+   cout << "RepairMesh: " << endl;
+   if( nbrList.getSize() < 3 ) { cout << "OOPS!\n";return 0;}
    int flowflag, i, j;
    tSubNode * gridnodePtr;
    nbrList.makeCircular();
@@ -2210,7 +2209,7 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    
    while( nbrList.getSize() > 3 )
    {
-        //cout << "in loop, nbr size = " << nbrList.getSize() << endl;
+        cout << "in loop, nbr size = " << nbrList.getSize() << endl;
       
       flowflag = 1;
       if( Next3Delaunay( nbrList, nbrIter ) ) //checks for ccw and Del.
