@@ -8,6 +8,11 @@
 /***************************************************************************/
 
 template<class TYPE>
+void shunt(int ,int ,TYPE ,TYPE *);
+template<class TYPE>
+void heapsort(int ,TYPE *);
+
+template<class TYPE>
 void shunt(int k,int m,TYPE temp,TYPE array[]){
   /*Heap building and re-ordering function for heapsort 
     Mike Bithell 03/10/00
