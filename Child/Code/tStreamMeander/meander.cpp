@@ -125,7 +125,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.11 2003-05-27 16:05:01 childcvs Exp $ */
+/*     $Id: meander.cpp,v 1.12 2003-06-19 08:52:45 childcvs Exp $ */
 
 void meander_(const integer *stations, const integer *stnserod, 
 	      const doublereal *x, const doublereal *y,
@@ -155,10 +155,10 @@ void meander_(const integer *stations, const integer *stnserod,
       *lag = new doublereal[*stations];
 
 
-    //memset(acs,0,*stnserod*sizeof(doublereal));
-    //memset(deln,0,*stnserod*sizeof(doublereal));
-    //memset(latforce,0,*stations*sizeof(doublereal));
-    //memset(lag,0,*stations*sizeof(doublereal));
+    memset(acs,0,*stnserod*sizeof(doublereal));
+    memset(deln,0,*stnserod*sizeof(doublereal));
+    memset(latforce,0,*stations*sizeof(doublereal));
+    memset(lag,0,*stations*sizeof(doublereal));
 
     /* Parameter adjustments */
     --lambda;
