@@ -9,7 +9,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.16 2000-02-02 23:14:27 nmgaspar Exp $
+**  $Id: tStorm.cpp,v 1.17 2000-03-14 16:54:42 gtucker Exp $
 \**************************************************************************/
 
 
@@ -84,6 +84,10 @@ tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar, doubl
 **  pdev, stdurdev, and istdurdev are the range of variation (e.g., if pMean
 **  were to fluctuate between 5 and 10, p0 would be 7.5 and pdev 2.5).
 **
+**  Modifications:
+**   - 3/00 initialization now includes creation of ".storm" file for storm
+**     history (GT)
+**
 \**************************************************************************/
 tStorm::tStorm( tInputFile &infile )
 {
@@ -126,6 +130,18 @@ tStorm::tStorm( tInputFile &infile )
       else if( istdurdev > istdurMean ) cerr << "Warning: MINISTDURMN < 0 !";
    }
 
+   // If variable storms used, create a file for writing them
+   if( optVariable )
+   {
+      char fname[87];
+      infile.ReadItem( fname, "OUTFILENAME" );
+      strcat( fname, ".storm" );
+      stormfile.open( fname );
+      if( !stormfile.good() )
+          cerr << "Warning: unable to create storm data file '" 
+               << fname << "'\n";
+   }
+
    // Read and initialize seed for random number generation
    seed = infile.ReadItem( seed, "SEED" );
    //srand( seed );
@@ -154,6 +170,8 @@ tStorm::tStorm( tInputFile &infile )
 **   - changed AND to OR in while loop, GT 5/99
 **   - added to while loop an additional check to see if time has run out,
 **     NG 2/00
+**   - added output of time, storm intensity, & duration to ".storm" file
+**     GT 3/00
 **
 \**************************************************************************/
 void tStorm::GenerateStorm( double tm, double minp, double mind )
@@ -191,6 +209,7 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
          //            endl;
          //srand( seed );
       } while( (p<=minp || (p*stdur)<=mind) && (tm+istdur+stdur<endtm) );
+      stormfile << tm << " " << p << " " << stdur << endl;
    }
 }
 
