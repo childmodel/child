@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.14 1998-02-12 01:45:32 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.15 1998-02-13 17:03:32 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -481,6 +481,7 @@ void tStreamMeander::FindReaches()
    tArray< double > *fArrPtr;
    if( !(reachList.isEmpty()) ) reachList.Flush();
    //loop through active nodes
+   i = 0;
    for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
    {
       //if node meanders
@@ -531,17 +532,21 @@ void tStreamMeander::FindReaches()
       //if they're not already reach members:
       rnIter.Reset( *plPtr );
       cn = rnIter.FirstP();
-      do
+      nrnodes[i]++;
+      reachlen[i] += cn->GetFlowEdg()->getLength();
+      cn = cn->GetDownstrmNbr();
+      while( cn->getBoundaryFlag() == kNonBoundary && !cn->getReachMember() )
       {
-         nrnodes[i]++;
          //assert( cn->GetFlowEdg()->getLength() > 0 );
+         nrnodes[i]++;
          reachlen[i] += cn->GetFlowEdg()->getLength();
          cn->setReachMember( 1 );
          plPtr->insertAtBack( cn );
          cn = cn->GetDownstrmNbr();
       }
-      while (!cn->getReachMember() && cn->getBoundaryFlag() == kNonBoundary);
       //make sure reach has more than 4 members:
+      //cout << "reach " << i << " length " << plPtr->getSize() << endl;
+      
       if( plPtr->getSize() > 4 )
       {
          //make sure reach has "positive" slope:
@@ -573,6 +578,11 @@ void tStreamMeander::FindReaches()
       }
    }
    cout << "Final no. reaches: " << reachList.getSize() << endl << flush;
+   for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
+        plPtr = rlIter.NextP(), i++ )
+   {
+      cout << "reach " << i << " length " << nrnodes[i] << endl;
+   }
    
       //now we'll need to know the
       //channel and hydraulic geometry:
@@ -651,6 +661,8 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
          curnode->setLatDisplace( 0.0, 0.0 );
          curnode->setNew2DCoords( curnode->getX(), curnode->getY() );
       }
+      cout << "reach " << i << " length " << nrnodes[i] << endl;
+      
       stations = &(nrnodes[i]);
       nttlnodes = creach->getSize();
       stnserod = &nttlnodes;
