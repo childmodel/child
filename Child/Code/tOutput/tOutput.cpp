@@ -13,7 +13,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.84 2003-08-05 12:58:55 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.85 2003-08-06 12:38:37 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -270,7 +270,7 @@ inline void tOutput<tSubNode>::WriteEdgeRecord( tEdge *ce )
 template< class tSubNode >
 inline void tOutput<tSubNode>::WriteTriangleRecord( tTriangle const *ct)
 {
-  const int index[3] = {ct->index()[0], ct->index()[1], ct->index()[2]};
+  const size_t index[] = {ct->index()[0], ct->index()[1], ct->index()[2]};
   triofs
     << ct->pPtr(index[0])->getID() << ' '
     << ct->pPtr(index[1])->getID() << ' '
