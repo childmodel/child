@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.35 2003-03-31 17:41:21 childcvs Exp $
+**  $Id: meshElements.h,v 1.36 2003-04-09 18:12:47 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -578,7 +578,6 @@ inline void tNode::set3DCoords( double val1, double val2, double val3 )
 
 inline void tNode::setEdg( tEdge * theEdg )
 {
-   assert( theEdg > 0 );
    edg = theEdg;
    //cout << "Assigning edge " << theEdg->getID() << " to node " << getID() << endl;
 }
@@ -1110,19 +1109,19 @@ inline int tTriangle::getID() const {return id;}
 
 inline tNode *tTriangle::pPtr( int index )
 {
-   assert( index >= 0 && index <= 3 );
+   assert( index >= 0 && index < 3 );
    return p[index];
 }
 
 inline tEdge *tTriangle::ePtr( int index )
 {
-   assert( index >= 0 && index <= 3 );
+   assert( index >= 0 && index < 3 );
    return e[index];
 }
 
 inline tTriangle *tTriangle::tPtr( int index )
 {
-   assert( index >= 0 && index <= 3 );
+   assert( index >= 0 && index < 3 );
    return t[index];
 }
 
@@ -1142,16 +1141,17 @@ inline tTriangle *tTriangle::tPtr( int index )
 \***********************************************************************/
 inline void tTriangle::setID( int val ) {id = ( val >= 0 ) ? val : 0;}
 
-inline void tTriangle::setPPtr( int index, tNode * ndptr )            
+inline void tTriangle::setPPtr( int index, tNode * ndptr )
 {
-   assert( index >= 0 && index <= 3 );
+   assert( index >= 0 && index < 3 );
    p[index] = ndptr;
 }
 
 inline void tTriangle::setEPtr( int index, tEdge * egptr )
 {
-  assert( index >= 0 && index <= 3 );
-  if( egptr == 0 && e[index]->TriWithEdgePtr() == this) {
+  assert( index >= 0 && index < 3 );
+  if( egptr == 0 && e[index] != 0 &&
+      e[index]->TriWithEdgePtr() == this) {
     e[index]->setTri(0);
   }
   e[index] = egptr;
@@ -1161,7 +1161,7 @@ inline void tTriangle::setEPtr( int index, tEdge * egptr )
 
 inline void tTriangle::setTPtr( int index, tTriangle * trptr )
 {
-   assert( index >= 0 && index <= 3 );
+   assert( index >= 0 && index < 3 );
    t[index] = trptr;
 }
 
