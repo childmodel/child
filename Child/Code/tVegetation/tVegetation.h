@@ -21,7 +21,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.h,v 1.4 2000-06-12 15:48:22 daniel Exp $
+**  $Id: tVegetation.h,v 1.5 2002-04-23 11:59:43 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TVEGETATION_H
@@ -60,15 +60,13 @@ class tVegCover
    double mdVeg;
 };
 
-inline tVegCover::tVegCover() 
-{
-   mdVeg = 1.0;
-}
+inline tVegCover::tVegCover() :
+  mdVeg(1.)
+{}
 
-inline tVegCover::tVegCover( const tVegCover &orig ) 
-{
-   mdVeg = orig.mdVeg;
-}
+inline tVegCover::tVegCover( const tVegCover &orig ) :
+   mdVeg(orig.mdVeg)
+{}
 
 inline double tVegCover::getVeg() 
 {

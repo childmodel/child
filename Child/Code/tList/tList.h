@@ -30,7 +30,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.22 2002-04-23 10:02:11 arnaud Exp $
+**  $Id: tList.h,v 1.23 2002-04-23 12:02:07 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -112,32 +112,27 @@ protected:
 //default constructor
 template< class NodeType >                     //tListNode
 inline tListNode< NodeType >::
-tListNode()
+tListNode() :
+  next(0)
 {
      //data = 0;
-   next = 0;
 }
 
 //copy constructor with data reference
 template< class NodeType >                     //tListNode
 inline tListNode< NodeType >::
-tListNode( const tListNode< NodeType > &original )
-{
-   if( &original != 0 )
-   {
-      data = original.data;
-      next = original.next;
-   }
-}
+tListNode( const tListNode< NodeType > &original ) :
+  data(original.data),
+  next(original.next)
+{}
 
 //value (by reference) constructor 
 template< class NodeType >                     //tListNode
 inline tListNode< NodeType >::
-tListNode( const NodeType &info )
-{
-   data = info;
-   next = 0;
-}
+tListNode( const NodeType &info ) :
+  data(info),
+  next(0)
+{}
 
 
 /**************************************************************************\
@@ -1072,31 +1067,32 @@ protected:
 
 template< class NodeType >        //tListIter
 inline tListIter< NodeType >::
-tListIter()
+tListIter() :
+  curnode(0),
+  listPtr(0),
+  counter(0)
 {
-   listPtr = 0;
-   curnode = 0;
-   counter = 0;
    assert( this != 0 );
-     //cout << "tListIter()" << endl;
+   //cout << "tListIter()" << endl;
 }
 
 template< class NodeType >        //tListIter
 inline tListIter< NodeType >::
-tListIter( tList< NodeType > &list )
+tListIter( tList< NodeType > &list ) :
+  curnode(list.first),
+  listPtr(&list),
+  counter(0)
 {
    assert( &list != 0 );
-   listPtr = &list;
-   curnode = list.first;
-   counter = 0;
    //assert( curnode != 0 );
-     //cout << "tListIter( list )" << endl;
-   
+   //cout << "tListIter( list )" << endl;
 }
 
 template< class NodeType >        //tListIter
 inline tListIter< NodeType >::
-tListIter( tList< NodeType > *ptr )
+tListIter( tList< NodeType > *ptr ) :
+  curnode(0),
+  listPtr(0)
 {
    assert( ptr != 0 );
    listPtr = ptr;

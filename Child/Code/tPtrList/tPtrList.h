@@ -31,7 +31,7 @@
 **    - 3/31/00 bug fix to tPtrList copy constructors (GT)
 **    - 5/10/00 typo fix in DataCopy (GT)
 **
-**  $Id: tPtrList.h,v 1.14 2002-04-22 18:14:32 arnaud Exp $
+**  $Id: tPtrList.h,v 1.15 2002-04-23 12:00:59 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
@@ -239,32 +239,26 @@ class tPtrListIter
 
 //default constructor
 template< class NodeType >                  //tPtrListNode
-inline tPtrListNode< NodeType >::tPtrListNode()
-{
-   Ptr = 0;
-   next = 0;
-}
+inline tPtrListNode< NodeType >::tPtrListNode() :
+  Ptr(0),
+  next(0)
+{}
 
 //copy constructor with tPtrListNode
 template< class NodeType >                  //tPtrListNode
 inline tPtrListNode< NodeType >::
-tPtrListNode( const tPtrListNode< NodeType > & init )
-{
-   if( &init != 0 )
-   {
-      Ptr = init.Ptr;
-      next = init.next;
-   }
-}
+tPtrListNode( const tPtrListNode< NodeType > & init ) :
+  Ptr(init.Ptr),
+  next(init.next)
+{}
 
 // copy constructor with data ptr
 template< class NodeType >                  //tPtrListNode
 inline tPtrListNode< NodeType >::
-tPtrListNode( NodeType * NTPtr )
-{
-   Ptr = NTPtr;
-   next = 0;
-}
+tPtrListNode( NodeType * NTPtr ) :
+  Ptr(NTPtr),
+  next(0)
+{}
 
 //destructor
 template< class NodeType >                  //tPtrListNode
@@ -375,20 +369,19 @@ getNextNC( ) {return next;}
 //default constructor
 template< class NodeType >                      //tPtrList
 inline tPtrList< NodeType >::
-tPtrList()
+tPtrList() :
+  nNodes(0), first(0), last(0)
 {
-   first = last = 0;
-   nNodes = 0;
      //cout << "tPtrList() instantiated" << endl;
 }
 
 //copy constructor
 template< class NodeType >                      //tPtrList
 inline tPtrList< NodeType >::
-tPtrList( const tPtrList< NodeType > & orig )
+tPtrList( const tPtrList< NodeType > & orig ) :
+  first(0), last(0)
 {
    tPtrListNode< NodeType > *curNode = orig.first;
-   first = last = 0;
 
    if( curNode != 0 )
    {
@@ -402,10 +395,10 @@ tPtrList( const tPtrList< NodeType > & orig )
 //second copy constructor
 template< class NodeType >
 inline tPtrList< NodeType >::
-tPtrList( const tPtrList< NodeType > * origptr )
+tPtrList( const tPtrList< NodeType > * origptr ) :
+  first(0), last(0)
 {
    tPtrListNode< NodeType > *curNode = origptr->first;
-   first = last = 0;
 
    if( curNode != 0 )
    {
@@ -990,33 +983,33 @@ print() const
 
 template< class NodeType >     //tPtrListIter
 inline tPtrListIter< NodeType >::
-tPtrListIter()
+tPtrListIter() :
+  ptrlistPtr(0),
+  curptrnode(0),
+  counter(0)
 {
-   ptrlistPtr = 0;
-   curptrnode = 0;
-   counter = 0;
      //cout << "tPtrListIter()" << endl;
 }
 
 template< class NodeType >    //tPtrListIter
 inline tPtrListIter< NodeType >::
-tPtrListIter( tPtrList< NodeType > &ptrlist )
+tPtrListIter( tPtrList< NodeType > &ptrlist ) :
+  ptrlistPtr(&ptrlist),
+  curptrnode(ptrlist.first),
+  counter(0)
 {
    assert( &ptrlist != 0 );
-   ptrlistPtr = &ptrlist;
-   curptrnode = ptrlist.first;
-   counter = 0;
      //cout << "tPtrListIter( ptrlist )" << endl;
 }
 
 template< class NodeType >    //tPtrListIter
 inline tPtrListIter< NodeType >::
-tPtrListIter( tPtrList< NodeType > * ptrlist )
+tPtrListIter( tPtrList< NodeType > * ptrlist ) :
+  ptrlistPtr(ptrlist),
+  curptrnode(ptrlist->first),
+  counter(0)
 {
    assert( ptrlist != 0 );
-   ptrlistPtr = ptrlist;
-   curptrnode = ptrlist->first;
-   counter = 0;
 }
 
 template< class NodeType >    //tPtrListIter

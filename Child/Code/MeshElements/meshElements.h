@@ -40,7 +40,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.27 2002-04-23 10:02:10 arnaud Exp $
+**  $Id: meshElements.h,v 1.28 2002-04-23 12:03:16 arnaud Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -330,23 +330,18 @@ private:
 //default constructor
 inline tNode::tNode() :
   id(0),
-  x(0.), y(0.), z(0.), varea(0.), varea_rcp(0.),
+  x(0.), y(0.), z(0.),
+  varea(0.), varea_rcp(0.),
   boundary(0), edg(0)
 {}
 
 //copy constructor
-inline tNode::tNode( const tNode &original )
+inline tNode::tNode( const tNode &original ) :
+  id(original.id),
+  x(original.x), y(original.y), z(original.z),
+  varea(original.varea), varea_rcp(original.varea_rcp),
+  boundary(original.boundary), edg(original.edg)
 {
-   if( &original != 0 )
-   {
-      id = original.id;
-      x = original.x;
-      y = original.y;
-      z = original.z;
-      boundary = original.boundary;
-      varea = original.varea;
-      varea_rcp = original.varea_rcp;
-      edg = original.edg;
       if( &(original.spokeList) != 0 )
       {
          for( int i=0; i<original.spokeList.getSize(); i++ )
@@ -355,8 +350,6 @@ inline tNode::tNode( const tNode &original )
          }
       }
         //else spokeList = 0;
-   }
-     //cout << "tNode( original )" << endl;
 }
 
 /*X tNode::~tNode()                                                      //tNode
@@ -631,36 +624,23 @@ inline void tNode::InitializeNode()
 \***********************************************************************/
 
 //default constructor
-inline tEdge::tEdge()
-        : rvtx(2)
+inline tEdge::tEdge() :
+  id(0), flowAllowed(0), len(0.), slope(0.),
+  rvtx(2),
+  vedglen(0.),
+  org(0), dest(0), ccwedg(0)
 {
-   id = 0;
-   len = 0;
-   slope = 0;
-   vedglen = 0;
-   org = dest = 0;
-   ccwedg = 0;
-   flowAllowed = 0;
      //cout << "tEdge()" << endl;
 }
 
 //copy constructor
-inline tEdge::tEdge( const tEdge &original )
-{
-   if( &original != 0 )
-   {
-      id = original.id;
-      len = original.len;
-      slope = original.slope;
-      rvtx = original.rvtx;
-      vedglen = original.vedglen;
-      org = original.org;
-      dest = original.dest;
-      ccwedg = original.ccwedg;
-      flowAllowed = original.flowAllowed;
-   }
-     //cout << "tEdge( orig )" << endl;
-}
+inline tEdge::tEdge( const tEdge &original ) :
+  id(original.id), flowAllowed(original.flowAllowed),
+  len(original.len), slope(original.slope),
+  rvtx(original.rvtx),
+  vedglen(original.vedglen),
+  org(original.org), dest(original.dest), ccwedg(original.ccwedg)
+{}
 
 //tEdge::~tEdge() {/*cout << "    ~tEdge()" << endl;*/}      //tEdge
 
@@ -963,26 +943,23 @@ inline tTriangle::tTriangle()
 }
 
 //copy constructor
-inline tTriangle::tTriangle( const tTriangle &init )
+inline tTriangle::tTriangle( const tTriangle &init ) :
+  id(init.id)
 {
    assert( p != 0 && e != 0 && t != 0 );
-   if( &init != 0 )
-   {
-      id = init.id;
-      for( int i=0; i<3; i++ )
-      {
-         p[i] = init.p[i];
-         e[i] = init.e[i];
-         t[i] = init.t[i];
-      }
-   }
+   for( int i=0; i<3; i++ )
+     {
+       p[i] = init.p[i];
+       e[i] = init.e[i];
+       t[i] = init.t[i];
+     }
      //cout << "tTriangle( orig )" << endl;
 }
 
 // construct with id and 3 vertices
-inline tTriangle::tTriangle( int num, tNode* n0, tNode* n1, tNode* n2 )
+inline tTriangle::tTriangle( int num, tNode* n0, tNode* n1, tNode* n2 ) :
+  id(num)
 {
-   id = num;
    assert( n0 > 0 && n1 > 0 && n2 > 0 );
    p[0] = n0;
    p[1] = n1;

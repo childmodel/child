@@ -12,7 +12,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.cpp,v 1.3 2000-06-13 03:33:23 daniel Exp $
+**  $Id: tVegetation.cpp,v 1.4 2002-04-23 11:59:42 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -33,12 +33,17 @@
 \**************************************************************************/
 
 tVegetation::tVegetation()
-{
-   mdKvd = mdTauCritBare = mdTauCritVeg = 0;
-   mdTVeg = 1;
-}
+  :
+  mdKvd(0),
+  mdTVeg(1),
+  mdTauCritBare(0), mdTauCritVeg(0)
+{}
 
 tVegetation::tVegetation( tMesh<tLNode> * meshPtr, tInputFile &infile )
+  :
+  mdKvd(0),
+  mdTVeg(1),
+  mdTauCritBare(0), mdTauCritVeg(0)
 {
    mdKvd = infile.ReadItem( mdKvd, "VEG_KVD" );
    mdTVeg = infile.ReadItem( mdTVeg, "VEG_TV" );

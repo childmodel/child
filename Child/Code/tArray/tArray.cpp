@@ -4,7 +4,7 @@
 **
 **  Functions for template class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.10 2002-04-10 16:13:30 gtucker Exp $
+**  $Id: tArray.cpp,v 1.11 2002-04-23 12:04:17 arnaud Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -27,9 +27,9 @@
 //default constructor
 template< class T >                                               //tArray
 tArray< T >::
-tArray()
+tArray() :
+  npts(1), avalue(0)
 {
-   npts = 1;
    avalue = new T [1];
    assert( avalue != 0 );
    avalue[0] = 0;
@@ -39,12 +39,12 @@ tArray()
 //constructor that initializes array size
 template< class T >                                               //tArray
 tArray< T >::
-tArray( int number )
+tArray( int number ) :
+  npts(number), avalue(0)
 {
    assert( number > 0 );
    int i;
 
-   npts = number;
    avalue = new T [npts];
    assert( avalue != 0 );
    for( i=0; i<npts; i++ )
@@ -55,12 +55,11 @@ tArray( int number )
 //copy constructor
 template< class T >                                               //tArray
 tArray< T >::
-tArray( const tArray< T > &original )
+tArray( const tArray< T > &original ) :
+  npts(original.npts), avalue(0)
 {
    int i;
 
-   if( &original != 0 )
-   {
       cout << flush;
       /*for( i = 0; i < original.npts; i++ )
       {
@@ -68,13 +67,11 @@ tArray( const tArray< T > &original )
       }
       cout << endl << flush;*/
       
-      npts = original.npts;
       assert( npts > 0 );
       avalue = new T[npts];
       assert( avalue != 0 );
       for( i = 0; i < npts; i++ )
           avalue[i] = original.avalue[i];
-   }
      //cout<<"tArray(original): no. in array "<<npts<<endl<<flush;
 }
 

@@ -25,7 +25,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.50 2002-04-11 10:27:46 arnaud Exp $
+**  $Id: tLNode.h,v 1.51 2002-04-23 12:03:52 arnaud Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -105,43 +105,30 @@ class tLayer
 /*************************************************************************
 **  tLayer::tLayer : Constructor function for tLayer
 *************************************************************************/
-inline tLayer::tLayer ()
-        : dgrade()
+inline tLayer::tLayer () : 
+  ctime(0.), rtime(0.), etime(0.),
+  depth(0.), erody(0.), sed(0),
+  dgrade()
 {
-   ctime=0;
-   rtime=0;
-   etime=0;
-   depth=0;
-   erody=0;
-   sed=0;
    //cout << "tLayer( )" << endl;
 }
 
-inline tLayer::tLayer ( int num )
-        : dgrade( num )
+inline tLayer::tLayer ( int num ) :
+  ctime(0.), rtime(0.), etime(0.),
+  depth(0.), erody(0.), sed(0),
+  dgrade( num )
 {
    //cout << "tLayer num const\n";
-   ctime=0;
-   rtime=0;
-   etime=0;
-   depth=0;
-   erody=0;
-   sed=0;
    //cout << "tLayer( num )" << endl;
- }
+}
 
 //copy constructor
-inline tLayer::tLayer( const tLayer &orig )                         //tLayer
-        :dgrade( orig.dgrade )
+inline tLayer::tLayer( const tLayer &orig ) :                        //tLayer
+  ctime(orig.ctime), rtime(orig.rtime), etime(orig.etime),
+  depth(orig.depth), erody(orig.erody), sed(orig.sed),
+  dgrade( orig.dgrade )
 {
    //cout << "tLayer copy const\n";
-   ctime=orig.ctime;
-   rtime=orig.rtime;
-   etime=orig.etime;
-   depth=orig.depth;
-   erody=orig.erody;
-   sed=orig.sed;
-   
 }
 
 inline const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
