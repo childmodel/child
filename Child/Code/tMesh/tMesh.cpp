@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.14 1998-02-13 22:48:30 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.15 1998-02-17 02:48:28 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1365,18 +1365,16 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
 {
    //cout << "ExtricateNode: " << node->getID() << endl;
    tPtrListIter< tEdge > spokIter( node->getSpokeListNC() );
-   tEdge edgeVal1, edgeVal2;
+   tEdge edgeVal1, edgeVal2, *ce;
    tSubNode *nodePtr;
      //cout << "Removing spokes: " << endl;
      //assert( ExtricateEdge( edgptrIter.DatPtr() ) );
-   do
+   for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.FirstP() )
    {
-      assert( spokIter.First() );
-      nodePtr = ( tSubNode * ) spokIter.DatPtr()->getDestinationPtrNC();
+      nodePtr = ( tSubNode * ) ce->getDestinationPtrNC();
       nbrList.insertAtBack( nodePtr );
-      DeleteEdge( spokIter.DatPtr() );
+      DeleteEdge( ce );
    }  
-   while( !(node->getSpokeList().isEmpty()) );
    nnodes--;
    if( node->getSpokeList().isEmpty() ) return 1;
    return 0;

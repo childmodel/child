@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.16 1998-02-13 22:46:19 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.17 1998-02-17 02:48:50 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -212,7 +212,7 @@ void tStreamMeander::FindChanGeom()
 {
    int i, j, num;
    double qbf, hradius, qbffactor=0, radfactor, width, depth, rough, slope;
-   double rlen, cz, nz;
+   double rlen, cz, nz, critS;
    tLNode *cn, *dsn;
    tPtrListIter< tLNode > nIter/*, usnIter*/;
    tPtrList< tLNode > *plPtr;
@@ -235,7 +235,10 @@ void tStreamMeander::FindChanGeom()
          width = kwds * pow(qbf, ewds);
          rough = knds * pow(qbf, ends);
          slope = cn->GetSlope();
-         if( slope <= 0 )
+         //make sure slope will produce a positive depth:
+         critS = qbf * qbf * rough * rough * 8.0 * pow( 2, 0.333 ) /
+             ( width * width * width * width * width * pow( width, 0.333 ) );
+         if( slope <= critS )
          {
             /*usnIter.Reset( *plPtr );
             usnIter.Get( nIter.Where() );
@@ -248,7 +251,7 @@ void tStreamMeander::FindChanGeom()
             rlen = cn->GetFlowEdg()->getLength();
             cz = cn->getZ();
             dsn = cn->GetDownstrmNbr();
-            while( slope <= 0 && dsn->getBoundaryFlag() == kNonBoundary )
+            while( slope <= critS && dsn->getBoundaryFlag() == kNonBoundary )
             {
                rlen += dsn->GetFlowEdg()->getLength();
                dsn = dsn->GetDownstrmNbr();
@@ -256,10 +259,10 @@ void tStreamMeander::FindChanGeom()
                slope = ( cz - nz ) / rlen;
                cout << "doing slope averaging in FindChanGeom" << endl;
             }
-            if( slope <= 0 ) cout << "help! slope still non-positive!"
+            if( slope <= critS ) cout << "help! slope still too small!"
                                   << endl << flush;
          }
-         assert( slope > 0 );
+         assert( slope > critS );
          //cout << "in FindChanGeom, slope = " << slope << endl << flush;
          cn->setChanWidth( width );
          cn->setChanRough( rough );
@@ -690,6 +693,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
          slopea[j] = fedg->getSlope();
          widtha[j] = curnode->getHydrWidth();
          deptha[j] = curnode->getHydrDepth();
+         cout << "width, depth " << widtha[j] << " " << deptha[j] << endl;
          /*diama[j] = curnode->diam;*/
          diama[j] = ( optdiamvar ) ? curnode->getDiam() : meddiam;
       }
@@ -1068,11 +1072,12 @@ tArray< double > tStreamMeander::FindBankErody( tLNode *nPtr )
 void tStreamMeander::CheckBanksTooClose()
 {
    cout << "CheckBanksTooClose()..." << flush << endl;
-   int tooclose, i, j, num;
+   int tooclose, i, j, num, onlist;
    //tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
-   tPtrListIter< tEdge > spokIter;
    tPtrList< tLNode > delPtrList;
-   tLNode * cn, *pointtodelete;
+   tPtrListIter< tEdge > spokIter;
+   tPtrListIter< tLNode > dIter( delPtrList );
+   tLNode * cn, *pointtodelete, *dn;
    tEdge *ce;
    tPtrList< tLNode > *cr;
    tPtrListIter< tLNode > rnIter;
@@ -1106,17 +1111,29 @@ void tStreamMeander::CheckBanksTooClose()
                //tooclose = 1;
                pointtodelete = (tLNode *) ce->getDestinationPtrNC();
                if( pointtodelete->getDrArea() < cn->getDrArea() )
-                   delPtrList.insertAtBack( pointtodelete );
+               {
+                  onlist = 0;
+                  for( dn = dIter.FirstP(); !(dIter.AtEnd());
+                       dn = dIter.NextP() )
+                      if( pointtodelete == dn ) onlist = 1;
+                  if( !onlist )
+                  {
+                     cout << "add to delete list: "
+                          << pointtodelete->getID() << endl;
+                     delPtrList.insertAtBack( pointtodelete );
+                  }
+               }
             }
          }
          //}
          //if( pointtodelete != 0 ) gridPtr->DeleteNode( pointtodelete );
       }
    } //while( tooclose );
-   while( !( delPtrList.isEmpty() ) )
+   for( dn = dIter.FirstP(); !(dIter.AtEnd()); dn = dIter.FirstP() )
    {
-      delPtrList.removeFromFront( pointtodelete );
-      gridPtr->DeleteNode( pointtodelete );
+      cout << "CBTC: delete node " << dn->getID() << endl << flush;
+      gridPtr->DeleteNode( dn );
+      delPtrList.removeFromFront( cn );
    }
    
    cout << "finished" << endl;
