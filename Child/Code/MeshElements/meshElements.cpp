@@ -12,7 +12,7 @@
 **     "gridElements", 1/20/98 gt
 **   - added tNode::AttachNewSpoke and tEdge::WelcomeCCWNeighbor gt 2/99
 **
-**  $Id: meshElements.cpp,v 1.33 1999-09-09 21:31:07 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.34 2000-01-13 23:55:41 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -458,7 +458,7 @@ tEdge *tNode::EdgToNod( tNode * nod )
 
    for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
    {
-      if( ce->getDestinationPtr()->getID() == nod->getID() ) return ce;
+      if( ce->getDestinationPtr() == nod ) return ce;
    }
    return 0;
 }
@@ -1293,7 +1293,13 @@ tEdge * tEdge::FindComplement()
 **
 **  Default:  initializes node, edge, and triangle ptrs to zero.
 **  Copy:  copies all values
+**  ID & Vertices: creates a triangle w/ pointers to three vertices,
+**                 and sets up edge pointers as well. Does not set
+**                 triangle pointers however (these are zero'd).
 **  Destructor:  no longer used
+**
+**  Modifications:
+**   - ID & vertices constructor added 1/2000, GT
 **
 \***********************************************************************/
 
@@ -1325,6 +1331,20 @@ tTriangle::tTriangle( const tTriangle &init )                    //tTriangle
       }
    }
      //cout << "tTriangle( orig )" << endl;
+}
+
+// construct with id and 3 vertices
+tTriangle::tTriangle( int num, tNode* n0, tNode* n1, tNode* n2 )
+{
+   id = num;
+   assert( n0 > 0 && n1 > 0 && n2 > 0 );
+   p[0] = n0;
+   p[1] = n1;
+   p[2] = n2;
+   setEPtr( 0, n0->EdgToNod( n2 ) );
+   setEPtr( 1, n1->EdgToNod( n0 ) );
+   setEPtr( 2, n2->EdgToNod( n1 ) );
+   t[0] = t[1] = t[2] = 0;
 }
 
 //destructor
