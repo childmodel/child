@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.178 2003-09-01 14:05:53 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.179 2003-09-02 08:45:46 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -295,7 +295,7 @@ MakeLayersFromInputData( tInputFile &infile )
          layerinfile.seekg( -layerinfile.gcount(), ios::cur );
          layerinfile >> time;
          //cout << "from file, time = " << time << endl;
-         if( time == intime ) righttime = 1;
+         if( time >= intime ) righttime = 1;
       }
    }
    if( !( layerinfile.eof() ) ) layerinfile >> nnodes;
