@@ -57,7 +57,7 @@
  **     - Added codes to go along with erosion & transport options, to
  **       enable checking against user-specified options (GT 7/02)
  **
- **  $Id: erosion.h,v 1.51 2003-10-15 09:24:00 childcvs Exp $
+ **  $Id: erosion.h,v 1.52 2004-04-14 13:13:27 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -436,7 +436,7 @@ public:
   void StreamErode( double dtg, tStreamNet * );
   void StreamErodeMulti( double dtg, tStreamNet *, double time);
   void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
-  void Diffuse( double dtg, int detach );
+  void Diffuse( double dtg, bool detach );
   void UpdateExposureTime( double dtg);
   void DensifyMesh( double time );
 

@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.130 2004-04-14 12:06:44 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.131 2004-04-14 13:13:26 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -2757,7 +2757,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 \*****************************************************************************/
 //#define kVerySmall 1e-6
 #define kEpsOver2 0.1
-void tErosion::Diffuse( double rt, int noDepoFlag )
+void tErosion::Diffuse( double rt, bool noDepoFlag )
 {
   tLNode * cn;
   tEdge * ce;
@@ -2839,8 +2839,7 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
 	  if( 0 ) //DEBUG
 	    cout << "Node " << cn->getID() << " Qsin: " << cn->getQsin()
 		 << " dz: " << cn->getQsin() / cn->getVArea() << endl;
-	  if( noDepoFlag )
-	    if( cn->getQsin() > 0.0 )
+	  if( noDepoFlag && cn->getQsin() > 0.0 )
 	      cn->setQsin( 0.0 );
 	  cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area
 	  if( 0 ) //DEBUG
