@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.18 1998-02-18 01:12:09 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.19 1998-02-20 00:11:39 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -13,7 +13,8 @@ extern "C"
 {
    void meander_( int *, int *, double *, double *, double *, double *, 
                   double *, double *, double *, double *, double *, 
-                  double *, double *, double *, double *, double *, double * ); 
+                  double *, double *, double *, double *, double *, double *,
+                  double * ); 
 }
 
 
@@ -38,7 +39,7 @@ tStreamMeander::tStreamMeander()
    infilePtr = 0;
    optdiamvar = optrainvar = 0;
    critflow = meddiam = kwds = ewds = ewstn = knds = ends = enstn =
-       dscrtwids = leavefrac = vegerod = rockerod = 0;
+       klambda = elambda = dscrtwids = leavefrac = vegerod = rockerod = 0;
 }
 
 tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
@@ -74,6 +75,8 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
    cout << "ends: " << ends << endl;
    enstn = infilePtr->ReadItem( enstn, "HYDR_ROUGH_EXP_STN" );
    cout << "enstn: " << enstn << endl;
+   klambda = infilePtr->ReadItem( klambda, "BANK_ROUGH_COEFF" );
+   elambda = infilePtr->ReadItem( elambda, "BANK_ROUGH_EXP" );
    dscrtwids = infilePtr->ReadItem( dscrtwids, "DEF_CHAN_DISCR" );
    assert( dscrtwids > 0 );
    allowfrac = infilePtr->ReadItem( allowfrac, "FRAC_WID_MOVE" );
@@ -112,12 +115,13 @@ tStreamMeander::~tStreamMeander()
 \*****************************************************************************/
 void tStreamMeander::FindMeander()
 {
+   double slp;
    tLNode * cn;
    tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
    for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
    {
       cn->setReachMember( 0 );
-      if( cn->GetQ() >= critflow && cn->GetFloodStatus() == kNotFlooded )
+      if( cn->GetQ() >= critflow )
       {
          cn->SetMeanderStatus( kMeanderNode );
          cn->setNew2DCoords( cn->getX(), cn->getY() );
@@ -160,15 +164,11 @@ void tStreamMeander::FindHydrGeom()
    widpow = 1.0 - ewstn / ewds;
    npow = 1.0 - enstn / ends;
    //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
-   tPtrListIter< tLNode > nIter;
-   tPtrList< tLNode > *plPtr;
-   for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
-        plPtr = rlIter.NextP(), i++ )
+   tGridListIter< tLNode > nIter( gridPtr->GetNodeList() );
+   for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
    {
-      nIter.Reset( *plPtr );
-      num = nrnodes[i];
-      for( cn = nIter.FirstP(), j=0; j<num; cn = nIter.NextP(), j++ )
-      {
+      if( cn->Meanders() )
+      {         
          //if rainfall varies, find hydraulic width "at-a-station"
          //based on the channel width "downstream":
          if( optrainvar)
@@ -178,7 +178,7 @@ void tStreamMeander::FindHydrGeom()
             cn->setHydrWidth( width );
             rough = pow(cn->getChanRough(), npow) * kndspow * pow(qpsec, enstn);
             cn->setHydrRough( rough );
-            slope = cn->GetSlope();
+            slope = cn->getChanSlope();
             assert( slope > 0 );
             radfactor = qpsec * rough / width / sqrt(slope);
             hradius = pow(radfactor, 0.6);
@@ -225,65 +225,43 @@ void tStreamMeander::FindChanGeom()
 {
    int i, j, num;
    double qbf, hradius, qbffactor=0, radfactor, width, depth, rough, slope;
+   double lambda;
    double rlen, cz, nz, critS;
    tLNode *cn, *dsn;
-   tPtrListIter< tLNode > nIter/*, usnIter*/;
+   tGridListIter< tLNode > nIter( gridPtr->GetNodeList() );
    tPtrList< tLNode > *plPtr;
    //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
    tStorm *sPtr = netPtr->getStormPtrNC();
    double isdmn = sPtr->getMeanInterstormDur();
    double pmn = sPtr->getMeanPrecip();
    if (isdmn > 0 )  qbffactor = pmn * log(1.5 / isdmn);
-// qbffactor is now in m^3/s
-   for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
-        plPtr = rlIter.NextP(), i++ )
+   for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
    {
-      nIter.Reset( *plPtr );
-      num = nrnodes[i];
-      for( cn = nIter.FirstP(), j=0; j<num; cn = nIter.NextP(), j++ )
-      {
-         //assert( cn->GetFlowEdg()->getLength() > 0 );
+      if( cn->Meanders() )
+      {         
+// qbffactor is now in m^3/s
          qbf = cn->getDrArea() * qbffactor;
          if( !qbf ) qbf = cn->GetQ();  // q is now in m^3/s
          width = kwds * pow(qbf, ewds);
          rough = knds * pow(qbf, ends);
+         lambda = klambda * pow(qbf, elambda);
+         cn->setChanWidth( width );
+         cn->setChanRough( rough );
+         cn->setBankRough( lambda );
          slope = cn->GetSlope();
          //make sure slope will produce a positive depth:
          critS = qbf * qbf * rough * rough * 8.0 * pow( 2.0, 0.333 )/
              ( width * width * width * width * width * pow( width, 0.333 ) );
-         if( slope <= critS )
+         if( slope > critS )
          {
-            /*usnIter.Reset( *plPtr );
-            usnIter.Get( nIter.Where() );
-            for( usn = usnIter.GetP( nIter.Where() );
-                 slope <= 0 && !(usnIter.AtEnd());
-                 usn = usnIter.NextP() )
-            {
-               slope = usn->GetSlope();
-            }*/
-            rlen = cn->GetFlowEdg()->getLength();
-            cz = cn->getZ();
-            dsn = cn->GetDownstrmNbr();
-            while( slope <= critS && dsn->getBoundaryFlag() == kNonBoundary )
-            {
-               rlen += dsn->GetFlowEdg()->getLength();
-               dsn = dsn->GetDownstrmNbr();
-               nz = dsn->getZ();
-               slope = ( cz - nz ) / rlen;
-                 //cout << "doing slope averaging in FindChanGeom" << endl;
-            }
-            if( slope <= critS ) cout << "help! slope still too small!"
-                                  << endl << flush;
+              //cout << "in FindChanGeom, slope = " << slope << endl << flush;
+            cn->setChanSlope( slope );
+            radfactor = qbf * rough / width / sqrt(slope);
+            hradius = pow(radfactor, 0.6); 
+            depth = width / (width / hradius - 2.0);
+            cn->setChanDepth( depth );
          }
-         assert( slope > critS );
-         //cout << "in FindChanGeom, slope = " << slope << endl << flush;
-         cn->setChanWidth( width );
-         cn->setChanRough( rough );
-         cn->setChanSlope( slope );
-         radfactor = qbf * rough / width / sqrt(slope);
-         hradius = pow(radfactor, 0.6); 
-         depth = width / (width / hradius - 2.0);
-         cn->setChanDepth( depth );
+         else cn->SetMeanderStatus( kNonMeanderNode );
       }
    }
    cout << "done FindChanGeom" << endl;
@@ -438,8 +416,12 @@ void tStreamMeander::MakeReaches()
 {
    do
    {
-      FindMeander();
-      FindReaches();
+      FindMeander(); //if Q > Qcrit, meander = TRUE
+      FindChanGeom();//if meander = TRUE, find chan. width and reach avg. slope
+                     //if " and slope > critslope, find chan. depth;
+                     //else meander = FALSE
+      FindHydrGeom();//if meander = TRUE, find hydr. geom.
+      FindReaches(); //find reaches of meandering nodes
    }
    while( InterpChannel() );
    cout << "done MakeReaches" << endl;
@@ -605,10 +587,6 @@ void tStreamMeander::FindReaches()
       cout << "reach " << i << " length " << nrnodes[i] << endl;
    }
    
-      //now we'll need to know the
-      //channel and hydraulic geometry:
-   FindChanGeom();
-   FindHydrGeom();
       //construct a tail for the reach
       //which is some number of hydr. widths long:
    for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
@@ -659,7 +637,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
    int i, j, *stations, *stnserod, nttlnodes;
    tArray< double > xa, ya, xsa, qa, rerodya, lerodya, delsa,
        slopea, widtha, deptha, diama, deltaxa, deltaya,
-       rdeptha, ldeptha;
+       rdeptha, ldeptha, lambdaa;
    tArray< double > *dumArrPtr, delta(2), newxy(2);
    double rerody, lerody, rz, lz, width;
    double maxfrac, displcmt, a, b, dtm, tmptim, frac, xs;
@@ -692,7 +670,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
       dumArrPtr = new tArray< double >( nttlnodes );
       xa = ya = xsa = qa = rerodya = lerodya = delsa =
           slopea = widtha = deptha = diama = deltaxa =
-          deltaya = rdeptha = ldeptha = *dumArrPtr;
+          deltaya = rdeptha = ldeptha = lambdaa = *dumArrPtr;
       xs = 0.0;
       for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
            curnode = rnIter.NextP(), j++ )
@@ -716,6 +694,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
            //cout << "width, depth " << widtha[j] << " " << deptha[j] << endl;
          /*diama[j] = curnode->diam;*/
          diama[j] = ( optdiamvar ) ? curnode->getDiam() : meddiam;
+         lambdaa[j] = curnode->getBankRough();
       }
       cout << "stations, stnserod: " << *stations <<" "<< *stnserod
            << endl << flush;
@@ -737,7 +716,8 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
                 deltaxa.getArrayPtr(),
                 deltaya.getArrayPtr(),
                 rdeptha.getArrayPtr(),
-                ldeptha.getArrayPtr() );
+                ldeptha.getArrayPtr(),
+                lambdaa.getArrayPtr() );
       //Now reset the node values according to the arrays:
       for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
            curnode = rnIter.NextP(), j++ )
@@ -881,6 +861,7 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
       for( cn = rnIter.FirstP(), j=0; j<num;
            cn = rnIter.NextP(), j++ )
       {
+         z = cn->getZ();
          width = cn->getHydrWidth();
          rl = cn->getZOld();
          cnbr = cn->GetDownstrmNbr();
@@ -895,11 +876,11 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
          ydisp = 0.5 * width * cos(phi);
          xyz[0] = x0 + xdisp;
          xyz[1] = y0 - ydisp;
-         xyz[2] = rl[0];
+         xyz[2] = ( rl[0] > z ) ? rl[0] : z;
          bList.insertAtBack( xyz );
          xyz[0] = x0 - xdisp;
          xyz[1] = y0 + ydisp;
-         xyz[2] = rl[1];
+         xyz[2] =  ( rl[1] > z ) ? rl[1] : z;
          bList.insertAtBack( xyz );
       }
    }
