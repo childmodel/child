@@ -48,3 +48,5 @@ instructions of get_snapshot.txt.
 References:
 + Anonymous CVS access via ssh, Joey Hess.
   http://www.kitenet.net/~joey/sshcvs/
++ Setting up a CVS server for ssh clients
+  http://ioctl.org/unix/cvs/server
