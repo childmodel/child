@@ -15,7 +15,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.cpp,v 1.6 2003-03-14 17:32:49 childcvs Exp $
+//  $Id: predicates.cpp,v 1.7 2003-03-18 16:15:48 childcvs Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -130,18 +130,18 @@
 /*    have questions.                                                        */ 
 /*                                                                           */ 
 /*****************************************************************************/ 
- 
+
 #include "predicates.h"
 
 // The algorithms below fail on processors using extended precision.
-// Consequently, on Intel x86, we set the control word of the x87 device.
-//
-// The present implementation works on Linux and Cygwin on x86.
-// TODO: It needs to be extended if ported to Win32.
+// Consequently, on Intel x86, we set the control word of the x87 device
+// in double precision mode.
+// The present implementation works on Linux, Cygwin on x86 and Win32.
 #if defined(i386) && (defined(linux) || defined(__CYGWIN__))
 # if defined(linux)
 #  include <fpu_control.h>
 # elif defined(__CYGWIN__)
+// _FPU_EXTENDED is as well the mask of the precision control
 #  define _FPU_EXTENDED 0x300
 #  define _FPU_DOUBLE   0x200
 #  define _FPU_GETCW(cw) __asm__ ("fnstcw %0" : "=m" (*&cw))
@@ -151,17 +151,34 @@
 #  error Platform not supported
 # endif
 class Set_local_fpu_precision {
-  fpu_control_t oldcw;
+  fpu_control_t oldcw_pc;
 public:
   Set_local_fpu_precision() {
-    fpu_control_t newcw;
-    _FPU_GETCW(oldcw); // Store control word value
-    // Set double precision mode
-    newcw = (oldcw & ~_FPU_EXTENDED) | _FPU_DOUBLE;
-    _FPU_SETCW(newcw); // Set control word
+    fpu_control_t cw;
+    _FPU_GETCW(cw);
+    oldcw_pc = cw & _FPU_EXTENDED; // Extract precision mode
+    cw = (cw & ~_FPU_EXTENDED) | _FPU_DOUBLE; // Set double precision mode
+    _FPU_SETCW(cw);
   }
   ~Set_local_fpu_precision() {
-    _FPU_SETCW(oldcw); // Restore control word
+    fpu_control_t cw;
+    _FPU_GETCW(cw);
+    cw = (cw & ~_FPU_EXTENDED) | oldcw_pc;
+    _FPU_SETCW(cw); // Restore control word precision
+  }
+};
+# define SET_DOUBLE_PRECISION_MODE Set_local_fpu_precision _local_precision
+#elif defined(_WIN32)
+# include <float.h>
+class Set_local_fpu_precision {
+  unsigned int oldcw_pc;
+public:
+  Set_local_fpu_precision() {
+    oldcw_pc = _control87(0,0) & MCW_PC; // Extract precision mode
+    _control87(PC_53,MCW_PC); // Set double precision mode
+  }
+  ~Set_local_fpu_precision() {
+    _control87(oldcw_pc,MCW_PC); // Restore control word precision
   }
 };
 # define SET_DOUBLE_PRECISION_MODE Set_local_fpu_precision _local_precision
