@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.21 1999-04-01 20:55:50 gtucker Exp $
+**  $Id: erosion.h,v 1.22 1999-04-04 21:34:26 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -65,26 +65,26 @@
 **  class tEquilibCheck
 **
 **  Enables dynamic equilibrium checking, both short- and a specified long-
-**  term. The idea is to find the rate of total volume change over the grid.
+**  term. The idea is to find the rate of total volume change over the mesh.
 **  With meandering, this will never be zero over the short term, but we
 **  should be able to find an average over the long term.
 **
-**  Needs to look at the grid; can either make it a template or just use
-**  the grid of tLNodes. Do the latter...
+**  Needs to look at the mesh; can either make it a template or just use
+**  the mesh of tLNodes. Do the latter...
 \***************************************************************************/
 class tEquilibCheck
 {
 public:
     tEquilibCheck();
-    tEquilibCheck( tGrid< tLNode > &, tRunTimer & );
-    tEquilibCheck( tGrid< tLNode > &, tRunTimer &, tInputFile & );
+    tEquilibCheck( tMesh< tLNode > &, tRunTimer & );
+    tEquilibCheck( tMesh< tLNode > &, tRunTimer &, tInputFile & );
     ~tEquilibCheck();
     double getLongTime() const; //get the interval for long-term change
     void setLongTime( double ); //set the interval for long-term change
-    const tGrid< tLNode > *getGridPtr() const;
-    tGrid< tLNode > *getGridPtrNC();
-    void setGridPtr( tGrid< tLNode > & );
-    void setGridPtr( tGrid< tLNode > * );
+    const tMesh< tLNode > *getMeshPtr() const;
+    tMesh< tLNode > *getMeshPtrNC();
+    void setMeshPtr( tMesh< tLNode > & );
+    void setMeshPtr( tMesh< tLNode > * );
     const tRunTimer *getTimePtr() const;
     tRunTimer *getTimePtrNC();
     void setTimePtr( tRunTimer & );
@@ -95,10 +95,10 @@ public:
     double FindLongTermChngRate(); //find change rate over pre-set interval
     double FindLongTermChngRate( double ); //find rate over given interval
 private:
-    tGrid< tLNode > *gridPtr; //ptr to tGrid
+    tMesh< tLNode > *meshPtr; //ptr to tMesh
     tRunTimer *timePtr; //ptr to tRunTimer
     double longTime; //'long' time interval
-    tList< tArray< double > > massList; //linked list of arrays: (time, grid mass)
+    tList< tArray< double > > massList; //linked list of arrays: (time, mesh mass)
                                         //'mass' is misnomer--actually mean elev.
     double longRate;
     double shortRate;
@@ -199,7 +199,7 @@ class tBedErodePwrLaw
 class tErosion
 {
 public:
-    tErosion( tGrid< tLNode > *, tInputFile & );
+    tErosion( tMesh< tLNode > *, tInputFile & );
     void ErodeDetachLim( double dtg );
     void ErodeDetachLim( double dtg, tUplift * );
     void StreamErode( double dtg, tStreamNet * );
@@ -210,7 +210,7 @@ public:
     void UpdateExposureTime( double dtg);
 
 private:
-    tGrid<tLNode> *gridPtr;    // ptr to mesh
+    tMesh<tLNode> *meshPtr;    // ptr to mesh
     tBedErodePwrLaw bedErode;  // bed erosion object
     tSedTransWilcock sedTrans; // sediment transport object 
     double kd;                 // Hillslope transport (diffusion) coef

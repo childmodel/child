@@ -1,10 +1,10 @@
 /***************************************************************************\
 **
-**  tGrid.h: Header file for class tGrid
+**  tMesh.h: Header file for class tMesh (formerly tGrid)
 **
-**  tGrid is the master class that handles the implementation of the
+**  tMesh is the master class that handles the implementation of the
 **  triangulated mesh. The class includes lists of the mesh elements
-**  (nodes, triangles, and edges; see gridElements.h/.cpp), and provides
+**  (nodes, triangles, and edges; see meshElements.h/.cpp), and provides
 **  functionality to:
 **    - read in or create meshes, either from scratch, from a list of
 **      points, from a pre-existing set of triangulation files (e.g., a
@@ -12,11 +12,11 @@
 **    - move, add, and/or delete nodes
 **    - update Delaunay and Voronoi geometry
 **
-**  $Id: tMesh.h,v 1.20 1999-04-01 16:02:49 gtucker Exp $
+**  $Id: tMesh.h,v 1.21 1999-04-04 21:33:54 gtucker Exp $
 \***************************************************************************/
 
-#ifndef TGRID_H
-#define TGRID_H
+#ifndef TMESH_H
+#define TMESH_H
 
 #include <assert.h>
 #include <math.h>
@@ -28,8 +28,8 @@
 #include "../errors/errors.h"
 #include "../tPtrList/tPtrList.h"
 #include "../tList/tList.h"
-#include "../tGridList/tGridList.h"
-#include "../GridElements/gridElements.h"
+#include "../tMeshList/tMeshList.h"
+#include "../MeshElements/meshElements.h"
 #include "../tLNode/tLNode.h"
 #include "../tListInputData/tListInputData.h"
 //#include "../tListOutputData/tListOutputData.h"
@@ -50,19 +50,19 @@
 /**** Class Declarations ****/
 /****************************/
 
-/** class tGrid ************************************************************/
+/** class tMesh ************************************************************/
 template< class tSubNode >
-class tGrid
+class tMesh
 {
    friend class tListOutputData< tSubNode >;
 public:
-   tGrid();
-   tGrid( tInputFile & );
-   ~tGrid();
+   tMesh();
+   tMesh( tInputFile & );
+   ~tMesh();
    void BatchAddNodes(); // quickly adds many nodes when starting w/ dense mesh
-   void MakeGridFromScratch( tInputFile & );   // creates a new mesh
-   void MakeGridFromInputData( tInputFile & ); // reads in an existing mesh
-   void MakeGridFromPoints( tInputFile & );    // creates mesh from list of pts
+   void MakeMeshFromScratch( tInputFile & );   // creates a new mesh
+   void MakeMeshFromInputData( tInputFile & ); // reads in an existing mesh
+   void MakeMeshFromPoints( tInputFile & );    // creates mesh from list of pts
 	 void MakeRandomPointsFromArcGrid( tInputFile & ); // mesh from arc (rand)
    void MakeHexMeshFromArcGrid( tInputFile &infile );// mesh from arc (hex)
    void MakeLayersFromInputData( tInputFile & );
@@ -98,8 +98,8 @@ public:
    tSubNode *AddNode( tSubNode &, int updatemesh = 1, double time = 0.0 );
    //add a generic node at the referenced coordinates
    tSubNode *AddNodeAt( tArray< double > &, double time = 0.0 );
-   tGridList<tEdge> * getEdgeList();
-   tGridList<tSubNode> * getNodeList();
+   tMeshList<tEdge> * getEdgeList();
+   tMeshList<tSubNode> * getNodeList();
    tList< tTriangle > * getTriList();
    tEdge *getEdgeComplement( tEdge * );
    /* Tests consistency of a user-defined mesh */
@@ -133,8 +133,8 @@ public:
    
 protected:
    int nnodes, nedges, ntri;       // # of nodes, edges, and tri's (obsolete?)
-   tGridList< tSubNode > nodeList; // list of nodes
-   tGridList< tEdge > edgeList;    // list of directed edges
+   tMeshList< tSubNode > nodeList; // list of nodes
+   tMeshList< tEdge > edgeList;    // list of directed edges
    tList< tTriangle > triList;     // list of triangles
    long seed;                      // random seed
    bool layerflag;                 // flag indicating whether nodes have layers

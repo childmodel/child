@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.57 1999-04-01 21:11:08 gtucker Exp $
+**  $Id: erosion.cpp,v 1.58 1999-04-04 21:34:11 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -31,30 +31,30 @@
 \***************************************************************************/
 
 /***************************************************************************\
-**  Constructors: default (no args) and given grid and timer as args
+**  Constructors: default (no args) and given mesh and timer as args
 \***************************************************************************/
 tEquilibCheck::tEquilibCheck()
         : massList()
 {
-   gridPtr = 0;
+   meshPtr = 0;
    timePtr = 0;
    longTime = longRate = shortRate = 0.0;
 }
 
-tEquilibCheck::tEquilibCheck( tGrid< tLNode > &gridRef, tRunTimer &timeRef )
+tEquilibCheck::tEquilibCheck( tMesh< tLNode > &meshRef, tRunTimer &timeRef )
         : massList()
 {
-   gridPtr = &gridRef;
+   meshPtr = &meshRef;
    timePtr = &timeRef;
    longTime = longRate = shortRate = 0.0;
    FindIterChngRate();
 }
 
-tEquilibCheck::tEquilibCheck( tGrid< tLNode > &gridRef, tRunTimer &timeRef,
+tEquilibCheck::tEquilibCheck( tMesh< tLNode > &meshRef, tRunTimer &timeRef,
                               tInputFile &fileRef )
         : massList()
 {
-   gridPtr = &gridRef;
+   meshPtr = &meshRef;
    timePtr = &timeRef;
    longRate = shortRate = 0.0;
    longTime = fileRef.ReadItem( longTime, "EQUITIME" );
@@ -63,7 +63,7 @@ tEquilibCheck::tEquilibCheck( tGrid< tLNode > &gridRef, tRunTimer &timeRef,
 
 tEquilibCheck::~tEquilibCheck()
 {
-   gridPtr = 0;
+   meshPtr = 0;
    timePtr = 0;
 }
 
@@ -76,15 +76,15 @@ double tEquilibCheck::getLongTime() const {return longTime;}
 void tEquilibCheck::setLongTime( double val )
 {longTime = ( val > 0 ) ? val : 0.0;}
 
-const tGrid< tLNode > *tEquilibCheck::getGridPtr() const {return gridPtr;}
+const tMesh< tLNode > *tEquilibCheck::getMeshPtr() const {return meshPtr;}
 
-tGrid< tLNode > *tEquilibCheck::getGridPtrNC() {return gridPtr;}
+tMesh< tLNode > *tEquilibCheck::getMeshPtrNC() {return meshPtr;}
 
-void tEquilibCheck::setGridPtr( tGrid< tLNode > &Ref )
-{gridPtr = ( &Ref > 0 ) ? &Ref : 0;}
+void tEquilibCheck::setMeshPtr( tMesh< tLNode > &Ref )
+{meshPtr = ( &Ref > 0 ) ? &Ref : 0;}
 
-void tEquilibCheck::setGridPtr( tGrid< tLNode > *Ptr )
-{gridPtr = ( Ptr > 0 ) ? Ptr : 0;}
+void tEquilibCheck::setMeshPtr( tMesh< tLNode > *Ptr )
+{meshPtr = ( Ptr > 0 ) ? Ptr : 0;}
 
 const tRunTimer *tEquilibCheck::getTimePtr() const {return timePtr;}
 
@@ -111,10 +111,10 @@ double tEquilibCheck::getShortRate() const {return shortRate;}
 \***************************************************************************/
 double tEquilibCheck::FindIterChngRate()
 {
-   assert( timePtr > 0 && gridPtr > 0 );
+   assert( timePtr > 0 && meshPtr > 0 );
    tArray< double > tmp(2), last;
    tmp[0] = timePtr->getCurrentTime();
-   tGridListIter< tLNode > nI( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
    tListIter< tArray< double > > mI( massList );
    tLNode *cn;
    double mass = 0.0;
@@ -618,11 +618,11 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 \***************************************************************************/
 
 //constructor
-tErosion::tErosion( tGrid<tLNode> *gptr, tInputFile &infile )
+tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
         : bedErode( infile ), sedTrans( infile )
 {
    assert( gptr!=0 );
-   gridPtr = gptr;
+   meshPtr = mptr;
 
    // Read parameters needed from input file
    kd = infile.ReadItem( kd, "KD" );  // Hillslope diffusivity coefficient
@@ -665,8 +665,8 @@ void tErosion::ErodeDetachLim( double dtg )
    double frac = 0.9; //fraction of time to zero slope
    int i;
    tLNode * cn, *dn;
-   int nActNodes = gridPtr->getNodeList()->getActiveSize();
-   tGridListIter<tLNode> ni( gridPtr->getNodeList() );
+   int nActNodes = meshPtr->getNodeList()->getActiveSize();
+   tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
    tArray<double> //dz( nActNodes ), // Erosion depth @ each node
        dzdt( nActNodes ); //Erosion rate @ ea. node
    double ratediff;
@@ -722,8 +722,8 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
    double frac = 0.1; //fraction of time to zero slope
    int i;
    tLNode * cn, *dn;
-   int nActNodes = gridPtr->getNodeList()->getActiveSize();
-   tGridListIter<tLNode> ni( gridPtr->getNodeList() );
+   int nActNodes = meshPtr->getNodeList()->getActiveSize();
+   tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
    tArray<double> //dz( nActNodes ), // Erosion depth @ each node
        dzdt( nActNodes ); //Erosion rate @ ea. node
    double ratediff;
@@ -805,8 +805,8 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
    double frac = 0.3; // fraction of time to zero slope
    int i;
    tLNode * cn, *dn;
-   int nActNodes = gridPtr->getNodeList()->getActiveSize();
-   tGridListIter<tLNode> ni( gridPtr->getNodeList() );
+   int nActNodes = meshPtr->getNodeList()->getActiveSize();
+   tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
    double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
        cap,          // Transport capacity
        pedr,         // Potential erosion/deposition rate
@@ -1018,8 +1018,8 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
    double timegb; //time gone by - for layering time purposes
    int i,n;
    tLNode * cn, *dn;
-   int nActNodes = gridPtr->getNodeList()->getActiveSize();
-   tGridListIter<tLNode> ni( gridPtr->getNodeList() );
+   int nActNodes = meshPtr->getNodeList()->getActiveSize();
+   tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
    double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
        cap,
        pedr,
@@ -1344,8 +1344,8 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
    double timegb=time; //time gone by - for layering time purposes
    int i,j, flag;
    tLNode * cn, *dn;
-   int nActNodes = gridPtr->getNodeList()->getActiveSize();
-   tGridListIter<tLNode> ni( gridPtr->getNodeList() );
+   int nActNodes = meshPtr->getNodeList()->getActiveSize();
+   tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
    double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
        dzdt, 
        drdt,
@@ -1747,8 +1747,8 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
        denom,      // Denominator in Courant number (=Kd*Lve)
        delt,       // Max local step size
        dtmax;      // Max global step size (initially equal to total time rt)
-   tGridListIter<tLNode> nodIter( gridPtr->getNodeList() );
-   tGridListIter<tEdge> edgIter( gridPtr->getEdgeList() );
+   tMeshListIter<tLNode> nodIter( meshPtr->getNodeList() );
+   tMeshListIter<tEdge> edgIter( meshPtr->getEdgeList() );
 
 #if TRACKFNS
    cout << "tErosion::Diffuse()" << endl << flush;
@@ -1835,7 +1835,7 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
 void tErosion::UpdateExposureTime( double dtg)
 {
    tLNode * cn;
-   tGridListIter<tLNode> nodIter( gridPtr->getNodeList() );
+   tMeshListIter<tLNode> nodIter( meshPtr->getNodeList() );
 
 #if TRACKFNS
    cout << "tErosion::UpdateExposureTime()" << endl << flush;
