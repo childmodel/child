@@ -12,8 +12,14 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.22 1999-04-05 15:14:34 gtucker Exp $
+**  Modifications:
+**   - 6/99: GT commented out latadjust and vegerod in favor of using
+**           a single parameter, rockerod, to describe the rate of bank
+**           erosion per unit bank shear stress.
+**
+**  $Id: tStreamMeander.h,v 1.23 1999-06-10 18:44:58 gtucker Exp $
 \**************************************************************************/
+
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
 
@@ -110,9 +116,9 @@ protected:
     double dscrtwids; //nominal channel discretization in channel widths
     double allowfrac; //maximum channel point mvmt. in channel widths
     double leavefrac; //distance in widths to add new node
-    double vegerod;  //erodibility of vegetated surface or bank
+    //double vegerod;  //erodibility of vegetated surface or bank
     double rockerod; //erodibility of bedrock
-   double latadjust; //ratio bank erody:bed erody; lets us speed up lat. erosion
+    //double latadjust; //ratio bank erody:bed erody; lets us speed up lat. erosion
    double Pdz; //dependence of bank erody on bank height, 0=none, 1=all
     tArray< int > nrnodes; //array w/ #elements=#reaches, # "active" reach nodes
     tArray< double > reachlen; // " , length of active reach in reach list
