@@ -85,6 +85,7 @@ static
 void write_point(int npoints, point* p)
 {
   ofstream file("points_sorted");
+  file.precision(10);
   file << npoints << endl;
   for(int i=0;i<npoints;++i){
     p[i].write(file);
@@ -94,6 +95,7 @@ static
 void write_edge(edge *edges, point* p)
 {
   ofstream file("triggy");
+  file.precision(10);
   int i=0;
   while(edges[i].from != -1 ){
     edges[i].write(file,p);
