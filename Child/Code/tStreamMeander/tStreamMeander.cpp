@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.52 1999-02-22 20:06:24 nmgaspar Exp $
+**  $Id: tStreamMeander.cpp,v 1.53 1999-02-22 21:36:16 gtucker Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -2040,7 +2040,7 @@ void tStreamMeander::CheckFlowedgCross()
 #define MAXLOOPS 10
 void tStreamMeander::CheckBrokenFlowedg()
 {
-   //cout << "CheckBrokenFlowedg()..." << flush << endl;
+   cout << "CheckBrokenFlowedg()..." << flush << endl;
    int nrn, nln, breakedge = 1;
    int nloops = 0;
    double area;
@@ -2067,7 +2067,7 @@ void tStreamMeander::CheckBrokenFlowedg()
    {
       nloops++;
       breakedge = 0;
-      //cout << "checking..." << endl << flush;
+      cout << "checking..." << endl << flush;
         //look through meandering nodes:
       for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
       {
