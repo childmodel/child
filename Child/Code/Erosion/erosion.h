@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.23 1999-04-08 20:04:14 gtucker Exp $
+**  $Id: erosion.h,v 1.24 1999-05-18 21:54:04 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -122,8 +122,11 @@ class tSedTransPwrLaw
 
   private:
    double kf;  // Transport capacity coefficient
+   double kt;  // Shear stress coefficient
    double mf;  // Exponent on total discharge
    double nf;  // Exponent on slope
+   double pf;  // Excess shear exponent
+   double tauc; // Entrainment threshold
 };
 
 
@@ -183,6 +186,7 @@ class tBedErodePwrLaw
 
   private:
    double kb;  // Erosion coefficient
+   double kt;  // Shear stress (or stream power) coefficient
    double mb;  // Exponent on total discharge
    double nb;  // Exponent on slope
    double pb;  // Exponent on excess erosion capacity (e.g., shear stress)
