@@ -29,8 +29,9 @@
 **
 **  Modifications:
 **    - 3/31/00 bug fix to tPtrList copy constructors (GT)
+**    - 5/10/00 typo fix in DataCopy (GT)
 **
-**  $Id: tPtrList.h,v 1.11 2000-03-31 14:13:30 gtucker Exp $
+**  $Id: tPtrList.h,v 1.12 2000-05-10 19:37:39 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
@@ -116,6 +117,111 @@ private:
     tPtrListNode< NodeType > * next;  // ptr to next list item
 };
 
+
+/**************************************************************************\
+** class tPtrList *********************************************************
+**
+** Class tPtrList implements a linked list of pointers. The class includes
+** pointers to the first and last list nodes (see tPtrListNode) and the 
+** number of items on the list.
+**
+\**************************************************************************/
+/** class tPtrList **********************************************************/
+template< class NodeType >
+class tPtrList
+{
+    friend class tPtrListIter< NodeType >;
+public:
+    tPtrList();                               // default constructor
+    tPtrList( const tPtrList< NodeType > & ); // copy constructor
+    tPtrList( const tPtrList< NodeType > * ); // copy constructor
+    ~tPtrList();                              // destructor
+    const tPtrList< NodeType > 
+    &operator=( const tPtrList< NodeType > & );  // assignment
+    void insertAtFront( NodeType * ); // puts ptr at list front
+    void insertAtBack( NodeType * );  // puts ptr at list back
+    void insertAtNext( NodeType *, tPtrListNode< NodeType > * );
+    void insertAtPrev( NodeType *, tPtrListNode< NodeType > * );
+    int removeFromFront( NodeType * );  // removes 1st item, puts in ptr
+    NodeType * removeFromFront();       // removes & returns 1st item
+    int removeFromBack( NodeType * );   // removes last item, puts in ptr
+    int removeNext( NodeType *, tPtrListNode< NodeType > * );
+    int removePrev( NodeType *, tPtrListNode< NodeType > * );
+    void Flush();         // clears & reinitializes list
+    int isEmpty() const;  // returns 1 if list empty, 0 otherwise
+    void print() const;   // prints list contents -- DEBUG ONLY
+    /*void input( int, tList< NodeType > * );*/
+    int getSize() const;  // returns size of list
+    tPtrListNode< NodeType > * getFirstNC();  // returns ptr to 1st list node
+    const tPtrListNode< NodeType > * getFirst() const;  // return const "
+    void moveToBack( tPtrListNode< NodeType > *  );   // moves item to back
+    void moveToFront( tPtrListNode< NodeType > *  );  // moves item to front
+    tPtrListNode< NodeType > * getLast() const;
+    void makeCircular();
+    const NodeType *getIthPtr( int ) const;
+    NodeType *getIthPtrNC( int ) const;
+    tPtrList<NodeType> *DataCopy();   // copies AND CONTENTS POINTED TO (gt)
+    
+private:
+    int nNodes;
+    tPtrListNode< NodeType > * first;
+    tPtrListNode< NodeType > * last;
+    tPtrListNode< NodeType > * getNewNode( NodeType * );
+};
+
+
+/**************************************************************************\
+** class tPtrListIter ******************************************************
+**
+** Helper class for tPtrList. tPtrListIters are "iterators" that walk up &
+** down a tPtrList, fetching items. Their chief advantage is that you can
+** have multiple iterators on any given list at once, and thus multiple
+** access points. Use of iterator classes is discussed by Deitel and
+** Deitel, _C++ How to Program_, first edition, Prentice Hall, 1994.
+**
+** Note that in the current implementation, list items are fetched by
+** ID number, which presupposes that the list items have a member function
+** getID. This restricts the generality of tPtrList, and should be moved
+** to tGridList. (TODO)
+**
+** Modifications:
+**  - added 2nd copy constructor, GT, 1/2000
+**
+\**************************************************************************/
+//TO DO: make Get, Where, GetP, refer to place in list rather than use getID()
+template< class NodeType >
+class tPtrListIter
+{
+  public:
+   tPtrListIter();
+   tPtrListIter( tPtrList< NodeType > & );
+   tPtrListIter( tPtrList< NodeType > * );
+   ~tPtrListIter();
+   int First();
+   int Last();
+   int Get( int );
+   int Get( NodeType * );
+   int Where();
+   NodeType *DatPtr();
+   tPtrListNode< NodeType > *NodePtr();
+   int Next();
+   int Prev();
+   int NextIsNotFirst();
+   void Reset( tPtrList< NodeType > & );
+   NodeType *NextP();
+   NodeType *GetP( int );
+   NodeType *FirstP();
+   NodeType *LastP();
+   NodeType *PrevP();
+   NodeType *ReportNextP();
+   NodeType *ReportPrevP();
+   int AtEnd();
+  private:
+   tPtrList< NodeType > * ptrlistPtr;
+   tPtrListNode< NodeType > * curptrnode;
+   int counter;
+   
+};
 
 
 /**************************************************************************\
@@ -246,57 +352,6 @@ inline tPtrListNode< NodeType > * tPtrListNode< NodeType >::
 getNextNC( ) {return next;}
 
 
-
-/**************************************************************************\
-** class tPtrList *********************************************************
-**
-** Class tPtrList implements a linked list of pointers. The class includes
-** pointers to the first and last list nodes (see tPtrListNode) and the 
-** number of items on the list.
-**
-\**************************************************************************/
-/** class tPtrList **********************************************************/
-template< class NodeType >
-class tPtrList
-{
-    friend class tPtrListIter< NodeType >;
-public:
-    tPtrList();                               // default constructor
-    tPtrList( const tPtrList< NodeType > & ); // copy constructor
-    tPtrList( const tPtrList< NodeType > * ); // copy constructor
-    ~tPtrList();                              // destructor
-    const tPtrList< NodeType > 
-    &operator=( const tPtrList< NodeType > & );  // assignment
-    void insertAtFront( NodeType * ); // puts ptr at list front
-    void insertAtBack( NodeType * );  // puts ptr at list back
-    void insertAtNext( NodeType *, tPtrListNode< NodeType > * );
-    void insertAtPrev( NodeType *, tPtrListNode< NodeType > * );
-    int removeFromFront( NodeType * );  // removes 1st item, puts in ptr
-    NodeType * removeFromFront();       // removes & returns 1st item
-    int removeFromBack( NodeType * );   // removes last item, puts in ptr
-    int removeNext( NodeType *, tPtrListNode< NodeType > * );
-    int removePrev( NodeType *, tPtrListNode< NodeType > * );
-    void Flush();         // clears & reinitializes list
-    int isEmpty() const;  // returns 1 if list empty, 0 otherwise
-    void print() const;   // prints list contents -- DEBUG ONLY
-    /*void input( int, tList< NodeType > * );*/
-    int getSize() const;  // returns size of list
-    tPtrListNode< NodeType > * getFirstNC();  // returns ptr to 1st list node
-    const tPtrListNode< NodeType > * getFirst() const;  // return const "
-    void moveToBack( tPtrListNode< NodeType > *  );   // moves item to back
-    void moveToFront( tPtrListNode< NodeType > *  );  // moves item to front
-    tPtrListNode< NodeType > * getLast() const;
-    void makeCircular();
-    const NodeType *getIthPtr( int ) const;
-    NodeType *getIthPtrNC( int ) const;
-    tPtrList<NodeType> *DataCopy();   // copies AND CONTENTS POINTED TO (gt)
-    
-private:
-    int nNodes;
-    tPtrListNode< NodeType > * first;
-    tPtrListNode< NodeType > * last;
-    tPtrListNode< NodeType > * getNewNode( NodeType * );
-};
 
 
 /**************************************************************************\
@@ -877,13 +932,15 @@ makeCircular() {assert( first != 0 ); last->next = first;}
 **
 **  Created 12/7/99, GT
 **  Assumes: NodeType has a copy constructor defined
+**  Modifications:
+**   - corrected typo (apparently this fn never compiled before?), GT 5/00
 **
 \**************************************************************************/
 template< class NodeType >                      //tPtrList
-inline tPtrList< NodeType > *tPtrList<NodeType>::
+inline tPtrList< NodeType > * tPtrList< NodeType >::
 DataCopy()
 {
-   tPtrListIter iter( this );
+   tPtrListIter<NodeType> iter( this );
    NodeType * curr, * newitem;
    tPtrList * newlist = new tPtrList();
    
@@ -916,59 +973,6 @@ print() const
    cout<<current->Ptr->getID() <<endl;
 }
 */
-
-/**************************************************************************\
-** class tPtrListIter ******************************************************
-**
-** Helper class for tPtrList. tPtrListIters are "iterators" that walk up &
-** down a tPtrList, fetching items. Their chief advantage is that you can
-** have multiple iterators on any given list at once, and thus multiple
-** access points. Use of iterator classes is discussed by Deitel and
-** Deitel, _C++ How to Program_, first edition, Prentice Hall, 1994.
-**
-** Note that in the current implementation, list items are fetched by
-** ID number, which presupposes that the list items have a member function
-** getID. This restricts the generality of tPtrList, and should be moved
-** to tGridList. (TODO)
-**
-** Modifications:
-**  - added 2nd copy constructor, GT, 1/2000
-**
-\**************************************************************************/
-//TO DO: make Get, Where, GetP, refer to place in list rather than use getID()
-template< class NodeType >
-class tPtrListIter
-{
-  public:
-   tPtrListIter();
-   tPtrListIter( tPtrList< NodeType > & );
-   tPtrListIter( tPtrList< NodeType > * );
-   ~tPtrListIter();
-   int First();
-   int Last();
-   int Get( int );
-   int Get( NodeType * );
-   int Where();
-   NodeType *DatPtr();
-   tPtrListNode< NodeType > *NodePtr();
-   int Next();
-   int Prev();
-   int NextIsNotFirst();
-   void Reset( tPtrList< NodeType > & );
-   NodeType *NextP();
-   NodeType *GetP( int );
-   NodeType *FirstP();
-   NodeType *LastP();
-   NodeType *PrevP();
-   NodeType *ReportNextP();
-   NodeType *ReportPrevP();
-   int AtEnd();
-  private:
-   tPtrList< NodeType > * ptrlistPtr;
-   tPtrListNode< NodeType > * curptrnode;
-   int counter;
-   
-};
 
 
 /**************************************************************************\
