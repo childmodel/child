@@ -9,7 +9,7 @@
 **      initial value of mSearchOriginTriPtr, and modified ExtricateTri...
 **      to avoid dangling ptr. GT, 1/2000
 **
-**  $Id: tMesh.cpp,v 1.87 2000-03-24 17:00:18 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.88 2000-06-24 15:16:07 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -4785,14 +4785,17 @@ CheckTriEdgeIntersect()
 **                  by tStreamMeander)
 **      Calls: CheckTriEdgeIntersect, CheckLocallyDelaunay, UpdateMesh,
 **             LocateTriangle, tLNode::LayerInterpolation
-**      Created: SL       
+**      Created: SL
+**      Modifications:
+**       - added interpFlag parameter to make layer interpolation optional,
+**         so it needn't be called for tectonic motions (GT 4/00)     
 **
 \*****************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MoveNodes( double time )
+MoveNodes( double time, int interpFlag )
 {
-   //cout << "MoveNodes()... time " << time <<flush << endl;
+   cout << "MoveNodes()... time " << time <<flush << endl;
    tSubNode * cn;  
    tMeshListIter< tSubNode > nodIter( nodeList );
 
@@ -4808,7 +4811,8 @@ MoveNodes( double time )
             //the triangle.
             //cout<<"a point will be moved in movenodes"<<endl;
             tri = LocateTriangle( newxy[0], newxy[1] );
-            cn->LayerInterpolation( tri, newxy[0], newxy[1], time );
+            if( interpFlag )
+                cn->LayerInterpolation( tri, newxy[0], newxy[1], time );
             // TODO: is there a way to make this general, e.g. virtual fn?
          }
       }
