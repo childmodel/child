@@ -1,10 +1,10 @@
 /**************************************************************************/
 /**
-**  @file tArray.cpp
-**  @brief Functions for template class tArray< T >
-**
-**  $Id: tArray.cpp,v 1.20 2003-08-06 16:13:51 childcvs Exp $
-*/
+ **  @file tArray.cpp
+ **  @brief Functions for template class tArray< T >
+ **
+ **  $Id: tArray.cpp,v 1.21 2003-08-08 12:07:00 childcvs Exp $
+ */
 /**************************************************************************/
 
 #if !defined(HAVE_NO_NAMESPACE)
@@ -18,138 +18,136 @@ using namespace std;
 #include "../compiler.h"
 
 /**************************************************************************\
-**
-**  Constructors & destructors:
-**
-**  (1) default constructor - sets size to zero and pointer to null
-**  (2) creates an array of specified size and initializes values to zero
-**  (3) copy constructor - makes copy; assumes original array not empty
-**
-**  Destructor deletes the array elements.
-**
+ **
+ **  Constructors & destructors:
+ **
+ **  (1) default constructor - sets size to zero and pointer to null
+ **  (2) creates an array of specified size and initializes values to zero
+ **  (3) copy constructor - makes copy; assumes original array not empty
+ **
+ **  Destructor deletes the array elements.
+ **
 \**************************************************************************/
 
 //default constructor
-template< class T >                                               //tArray
-tArray< T >::
+template< class T >
+inline tArray< T >::
 tArray() :
   npts(1), avalue(0)
 {
-   avalue = new T [1];
-   assert( avalue != 0 );
-   avalue[0] = 0;
-     //cout<<"tArray(): one member array"<<npts<<endl;
+  avalue = new T [1];
+  avalue[0] = 0;
 }
 
 //constructor that initializes array size
-template< class T >                                               //tArray
+template< class T >
 tArray< T >::
 tArray( int number ) :
   npts(number), avalue(0)
 {
-   assert( number > 0 );
-   int i;
-
-   avalue = new T [npts];
-   assert( avalue != 0 );
-   for( i=0; i<npts; i++ )
-       avalue[i] = 0;
-     //cout<<"tArray(npts): no. in array "<<npts<<endl;
+  assert( number > 0 );
+  avalue = new T [npts];
+  for( int i=0; i<npts; i++ )
+    avalue[i] = 0;
 }
 
 //copy constructor
-template< class T >                                               //tArray
+template< class T >
 tArray< T >::
 tArray( const tArray< T > &original ) :
   npts(original.npts), avalue(0)
 {
-   int i;
+  assert( npts > 0 );
 
-      cout << flush;
-      /*for( i = 0; i < original.npts; i++ )
-      {
-         cout << original.avalue[i] << " ";
-      }
-      cout << endl << flush;*/
-
-      assert( npts > 0 );
-      avalue = new T[npts];
-      assert( avalue != 0 );
-      for( i = 0; i < npts; i++ )
-          avalue[i] = original.avalue[i];
-     //cout<<"tArray(original): no. in array "<<npts<<endl;
+  avalue = new T[npts];
+  for( int i = 0; i < npts; i++ )
+    avalue[i] = original.avalue[i];
 }
 
-template< class T >                                               //tArray
+//specialized constructors
+template< class T >
+inline tArray< T >::
+tArray( const T& e1, const T& e2 ) :
+  npts(2), avalue(0)
+{
+  avalue = new T [2];
+  avalue[0] = e1;
+  avalue[1] = e2;
+}
+
+template< class T >
+inline tArray< T >::
+tArray( const T& e1, const T& e2, const T& e3 ) :
+  npts(3), avalue(0)
+{
+  avalue = new T [3];
+  avalue[0] = e1;
+  avalue[1] = e2;
+  avalue[2] = e3;
+}
+
+template< class T >
 inline tArray< T >::
 ~tArray()
 {
-     //cout<<"~tArray: no. in array "<<npts<<endl;
-   delete [] avalue;
+  delete [] avalue;
 }
 
 
 /**************************************************************************\
-**  Overloaded operators:
-**
-**    assignment, equality, inequality - memberwise operation
-**    index - uses an assertion to check array bounds (assumed to be within
-**           bounds at runtime) and returns value
-**    left shift - sends array values to output stream, separated by
-**                 spaces and with a carriage return after every 10 items
-**
-**  Modifications:
-**   - Assignment: now allows assignment of empty arrays - GT 7/98
-**
+ **  Overloaded operators:
+ **
+ **    assignment, equality, inequality - memberwise operation
+ **    index - uses an assertion to check array bounds (assumed to be within
+ **           bounds at runtime) and returns value
+ **    left shift - sends array values to output stream, separated by
+ **                 spaces and with a carriage return after every 10 items
+ **
+ **  Modifications:
+ **   - Assignment: now allows assignment of empty arrays - GT 7/98
+ **
 \**************************************************************************/
 
 //overloaded assignment operator:
-template< class T >                                               //tArray
+template< class T >
 const tArray< T > &tArray< T >::operator=( const tArray< T > &right )
 {
-   assert( &right != 0 );
-   int i;
-   if( &right != this )
-   {
+  if( &right != this )
+    {
       delete [] avalue; avalue = 0;
       npts = right.npts;
       if( npts>0 )
-      {
-         assert( right.avalue != 0 );
-         avalue = new T [npts];
-        //cout << "tArray op=: npts " << npts << "; ";
-         for( i = 0; i < npts; i++ )
-         {
-            //cout << right.avalue[i] << " ";
-            avalue[i] = right.avalue[i];
-         }
-         //cout << endl;
-      }
-   }
-   return *this;
+	{
+	  assert( right.avalue != 0 );
+	  avalue = new T [npts];
+	  for( int i = 0; i < npts; i++ )
+	    avalue[i] = right.avalue[i];
+	}
+    }
+  return *this;
 }
 
 //overloaded equality operator:
-template< class T >                                               //tArray
+template< class T >
 int tArray< T >::operator==( const tArray< T > &right ) const
 {
-   if( npts != right.npts ) return 0;
-   int i;
-   for( i = 0; i < npts; i++ )
-       if( avalue[i] != right.avalue[i] )
-           return 0;
-   return 1;
+  if( npts != right.npts ) return 0;
+  int i;
+  for( i = 0; i < npts; i++ )
+    if( avalue[i] != right.avalue[i] )
+      return 0;
+  return 1;
 }
 
 //overloaded inequality operator:
-template< class T >                                               //tArray
+template< class T >
 int tArray< T >::operator!=( const tArray< T > &right ) const
 {
   return !operator==(right);
 }
 
 // error handler (do not make it inline)
-template< class T >                                               //tArray
+template< class T >
 void tArray< T >::fatalReport( int subscript ) const
 {
   cout<<"subscript is "<<subscript<<" npts is "<<npts<<endl;
@@ -157,7 +155,7 @@ void tArray< T >::fatalReport( int subscript ) const
 }
 
 //overloaded subscript operator:
-template< class T >                                               //tArray
+template< class T >
 inline T &tArray< T >::operator[]( int subscript )
 {
   if ( unlikely(0 > subscript || subscript >= npts) )
@@ -165,7 +163,7 @@ inline T &tArray< T >::operator[]( int subscript )
   return avalue[subscript];
 }
 
-template< class T >                                               //tArray
+template< class T >
 inline const T &tArray< T >::operator[]( int subscript ) const
 {
   if ( unlikely(0 > subscript || subscript >= npts) )
@@ -174,45 +172,23 @@ inline const T &tArray< T >::operator[]( int subscript ) const
 }
 
 //overloaded left shift operator
-template< class T >                                               //tArray
+template< class T >
 ostream &operator<<( ostream &output, const tArray< T > &a )
 {
-   int i;
+  int i;
 
-   for( i = 0; i < a.npts; i++ )
-   {
+  for( i = 0; i < a.npts; i++ )
+    {
       output << a.avalue[i] << " ";
       if( (i + 1) %10 == 0 ) output<<endl;
-   }
-   if( i % 10 != 0 ) output<<endl;
-   return output;
+    }
+  if( i % 10 != 0 ) output<<endl;
+  return output;
 }
 
-//overloaded input file operator for class tArray< T >:
-/*template< class T >                                               //tArray
-ifstream &operator>>( ifstream &input, tArray< T > &a )
-{
-   for( int i = 0; i < a.npts; i++ )
-       input >> a.avalue[i];
-   return input;
-}*/
-//overloaded output file operator for class tArray< T >:
-/*template< class T >                                               //tArray
-ofstream &operator<<( ofstream &output, const tArray< T > &a )
-{
-   for( int i = 0; i < a.npts; i++ )
-   {
-      output << a.avalue[i] << " ";
-      if( (i + 1) %10 == 0 ) output<<endl;
-   }
-   if( i % 10 != 0 ) output<<endl;
-   return output;
-}*/
-
-
 /**************************************************************************\
-**  getArrayPtr: returns a pointer to the head of the array (needed for
-**               passing arrays to Fortran routines)
+ **  getArrayPtr: returns a pointer to the head of the array (needed for
+ **               passing arrays to Fortran routines)
 \**************************************************************************/
 template< class T >
 inline T *tArray< T >::
@@ -223,16 +199,14 @@ inline const T *tArray< T >::
 getArrayPtr() const {return avalue;}
 
 /**************************************************************************\
-**  setSize: reinitializes and resizes the array
+ **  setSize: reinitializes and resizes the array
 \**************************************************************************/
 template< class T >
 void tArray<T>::setSize( int size )
 {
-   int i;
-
-   delete [] avalue;
-   npts = size;
-   avalue = new T [npts];
-   assert( avalue!=0 && npts>=0 );
-   for( i=0; i<npts; i++ ) avalue[i] = 0;
+  assert( size>=0 );
+  delete [] avalue;
+  npts = size;
+  avalue = new T [npts];
+  for( int i=0; i<npts; i++ ) avalue[i] = 0;
 }
