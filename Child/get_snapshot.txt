@@ -77,7 +77,7 @@ cvs -d:ext:childcvs@nimbus.geog.ox.ac.uk:/miami/miami2/childcvs/cvs checkout Chi
 
 You should then see a new directory called Child with a series of
 subdirectories containing source code, documentation, example input files, etc.
-
+Later CVS command do not need this long "-d" option.
 
 7. A few tips about CVS
 
