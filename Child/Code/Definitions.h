@@ -1,14 +1,14 @@
 /****************************************************************************\
 **   Definitions.h: Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.20 2000-06-24 15:15:18 gtucker Exp $
+**   $Id: Definitions.h,v 1.21 2000-12-07 12:03:56 gtucker Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
 /** DEFINITIONS *************************************************************/
-#define VERSION "2.1.3, June 2000"
+#define VERSION "2.1.4, December 2000"
 #define TRUE 1
 #define FALSE 0
 #define kUniformMesh 0     /*method of grid construction*/
