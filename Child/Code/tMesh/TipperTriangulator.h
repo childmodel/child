@@ -4,18 +4,21 @@
 class point;
 class edge;
 class elem;
+class oriented_edge;
 void sort_triangulate(int npoints, point *p, int *pnedges, edge** edges_ret);
 void sort_triangulate(int npoints, point *p,
 		      int *pnedges, edge** edges_ret,
 		      int *pnelem, elem** pelems_ret);
 void build_elem_table(int npoints, const point *p, int nedges, const edge* edges,
 		      int *pnelem, elem** pelems_ret);
+void build_spoke(int npoints, int nedges, const edge* edges,
+		 oriented_edge** poedge);
 
 class point{
 public:
-  point() : x(0.), y(0.) {}
-  point(double ix,double iy) : x(ix), y(iy) {}
-  point(const point& p) : x(p.x), y(p.y) {}
+  point() : x(0.), y(0.), id(-1) {}
+  point(double ix,double iy) : x(ix), y(iy), id(-1) {}
+  point(const point& p) : x(p.x), y(p.y), id(p.id) {}
   const point &operator=( const point &p );
   int operator < (const point& p) const {return x<p.x;}
   point operator - (const point& p) const {return point(x-p.x,y-p.y);}
@@ -53,9 +56,38 @@ public:
   //       from            .
 };
 
+
+// auxiliary class to get clockwise and counter clockwise edges around a node
+class oriented_edge {
+  int _edge;
+  bool _orientation;
+public:
+  oriented_edge():
+    _edge(-1),
+    _orientation(true) {}
+  oriented_edge(int e, bool o):
+    _edge(e),
+    _orientation(o) {}
+  oriented_edge(const oriented_edge & _e):
+    _edge(_e.e()),
+    _orientation(_e.o()) {}
+  int e() const { return _edge; }
+  bool o() const { return _orientation; }
+  void e(int e1) { _edge = e1; }
+  void o(bool o1) { _orientation = o1; }
+  oriented_edge next_ccw_around_to(const edge* edges) const;
+  oriented_edge next_cw_around_to(const edge* edges) const ;
+  oriented_edge ccw_edge_around_to(const edge* edges) const;
+};
+
 // connectivity table element to node and edge
 class elem {
 public:
+  elem() :
+    p1(-1), p2(-1), p3(-1),
+    e1(-1), e2(-1), e3(-1),
+    eo1(false), eo2(false), eo3(false),
+    t1(-1), t2(-1), t3(-1) {}
   int p1, p2, p3;  // nodes
   int e1, e2, e3;  // edges 
   bool eo1, eo2, eo3; // orientation of edges
