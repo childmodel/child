@@ -3,7 +3,7 @@
 **  tGrid.cpp: Functions for class tGrid (see tGrid.h) plus global
 **             functions used by tGrid methods
 **
-**  $Id: tMesh.cpp,v 1.66 1999-04-01 22:56:48 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.67 1999-04-02 20:57:51 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2498,6 +2498,7 @@ DeleteNode( tSubNode *node, int repairFlag )
 **               tPtrList, tPtrListIter
 **  Output:  list of node's (former) neighbors, in nbrList
 **  Returns:  1 if all edges successfully deleted, 0 if not
+**  Calls: DeleteEdge
 **  Assumes:  
 **  Notes:
 **  Created: SL fall, '97
@@ -2548,6 +2549,7 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
 **
 **  Inputs:  edgePtr -- ptr to the edge to be deleted
 **  Returns:  1 if successful, 0 if not
+**  Calls: ExtricateEdge 
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -2601,6 +2603,7 @@ DeleteEdge( tEdge * edgePtr )
 **
 **  Inputs:  edgePtr -- ptr to the edge to be deleted
 **  Returns: 1 if successful, 0 otherwise
+**  Calls: DeleteTriangle, <tSubNode>::WarnSpokeLeaving
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -2619,6 +2622,7 @@ ExtricateEdge( tEdge * edgePtr )
    tListNode< tEdge > *listnodePtr;
    tTriangle triVal1, triVal2;
    tArray< tTriangle * > triPtrArr(2);
+
    //cout << "find edge in list; " << flush;
    ce = edgIter.GetP( edgePtr->getID() );  //NB: why necessary? isn't ce the
    // same as edgePtr??  Yes, why???
@@ -2633,6 +2637,7 @@ ExtricateEdge( tEdge * edgePtr )
       spk = spokIter.NextP();
       spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
    }
+
    // Find the triangle that points to the edge
    //cout << "find triangle; " << flush;
    triPtrArr[0] = TriWithEdgePtr( edgePtr ); 
@@ -2889,6 +2894,8 @@ TriWithEdgePtr( tEdge *edgPtr )
 **
 **  Inputs:  triPtr -- ptr to the triangle to be deleted
 **  Returns:  1 if successful, 0 if not
+**  Calls: ExtricateTriangle
+**  Called by: DeleteEdge, AddNode, AddNodeAt
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -2912,6 +2919,10 @@ DeleteTriangle( tTriangle * triPtr )
 **  Detaches a triangle from surrounding mesh elements and places it at
 **  the head of the triangle list, where it can be easily deleted by
 **  DeleteTriangle.
+**
+**  Inputs: triPtr -- ptr to the triangle to be extricated
+**  Returns: 1 if successful, 0 if not
+**  Called by: DeleteTriangle
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -2966,6 +2977,7 @@ ExtricateTriangle( tTriangle *triPtr )
 **
 **  Inputs: nbrList -- list of nodes surrounding the "hole"
 **  Returns: 1 if successful, 0 if not
+**  Calls: Next3Delaunay, AddEdgeAndMakeTriangle, MakeTriangle
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -3643,15 +3655,15 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
       triptrList.insertAtBack( triIter.LastP() );
       triptrList.insertAtBack( triIter.PrevP() );
       triptrList.insertAtBack( triIter.PrevP() );
-        //check list for flips; if flip, put new triangles at end of list
+
+      //check list for flips; if flip, put new triangles at end of list
       int flip = 1;
       ctr = 0;
-
       while( !( triptrList.isEmpty() ) )
       {
          ctr++;
          if( ctr > kLargeNumber ) // Make sure to prevent endless loops
-         {
+         {                        // TODO: remove for release ver
             cerr << "Mesh error: adding node " << node2->getID()
                  << " flip checking forever"
                  << endl;
@@ -3675,7 +3687,6 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
          triptrList.removeFromFront( ct );
       }
    }
-   
 
    //reset node id's
    //cout << "resetting ids\n" << flush;
@@ -3702,7 +3713,6 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    if(hlp !=  node2->getSpokeListNC().getSize() ){
       cout<<"AddNode  number of spokes "<<node2->getSpokeListNC().getSize()<<" number of ccwedges "<<hlp<<endl<<flush;
    }
- 
 
    return node2;  // Return ptr to new node
 }
@@ -3885,6 +3895,7 @@ AddNodeAt( tArray< double > &xyz, double time )
 **  tGrid "get" functions
 **
 \**************************************************************************/
+
 template <class tSubNode>
 tGridList<tEdge> * tGrid<tSubNode>::
 getEdgeList() {return &edgeList;}
@@ -3927,7 +3938,7 @@ getEdgeComplement( tEdge *edge )
 
 /**************************************************************************\
 **
-**  tGrid::UpdateMesh()
+**  tGrid::UpdateMesh
 **
 **  Updates mesh geometry:
 **   - computes edge lengths
@@ -3974,7 +3985,7 @@ UpdateMesh()
    setVoronoiVertices();
    CalcVoronoiEdgeLengths();
    CalcVAreas();
-   CheckMeshConsistency( 0 );
+   CheckMeshConsistency( 0 );  // debug only -- remove for release
 
 // Triangle areas
 /*   for( tlist.First(); !tlist.AtEnd(); tlist.Next() )
@@ -3990,27 +4001,36 @@ UpdateMesh()
 
 /*****************************************************************************\
 **
-**      CheckForFlip: checks whether edge between two triangles should be
-**                    flipped; may either check, flip, and report, or just
-**                    check and report.
-**                    Checks whether the present angle or the possible angle
-**                    is greater. Greater angle wins. Also uses flip variable
-**                    to determine whether to use newx, newy, or x, y.
+**  tGrid::CheckForFlip
 **
-**      Data members updated: Grid
-**      Called by: 
-**      Calls:  
+**  Checks whether edge between two triangles should be
+**  flipped; may either check, flip, and report, or just check and report.
+**  Checks whether the present angle or the possible angle
+**  is greater. Greater angle wins. Also uses flip variable
+**  to determine whether to use newx, newy, or x, y.
+**
+**      Inputs: tri -- ptr to the triangle to be tested
+**              nv -- the number of the vertex opposite the edge that
+**                    might be flipped (0, 1, or 2)
+**              flip -- flag indicating whether we want to actually flip
+**                      the edge if needed (TRUE) or simply test the flip
+**                      condition for a point that is about to be moved to
+**                      a new position (FALSE)
+**      Returns: 1 if flip is needed, 0 otherwise
+**      Modifies: edge may be flipped
+**      Called by: AddNode, AddNodeAt, CheckLocallyDelaunay,
+**                 tStreamMeander::CheckBrokenFlowedge
+**      Calls: PointsCCW, FlipEdge, TriPasses
 **        
 **      Created: 8/28/97 SL
 **      Modified: 12/16/97 SL                                               
-**                                                              
-**
+**                                                  
 \*****************************************************************************/
 template< class tSubNode >
 int tGrid< tSubNode >::
 CheckForFlip( tTriangle * tri, int nv, int flip )
 {
-   if( tri == 0 )
+   if( tri == 0 )  // TODO: is this just a bug check?
    {
       cout << "CheckForFlip: tri == 0" << endl;
       return 0;
@@ -4029,6 +4049,11 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
    node3 = ( tSubNode * ) triop->pPtr( nvop );
    tArray< double > ptest( node3->get2DCoords() ), p0( node0->get2DCoords() ),
        p1( node1->get2DCoords() ), p2( node2->get2DCoords() );
+
+   // If "flip" flag isn't set and the node is a moving node, use "new"
+   // coordinates rather than current coordinates
+   // TODO: decouple this from meandering -- use a "moving" flag instead
+   // for generality?
    if( !flip )
    {
       if( node0->Meanders() ) p0 = node0->getNew2DCoords();
@@ -4036,10 +4061,17 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
       if( node2->Meanders() ) p2 = node2->getNew2DCoords();
       if( node3->Meanders() ) ptest = node3->getNew2DCoords();
    }
+
+   // If p0-p1-p2 passes the test, no flip is necessary
    if( TriPasses( ptest, p0, p1, p2 ) ) return 0;
+
+   // Otherwise, a flip is needed, provided that the new triangles are
+   // counter-clockwise (would this really ever happen??) and that the
+   // node isn't a moving node (ie "flip" is true)
    if( flip )                     //and make sure there isn't already an edge?
    {
-      if( !PointsCCW( p0, p1, ptest ) || !PointsCCW( p0, ptest, p2 ) )return 0;
+      if( !PointsCCW( p0, p1, ptest ) || !PointsCCW( p0, ptest, p2 ) ) 
+          return 0;
       //cout << "calling Flip edge from cff" << endl;
       FlipEdge( tri, triop, nv, nvop );
         /*
@@ -4055,22 +4087,39 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
    return 1;
 }
 
-/******************************************************************\
-   Note on notation in flip edge
 
-                d
-               /|\
-       tri->  / | \ <-triop
-             /  |  \
-            a   |   c
-             \  |  /
-              \ | /
-               \|/
-                b
-        Edge bd will be removed
-        and an edge ac will be made.
-        nbrList contains the points a, b, c, d     
-\******************************************************************/
+/******************************************************************\
+**
+**  tGrid::FlipEdge
+**
+**  Flips the edge pair between two adjacent triangle to
+**  re-establish Delaunay-ness.
+**
+**  Note on notation in flip edge:
+**
+**                d
+**               /|\
+**       tri->  / | \ <-triop
+**             /  |  \
+**            a   |   c
+**             \  |  /
+**              \ | /
+**               \|/
+**                b
+**        Edge bd will be removed
+**        and an edge ac will be made.
+**        nbrList contains the points a, b, c, d
+**
+**    Inputs:  tri, triop -- the triangles sharing the edge to be
+**                           flipped
+**             nv -- the number of tri's vertex (0, 1 or 2) opposite
+**                   the edge (ie, point a)
+**             nvop -- the number of triop's vertex (0, 1 or 2)
+**                     opposite the edge (ie, point c)
+**    Calls: DeleteEdge, AddEdgeAndMakeTriangle, MakeTriangle
+**    Called by: CheckForFlip, CheckTriEdgeIntersect
+**
+\*******************************************************************/
 template< class tSubNode >
 void tGrid< tSubNode >::
 FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
@@ -4079,33 +4128,67 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
    tSubNode *cn = 0;
    tPtrList< tSubNode > nbrList;
    //DumpTriangles();
+
+   // Place the four vertices of the two triangles on a list
    nbrList.insertAtBack( (tSubNode *) tri->pPtr(nv) );
    nbrList.insertAtBack( (tSubNode *) tri->pPtr((nv+1)%3) );
    nbrList.insertAtBack( (tSubNode *) triop->pPtr( nvop ) );
    nbrList.insertAtBack( (tSubNode *) tri->pPtr((nv+2)%3) );
    nbrList.makeCircular();
+
+   // Delete the edge pair between the triangles, along with the tri's
    //cout << "calling deleteedge from flipedge\n";
    //XDeleteEdge( tri->ePtr( (nv+1)%3 ) );
    DeleteEdge( tri->ePtr( (nv+2)%3 ) );  // Changed for right-hand data struc
+
+   // Recreate the triangles and the edges in their new orientation
    tPtrListIter< tSubNode > nbrIter( nbrList );
    AddEdgeAndMakeTriangle( nbrList, nbrIter );
    nbrIter.First();
    nbrList.removeNext( cn, nbrIter.NodePtr() );
    MakeTriangle( nbrList, nbrIter );
    //cout << "finished" << endl;
+
+   // TODO: why not just change the endpoints of the edges rather than
+   // deleting and recreating them?
 }
 
 
 /*****************************************************************************\
 **
-**      CheckLocallyDelaunay : updates the triangulation after moving
-**             some points.
-**             only uses x and y values, which have already been updated in
-**             MoveNodes (frmr PreApply).
-**             PREAPPLY SHOULD BE CALLED BEFORE THIS FUNCTION IS CALLED
+**  tGrid::CheckLocallyDelaunay
+**
+**  Updates the triangulation after moving some points.
+**  Only uses x and y values, which have already been updated in
+**  MoveNodes (frmr PreApply).
+**  MoveNodes SHOULD BE CALLED BEFORE THIS FUNCTION IS CALLED
+**
+**  The logic here is somewhat complicated. Here is GT's understanding
+**  of it (Stephen, can you confirm?):
+**
+**  1. We create a list of triangles that have at least one vertex that has
+**     moved (triPtrList) and which therefore might no longer be
+**     Delaunay.
+**  2. For each of these, we do a flip check across each face. Before
+**     doing so, however, we find the triangle on the triPtrList, if any,
+**     that comes just before this neighboring triangle. If the edge between
+**     the triangles gets flipped, both the triangles will be deleted and
+**     recreated on the master triangle list; thus, we will need to delete
+**     both affected triangles from triPtrList and re-add the new ones.
+**  3. If a flip occurs, remove the opposite triangle pointer from the
+**     list if needed in order to prevent a dangling pointer. The two
+**     affected triangles will have been replaced by new triangles which
+**     are now at the back of the master triangle list; add these two to
+**     the triPtrList to be rechecked, and break out of the vertex loop.
+**  4. Remove the triangle in question from the head of the triPtrList
+**     (regardless of whether it was flipped or not; if it was, its a 
+**     dangling pointer; if not, it is Delaunay and we no longer need
+**     worry about it)
+**  5. Continue until there are no more triangles to be checked.
+**
 **      Data members updated: Grid
 **      Called by: MoveNodes
-**      Calls:
+**      Calls: CheckForFlip
 **      Created: SL fall, '97
 **        
 \*****************************************************************************/
@@ -4122,9 +4205,10 @@ CheckLocallyDelaunay()
    int id0, id1, id2;
    tArray< int > npop(3);
    tSubNode *nodPtr;
-   
    int flip = 1;
-   //first find a way to go through all the points an the line
+
+   // Search through tri list to find triangles with at least one
+   // moving vertex, and put these on triPtrList
    //put each triangle into the stack
      //flipped = TRUE;
      /*do
@@ -4141,17 +4225,27 @@ CheckLocallyDelaunay()
       if( change ) triPtrList.insertAtBack( at );
    }
 
-   //check list for flips; if flip, put new triangles at end of list
+   // Check list for flips; if flip, put new triangles at end of list
    tPtrListIter< tTriangle > duptriPtrIter( triPtrList );
    tTriangle *tn, *tp;
-   while( !( triPtrList.isEmpty() ) )
+   while( !( triPtrList.isEmpty() ) ) // keep going 'til we've done em all
    {
       at = triPtrIter.FirstP();
       for( i=0; i<3; i++ )
       {
+         // If a neighboring triangle exists across this face, check for flip
          if( at->tPtr(i) != 0 )
          {
             tp = at->tPtr(i);
+
+            // If the neighboring triangle is also on the triPtrList, find
+            // the item on the list that comes just before it. This is done
+            // so that we can avoid a dangling pointer to a non-existent
+            // triangle if the edge is flipped (in which case, both tri's
+            // are deleted and new ones created). At the end of the for loop
+            // duptriPtrIter will either point to the item just before the
+            // neighbor triangle, or it will point to the last item;
+            // if tn is nonzero, it means the former is true.
             for( tn = duptriPtrIter.FirstP();
                  duptriPtrIter.ReportNextP() != tp &&
                      !( duptriPtrIter.AtEnd() );
@@ -4159,59 +4253,80 @@ CheckLocallyDelaunay()
             tn = 0;
             if( !( duptriPtrIter.AtEnd() ) )
             {
+               // doesn't this just mean tn == tp?? seems that tn just
+               // acts as a flag here
                tn = duptriPtrIter.ReportNextP();
             }
-            if( at->tPtr(0) != 0 ) id0 = at->tPtr(0)->getID();
+            
+            /*if( at->tPtr(0) != 0 ) id0 = at->tPtr(0)->getID();
             else id0 = -1;
             if( at->tPtr(1) != 0 ) id1 = at->tPtr(1)->getID();
             else id1 = -1;
             if( at->tPtr(2) != 0 ) id2 = at->tPtr(2)->getID();
             else id2 = -1;
-            /*cout << "check tri " << at->getID() << " with nbrs "
+            cout << "check tri " << at->getID() << " with nbrs "
                  << id0 << ", " << id1
-                 << ", and " << id2;*/
-               
-            if( tp->tPtr(0) != 0 ) id0 = tp->tPtr(0)->getID();
+                 << ", and " << id2;  
+                 if( tp->tPtr(0) != 0 ) id0 = tp->tPtr(0)->getID();
             else id0 = -1;
             if( tp->tPtr(1) != 0 ) id1 = tp->tPtr(1)->getID();
             else id1 = -1;
             if( tp->tPtr(2) != 0 ) id2 = tp->tPtr(2)->getID();
             else id2 = -1;
-            /*cout << " against tri " << tp->getID() << " with nbrs "
+            cout << " against tri " << tp->getID() << " with nbrs "
                  << id0 << ", " << id1
                  << ", and " << id2 << endl;*/
             //cout << "call cff from cld\n";
+
+            // Check triangle _at_ for a flip across face opposite vertex i,
+            // and do the flip if needed
             if( CheckForFlip( at, i, flip ) )
             {
+               // If the neighboring triangle (tp) is also on the list,
+               // we'll need to delete the pointer to it, which is now
+               // dangling (both triangles having been deleted and
+               // recreated during CheckForFlip)
                //cout << "flipped tri's, got tri ";
                if( tn != 0 )
                    triPtrList.removeNext( tn, duptriPtrIter.NodePtr() );
+
+               // Now put the two recreated triangles on the triPtrList
+               // We assume that CheckForFlip has put them at the back of
+               // the triangle list, so we simply add the last two triangles
+               // to triPtrList, then break out of the for loop
                tn = triIter.LastP();
-               if( tn->tPtr(0) != 0 ) id0 = tn->tPtr(0)->getID();
+
+               /*if( tn->tPtr(0) != 0 ) id0 = tn->tPtr(0)->getID();
                else id0 = -1;
                if( tn->tPtr(1) != 0 ) id1 = tn->tPtr(1)->getID();
                else id1 = -1;
                if( tn->tPtr(2) != 0 ) id2 = tn->tPtr(2)->getID();
                else id2 = -1;
-               /*cout << tn->getID() << " with nbrs "
+               cout << tn->getID() << " with nbrs "
                     << id0 << ", " << id1
                     << ", and " << id2;*/
+
                triPtrList.insertAtBack( tn );
                tn = triIter.PrevP();
-               if( tn->tPtr(0) != 0 ) id0 = tn->tPtr(0)->getID();
+               /*if( tn->tPtr(0) != 0 ) id0 = tn->tPtr(0)->getID();
                else id0 = -1;
                if( tn->tPtr(1) != 0 ) id1 = tn->tPtr(1)->getID();
                else id1 = -1;
                if( tn->tPtr(2) != 0 ) id2 = tn->tPtr(2)->getID();
                else id2 = -1;
-               /*cout << " and tri " << tn->getID() << " with nbrs "
+               cout << " and tri " << tn->getID() << " with nbrs "
                     << id0 << ", " << id1
                     << ", and " << id2 << endl;*/
+
                triPtrList.insertAtBack( tn );
                break;
             }
          }
       }
+      // Whether or not we did the flip, we remove the triangle from
+      // triPtrList (if it wasn't flipped, we no longer need to consider it;
+      // if it was, it will have been deleted and its replacement added to
+      // the back of the triPtrList)
       triPtrList.removeFromFront( at );
    }
       //for each triangle in the stack
@@ -4236,17 +4351,23 @@ CheckLocallyDelaunay()
    //cout << "finished" << endl;
 }
 
+
 /*****************************************************************************\
 **
-**      IntersectsAnyEdge: returns the first edge in the list which intersects
-**                         "edge" or NULL if "edge" intersects no other edges
+**  tGrid::IntersectsAnyEdge
+**
+**  Returns the first edge in the list which intersects
+**  "edge" or NULL if "edge" intersects no other edges
+**
 **      Data members updated: Grid
-**      Called by: 
-**      Calls:
+**      Called by: APPARENTLY NEVER CALLED! Replaced by global
+**                 function IntersectsAnyEdgeInList. Retain code in case
+**                 it needs to be revived.
+**      Calls: Intersect
 **      Created: SL fall, '97
 **
 \*****************************************************************************/
-template< class tSubNode >
+/*template< class tSubNode >
 tEdge *tGrid< tSubNode >::
 IntersectsAnyEdge( tEdge * edge )
 {
@@ -4254,6 +4375,7 @@ IntersectsAnyEdge( tEdge * edge )
    int i;
    tEdge * ce;
    tGridListIter< tEdge > edgIter( edgeList );
+
    if( !edge )
    {
       cout<<"IntersectsAnyEdge: Warning: invalid edge"<<endl<<flush;
@@ -4263,6 +4385,8 @@ IntersectsAnyEdge( tEdge * edge )
      //cout << "call Intersect for edges " << edge->getID()
      //   << " from nodes " << edge->getOriginPtr()->getID()
      //   << " to " << edge->getDestinationPtr()->getID() << "; " << endl;
+
+   // For every other edge on the list, call Intersect to test
    for( ce = edgIter.FirstP(); !(edgIter.AtEnd());
         edgIter.Next(), ce = edgIter.NextP() )
    {
@@ -4278,14 +4402,17 @@ IntersectsAnyEdge( tEdge * edge )
       
    }
    assert( edgIter.AtEnd() );
-     /*if( i < nedges - 1 )
-       cout<<"IntersectsAnyEdge: Warning: whole list not checked"<<endl<<flush;*/
+   //if( i < nedges - 1 )
+   //  cout<<"IntersectsAnyEdge: Warning: whole list not checked"<<endl<<flush;
    return( NULL );
-}
+}*/
+
 
 /*****************************************************************************\
 **
-**      CheckTriEdgeIntersect():
+**  tGrid::CheckTriEdgeIntersect
+**
+**        This function implements node movement.
 **        We want to know if the moving point has passed beyond the polygon
 **        defined by its spoke edges; if it has, then we will have edges
 **        intersecting one another. In the case where the point has simply
@@ -4323,11 +4450,14 @@ CheckTriEdgeIntersect()
    tPtrList< tTriangle > triptrList;
    tPtrListNode< tTriangle > *tpListNode;
    tPtrListIter< tTriangle > tpIter( triptrList );
-     //check for triangles with edges which intersect (an)other edge(s)
-     //newedg = new tEdge;
+
+   //check for triangles with edges which intersect (an)other edge(s)
+   //newedg = new tEdge;
    while( flipped )
    {
       flipped = FALSE;
+
+      // Make a list of triangles containing at least one moving vertex
       for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
       {
          for( i=0; i<3; i++ )
@@ -4459,6 +4589,7 @@ CheckTriEdgeIntersect()
       }
    }
    
+   // Update coordinates of moving nodes. TODO: make general
    for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
        if ( cn->Meanders() ) cn->UpdateCoords();//Nic, here is where x&y change
    for( cn = tmpIter.FirstP(); !(tmpIter.AtEnd()); cn = tmpIter.NextP() )
@@ -4483,35 +4614,45 @@ CheckTriEdgeIntersect()
            << id0 << ", " << id1 << ", and " << id2 << endl;
    }*/
    //cout << "finished, " << nnodes << endl;
+
 }//end CheckTriEdgeIntersect()
 
                
 /*****************************************************************************\
 **
-**      MoveNodes (formerly PreApply) :
-**             The function that deleted some points so that 
-**             they won't be a problem in ApplyChanges
-**               uses newx newy x y.
-**             Separate call to ApplyChanges now unnecessary!!!
-**      Data members updated: Grid
-**      Called by: 
-**      Calls:  ApplyChanges
-**        
-**      Created: SL
-**                                                              
+**  tGrid::MoveNodes (formerly PreApply)
+**
+**  Once the new coordinates for moving nodes have been established, this
+**  function is called to update the node coordinates, modify the 
+**  triangulation as needed, and update the mesh geometry (Voronoi areas,
+**  edge lengths, etc) through a series of calls to helper functions.
+**  
+**  Interpolation is performed on nodes with layering (3D vertical 
+**  component) here. TODO: make interpolation general, perhaps by
+**  defining a virtual tNode function called "AlertNodeMoving" or
+**  some such.
+**
+**      Inputs: time -- simulation time (for layer updating)
+**      Data members updated: Grid elements & their geometry
+**      Called by:  called outside of tGrid by routines that compute
+**                  node movement (e.g., stream meandering, as implemented
+**                  by tStreamMeander)
+**      Calls: CheckTriEdgeIntersect, CheckLocallyDelaunay, UpdateMesh,
+**             LocateTriangle, tLNode::LayerInterpolation
+**      Created: SL       
 **
 \*****************************************************************************/
 template< class tSubNode >
 void tGrid< tSubNode >::
 MoveNodes( double time )
 {
-
    //cout << "MoveNodes()... time " << time <<flush << endl;
    tSubNode * cn;  
    tGridListIter< tSubNode > nodIter( nodeList );
+
    //Before any edges and triangles are changed, layer interpolation
    //must be performed.
-   if( layerflag && time > 0.0 ){   
+   if( layerflag && time > 0.0 ) {   
       tTriangle *tri;
       tArray<double> newxy(2);
       for(cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP()){
@@ -4522,17 +4663,17 @@ MoveNodes( double time )
             //cout<<"a point will be moved in movenodes"<<endl;
             tri = LocateTriangle( newxy[0], newxy[1] );
             cn->LayerInterpolation( tri, newxy[0], newxy[1], time );
+            // TODO: is there a way to make this general, e.g. virtual fn?
          }
       }
    }
-     
-   
+
    //check for triangles with edges which intersect (an)other edge(s)
    CheckTriEdgeIntersect(); //calls tLNode::UpdateCoords() for each node
    //resolve any remaining problems after points moved
    CheckLocallyDelaunay();
    UpdateMesh();
-   CheckMeshConsistency();
+   CheckMeshConsistency();  // TODO: remove this debugging call for release
    //cout << "MoveNodes() finished" << endl;
 }
 
