@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.31 1998-04-29 21:48:28 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.32 1998-04-30 15:31:06 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1884,12 +1884,12 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
    {
       nbrPtr = ( tSubNode * ) ce->getDestinationPtrNC();
       nbrList.insertAtBack( nbrPtr );
-      /*if( node->getBoundaryFlag()                      // If node is a bdy make
+      if( node->getBoundaryFlag()                      // If node is a bdy make
           && nbrPtr->getBoundaryFlag()==kNonBoundary )// sure nbrs are also
       {                                                // boundaries.
          nbrPtr->ConvertToClosedBoundary();
          nodeList.moveToBack( nbrPtr );
-      }*/
+      }
       DeleteEdge( ce );
    }  
    nnodes--;
