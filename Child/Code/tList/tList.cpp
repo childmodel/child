@@ -1,31 +1,43 @@
 /**************************************************************************\
 **
 **  tList.cpp:  Functions for class tList and related classes tListNode
-**              and tListIter.
+**              and tListIter. (See tList.h for a description of what
+**              tLists do).
 **
 **  Changes:
 **    - GT added currentItem, FirstP(), and NextP(), plus modifications
 **      to prevent currentItem from getting corrupted (1/22/99)
 **
-**  $Id: tList.cpp,v 1.14 1999-01-22 23:32:37 gtucker Exp $
+**  $Id: tList.cpp,v 1.15 1999-01-26 20:35:34 gtucker Exp $
 \**************************************************************************/
 
 #include "tList.h"
 
 /**************************************************************************\
 **
-**         Utilities for class tListNode< NodeType >
+**         FUNCTIONS FOR CLASS tListNode< NodeType >
 **
 **         tListNodes contain a data item and a pointer to the next
 **         tListNode in the tList (or tGridList). The data item may
 **         be of any type, specified in the template brackets.
 **
-**         Some of the functions for retrieving the data are made
-**         obsolete by tListIter.
+**         Some of the functions for retrieving the data are duplicated
+**         by tListIter.
 **
 **         Created: fall, 97, SL
 **
 \**************************************************************************/
+
+/**************************************************************************\
+**
+**  tListNode constructors:
+**
+**  Default constructor: sets next to null
+**  Copy constructor #1: makes a copy of a given tListNode
+**  Copy constructor #2: fills in data item w/ copy of given NodeType
+**
+\**************************************************************************/
+
 //default constructor
 template< class NodeType >                     //tListNode
 tListNode< NodeType >::
@@ -55,6 +67,17 @@ tListNode( const NodeType &info )
    data = info;
    next = 0;
 }
+
+
+/**************************************************************************\
+**
+**  tListNode overloaded operators:
+**
+**  Assignment: makes a copy (including next ptr)
+**  Equality: compares both data contents and next ptr
+**  Inequality: compares both data contents and next ptr
+**
+\**************************************************************************/
 
 //overloaded assignment operator
 template< class NodeType >                     //tListNode
@@ -91,6 +114,23 @@ operator!=( const tListNode< NodeType > &right ) const
    if( &data != &(right.data) ) return 1;
    return 0;
 }
+
+
+/**************************************************************************\
+**
+**  tListNode "get" functions:
+**  (note: to "set" an item, use non-const "get")
+**
+**  getDataNC: returns a non-const (modifiable) copy of data
+**  getDataRefNC: returns a non-const (modifiable) reference to data
+**  getDataPtrNC: returns a non-const (modifiable) pointer to data
+**  getNextNC: returns non-const ptr to next item on list
+**  getData: returns const copy of data
+**  getDataRef: returns const reference to data
+**  getDataPtr: returns const ptr to data
+**  getNext: returns const ptr to next item on list
+**
+\**************************************************************************/
 
 //set data by returning non-const
 template< class NodeType >                     //tListNode
@@ -130,16 +170,27 @@ const tListNode< NodeType > * tListNode< NodeType >::
 getNext() const {return next;}
 
 
+
 /**************************************************************************\
 **
-**  Functions for class tList< NodeType >
+**         FUNCTIONS FOR CLASS tList< NodeType >
 **
-**   tList is a linked list of tListNodes. Functions to add and remove
-**   items from list, etc.
+**         tList is a linked list of tListNodes. Functions to add and
+**         remove items to/from list, etc.
 **
-**   Again, some functions are made obsolete by tListIter.
+**         Again, some functions are duplicated by tListIter.
 **
-**   Created: fall, 97, SL
+**         Created: fall, 97, SL
+**
+\**************************************************************************/
+
+/**************************************************************************\
+**
+**  tList constructors & destructor:
+**
+**  Default constructor: initializes all values to 0 (empty list)
+**  Copy constructor: makes a complete copy of another tList
+**  Destructor: deletes all nodes on list
 **
 \**************************************************************************/
 
@@ -151,6 +202,8 @@ tList< NodeType >::tList()
    nNodes = 0;
      //cout << "list instantiated" << first << endl;
 }
+
+//copy constructor
 template< class NodeType >                         //tList
 tList< NodeType >::
 tList( const tList< NodeType > *original )
@@ -172,7 +225,7 @@ tList( const tList< NodeType > *original )
    
 }
 
-
+//destructor
 template< class NodeType >                         //tList
 tList< NodeType >::
 ~tList()
@@ -192,6 +245,18 @@ tList< NodeType >::
      //cout<<"All nodes destroyed"<<endl<<endl;
 }
 
+/**************************************************************************\
+**
+**  tList overloaded operators:
+**
+**  Assignment: clears the list and makes a copy of the right-hand list
+**  Equality: returns TRUE if first & last pointers are identical and
+**            nNodes is the same. Note that two lists with identical
+**            contents are still not considered equal! (TODO--makes sense?)
+**  Inequality: opposite of equality
+**
+\**************************************************************************/
+
 //overloaded assignment operator
 template< class NodeType >                         //tList
 const tList< NodeType > &tList< NodeType >::
@@ -199,13 +264,13 @@ operator=( const tList< NodeType > &right )
 {
    if( this != &right )
    {
-        //create an equivalent object rather than pointers to the original
+      // create an equivalent object rather than pointers to the original
       Flush();
       tListNode< NodeType > *cn = right.first;
       if( cn != 0 )
       {
-         insertAtBack( cn->data );
-         for( cn = cn->next; cn != last->next; cn = cn->next )
+          insertAtBack( cn->data );
+          for( cn = cn->next; cn != last->next; cn = cn->next )
              insertAtBack( cn->data );
       }
         /*first = right.first;
@@ -238,7 +303,15 @@ operator!=( const tList< NodeType > &right ) const
    return 0;
 }
 
-//return pointer to newly allocated node
+
+/**************************************************************************\
+**
+**  tList::getNewNode
+**
+**  Creates a new tListNode and returns a pointer to it. Used by list
+**  insertion routines (see below); not publically accessible.
+**
+\**************************************************************************/
 template< class NodeType >                         //tList
 tListNode< NodeType > * tList< NodeType >::
 getNewNode( const NodeType &value )
@@ -250,6 +323,34 @@ getNewNode( const NodeType &value )
    nNodes++;
    return ptr;
 }
+
+
+/**************************************************************************\
+**
+**  tList: list insertion and removal routines
+**
+**  A collection of routines to add nodes to the list, remove them from
+**  the list, and change the position of nodes on the list. In the case
+**  of insertion routines, a new copy of the given node is created first.
+**  The list removal routines take a reference to a NodeType variable;
+**  on return, this variable contains a copy of the data item removed.
+**  List removal routines return TRUE if there was an item to remove;
+**  FALSE otherwise.
+**
+**    insertAtFront: make a new node containing _value_ and put at top
+**    insertAtBack: make a new node containing _value_ and put at bottom
+**    insertAtNext: make new node containing _value_ and place it on the
+**                  list after _prev_
+**    insertAtPrev: make new node containing _value_ and place it on the
+**                  list before _node_
+**    removeFromFront: remove 1st item on list and place a copy in _value_
+**    removeFromBack: remove last item on list and place a copy in _value_
+**    removeNext: remove the node following node _ptr_ and place a copy
+**                in _value_
+**    removePrev: remove the node before node _ptr_ and place a copy
+**                in _value_
+**
+\**************************************************************************/
 
 //insert at front
 template< class NodeType >                         //tList
@@ -266,8 +367,7 @@ insertAtFront( const NodeType &value )
       if( last->next == first ) last->next = newPtr;
       first = newPtr;
    }
-      
-     //nNodes++;
+     //nNodes++; now handled by getNewNode
 }
 
 //insert at back
@@ -290,9 +390,6 @@ insertAtBack( const NodeType &value )
    }
 
    //cout << "data is " << newPtr->data << endl;
-   
-   //nNodes++;
-
 }
 
 //insert at next spot in list
@@ -310,7 +407,6 @@ insertAtNext( const NodeType &value, tListNode< NodeType > * prev )
       tListNode< NodeType > * newPtr = getNewNode( value );
       newPtr->next = prev->next;
       prev->next = newPtr;
-        //nNodes++;
    }
 }
 
@@ -331,7 +427,6 @@ insertAtPrev( const NodeType &value, tListNode< NodeType > * node )
       for( prev = first; prev->next != node; prev = prev->next ); 
       newPtr->next = prev->next;
       prev->next = newPtr;
-        //nNodes++;
    }
 }
 
@@ -423,15 +518,20 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
    return 1;
 }
 
-//remove all nodes
+
+/**************************************************************************\
+**
+**  tList::Flush
+**
+**  Deletes all nodes on list.
+**
+\**************************************************************************/
 template< class NodeType >                         //tList
 void tList< NodeType >::
 Flush()
 {
-   tListNode<NodeType > * current = first,* temp;
+   tListNode<NodeType > * current = first, * temp;
 
-   //while( !isEmpty() ) removeFromBack( temp );
-   
    if( !isEmpty() )
    {
       //cout<<"Destroying nodes ... "<<endl;
@@ -450,12 +550,19 @@ Flush()
      //cout<<"All nodes destroyed"<<endl<<endl;
 }
 
+
+/**************************************************************************\
+**
+**  tList::isEmpty
+**
+**  Returns TRUE if first points to null; FALSE otherwise.
+**
+\**************************************************************************/
 //empty?
 template< class NodeType >                         //tList
 int tList< NodeType >::
 isEmpty() const
 {
-     //cout << "checking if list empty" << endl;
    if( first == 0 )
    {
         //cout << "list is empty" << endl;
@@ -468,7 +575,7 @@ isEmpty() const
    }
 }
 
-//display list contents
+//display list contents -- for debugging only
 template< class NodeType >                         //tList
 void tList< NodeType >::
 print() const
@@ -488,25 +595,27 @@ print() const
    cout<<endl<<endl;
 }
 
-//input list contents
-/*template< class NodeType >                         //tList
-void tList< NodeType >::
-input( int size )
-{
-   NodeType tempnode;
-   for( int i=0; i<size; i++ )
-   {
-      cout<<"input node data:" << endl;
-      cin >> tempnode;
-      assert( &tempnode != 0 );
-      tempnode.setID( i );
-      insertAtBack( tempnode );
-   }
-   nNodes = size;
-}*/
 
-//'get' utilities
-//return size
+/**************************************************************************\
+**
+**  tList "get" functions:
+**
+**  getSize: returns # of items on list
+**  getFirst: returns const ptr to first tListNode
+**  getLast: returns const ptr to last tListNode
+**  FirstP: returns ptr to first data item and sets currentItem to first
+**  NextP: returns ptr to data item following currentItem and advances
+**         currentItem to the next one on the list
+**  getIthData: returns const copy of list data item number _num_
+**  getIthDataRef: returns const reference to list data item number _num_
+**  getIthDataRef: returns const ptr to list data item number _num_
+**  getIthDataNC: returns non-const copy of list data item number _num_
+**  getIthDataRefNC: returns non-const ref to list data item number _num_
+**  getIthDataRefNC: returns non-const ptr to list data item number _num_
+**  (see also getListNode, below)
+**
+\**************************************************************************/
+
 template< class NodeType >                         //tList
 int tList< NodeType >::
 getSize() const {return nNodes;}
@@ -522,61 +631,24 @@ getLast() const {return last;}
 // Added by gt 1/99
 template< class NodeType >                         //tList
 NodeType * tList< NodeType >::
-FirstP() {return &first->data;}
+FirstP() 
+{
+   assert( first!=0 );
+   currentItem = first;
+   return &first->data;
+}
 
 // Added by gt 1/99
 template< class NodeType >                         //tList
 NodeType * tList< NodeType >::
 NextP() 
 {
-   if( currentItem!=0 ) currentItem = currentItem->next;
-   return &currentItem->data;
+   assert( currentItem!=0 );
+   currentItem = currentItem->next;
+   if( currentItem!=0 )
+       return &currentItem->data;
+   else return 0;
 }
-
-//'move' utilities
-template< class NodeType >                         //tList
-void tList< NodeType >::
-moveToBack( tListNode< NodeType > * mvnode ) 
-{
-   tListNode< NodeType > * prev;
-   if( mvnode != last )
-   {  
-      if( mvnode == first ) first = first->next;
-      else
-      {
-         for( prev = first; prev->next != mvnode; prev = prev->next );
-         prev->next = mvnode->next;
-      }
-      mvnode->next = last->next;
-      last->next = mvnode;
-      last = mvnode;
-      if( last->next != 0 ) last->next = first;
-   }
-}
-
-template< class NodeType >                         //tList
-void tList< NodeType >::
-moveToFront( tListNode< NodeType > * mvnode ) 
-{
-   tListNode< NodeType > * prev;
-   if( mvnode != first )
-   {
-      for( prev = first; prev->next != mvnode; prev = prev->next );
-      prev->next = mvnode->next;
-      mvnode->next = first;
-      first = mvnode;
-      if( last == mvnode ) last = prev;
-      if( last->next != 0 ) last->next = first;
-   }
-}
-
-template< class NodeType >                         //tList
-void tList< NodeType >::
-setNNodes( int val ) {nNodes = ( val >= 0 ) ? val : 0;}
-
-template< class NodeType >                         //tList
-void tList< NodeType >::
-makeCircular() {last->next = first;}
 
 template< class NodeType >                         //tList
 const NodeType tList< NodeType >::
@@ -631,6 +703,7 @@ getIthDataPtr( int num ) const
    }
    return curPtr->getDataPtr();
 }
+
 //set
 template< class NodeType >                         //tList
 NodeType tList< NodeType >::
@@ -708,7 +781,76 @@ getListNode( NodeType * desiredDatPtr )
 
 /**************************************************************************\
 **
-**  CODE FOR tListIter OBJECTS.
+**  tList "move" functions:
+**
+**  moveToBack: looks for _mvnode_ on the list and moves it to the back
+**              of the list. Assumes that _mvnode_ IS an item on the list.
+**  moveToFront: same thing, but moves it to the front
+**  
+\**************************************************************************/
+
+template< class NodeType >                         //tList
+void tList< NodeType >::
+moveToBack( tListNode< NodeType > * mvnode ) 
+{
+   tListNode< NodeType > * prev;
+   if( mvnode != last )
+   {  
+      if( mvnode == first ) first = first->next;
+      else
+      {
+         for( prev = first; prev->next != mvnode; prev = prev->next );
+         prev->next = mvnode->next;
+      }
+      mvnode->next = last->next;
+      last->next = mvnode;
+      last = mvnode;
+      if( last->next != 0 ) last->next = first;
+   }
+}
+
+template< class NodeType >                         //tList
+void tList< NodeType >::
+moveToFront( tListNode< NodeType > * mvnode ) 
+{
+   tListNode< NodeType > * prev;
+   if( mvnode != first )
+   {
+      for( prev = first; prev->next != mvnode; prev = prev->next );
+      prev->next = mvnode->next;
+      mvnode->next = first;
+      first = mvnode;
+      if( last == mvnode ) last = prev;
+      if( last->next != 0 ) last->next = first;
+   }
+}
+
+
+
+/* GT commented this out 1/99 -- doesn't seem to be used anywhere, and
+   is a bit dangerous bcs the actual # of items on list is untouched
+template< class NodeType >                         //tList
+void tList< NodeType >::
+setNNodes( int val ) {nNodes = ( val >= 0 ) ? val : 0;}*/
+
+/**************************************************************************\
+**
+**  tList::makeCircular
+**
+**  Converts the list into a circular list by having the last item point
+**  to the first.
+**
+\**************************************************************************/
+template< class NodeType >                         //tList
+void tList< NodeType >::
+makeCircular() {last->next = first;}
+
+
+
+
+/**************************************************************************\
+**
+**         FUNCTIONS FOR CLASS tListIter
 **
 **  A tListIter is an iterator for the linked list tList objects (and their
 **  descendants). Its services include fetching data from the current entry
@@ -719,13 +861,21 @@ getListNode( NodeType * desiredDatPtr )
 **  Created: fall, 97, SL.
 **  Modifications:  added an "AtEnd" function that signals whether the
 **  the iterator has fallen off the end of the list, 11/17/97 gt.
-*/
+**
+\**************************************************************************/
 
 /**************************************************************************\
 **
-**         Utilities for class tListIter
+**  tListIter constructors & destructor:
+**
+**  Default constructor: initializes all values to 0
+**  Constructor (reference version): sets listPtr to point to _list_ and
+**                                   points curnode to 1st node on list
+**  Constructor (pointer version): same thing, but takes a pointer to a
+**                                 tList as an argument
 **
 \**************************************************************************/
+
 template< class NodeType >        //tListIter
 tListIter< NodeType >::
 tListIter()
@@ -771,6 +921,15 @@ tListIter< NodeType >::
      //cout << "~tListIter()" << endl;
 }
 
+
+/**************************************************************************\
+**
+**  tListIter::Reset
+**
+**  Points iterator at the 1st node on _list_ (provides a way of telling
+**  an iterator which list to work on).
+**
+\**************************************************************************/
 template< class NodeType >        //tListIter
 void tListIter< NodeType >::
 Reset( tList< NodeType > &list )
@@ -782,6 +941,14 @@ Reset( tList< NodeType > &list )
 }
 
 
+/**************************************************************************\
+**
+**  tListIter::First and tListIter::Last
+**
+**  Move to the first or last item on the current list. Return TRUE if
+**  pointing to a valid list item, FALSE otherwise.
+**
+\**************************************************************************/
 template< class NodeType >        //tListIter
 int tListIter< NodeType >::
 First()
@@ -806,6 +973,15 @@ Last()
    return 0;
 }
 
+
+/**************************************************************************\
+**
+**  tListIter::Get
+**
+**  Move to list item with ID number _num_. Note: assumes that list items
+**  have a member function getID()! Returns 1 if found, 0 if not.
+**
+\**************************************************************************/
 template< class NodeType >     //tListIter
 int tListIter< NodeType >::
 Get( int num )
@@ -837,32 +1013,24 @@ Get( int num )
    return 1;
 }
 
-//template< class NodeType >       //tListIter
-/*int tListIter< NodeType >::
-Get( int num )
-{
-   assert( listPtr != 0 );
-   if( num < 0 ) return 0;
-   int i;
-   tListNode< NodeType > *tempnodeptr = listPtr->first;
-   i = 0;
-   while( tempnodeptr->getDataPtr()->getID() != num && tempnodeptr != 0 )
-   {
-      tempnodeptr = tempnodeptr->next;
-      assert( tempnodeptr != 0 );
-      i++;
-   }
-   if( tempnodeptr == 0 ) return 0;
-   if( tempnodeptr->getDataPtr()->getID() != num ) return 0;
-   curnode = tempnodeptr;
-   return 1;
-}*/
    
+/**************************************************************************\
+**
+**  tListIter::Next and tListIter::Prev
+**
+**  Move to the next or previous item on the current list. Return TRUE if
+**  pointing to a valid list item, FALSE otherwise. If we're not 
+**  initially pointing to any item, then move to the first or last item,
+**  respectively. Both assume we're working on a valid list.
+**
+\**************************************************************************/
 template< class NodeType >        //tListIter
 int tListIter< NodeType >::
 Next()
 {
    assert( listPtr != 0 );
+
+   // if current position undefined, move to first node...
    if( curnode == 0 )
    {
       curnode = listPtr->first;
@@ -870,6 +1038,8 @@ Next()
       if( curnode != 0 ) return 1;
       else return 0;
    }
+
+   // ...otherwise just move to the next one
    curnode = curnode->next;
    counter++;
    if( curnode != 0 ) return 1;
@@ -881,13 +1051,18 @@ int tListIter< NodeType >::
 Prev()
 {
    assert( listPtr != 0 );
+
+   // if current position undefined, move to the last one
    if( curnode == 0 )
    {
       curnode = listPtr->last;
-      counter = -1;
+      counter = -1; // why -1 and not nNodes? TODO
       if( curnode != 0 ) return 1;
       else return 0;
    }
+
+   // if we're at the first node, the previous one is only defined if we're
+   // a circular list, in which case last points to first -- so move to last
    if( curnode == listPtr->first )
    {
       if( listPtr->last->next == 0 ) return 0;
@@ -895,10 +1070,13 @@ Prev()
       {
          assert( curnode == listPtr->last->next );
          curnode = listPtr->last;
-         counter = -1;
+         counter = -1; // why -1?
          return 1;
       }
    }
+
+   // general case: search through the list until we reach the one before
+   // curnode, then set curnode to that one
    tListNode< NodeType > *tempnode;
    //int id = curnode->data.getID();
    for( tempnode = listPtr->first;
@@ -910,6 +1088,15 @@ Prev()
    return 1;
 }
 
+
+/**************************************************************************\
+**
+**  tListIter::FirstP and tListIter::LastP
+**
+**  Move to the first or last item on the list and return a pointer to the
+**  data, or 0 if first/last item is empty.
+**
+\**************************************************************************/
 template< class NodeType >        //tListIter
 NodeType * tListIter< NodeType >::
 FirstP()
@@ -932,6 +1119,16 @@ LastP()
    else return 0;
 }
    
+
+/**************************************************************************\
+**
+**  tListIter::NextP and tListIter::PrevP
+**
+**  Same as Next and Prev, except that the functions return a pointer to
+**  the current data item (or 0 if none exists).
+**
+\**************************************************************************/
+
 template< class NodeType >        //tListIter
 NodeType * tListIter< NodeType >::
 NextP()
@@ -984,6 +1181,15 @@ PrevP()
    return curnode->getDataPtrNC();
 }
 
+
+/**************************************************************************\
+**
+**  tListIter::GetP
+**
+**  Similar to Get, but returns a pointer to the current data item (or
+**  0 if undefined).
+**
+\**************************************************************************/
 template< class NodeType >       //tListIter
 NodeType * tListIter< NodeType >::
 GetP( int num )
@@ -1009,6 +1215,15 @@ GetP( int num )
    return tempnodeptr->getDataPtrNC();
 }
 
+
+/**************************************************************************\
+**
+**  tListIter::Where
+**
+**  Returns the ID number of the current data item, or -1 if there is
+**  no current data item. Assumes data item has a getID() mbr function!
+**
+\**************************************************************************/
 template< class NodeType >       //tListIter
 int tListIter< NodeType >::
 Where()
@@ -1017,6 +1232,19 @@ Where()
    return curnode->getDataPtr()->getID();
 }
 
+
+/**************************************************************************\
+**
+**  tListIter::AtEnd
+**
+**  Returns TRUE if:
+**   - the list is empty
+**   - the list is non-circular and the current item is null
+**   - the list is circular, the current item is the first, and the 
+**     counter is nonzero (meaning we've gone all the way through the
+**     list and come back to the start)
+**
+\**************************************************************************/
 template< class NodeType >       //tListIter
 int tListIter< NodeType >::
 AtEnd()
@@ -1027,6 +1255,15 @@ AtEnd()
    //return curnode==0;
 }
 
+
+/**************************************************************************\
+**
+**  tListIter::DatRef, DatPtr, and NodePtr
+**
+**  Returns a non-constant reference or pointer to the current data item
+**  or the current list node.
+**
+\**************************************************************************/
 template< class NodeType >       //tListIter
 NodeType &tListIter< NodeType >::
 DatRef()
