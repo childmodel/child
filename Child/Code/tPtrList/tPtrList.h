@@ -38,7 +38,7 @@
 **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
 **      9/02: (AD)merge in main Child version
 **
-**  $Id: tPtrList.h,v 1.28 2003-05-06 10:09:31 childcvs Exp $
+**  $Id: tPtrList.h,v 1.29 2003-05-06 12:22:10 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -56,6 +56,9 @@ using namespace std;
 #endif
 #include "../tAssert.h"
 //#include "../Classes.h" // TODO: include only needed stuff
+
+// do not support these ill-defined functions
+#undef SUPPORT_DEPRECATED
 
 template < class NodeType > class tPtrList;
 template < class NodeType > class tPtrListIter;
@@ -163,13 +166,21 @@ public:
     void insertAtBack( NodeType * );  // puts ptr at list back
     void insertAtNext( NodeType *, tPtrListNode< NodeType > * );
     void insertAtPrev( NodeType *, tPtrListNode< NodeType > * );
+#if defined(SUPPORT_DEPRECATED)
     int removeFromFront( NodeType * );  // removes 1st item, puts in ptr
+#endif
     NodeType * removeFromFront();       // removes & returns 1st item
+#if defined(SUPPORT_DEPRECATED)
     int removeFromBack( NodeType * );   // removes last item, puts in ptr
+#endif
     NodeType * removeFromBack();        // removes & returns last item
+#if defined(SUPPORT_DEPRECATED)
     int removeNext( NodeType *, tPtrListNode< NodeType > * );
+#endif
     NodeType* removeNext(tPtrListNode< NodeType > * );
+#if defined(SUPPORT_DEPRECATED)
     int removePrev( NodeType *, tPtrListNode< NodeType > * );
+#endif
     NodeType* removePrev( tPtrListNode< NodeType > * );
     void Flush();         // clears & reinitializes list
     int isEmpty() const;  // returns 1 if list empty, 0 otherwise
@@ -630,14 +641,16 @@ insertAtPrev( NodeType *NTPtr, tPtrListNode< NodeType > * node )
 **   - version 2 added 1/2000, GT
 **
 \**************************************************************************/
+#if defined(SUPPORT_DEPRECATED)
 template< class NodeType >
 inline int tPtrList< NodeType >::
-removeFromFront( NodeType *NTPtr )
+removeFromFront( NodeType * /*NTPtr*/ )
 {
   NodeType * temp = removeFromFront();
-  NTPtr = temp;
+  //NTPtr = temp;
   return temp != 0 ? 1:0;
 }
+#endif
 
 template< class NodeType >
 inline NodeType* tPtrList< NodeType >::
@@ -674,14 +687,16 @@ removeFromFront()
 **  contains only one item (which points to itself), NTPtr will contain
 **  a dangling pointer! TODO (gt)
 \**************************************************************************/
+#if defined(SUPPORT_DEPRECATED)
 template< class NodeType >
 inline int tPtrList< NodeType >::
-removeFromBack( NodeType *NTPtr )
+removeFromBack( NodeType * /*NTPtr*/ )
 {
   NodeType * temp = removeFromBack();
-  NTPtr = temp;
+  //NTPtr = temp;
   return temp != 0 ? 1:0;
 }
+#endif
 
 template< class NodeType >
 inline NodeType* tPtrList< NodeType >::
@@ -714,14 +729,16 @@ removeFromBack()
 **  NTPtr.
 **
 \**************************************************************************/
+#if defined(SUPPORT_DEPRECATED)
 template< class NodeType >
 inline int tPtrList< NodeType >::
-removeNext( NodeType *NTPtr, tPtrListNode< NodeType > * ptr )
+removeNext( NodeType * /*NTPtr*/, tPtrListNode< NodeType > * ptr )
 {
   NodeType * temp = removeNext( ptr );
-  NTPtr = temp;
+  //NTPtr = temp;
   return temp != 0 ? 1:0;
 }
+#endif
 
 template< class NodeType >
 inline NodeType* tPtrList< NodeType >::
@@ -749,14 +766,16 @@ removeNext( tPtrListNode< NodeType >* ptr )
 **  NTPtr.
 **
 \**************************************************************************/
+#if defined(SUPPORT_DEPRECATED)
 template< class NodeType >
 inline int tPtrList< NodeType >::
-removePrev( NodeType *NTPtr, tPtrListNode< NodeType > * ptr )
+removePrev( NodeType * /*NTPtr*/, tPtrListNode< NodeType > * ptr )
 {
   NodeType * temp = removePrev( ptr );
-  NTPtr = temp;
+  //NTPtr = temp;
   return temp != 0 ? 1:0;
 }
+#endif
 
 template< class NodeType >
 inline NodeType* tPtrList< NodeType >::
