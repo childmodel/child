@@ -19,7 +19,7 @@
 **       (ie node-based, not "global") critical shear stress, in
 **       conjunction w/ veg module. GT, Jan 2000
 **
-**  $Id: erosion.cpp,v 1.77 2000-01-25 18:58:00 gtucker Exp $
+**  $Id: erosion.cpp,v 1.78 2000-01-27 22:34:32 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -256,6 +256,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
    double slp = n->getSlope(),
        tau, tauex;
 
+   if( n->getFloodStatus() ) return 0.0;
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
    tau =  kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma ) * pow( slp, nb );
@@ -290,7 +291,10 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
    //cout<<"in detach capacity "<<endl<<flush;
+   assert( n->getQ()>=0.0 );
+   assert( n->getQ()>=0.0 );
    
+   if( n->getFloodStatus() ) return 0.0;
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
@@ -334,7 +338,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
 {
-   //Xint g;
+   if( n->getFloodStatus() ) return 0.0;
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
@@ -354,6 +358,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
    
    return erorate;
 }
+
 
 
 /***************************************************************************\
