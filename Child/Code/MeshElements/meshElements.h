@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.41 2003-04-30 12:19:17 childcvs Exp $
+**  $Id: meshElements.h,v 1.42 2003-04-30 12:35:37 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -408,9 +408,10 @@ inline tNode::tNode( const tNode &original ) :
   boundary(original.boundary), edg(original.edg)
 {}
 
-/*X tNode::~tNode()                                                      //tNode
+/*X tNode::~tNode()
 {
-     //cout << "    ~tNode()" << endl;
+   if (0)//DEBUG
+     cout << "    ~tNode()" << endl;
 }*/
 
 
@@ -499,13 +500,13 @@ tNode::get2DCoords() const
    return xy;
 }
 
-inline int tNode::getID() const {return id;}                    //tNode
+inline int tNode::getID() const {return id;}
 inline double tNode::getX() const {return x;}
 inline double tNode::getY() const {return y;}
 inline double tNode::getZ() const {return z;}
-inline double tNode::getVArea() const {return varea;}             //tNode
-inline double tNode::getVArea_Rcp() const {return varea_rcp;}     //tNode
-inline int tNode::getBoundaryFlag() const {return boundary;}      //tNode
+inline double tNode::getVArea() const {return varea;}
+inline double tNode::getVArea_Rcp() const {return varea_rcp;}
+inline int tNode::getBoundaryFlag() const {return boundary;}
 inline tEdge * tNode::getEdg() {return edg;}
 
 /***********************************************************************\
@@ -570,7 +571,9 @@ inline void tNode::set3DCoords( double val1, double val2, double val3 )
 inline void tNode::setEdg( tEdge * theEdg )
 {
    edg = theEdg;
-   //cout << "Assigning edge " << theEdg->getID() << " to node " << getID() << endl;
+   if (0)//DEBUG
+     cout << "Assigning edge " << theEdg->getID()
+	  << " to node " << getID() << endl;
 }
 
 
@@ -579,7 +582,7 @@ inline void tNode::setEdg( tEdge * theEdg )
 **  tNode::ChangeZ:  Adds delz to current z value
 **
 \***********************************************************************/
-inline void tNode::ChangeZ( double delz ) { z += delz; }      //tNode
+inline void tNode::ChangeZ( double delz ) { z += delz; }
 
 /*******************************************************************\
 **
@@ -642,7 +645,8 @@ inline tEdge::tEdge() :
   org(0), dest(0), ccwedg(0), cwedg(0),
   compedg(0), tri(0)
 {
-     //cout << "tEdge()" << endl;
+   if (0)//DEBUG
+     cout << "tEdge()" << endl;
 }
 
 //copy constructor
@@ -679,7 +683,7 @@ inline tEdge::tEdge(int id_, tNode* n1, tNode* n2) :
   setFlowAllowed( n1, n2 );
 }
 
-//tEdge::~tEdge() {/*cout << "    ~tEdge()" << endl;*/}      //tEdge
+//tEdge::~tEdge() {/*cout << "    ~tEdge()" << endl;*/}
 
 
 /***********************************************************************\
@@ -745,7 +749,7 @@ inline ostream &operator<<( ostream &output, const tEdge &edge )
 **
 \***********************************************************************/
 
-inline int tEdge::getID() const {return id;}                                //tEdge
+inline int tEdge::getID() const {return id;}
 
 //return 0 if flow allowed to match kNonBoundary:
 inline int tEdge::getBoundaryFlag() const
@@ -765,14 +769,12 @@ inline tNode *tEdge::getDestinationPtrNC() {return dest;}
 
 inline double tEdge::getOrgZ()
 {
-   //Xconst tNode * org = getOriginPtr(); 5/99
    assert( org!=0 );
    return( org->getZ() );
 }
 
 inline double tEdge::getDestZ()
 {
-   //Xconst tNode * dest = getDestinationPtr(); 5/99
    assert( dest!=0 );
    return( dest->getZ() );
 }
@@ -805,9 +807,6 @@ inline int tEdge::FlowAllowed()
 inline tArray< double >
 tEdge::getRVtx() const
 {
-   //tArray< double >  xy( rvtx );
-   //return xy;
-   //cout << "getRVtx: ";
    return rvtx;
 }
 
@@ -841,7 +840,7 @@ inline tTriangle* tEdge::TriWithEdgePtr() {return tri;}
 inline void tEdge::setID( int val ) {
    assert( id>=0 );
    id = val;
-}           //tEdge
+}
 
 inline void tEdge::setLength( double val )
 {
@@ -874,8 +873,7 @@ inline void tEdge::setFlowAllowed( tNode* n1, tNode* n2 )
 
 inline void tEdge::setCCWEdg( tEdge * edg )
 {
-   assert( edg > 0 );
-     //assert( ccwedg > 0 );
+   assert( edg != 0 );
    ccwedg = edg;
 }
 
@@ -888,8 +886,9 @@ inline void tEdge::setRVtx( tArray< double > arr )
 {
    assert( &arr != 0 );
    assert( arr.getSize() == 2 );
-     //cout << "setRVtx for edge " << id
-     //   << " to x, y, " << arr[0] << ", " << arr[1] << endl;
+   if (0)//DEBUG
+     cout << "setRVtx for edge " << id
+	  << " to x, y, " << arr[0] << ", " << arr[1] << endl;
    rvtx = arr;
 }
 
@@ -897,7 +896,6 @@ inline void tEdge::setVEdgLen( double val )
 {
    assert( val>=0.0 );
    vedglen = val;
-   /*vedglen = ( val > 0 ) ? val : 0;*/
 }
 
 inline void tEdge::setTri( tTriangle* tptr )
@@ -918,9 +916,6 @@ inline void tEdge::setTri( tTriangle* tptr )
 \**************************************************************************/
 inline double tEdge::CalcSlope()
 {
-   //Xconst tNode * org = getOriginPtr(); 5/99
-   //Xconst tNode * dest = getDestinationPtr(); 5/99
-
    assert( org!=0 );  // Failure = edge has no origin and/or destination node
    assert( dest!=0 );
    assert( len>0.0 );
@@ -992,7 +987,8 @@ inline tTriangle::tTriangle() :
       e[i] = 0;
       t[i] = 0;
    }
-     //cout << "tTriangle()" << endl;
+   if (0)//DEBUG
+     cout << "tTriangle()" << endl;
 }
 
 //copy constructor
@@ -1007,7 +1003,8 @@ inline tTriangle::tTriangle( const tTriangle &init ) :
        setEPtr( i, init.e[i] ); // sets edge's tri pointer as well!
        t[i] = init.t[i];
      }
-     //cout << "tTriangle( orig )" << endl;
+   if (0)//DEBUG
+     cout << "tTriangle( orig )" << endl;
 }
 
 // construct with id and 3 vertices
@@ -1093,7 +1090,6 @@ inline istream &operator>>( istream &input, tTriangle &tri )
    int id1, id2, id3;
    cout << "triangle id, origin id, dest id:";
    input >> tri.id >> id1 >> id2 >> id3; //temporarily assign id vals to ptrs
-     //tri.setPPtr( tMesh::h.getList().
    return input;
 }
 
@@ -1179,19 +1175,13 @@ inline void tTriangle::setTPtr( int index, tTriangle * trptr )
 **  Returns the side number (0, 1, or 2) of the neighboring triangle ct.
 **  Assumes that ct _is_ one of the neighboring triangles.
 **
-** NOTE: for runtime error checking, may want to take out the assert
-** and instead generate a runtime error when i>2.
 \**************************************************************************/
 inline int tTriangle::nVOp( tTriangle *ct )
 {
-   int i;
-
-   for( i=0; i<4; i++ )
-   {
-      assert( i<3 );
-      if( t[i] == ct ) return i;
-   }
-   return i;
+  for( int i=0; i<3; ++i )
+    if( t[i] == ct ) return i;
+  assert( 0 );
+  abort();
 }
 
 
@@ -1204,18 +1194,13 @@ inline int tTriangle::nVOp( tTriangle *ct )
 **  triangle).
 **  Assumes that cn _is_ one of the triangle's vertices.
 **
-** NOTE: for runtime error checking, may want to take out the assert
-** and instead generate a runtime error when i>2.
 \**************************************************************************/
 inline int tTriangle::nVtx( tNode *cn )
 {
-   int i;
-   for( i=0; i<4; i++ )
-   {
-      assert( i<3 );
-      if( p[i] == cn ) return i;
-   }
-   return i;
+  for( int i=0; i<3; ++i )
+    if( p[i] == cn ) return i;
+  assert( 0 );
+  abort();
 }
 
 /**************************************************************************\
