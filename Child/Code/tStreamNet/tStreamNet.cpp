@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.11 2002-04-11 12:24:01 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.12 2002-04-11 15:01:47 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2015,13 +2015,13 @@ void tStreamNet::FindChanGeom()
 **  Created by GT, Jan 2000
 **
 \**************************************************************************/
-void tStreamNet::RouteFlowKinWave( double rainrate )
+void tStreamNet::RouteFlowKinWave( double rainrate_ )
 {
    tLNode * cn;
    tEdge * ce;
    tMeshListIter<tLNode> niter( meshPtr->getNodeList() );
    double sum;                         // Sum used in to apportion flow
-   double runoff = rainrate - infilt;  // Local runoff rate at node
+   double runoff = rainrate_ - infilt;  // Local runoff rate at node
 
    cout << "RouteFlowKinWave\n";
 
