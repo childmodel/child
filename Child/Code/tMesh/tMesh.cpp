@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.128 2003-04-07 17:01:01 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.129 2003-04-08 17:06:21 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3753,77 +3753,39 @@ template< class tSubNode >
 tSubNode * tMesh< tSubNode >::
 AddNode( tSubNode &nodeRef, int updatemesh, double time )
 {
-   tTriangle *tri;
-   tSubNode *cn;
    tArray< double > xyz( nodeRef.get3DCoords() );
-   tMeshListIter< tSubNode > nodIter( nodeList );
    assert( &nodeRef != 0 );
 
    if (0) //DEBUG
      cout << "AddNode at " << xyz[0] << ", " << xyz[1]
 	  << ", " << xyz[2] << " time "<<time<<endl;
 
-   //cout << "locate tri & layer interp" << endl << flush;
-   tri = LocateTriangle( xyz[0], xyz[1] );
-   //assert( tri != 0 );
-   if( tri == 0 )
-   {
-      cerr << "tMesh::AddNode(...): node coords out of bounds: " << xyz[0] << " " << xyz[1] << endl;
-      return 0;
-   }
-   if( layerflag && time > 0 )
-       nodeRef.LayerInterpolation( tri, xyz[0], xyz[1], time );
-
    // Assign ID to the new node and insert it at the back of either the active
    // portion of the node list (if it's not a boundary) or the boundary
    // portion (if it is)
-   //cout << "inserting node on list\n";
-   //Xint newid = nodIter.LastP()->getID() + 1;
    nodeRef.setID( miNextNodeID );
    miNextNodeID++;
 
-   AddToList(nodeRef);
-   // Retrieve a pointer to the new node and flush its spoke list
-   if( nodeRef.getBoundaryFlag() == kNonBoundary )
-       cn = nodIter.LastActiveP();
-   else if( nodeRef.getBoundaryFlag() == kOpenBoundary )
-       cn = nodIter.FirstBoundaryP();
-   else
-       cn = nodIter.LastP();
-   assert( cn!=0 );
-   cn->getSpokeListNC().Flush();
-
-   tSubNode* newNodePtr = AttachNode( cn, tri);
-
-   //hasn't changed yet
-   //put 3 resulting triangles in ptr list
-   //cout << "Putting tri's on list\n" << flush;
+   tSubNode* newNodePtr = InsertNode(&nodeRef, time);
+   if(newNodePtr == 0)
+     return 0;
    if( xyz.getSize() == 3 )
-   {
      CheckTrianglesAt( newNodePtr );
-   }
 
    //reset node id's
-   //cout << "resetting ids\n" << flush;
-   for( cn = nodIter.FirstP(), miNextNodeID=0; !( nodIter.AtEnd() ); cn = nodIter.NextP(), miNextNodeID++ )
    {
-      cn->setID( miNextNodeID );
+     tSubNode *cn;
+     tMeshListIter< tSubNode > nodIter( nodeList );
+     for( cn = nodIter.FirstP(), miNextNodeID=0; !( nodIter.AtEnd() );
+	  cn = nodIter.NextP(), miNextNodeID++ )
+       {
+	 cn->setID( miNextNodeID );
+       }
    }
    newNodePtr->makeCCWEdges();
    newNodePtr->InitializeNode();
 
    if( updatemesh ) UpdateMesh();
-   //cout << "AddNode finished" << endl;
-
-   //Xint hlp=0;
-   //do{
-   // ce=ce->getCCWEdg();
-   // hlp++;
-   //}while(ce != fe );
-   //  if(hlp !=  node2->getSpokeListNC().getSize() ){
-//        cout<<"AddNode  number of spokes "<<node2->getSpokeListNC().getSize()<<" number of ccwedges "<<hlp<<endl<<flush;
-//     }
-
    return newNodePtr;  // Return ptr to new node
 }
 
@@ -3878,6 +3840,49 @@ CheckTrianglesAt( tSubNode* nPtr )
 
       triptrList.removeFromFront( ct );
     }
+}
+
+/**************************************************************************\
+**  InsertNode: (Takes over some of the functionality of AddNode of older
+**    versions of CHILD) Locates triangle in which new node falls, puts it
+**    there and makes three new triangles (at end of list).
+**    Does NOT check the mesh for edge flips to enforce Delaunay-ness!!!
+**
+**  SL 1/99
+**  AD 4/2003
+\**************************************************************************/
+template< class tSubNode >
+tSubNode * tMesh< tSubNode >::
+InsertNode( tSubNode* newNodePtr, double time )
+{
+   if (0) //DEBUG
+     cout << "tMesh::InsertNode()" << endl;
+   tTriangle *tri = LocateTriangle( newNodePtr->getX(), newNodePtr->getY() );
+   if( tri == 0 )
+   {
+      cerr << "tMesh::InsertNode(...): node coords out of bounds: "
+	   << newNodePtr->getX() << " " << newNodePtr->getY() << endl;
+      return 0;
+   }
+   if( layerflag && time > 0 )
+       newNodePtr->LayerInterpolation( tri, newNodePtr->getX(), newNodePtr->getY(), time );
+
+   AddToList(*newNodePtr);
+   // Retrieve a pointer to the new node and flush its spoke list
+   tMeshListIter< tSubNode > nodIter( nodeList );
+   tSubNode *cn;
+   if( newNodePtr->getBoundaryFlag() == kNonBoundary )
+       cn = nodIter.LastActiveP();
+   else if( newNodePtr->getBoundaryFlag() == kOpenBoundary )
+       cn = nodIter.FirstBoundaryP();
+   else
+       cn = nodIter.LastP();
+   assert( cn!=0 );
+   cn->getSpokeListNC().Flush();
+
+   newNodePtr = AttachNode( cn, tri);
+
+   return newNodePtr;
 }
 
 /**************************************************************************\
@@ -3973,7 +3978,7 @@ AttachNode( tSubNode* cn, tTriangle* tri )
   // pair CN. With all the edge pairs created, it remains only to call
   // MakeTriangle to create tri NCA.
   //cout << "calling AE, AEMT, AEMT, and MT\n" << flush;
-  assert( node1 != 0 && node2 != 0 && node3 != 0 );
+
   AddEdge( node1, node2, node3 );  //add edge between node1 and node2
   AddEdgeAndMakeTriangle( node3, node1, node2 ); // ABN
   AddEdgeAndMakeTriangle( node2, node1, node4 ); // NBC

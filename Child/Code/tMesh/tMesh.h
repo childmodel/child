@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.41 2003-04-07 17:01:03 childcvs Exp $
+**  $Id: tMesh.h,v 1.42 2003-04-08 17:06:23 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -125,6 +125,7 @@ public:
    void AddToList( tSubNode& );
    //add a node with referenced value/properties, update mesh connectivity
    tSubNode *AddNode( tSubNode &, int updatemesh = 0, double time = 0.0 );
+   tSubNode* InsertNode( tSubNode*, double );
    //add a generic node at the referenced coordinates
    tSubNode *AddNodeAt( tArray< double > &, double time = 0.0 );
    tSubNode* AttachNode( tSubNode*, tTriangle* );
