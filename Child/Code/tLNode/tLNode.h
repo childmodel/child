@@ -26,7 +26,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.65 2003-05-30 12:30:12 childcvs Exp $
+**  $Id: tLNode.h,v 1.66 2003-05-30 12:54:54 childcvs Exp $
 */
 /************************************************************************/
 
@@ -663,14 +663,14 @@ inline void tLNode::FlagDownhillNodes()
    tEdge *ce;
    
    // Flag all adjacent nodes that are lower than me
-   ce = edg;
+   ce = getEdg();
    do
    {
       if( ce->getDestinationPtr()->getZ() < z && ce->FlowAllowed() )
           (static_cast<tLNode *>(ce->getDestinationPtrNC()))->ActivateSortTracer();
       ce = ce->getCCWEdg();
    }
-   while( ce!=edg );
+   while( ce!=getEdg() );
 
 }
 

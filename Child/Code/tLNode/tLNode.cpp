@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.107 2003-05-30 12:30:11 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.108 2003-05-30 12:54:53 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -918,8 +918,8 @@ void tLNode::TellAll()
    
    cout << " NODE " << id << ":\n";
    cout << "  x=" << x << " y=" << y << " z=" << z;
-   if( edg ) {
-      cout << "  points to edg #" << edg->getID() << endl;
+   if( getEdg() ) {
+      cout << "  points to edg #" << getEdg()->getID() << endl;
       cout << "  dr area: " << getDrArea() << "  disch: " << getQ()
            << "  boundary: " << boundary << "  flood: " << flood
            << "\n  varea: " << varea << endl;
@@ -1985,13 +1985,14 @@ void tLNode::InitializeNode()
    // If we're not a boundary node, make sure we have a valid flowedge
    if( boundary==kNonBoundary )
    {
-      flowedge=edg;
+      flowedge=getEdg();
       do {
          flowedge = flowedge->getCCWEdg();
          debugcount++;
          assert( debugcount<10000 );
       } 
-      while( (flowedge->getBoundaryFlag()==kClosedBoundary) && flowedge!=edg );
+      while( (flowedge->getBoundaryFlag()==kClosedBoundary)
+	     && flowedge!=getEdg() );
    }
    
    // Set size of sediment influx and outflux arrays to number of grain sizes
