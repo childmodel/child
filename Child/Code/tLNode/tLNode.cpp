@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.17 1998-03-05 23:54:48 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.18 1998-03-09 17:40:29 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -702,7 +702,7 @@ void tLNode::ActivateSortTracer()
 void tLNode::MoveSortTracerDownstream()
 {
    tracer--;
-   if( !flood ) GetDownstrmNbr()->AddTracer();
+   if( flood!=kSink ) GetDownstrmNbr()->AddTracer();
 }
 
 void tLNode::AddTracer()
