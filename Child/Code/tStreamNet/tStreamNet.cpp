@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.66 2000-01-27 22:32:58 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.67 2000-02-02 22:34:11 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -334,8 +334,8 @@ void tStreamNet::UpdateNet( double time, tStorm &storm )
    UpdateNet( time );
 
    //debug test
-   SortNodesByNetOrder( 1 );
-   SortNodesByNetOrder();
+   //SortNodesByNetOrder( 1 );
+   //SortNodesByNetOrder();
 }
 
 
