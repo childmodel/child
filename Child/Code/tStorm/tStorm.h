@@ -21,7 +21,7 @@
 **
 **  Created by Greg Tucker, November 1997.
 **
-**  $Id: tStorm.h,v 1.13 1999-04-01 17:31:11 gtucker Exp $
+**  $Id: tStorm.h,v 1.14 1999-04-01 17:31:58 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTORM_H
@@ -30,7 +30,6 @@
 #include <stdlib.h>
 #include "../tInputFile/tInputFile.h"
 
-#define kSecperyear 31536000
 
 class tStorm
 {
