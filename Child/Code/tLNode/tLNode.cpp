@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.125 2003-10-22 13:04:27 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.126 2003-11-03 12:40:42 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -1587,20 +1587,11 @@ tNode *tLNode::splitFlowEdge() {
 \***********************************************************************/
 void tLNode::flowTo( tNode *dest ){
   // New node flows to the next meander node downstream (nPtr)
-  tSpkIter spkIter( this );
-  tEdge *theEdg;
-  for( theEdg = spkIter.FirstP(); !( spkIter.AtEnd() );
-       theEdg = spkIter.NextP() )
-    {
-      tLNode* downStrmNode = static_cast<tLNode *>( theEdg->getDestinationPtrNC() );
-      if( downStrmNode == dest )
-	{
-	  setFlowEdg( theEdg );
-	  return;
-	}
-    }
-  assert(0); /*NOTREACHED*/
-  abort();
+  tEdge *theEdg = EdgToNod( dest );
+  if (theEdg == 0) {
+    ReportFatalError("flowTo(): cannot find an edge between nodes.");
+  }
+  setFlowEdg( theEdg );
 }
 
 
