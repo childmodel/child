@@ -57,7 +57,7 @@
  **     - Added codes to go along with erosion & transport options, to
  **       enable checking against user-specified options (GT 7/02)
  **
- **  $Id: erosion.h,v 1.49 2003-08-06 13:08:13 childcvs Exp $
+ **  $Id: erosion.h,v 1.50 2003-10-02 10:09:25 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -72,6 +72,7 @@
 #include "../tUplift/tUplift.h"
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
+#include "../tVegetation/tVegetation.h"
 
 /***************************************************************************/
 /*
@@ -430,11 +431,11 @@ class tErosion
 public:
   tErosion( tMesh< tLNode > *, tInputFile & );
   ~tErosion();
-  void ErodeDetachLim( double dtg, tStreamNet * );
+  void ErodeDetachLim( double dtg, tStreamNet *, tVegetation * );
   void ErodeDetachLim( double dtg, tStreamNet *, tUplift const * );
   void StreamErode( double dtg, tStreamNet * );
   void StreamErodeMulti( double dtg, tStreamNet *, double time);
-  void DetachErode( double dtg, tStreamNet *, double time);
+  void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
   void Diffuse( double dtg, int detach );
   void UpdateExposureTime( double dtg);
   void DensifyMesh( double time );

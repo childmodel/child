@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.124 2003-09-18 16:34:36 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.125 2003-10-02 10:09:24 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -379,6 +379,7 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
+
   if( n->getFloodStatus() != kNotFlooded) return 0.0;
   const double slp = n->calcSlope();
   if( slp < 0.0 )
@@ -1691,7 +1692,7 @@ tErosion::~tErosion(){
  **     erosion. This is done because the detachment capacity functions now
  **     require a defined channel width. (GT 2/01)
 \*****************************************************************************/
-void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
+void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tVegetation * pVegetation )
 {
   if(0) //DEBUG
     cout<<"ErodeDetachLim...";
@@ -1739,6 +1740,12 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
 	cn->EroDep( 0, valgrd, 0.);
 	//cn->EroDep( cn->getQs() * dtmax );
       }
+
+      // Update veg
+#define NEWVEG 0
+      if( pVegetation && NEWVEG ) pVegetation->ErodeVegetation( meshPtr, dtmax );
+#undef NEWVEG
+
       //update time:
       dtg -= dtmax;
     } while( dtg>0.0000001 );
@@ -2380,7 +2387,8 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
  **
 \************************************************************************/
 
-void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
+void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
+			   tVegetation * pVegetation )
 {
 
   //Added 4/00, if there is no runoff, this would crash, so check
@@ -2524,34 +2532,43 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 
             dn = cn->getDownstrmNbr();
             ratediff = dn->getDzDt() - cn->getDzDt(); //Are the pts converging?
-            if( ratediff > 0. && (cn->calcSlope()) > 1e-7 )  // if yes, get time
-	      {                                              //  to zero slope
-		dt = ( cn->getZ() - dn->getZ() ) / ratediff;
-		if( dt < dtmax ) dtmax = dt;
-		if( dt < 0.0001 )
-		  {
-		    //cout << "Very small dt " << dt <<  endl;
-		    //cout << "rate dif is " << ratediff << endl;
-		    //cout << "elev dif is " << cn->getZ() - dn->getZ() << endl;
-		    //cout << "dzdt upstream is " << cn->getDzDt() << endl;
-		    //cout << "dzdt downstream is " << dn->getDzDt() << endl;
-		    //cn->TellAll();
-		    //dn->TellAll();
-		    //cout << "arbitrarily set dt to 0.0015" << endl;
-		    dtmax=0.0001; //GREG I added this just because things
-		    // were taking forever.  I kept it for now just for
-		    // testing stuff.  Maybe we should discuss this.
-		  }
-	      }
-	  }// End for( cn = ni.FirstP()..
-	dtmax *= frac;  // Take a fraction of time-to-flattening
-	timegb+=dtmax;
-
-	//At this point: we have drdt and qs for each node, plus dtmax
-
-	// Do erosion/deposition
-	for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-	  {
+            if( ratediff > 0. && (cn->getSlope()) > 1e-7 )  // if yes, get time
+            {                                              //  to zero slope
+               if(0) {
+		 double dt;
+		 dt = ( cn->getZ() - dn->getZ() ) / ratediff;
+		 if( dt < dtmax ) dtmax = dt;
+	       }
+	       if( ratediff*dtmax > (cn->getZ() - dn->getZ() ) )
+		 {
+		 dtmax = ( cn->getZ() - dn->getZ() ) / ratediff;
+		 assert( dtmax > 0.0 );
+		 if( dtmax < 0.0001 && dtmax < dtg )
+		   {
+		     if(0) { // debug
+		       cout << "Very small dtmax " << dtmax <<  endl;
+		       cout << "rate dif is " << ratediff << endl;
+		       cout << "elev dif is " << cn->getZ()-dn->getZ() << endl;
+		       cout << "dzdt upstream is " << cn->getDzDt() << endl;
+		       cout << "dzdt downstream is " << dn->getDzDt() << endl;
+		       cn->TellAll();
+		       dn->TellAll();
+		     }
+		     dtmax=0.0001; //GREG I added this just because things
+		     // were taking forever.  I kept it for now just for
+		     // testing stuff.  Maybe we should discuss this.
+		   }
+		 }
+	    }
+         }// End for( cn = ni.FirstP()..
+         dtmax *= frac;  // Take a fraction of time-to-flattening
+         timegb+=dtmax;
+         
+         //At this point: we have drdt and qs for each node, plus dtmax
+         
+         // Do erosion/deposition
+         for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+         {
             //need to recalculate cause qsin may change due to time step calc
             excap=(cn->getQs() - cn->getQsin())/cn->getVArea();
 
@@ -2682,6 +2699,12 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 	      }
 
 	  } // Ends for( cn = ni.FirstP()...
+
+	 // Erode vegetation
+#define NEWVEG 0
+	 if( pVegetation && NEWVEG ) pVegetation->ErodeVegetation( meshPtr, dtmax );
+#undef NEWVEG
+
 	// Update time remainig
 	dtg -= dtmax;
 	//cout<<"Time remaining now "<<dtg<<endl;
