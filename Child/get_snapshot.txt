@@ -1,0 +1,102 @@
+HOW TO DOWNLOAD A SNAPSHOT OF CHILD FROM THE OXFORD REPOSITORY
+
+G. Tucker
+April, 2003
+
+This describes the steps you need to take in order to obtain a snapshot
+of the CHILD source code and associated files from the code repository
+held at the Oxford University School of Geography and the Environment.
+
+Requirements: you must have a version of the Secure Shell utility (ssh)
+on your system. These instructions assume you are on a Unix system and have
+some familiarity with Unix commands. You'll also need CVS (Concurrent
+Version System) version 1.10 or later.
+
+1. Because the repository is accessed using the Secure Shell (ssh) facility,
+you will need to generate an RSA 1 key pair that will allow you to send and
+receive encrypted transmissions. A key pair consists of a public key that can
+be published  and a private key kept secret. You can do this by entering
+"ssh-keygen -t rsa1" at the Unix command prompt if you are using openssh.
+If your version of ssh is different, you are in unkown territory. Check out
+the links below though and email us for support.
+   To avoid to have to type a password at each connection, you can leave the
+pass-phrase empty when generating the key pair.
+  At this point and if you are using openssh, you should have two files
+"$HOME/.ssh/identity" (private key) and "$HOME/.ssh/identity.pub" (public key)
+where "$HOME" refers to your home directory location.
+
+Reference:
+http://www.openssh.org/manual.html
+http://www.ticam.utexas.edu/adminworld/sshinterop.html
+
+2. The public key consists of a long sequence of digits, and will be contained
+in a file called "$HOME/.ssh/identity.pub". It looks like:
+1024 37 11808017914819704306942080316151731399652927062198628732
+8230237252350379303806588690131831685012857735610665796603412358
+5868792619701348456862079582760428734536716992667531142922838516
+4395989860390520426365375441207834052440398519479780368807771771
+4923319067042 foo@bar
+ Using whatever method you prefer, copy the contents of this file and paste
+them in an email message. Send it to Arnaud Desitter (email at the end),
+explaining that you would like to be added to the CHILD repository list and
+that this is your RSA 1 public key.
+
+3. You now need to modify one of your startup files to tell CVS to use ssh
+when accessing files on a remote system. If you're running a C shell (csh),
+add the following line to the file .cshrc in your home directory:
+  setenv CVS_RSH ssh
+  Or, if you are using a Bourne shell (sh) add the following lines to the file
+.profile in your home directory:
+  CVS_RSH=ssh
+  export CVS_RSH
+  Or, if you have no idea which shell you're running, "echo $SHELL" may give
+you a clue. Try as well "ypcat passwd | grep `whoami`" or
+"cat /etc/passwd | grep `whoami`". At a last resort, try both -- chances are
+only one of these two files (.cshrc and .profile) will exist anyway.
+  You should only need to do this once.
+  Then you have to re-load the start-up files to take into account this change.
+The easiest way is to log out and log in.
+
+Do the following steps only after your key has been added to the access list:
+
+4. Test by entering at the unix prompt the following line:
+
+ssh -l childcvs nimbus.geog.ox.ac.uk 'uname -a'
+
+You should see something similar to:
+SunOS nimbus.geog.ox.ac.uk 5.7 Generic_106541-19 sun4u sparc SUNW,Ultra-4
+
+If it does not work, email us for help.
+
+5. Navigate to the directory in which you wish to keep your snapshot (you
+might want to create a new directory for it).
+
+6. Enter the following command:
+
+cvs -d:ext:childcvs@nimbus.geog.ox.ac.uk:/miami/miami2/childcvs/cvs checkout Child
+
+You should then see a new directory called Child with a series of
+subdirectories containing source code, documentation, example input files, etc.
+
+
+7. A few tips about CVS
+
+Information about using CVS is available at http://www.cvshome.org.
+The cvs manual is available at http://www.cvshome.org/docs/manual/.
+
+Some particularly useful commands are:
+* cvs -nq update
+  list the files that may need updating but do not update them..
+* cvs update
+  update your snapshot to the most current version in the repository.
+* cvs -n diff -rHEAD
+  shows a differences between your snapshot and the most current version
+  in the repository.
+
+
+
+If things go horribly wrong, it's likely that you're using an antiquated
+version of ssh, so try updating this. Or if in total desperation, email
+
+Arnaud Desitter - arnaud.desitter@geog.ox.ac.uk
+me - greg.tucker@geog.ox.ac.uk
