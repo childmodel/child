@@ -4,7 +4,7 @@
 **                  and tTriangle. Each of these grid elements is
 **                  implemented as an object, as described below.
 **
-**  $Id: meshElements.h,v 1.10 1998-04-29 21:41:32 gtucker Exp $
+**  $Id: meshElements.h,v 1.11 1998-05-08 16:39:59 stlancas Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -17,6 +17,7 @@
 #include "../tPtrList/tPtrList.h"
 #include "../tArray/tArray.h"
 #include "../tGridList/tGridList.h"
+#include "../GlobalFns.h"
 
 class tEdge;
 
