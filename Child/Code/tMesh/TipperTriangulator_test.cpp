@@ -1,18 +1,12 @@
-//A triangulation routine based on Tipper's convex hull algorithm
-//Computers and geoscience vol17 no 5 pp 597-632,1991
-//Scaling is nlogn for random datasets
-//Mike Bithell 31/08/01
-
-
-// test code for triangulation 
+// test code for Tipper triangulator
 
 #include <math.h>
 #include <fstream.h>
 #include <stdlib.h>
 #include <assert.h>
 
-#include "hulltr_e.h"
-#include "hulltr_test.h"
+#include "TipperTriangulator.h"
+#include "TipperTriangulator_test.h"
 
 // generate output files
 //#define WRITE_FILES

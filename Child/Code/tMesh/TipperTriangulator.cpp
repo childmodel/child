@@ -14,7 +14,7 @@
 #include <assert.h>
 
 #define DEBUG_PRINT 1
-#include "hulltr_e.h"
+#include "TipperTriangulator.h"
 
 #if __SUNPRO_CC==0x420
 typedef enum { false=0, true } bool;
@@ -643,8 +643,9 @@ void tt_sort_triangulate(int npoints, point *p,
 #if defined(TIMING)
     time_t t2 = time(NULL);
     clock_t tick2 = clock();
-    cout << "elapsed time (time) = " << difftime(t2,t1) << " s" << endl;
-    cout << "elapsed time (clock)= " << (double)(tick2-tick1)/CLOCKS_PER_SEC << " s" << endl;
+    cout << "elapsed time (time) = " << difftime(t2,t1) << " s"
+	 << " (clock)= " << (double)(tick2-tick1)/CLOCKS_PER_SEC << " s"
+	 << endl;
   }
 #endif
   if (0) { // DEBUG
