@@ -13,7 +13,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.23 1998-05-04 22:03:06 gtucker Exp $
+**  $Id: erosion.cpp,v 1.24 1998-05-05 21:59:57 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -527,7 +527,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 {
    double dt,
        dtmax;         // time increment: initialize to arbitrary large val
-   double frac = 0.3; //fraction of time to zero slope
+   double frac = 0.3; // fraction of time to zero slope
    int i;
    tLNode * cn, *dn;
    int nActNodes = gridPtr->GetNodeList()->getActiveSize();
@@ -671,6 +671,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 
          // Send sediment downstream: sediment flux is equal to the flux in
          // plus/minus rate of erosion/deposition times node area
+         assert( dtmax>0 );
          dn->AddQsin( cn->getQsin() - dz*cn->getVArea()/dtmax );
       }
 
