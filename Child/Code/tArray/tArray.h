@@ -13,7 +13,7 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.19 2003-05-23 11:42:38 childcvs Exp $
+**  $Id: tArray.h,v 1.20 2003-05-26 17:43:27 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -50,7 +50,9 @@ public:
     tArray( const tArray< T > & ); // copy constructor
     ~tArray();                     // destructor
     const tArray< T > &operator=( const tArray< T > & ); // memberwise assignmt
-    T &operator[]( int );      // overloaded array index operator
+    int operator==( const tArray< T > & ) const;    // memberwise comparison
+    int operator!=( const tArray< T > & ) const;    // memberwise comparison
+     T &operator[]( int );      // overloaded array index operator
     const T &operator[]( int ) const;
     int getSize() const {       // returns the number of elements in the array
       return npts;
@@ -64,10 +66,6 @@ private:
     T * avalue; // the array itself
 };
 
-template< class T >
-bool operator==( const tArray< T > &, const tArray< T > & ); // memberwise comparison
-template< class T >
-bool operator!=( const tArray< T > &, const tArray< T > & ); // memberwise comparison
 template< class T >
 ostream &operator<<( ostream &output, const tArray< T > &a );
 
