@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.73 2004-03-24 14:54:37 childcvs Exp $
+**  $Id: tMesh.h,v 1.74 2004-03-24 15:26:19 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -87,7 +87,6 @@ class ParamMMFS_t;
 template< class tSubNode >
 class tMesh
 {
-   friend class tListOutputData< tSubNode >;
    tMesh(const tMesh&);
    tMesh& operator=(const tMesh&);
 
