@@ -9,7 +9,7 @@
 **      initial value of mSearchOriginTriPtr, and modified ExtricateTri...
 **      to avoid dangling ptr. GT, 1/2000
 **
-**  $Id: tMesh.cpp,v 1.81 2000-01-13 23:54:32 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.82 2000-01-14 17:37:31 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -629,15 +629,15 @@ MakeMeshFromInputData( tInputFile &infile )
    }
    
    tPtrListIter< tTriangle >
-       triIter( triList );
+       triIter( triList ), triIter2( triList );
    tTriangle * ct, * nbrtri;
    for( i=0, ct=triIter.FirstP(); i<ntri; ct=triIter.NextP(), i++ )
    {
-      nbrtri = ( input.t0[i]>=0 ) ? triIter.GetP( input.t0[i] ) : 0;
+      nbrtri = ( input.t0[i]>=0 ) ? triIter2.GetP( input.t0[i] ) : 0;
       ct->setTPtr( 0, nbrtri );
-      nbrtri = ( input.t1[i]>=0 ) ? triIter.GetP( input.t1[i] ) : 0;
+      nbrtri = ( input.t1[i]>=0 ) ? triIter2.GetP( input.t1[i] ) : 0;
       ct->setTPtr( 1, nbrtri );
-      nbrtri = ( input.t2[i]>=0 ) ? triIter.GetP( input.t2[i] ) : 0;
+      nbrtri = ( input.t2[i]>=0 ) ? triIter2.GetP( input.t2[i] ) : 0;
       ct->setTPtr( 2, nbrtri );
    }
    
