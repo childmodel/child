@@ -140,7 +140,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.25 1998-03-31 23:52:14 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.26 1998-04-09 22:39:40 stlancas Exp $
 \**************************************************************************/
 
 
@@ -547,6 +547,7 @@ int tStreamNet::DamBypass( tLNode *snknod )
 **
 \****************************************************************************/
 #define kLargeNegative -1000
+#define kMaxSpokes 100
 void tStreamNet::FlowDirs()
 {
    tGridListIter<tLNode> i( gridPtr->GetNodeList() );  // Gets nodes from the list
@@ -558,6 +559,7 @@ void tStreamNet::FlowDirs()
    tEdge * nbredg;   // steepest neighbouring edge so far
    long seed = 91324;
    double chngnum;
+   int ctr;
    
 //#if TRACKFNS
    //cout << "FlowDirs" << endl;
@@ -579,7 +581,7 @@ void tStreamNet::FlowDirs()
          slp = firstedg->getSlope();
          nbredg = firstedg;
          curedg = firstedg->GetCCWEdg();
-      
+         ctr = 0;
          // Check each of the various "spokes", stopping when we've gotten
          // back to the beginning
          while( curedg!=firstedg )
@@ -591,6 +593,14 @@ void tStreamNet::FlowDirs()
                nbredg = curedg;
             }
             curedg = curedg->GetCCWEdg();
+            ctr++;
+            if( ctr>kMaxSpokes ) // Make sure to prevent endless loops
+            {
+               cerr << "Mesh error: node " << curnode->getID()
+                    << " going round and round"
+                    << endl;
+               ReportFatalError( "Bailing out of FlowDirs()" );
+            }
          }
      //add a wrinkle: if node is a meander node and presently flows
      //to another meander node and the new 'nbredg' does not lead to a
@@ -633,6 +643,7 @@ void tStreamNet::FlowDirs()
   
 }
 #undef kLargeNegative
+#undef kMaxSpokes
 
 
 
