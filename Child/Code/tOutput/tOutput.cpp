@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.10 1998-06-17 23:37:33 nmgaspar Exp $
+**  $Id: tOutput.cpp,v 1.11 1998-06-22 17:02:49 nmgaspar Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -206,7 +206,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;      
       i=0;
       while(i<cn->getNumLayer()){
-         layofs << i+1 << " " << cn->getLayerCtime(i) << " " << cn->getLayerRtime(i) << endl;
+         layofs << i+1 << " " << cn->getLayerCtime(i) << " " << cn->getLayerRtime(i) << " " << cn->getLayerFlag(i) << endl;
          layofs << cn->getLayerDepth(i) << " " << cn->getLayerErody(i) << " " << cn->getLayerSed(i) << endl;
          if(cn->getLayerSed(i)>0){
             j=0;
