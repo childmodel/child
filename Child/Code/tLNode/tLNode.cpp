@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.81 1999-05-11 19:05:06 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.82 1999-12-02 22:18:02 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2888,3 +2888,22 @@ void tLNode::setUplift( double val ) {uplift = val;}
 
 double tLNode::getUplift() const {return uplift;}
 #undef kBugTime
+
+
+/******************************************************************
+ **  tLNode::CopyLayerList
+ **
+ **  Assigns the layer list in fromNode to this node. Information
+ **  about the pre-existing layer list is lost.
+ **
+ **  Created in order to assign stratigraphy from a footwall point
+ **  to the surface node when the fault plane is exhumed.
+ **
+ **  Created:  12/99 GT
+ **
+ ********************************************************************/
+void tLNode::CopyLayerList( tLNode * fromNode )
+{
+   assert( fromNode!=0 );
+   layerlist = fromNode->layerlist;
+}

@@ -18,7 +18,7 @@
 **    - GT commented out inclusion of run timer, 1/99
 **    - removed obsolete class tErode, GT 4/99
 **
-**  $Id: tLNode.h,v 1.43 1999-05-04 17:15:38 gtucker Exp $
+**  $Id: tLNode.h,v 1.44 1999-12-02 22:18:18 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -368,7 +368,7 @@ public:
    void LayerInterpolation( tTriangle *, double, double, double );
    virtual void WarnSpokeLeaving(tEdge *);
    virtual void InitializeNode();
-   
+   void CopyLayerList( tLNode * ); // Copy layerlist from another node (gt 12/99)
 
 #ifndef NDEBUG
    void TellAll();
