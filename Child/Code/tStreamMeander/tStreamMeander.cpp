@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.64 1999-05-11 21:26:21 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.65 1999-06-10 18:44:09 gtucker Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -127,6 +127,10 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 **
 **     Modifications:
 **       - fixed bug: NB was erroneously read in place of MB (gt 3/99)
+**       - removed use of latadjust, which expressed the relationship
+**         between KB and bank erodibility. Instead, the bank erodibility
+**         is now read into rockerod as a completely separate parameter
+**         "BANKERO" (GT 6/99)
 **
 \**************************************************************************/
 tStreamMeander::tStreamMeander()
@@ -137,8 +141,8 @@ tStreamMeander::tStreamMeander()
    infilePtr = 0;
    optdiamvar = optrainvar = 0;
    critflow = meddiam = kwds = ewds = ewstn = knds = ends = enstn =
-       klambda = elambda = dscrtwids = leavefrac = vegerod = rockerod =
-       latadjust = Pdz = 0;
+       klambda = elambda = dscrtwids = leavefrac = /*vegerod =*/ rockerod =
+       /*latadjust =*/ Pdz = 0;
 }
 
 tStreamMeander::tStreamMeander( tStreamNet &netRef, tMesh< tLNode > &mRef,
@@ -179,15 +183,17 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tMesh< tLNode > &mRef,
    assert( allowfrac > 0 );
    leavefrac = infilePtr->ReadItem( leavefrac, "FRAC_WID_ADD" );
    assert( leavefrac > 0 );
-   vegerod = infile.ReadItem( vegerod, "VEG_ERODY" );
-   rockerod = infile.ReadItem( rockerod, "KB" );
-   double MB = infile.ReadItem( MB, "MB" ); // bug fix 3/16/99
-   rockerod *= .05*pow(SECPERYEAR,MB);
-   vegerod *= .05*pow(SECPERYEAR,MB);  // added gt 3/15/99
-   latadjust = infile.ReadItem( latadjust, "LATADJUST" );
-   double shrcoeff = 1.0 / ( 1000.0 * 9.81 * pow( knds / kwds, 0.6 ) );
-   vegerod *= shrcoeff * latadjust;
-   rockerod *= shrcoeff * latadjust;
+   //vegerod = infile.ReadItem( vegerod, "VEG_ERODY" );
+   //rockerod = infile.ReadItem( rockerod, "KB" );
+   rockerod = infile.ReadItem( rockerod, "BANKERO" );
+   //double MB = infile.ReadItem( MB, "MB" ); // bug fix 3/16/99
+   //rockerod *= .05*pow(SECPERYEAR,MB);
+   //vegerod *= .05*pow(SECPERYEAR,MB);  // added gt 3/15/99
+   //latadjust = infile.ReadItem( latadjust, "LATADJUST" );
+   //double shrcoeff = 1.0 / ( 1000.0 * 9.81 * pow( knds / kwds, 0.6 ) );
+   //vegerod *= shrcoeff * latadjust;
+   //rockerod *= shrcoeff * latadjust;
+
    //find dependence of bank erody on bank height, P, 0<=P<=1:
    Pdz = infile.ReadItem( Pdz, "BNKHTDEP" );
    //MakeReaches();
@@ -434,7 +440,7 @@ void tStreamMeander::FindChanGeom()
 int tStreamMeander::InterpChannel( double time )
 {
    //if( timetrack >= kBugTime ) 
-   //cout << "InterpChannel()\n";
+   cout << "InterpChannel()\n";
    int i, j, npts, num;
    double curwidth;
    double curseglen, defseglen, maxseglen, bigseglen;
@@ -459,7 +465,9 @@ int tStreamMeander::InterpChannel( double time )
            crn = rnIter.NextP(), j++ )
       {
          //if( timetrack >= kBugTime ) cout << "node " << crn->getID() << endl << flush;
-         curwidth = crn->getHydrWidth();
+         // GT changed from hydr to chan width, 6/99:
+         curwidth = crn->getChanWidth();
+         //curwidth = crn->getHydrWidth();
          //if( timetrack >= kBugTime ) cout << "found width" << endl << flush;
          nPtr = crn->getDownstrmNbr();
          //if( timetrack >= kBugTime ) cout << "found dnstrm nbr" << endl << flush;         
@@ -795,7 +803,9 @@ void tStreamMeander::FindReaches()
       assert( i<reachList.getSize() );
       rnIter.Reset( *plPtr );
       cn = rnIter.LastP();
-      curwidth = cn->getHydrWidth();
+      // GT changed this to chan width, 6/99:
+      curwidth = cn->getChanWidth();
+      //curwidth = cn->getHydrWidth();
       taillen[i] = 10.0*curwidth;
       ctaillen = 0.0;
       cn = cn->getDownstrmNbr();
@@ -898,7 +908,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
    tArray< double > bankerody;
    static double cumdbg=0.0; //debug
 
-   //cout<<"tStreamMeander::CalcMigration()...";
+   cout<<"tStreamMeander::CalcMigration()...";
 
    //loop through reaches:
    for( creach = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
@@ -1119,7 +1129,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
    time += dtm;
    cummvmt += maxfrac * dtm;
    
-   //cout<<"done CalcMigration\n";
+   cout<<"done CalcMigration\n";
    
 }
 
@@ -1159,12 +1169,15 @@ void tStreamMeander::Migrate( double ctime )
    double cummvmt = 0.0;
    //timeadjust = 86400. * pr->days;
 
+   //NOTE: ctime and duration involve close subtraction of increasingly
+   // large #'s -- shouldn't we just use the "true" duration? TODO
+
    while( ctime < duration )
    {
       MakeReaches( ctime ); //updates net, makes reachList
       if( !(reachList.isEmpty()) )
       {
-         //cout<<"in loop "<<ctime<<" duration is "<<duration<<endl<<flush;
+         cout<<"in loop "<<ctime<<" duration is "<<duration<<endl<<flush;
          CalcMigration( ctime, duration, cummvmt ); //incr time; uses reachList
          MakeChanBorder( ); //uses reachList
          CheckBndyTooClose();  //uses tMesh::nodeList
@@ -1212,7 +1225,7 @@ void tStreamMeander::Migrate( double ctime )
 \*****************************************************************************/
 void tStreamMeander::MakeChanBorder( )
 {
-   //cout << "MakeChanBorder()" << endl;
+   cout << "MakeChanBorder()" << endl;
    int i, j, num, pccw;
    double x0, y0, x1, y1, z, delx, dely, phi, width, xdisp, ydisp;
    //Xdouble val;
@@ -1230,7 +1243,9 @@ void tStreamMeander::MakeChanBorder( )
       for( cn = rnIter.FirstP(), j=0; j<num;
            cn = rnIter.NextP(), j++ )
       {
-         width = cn->getHydrWidth();
+         // GT changed from hydr to chan width, 6/99
+         width = cn->getChanWidth();
+         //width = cn->getHydrWidth();
          oldpos = cn->getXYZD();
          if( oldpos[3] == 0.0 ) //if channel side is still unset,
          {
@@ -1353,27 +1368,33 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
    }
 }
 */
-/******************************************************************************\
+
+/****************************************************************************\
 **
-**	AddChanBorder: For meandering nodes with placement coords set, check whether
-**                 a new node should be dropped. First, check the distance from
-**                 the old coords vs. the distance specified in the input file.
-**                 If far enough, make sure the old coords are
-**                 not presently in the channel and that they are on the same
-**                 side of the channel as when they were set. If either of
-**                 these conditions are not met, reset old coords to zero.
-**                 If the conditions are met, add a new node.
+**	tStreamMeander::AddChanBorder 
 **
-**              Parameters:     uses node->hydrwidth and, indirectly, 
-**                              parameters which determine hydraulic geometry
-**              Called by:      Migrate
-**              Created:        8/18/97 SL
-**              Updated:        1/98 SL; 2/98 SL
+**  For meandering nodes with placement coords set, check whether
+**  a new node should be dropped. First, check the distance from
+**  the old coords vs. the distance specified in the input file.
+**  If far enough, make sure the old coords are
+**  not presently in the channel and that they are on the same
+**  side of the channel as when they were set. If either of
+**  these conditions are not met, reset old coords to zero.
+**  If the conditions are met, add a new node.
 **
-\*****************************************************************************/
+**  Parameters:     uses node->hydrwidth and, indirectly, 
+**                  parameters which determine hydraulic geometry
+**  Called by:      Migrate
+**  Created:        8/18/97 SL
+**  Updated:        1/98 SL; 2/98 SL
+**   - 6/99 GT: fixed bug in which channode was not initialized before
+**     being passed to InChannel. The effect of this was probably to
+**     allow new nodes to land inside channels.
+**
+\***************************************************************************/
 void tStreamMeander::AddChanBorder(double time)
 {
-   //cout << "AddChanBorder()" << endl;
+   cout << "AddChanBorder()" << endl;
    int i, inchan, pccw, sameside;
    double lvdist, width;
    tArray< double > xy, xyd, oldpos, zeroArr(4), xyz(3);
@@ -1392,7 +1413,9 @@ void tStreamMeander::AddChanBorder(double time)
          //select for nodes with old coords set:
          if( oldpos[3] != 0.0 )
          {
-            width = cn->getHydrWidth();
+            // GT changed hydr width to chan width, 6/99:
+            width = cn->getChanWidth();
+            //width = cn->getHydrWidth();
             lvdist = leavefrac * width;
             //select for nodes far enough away from the old coords:
             if( cn->DistFromOldXY() > lvdist )
@@ -1404,11 +1427,13 @@ void tStreamMeander::AddChanBorder(double time)
                //(b) on the same side of the channel:
                if( ct = meshPtr->LocateTriangle( oldpos[0], oldpos[1] ) )
                {
+                  // WHY COMMENTED OUT??
                     //channodePtr = cn;
                     //channode = *channodePtr;
                   //***NG: HERE IS WHERE YOU CAN FIND A DEPOSIT THICKNESS
                   //TO ADD TO THE NEW NODE***
-                    //channode.set3DCoords( oldpos[0], oldpos[1], oldpos[2] );
+                  // GT uncommented this line to fix bug, 6/99:
+                  channode.set3DCoords( oldpos[0], oldpos[1], oldpos[2] );
                     //channode.setXYZD( zeroArr ); //initialize xyzd
                     //channode.SetMeanderStatus(0); //zero meander
                   inchan = 0;
@@ -1417,6 +1442,7 @@ void tStreamMeander::AddChanBorder(double time)
                      tn = (tLNode *) ct->pPtr(i);
                      if( tn->Meanders() )
                      {
+                        // ! This passes uninitialized channode ptr ! TODO
                         if( inchan = InChannel( tn, &channode ) )
                         {
                            //cout << "old coord's in channel" << endl;
@@ -1504,66 +1530,21 @@ void tStreamMeander::AddChanBorder(double time)
  
 }
 
-/*
-void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
-{
-   int i;
-   double x, y, z, halfwid, dist, mindist = 10000000.;
-   tArray< double > cp, xy;
-   tTriangle *ct;
-   tLNode *cn, *channodePtr, channode;
-   //go through list of coordinates made by MakeChanBorder:
-   while( bList.removeFromFront( cp ) ) //copies the tArray in the list to cp
-   {
-      //find triangle in which coords lie:
-      ct = gridPtr->LocateTriangle( cp[0], cp[1] );
-      if( ct != 0 )
-      {
-         halfwid = 0;
-         //find shortest distance between coords and tri vertices:
-         for( i=0; i<3; i++ )
-         {
-            cn = (tLNode *) ct->pPtr(i);
-            xy = cn->get2DCoords();
-            dist = sqrt( (cp[0]-xy[0])*(cp[0]-xy[0]) +
-                         (cp[1]-xy[1])*(cp[1]-xy[1]) );
-            if( dist < mindist ) mindist = dist;
-            if( cn->Meanders() )
-            {
-               halfwid = cn->getHydrWidth() * 0.5;
-               channodePtr = cn;
-            }
-         }
-         //if one of the vertices is a meandering node,
-         //and the smallest distance to a vertex is greater than
-         //half a channel width (any way to do a different distance?),
-         //copy the meand. node, reset
-         //its coords., and add it to the grid:
-         if( halfwid > 0 && mindist > halfwid )
-         {
-            channode = *channodePtr;
-            channode.set3DCoords( cp[0], cp[1], cp[2] );
-            //cout << "ACB: add node at " << cp[0] << " " << cp[1] << " " << cp[2] << endl;
-            gridPtr->AddNode( channode );
-         }
-      }
-   }
-   assert( bList.isEmpty() ); //prob. don't need this check, but...
-}
-*/
-/******************************************************************************\
+
+/****************************************************************************\
 **
-**	FindBankErody :	This is the routine that finds the effective erodibility 
-**                              of each bank
-**				based on a reach node's neighbor's erodibility 
-**        and relative height above the channel.
-**        Check all nbrs; find distances to perp. line. Find 2 pairs of
-**        consecutive nbrs which fall on either side of line (going ccw from
-**        flowedge, 1st pair is on left bank, 2nd pair is on right). For each
-**        pair, find each pt's erod'y w.r.t. the channel pt (e.g. elev.
-**        difference could be a factor) (for points lower than channel pt's
-**        water surface elevation, assume level w/ surface.); erod'y for chan.
-**        pt is weighted avg. of two:
+**	tStreamMeander::FindBankErody
+**
+**  This is the routine that finds the effective erodibility of each bank
+**	based on a reach node's neighbor's erodibility 
+**  and relative height above the channel.
+**  Check all nbrs; find distances to perp. line. Find 2 pairs of
+**  consecutive nbrs which fall on either side of line (going ccw from
+**  flowedge, 1st pair is on left bank, 2nd pair is on right). For each
+**  pair, find each pt's erod'y w.r.t. the channel pt (e.g. elev.
+**  difference could be a factor) (for points lower than channel pt's
+**  water surface elevation, assume level w/ surface.); erod'y for chan.
+**  pt is weighted avg. of two:
 **        for d1, d2 = the two distances to the perp. line; D = d1 + d2;
 **        E1, E2 = erod'y of two pts; E = effective erod'y;
 **              E = [E1 * (D - d1) + E2 * (D - d2)] / D
@@ -1580,7 +1561,7 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
 **        Erodibility now assumed constant and equal to rockerod. Should be
 **        based on layer exposed at channel position -- TODO. (GT 3/16/99)
 **
-\*****************************************************************************/
+\****************************************************************************/
 tArray< double >
 tStreamMeander::FindBankErody( tLNode *nPtr )
 {
@@ -1592,6 +1573,8 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
    tArray< double > xy, xyz1, xy2, dxy(2), lrerody(2);
    double a, b, c, d, s1, s2, D, d1, d2, E1, E2, dz1, dz2, H;
 
+   //cout << "FBE\n";
+   
    if( nPtr->getBoundaryFlag() != kNonBoundary ) return lrerody;
    nNPtr = nPtr->getDownstrmNbr();
    xyz1 = nPtr->get3DCoords();
@@ -1685,103 +1668,6 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
    return lrerody;
 }
 
-   
-//old code which didn't work:
-   /*
-{
-   double x1, y1, x2, y2, dx, dy, dx1, dy1, a, b, c, d, dmin, dlast,
-       dzleft, dzright, depth, dfactor, dtotal, erody, sed;
-   tArray< double > xy, xyz1, xy2, dxy(2), rlerody(2);
-   tEdge * curedg, * ledg, * redg, *ce;
-   tLNode *cn, *dn, *rn, *ln;
-   tPtrListIter< tEdge > spokIter( nPtr->getSpokeListNC() );
-   tPtrList< tLNode > rList, lList;
-   tPtrListIter< tLNode > rIter( rList ), lIter( lList );
-//simplest thing: find points on right and left which have smallest distance 
-//to the perpendicular; those determine right and left erodibility, resp.
-   xyz1 = nPtr->get3DCoords();
-     //cout << "FindBankErody: node " << nPtr->getID() << endl << flush;
-   dn = nPtr->GetDownstrmNbr();
-   xy2 = dn->get2DCoords();
-     //make lists of nodes on left and right:
-     //cout << "make lists..." << flush;
-   for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
-   {
-      cn = (tLNode *) ce->getDestinationPtrNC();
-      //if( cn != dn && cn->GetDownstrmNbr() != nPtr )
-      //{
-         xy = cn->get2DCoords();
-         a = (xyz1[1] - xy[1]) * (xy2[0] - xy[0]);
-         b = (xyz1[0] - xy[0]) * (xy2[1] - xy[1]);
-         c = a - b;
-         if( c > 0.0 ) rList.insertAtBack( cn );
-         else lList.insertAtBack( cn );
-         //}
-   }
-   dxy[0] = xy2[0] - xyz1[0];
-   dxy[1] = xy2[1] - xyz1[1];
-   a = dxy[0];
-   b = dxy[1];
-   c = -dxy[1] * xyz1[1] - dxy[0] * xyz1[0];
-   dmin = 100000.0;
-     //find distances of points from line perpendicular to downstream direction;
-     //find right and left nodes to determine erod'y:
-     //cout << "find distances..." << flush;
-   for( cn = rIter.FirstP(); !(rIter.AtEnd()); cn = rIter.NextP() )
-   {
-      xy = cn->get2DCoords();
-      d = a * xy[0] + b * xy[1] + c;
-      d = fabs( d );
-      if( d < dmin )
-      {
-         dmin = d;
-         rn = cn;
-      }
-   }
-   dmin = 100000.0;
-   for( cn = lIter.FirstP(); !(lIter.AtEnd()); cn = lIter.NextP() )
-   {
-      xy = cn->get2DCoords();
-      d = a * xy[0] + b * xy[1] + c;
-      d = fabs( d );
-      if( d < dmin )
-      {
-         dmin = d;
-         ln = cn;
-      }
-   }
-     //cout << "find heights..." << flush;
-   dzright = rn->getZ() - xyz1[2];
-   dzleft = ln->getZ() - xyz1[2];
-     //Xbank erodibility is the nominal erodibility X depth / dz
-   //make erodibility depend only on whether alluvium or bedrock:
-   depth = nPtr->getHydrDepth();
-   if( dzright > 0.0 )
-   {
-      sed = rn->getAlluvThickness();
-      if( dzright > sed ) rlerody[0] = rockerod;
-      else rlerody[0] = vegerod;
-   }
-   if( dzleft > 0.0 )
-   {
-      sed = ln->getAlluvThickness();
-      if( dzleft > sed ) rlerody[1] = rockerod;
-      else rlerody[1] = vegerod;
-   }
-
-   tArray< double > rlerody(2);
-   rlerody[0] = rlerody[1] = rockerod;
-   
-   if( dzright <= 0.0 ) dfactor = 2.0;
-   else dfactor = depth / dzright;
-   rlerody[0] = dfactor * erody;
-   if( dzleft <= 0.0 ) dfactor = 2.0;
-   else dfactor = depth / dzleft;
-   rlerody[1] = dfactor * erody;
-   
-     //cout << endl;
-   return rlerody;
-}*/
 
 /*****************************************************************************\
 **
@@ -1808,6 +1694,8 @@ void tStreamMeander::CheckBndyTooClose()
    int n; 
    double width, mindist, d0, d1, d2, d3, xp, yp;
    tArray< double > xy, xyn;
+   
+   //cout << "CBTC\n";
    
    cn = nI.LastActiveP();
      //go through boundary nodes
@@ -1874,15 +1762,16 @@ void tStreamMeander::CheckBndyTooClose()
                
 /*****************************************************************************\
 **
-**  CheckBanksTooClose(): This simply checks the non-meandering neighbors of all
-**                        meandering nodes to make sure they're not in the
-**                        channel segment defined by the meandering node and its
-**                        downstream neighbor.
+**  CheckBanksTooClose
+**
+**  This simply checks the non-meandering neighbors of all
+**  meandering nodes to make sure they're not in the
+**  channel segment defined by the meandering node and its
+**  downstream neighbor.
 **
 **		Parameters:	
 **		Called by:	
 **		Created: 1/98 SL
-**
 **
 \*****************************************************************************/
 void tStreamMeander::CheckBanksTooClose()
@@ -1894,18 +1783,21 @@ void tStreamMeander::CheckBanksTooClose()
    tPtrListIter< tLNode > dIter( delPtrList );
    tLNode * cn, *pointtodelete, *dn, *sn;
    tEdge *ce;
-   tPtrList< tLNode > *cr;
-   tPtrListIter< tLNode > rnIter;
+   tPtrList< tLNode > *cr;          // ptr to current reach
+   tPtrListIter< tLNode > rnIter;   // iterator for nodes on reach
    tArray< double > xyz(3), rl; 
    
+   // For each reach
    for( cr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
         cr = rlIter.NextP(), i++ )
    {
+      // For each node on reach
       rnIter.Reset( *cr );
       num = nrnodes[i];
       for( cn = rnIter.FirstP(), j=0; j<num;
            cn = rnIter.NextP(), j++ )
       {
+         // Check neighboring nodes
          pointtodelete = 0;
          spokIter.Reset( cn->getSpokeListNC() );
          for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
@@ -1915,6 +1807,8 @@ void tStreamMeander::CheckBanksTooClose()
               //check for proximity to channel:
             if( !(sn->Meanders()) && InChannel( cn, sn ) )
             {
+               // If node isn't a boundary and isn't already on the
+               // deletion list, put it on the deletion list now
                //cout<<"too close: cn, cn->hydrwidth "<<cn->getID()<<" "
                //    <<cn->getHydrWidth()<<endl<<flush;
                pointtodelete = (tLNode *) ce->getDestinationPtrNC();
@@ -1939,6 +1833,9 @@ void tStreamMeander::CheckBanksTooClose()
          }
       }
    } 
+
+   // Having found all the nodes that have been "swept away" by the
+   // channel and placed them on the delPtrList, we now delete them
    for( dn = dIter.FirstP(); !(dIter.AtEnd()); dn = dIter.FirstP() )
    {
       //cout << "CBTC: delete node " << dn->getID() << endl << flush;
@@ -2112,6 +2009,7 @@ void tStreamMeander::CheckFlowedgCross()
    */   
    //cout << "finished" << endl;
 }
+
       
 /*****************************************************************************\
 **
@@ -2242,13 +2140,20 @@ void tStreamMeander::CheckBrokenFlowedg()
 
 /****************************************************************\
 **
-**   InChannel: find whether a node falls within an oval with
-**      focii at up- and downstream nodes of channel segment,
-**      minor axis of one channel width.
+**   tStreamMeander::InChannel
 **
-**		Parameters:	
+**   Find whether a node (bnode) falls within an oval with
+**   focii at up- and downstream nodes of channel segment,
+**   minor axis of one channel width.
+**
+**		Parameters:	mnode -- upstream meandering channel node
+**                bnode -- the potential new bank node
 **		Called by:	
 **		Created: 1/98 SL
+**    Modified:
+**     - 6/99 GT: changed from hydraulic width to channel,
+**       since we're interested in the morphological channel
+**       not the current flood width.
 **
 \***************************************************************/
 int tStreamMeander::InChannel( tLNode *mnode, tLNode *bnode )
@@ -2257,7 +2162,8 @@ int tStreamMeander::InChannel( tLNode *mnode, tLNode *bnode )
    tArray< double > up, dn, bnk;
    tMeshListIter< tLNode > dI( meshPtr->getNodeList() );
    tMeshListIter< tEdge > eI( meshPtr->getEdgeList() );
-   b = mnode->getHydrWidth();
+   //b = mnode->getHydrWidth();
+   b = mnode->getChanWidth();  // GT changed to ChanWidth, 6/99
    if( b == 0 ) return 0;
    tLNode *dnode = mnode->getDownstrmNbr();
    tEdge *fe = mnode->getFlowEdg();
