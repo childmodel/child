@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.3 1998-01-17 23:30:00 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.4 1998-01-20 20:30:25 stlancas Exp $
 \**************************************************************************/
 
 #include "Inclusions.h"
@@ -35,7 +35,7 @@ tStreamMeander::tStreamMeander()
 {
    gridPtr = 0;
    netPtr = 0;
-   critflow = 0;
+   critflow = meddiam = = dwds = ewds = ewstn = dnds = ends = enstn = 0;
 }
 
 tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
@@ -48,6 +48,15 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
    gridPtr = &gRef;
    assert( gridPtr != 0 );
    critflow = infile.ReadItem( critflow, "CRITICAL_FLOW" );
+   optdiamvar = infile.ReadItem( optdiamvar, "OPT_VAR_SIZE" );
+   if( !optdiamvar )
+       meddiam = infile.ReadItem( meddiam, "MEDIAN_DIAMETER" );
+   kwds = infile.ReadItem( kwds, "HYDR_WID_COEFF_DS" );
+   ewds = infile.ReadItem( ewds, "HYDR_WID_EXP_DS" );
+   ewstn = infile.ReadItem( ewstn, "HYDR_WID_EXP_STN" );
+   knds = infile.ReadItem( knds, "HYDR_ROUGH_COEFF_DS" );
+   ends = infile.ReadItem( ends, "HYDR_ROUGH_EXP_DS" );
+   enstn = infile.ReadItem( enstn, "HYDR_ROUGH_EXP_STN" );
    FindMeander();
    MakeReaches();
    assert( &reachList != 0 );
@@ -89,17 +98,105 @@ void tStreamMeander::FindMeander()
           cn->SetMeanderStatus( kNonMeanderNode );
    }
 }
+
+void tStreamMeander::FindHydrGeom()
+{
+   int i, j, num;
+   float hradius, kwdspow, kndspow, widpow, npow, radfactor, qpsec;
+   float width, depth, rough, slope;
+   tLNode *cn;
+
+   kwdspow = pow(kwds, ewstn / ewds);
+   kndspow = pow(knds, enstn / ends);
+   widpow = 1.0 - ewstn / ewds;
+   npow = 1.0 - enstn / ends;
+   //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
+   tPtrListIter< tLNode > nIter;
+   tPtrList< tLNode > *plPtr;
+   for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd()); plPtr = rlIter.NextP(), i++ )
+   {
+      nIter.Reset( *plPtr );
+      num = nrnodes[i];
+      for( cn = nIter.FirstP(), j=0; j<num; cn = nIter.NextP(), j++ )
+      {
+         qpsec = cn->GetQ();
+         width = pow(cn->getChanWidth(), widpow) * kwdspow * pow(qpsec, ewstn);
+         cn->setHydrWidth( width );
+         rough = pow(cn->getChanRough(), npow) * kndspow * pow(qpsec, enstn);
+         cn->setHydrRough( rough );
+         slope = cn->GetSlope();
+         assert( slope > 0 );
+         radfactor = qpsec * rough / width / sqrt(slope);
+         hradius = pow(radfactor, 0.6);
+         depth = width / ( width / hradius - 2.0 );
+         cn->setHydrDepth( depth );
+      }
+   }
+}
+
+   
+
+void tStreamMeander::FindChanGeom()
+{
+   int i, j, num;
+   float qbf, hradius, qbffactor=0, radfactor, width, depth, rough, slope;
+   tLNode *cn;
+   tPtrListIter< tLNode > nIter;
+   tPtrList< tLNode > *plPtr;
+   //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
+   if (isdmn)  qbffactor = pmn * log(1.5 / isdmn);
+// qbffactor is now in m^3/s
+   for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd()); plPtr = rlIter.NextP(), i++ )
+   {
+      nIter.Reset( *plPtr );
+      num = nrnodes[i];
+      for( cn = nIter.FirstP(), j=0; j<num; cn = nIter.NextP(), j++ )
+      {
+         qbf = cn->getDrArea() * qbffactor;
+         if (! qbf) qbf=curnode->GetQ();  // q is now in m^3/s
+         width = kwds * pow(qbf, ewds);
+         rough = knds * pow(qbf, ends);
+         slope = cn->GetSlope();
+         assert( slope > 0 );
+         cn->setChanWidth( width );
+         cn->setChanRough( rough );
+         radfactor = qbf * rough / width / sqrt(slope);
+         hradius = pow(radfactor, 0.6); 
+         depth = width / (width / hradius - 2.0);
+         cn->setChanDepth( depth );
+      }
+   }
+}
+
+
+
 /*****************************************************************************\
 **
-**      MakeReaches : constructs the reach objects       
+**      MakeReaches : constructs the reach objects:
+**         1) finds channel head nodes, i.e., furthest upstream extent of
+**            channel that meanders, and puts each head at the beginning of
+**            a ptr list of meandering nodes; these lists are the reaches;
+**            adds each one-member list to a list of reaches;
+**         2) goes downstream from heads and adds a node to a reach list if it
+**            is not already a reach member, i.e., has not been added to
+**            another reach list; when a node is added to the list, its
+**            'reachmember' flag is set to keep it from being added to another
+**            reach;
+**         3) because the meandering "forces" are distal, i.e., they act on
+**            points downstream, we tack a "tail" onto each reach; tails have
+**            arbitrary length, some number * the channel width at the last
+**            reach node;
+**         4) during the above, keep track of the number of nodes in each
+**            reach, the reach length, and the tail length; these are kept
+**            in arrays which are dimensioned after we know how many reaches
+**            there are.
 **                
 **
 **      Data members updated: 
 **      Called by: 
 **      Calls: 
 **
-**      Created:  
-**      Added:   YC
+**      Created:  1/98 SL
 **      Modified:          
 **
 **
@@ -156,7 +253,7 @@ void tStreamMeander::MakeReaches()
       {
          nrnodes[i]++;
          reachlen[i] += cn->GetFlowEdg()->getLength();
-         cn->setReachMember( TRUE );
+         cn->setReachMember( 1 );
          plPtr->insertAtBack( cn );
          cn = cn->GetDownstrmNbr();
       }
@@ -176,12 +273,14 @@ void tStreamMeander::MakeReaches()
 
 
 /****************************************************************\
-**	StreamMeander: 	This is the routine that converts the 
-**				reaches to arrays, passes the 
-**				array pointers to the fortran
+**	CalcMigrate: 	This is the routine that makes the 
+**				arrays to pass to the fortran
 **				routine 'meander_', and finally 
 **				takes care of some of the 
-** 				necessary post-processing.
+** 				necessary post-processing;
+**        makes a bunch of tArrays, and passes the array to
+**        fortran by way of the tArray member ptr, gotten
+**        with getArrayPtr().
 **
 **		Parameters:	allowfrac -- fraction of chanwidth 
 **				a node is allowed to move in a 
@@ -194,167 +293,158 @@ void tStreamMeander::MakeReaches()
 **		Created: 5/1/97  SL
 **
 \***************************************************************/
-void tGrid::StreamMeander( tParameters * pr, float duration )
+void tStreamMeander::CalcMigrate( tStorm &storm )
 {
    int i, j, *stations, *stnserod, nttlnodes;
-   tfloatArray * xa, * ya, * xsa, * qa, * rerodya, * lerodya, * delsa,
-       * slopea, * widtha, * deptha, * diama, * deltaxa, * deltaya,
-       * rdeptha, * ldeptha;
-     /*float * xa, * ya, * xsa, * qa, * rerodya, * lerodya, * delsa;
-   float * slopea, * widtha, * deptha, * diama, * deltaxa, * deltaya;
-   float * rdeptha, * ldeptha;*/
-   float rerody, lerody, allowfrac, timeadjust;
-   float maxfrac, displcmt, a, b, time, dtm, frac, xs;
+   tArray< float > xa, ya, xsa, qa, rerodya, lerodya, delsa,
+       slopea, widtha, deptha, diama, deltaxa, deltaya,
+       rdeptha, ldeptha;
+   tArray< float > *dumArrPtr, delta(2), newxy(2);
+   float rerody, lerody, allowfrac, rz, lz, width;
+   float maxfrac, displcmt, a, b, time, dtm, tmptim, frac, xs;
    long seed;
    float num;
-   tReach * creach;
-   tNode * curnode;
+   float duration = storm.GetStormDuration();
+   //tReach * creach;
+   tPtrList< tLNode > *creach;
+   tPtrListIter< tLNode > rnIter;
+   tLNode *curnode;
+   tEdge *fedg;
+   tArray< float > bankerody;
    time = 0.0;
    allowfrac = 0.1;
-   timeadjust = 86400. * pr->days;
-   do
+   //timeadjust = 86400. * pr->days;
+   while( time < duration)
    {
-      creach = firstreach;
-      curnode = firstnode;
-      for (i=0; i<nnodes; i++)
+      //loop through reaches:
+      for( creach = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
+           creach = rlIter.NextP(), i++ )
       {
-         curnode->deltax = 0.0;
-         curnode->deltay = 0.0;
-         curnode->newx = curnode->x;
-         curnode->newy = curnode->y;
-      }
-      for (i=0; i<nheads; i++)
-      {
-         stations = &creach->nrnodes;
-         nttlnodes = creach->nrnodes + creach->ntnodes;
-         stnserod = &nttlnodes;
-         xa = new tfloatArray( nttlnodes );
-         ya = new tfloatArray( nttlnodes );
-         xsa = new tfloatArray( nttlnodes );
-         qa = new tfloatArray( nttlnodes );
-         rerodya = new tfloatArray( nttlnodes );
-         lerodya = new tfloatArray( nttlnodes );
-         delsa = new tfloatArray( nttlnodes );
-         slopea = new tfloatArray( nttlnodes );
-         if( bugtime > 89 ) DumpEdges();
-         widtha = new tfloatArray( nttlnodes );
-         deptha = new tfloatArray( nttlnodes );
-         diama = new tfloatArray( nttlnodes );
-         deltaxa = new tfloatArray( nttlnodes );
-         deltaya = new tfloatArray( nttlnodes );
-         rdeptha = new tfloatArray( nttlnodes );
-         ldeptha = new tfloatArray( nttlnodes );
-         xs = 0.0;
-         for (j=0; j<nttlnodes; j++)
+         rnIter.Reset( *creach );
+         //initialize deltax, deltay, newx, newy:
+         for( curnode = rnIter.FirstP(); !(rnIter.AtEnd()); curnode = rnIter.NextP() )
          {
-            xa->fvalue[j] = creach->reachnode[j]->x;
-            ya->fvalue[j] = creach->reachnode[j]->y;
-            xs += creach->reachnode[j]->flowedg->len;
-            xsa->fvalue[j] = xs;
-            qa->fvalue[j] = creach->reachnode[j]->q / timeadjust;
-            delsa->fvalue[j] = creach->reachnode[j]->flowedg->len;
-            creach->reachnode[j]->GetErodibility( rerody, lerody, pr->kf);
-            rerodya->fvalue[j] = rerody;
-            lerodya->fvalue[j] = lerody;
-            slopea->fvalue[j] = creach->reachnode[j]->flowedg->slope;
-            widtha->fvalue[j] = creach->reachnode[j]->hydrwidth;
-            deptha->fvalue[j] = creach->reachnode[j]->hydrdepth;
-              /*diama[j] = creach->reachnode[j]->diam;*/
-            diama->fvalue[j] = pr->meddiam;
+            curnode->setLatDisplace( 0.0, 0.0 );
+            curnode->setNew2DCoords( curnode->getX(), curnode->getY() );
+         }
+         stations = &(nrnodes[i]);
+         nttlnodes = creach->getSize();
+         stnserod = &nttlnodes;
+         dumArrPtr = new tArray< float >( nttlnodes );
+         xa = ya = xsa = qa = rerodya = lerodya = delsa =
+             slopea = widtha = deptha = diama = deltaxa =
+             deltaya = rdeptha = ldeptha = *dumArrPtr;
+         xs = 0.0;
+         for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
+              curnode = rnIter.NextP(), j++ )
+         {
+            fedg = curnode->GetFlowEdg();
+            xa[j] = curnode->getX();
+            ya[j] = curnode->getY();
+            xsa[j] = xs;
+            xs += fedg->getLength();
+            qa[j] = curnode->GetQ();
+            delsa[j] = fedg->getLength();
+            xs += delsa[j];
+            bankerody = FindBankErody( curnode );
+            //curnode->GetErodibility( rerody, lerody, pr->kf);
+            rerodya[j] = bankerody[0];
+            lerodya[j] = bankerody[1];
+            slopea[j] = fedg->getSlope();
+            widtha[j] = curnode->getHydrWidth();
+            deptha[j] = curnode->getHydrDepth();
+            /*diama[j] = curnode->diam;*/
+            diama[j] = ( optdiamvar ) ? curnode->getDiam() : meddiam;
          }
          cout << "stations, stnserod: " << *stations <<" "<< *stnserod
               << endl << flush;
-           /*meander_(stations, stnserod, xa, ya, xsa, 
-             delsa, qa, rerodya, lerodya, 
-             slopea, widtha, deptha, diama,
-             deltaxa, deltaya, rdeptha, ldeptha);*/
-           //Now reset the node values according to the arrays:
-         for (j=0; j<nttlnodes; j++)
+         //this looks horrible, but we need to pass the pointer to the array
+         //itself, not the tArray object, which contains the array pointer.
+         meander_( stations,
+                   stnserod,
+                   xa->getArrayPtr(),
+                   ya->getArrayPtr(),
+                   xsa->getArrayPtr(), 
+                   delsa->getArrayPtr(),
+                   qa->getArrayPtr(),
+                   rerodya->getArrayPtr(),
+                   lerodya->getArrayPtr(), 
+                   slopea->getArrayPtr(),
+                   widtha->getArrayPtr(),
+                   deptha->getArrayPtr(),
+                   diama->getArrayPtr(),
+                   deltaxa->getArrayPtr(),
+                   deltaya->getArrayPtr(),
+                   rdeptha->getArrayPtr(),
+                   ldeptha->getArrayPtr() );
+         //Now reset the node values according to the arrays:
+         for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
+              curnode = rnIter.NextP(), j++ )
+             curnode->addLatDisplace( deltaxa[j], deltaya[j] );
+//( 0.1, 0.01*(ran3(&seed)-.5)
+         num = nrnodes[i];
+         for( curnode = rnIter.FirstP(), j=0; j<num; curnode = rnIter.NextP(), j++ )
          {
-            creach->reachnode[j]->deltax += 0.1;              //deltaxa[j];
-            num = ran3(&seed) - 0.5;
-            creach->reachnode[j]->deltay += 0.01 * num;       //deltaya[j];
+            rz = curnode->getZ() + deptha[j] - rdeptha[j];
+            lz = curnode->getZ() + deptha[j] - ldeptha[j];
+            curnode->setZOld( rz, lz );
          }
-         for (j=0; j<creach->nrnodes; j++)
-         {
-            creach->reachnode[j]->zoldright = creach->reachnode[j]->z 
-                + deptha->fvalue[j] - rdeptha->fvalue[j];
-            creach->reachnode[j]->zoldleft = creach->reachnode[j]->z
-                + deptha->fvalue[j] - ldeptha->fvalue[j];
-         }
-         delete xa;
-         delete ya;
-         delete xsa;
-         delete delsa;
-         delete qa;
-         delete rerodya;
-         delete lerodya;
-         delete slopea;
-         delete widtha;
-         delete deptha;
-         delete diama;
-         delete deltaxa;
-         delete deltaya;
-         delete rdeptha;
-         delete ldeptha;
-         creach = creach->next;
+         delete dumArrPtr;
       }
-      if( bugtime > 89 ) DumpEdges();
-     //calculate ratio of total displacement to length of flow edge,
-        //find maximum of ratios and make sure it is less than or equal,
-        //to the allowed fraction (e.g., 1/10) and scale displacements
-        //as necessary.
+      //if( bugtime > 89 ) DumpEdges();
+      //calculate ratio of total displacement to length of flow edge,
+      //find maximum of ratios and make sure it is less than or equal,
+      //to the allowed fraction (e.g., 1/10) and scale displacements
+      //as necessary.
       maxfrac = 0.0;
-      creach = firstreach;
-      for (i=0; i<nheads; i++)
+      for( creach = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
+           creach = rlIter.NextP(), i++ )
       {
-         for (j=0; j<creach->nrnodes; j++)
+         rnIter.Reset( *creach );
+         num = nrnodes[i];
+         for( curnode = rnIter.FirstP(), j=0; j<num; curnode = rnIter.NextP(), j++ )
          {
-            a = creach->reachnode[j]->deltax;
-            b = creach->reachnode[j]->deltay;
-            displcmt = sqrt(a * a + b * b);
-            if( creach->reachnode[j]->chanwidth != 0.0)
-                frac = displcmt / creach->reachnode[j]->chanwidth;
+            delta = curnode->getLatDisplace();
+            displcmt = sqrt( delta[0] * delta[0] + delta[1] * delta[1] );
+            width = curnode->getChanWidth();
+            if( width > 0.0 ) frac = displcmt / width;
             else frac = 0.0;
             if( frac > maxfrac ) maxfrac = frac;
          }
-         creach = creach->next;
       }
       if( maxfrac < allowfrac ) 
       {
          dtm = 1.0;
-         cumvmt += maxfrac;
+         //cumvmt += maxfrac;
       }
       else
       {
          dtm = allowfrac / maxfrac;
-         cumvmt += allowfrac;
+         //cumvmt += allowfrac;
       }
-      creach = firstreach;
-      for (i=0; i<nheads; i++)
+      for( creach = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
+           creach = rlIter.NextP(), i++ )
       {
-         for (j=0; j<creach->nrnodes; j++)
+         rnIter.Reset( *creach );
+         num = nrnodes[i];
+         for( curnode = rnIter.FirstP(), j=0; j<num; curnode = rnIter.NextP(), j++ )
          {
-            dtm = 1.0;
-            if( dtm > duration ) dtm = duration;
-
-            creach->reachnode[j]->deltax *= dtm;
-            creach->reachnode[j]->deltay *= dtm;
-            creach->reachnode[j]->newx += creach->reachnode[j]->deltax;
-            creach->reachnode[j]->newy += creach->reachnode[j]->deltay;
+            //dtm = 1.0;
+            tmptim = time + dtm;
+            if( tmptim > duration ) dtm = duration - time;
+            delta = curnode->getLatDisplace();
+            delta[0] *= dtm;
+            delta[1] *= dtm;
+            curnode->setLatDisplace( delta[0], delta[1] );
+            newxy = curnode->getNew2DCoords();
+            newxy[0] += delta[0];
+            newxy[1] += delta[1];
+            curnode->setNew2DCoords( newxy[0], newxy[1] );
          }
-         creach = creach->next;
       }
       time += dtm;
-        //MakeChanBorder(); //puts point coords for right and left banks in stack
-      //ChanCloseDel();
-      if( bugtime > 89 ) DumpEdges();
-      MoveNodes();	// (frmr PreApply) changes 'x' to 'newx', etc. and calls
-        //ApplyChanges which adjusts grid triangulation
-        //CheckPointStack(); // adds points which should be added, deletes stack
-      UpdateMesh();
+      //if( bugtime > 89 ) DumpEdges();
    }
-   while( time < duration);
 }
 
 /******************************************************************************\
@@ -407,6 +497,7 @@ void tGrid::MakeChanBorder()
 **		Created: 5/1/97 SL
 **
 \*****************************************************************************/
+   tArray< float > FindBankErody( tLNode * );
 void tNode::GetErodibility( float rerody, float lerody, float erody )
 {
    float x1, y1, x2, y2, dx, dy, dx1, dy1, a, b, c, d, dmin, dlast,
