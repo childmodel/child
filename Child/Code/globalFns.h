@@ -9,7 +9,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.1 1999-04-02 21:35:32 gtucker Exp $
+**  $Id: globalFns.h,v 1.2 1999-04-05 15:28:37 gtucker Exp $
 \**************************************************************************/
 
 #ifndef GLOBALFNS_H
@@ -19,7 +19,7 @@
 #include <math.h>
 #include <macros.h> // for max(a,b), min(a,b), etc.
 #include "tArray/tArray.h"
-#include "GridElements/gridElements.h"
+#include "MeshElements/meshElements.h"
 #include "tLNode/tLNode.h"
 #include "tPtrList/tPtrList.h"
 #include "Predicates/predicates.h"
