@@ -33,19 +33,15 @@
  **      track position on list w/o an iterator, 1/22/99
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **
- **  $Id: tList.h,v 1.50 2004-03-22 14:08:54 childcvs Exp $
+ **  $Id: tList.h,v 1.51 2004-03-25 12:14:47 childcvs Exp $
  */
 /**************************************************************************/
 
 #ifndef TLIST_H
 #define TLIST_H
 
+#include "tListFwd.h"
 #include "../compiler.h"
-
-template< class NodeType > class tList;
-template< class NodeType > class tListIter;
-template< class NodeType > class tMeshList;
-template< class NodeType > class tMeshListIter;
 
 /**************************************************************************/
 /**
