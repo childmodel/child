@@ -59,7 +59,7 @@
 **     - Added codes to go along with erosion & transport options, to
 **       enable checking against user-specified options (GT 7/02)
 **
-**  $Id: erosion.h,v 1.38 2002-07-25 05:01:17 gtucker Exp $
+**  $Id: erosion.h,v 1.39 2002-07-26 10:16:16 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -74,31 +74,63 @@
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
 
+enum {
+  PowerLaw1 = 0,
+  PowerLaw2,
+  BridgeDominic,
+  Wilcock,
+  PowerLawMulti,
+  MineTailings,
+  NoTransportLaw
+};
+
+#define NUMBER_OF_TRANSPORT_LAWS 6
+
+const char * const TransportLaw[] =
+{
+  "Power-law transport formula",
+  "Power-law transport formula, form 2",
+  "Bridge-Dominic form of Bagnold bedload formula",
+  "Wilcock sand-gravel formula",
+  "Multi-size power-law formula",
+  "Willgoose/Riley mine tailings formula",
+  "(Invalid transport law)"
+};
+
 #define tSedTrans tSedTransPwrLaw
-#define SEDTRANSOPTION "Power-law transport formula"
-#define TRANSPORT_CODE 1
+#define TRANSPORT_CODE PowerLaw1
 //#define tSedTrans tSedTransPwrLaw2
-//#define SEDTRANSOPTION "Power-law transport formula, form 2"
-//#define TRANSPORT_CODE 2
+//#define TRANSPORT_CODE PowerLaw2
 //#define tSedTrans tSedTransBridgeDom
-//#define SEDTRANSOPTION "Bridge-Dominic form of Bagnold bedload formula"
-//#define TRANSPORT_CODE 3
+//#define TRANSPORT_CODE BridgeDominic
 //#define tSedTrans tSedTransWilcock
-//#define SEDTRANSOPTION "Wilcock sand-gravel formula"
-//#define TRANSPORT_CODE 4
+//#define TRANSPORT_CODE Wilcock
 //#define tSedTrans tSedTransPwrLawMulti
-//#define SEDTRANSOPTION "Multi-size power-law formula"
-//#define TRANSPORT_CODE 5
+//#define TRANSPORT_CODE PowerLawMulti
 //#define tSedTrans tSedTransMineTailings
-//#define SEDTRANSOPTION "Willgoose/Riley mine tailings formula"
-//#define TRANSPORT_CODE 6
+//#define TRANSPORT_CODE MineTailings
+#define SEDTRANSOPTION TransportLaw[ TRANSPORT_CODE ]
+
+enum {
+  DetachPwrLaw1 = 0,
+  DetachPwrLaw2,
+  NoDetachmentLaw
+};
+
+#define NUMBER_OF_DETACHMENT_LAWS 2
+
+const char * const DetachmentLaw[] =
+{
+  "Power law, form 1",
+  "Power law, form 2",
+  "(Invalid detachment law)"
+};
 
 #define tBedErode tBedErodePwrLaw
-#define BEDERODEOPTION "Power law, form 1"
-#define DETACHMENT_CODE 1
+#define DETACHMENT_CODE DetachPwrLaw1
 //#define tBedErode tBedErodePwrLaw2
-//#define BEDERODEOPTION "Power law, form 2"
-//#define DETACHMENT_CODE 2
+//#define DETACHMENT_CODE DetachPwrLaw2
+#define BEDERODEOPTION DetachmentLaw[ DETACHMENT_CODE ]
 
 /***************************************************************************\
 **  class tEquilibCheck

@@ -43,7 +43,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.100 2002-07-25 05:01:16 gtucker Exp $
+**  $Id: erosion.cpp,v 1.101 2002-07-26 10:16:14 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1606,21 +1606,29 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
 					   "DETACHMENT_LAW" );
    if( optProcessLaw != DETACHMENT_CODE )
      {
-       cerr << "You requested detachment law " << optProcessLaw << endl
+       optProcessLaw=(optProcessLaw<NUMBER_OF_DETACHMENT_LAWS && 
+		      optProcessLaw>=0) ? optProcessLaw : NoDetachmentLaw;
+       cerr << "Error: You requested the detachment law: " 
+	    << DetachmentLaw[optProcessLaw] << endl
 	    << "but this version is hard-coded with detachment law "
 	    << DETACHMENT_CODE << " (" << BEDERODEOPTION << ")\n";
        ReportFatalError( "Requested detachment law not available.\n"
-			 "Modify erosion.h and re-compile.\n" );
+			 "Either switch options or modify erosion.h "
+			 "and re-compile.\n" );
      }
    optProcessLaw = infile.ReadItem( optProcessLaw,
 					   "TRANSPORT_LAW" );
    if( optProcessLaw != TRANSPORT_CODE )
      {
-       cerr << "You requested sediment transport law " << optProcessLaw << endl
+       optProcessLaw = ( optProcessLaw < NUMBER_OF_TRANSPORT_LAWS 
+		      && optProcessLaw >= 0 ) ? optProcessLaw : NoTransportLaw;
+       cerr << "Error: You requested transport law: " 
+	    << TransportLaw[optProcessLaw] << endl
 	    << "but this version is hard-coded with transport law "
 	    << TRANSPORT_CODE << " (" << SEDTRANSOPTION << ")\n";
        ReportFatalError( "Requested transport law not available.\n" 
-			 "Modify erosion.h and re-compile.\n" );
+			 "Either switch options or modify erosion.h "
+			 "and re-compile.\n" );
      }
 }
 
@@ -2717,7 +2725,6 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
    tLNode * cn;
    tEdge * ce;
    double volout,  // Sediment volume output from a node (neg=input)
-       denom,      // Denominator in Courant number (=Kd*Lve)
        delt,       // Max local step size
        dtmax;      // Max global step size (initially equal to total time rt)
    tMeshListIter<tLNode> nodIter( meshPtr->getNodeList() );
@@ -2728,32 +2735,30 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
 #endif
    
    // Compute maximum stable time-step size based on Courant condition
+   // for FTCS (here used as an approximation).
    // (Note: for a fixed mesh, this calculation only needs to be done once;
    // performance could be improved by having this block only called if
    // mesh has changed since last time through)
    dtmax = rt;  // Initialize dtmax to total time rt
    for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
      {
-       if( ce->getVEdgLen() > 5000.0 )
+       if( 0 ) //DEBUG
 	 {
-	   //cout << "In Diffuse(), large vedglen detected: " << ce->getVEdgLen() << endl;
-	   //ce->TellCoords();
-	   /*cout << "Connected to ORIGIN:\n";
-	     ce->getOriginPtr()->TellAll();
-	     cout << "DESTINATION:\n";
-	     ce->getDestinationPtr()->TellAll();*/
+	   cout << "In Diffuse(), large vedglen detected: " << ce->getVEdgLen() << endl;
+	   ce->TellCoords();
 	 }
-       if( (denom=kd*ce->getVEdgLen() ) > kVerySmall )
+       //Xif( (denom=kd*ce->getVEdgLen() ) > kVerySmall )
+       // Evaluate DT <= DX^2 / Kd
+       delt = kEpsOver2 * ce->getLength()*ce->getLength() / kd;
+       if( delt < dtmax )
 	 {
-	   delt = kEpsOver2*(ce->getLength()/denom);
-	   if( delt < dtmax )
-	     {
-	       dtmax = delt;
-	       /*cout << "TIME STEP CONSTRAINED TO " << dtmax << " AT EDGE:\n";
-		 ce->TellCoords();*/
-	     }
+	   dtmax = delt;
+	   if(0) { //DEBUG
+	     cout << "TIME STEP CONSTRAINED TO " << dtmax << " AT EDGE:\n";
+	     ce->TellCoords(); }
 	 }
      }
+
    
    // Loop until we've used up the entire time interval rt
    do
