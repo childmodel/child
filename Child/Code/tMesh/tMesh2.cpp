@@ -28,7 +28,7 @@ tIdArray< T >::tIdArray(tList< T >& List) :
 **
 **   tMesh::MakeMeshFromScratchTipper( infile )
 **
-**   as tMesh::MakeMeshFromScratchTipper but uses Tipper's triangulation
+**   as tMesh::MakeMeshFromScratch but uses Tipper's triangulation
 **   algorithm.
 **
 **   Created: 07/2002, Arnaud Desitter
