@@ -1,4 +1,4 @@
-PT = /miami/academic/gtucker/Dev2/Child/Code
+PT = $(CHILDCODE)
 CC = CC
 WARNINGFLAGS = 
 CFLAGS = $(WARNINGFLAGS) -c -O
@@ -53,6 +53,9 @@ $(PT)/tFloodplain/tFloodplain.h
 
 tEolian.o: $(PT)/tEolian/tEolian.cpp $(PT)/tEolian/tEolian.h
 	$(CC) $(CFLAGS) $(PT)/tEolian/tEolian.cpp
+
+ParamMesh_t.o: $(PT)/tMesh/ParamMesh_t.cpp $(PT)/tMesh/ParamMesh_t.h
+	$(CC) $(CFLAGS) $(PT)/tMesh/ParamMesh_t.cpp
 
 globalFns.o: $(PT)/globalFns.cpp $(PT)/globalFns.h
 	$(CC) $(CFLAGS) $(PT)/globalFns.cpp
