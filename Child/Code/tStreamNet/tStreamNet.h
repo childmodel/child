@@ -20,7 +20,7 @@
 **  with a tLNode; it could be recoded to operate with a "hydrologic"
 **  node or any descendents.
 **
-**  $Id: tStreamNet.h,v 1.29 1999-04-05 15:19:13 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.30 1999-09-09 21:32:22 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -109,6 +109,7 @@ private:
 **  Modifications:
 **   - 3/99 GT added data member bankfullevent: precip rate corresponding
 **     to bankfull discharge.
+**   - 6/99 GT removed unused parameter mndrchngprob and ref's to it
 **
 \**************************************************************************/
 class tStreamNet
@@ -135,7 +136,7 @@ public:
     tArray< double > getInSedLoadm() const;
     tLNode *getInletNodePtr() const;
     tLNode *getInletNodePtrNC();
-    double getMndrDirChngProb() const;
+    //double getMndrDirChngProb() const;
     void setFlowGenOpt( int );
     void setFillLakesOpt( int );
     void setRainRate( double );
@@ -145,7 +146,7 @@ public:
     void setInSedLoad( double );
     void setInSedLoadm( int, double );
     void setInletNodePtr( tLNode * );
-    void setMndrDirChngProb( double );
+    //void setMndrDirChngProb( double );
     void UpdateNet( double time );
     void UpdateNet( double time, tStorm & );
     void CheckNetConsistency();
@@ -189,7 +190,7 @@ protected:
     double infilt;        // soil infiltration capacity
     double soilStore;     // soil water storage, depth equiv (m)
     tInlet inlet;         // inlet
-    double mndrDirChngProb; // probability of mnd chan changing direction
+    //double mndrDirChngProb; // probability of mnd chan changing direction
     int optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
     double infilt_dev;    // max +/- variation from mean infilt cap
     double infilt0;    // mean infilt cap
