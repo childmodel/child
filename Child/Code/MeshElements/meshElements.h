@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.46 2003-05-06 16:33:49 childcvs Exp $
+**  $Id: meshElements.h,v 1.47 2003-05-15 16:06:26 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -110,7 +110,7 @@ public:
 
   tNode();                                   // default constructor
   tNode( const tNode & );                    // copy constructor
-  virtual ~tNode() {}
+  virtual ~tNode() { edg = 0; }
 
   const tNode &operator=( const tNode & );   // assignment operator
   tArray< double > get3DCoords() const;      // returns x,y,z
@@ -214,8 +214,8 @@ public:
   int getBoundaryFlag() const;  // returns boundary status (flow or no flow)
   double getLength() const;     // returns edge's length (projected)
   double getSlope() const;      // slope = "z" gradient from org to dest nodes
-  double getOrgZ();             // returns origin's z value
-  double getDestZ();            // returns destination's z value
+  double getOrgZ() const;       // returns origin's z value
+  double getDestZ() const;      // returns destination's z value
   const tNode *getOriginPtr() const;      // returns ptr to origin node (const)
   const tNode *getDestinationPtr() const; // returns ptr to dest node (const)
   tNode *getOriginPtrNC();      // returns ptr to origin node (non-const)
@@ -226,7 +226,7 @@ public:
   void setComplementEdge( tEdge* );
   tArray< double > getRVtx() const;  // returns Voronoi vertex for RH triangle
   double getVEdgLen() const;    // returns length of assoc'd Voronoi cell edge
-  int FlowAllowed();            // returns boundary status ("flow allowed")
+  int FlowAllowed() const;      // returns boundary status ("flow allowed")
 
   void setID( int );                 // sets ID number
   void setLength( double );          // sets edge length
@@ -303,16 +303,16 @@ public:
 
   const tTriangle &operator=( const tTriangle & ); // assignment operator
   void InitializeTriangle( tNode*, tNode*, tNode* );
-  inline int getID() const;                 // returns ID number
-  tNode *pPtr( int );                // returns ptr to given vertex (0,1, or 2)
-  tEdge *ePtr( int );                // returns ptr to given clockwise edge
-  tTriangle *tPtr( int );            // returns ptr to given neighboring tri
+  inline int getID() const;          // returns ID number
+  tNode *pPtr( int ) const;          // returns ptr to given vertex (0,1, or 2)
+  tEdge *ePtr( int ) const;          // returns ptr to given clockwise edge
+  tTriangle *tPtr( int ) const;      // returns ptr to given neighboring tri
   void setID( int );                 // sets ID number
   void setPPtr( int, tNode * );      // sets ptr to given vertex
   inline void setEPtr( int, tEdge * );      // sets ptr to given clockwise edge
   void setTPtr( int, tTriangle * );  // sets ptr to given neighboring tri
-  int nVOp( tTriangle * );    // returns side # (0,1 or 2) of nbr triangle
-  int nVtx( tNode * );        // returns vertex # (0,1 or 2) of given node
+  int nVOp( const tTriangle * ) const;// returns side # (0,1 or 2) of nbr triangle
+  int nVtx( const tNode * ) const;  // returns vertex # (0,1 or 2) of given node
   tArray<double> FindCircumcenter(); // computes & returns tri's circumcenter
 
 #ifndef NDEBUG
@@ -351,8 +351,8 @@ public:
    int Next();
    int Prev();
    int Get( int );
-   int Get( tEdge* );
-   int Where();
+   int Get( const tEdge* );
+   int Where() const;
 
    tEdge* FirstP();
    tEdge* LastP();
@@ -603,9 +603,9 @@ inline void tNode::ChangeZ( double delz ) { z += delz; }
 \*******************************************************************/
 inline void tNode::WarnSpokeLeaving( tEdge * edglvingptr )
 {
-   if( edglvingptr == edg )
-       edg = edg->getCCWEdg();
-
+  assert(edg);
+  if( edglvingptr == edg )
+    edg = edg->getCCWEdg();
 }
 
 /**********************************************************************\
@@ -769,13 +769,13 @@ inline tNode *tEdge::getOriginPtrNC() {return org;}
 
 inline tNode *tEdge::getDestinationPtrNC() {return dest;}
 
-inline double tEdge::getOrgZ()
+inline double tEdge::getOrgZ() const
 {
    assert( org!=0 );
    return( org->getZ() );
 }
 
-inline double tEdge::getDestZ()
+inline double tEdge::getDestZ() const
 {
    assert( dest!=0 );
    return( dest->getZ() );
@@ -801,7 +801,7 @@ inline void tEdge::setComplementEdge( tEdge* edg )
   compedg = edg;
 }
 
-inline int tEdge::FlowAllowed()
+inline int tEdge::FlowAllowed() const
 {
    return flowAllowed;
 }
@@ -1116,19 +1116,19 @@ inline istream &operator>>( istream &input, tTriangle &tri )
 
 inline int tTriangle::getID() const {return id;}
 
-inline tNode *tTriangle::pPtr( int index )
+inline tNode *tTriangle::pPtr( int index ) const
 {
    assert( index >= 0 && index < 3 );
    return p[index];
 }
 
-inline tEdge *tTriangle::ePtr( int index )
+inline tEdge *tTriangle::ePtr( int index ) const
 {
    assert( index >= 0 && index < 3 );
    return e[index];
 }
 
-inline tTriangle *tTriangle::tPtr( int index )
+inline tTriangle *tTriangle::tPtr( int index ) const
 {
    assert( index >= 0 && index < 3 );
    return t[index];
@@ -1183,11 +1183,11 @@ inline void tTriangle::setTPtr( int index, tTriangle * trptr )
 **  Assumes that ct _is_ one of the neighboring triangles.
 **
 \**************************************************************************/
-inline int tTriangle::nVOp( tTriangle *ct )
+inline int tTriangle::nVOp( const tTriangle *ct ) const
 {
   for( int i=0; i<3; ++i )
     if( t[i] == ct ) return i;
-  assert( 0 );
+  assert( 0 ); /*NOTREACHED*/
   abort();
 }
 
@@ -1202,11 +1202,11 @@ inline int tTriangle::nVOp( tTriangle *ct )
 **  Assumes that cn _is_ one of the triangle's vertices.
 **
 \**************************************************************************/
-inline int tTriangle::nVtx( tNode *cn )
+inline int tTriangle::nVtx( const tNode *cn ) const
 {
   for( int i=0; i<3; ++i )
     if( p[i] == cn ) return i;
-  assert( 0 );
+  assert( 0 ); /*NOTREACHED*/
   abort();
 }
 
@@ -1332,7 +1332,7 @@ inline tEdge* tSpkIter::GetP( int num )
    return 0;
 }
 
-inline int tSpkIter::Get( tEdge* ePtr )
+inline int tSpkIter::Get( const tEdge* ePtr )
 {
    if( ePtr == 0 ) return 0;
    if( !First() ) return 0;
@@ -1348,7 +1348,7 @@ inline tEdge* tSpkIter::GetP( tEdge* ePtr )
    return 0;
 }
 
-inline int tSpkIter::Where()
+inline int tSpkIter::Where() const
 {
    if( curedg == 0 ) return -1;
    return curedg->getID();
