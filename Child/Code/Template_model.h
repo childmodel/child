@@ -9,7 +9,7 @@
 // Either, we put all code in headers or we keep the code definition
 // in .cpp files with the same name as the corresponding .h file.
 
-#if defined(__GNUC__) || defined(__INTEL_COMPILER)
+#if defined(__GNUC__) || defined(__INTEL_COMPILER) || defined(_lint)
 # define CHILD_TEMPLATE_IN_HEADER
 #endif
 

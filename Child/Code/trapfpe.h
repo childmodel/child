@@ -21,7 +21,7 @@ static void __attribute__ ((constructor)) trapfpe(void)
   /* Enable some exceptions.  At startup all exceptions are masked. */
   feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
 }
-#elif defined(i386) && defined(__CYGWIN__)
+#elif defined(i386) && defined(__CYGWIN__) && !defined(_lint)
 static void __attribute__ ((constructor)) trapfpe(void)
 {
   /* x86 specific */
