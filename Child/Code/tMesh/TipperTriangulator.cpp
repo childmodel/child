@@ -682,7 +682,7 @@ oriented_edge oriented_edge::next_ccw_around_from(const edge* edges) const {
     ires = edges[e()].ret;
   }
   if (ires != -1){
-    bres = edges[ires].ref == e();
+    bres = (edges[ires].ref == e() ? true:false);
     if (!bres)
       assert( edges[ires].let == e());
   }
@@ -698,7 +698,7 @@ oriented_edge oriented_edge::next_cw_around_from(const edge* edges) const {
     ires = edges[e()].let;
   }
   if (ires != -1){
-    bres = edges[ires].lef == e();
+    bres = (edges[ires].lef == e() ? true:false);
     if (!bres)
       assert( edges[ires].ret == e());
   }
@@ -870,9 +870,9 @@ void tt_build_elem_table(int npoints, const point *p,
 	  SWAP_E(e2,e3);
       }
       // edges orientations
-      elems[ielem].eo2 = (edges[elems[ielem].e2].from == elems[ielem].p2);
-      elems[ielem].eo3 = (edges[elems[ielem].e3].from == elems[ielem].p3);
-      elems[ielem].eo1 = (edges[elems[ielem].e1].from == elems[ielem].p1);
+      elems[ielem].eo2 = ((edges[elems[ielem].e2].from == elems[ielem].p2) ? true:false);
+      elems[ielem].eo3 = ((edges[elems[ielem].e3].from == elems[ielem].p3) ? true:false);
+      elems[ielem].eo1 = ((edges[elems[ielem].e1].from == elems[ielem].p1) ? true:false);
 #undef SWAP_E
     }
     if (1) //DEBUG
