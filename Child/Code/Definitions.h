@@ -1,6 +1,6 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.12 1999-01-21 17:48:42 gtucker Exp $
+**   $Id: Definitions.h,v 1.13 1999-02-01 21:47:09 gtucker Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -10,8 +10,8 @@
 #define VERSION "Beta 1.0"
 #define TRUE 1
 #define FALSE 0
-#define kMaxNameLength 80
-#define kCommentMark '#'
+//#define kMaxNameLength 80
+//#define kCommentMark '#'
 //#define kTimeLineMark ' '
 #define kUniformGrid 0     /*method of grid construction*/
 #define kPerturbedGrid 1
