@@ -4,7 +4,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.3 1998-01-29 20:16:41 stlancas Exp $
+**  $Id: tInputFile.cpp,v 1.4 1999-02-19 20:51:39 gtucker Exp $
 \****************************************************************************/
 
 #include <iostream.h>
@@ -24,7 +24,11 @@ tInputFile::tInputFile( const char *filename )
 {
    infile.open( filename );
    if( !infile.good() )
-       cerr << "tInputFile::tInputFile: Unable to open '" << filename << "'." << endl;
+   {
+      cerr << "tInputFile::tInputFile: Unable to open '" << filename << "'." << endl;
+      ReportFatalError( "The file may not exist or may be mis-named." );
+   }
+   
 }
 
 
@@ -37,8 +41,6 @@ tInputFile::tInputFile( const char *filename )
 **  type of data desired (datType simply governs which overloaded function
 **  will be called; it is not used by the routines).
 **
-**  Notes: add ability to ignore line followed by a comment mark,
-**
 **  IMPORTANT:
 **  revised to allow arbitrary ordering of items in infile and/or ReadItem
 **  calls in code; routine searches
@@ -46,7 +48,6 @@ tInputFile::tInputFile( const char *filename )
 **  This should make reading/entering parameters MUCH less complicated.
 **  -12/23/97 SL
 */
-//template <class T>  how do w/ templates?
 int tInputFile::ReadItem( const int &datType, const char *itemCode )
 {
    cout << "ReadItem( int )...";
@@ -55,9 +56,6 @@ int tInputFile::ReadItem( const int &datType, const char *itemCode )
    
    assert( infile.good() );
 
-   //streampos original = infile.tellg();
-   
-   
    // NB: Should check for eof on reading each line
 
    infile.getline( headerLine, kMaxNameLength );
