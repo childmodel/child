@@ -11,7 +11,7 @@
 **    - fixed problem with layer initialization in copy constructor
 **      (gt, 2/2000; see below)
 ** 
-**  $Id: tLNode.cpp,v 1.90 2000-06-22 21:00:52 daniel Exp $
+**  $Id: tLNode.cpp,v 1.91 2001-06-19 15:46:54 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -374,7 +374,7 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
           layerlist()
 {
    int i;
-   char add, name[20];
+   char add[2], name[20];
    double help, extra, sum, sumbr;
    tLayer layhelp, niclay;
    tArray<double> dgradehelp;
@@ -396,16 +396,17 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
        ReportFatalError( "Erodibility factor KR must be positive." );
    
    i=0;
-   add='1';
+   add[0]='1';
+   add[1]='\0';
    
    while ( i<numg ){
       // Reading in grain size diameter info 
       strcpy( name, "GRAINDIAM");
-      strcat( name, &add ); 
+      strcat( name, add ); 
       help = infile.ReadItem( help, name);
       grade[i] = help;
       i++;
-      add++;
+      add[0]++;
    }
 
    qsm.setSize( numg );
@@ -420,22 +421,22 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       sum = 0;
       sumbr = 0;
       i=0;
-      add='1';
+      add[0]='1';
       
       while ( i<numg ){
          // Reading in proportions for intital regolith and bedrock
          strcpy( name, "REGPROPORTION");
-         strcat( name, &add ); 
+         strcat( name, add ); 
          help = infile.ReadItem( help, name);
          dgradehelp[i]=help;
          sum += help;
          strcpy( name, "BRPROPORTION");
-         strcat( name, &add ); 
+         strcat( name, add ); 
          help = infile.ReadItem( help, name);
          dgradebrhelp[i]=help;
          sumbr += help;
          i++;
-         add++;
+         add[0]++;
       }
 
       if(fabs(sum-1.0)>0.001)
@@ -994,6 +995,8 @@ void tLNode::TellAll()
                  cout<<"  dgrade "<<i<<" "<<getLayerDgrade(j,i);
          cout << "  dzdt: " << dzdt << "  drdt: " << drdt;
          cout<<" meanders "<< Meanders()<<endl;
+         cout << "  width: " << getHydrWidth() << " tau: " << getTau();
+	 cout << " taucrit: " << getTauCrit() << endl;
       }
       else cout << "  Flowedg is undefined\n";
       
@@ -1296,6 +1299,13 @@ void tLNode::addLayerEtime( int i, double tt)
 double tLNode::getLayerDepth( int i ) const
 {
    tLayer hlp;
+   if( layerlist.isEmpty() )
+     {
+       cout << "** WARNING lyr list empty\n";
+   cout << " NODE " << id << ":\n";
+   cout << "  x=" << x << " y=" << y << " z=" << z;
+       
+     }
    hlp = layerlist.getIthData(i);
    return hlp.getDepth();
 }
