@@ -3,7 +3,7 @@
 **  tList.h: Header file for classes tList, tListNode, and tListIter.
 **
 **  A tList is an object that implements a general linked list NodeType
-**  objects, where NodeType can be any type (float, int, other objects,
+**  objects, where NodeType can be any type (double, int, other objects,
 **  etc). The one caveat is that tLists are not designed to be lists of
 **  pointers, which have some unique requirements and are thus handled
 **  by tPtrList objects. (Specifically, in a normal list you want to
@@ -16,19 +16,21 @@
 **  most useful to use a tListIter object (q.v.).
 **
 **  tListNode objects are the nodes on the list; each contains an instance
-**  of the given data type (float, int, class, etc) and a pointer to the
+**  of the given data type (double, int, class, etc) and a pointer to the
 **  next node in the list.
 **
 **  A tListIter is an iterator for the linked list tList objects (and their
 **  descendants). Its services include fetching data from the current entry
 **  on the list, advancing to the next or previous item on the list, etc.
 **
-**  $Id: tList.h,v 1.4 1998-01-21 22:09:29 gtucker Exp $
+**  $Id: tList.h,v 1.5 1998-01-29 20:00:16 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
 #define TLIST_H
 
+#include "../tArray/tArray.h"
+//template< class T > class tArray< T >;
 template<class NodeType> class tGridList<NodeType>;
 template<class NodeType> class tGridListIter<NodeType>;
 

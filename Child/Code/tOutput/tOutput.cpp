@@ -4,14 +4,9 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.2 1998-01-27 23:42:14 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.3 1998-01-29 19:53:06 stlancas Exp $
 \*************************************************************************/
 
-#include <string.h>
-#include <assert.h>
-#include "../errors/errors.h"
-#include "../tGridList/tGridList.h"
-#include "../GridElements/gridElements.h"
 #include "tOutput.h"
 
 /*************************************************************************\
@@ -76,7 +71,7 @@ tOutput<tSubNode>::tOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile )
 **        deforming
 \*************************************************************************/
 template< class tSubNode >
-void tOutput<tSubNode>::WriteOutput( float time )
+void tOutput<tSubNode>::WriteOutput( double time )
 {
    tGridListIter<tSubNode> niter( g->GetNodeList() );
    tGridListIter<tEdge> eiter( g->GetEdgeList() );
@@ -138,7 +133,7 @@ void tOutput<tSubNode>::WriteOutput( float time )
 }
 
 template< class tSubNode >
-void tOutput<tSubNode>::WriteNodeData( float time ) 
+void tOutput<tSubNode>::WriteNodeData( double time ) 
 {}
 
 
@@ -164,7 +159,7 @@ tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile )
 
 
 template< class tSubNode >
-void tLOutput<tSubNode>::WriteNodeData( float time )
+void tLOutput<tSubNode>::WriteNodeData( double time )
 {
    tGridListIter<tSubNode> ni( g->GetNodeList() );
    tSubNode *cn;

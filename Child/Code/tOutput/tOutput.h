@@ -4,13 +4,18 @@
 **
 **  NB: inherit from this basic class to do output for tLNode objects.
 **
-**  $Id: tOutput.h,v 1.2 1998-01-27 23:41:39 gtucker Exp $
+**  $Id: tOutput.h,v 1.3 1998-01-29 19:53:01 stlancas Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
 #define TOUTPUT_H
 
 #include <iostream.h>
+#include <string.h>
+#include <assert.h>
+#include "../errors/errors.h"
+#include "../tGridList/tGridList.h"
+#include "../GridElements/gridElements.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tGrid/tGrid.h"
 
@@ -21,8 +26,8 @@ class tOutput
 {
 public:
     tOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile );
-    void WriteOutput( float time );
-    virtual void WriteNodeData( float time );
+    void WriteOutput( double time );
+    virtual void WriteNodeData( double time );
 
 protected:
     tGrid<tSubNode> * g;
@@ -38,7 +43,7 @@ class tLOutput : public tOutput<tSubNode>
 {
 public:
     tLOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile );
-    void WriteNodeData( float time );
+    void WriteNodeData( double time );
 private:
     ofstream drareaofs;  // Drainage areas
     ofstream netofs;     // Downstream neighbor IDs

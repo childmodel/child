@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.6 1998-01-28 00:00:09 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.7 1998-01-29 19:56:38 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -142,7 +142,7 @@ tMeander::tMeander( const tMeander &orig )                        //tMeander
      //cout << "  tMeander( orig )" << endl;
 }
 
-tMeander::tMeander( int state, float x, float y )                //tMeander
+tMeander::tMeander( int state, double x, double y )                //tMeander
 {
      //chanptr = 0;
    meander = state;
@@ -261,7 +261,7 @@ tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
      //cout << "  tRegolith( orig )" << endl;
 }
 
-tRegolith::tRegolith( int numg, float vald )                    //tRegolith
+tRegolith::tRegolith( int numg, double vald )                    //tRegolith
         : dgrade( numg ), dpth( vald )
 {
    assert( vald > 0.0 );
@@ -400,9 +400,9 @@ void tLNode::SetFlowEdg( tEdge * edg )
    flowedge = edg;
 }
 
-void tLNode::SetDrArea( float val ) {chan.drarea = ( val >= 0 ) ? val : 0;}
+void tLNode::SetDrArea( double val ) {chan.drarea = ( val >= 0 ) ? val : 0;}
 
-void tLNode::AddDrArea( float val ) {chan.drarea += ( val >= 0 ) ? val : 0;}
+void tLNode::AddDrArea( double val ) {chan.drarea += ( val >= 0 ) ? val : 0;}
 
 tLNode * tLNode::GetDownstrmNbr()
 {
@@ -414,77 +414,78 @@ void tLNode::SetMeanderStatus( int val )
 {chan.migration.meander = ( val == 0 || val == 1 ) ? val : 0;}
 
 
-float tLNode::getHydrWidth() const {return chan.hydrwidth;}
-float tLNode::getChanWidth() const {return chan.chanwidth;}
-float tLNode::getHydrDepth() const {return chan.hydrdepth;}
-float tLNode::getChanDepth() const {return chan.chandepth;}
-float tLNode::getHydrRough() const {return chan.hydrnrough;}
-float tLNode::getChanRough() const {return chan.channrough;}
+double tLNode::getHydrWidth() const {return chan.hydrwidth;}
+double tLNode::getChanWidth() const {return chan.chanwidth;}
+double tLNode::getHydrDepth() const {return chan.hydrdepth;}
+double tLNode::getChanDepth() const {return chan.chandepth;}
+double tLNode::getHydrRough() const {return chan.hydrnrough;}
+double tLNode::getChanRough() const {return chan.channrough;}
+double tLNode::getDiam() const {return chan.diam;}
 
-void tLNode::setHydrWidth( float val )  {chan.hydrwidth = ( val > 0 ) ? val : 0;}
-void tLNode::setChanWidth( float val )  {chan.chanwidth = ( val > 0 ) ? val : 0;}
-void tLNode::setHydrDepth( float val )  {chan.hydrdepth = ( val > 0 ) ? val : 0;}
-void tLNode::setChanDepth( float val )  {chan.chandepth = ( val > 0 ) ? val : 0;}
-void tLNode::setHydrRough( float val )  {chan.hydrnrough = ( val > 0 ) ? val : 0;}
-void tLNode::setChanRough( float val )  {chan.channrough = ( val > 0 ) ? val : 0;}
-float tLNode::getDrArea() const {return chan.drarea;}
+void tLNode::setHydrWidth( double val )  {chan.hydrwidth = ( val > 0 ) ? val : 0;}
+void tLNode::setChanWidth( double val )  {chan.chanwidth = ( val > 0 ) ? val : 0;}
+void tLNode::setHydrDepth( double val )  {chan.hydrdepth = ( val > 0 ) ? val : 0;}
+void tLNode::setChanDepth( double val )  {chan.chandepth = ( val > 0 ) ? val : 0;}
+void tLNode::setHydrRough( double val )  {chan.hydrnrough = ( val > 0 ) ? val : 0;}
+void tLNode::setChanRough( double val )  {chan.channrough = ( val > 0 ) ? val : 0;}
+double tLNode::getDrArea() const {return chan.drarea;}
 
-tArray< float >
+tArray< double >
 tLNode::getZOld() const
 {
-   tArray< float > rl(2);
+   tArray< double > rl(2);
    rl[0] = chan.migration.zoldright;
    rl[1] = chan.migration.zoldleft;
    return rl;
 }
 
-void tLNode::setZOld( float right, float left )
+void tLNode::setZOld( double right, double left )
 {
    chan.migration.zoldright = right;
    chan.migration.zoldleft = left;
 }
 
-tArray< float >                                                   //tNode
+tArray< double >                                                   //tNode
 tLNode::getNew2DCoords() const
 {
-   tArray< float > xy(2);
+   tArray< double > xy(2);
    xy[0] = chan.migration.newx;
    xy[1] = chan.migration.newy;
    return xy;
 }
 
-tArray< float >                                                   //tNode
+tArray< double >                                                   //tNode
 tLNode::getNew3DCoords() const
 {
-   tArray< float > xyz(3);
+   tArray< double > xyz(3);
    xyz[0] = chan.migration.newx;
    xyz[1] = chan.migration.newy;
    xyz[2] = z;
    return xyz;
 }
 
-void tLNode::setNew2DCoords( float val1, float val2 )                    //tNode
+void tLNode::setNew2DCoords( double val1, double val2 )                    //tNode
 {
    chan.migration.newx = val1;
    chan.migration.newy = val2;
 }
 
-tArray< float > tLNode::
+tArray< double > tLNode::
 getLatDisplace() const
 {
-   tArray< float > xy(2);
+   tArray< double > xy(2);
    xy[0] = chan.migration.deltax;
    xy[1] = chan.migration.deltay;
    return xy;
 }
 
-void tLNode::setLatDisplace( float dx, float dy )
+void tLNode::setLatDisplace( double dx, double dy )
 {
    chan.migration.deltax = dx;
    chan.migration.deltay = dy;
 }
 
-void tLNode::addLatDisplace( float dx, float dy )
+void tLNode::addLatDisplace( double dx, double dy )
 {
    chan.migration.deltax += dx;
    chan.migration.deltay += dy;
@@ -492,7 +493,7 @@ void tLNode::addLatDisplace( float dx, float dy )
 
 
 
-void tLNode::setDischarge( float val ) {chan.q = ( val > 0 ) ? val : 0;}
+void tLNode::setDischarge( double val ) {chan.q = ( val > 0 ) ? val : 0;}
 
 void tLNode::RevertToOldCoords()
 {
@@ -507,7 +508,7 @@ void tLNode::UpdateCoords()
 }
 
 // nb: if channel is integrated into node, change this
-float tLNode::GetQ()
+double tLNode::GetQ()
 {
    return chan.q;
 }
@@ -519,10 +520,10 @@ float tLNode::GetQ()
 **  Assumptions: edge lengths up to date and nonzero, flowedg's up to
 **    date.
 \************************************************************************/
-float tLNode::GetSlope()
+double tLNode::GetSlope()
 {
    assert( GetFlowEdg()->getLength()>0 ); // failure means lengths not init'd
-   float slp = (z - GetDownstrmNbr()->getZ() ) / GetFlowEdg()->getLength();
+   double slp = (z - GetDownstrmNbr()->getZ() ) / GetFlowEdg()->getLength();
    if( slp>=0.0 ) return slp;
    else return 0.0;
 }
@@ -548,9 +549,9 @@ float tLNode::GetSlope()
 **        
 **
 \*****************************************************************************/
-float tLNode::DistNew(tLNode * p0,tLNode * p1 )
+double tLNode::DistNew(tLNode * p0,tLNode * p1 )
 {
-  float a,b,c,res;
+  double a,b,c,res;
 
   a = (p1->chan.migration.newy) - (p0->chan.migration.newy);  
   b = -((p1->chan.migration.newx) - (p0->chan.migration.newx));
@@ -651,7 +652,7 @@ int tLNode::NoMoreTracers()
 **
 **  1/15/98 gt
 \**************************************************************************/
-void tLNode::EroDep( float dz )
+void tLNode::EroDep( double dz )
 {
    z += dz;
    cout << "  eroding " << id << " by " << dz << endl;
@@ -662,21 +663,21 @@ void tLNode::EroDep( float dz )
    if( reg.thickness < 0 ) reg.thickness = 0.0;
 }
 
-void tLNode::setAlluvThickness( float val )
+void tLNode::setAlluvThickness( double val )
 {reg.thickness = ( val >= 0.0 ) ? val : 0.0;}
 
-float tLNode::getAlluvThickness() const {return reg.thickness;}
+double tLNode::getAlluvThickness() const {return reg.thickness;}
 
 
-void tLNode::setVegErody( float val )
+void tLNode::setVegErody( double val )
 {surf.vegerody = ( val >= 0.0 ) ? val : 0.0;}
 
-float tLNode::getVegErody() const {return surf.vegerody;}
+double tLNode::getVegErody() const {return surf.vegerody;}
 
-void tLNode::setBedErody( float val )
+void tLNode::setBedErody( double val )
 {rock.erodibility = ( val >= 0.0 ) ? val : 0.0;}
 
-float tLNode::getBedErody() const {return rock.erodibility;}
+double tLNode::getBedErody() const {return rock.erodibility;}
 
 void tLNode::setReachMember( int val )
 {chan.migration.reachmember = ( val == 0 || val == 1 ) ? val : 0;}

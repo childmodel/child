@@ -4,19 +4,18 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.7 1998-01-27 23:59:22 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.8 1998-01-29 19:49:29 stlancas Exp $
 \**************************************************************************/
 
 #include <math.h>
 #include <assert.h>
 #include "tStreamMeander.h"
-#include "../GlobalFns.h"
 
 extern "C" 
 {
-   void meander_( int *, int *, float *, float *, float *, float *, 
-                  float *, float *, float *, float *, float *, 
-                  float *, float *, float *, float *, float *, float * ); 
+   void meander_( int *, int *, double *, double *, double *, double *, 
+                  double *, double *, double *, double *, double *, 
+                  double *, double *, double *, double *, double *, double * ); 
 }
 
 
@@ -138,8 +137,8 @@ void tStreamMeander::FindMeander()
 void tStreamMeander::FindHydrGeom()
 {
    int i, j, num;
-   float hradius, kwdspow, kndspow, widpow, npow, radfactor, qpsec;
-   float width, depth, rough, slope;
+   double hradius, kwdspow, kndspow, widpow, npow, radfactor, qpsec;
+   double width, depth, rough, slope;
    tLNode *cn;
 
    kwdspow = pow(kwds, ewstn / ewds);
@@ -206,14 +205,14 @@ void tStreamMeander::FindHydrGeom()
 void tStreamMeander::FindChanGeom()
 {
    int i, j, num;
-   float qbf, hradius, qbffactor=0, radfactor, width, depth, rough, slope;
+   double qbf, hradius, qbffactor=0, radfactor, width, depth, rough, slope;
    tLNode *cn;
    tPtrListIter< tLNode > nIter;
    tPtrList< tLNode > *plPtr;
    //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
    tStorm *sPtr = netPtr->getStormPtrNC();
-   float isdmn = sPtr->getMeanInterstormDur();
-   float pmn = sPtr->getMeanPrecip();
+   double isdmn = sPtr->getMeanInterstormDur();
+   double pmn = sPtr->getMeanPrecip();
    if (isdmn > 0 )  qbffactor = pmn * log(1.5 / isdmn);
 // qbffactor is now in m^3/s
    for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
@@ -257,12 +256,12 @@ void tStreamMeander::FindChanGeom()
 int tStreamMeander::InterpChannel()
 {
    int i, j, npts, num;
-   float curwidth;
-   float curseglen, defseglen, maxseglen, bigseglen;
-   float x, y, z, val, phi, x0, y0, z0, x1, y1, slope;
+   double curwidth;
+   double curseglen, defseglen, maxseglen, bigseglen;
+   double x, y, z, val, phi, x0, y0, z0, x1, y1, slope;
    tPtrListIter< tLNode > rnIter;
    tPtrList< tLNode > *creach;
-   tArray< float > xp, yp, zp, *arrPtr;
+   tArray< double > xp, yp, zp, *arrPtr;
    tLNode *crn, nn, *nPtr;
    int change = 0; //haven't added any nodes yet
    //loop through reaches:
@@ -320,11 +319,11 @@ int tStreamMeander::InterpChannel()
             else
             {
                npts = ROUND( curseglen / defseglen );
-               arrPtr = new tArray< float >( npts );
+               arrPtr = new tArray< double >( npts );
                xp = yp = zp = *arrPtr;
                for(int i=1; i<npts; i++ )
                {
-                  xp[i] = (float)i * defseglen;
+                  xp[i] = (double)i * defseglen;
                   val = ran3(&seed) - 0.5;
                   yp[i] = yp[i-1] + 0.01 * val * exp(-yp[i-1] * val) 
                       * pow(defseglen, 3.0);
@@ -423,7 +422,7 @@ void tStreamMeander::MakeReaches()
 \*****************************************************************************/
 void tStreamMeander::FindReaches()
 {
-   float curwidth, ctaillen;
+   double curwidth, ctaillen;
    int i, j, nmndrnbrs;
    tLNode *cn, *lnPtr;
    tEdge *ce;
@@ -432,7 +431,7 @@ void tStreamMeander::FindReaches()
    tPtrListIter< tLNode > rnIter;
    tPtrList< tLNode > rnodList, *plPtr;
    tArray< int > *iArrPtr;
-   tArray< float > *fArrPtr;
+   tArray< double > *fArrPtr;
    if( !(reachList.isEmpty()) ) reachList.Flush();
    //loop through active nodes
    for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
@@ -466,7 +465,7 @@ void tStreamMeander::FindReaches()
    iArrPtr = new tArray< int >( reachList.getSize() );
    nrnodes = *iArrPtr;
    delete iArrPtr;
-   fArrPtr = new tArray< float >( reachList.getSize() );
+   fArrPtr = new tArray< double >( reachList.getSize() );
    reachlen = *fArrPtr;
    taillen = *fArrPtr;
    delete fArrPtr;
@@ -528,22 +527,22 @@ void tStreamMeander::FindReaches()
 **		Created: 5/1/97  SL
 **
 \***************************************************************/
-void tStreamMeander::CalcMigration( float &time, float &duration,
-                                    float &cummvmt )
+void tStreamMeander::CalcMigration( double &time, double &duration,
+                                    double &cummvmt )
 {
    int i, j, *stations, *stnserod, nttlnodes;
-   tArray< float > xa, ya, xsa, qa, rerodya, lerodya, delsa,
+   tArray< double > xa, ya, xsa, qa, rerodya, lerodya, delsa,
        slopea, widtha, deptha, diama, deltaxa, deltaya,
        rdeptha, ldeptha;
-   tArray< float > *dumArrPtr, delta(2), newxy(2);
-   float rerody, lerody, rz, lz, width;
-   float maxfrac, displcmt, a, b, dtm, tmptim, frac, xs;
-   float num;
+   tArray< double > *dumArrPtr, delta(2), newxy(2);
+   double rerody, lerody, rz, lz, width;
+   double maxfrac, displcmt, a, b, dtm, tmptim, frac, xs;
+   double num;
    tPtrList< tLNode > *creach;
    tPtrListIter< tLNode > rnIter;
    tLNode *curnode;
    tEdge *fedg;
-   tArray< float > bankerody;
+   tArray< double > bankerody;
    //loop through reaches:
    for( creach = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
         creach = rlIter.NextP(), i++ )
@@ -560,7 +559,7 @@ void tStreamMeander::CalcMigration( float &time, float &duration,
       stations = &(nrnodes[i]);
       nttlnodes = creach->getSize();
       stnserod = &nttlnodes;
-      dumArrPtr = new tArray< float >( nttlnodes );
+      dumArrPtr = new tArray< double >( nttlnodes );
       xa = ya = xsa = qa = rerodya = lerodya = delsa =
           slopea = widtha = deptha = diama = deltaxa =
           deltaya = rdeptha = ldeptha = *dumArrPtr;
@@ -690,10 +689,10 @@ void tStreamMeander::CalcMigration( float &time, float &duration,
 \***************************************************************/
 void tStreamMeander::Migrate()
 {
-   tList< tArray< float > > bList;
-   float duration = netPtr->getStormPtrNC()->GetStormDuration();
-   float time = 0.0;
-   float cummvmt = 0.0;
+   tList< tArray< double > > bList;
+   double duration = netPtr->getStormPtrNC()->GetStormDuration();
+   double time = 0.0;
+   double cummvmt = 0.0;
    //timeadjust = 86400. * pr->days;
    while( time < duration)
    {
@@ -732,14 +731,14 @@ void tStreamMeander::Migrate()
 **
 \*****************************************************************************/
 
-void tStreamMeander::MakeChanBorder( tList< tArray< float > > &bList )
+void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
 {
    int i, j, num;
-   float x0, y0, x1, y1, x, y, z, delx, dely, phi, width, xdisp, ydisp;
+   double x0, y0, x1, y1, x, y, z, delx, dely, phi, width, xdisp, ydisp;
    tPtrList< tLNode > *cr;
    tPtrListIter< tLNode > rnIter;
    tLNode *cn, *cnbr;
-   tArray< float > xyz(3), rl;
+   tArray< double > xyz(3), rl;
    for( cr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
         cr = rlIter.NextP(), i++ )
    {
@@ -785,11 +784,11 @@ void tStreamMeander::MakeChanBorder( tList< tArray< float > > &bList )
 **              Updated:        1/98 SL
 **
 \*****************************************************************************/
-void tStreamMeander::AddChanBorder( tList< tArray< float > > &bList )
+void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
 {
    int i;
-   float x, y, halfwid, dist, mindist = 10000000.;
-   tArray< float > cp, xy;
+   double x, y, halfwid, dist, mindist = 10000000.;
+   tArray< double > cp, xy;
    tTriangle *ct;
    tLNode *cn, *channodePtr, channode;
    //go through list of coordinates made by MakeChanBorder:
@@ -843,11 +842,11 @@ void tStreamMeander::AddChanBorder( tList< tArray< float > > &bList )
 **		Created: 5/1/97 SL
 **
 \*****************************************************************************/
-tArray< float > tStreamMeander::FindBankErody( tLNode *nPtr )
+tArray< double > tStreamMeander::FindBankErody( tLNode *nPtr )
 {
-   float x1, y1, x2, y2, dx, dy, dx1, dy1, a, b, c, d, dmin, dlast,
+   double x1, y1, x2, y2, dx, dy, dx1, dy1, a, b, c, d, dmin, dlast,
        dzleft, dzright, depth, dfactor, dtotal, erody, sed;
-   tArray< float > xy, xyz1, xy2, dxy, rlerody(2);
+   tArray< double > xy, xyz1, xy2, dxy, rlerody(2);
    tEdge * curedg, * ledg, * redg, *ce;
    tLNode *cn, *dn, *rn, *ln;
    tPtrListIter< tEdge > spokIter( nPtr->getSpokeListNC() );
@@ -1010,7 +1009,7 @@ void tStreamMeander::CheckFlowedgCross()
    int ft;
    int flipped;
    int crossed;
-   tArray< float > p0, p1, p2, xy0, xy1;
+   tArray< double > p0, p1, p2, xy0, xy1;
    tLNode *pointtodelete, *lnodePtr, *nod, *cn, *dscn;  
    tEdge * fedg, * cedg, * ccedg, *ce;
    tTriangle * ct, *nt;
@@ -1123,7 +1122,7 @@ void tStreamMeander::CheckBrokenFlowedg()
    int change = 0;
    int flipped;
    int flip = FALSE;
-   float dis0, dis1;
+   double dis0, dis1;
    tArray< int > npop(3);
    tLNode *pointtodelete, *lnodePtr, * pedg[2];  
    tEdge * fedg, *tedg[2];
