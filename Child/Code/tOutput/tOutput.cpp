@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.12 1998-06-29 18:57:22 nmgaspar Exp $
+**  $Id: tOutput.cpp,v 1.13 1998-07-15 22:23:58 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -183,7 +183,8 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    tSubNode *cn;
    int nActiveNodes = g->getNodeList()->getActiveSize();
    int nnodes = g->getNodeList()->getSize();
-   
+   int i, j;
+
    drareaofs << " " << time << "\n " << nActiveNodes << endl;
    netofs << " " << time << "\n " << nActiveNodes << endl;
    slpofs << " " << time << "\n " << nActiveNodes << endl;
@@ -198,14 +199,8 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       if( cn->getDownstrmNbr() )
           netofs << cn->getDownstrmNbr()->getID() << endl;
       slpofs << cn->getSlope() << endl;
-   }
-
-   int i, j;
-   for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() ){
-      qofs << cn->getQ() << endl;
-      texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;      
-      i=0;
       layofs << cn->getNumLayer() << endl;
+      i=0;
       while(i<cn->getNumLayer()){
          layofs << cn->getLayerCtime(i) << " " << cn->getLayerRtime(i) << " " << cn->getLayerFlag(i) << endl;
          layofs << cn->getLayerDepth(i) << " " << cn->getLayerErody(i) << " " << cn->getLayerSed(i) << endl;
@@ -216,6 +211,28 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
          }
          layofs << endl;
          i++;
+      }
+   }
+
+   for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() ){
+      qofs << cn->getQ() << endl;
+      // temporary fix of zero-layer problem (TODO: solve)
+      /*if( cn->getLayerDgrade(0,0)<1e-6 )
+      {
+         cout << "Warning from tOutput::WriteNodeData(): "
+              << "Anomalously low top layer dgrade at " << cn->getID() << endl;
+         texofs << cn->getLayerDgrade(0,0) << endl;
+      }
+      else*/
+      if( cn->getNumg()>1 ) // temporary hack TODO
+      {
+         if( cn->getID()==40 )
+         {
+            cn->TellAll();
+            cout << cn->getLayerDgrade(0,0) << " "
+                 << cn->getLayerDepth(0) << endl << flush;
+         }
+         texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;
       }
       
    }
