@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.31 1998-07-03 19:49:17 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.32 1998-07-10 21:34:32 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1303,7 +1303,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       //Greg - I realize this array size will be set each time
       //the time do loop is gone through.  Is it better to just
       //loop through all the nodes to set the array size before 
-      //entering the do loop? 
+      //entering the do loop? --> NICOLE: why can't you just use nActNodes?
       nodenum=-1;
       // Estimate erosion rates and time-step size
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
@@ -1342,6 +1342,14 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          //I just scrapped the reduction of the time step if a whole layer
          //was eroded.  Maybe this is a problem.  Again, feel free to
          //take issue with it.
+         // NICOLE: weighted avg makes sense to me. I think it makes sense
+         // to use channel depth as the averaging (and active layer) depth.
+         // Not sure I understand what you mean by limiting time step if
+         // whole layer is eroded. As far as separate detachcap fns go, I
+         // guess the issue is how to define tau crit. Seems to me tau crit
+         // for detachment is different from transport tau crit --- for
+         // completely disaggregated particles, tauc "det" would be zero even
+         // if entrainment/xport tauc was large! what do you think?
          nodenum++;
          depck=0;
          i=0;
