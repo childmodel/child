@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.61 1999-04-06 20:48:26 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.62 1999-04-16 20:51:27 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1148,7 +1148,7 @@ void tStreamNet::FlowBucket()
        (infiltRate=(soilStore/(stormPtr->getStormDuration()) ) ) )
        satEx = (rainrate - infiltEx) - infiltRate;
    runoff = infiltEx + satEx;
-   cout << "  R " << runoff << " = IEx " << infiltEx << " + SEx " << satEx << endl;
+   //cout << "  R " << runoff << " = IEx " << infiltEx << " + SEx " << satEx << endl;
    
    // Compute and assign discharge for each node
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
@@ -1777,7 +1777,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
             help = infile.ReadItem( help, name);
             inSedLoadm[i-1] = help;
             inSedLoad += help;
-            cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i-1]<<endl;
+            //cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i-1]<<endl;
             i++;
             end++;
          }
@@ -1835,8 +1835,8 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
       
       if( add ) // fix here:
       {
-         cout << "ADDING INLET: Closest node is:" << endl;
-         closestNode->TellAll();
+         //cout << "ADDING INLET: Closest node is:" << endl;
+         //closestNode->TellAll();
          //BE AWARE
          //The following commented line caused many problems for the code:
          //tLNode newnode( *closestNode );
@@ -1846,7 +1846,6 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
          //This created errors in the closestNode's layerlist.
          //The following calls the correct copy constructor.
          tLNode *newnode = new tLNode( *closestNode );
-         cout << " DGRADE AFTER: " << closestNode->getLayerDgrade(0,0) << endl << flush;
          newnode->setZ( zin / suminvdist );
          newnode->setX( xin );
          newnode->setY( yin );
@@ -1856,8 +1855,8 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
          //xyz[2] = zin;
          //innode = meshPtr->AddNodeAt( xyz );
          innode = meshPtr->AddNode( *newnode );
-         cout << "INLET NODE IS:\n";
-         innode->TellAll();
+         //cout << "INLET NODE IS:\n";
+         //innode->TellAll();
          //Don't delet newnode because it is now part of the mesh list
       }
    }
