@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.119 2003-08-08 10:35:18 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.120 2003-08-12 13:29:31 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -218,7 +218,7 @@ double tEquilibCheck::getShortRate() const {return shortRate;}
 double tEquilibCheck::FindIterChngRate()
 {
   assert( timePtr != 0 && meshPtr != 0 );
-  tArray< double > tmp(2), last;
+  tArray< double > tmp(2);
   tmp[0] = timePtr->getCurrentTime();
   tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
   tListIter< tArray< double > > mI( massList );
@@ -233,10 +233,11 @@ double tEquilibCheck::FindIterChngRate()
   tmp[1] = mass / area;
   if( !(massList.isEmpty()) )
     {
-      last = *(mI.LastP());
-      double dt = (tmp[0] - last[0]);
+      tArray< double > *last;
+      last = mI.LastP();
+      double dt = (tmp[0] - (*last)[0]);
       assert( dt > 0.0 );
-      shortRate = (tmp[1] - last[1]) / dt;
+      shortRate = (tmp[1] - (*last)[1]) / dt;
     }
   else
     {
@@ -261,22 +262,22 @@ double tEquilibCheck::FindLongTermChngRate()
 {
   FindIterChngRate();
   tListIter< tArray< double > > mI( massList );
-  tArray< double > last = *(mI.LastP());
-  tArray< double > ca, na;
-  double dt, targetTime = last[0] - longTime;
+  tArray< double > *last = mI.LastP();
+  tArray< double > *ca, *na;
+  double dt, targetTime = (*last)[0] - longTime;
   if( longTime == 0.0 || mI.FirstP() == mI.LastP() ) longRate = shortRate;
   else
     {
-      ca = *(mI.FirstP());
-      na = *(mI.NextP());
-      while( na[0] < targetTime && !(mI.AtEnd()) )
+      ca = mI.FirstP();
+      na = mI.NextP();
+      while( (*na)[0] < targetTime && !(mI.AtEnd()) )
 	{
 	  ca = na;
-	  na = *(mI.NextP());
+	  na = mI.NextP();
 	}
-      dt = last[0] - ca[0];
+      dt = (*last)[0] - (*ca)[0];
       assert( dt > 0 );
-      longRate = (last[1] - ca[1]) / dt;
+      longRate = ((*last)[1] - (*ca)[1]) / dt;
     }
   return longRate;
 }
@@ -1160,12 +1161,11 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode * /* node */ )
  **
 \**************************************************************************/
 tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
-  : grade()
+  : grade(2)
 {
   if(0) //DEBUG
     cout << "tSedTransWilcock(infile)\n" << endl;
   //strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
-  grade.setSize(2);
   /*for(i=0; i<=1; i++){
     strcpy( name, "GRAINDIAM");
     strcat( name, add );
@@ -1376,7 +1376,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
  **  constructor since it is using same taucrit function
 \**************************************************************************/
 tSedTransMineTailings::tSedTransMineTailings( tInputFile &infile )
-  : grade()
+  : grade(2)
 {
   int i;
   char add[2], name[20];
@@ -1385,7 +1385,6 @@ tSedTransMineTailings::tSedTransMineTailings( tInputFile &infile )
   if(0) //DEBUG
     cout << "tSedTransMineTailings(infile)\n" << endl;
   strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
-  grade.setSize(2);
   for(i=0; i<=1; i++){
     strcpy( name, "GRAINDIAM");
     strcat( name, add );
@@ -1705,20 +1704,15 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
     cout<<"ErodeDetachLim...";
   double dt,
     dtmax; // time increment
-  double frac = 0.9; //fraction of time to zero slope
-  //Xint i;
-  tLNode * cn, *dn;
-  int nActNodes = meshPtr->getNodeList()->getActiveSize();
+  const double frac = 0.9; //fraction of time to zero slope
+  tLNode *cn, *dn;
+  //int nActNodes = meshPtr->getNodeList()->getActiveSize();
   tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
-  tArray<double> //dz( nActNodes ), // Erosion depth @ each node
-    dzdt( nActNodes ); //Erosion rate @ ea. node
-  double ratediff;
 
   strmNet->FindChanGeom();
   strmNet->FindHydrGeom();
 
   tArray<double> valgrd(1);
-  //tArray<double> valgrd( cn->getNumg() );
   //TODO: make it work w/ arbitrary # grain sizes
 
   // Iterate until total time dtg has been consumed
@@ -1733,7 +1727,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
 	{
 	  dn = cn->getDownstrmNbr();
-	  ratediff = dn->getDzDt() - cn->getDzDt();
+	  const double ratediff = dn->getDzDt() - cn->getDzDt();
 	  if( ratediff > 0 )
 	    {
 	      dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
@@ -1748,8 +1742,6 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
 	//	  cn->TellAll();
 
 	//ng added stuff below to update layering using the other erodep
-	//tArray<double> valgrd;
-	//valgrd.setSize(1);
 	valgrd[0]=cn->getDzDt() * dtmax;
 	cn->EroDep( 0, valgrd, 0.);
 	//cn->EroDep( cn->getQs() * dtmax );
@@ -1780,9 +1772,8 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift const *U
   double frac = 0.1; //fraction of time to zero slope
   //Xint i;
   tLNode * cn, *dn;
-  int nActNodes = meshPtr->getNodeList()->getActiveSize();
+  //int nActNodes = meshPtr->getNodeList()->getActiveSize();
   tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
-  tArray<double> dzdt( nActNodes ); //Erosion rate @ ea. node
   double ratediff;
   //Xdouble dslpdt;
   double dtmin = dtg * 0.0001;
@@ -1790,6 +1781,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift const *U
   strmNet->FindChanGeom();
   strmNet->FindHydrGeom();
 
+  tArray<double> valgrd(1);
   // Iterate until total time dtg has been consumed
   do
     {
@@ -1837,8 +1829,6 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift const *U
       //apply erosion:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
 	//ng added stuff below to update layering using the other erodep
-	tArray<double> valgrd;
-	valgrd.setSize(1);
 	valgrd[0]=cn->getDzDt() * dtmax;
 	cn->EroDep( 0, valgrd, 0.);
 	//cn->EroDep( cn->getDzDt() * dtmax );
@@ -2424,7 +2414,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 
     tArray <double> ret( cn->getNumg() ); //amt actually ero'd/dep'd
     tArray <double> erolist( cn->getNumg() );
-    tArray <double> insed = strmNet->getInSedLoadm();
+    tArray <double> insed( strmNet->getInSedLoadm() );
 
     // Sort so that we always work in upstream to downstream order
     strmNet->SortNodesByNetOrder();
