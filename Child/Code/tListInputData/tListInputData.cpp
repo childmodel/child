@@ -14,7 +14,7 @@
  **   - Remove dead code. Add findRightTime (AD 07/03)
  **   - Add Random number generator handling. (AD 08/03)
  **
- **  $Id: tListInputData.cpp,v 1.19 2003-08-08 09:13:08 childcvs Exp $
+ **  $Id: tListInputData.cpp,v 1.20 2003-09-02 08:44:33 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -207,7 +207,7 @@ findRightTime( ifstream &infile, int &nn, double intime,
 	ReportIOError(IOTime, basename, ext);
       if (0) //DEBUG
 	cout << "Read time: " << time << endl;
-      if( time != intime )
+      if( time < intime )
 	{
 	  infile >> nn;
 	  if (infile.fail())
