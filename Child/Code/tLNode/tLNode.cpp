@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.36 1998-04-23 16:23:46 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.37 1998-04-23 18:49:20 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -251,7 +251,7 @@ const tSurface &tSurface::operator=( const tSurface &right )     //tSurface
 \**************************************************************************/
 
 tRegolith::tRegolith()                                          //tRegolith
-        : dgrade(), grade()
+        : dgrade()
 {
    thickness = 0;
    numal = 0;
@@ -261,7 +261,7 @@ tRegolith::tRegolith()                                          //tRegolith
 }
 
 tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
-  : dgrade( ), grade( )
+  : dgrade( )
 {
   int i;
   char add, name[20];
@@ -276,12 +276,11 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
 
    if( numg>1 )
    {
-     dgrade.setSize( numg+1 );
-     dgrade[0]=dpth;
+     dgrade.setSize( numg );
      sum = 0;
-     i=1;
+     i=0;
      add='1';
-     while ( i<=numg ){
+     while ( i<numg ){
        strcpy( name, "PROPORTION");
        strcat( name, &add ); 
        help = infile.ReadItem( help, name);
@@ -290,28 +289,15 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
        i++;
        add++;
      }
-     if(fabs(sum-dgrade[0])>0.01)
+     if(fabs(sum-dpth)>0.01)
          ReportFatalError("Problem with the proportion of grain sizes in input file");
      
-     //if( grade.getSize()<2 ){
-       grade.setSize( numg+1 );
-       grade[0]=0;
-       i=1;
-       add='1';
-       while ( i<=numg ){
-	 strcpy( name, "GRAINDIAM");
-	 strcat( name, &add ); 
-	 help = infile.ReadItem( help, name);
-	 grade[i] = help;
-	 i++;
-	 add++;
-       }
-       //}
    }
+   
 }
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
-        : dgrade( orig.dgrade ), grade( orig.grade ), 
+        : dgrade( orig.dgrade ), 
 	  depositList( orig.depositList )
 {
    if( &orig != 0 )
@@ -343,7 +329,6 @@ const tRegolith &tRegolith::operator=( const tRegolith &right )     //tRegolith
       dpth = right.dpth;
       actdpth = right.actdpth;
       dgrade = right.dgrade;
-      grade = right.grade;
    }
    return *this;
 }
