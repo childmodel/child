@@ -358,6 +358,11 @@ BuildDelaunayMeshTipper()
    // deallocation of remaining Tipper triangulator data structures
    delete [] elems;
 
+   // set Maximum IDs
+   miNextNodeID = nodeList.getSize();
+   miNextEdgID = edgeList.getSize();
+   miNextTriID = triList.getSize();
+
    // assertions
    assert( edgeList.getSize() == 2*nedgesl );
    assert( triList.getSize() == nelem );
