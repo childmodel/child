@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.71 1999-12-04 01:00:06 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.72 1999-12-07 17:16:42 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -772,7 +772,7 @@ void tErosion::ErodeDetachLim( double dtg )
          if( ratediff > 0 )
          {
             dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
-            if( dt > 0.001 && dt < dtmax ) dtmax = dt;
+            if( dt > 0.0001 && dt < dtmax ) dtmax = dt;
          }
       }
       //assert( dtmax > 0 );
