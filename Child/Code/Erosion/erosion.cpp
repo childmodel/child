@@ -29,6 +29,7 @@
 **     - added functions for new class tSedTransPwrLawMulti (GT 2/02)
 **     - added functions for tBedErodePwrLaw2 (GT 4/02)
 **     - added functions for tSedTransPwrLaw2 (GT 4/02)
+**     - added functions for tSedTransBridgeDom (GT 5/02)
 **
 **    Known bugs:
 **     - ErodeDetachLim assumes 1 grain size. If multiple grain sizes
@@ -36,7 +37,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.98 2002-05-02 09:23:34 arnaud Exp $
+**  $Id: erosion.cpp,v 1.99 2002-07-23 09:08:01 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -853,6 +854,104 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node, int lyr, double weight )
    
    
    node->setQs( cap );
+   return cap;
+}
+
+   
+/***************************************************************************\
+**  FUNCTIONS FOR CLASS tSedTransBridgeDom
+\***************************************************************************/
+
+/***************************************************************************\
+**  tSedTransBridgeDom Constructor:
+**
+**    Given a tInputFile as an argument, will read relevant parameters from
+**  the input file.
+**
+\***************************************************************************/
+tSedTransBridgeDom::tSedTransBridgeDom( tInputFile &infile )
+{
+   double secPerYear = 365.25*24*3600.0;  // # secs in one year
+
+   kf = infile.ReadItem( kf, "KF" );
+   kt = infile.ReadItem( kt, "KT" );
+   mf = infile.ReadItem( mf, "MF" );
+   nf = infile.ReadItem( nf, "NF" );
+   tauc = infile.ReadItem( tauc, "TAUCD" );
+   sqrtTauc = sqrt( tauc );
+
+   // Add unit conversion factor for kt -- this is required to convert
+   // the quantity (Q/W)^mb from units of years to units of seconds.
+   kt = kt * pow( secPerYear, -mf );
+}
+
+
+/***************************************************************************\
+**  tSedTransBridgeDom::TransCapacity
+**
+**  Computes sediment transport capacity using the Bridge-Dominic
+**  form of the Bagnold bedload equation:
+**
+**  Qs = kf' W ( tau - taucrit ) * ( ustar - ustarcrit )
+**    ustar = ( tau / rho ) ^ 0.5
+**  Qs = kf W ( tau - taucrit ) * ( sqrt( tau ) - sqrt( taucrit ) )
+**    kf = kf' / rho^0.5
+**  tau = kt * (Q/W)^mf * S^nf
+**
+**  Note: assumes fixed, uniform tauc
+**
+\***************************************************************************/
+double tSedTransBridgeDom::TransCapacity( tLNode *node )
+{
+   double slp = node->getSlope();
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
+   double tau, tauex, ustarex, cap = 0;
+   if( !node->getFloodStatus() )
+   {
+      tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
+      node->setTau( tau );
+      //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << endl;
+      tauex = ( tau > tauc ) ? (tau - tauc) : 0.0;
+      ustarex = ( tau > tauc ) ? (sqrt(tau) - sqrtTauc) : 0.0;
+      cap = kf * node->getHydrWidth() * tauex * ustarex;
+   }
+   node->setQs( cap );
+   return cap;
+}
+
+
+/***************************************************************************\
+**  tSedTransBridgeDom::TransCapacity
+**
+**  Computes sediment transport capacity using the Bridge-Dominic
+**  form of the Bagnold bedload equation:
+**
+**  Qs = kf' W ( tau - taucrit ) * ( ustar - ustarcrit )
+**    ustar = ( tau / rho ) ^ 0.5
+**  Qs = kf W ( tau - taucrit ) * ( sqrt( tau ) - sqrt( taucrit ) )
+**    kf = kf' / rho^0.5
+**  tau = kt * (Q/W)^mf * S^nf
+**
+**  Note: assumes fixed, uniform tauc
+**
+**  This is a weighted version which is called from DetachErode.
+**  Weight is a weighting by depth of layer.
+**  Here, qsi is set by proportion in layer and threshold is constant
+**  The value returned should be in units of m^3/yr
+**
+\***************************************************************************/
+double tSedTransBridgeDom::TransCapacity( tLNode *node, int lyr, double weight )
+{
+   double cap = 0;
+   
+   cap = weight * TransCapacity( node );
+
+   int i;
+   for(i=0; i<node->getNumg(); i++)
+       node->addQs(i, cap*node->getLayerDgrade(lyr,i)/node->getLayerDepth(lyr));
+
+   //node->setQs( cap ); // <- this sets it to the weighted version ... correct?
    return cap;
 }
 

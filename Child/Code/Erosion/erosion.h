@@ -54,8 +54,10 @@
 **       (GT)
 **     - Added variants of power law detachment and transport formulae
 **       of form tau^p - tauc^p rather than (tau - tauc)^p (GT 4/02)
+**     - Added Bridge-Dominic form of Bagnold bedload transport formula
+**       (single-size) (GT 5/02)
 **
-**  $Id: erosion.h,v 1.36 2002-07-08 17:21:49 arnaud Exp $
+**  $Id: erosion.h,v 1.37 2002-07-23 09:08:01 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -71,16 +73,20 @@
 #include "../tRunTimer/tRunTimer.h"
 
 //#define tSedTrans tSedTransPwrLawMulti
-//#define tSedTrans tSedTransPwrLaw
-//#define SEDTRANSOPTION "Power-law transport formula"
+#define tSedTrans tSedTransPwrLaw
+#define SEDTRANSOPTION "Power-law transport formula"
 //#define tSedTrans tSedTransWilcock
 //#define SEDTRANSOPTION "Wilcock sand-gravel formula"
-#define tSedTrans tSedTransPwrLaw2
-#define SEDTRANSOPTION "Power-law transport formula, form 2"
+//#define tSedTrans tSedTransPwrLaw2
+//#define SEDTRANSOPTION "Power-law transport formula, form 2"
+//#define tSedTrans tSedTransBridgeDom
+//#define SEDTRANSOPTION "Bridge-Dominic form of Bagnold bedload formula"
 //#define SEDTRANSOPTION "Willgoose/Riley mine tailings formula"
 //#define SEDTRANSOPTION "Multi-size power-law formula"
-#define tBedErode tBedErodePwrLaw2
-#define BEDERODEOPTION "Power law, form 2"
+#define tBedErode tBedErodePwrLaw
+#define BEDERODEOPTION "Power law, form 1"
+//#define tBedErode tBedErodePwrLaw2
+//#define BEDERODEOPTION "Power law, form 2"
 
 /***************************************************************************\
 **  class tEquilibCheck
@@ -174,6 +180,31 @@ class tSedTransPwrLaw2
    double nf;  // Exponent on slope
    double pf;  // Excess shear exponent
    double tauc; // Entrainment threshold
+};
+
+
+/***************************************************************************\
+**  class tSedTransBridgeDom
+**
+**  Manages data and routines to compute sediment transport capacity 
+**  using the Bridge and Dominic (1984) version of the Bagnold bedload
+**  transport formula.
+**
+\***************************************************************************/
+class tSedTransBridgeDom
+{
+  public:
+   tSedTransBridgeDom( tInputFile &infile );
+   double TransCapacity( tLNode * n );
+   double TransCapacity( tLNode *n, int i, double weight);
+
+  private:
+   double kf;  // Transport capacity coefficient
+   double kt;  // Shear stress coefficient
+   double mf;  // Exponent on total discharge
+   double nf;  // Exponent on slope
+   double tauc; // Entrainment threshold
+   double sqrtTauc;  // Threshold value of U_* rho^0.5
 };
 
 
