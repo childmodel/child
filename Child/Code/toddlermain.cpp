@@ -34,7 +34,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.4 2002-02-11 09:22:15 gtucker Exp $
+**  $Id: toddlermain.cpp,v 1.5 2002-04-11 09:55:38 arnaud Exp $
 \**************************************************************************/
 
 
@@ -45,7 +45,7 @@
 Predicates predicate;
 
 
-main( int argc, char **argv )
+int main( int argc, char **argv )
 {
    int silent_mode,       // Option for silent mode (no time output to stdout)
        optDetachLim,      // Option for detachment-limited erosion only
@@ -270,5 +270,6 @@ ReportFatalError( "The input file contains an invalid value for OptTSOutput."
 
    } // end of main loop
    
+   return 0;
 }
 
