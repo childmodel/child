@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.39 2000-06-08 20:02:36 daniel Exp $
+**  $Id: tOutput.cpp,v 1.40 2000-06-08 20:12:02 daniel Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -204,6 +204,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
        CreateAndOpenFile( &volsofs, ".vols" );
        if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
 	 CreateAndOpenFile( &vegcovofs, ".vcov" );
+       CreateAndOpenFile( &tareaofs, ".tarea" );
    }
    
 }
