@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.58 1998-07-25 01:16:04 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.59 1998-07-27 17:09:07 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1133,6 +1133,7 @@ double tLNode::DistNew(tLNode * p0,tLNode * p1 )
 void tLNode::TellAll()
 {
    tLNode * nbr;
+   int i;
    
    cout << " NODE " << id << ":\n";
    cout << "  x=" << x << " y=" << y << " z=" << z;
@@ -1150,6 +1151,9 @@ void tLNode::TellAll()
               << flowedge->getVEdgLen() << endl;
          cout << "  qs: " << qs << "  qsin: " << qsin << "  slp: "
               << getSlope() << "  reg: " << reg.thickness << endl;
+         for(i=0; i<=numg; i++)
+             cout<<"qsi "<<i<<" "<<qsm[i]<<endl;
+         cout<<endl;
          cout << "  dzdt: " << dzdt << "  drdt: " << drdt << endl;
       }
       else cout << "  Flowedg is undefined\n";
