@@ -26,7 +26,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.23 2001-06-21 13:59:19 gtucker Exp $
+**  $Id: tOutput.h,v 1.24 2002-02-11 09:21:54 gtucker Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -76,7 +76,9 @@ protected:
     ofstream zofs;                // output file for node "z" data
     ofstream vaofs;               // output file for Voronoi areas    
     ofstream volsofs;             // catchment volume
+    ofstream dvolsofs;
     ofstream tareaofs;            // total voronoi area of catchment
+    double mdLastVolume;   // these 4 SHOULD BE MOVED TO ANOTHER CLASS!!
 
 };
 
@@ -88,6 +90,10 @@ protected:
 ** The constructor creates additional output files, and the overloaded
 ** WriteNodeData function writes the data to files.
 ** (TODO: move to separate file)
+**
+** Modifications:
+**  - 2/02 added output streams tauofs and qsofs for shear stress and
+**    sed flux, resp. (GT)
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -112,6 +118,9 @@ private:
     ofstream flowdepofs; // Flow depth
     ofstream vegcovofs;  // Catchment vegetation cover %
     ofstream chanwidthofs; // Channel width
+    ofstream flowpathlenofs;  // Flow path length
+    ofstream tauofs;     // Shear stress
+    ofstream qsofs;      // Sed flux
     int optTSOutput;     // temp
 
    int counter;
