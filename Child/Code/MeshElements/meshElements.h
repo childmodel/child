@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.62 2003-09-18 15:52:31 childcvs Exp $
+**  $Id: meshElements.h,v 1.63 2003-10-02 14:21:55 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -152,6 +152,9 @@ public:
   virtual tArray< double > FuturePosn();
   virtual void UpdateCoords() {}
   virtual bool isMobile() const { return false;}
+  virtual bool flowThrough( tEdge const * ) const { return false; }
+  virtual tNode *splitFlowEdge() { return 0; }
+  virtual void flowTo( tNode * ) {};
 
   virtual void PrepForAddition( tTriangle const *, double ) {}
   virtual void PrepForMovement( tTriangle const *, double ) {}
@@ -235,6 +238,7 @@ public:
   inline tEdge * getCCWEdg();          // returns ptr to counter-clockwise neighbor
   inline tEdge * getCWEdg();
   inline tEdge* getComplementEdge();
+  inline tEdge const * getComplementEdge() const;
   inline void setComplementEdge( tEdge* );
   inline tArray< double > const & getRVtx() const;  // returns Voronoi vertex for RH triangle
   inline void getRVtx( tArray< double >& ) const; // less costly ref-passing version
@@ -259,6 +263,8 @@ public:
   tEdge * FindComplement();  // returns ptr to edge's complement
   tTriangle* TriWithEdgePtr();
   void setTri( tTriangle* );
+
+  inline bool isFlippable() const;
 
 #ifndef NDEBUG
   void TellCoords();  // debug routine that reports edge coordinates
@@ -833,6 +839,11 @@ inline tEdge* tEdge::getComplementEdge()
   return compedg;
 }
 
+inline tEdge const* tEdge::getComplementEdge() const
+{
+  return compedg;
+}
+
 inline void tEdge::setComplementEdge( tEdge* edg )
 {
   compedg = edg;
@@ -952,6 +963,20 @@ inline void tEdge::setVEdgLen( double val )
 inline void tEdge::setTri( tTriangle* tptr )
 {
   tri = tptr;
+}
+
+inline bool tEdge::isFlippable() const
+{
+  // An edge is not flippable if
+  // - both nodes are mobile
+  // - the edge is a flow edge for the origin or the complement
+  //   edge is a flow edge for the destination
+  return !(
+	   org->isMobile() && dest->isMobile() &&
+	   (org->flowThrough(this) ||
+	    dest->flowThrough(this->getComplementEdge())
+	    )
+	   );
 }
 
 /**************************************************************************\

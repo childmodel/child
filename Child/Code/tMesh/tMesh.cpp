@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.183 2003-09-19 14:56:41 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.184 2003-10-02 14:22:06 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2395,7 +2395,12 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
                cerr << "TRIANGLE #" << ct->getID()
                     << ": there is no neighboring triangle opposite node "
                     << cn->getID() << " but one (or both) of the other nodes "
-                    << "is a non-boundary point\n";
+                    << "is a non-boundary point, boundary conditions not OK \n"
+                    << "The two nodes x, y and boundary flags are: \n"
+                    << (ct->pPtr((i+1)%3))->getX() << ' ' << (ct->pPtr((i+1)%3))->getY() << ' '
+                    << (ct->pPtr((i+1)%3))->getBoundaryFlag()
+                    << " and \n" << (ct->pPtr((i+2)%3))->getX() <<' ' << (ct->pPtr((i+2)%3))->getY()<< ' '
+                    << (ct->pPtr((i+2)%3))->getBoundaryFlag()<< endl;
                goto error;
             }
          }
@@ -2409,6 +2414,7 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
 	       assert(0);
 	       abort();
 	       break;
+	     case FLIP_NOT_ALLOWED:
 	     case FLIP_NEEDED:
                cerr << "TRIANGLE #" << ct->getID()
                     << ": flip test failed for edge opposite to vertex "
@@ -3636,7 +3642,8 @@ MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
 #define kLargeNumber 1000000000
 template< class tSubNode >
 tSubNode * tMesh< tSubNode >::
-AddNode( tSubNode &nodeRef, kUpdateMesh_t updatemesh, double time )
+AddNode( tSubNode &nodeRef, kUpdateMesh_t updatemesh, double time,
+	 kFlip_t flip )
 {
    const tArray< double > xyz( nodeRef.get3DCoords() );
 
@@ -3657,8 +3664,8 @@ AddNode( tSubNode &nodeRef, kUpdateMesh_t updatemesh, double time )
      return 0;
    if (0) //DEBUG
      cout << "call CheckTrianglesAt" << endl;
-   if( xyz.getSize() == 3 )
-     CheckTrianglesAt( newNodePtr );
+   if( flip == kFlip &&  xyz.getSize() == 3 )
+     CheckTrianglesAt( newNodePtr, time );
 
    //reset node id's
    ResetNodeID();
@@ -3675,7 +3682,7 @@ AddNode( tSubNode &nodeRef, kUpdateMesh_t updatemesh, double time )
 \**************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-CheckTrianglesAt( tSubNode* nPtr )
+CheckTrianglesAt( tSubNode* nPtr, double time )
 {
   if (0) //DEBUG
     cout << "CheckTrianglesAt()"<< endl;
@@ -3692,7 +3699,7 @@ CheckTrianglesAt( tSubNode* nPtr )
   }
 
   // re-triangulate to fix mesh (make it Delaunay)
-  MakeDelaunay( triptrList );
+  MakeDelaunay( triptrList , time );
 }
 
 /*****************************************************************************\
@@ -3704,11 +3711,14 @@ CheckTrianglesAt( tSubNode* nPtr )
 **
 **  Moved from CheckTrianglesAt and CheckLocallyDelaunay - AD 5/2003
 **
+**  AD/QC (09/03): Add support for not flippable edges.
 \*****************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeDelaunay( tPtrList< tTriangle > &triPtrList )
+MakeDelaunay( tPtrList< tTriangle > &triPtrList, double time )
 {
+  tPtrList< tEdge > NonFlippableEdge;
+
   tTriangle *at;
   int ctr = 0;
   while( (at = triPtrList.removeFromFront()) != 0 )
@@ -3743,6 +3753,33 @@ MakeDelaunay( tPtrList< tTriangle > &triPtrList )
 		  triPtrList.insertAtBack( at );
 		  goto out_of_for_loop;
 		}
+	      case FLIP_NOT_ALLOWED:
+		{
+                  tEdge *flowEdgeToFlip;
+                  { // Find the flow edge
+		    tEdge *edgeToFlip = at->ePtr((i+2)%3);
+                    const bool flowThroughOrigin =
+                       edgeToFlip->getOriginPtr()->flowThrough( edgeToFlip );
+                    flowEdgeToFlip = flowThroughOrigin ?
+                        edgeToFlip : edgeToFlip->getComplementEdge();
+                    // Catch degenerate case where A flows to B and B flows to A.
+                    tEdge *otherEdge = flowEdgeToFlip->getComplementEdge();
+                    if( otherEdge->getOriginPtr()->flowThrough( otherEdge ) )
+		      ReportFatalError( "MakeDelaunay(): cycle in flow edge." );
+                  }
+		  // insert flow edge to flip if not there already
+		  tPtrListIter< tEdge > NonFlippableEdgeIter( NonFlippableEdge );
+		  if( !NonFlippableEdgeIter.Get( flowEdgeToFlip ) ){
+		    NonFlippableEdge.insertAtBack(flowEdgeToFlip);
+
+		    if (0) //DEBUG
+		      cerr << "MakeDelaunay(): flip could not been done"
+			" between node " << at->pPtr((i+1)%3)->getID()
+			   << " and node " << at->pPtr((i+2)%3)->getID() << "."
+			   << endl;
+		  }
+		}
+		break;
 	      case FLIP_NEEDED: // Cannot happen
 		assert(0);
 		abort();
@@ -3753,6 +3790,65 @@ MakeDelaunay( tPtrList< tTriangle > &triPtrList )
 	}
     out_of_for_loop: ;
     }
+
+  // Deal with edges that could not be flipped.
+  if (NonFlippableEdge.getSize() != 0)
+    SplitNonFlippableEdge( NonFlippableEdge, time );
+}
+
+/*****************************************************************************\
+**
+**  tMesh::SplitNonFlippableEdge
+**
+**  Split non flippable edges by adding a node. The flow network is properly
+**  reconnected.
+**
+**  AD/QC 09/2003
+\*****************************************************************************/
+template< class tSubNode >
+void tMesh< tSubNode >::
+SplitNonFlippableEdge( tPtrList< tEdge > &NonFlippableEdge, double time ){
+
+  tPtrList< tSubNode > AddedPoints;
+
+  // split non flippable edges
+  tEdge *edg;
+  while( (edg = NonFlippableEdge.removeFromFront()) != 0 ){
+    // We accept only non flippable edges and flow edges
+    assert( !edg->isFlippable() );
+    assert(edg->getOriginPtr()->flowThrough( edg ));
+    // Extract origin and destination points
+    tNode *orig = edg->getOriginPtrNC();
+    tNode *dest = edg->getDestinationPtrNC();
+
+    if (0) //DEBUG
+      cerr << "SplitNonFlippableEdge(): going to split flowedge for node "
+	   << orig->getID() << " and node "
+	   << dest->getID() << "." << endl;
+
+    // Create a node in between. Its flow edge is set to zero.
+    tSubNode *tempn = static_cast<tSubNode*>(orig->splitFlowEdge());
+
+    // Insert it but do not flip yet.
+    tSubNode *newnode = AddNode( *tempn, kNoUpdateMesh, time, kNoFlip );
+    // Delete temporary copy
+    delete tempn;
+    // Reconnect flow edges.
+    orig->flowTo(newnode);
+    newnode->flowTo(dest);
+    // Schedule it for flipping.
+    AddedPoints.insertAtBack( newnode );
+  }
+
+  if (0) //DEBUG
+    cerr << "SplitNonFlippableEdge(): going to flip for new nodes" << endl;
+  // Now do the flip test around the new nodes
+  tSubNode *theNode;
+  while( (theNode = AddedPoints.removeFromFront()) != 0 ){
+    CheckTrianglesAt( theNode, time );
+  }
+  if (0) //DEBUG
+    cerr << "SplitNonFlippableEdge(): bye bye" << endl;
 }
 
 /**************************************************************************\
@@ -3984,7 +4080,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    //put 3 resulting triangles in ptr list
    if( xyz.getSize() == 3 )
    {
-     CheckTrianglesAt( newNodePtr2 );
+     CheckTrianglesAt( newNodePtr2, time );
    }
    //reset node id's
    ResetNodeID();
@@ -4173,6 +4269,10 @@ CheckForFlip( tTriangle * tri, int nv, bool flip, bool useFuturePosn )
    // If p0-p1-p2 passes the test, no flip is necessary
    if( TriPasses( ptest, p0, p1, p2 ) ) return FLIP_NOT_NEEDED;
 
+   // Now a flip is necessary
+   if ( !tri->ePtr( (nv+2)%3)->isFlippable() )
+     return FLIP_NOT_ALLOWED;
+
    // Otherwise, a flip is needed, provided that the new triangles are
    // counter-clockwise (would this really ever happen??) and that the
    // node isn't a moving node (ie "flip" is true)
@@ -4346,7 +4446,7 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop,
 \*****************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-CheckLocallyDelaunay()
+CheckLocallyDelaunay( double time )
 {
   if (0) //DEBUG
     cout << "CheckLocallyDelaunay()" << endl;
@@ -4372,7 +4472,7 @@ CheckLocallyDelaunay()
   }
 
   // re-triangulate to fix mesh (make it Delaunay)
-  MakeDelaunay( triPtrList );
+  MakeDelaunay( triPtrList, time  );
 }
 
 /*****************************************************************************\
@@ -4671,7 +4771,7 @@ MoveNodes( double time, bool interpFlag )
    //check for triangles with edges which intersect (an)other edge(s)
    CheckTriEdgeIntersect(); //calls tLNode::UpdateCoords() for each node
    //resolve any remaining problems after points moved
-   CheckLocallyDelaunay();
+   CheckLocallyDelaunay( time );
    UpdateMesh();
    CheckMeshConsistency();  // TODO: remove this debugging call for release
    if (0) //DEBUG

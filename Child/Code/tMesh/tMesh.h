@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.62 2003-09-19 13:43:41 childcvs Exp $
+**  $Id: tMesh.h,v 1.63 2003-10-02 14:22:17 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -57,7 +57,8 @@ typedef enum {
   FLIP_NOT_NEEDED,
   FLIP_NEEDED,
   FLIP_ERROR,
-  FLIP_DONE
+  FLIP_DONE,
+  FLIP_NOT_ALLOWED
 } flipStatus_t;
 
 /* codes passed to DeleteNode/AddNode */
@@ -69,6 +70,10 @@ typedef enum {
   kNoUpdateMesh,
   kUpdateMesh
 } kUpdateMesh_t;
+typedef enum {
+  kNoFlip,
+  kFlip
+} kFlip_t;
 
 
 /****************************/
@@ -92,7 +97,8 @@ class tMesh
 			   bool makeMesh, tRand &);
    void BuildDelaunayMeshTipper();
    void MeshDensification( tInputFile & );
-   void MakeDelaunay( tPtrList< tTriangle > &);
+   void MakeDelaunay( tPtrList< tTriangle > &, double time );
+   void SplitNonFlippableEdge( tPtrList< tEdge > &, double time );
 public:
    tMesh();
    tMesh( tInputFile &, tRand & );
@@ -139,11 +145,11 @@ public:
                      tPtrListIter< tSubNode > & );
    int MakeTriangle( tSubNode*, tSubNode*, tSubNode* );
    int AddEdge( tSubNode *, tSubNode *, tSubNode const * );
-   void CheckTrianglesAt( tSubNode * );
+   void CheckTrianglesAt( tSubNode *, double time  );
    tSubNode *AddToList( tSubNode const& );
    //add a node with referenced value/properties, update mesh connectivity
    tSubNode *AddNode( tSubNode &, kUpdateMesh_t updatemesh = kNoUpdateMesh,
-		      double time = 0.0 );
+		      double time = 0.0, kFlip_t flip = kFlip );
    tSubNode* InsertNode( tSubNode*, double );
    //add a generic node at the referenced coordinates
    tSubNode *AddNodeAt( tArray< double > &, double time = 0.0 );
@@ -166,7 +172,7 @@ public:
    //for point moving and are called from MoveNodes; in general, they should be
    //after the three above functions and in the order listed below.
    void CheckTriEdgeIntersect();
-   void CheckLocallyDelaunay();
+   void CheckLocallyDelaunay( double time );
    //once 'newx' and 'newy' are set, this is the only function one needs to call
    //to execute the move; maybe should have a separate function for doing things
    //peculiar to channels, but now this is the only one.

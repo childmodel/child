@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.122 2003-09-05 14:23:04 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.123 2003-10-02 14:21:59 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -1522,6 +1522,79 @@ void tLNode::InitializeNode()
 tArray< double > tLNode::FuturePosn() {
   return Meanders() ? getNew2DCoords() : get2DCoords();
 }
+
+/***********************************************************************\
+  tLNode::splitFlowEdge
+  Create a node in the center of the flow edge.
+  This node is return dynamically allocated and needs to deleted.
+  Its flowedge is set to zero.
+  09/2003 AD/QC
+\***********************************************************************/
+tNode *tLNode::splitFlowEdge() {
+  // split only non flippable flow edge
+  assert(!getFlowEdg()->isFlippable());
+
+  const tArray< double > zeroArr(4);
+  tLNode *nPtr = this->getDownstrmNbr();
+
+  if (1) //DEBUG
+    cerr << "tLNode::splitFlowEdge(): split flowedge between node "
+	 << this->getID() << " and node "
+	 << nPtr->getID() << "." << endl;
+
+  tLNode *nn = new tLNode(*this);
+  nn->setXYZD( zeroArr ); //and xyzd ('old' coords)
+
+  // set boundary condition
+  const tBoundary_t b0 = this->getBoundaryFlag();
+  const tBoundary_t b1 = nPtr->getBoundaryFlag();
+  if (b0 != b1){
+    if (b0 == kNonBoundary || b1 == kNonBoundary)
+      nn->setBoundaryFlag(kNonBoundary);
+    else if (b0 == kClosedBoundary || b1 == kClosedBoundary)
+      nn->setBoundaryFlag(kClosedBoundary);
+    else {
+      assert(0);
+      abort();
+    }
+  }
+
+  // set coordinates by averaging
+  nn->setX( (this->getX()+nPtr->getX())/2 );
+  nn->setY( (this->getY()+nPtr->getY())/2 );
+  nn->setZ( (this->getZ()+nPtr->getZ())/2 );
+
+  // set flow edge temporarly to zero, so that it is flippable
+  setFlowEdgToZero();
+
+  // return a pointer holding the new node
+  return nn;
+}
+
+
+/***********************************************************************\
+  tLNode::flowTo
+  Set flowedge to flow to node "dest".
+  09/2003 AD/QC
+\***********************************************************************/
+void tLNode::flowTo( tNode *dest ){
+  // New node flows to the next meander node downstream (nPtr)
+  tSpkIter spkIter( this );
+  tEdge *theEdg;
+  for( theEdg = spkIter.FirstP(); !( spkIter.AtEnd() );
+       theEdg = spkIter.NextP() )
+    {
+      tLNode* downStrmNode = static_cast<tLNode *>( theEdg->getDestinationPtrNC() );
+      if( downStrmNode == dest )
+	{
+	  setFlowEdg( theEdg );
+	  return;
+	}
+    }
+  assert(0); /*NOTREACHED*/
+  abort();
+}
+
 
 /***********************************************************************\
   tArray<double> tLNode::EroDep

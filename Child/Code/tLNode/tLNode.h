@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.80 2003-09-18 16:34:37 childcvs Exp $
+ **  $Id: tLNode.h,v 1.81 2003-10-02 14:22:04 childcvs Exp $
  */
 /************************************************************************/
 
@@ -404,6 +404,7 @@ public:
   inline void setFloodStatus( tFlood_t status );
   inline tEdge * getFlowEdg();
   inline void setFlowEdg( tEdge * );
+  void setFlowEdgToZero() { flowedge = 0; }
   inline void setDrArea( double );
   inline void setFlowPathLength( double );
   inline double getFlowPathLength() const;
@@ -557,6 +558,9 @@ public:
   virtual void InitializeNode();
   virtual tArray< double > FuturePosn();
   virtual bool isMobile() const { return Meanders();}
+  inline virtual bool flowThrough( tEdge const *e) const;
+  virtual tNode *splitFlowEdge();
+  virtual void flowTo( tNode *dest );
 
   virtual void PrepForAddition( tTriangle const *, double );
   virtual void PrepForMovement( tTriangle const *, double );
@@ -779,6 +783,11 @@ inline void tLNode::UpdateCoords()
     x = chan.migration.newx;
     y = chan.migration.newy;
   }
+}
+
+inline bool tLNode::flowThrough( tEdge const *e) const {
+  return
+    e == flowedge;
 }
 
 inline void tLNode::setBedErody( double val )
