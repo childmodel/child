@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.118 2003-08-06 13:08:11 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.119 2003-08-08 10:35:18 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -2808,14 +2808,17 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
 	  // Record incoming flux to dest'n
 	  cn = static_cast<tLNode *>(ce->getDestinationPtrNC());
 	  cn->addQsin( volout );
-	  /*cout << volout << " mass exch. from " << ce->getOriginPtr()->getID()
-	    << " to "
-	    << ce->getDestinationPtr()->getID()
-	    << " on slp " << ce->getSlope() << " ve " << ce->getVEdgLen()
-	    << "\nvp " << ce->getRVtx()[0] << " " << ce->getRVtx()[1] << endl;
-	    ((tLNode*)ce->getOriginPtr())->TellAll();
-	    ((tLNode*)ce->getDestinationPtr())->TellAll();
-	    cout << endl;*/
+
+	  if( 0 ) { //DEBUG
+	    cout << volout << " mass exch. from " << ce->getOriginPtr()->getID()
+		 << " to "
+		 << ce->getDestinationPtr()->getID()
+		 << " on slp " << ce->getSlope() << " ve " << ce->getVEdgLen()
+		 << "\nvp " << ce->getRVtx()[0] << " " << ce->getRVtx()[1] << endl;
+	    static_cast<tLNode *>(ce->getOriginPtrNC())->TellAll();
+	    static_cast<tLNode *>(ce->getDestinationPtrNC())->TellAll();
+	    cout << endl;
+	  }
 
 	  /*ce =*/ edgIter.NextP();  // Skip complementary edge
 	}
@@ -2823,12 +2826,17 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
       // Compute erosion/deposition for each node
       for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
 	{
-	  /*cout << "Node " << cn->getID() << " Qsin: " << cn->getQsin() << " dz: " << cn->getQsin() / cn->getVArea() << endl;*/
+	  if( 0 ) //DEBUG
+	    cout << "Node " << cn->getID() << " Qsin: " << cn->getQsin()
+		 << " dz: " << cn->getQsin() / cn->getVArea() << endl;
 	  if( noDepoFlag )
 	    if( cn->getQsin() > 0.0 )
 	      cn->setQsin( 0.0 );
 	  cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area
-	  //cout<<cn->getZ()<<" Q: "<<cn->getQ()<<" dz "<<cn->getQsin() / cn->getVArea()<<" dt "<<dtmax<<endl;
+	  if( 0 ) //DEBUG
+	    cout<<cn->getZ()<<" Q: "<<cn->getQ()
+		<<" dz "<<cn->getQsin() / cn->getVArea()
+		<<" dt "<<dtmax<<endl;
 	  /*if( cn->id==700 ) {
 	    cn->TellAll();
 	    }*/
