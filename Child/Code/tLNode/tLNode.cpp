@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.72 1999-03-26 20:46:18 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.73 1999-04-05 23:58:49 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -40,6 +40,7 @@ tLayer::tLayer ( int num )
    //cout << "tLayer( num )" << endl;
  }
 
+//copy constructor
 tLayer::tLayer( const tLayer &orig )                         //tLayer
         :dgrade( orig.dgrade )
 {
@@ -77,7 +78,6 @@ const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
 void tLayer::setCtime( double tt )
 {
    ctime = tt;
-   
 }
 
 double tLayer::getCtime() const 
@@ -110,12 +110,13 @@ double tLayer::getEtime() const
    return etime;
 }
 
+//Sets the total layer depth.  While updating depth, dgrade info is
+//automatically updated to keep the same texture.  
+//So if texture is going to change too - you MUST update dgrade info.
+//(use setDgrade)
+//which will automatically update total depth.
 void tLayer::setDepth( double dep)
 {
-   // while updating depth, dgrade info is automatically updated
-   // to keep the same texture (as long as size of dgrade > 0)
-   // So if texture is going to change too - you MUST update dgrade
-   // not depth because depth will be automatically updated in dgrade
    if(dgrade.getSize()>0 && depth>0){      
       double sum=0;
       tArray<double> prop;
@@ -634,7 +635,6 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
           ReportFatalError("Problem with the regolith proportion of grain sizes in input file");
       if(fabs(sumbr-1.0)>0.001)
           ReportFatalError("Problem with the bedrock proportion of grain sizes in input file");
-//   cout << "nic, you got past fatal errors" << endl;
       
       help = infile.ReadItem( help, "REGINIT" );
       layhelp.setCtime( 0.0 );
@@ -679,9 +679,11 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
                layhelp.setDgrade(i, extra*dgradehelp[i]);
                i++;
             }
+            if(extra>10000) //TODO, bettter criteria for setting deep sed. flag
+                layhelp.setRtime(-1);
             layerlist.insertAtFront( layhelp );
-            
             // the top regolith layer is now made
+            layhelp.setRtime(0);
             i=0;
             while(i<numg){
                layhelp.setDgrade(i, maxregdep*dgradehelp[i]);
@@ -1339,7 +1341,10 @@ void tLNode::setQsin( int i, double val )
       TellAll();
    }
    qsinm[i]=val;
-   qsin += val;
+   double tot=0;
+   for(int j=0; j<numg; j++)
+       tot+=qsinm[j];   
+   qsin=tot;
 }
 
 void tLNode::addQsin( double val ) 
@@ -1660,9 +1665,9 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
 {
    assert(tri!=0);
    
-   //cout<<endl<<"tLNode::LayerInterpolation....";
-   //cout<<" current x = "<<x<<" current y = "<<y;
-   //cout<<" newx= "<<tx<<" newy= "<<ty<<endl<<flush;
+//   cout<<endl<<"tLNode::LayerInterpolation....";
+//   cout<<" current x = "<<x<<" current y = "<<y;
+//   cout<<" newx= "<<tx<<" newy= "<<ty<<endl<<flush;
    
    tLNode *lnds[3];
    int i;
@@ -1679,9 +1684,7 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
    tList< tLayer > helplist; //Make the layer list first.  When
    //the list is made, then set the nodes layerlist equal to helplist.
 
-
    if( numnodes==3 ){
-      
       tArray<int> layindex(3);//What layer are you at for each node
       tArray<double> dep(3);//The depth of the layer with the matching age
       tArray<double> age(3);//The age of the current layer at each node
@@ -1743,7 +1746,7 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
                   //More layers below, continue to search
                   layindex[i]+=1;
                   sed[i]=(lnds[i]->getLayerSed(layindex[i])<1 ? 0 : 1);
-                  if(sed[i]>0)
+                  if(sed[i]>0 && lnds[i]->getLayerRtime(layindex[i])>=0)
                       age[i]=lnds[i]->getLayerRtime(layindex[i]);
                   else
                       age[i]=kAncient;
@@ -1783,6 +1786,36 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
          
       }while(CA>kAncient);
       
+      //If there is a deep sediment layer, interpolate it
+      if(lnds[0]->getLayerRtime(layindex[0])<0){//here assuming if one
+         //node has a deep sed layer, they all do
+         //TODO fix this!
+         newtex=0;
+         newerody=0;
+         sum=0;
+         //Now, you need to interpolate bedrock layer here
+         for(i=0; i<=2; i++){
+            //NOTE - This only works for two sizes right now.
+            newtex+=lnds[i]->getLayerDgrade(layindex[i],0)/dist[i];
+            newerody+=lnds[i]->getLayerErody(layindex[i])*lnds[i]->getLayerDepth(layindex[i])/dist[i];
+            sum+=lnds[i]->getLayerDepth(layindex[i])/dist[i];
+            dep[i]=lnds[i]->getLayerDepth(layindex[i]);
+            layindex[i]++;
+         }
+         newtex=newtex/sum;
+         newdep=PlaneFit(tx, ty, lnds[0]->get2DCoords(),lnds[1]->get2DCoords(),
+                         lnds[2]->get2DCoords(), dep);
+         layhelp.setDepth(newdep);
+         layhelp.setDgrade(0,newtex*newdep);
+         if(numg>1)
+             layhelp.setDgrade(1,(1-newtex)*newdep);
+         layhelp.setSed(0); 
+         layhelp.setErody(newerody/sum);
+         layhelp.setRtime(-1);
+         layhelp.setEtime(0);
+         helplist.insertAtBack( layhelp );
+      }
+
       newtex=0;
       newerody=0;
       newetime=0;
@@ -1790,6 +1823,19 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
       //Now, you need to interpolate bedrock layer here
       for(i=0; i<=2; i++){
          //NOTE - This only works for two sizes right now.
+         /*if(lnds[i]->getNumLayer()==2){
+           lnds[i]->TellAll();
+           for(int j=0; j<2; j++){
+           cout << "layer " << j+1<<endl ;
+           cout << lnds[i]->getLayerCtime(j);
+           cout << " " << lnds[i]->getLayerRtime(j);
+           cout << " "<<lnds[i]->getLayerEtime(j)<<endl;
+           cout << lnds[i]->getLayerDepth(j);
+           cout << " " << lnds[i]->getLayerErody(j);
+           cout << " " << lnds[i]->getLayerSed(j) << endl;
+           cout << lnds[i]->getLayerDgrade(j,0);
+           }
+           }   */  
          newtex+=lnds[i]->getLayerDgrade(layindex[i],0)/dist[i];
          newerody+=lnds[i]->getLayerErody(layindex[i])*lnds[i]->getLayerDepth(layindex[i])/dist[i];
          newetime+=lnds[i]->getLayerEtime(layindex[i])*lnds[i]->getLayerDepth(layindex[i])/dist[i];
@@ -1803,13 +1849,44 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
       layhelp.setDgrade(0,newtex*newdep);
       if(numg>1)
           layhelp.setDgrade(1,(1-newtex)*newdep);
-      layhelp.setSed(0); 
+      layhelp.setSed(0);
       layhelp.setErody(newerody/sum);
+      layhelp.setRtime(0);
       layhelp.setEtime(newetime/sum);
+
       helplist.insertAtBack( layhelp );
+
+      //This is the new part that nmg added where the top layers are
+      //truncated according to the new elevation and the elevation
+      //around the node
+      double theoryz;
+      tArray<double> elevs(3);
+      elevs[0]=lnds[0]->getZ();
+      elevs[1]=lnds[1]->getZ();
+      elevs[2]=lnds[2]->getZ();
       
+      theoryz=PlaneFit(tx, ty, lnds[0]->get2DCoords(), lnds[1]->get2DCoords(),
+                         lnds[2]->get2DCoords(), elevs );
+      double diff=theoryz-getZ();
+
+      /*cout<<"new z "<<getZ()<<" theoretical z "<<theoryz<<" diff "<<diff<<endl;
+      cout<<"before removal, layer info"<<endl;
+      cout<<"numlayers = "<<helplist.getSize()<<endl;
+      cout<<"depth of first layer = "<<helplist.FirstP()->getDepth()<<endl;*/
       
-      layerlist=helplist;
+      while(diff>0){
+         if(helplist.FirstP()->getDepth()<diff){
+            diff-=helplist.FirstP()->getDepth();
+            helplist.removeFromFront(layhelp);
+         }
+         else{
+            double dpth = helplist.FirstP()->getDepth();
+            tLayer * firstlay = helplist.FirstP();
+            firstlay->setDepth(dpth-diff);
+            diff=0;
+         }
+      }
+      
    }
    else if( numnodes ==2 ){
       tArray<int> layindex(2);//What layer are you at for each node
@@ -1820,7 +1897,7 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
       dist[0]=DistanceBW2Points(tx, ty, lnds[0]->getX(), lnds[0]->getY());
       dist[1]=DistanceBW2Points(tx, ty, lnds[1]->getX(), lnds[1]->getY());
       double distsum=(1/dist[0])+(1/dist[1]);
-
+      
       double CA=-1;
       
       for(i=0; i<=1; i++){
@@ -1871,20 +1948,18 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
                   //More layers below, continue to search
                   layindex[i]+=1;
                   sed[i]=(lnds[i]->getLayerSed(layindex[i])<1 ? 0 : 1);
-                  if(sed[i]>0)
+                  if(sed[i]>0 && lnds[i]->getLayerRtime(layindex[i])>=0)
                       age[i]=lnds[i]->getLayerRtime(layindex[i]);
                   else
                       age[i]=kAncient;
                }
             }
-            else{
-            }
-         }
-         
+         }         
          
          //Now find the values of the texture and layer depth in the new
          //location, given what we found out above.  Set everything, and
          //then insert the new layer.
+            
          
          if(newdep>grade[0]){
             newtex=newtex/sum;   
@@ -1904,12 +1979,40 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
          
       }while(CA>kAncient);
 
+      //Now, you need to interpolate deep sediment layer (if it exists)
+      if(lnds[0]->getLayerRtime(layindex[0])<0){//Just assume that if one
+         //node has the deep sediment layer that they all do.
+         //TODO fix this!
+         newtex=0;
+         newerody=0;
+         sum=0;
+         newdep=0;
+         for(i=0; i<=1; i++){
+            //NOTE - This only works for two sizes right now.
+            newtex+=lnds[i]->getLayerDgrade(layindex[i],0)/dist[i];
+            newerody+=lnds[i]->getLayerErody(layindex[i])*lnds[i]->getLayerDepth(layindex[i])/dist[i];
+            sum+=lnds[i]->getLayerDepth(layindex[i])/dist[i];
+            newdep+=lnds[i]->getLayerDepth(layindex[i])/dist[i]/distsum;
+            layindex[i]++;
+         }
+         newtex=newtex/sum;
+         layhelp.setDepth(newdep);
+         layhelp.setDgrade(0,newtex*newdep);
+         if(numg>1)
+             layhelp.setDgrade(1,(1-newtex)*newdep);
+         layhelp.setSed(1); 
+         layhelp.setErody(newerody/sum);
+         layhelp.setRtime(-1);
+         layhelp.setEtime(0);
+         helplist.insertAtBack( layhelp );
+      }
+
+      //Finally, interpolate bedrock
       newtex=0;
       newerody=0;
       newetime=0;
       sum=0;
       newdep=0;
-      //Now, you need to interpolate bedrock layer here
       for(i=0; i<=1; i++){
          //NOTE - This only works for two sizes right now.
          newtex+=lnds[i]->getLayerDgrade(layindex[i],0)/dist[i];
@@ -1923,13 +2026,33 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
       layhelp.setDgrade(0,newtex*newdep);
       if(numg>1)
           layhelp.setDgrade(1,(1-newtex)*newdep);
-      layhelp.setSed(0); 
+      layhelp.setSed(1); 
       layhelp.setErody(newerody/sum);
+      layhelp.setRtime(0);
       layhelp.setEtime(newetime/sum);
       helplist.insertAtBack( layhelp );
+   
+
+      //This is the new part that nmg added where the top layers are
+      //truncated according to the new elevation and the elevation
+      //around the node
+      double theoryz;
+      theoryz=LineFit(0, lnds[0]->getZ(), dist[0]+dist[1],
+                      lnds[1]->getZ(), dist[0]);
+      double diff=theoryz-getZ();
+      while(diff>0){
+         if(helplist.FirstP()->getDepth()<diff){
+            diff-=helplist.FirstP()->getDepth();
+            helplist.removeFromFront(layhelp);
+         }
+         else{
+            double dpth = helplist.FirstP()->getDepth();
+            tLayer * firstlay = helplist.FirstP();
+            firstlay->setDepth(dpth-diff);
+            diff=0;
+         }
+      }
       
-      
-      layerlist=helplist;
    }
    else{
       //only one case left - only one non-boundary node 
@@ -1950,50 +2073,84 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
          layhelp.setRtime(lnds[0]->getLayerRtime(i));
          helplist.insertAtBack( layhelp );
       }
-      layerlist=helplist;
+
+      //This is the new part that nmg added where the top layers are
+      //truncated according to the new elevation and the elevation
+      //around the node
+      double diff=lnds[0]->getZ()-getZ();
+      while(diff>0){
+         if(helplist.FirstP()->getDepth()<diff){
+            diff-=helplist.FirstP()->getDepth();
+            helplist.removeFromFront(layhelp);
+         }
+         else{
+            double dpth = helplist.FirstP()->getDepth();
+            tLayer * firstlay = helplist.FirstP();
+            firstlay->setDepth(dpth-diff);
+            diff=0;
+         }
+      }  
    }
 
-   //Below if for debugging purposes
-   if(getLayerEtime(0)<0 /*|| (tx>505.0 && tx<506.0 && ty>331.0 && ty<332.0) */ ){
+   if(helplist.FirstP()->getRtime()<0){
+      //top layer is the deep sediment layer.  This messes up things 
+      //for layering in general.  Form a new top layer with material from
+      //the bottom layer.
+      tLayer layhelp;
+      layhelp.setSed(1);
+      layhelp.setEtime(0);
+      layhelp.setCtime(time);
+      layhelp.setRtime(0);
+      layhelp.setDgrade(0,maxregdep*helplist.FirstP()->getDgrade(0)/helplist.FirstP()->getDepth());
+      if(numg>1)
+          layhelp.setDgrade(1,maxregdep*helplist.FirstP()->getDgrade(1)/helplist.FirstP()->getDepth());
+      layhelp.setErody(helplist.FirstP()->getErody());
+      helplist.FirstP()->setDepth( helplist.FirstP()->getDepth()-maxregdep);
+      helplist.insertAtFront( layhelp );
       
-      i=0;
-      cout<<"x "<<tx<<" y "<<ty;
-      while(i<layerlist.getSize()){
-         cout << "layer " << i+1 <<endl;
-         cout << getLayerCtime(i);
-         cout << " " << getLayerRtime(i);
-         cout << " " << getLayerEtime(i)<<endl;
-         cout << getLayerDepth(i);
-         cout << " " << getLayerErody(i);
-         cout << " " << getLayerSed(i) << endl;
-         cout << getLayerDgrade(i,0) ;
-         if( numg>1 ) cout << " " << getLayerDgrade(i,1);
-         i++;
-         cout<<endl;
-      }
-      
-      int j;
-      for(j=0; j<numnodes; j++){
-         cout<<endl;
-         cout<<"node "<<j<<" x "<<lnds[j]->getX()<<" y "<<lnds[j]->getY();
-         cout<<" boundary "<<lnds[j]->getBoundaryFlag()<<endl;
-         tLNode * nicn = lnds[j];
-         i=0;
-         while(i<nicn->getNumLayer()){
-            cout << "layer " << i+1<<endl ;
-            cout << nicn->getLayerCtime(i);
-            cout << " " << nicn->getLayerRtime(i);
-            cout << " "<<nicn->getLayerEtime(i)<<endl;
-            cout << nicn->getLayerDepth(i);
-            cout << " " << nicn->getLayerErody(i);
-            cout << " " << nicn->getLayerSed(i) << endl;
-            cout << nicn->getLayerDgrade(i,0);
-            if( numg>1 ) cout << " " << nicn->getLayerDgrade(i,1) << endl;
-            i++;
-         }
-      }
    }
    
+   layerlist=helplist;
+
+   //Below  if for debugging purposes
+   /*if(getLayerEtime(0)<0 || (tx>505.0 && tx<506.0 && ty>331.0 && ty<332.0)  ){
+    */
+   /*i=0; 
+   cout<<"x "<<tx<<" y "<<ty; 
+   while(i<layerlist.getSize()){ 
+      cout << "layer " << i+1 <<endl; 
+      cout << getLayerCtime(i); 
+      cout << " " << getLayerRtime(i); 
+      cout << " " << getLayerEtime(i)<<endl; 
+      cout << getLayerDepth(i); 
+      cout << " " << getLayerErody(i); 
+      cout << " " << getLayerSed(i) << endl; 
+      cout << getLayerDgrade(i,0) ; 
+      if( numg>1 ) cout << " " << getLayerDgrade(i,1);
+      i++;
+      cout<<endl;
+   }
+   
+   int j;
+   for(j=0; j<numnodes; j++){
+      cout<<endl;
+      cout<<"node "<<j<<" x "<<lnds[j]->getX()<<" y "<<lnds[j]->getY();
+      cout<<" boundary "<<lnds[j]->getBoundaryFlag()<<endl;
+      tLNode * nicn = lnds[j];
+      i=0;
+      while(i<nicn->getNumLayer()){
+         cout << "layer " << i+1<<endl ;
+         cout << nicn->getLayerCtime(i);
+         cout << " " << nicn->getLayerRtime(i);
+         cout << " "<<nicn->getLayerEtime(i)<<endl;
+         cout << nicn->getLayerDepth(i);
+         cout << " " << nicn->getLayerErody(i);
+         cout << " " << nicn->getLayerSed(i) << endl;
+         cout << nicn->getLayerDgrade(i,0);
+         if( numg>1 ) cout << " " << nicn->getLayerDgrade(i,1) << endl;
+         i++;
+      }
+      }*/  
 }
 #undef kAncient
 
@@ -2217,7 +2374,6 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       // Also, no test done to make sure that you are depositing the right
       // material into the layer, would need to pass the flag for this.
       // For now assume that the test will be done in another place.
-      // Need to add provision for depositing sediment on top of br.
       if(getLayerSed(i)>0 && val < maxregdep){
          // top layer is sediment, so no issues
          olde=getLayerEtime(i);
@@ -2270,7 +2426,6 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
          
          else
          {
-            // cout << "depositing in surface layer " << endl;
             // No need to move stuff out of top layer, just deposit
             setLayerEtime(i, (1/(getLayerDepth(i)+val))*olde*getLayerDepth(i));
             //set top layers etime
@@ -2458,53 +2613,23 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       }
    }
 
-//     if(getX()==851.14 && getY()==892.597){
-//        while(i<getNumLayer()){
-//           cout << "layer " << i+1 ;
-//           cout << " creation time  " << getLayerCtime(i);
-//           cout << " recent time  " << getLayerRtime(i) << endl;
-//           cout << " depth  " << getLayerDepth(i);
-//           cout << " erodibility  " << getLayerErody(i);
-//           cout << " sediment? " << getLayerSed(i) << endl;
-//           cout << "dgrade 1 " << getLayerDgrade(i,0);
-//           if( numg>1 ) cout << " dgrade 2 is " << getLayerDgrade(i,1) << endl;
-//           i++;
-//        }      
-//     }
-   
-//    if(getLayerDepth(0)<0){
-//       cout << "negative surface layer depth of " << getLayerDepth(0) << endl;
-//       cout << "depth before anything happened was " << before << endl;
-//       cout << "current value of val is " << val << endl;
-//    }
-
-//    for(g=0; g<numg; g++){
-//      if(getLayerDgrade(i,g)<0){
-//        TellAll();
-//        cout<<"layer is "<<i<<endl;
-//        cout<<"previous number of layers was "<<numlay<<endl;
-//        cout<<"layer depth before was "<<before<<endl;
-//        for(h=0; h<numg; h++)
-//            cout<<"grain size "<<h<<" depth is "<<getLayerDgrade(i,h);
-//        cout<<endl;
-//        cout<<"scheduled amt to be ero'd/dep'd"<<endl;
-//        for(h=0; h<numg; h++)
-//            cout<<" "<<helper[h];
-//        cout<<endl;
-//        cout<<"recorded amt that was ero'd/dep'd"<<endl;
-//        for(h=0; h<numg; h++)
-//            cout<<" "<<valgrd[h];
-//        endl;
-//      }
-//    }
-   
-   
    return valgrd;
 }
 
 
 
-
+/**************************************************************
+ ** tLNode::addtoLayer(int i, int g, double val, double tt)
+ ** This function is called from the EroDep which updates layering.
+ ** Used when material is added/removed to/from a layer, grain size 
+ ** by grain size. i.e. texture may change
+ ** i = layer to add to
+ ** g = grain size class
+ ** val = amount of that size to deposit
+ ** tt = time of deposition/erosion
+ **
+ ** created by NG
+ *****************************************************************/
 void tLNode::addtoLayer(int i, int g, double val, double tt)
 {
    // For adding material to a layer, grain size by grain size
@@ -2528,12 +2653,21 @@ void tLNode::addtoLayer(int i, int g, double val, double tt)
     //    removeLayer(i);
 }
 
-
+/******************************************************************
+ **  tLNode::addtoLayer(int i, double val)
+ **  This addtolayer is only used for removing material from a layer.  
+ **  This erosion will not change the texture of a layer, only depth.
+ **  As always, the depth of each grain size class is also updated.
+ **  i = layer to deplete
+ **  val = amount to deplet by
+ **  Returns an array containing the texture of material removed.
+ **
+ **  created NG
+ **  Since only for erosion, nic modified this so that the time
+ **  is not passed, since time will not be reset for erosion.
+ ******************************************************************/
 tArray<double> tLNode::addtoLayer(int i, double val)
 {
-   // for removing material from a layer, val is amount to remove
-   // Since only for erosion, nic modified this so that the time
-   // is not passed, since time will not be reset for erosion.
    if(val>0)
        ReportFatalError("Using wrong function for depositing into a layer");
 
@@ -2578,6 +2712,11 @@ tArray<double> tLNode::addtoLayer(int i, double val)
    
 }
 
+/*******************************************************
+ ** tLNode::removeLayer(int i)
+ ** Removes layer i.
+ ** called by EroDep which updates layers.
+ ******************************************************/
 void tLNode::removeLayer(int i)
 {
     tListIter<tLayer> ly ( layerlist );
@@ -2613,6 +2752,16 @@ void tLNode::removeLayer(int i)
     
 }
 
+/*****************************************************************
+ ** tLNode::makeNewLayerBelow(int i, int sd, double erd, tArray<double> sz, double tt)
+ ** Makes a new layer below layer i.
+ ** sd = sediment flag
+ ** erd = erodibility
+ ** sz = array of depths of each grain size class
+ ** tt = time
+ ** Creation and recent time set to current time, exposure time updated
+ ** in erodep.
+ ********************************************************************/
 void tLNode::makeNewLayerBelow(int i, int sd, double erd, tArray<double> sz, double tt)
 {
    tLayer hlp, niclay;
@@ -2620,20 +2769,6 @@ void tLNode::makeNewLayerBelow(int i, int sd, double erd, tArray<double> sz, dou
 
    //cout << "making a new layer below " << i << " - layers before are:" << endl;
 
-//    n=0;
-//    while(n<layerlist.getSize()){
-//       cout << "layer " << n+1 << endl;
-//       niclay = layerlist.getIthData(n);
-//       cout << "layer creation time is " << getLayerCtime(n) << endl;
-//       cout << "layer recent time is " << getLayerRtime(n) << endl;
-//       cout << "layer depth is " << getLayerDepth(n) << endl;
-//       cout << "layer erodibility is " << getLayerErody(n) << endl;
-//       cout << "is layer sediment? " << getLayerSed(n) << endl;
-//       cout << "dgrade 1 is " << getLayerDgrade(n,0) << endl;
-//       cout << "dgrade 2 is " << getLayerDgrade(n,1) << endl;
-//       n++;  
-//    }
-   
    hlp.setCtime(tt);
    hlp.setRtime(tt);
    hlp.setEtime(0);
@@ -2683,12 +2818,12 @@ void tLNode::makeNewLayerBelow(int i, int sd, double erd, tArray<double> sz, dou
    
 }
 
-
 int tLNode::getNumLayer() const
 {
    return layerlist.getSize();
 }
 
+//Returns depth of all the layers - pretty useless for the current model
 double tLNode::getTotalLayerDepth() const
 {
    double sz = layerlist.getSize();
@@ -2738,7 +2873,6 @@ double tLNode::DistFromOldXY() const
    
    return sqrt( (x-xo) * (x-xo) + (y-yo) * (y-yo) );
 }
-
 
 // Tests whether bedrock is exposed at a node
 int tLNode::OnBedrock()

@@ -1,6 +1,6 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.14 1999-02-04 15:02:55 nmgaspar Exp $
+**   $Id: Definitions.h,v 1.15 1999-04-05 23:59:23 nmgaspar Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -13,9 +13,9 @@
 //#define kMaxNameLength 80
 //#define kCommentMark '#'
 //#define kTimeLineMark ' '
-#define kUniformGrid 0     /*method of grid construction*/
-#define kPerturbedGrid 1
-#define kRandomGrid 2
+#define kUniformMesh 0     /*method of grid construction*/
+#define kPerturbedMesh 1
+#define kRandomMesh 2
 #define kCornerOutlet 0   /*type of open boundary*/
 #define kOpenSide 1
 #define kOppositeSidesOpen 2
