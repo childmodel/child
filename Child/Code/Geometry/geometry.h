@@ -4,7 +4,7 @@
 **
 **  Definitions of some simple geometry classes.
 **
-**  $Id: geometry.h,v 1.1 2001-06-19 15:10:01 gtucker Exp $
+**  $Id: geometry.h,v 1.2 2002-04-22 17:24:20 arnaud Exp $
 \***************************************************************************/
 
 #ifndef GEOMETRY_H
@@ -37,11 +37,9 @@ inline Point2D::Point2D()
 }
 
 
-inline Point2D::Point2D( double ix, double iy )
-{
-   x = ix;
-   y = iy;
-}
+inline Point2D::Point2D( double ix, double iy ) :
+   x(ix), y(iy)
+{}
 
 inline const Point2D &Point2D::operator=(const Point2D &right )
 {
@@ -50,17 +48,13 @@ inline const Point2D &Point2D::operator=(const Point2D &right )
     return *this;
 }
 
-inline Point3D::Point3D() 
-{
-   x = y = z = 0.0;
-}
+inline Point3D::Point3D() :
+  x(0.), y(0.), z(0.)
+{}
 
-inline Point3D::Point3D( double ix, double iy, double iz )
-{
-   x = ix;
-   y = iy;
-   z = iz;
-}
+inline Point3D::Point3D( double ix, double iy, double iz ) :
+  x(ix), y(iy), z(iz)
+{}
 
 inline const Point3D &Point3D::operator=(const Point3D &right )
 {
