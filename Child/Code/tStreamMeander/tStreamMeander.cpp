@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.100 2004-01-13 16:23:51 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.101 2004-02-18 17:49:34 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -193,6 +193,10 @@ void tStreamMeander::FindMeander()
 tLNode* tStreamMeander::BlockShortcut( tLNode* crn, tLNode* bpn, tLNode& nn,
                                        const tArray<double>& ic, double time )
 {
+   // record a pointer to the present downstream neighbor
+   // (don't use flowedge!):
+   tLNode* dn = crn->getDownstrmNbr();
+
    // already assertained that bpn flows to nPtr;
    // called from InterpChannel, so crn doesn't flow to bpn
    // and it needs to be changed
@@ -230,6 +234,13 @@ tLNode* tStreamMeander::BlockShortcut( tLNode* crn, tLNode* bpn, tLNode& nn,
    nn.setMeanderStatus( kNonMeanderNode );
    nn.setDrArea( 0.0 );
    tLNode* newnodeP = meshPtr->AddNode( nn, kNoUpdateMesh, time );
+   // if addition should fail, unmeanderize bpn
+   if( newnodeP == NULL ){
+      bpn->setMeanderStatus( kNonMeanderNode );
+      bpn->setNew2DCoords( 0.0, 0.0 );
+      bpn->AddDrArea( -crn->getDrArea() );
+      crn->setDownstrmNbr( dn );
+   }
    return newnodeP;
 }
 
@@ -276,7 +287,7 @@ const tArray< double > tStreamMeander::FindInterpCoords( tLNode* crn, tLNode* nP
       const double phi = atan2( ydif, xdif );
       const double val1 = rand->ran3() - 0.5;
       const double x = x0 + curseglen * cos(phi) /
-          2.0 + 0.01 * val1 * defseglen;//pow(defseglen, 2.0);
+          2.0 + 0.001 * val1 * defseglen;//pow(defseglen, 2.0);
       const double val2 = rand->ran3() - 0.5;
       const double y = y0 + curseglen * sin(phi) /
           2.0 + 0.01 * val2 * defseglen;//pow(defseglen, 2.0);
@@ -308,7 +319,7 @@ const tArray< double > tStreamMeander::FindInterpCoords( tLNode* crn, tLNode* nP
       {
          xp[i] = static_cast<double>(i) * defseglen;
          const double val = rand->ran3() - 0.5;
-         yp[i] = yp[i-1] + 0.01 * val * exp(-yp[i-1] * val)
+         yp[i] = yp[i-1] + 0.001 * val * exp(-yp[i-1] * val)
              * defseglen;//pow(defseglen, 2.0);
          zp[i] = xp[i] * slope;
          const double dd = sqrt(xp[i] * xp[i] + yp[i] * yp[i]);
@@ -410,6 +421,14 @@ int tStreamMeander::InterpChannel( double time )
                   if (0) //DEBUG
                       cout<<"IC BS pt "<<newnodeP->getID()<<" added at "
                           << newnodeP->getX() << "," << newnodeP->getY() << endl;
+               } else {
+		 if (1) //DEBUG
+		   cout<<"IC BS pt NOT added at "
+		       << ic[0] << "," << ic[1] << endl;
+		 // Process of aborting point addition may have left node(s)
+		 // without valid flowedges:
+		 netPtr->ReInitFlowDirs();
+		 change = true;
                }
             }
             else{
@@ -421,15 +440,15 @@ int tStreamMeander::InterpChannel( double time )
                   // set flow edge temporarily to zero, so that it is flippable
                   prevNode->setFlowEdgToZero();
                   newnodeP = meshPtr->AddNode( nn, kNoUpdateMesh, time );
-                  if (0) //DEBUG
-                      cout<<"IC pt "<<newnodeP->getID()<<" added at "
-                          << ic[k*3+0] << "," << ic[k*3+1] << endl;
                   // did a node get added?
                   // need to reset flow directions here
                   if( newnodeP != NULL )
                   {
                      change = true;
-                     // previous node (prevNode) flows to new node (newnodeP)
+                      if (0) //DEBUG
+			cout<<"IC pt "<<newnodeP->getID()<<" added at "
+			    << ic[k*3+0] << "," << ic[k*3+1] << endl;
+                    // previous node (prevNode) flows to new node (newnodeP)
                      prevNode->setDownstrmNbr( newnodeP );
                      // (check for rare case when nodes not connected)
                      if( prevNode->getFlowEdg() == NULL )
@@ -437,14 +456,24 @@ int tStreamMeander::InterpChannel( double time )
                      // Paranoia
                      assert( prevNode->getFlowEdg()->getDestinationPtr() == newnodeP );
                      prevNode = newnodeP;
+                  } else {
+		    if (1) //DEBUG
+		      cout<<"IC pt NOT added at "
+			  << ic[k*3+0] << "," << ic[k*3+1] << endl;
+		    // Process of aborting point addition may have left node(s)
+		    // without valid flowedges:
+		    netPtr->ReInitFlowDirs();
+		    change = true;
                   }
                }
                // after adding all new nodes, make last new node (newnodeP) flow to
                // the next meander node downstream (nPtr)
-               newnodeP->setDownstrmNbr( nPtr );
+               prevNode->setDownstrmNbr( nPtr );
                // (check for rare case when nodes not connected)
-               if( newnodeP->getFlowEdg() == NULL )
-                   meshPtr->ForceFlow( newnodeP, nPtr, time );
+               if ( prevNode->getFlowEdg() == NULL ) {
+		 change = true;
+		 meshPtr->ForceFlow( prevNode, nPtr, time );
+	       }
                // Paranoia
                assert( newnodeP->getFlowEdg()->getDestinationPtr() == nPtr );
             }
@@ -1217,8 +1246,12 @@ void tStreamMeander::AddChanBorder(double time)
                //xyz[2]-cn->getZ() if this depth is positive
                //The texture of this deposit would be
                //the surface texture of cn.  Use erodep.
-               meshPtr->AddNode( channode, kNoUpdateMesh, time );
-               change = true;//flag to update mesh
+               tLNode* nnPtr = meshPtr->AddNode( channode, kNoUpdateMesh, time );
+               if( nnPtr != NULL ){
+		 if(1)//DEBUG
+		   cout<<"ACB pt "<<nnPtr->getID()<<" added at "<<xyz[0]<<", "<<xyz[1]<<endl;
+		 change = true; //flag to update mesh
+               }
                cn->setXYZD( zeroArr );
             }
          }
