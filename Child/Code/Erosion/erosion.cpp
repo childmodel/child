@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.46 1998-08-19 21:40:15 gtucker Exp $
+**  $Id: erosion.cpp,v 1.47 1998-08-25 19:54:22 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1436,7 +1436,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          {                                              //  to zero slope
             dt = ( cn->getZ() - dn->getZ() ) / ratediff;
             if( dt < dtmax ) dtmax = dt;
-            if( dt < 1e-3 )
+            if( dt < 1e-4 )
             {
                cout << "Very small dt " << dt <<  endl;
                cout << "rate dif is " << ratediff << endl;
