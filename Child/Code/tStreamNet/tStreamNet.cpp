@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.21 2002-09-30 17:20:54 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.22 2002-12-12 14:39:45 childcvs Exp $
 \**************************************************************************/
 
 #include "../tAssert.h"
@@ -833,9 +833,9 @@ void tStreamNet::FlowDirs()
 \*****************************************************************************/
 void tStreamNet::DrainAreaVoronoi()
 {
-//#if TRACKFNS
-   //cout << "DrainAreaVoronoi()..." << endl << flush;
-//#endif
+  if (0) //DEBUG
+    cout << "DrainAreaVoronoi()..." << endl << flush;
+
    tLNode * curnode;
    tMeshListIter<tLNode> nodIter( meshPtr->getNodeList() );
    
@@ -1190,9 +1190,8 @@ void tStreamNet::FlowSaturated2()
        stormDur = stormPtr->getStormDuration();  // Storm duration
    int nsat=0,nsr=0,nhort=0,nflat=0; // 4dbg
   
-#if TRACKFNS
-  cout << "FlowSaturated1" << endl << flush;
-#endif
+   if (0) //DEBUG
+     cout << "FlowSaturated1" << endl << flush;
 
   // Reset drainage areas and discharges to zero
   for ( curnode=nodIter.FirstP(); nodIter.IsActive(); curnode=nodIter.NextP() )
@@ -1343,9 +1342,9 @@ void tStreamNet::FlowBucket()
 \*****************************************************************************/
 void tStreamNet::FillLakes()
 {
-//#if TRACKFNS
-   //cout << "FillLakes()..." << endl << flush;
-//#endif
+  if (0) //DEBUG
+    cout << "FillLakes()..." << endl << flush;
+
    tLNode *cn,             // Node on list: if a sink, then process
        *thenode,           // Node on lake perimeter
        *lowestNode,        // Lowest node on perimeter found so far
