@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.23 1998-04-23 22:05:01 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.24 1998-06-08 14:46:52 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -160,7 +160,7 @@ class tChannel
    tMeander migration;
 };
 
-/** class tLNode ***************************************************************/
+/** class tLNode *************************************************************/
 class tLNode : public tNode
 {
 public:
@@ -173,18 +173,19 @@ public:
     const tSurface &getSurf() const;
     const tRegolith &getReg() const;
     const tChannel &getChan() const;
-    int GetFloodStatus();
-    void SetFloodStatus( int status );
-    tEdge * GetFlowEdg();
-    void SetFlowEdg( tEdge * );
-    void SetDrArea( double );
+    int getFloodStatus();
+    void setFloodStatus( int status );
+    tEdge * getFlowEdg();
+    void setFlowEdg( tEdge * );
+    void setDrArea( double );
     void AddDrArea( double );
-    tLNode * GetDownstrmNbr();
-    double GetQ();        // Gets total discharge from embedded chan obj
-    double GetSlope();    // Computes and returns slope in flow direction
-    double GetDSlopeDt();
+    void AddDischarge( double );
+    tLNode * getDownstrmNbr();
+    double getQ();        // Gets total discharge from embedded chan obj
+    double getSlope();    // Computes and returns slope in flow direction
+    double getDSlopeDt();
     int Meanders() const;
-    void SetMeanderStatus( int );
+    void setMeanderStatus( int );
     void setHydrWidth( double );
     void setChanWidth( double );
     double getHydrWidth() const;
