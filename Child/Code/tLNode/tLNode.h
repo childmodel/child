@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.78 2003-09-02 14:01:05 childcvs Exp $
+ **  $Id: tLNode.h,v 1.79 2003-09-05 14:23:05 childcvs Exp $
  */
 /************************************************************************/
 
@@ -475,7 +475,9 @@ public:
   inline double getQs( int );
   inline tArray< double > const & getQsm( ) const;
   inline void setQsin( double );
-  void setQsin( int, double );
+  inline void setQsin( int, double );
+  inline void setQsin( tArray< double > const & );
+  void setQsinErrorHandler( int ) const ATTRIBUTE_NORETURN;
   void addQs( double );
   void addQs( int, double );
   void addQs( tArray< double > const &);
@@ -562,7 +564,7 @@ public:
   void CopyLayerList( tLNode const * ); // Copy layerlist from another node (gt 12/99)
 
 #ifndef NDEBUG
-  void TellAll();
+  void TellAll() const;
 #endif
 
 protected:
@@ -815,6 +817,30 @@ tLNode::getQsm( ) const
 }
 
 inline void tLNode::setQsin( double val ) {qsin = val;}
+
+inline void tLNode::setQsin( int i, double val )
+{
+  if(unlikely( (i>=numg) || (i>=qsinm.getSize()) )) {
+    setQsinErrorHandler( i );
+  }
+  qsinm[i]=val;
+  double tot=0.;
+  for(int j=0; j<numg; j++)
+    tot+=qsinm[j];
+  qsin=tot;
+}
+
+inline void tLNode::setQsin( tArray< double > const & q_ )
+{
+  assert( qsinm.getSize() == q_.getSize() );
+
+  double tot = 0.;
+  for(int j=0; j<numg; j++) {
+    qsinm[j] = q_[j];
+    tot += q_[j];
+  }
+  qsin = tot;
+}
 
 inline void tLNode::addQsin( double val )
 {

@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.121 2003-09-02 14:01:04 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.122 2003-09-05 14:23:04 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -708,7 +708,7 @@ double tLNode::DistNew(tLNode const * p0,tLNode const * p1 ) const
  **
 \**************************************************************************/
 #ifndef NDEBUG
-void tLNode::TellAll()
+void tLNode::TellAll() const
 {
   tLNode * nbr;
   int i;
@@ -796,25 +796,24 @@ void tLNode::InsertLayerBack( tLayer const & lyr )
   double tLNode::getVegErody() const {return surf.vegerody;}
 */
 
-void tLNode::setQsin( int i, double val )
+void tLNode::setQsinErrorHandler( int i ) const
 {
-  if(unlikely(i>=numg))
+  if(i>=numg)
     ReportFatalError( "Trying to index sediment sizes that don't exist ");
-  if(unlikely(i>=qsinm.getSize())){
-    cout<<"trying to set index "<<i<<" but size of array is "<<qsinm.getSize()<<endl<<flush;
+  if(i>=qsinm.getSize()){
+    cout<<"trying to set index "<<i<<" but size of array is "
+	<<qsinm.getSize() << endl;
     TellAll();
+    ReportFatalError( "Index out of bound");
   }
-  qsinm[i]=val;
-  double tot=0.;
-  for(int j=0; j<numg; j++)
-    tot+=qsinm[j];
-  qsin=tot;
+  ReportFatalError("setQsinErrorHandler(): bail out.");
 }
 
 void tLNode::addQsin( tArray< double > const &val )
 {
   int i;
-  for(i=0; i<val.getSize(); i++){
+  const int n = val.getSize();
+  for(i=0; i<n; i++){
     qsin +=  val[i];
     qsinm[i] += val[i];
   }
