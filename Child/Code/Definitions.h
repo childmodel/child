@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.48 2004-04-27 14:39:56 childcvs Exp $
+**   $Id: Definitions.h,v 1.49 2004-05-10 10:46:24 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -14,6 +14,8 @@
 
 /** DEFINITIONS *************************************************************/
 #define VERSION "2.3.0, April 2004"
+
+#include <stdlib.h> // abort()
 
 typedef enum { // type of boundary condition
   kClosedBoundary = 1,
@@ -29,6 +31,7 @@ inline const char* BoundName( tBoundary_t b ){
   case kNonBoundary:
     return "0-Non";
   }
+  ::abort();
 }
 inline tBoundary_t IntToBound( int b_ ){
   assert(b_>=0 && b_<=2);
