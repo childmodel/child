@@ -28,7 +28,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.26 2003-09-02 13:52:59 childcvs Exp $
+**  $Id: tStorm.h,v 1.27 2003-09-02 13:58:50 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -57,7 +57,7 @@ public:
     double getMeanStormDur() const;
     double getMeanInterstormDur() const;
     double getMeanPrecip() const;
-    double getOptVar() const;
+    bool getOptVar() const;
 
 private:
     double ExpDev() const;
@@ -85,6 +85,6 @@ private:
 };
 
 
-inline double tStorm::getOptVar() const {return optVariable;}
+inline bool tStorm::getOptVar() const {return optVariable;}
 
 #endif
