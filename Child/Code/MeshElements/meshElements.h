@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.37 2003-04-29 09:33:49 childcvs Exp $
+**  $Id: meshElements.h,v 1.38 2003-04-29 10:01:18 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -125,13 +125,6 @@ public:
   tEdge * getEdg();                          // returns ptr to one spoke
   void getVoronoiVertexList( tList<Point2D> * );  // Returns list of V vertices
   void getVoronoiVertexXYZList( tList<Point3D> * ); // As above plus interp z
-
-  // returns next spokelist element (as const and non-const, respectively)
-  const tPtrListNode< tEdge > *
-      getNextSpokeNode( const tPtrListNode< tEdge > * ) const;
-  tPtrListNode< tEdge > *
-      getNextSpokeNodeNC( tPtrListNode< tEdge > * ) const;
-#endif
 
   void setID( int );              // sets ID number
   void setX( double );            // sets x coord
@@ -481,14 +474,6 @@ inline ostream &operator<<( ostream &output, tNode &node )
 **  getVArea_Rcp - returns 1 / Voronoi area
 **  getBoundaryFlag - returns boundary code
 **  getEdg - returns pointer to one spoke
-**  getSpokeList - returns const reference to spoke list
-**  getSpokeListNC - returns non-const reference to spoke list
-**  getFirstSpokeNode - returns ptr to 1st spokelist item 
-**                      (return type tPtrListNode *)
-**  getFirstSpokeNodeNC - non-const version of the above
-**  getNextSpokeNode - returns ptr to next spokelist item that follows
-**                       prevedg
-**  getNextSpokeNodeNC - non-const version of the above
 **
 \***********************************************************************/
 
