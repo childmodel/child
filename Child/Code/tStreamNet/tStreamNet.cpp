@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.49 2003-08-08 09:19:34 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.50 2003-08-08 12:27:34 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -529,7 +529,6 @@ void tStreamNet::CalcSlopes()
   assert( meshPtr != 0 );
   tEdge *curedg;
   tMeshListIter<tEdge> i( meshPtr->getEdgeList() );
-  double slp;
 
   if (0) //DEBUG
     cout << "CalcSlopes()...";
@@ -540,13 +539,10 @@ void tStreamNet::CalcSlopes()
       // Make sure edge is valid, and length is nonzero
       assert( curedg != 0 );
       assert( curedg->getLength() > 0 );
-      //if( curedg->getLength() == 0 )
-      //{
-      //   length = curedg->CalcLength();
-      //}
 
       // Compute the slope and assign it to the current edge
-      slp = ( curedg->getOrgZ() - curedg->getDestZ() )
+      const double slp =
+	( curedg->getOrgZ() - curedg->getDestZ() )
 	/ curedg->getLength();
       curedg->setSlope( slp );
 
