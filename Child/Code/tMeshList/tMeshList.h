@@ -31,7 +31,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.h,v 1.11 2002-09-04 16:39:04 arnaud Exp $
+**  $Id: tMeshList.h,v 1.12 2002-09-05 11:27:45 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TMESHLIST_H
@@ -54,7 +54,8 @@ class tMeshList : public tList< NodeType >
 {
    friend class tListIter< NodeType  >;
    friend class tMeshListIter< NodeType  >;
-   tMeshList(const tMeshList&);
+
+   tMeshList(const tMeshList< NodeType > &);
   public:
    tMeshList();
    tMeshList( const tMeshList< NodeType > * );
@@ -104,8 +105,7 @@ class tMeshList : public tList< NodeType >
 \**************************************************************************/
 template< class NodeType >                     //tMeshtList
 tMeshList< NodeType >::
-tMeshList()
-  :
+tMeshList() :
   nActiveNodes(0),
   lastactive(0)
 {
@@ -114,8 +114,8 @@ tMeshList()
 
 template< class NodeType >                     //tMeshtList
 tMeshList< NodeType >::
-tMeshList( const tMeshList< NodeType > *original )
-  : tList< NodeType >( original ),
+tMeshList( const tMeshList< NodeType > *original ) :
+  tList< NodeType >( original ),
   nActiveNodes(original->nActiveNodes),
   lastactive(original->lastactive)
 {
@@ -203,17 +203,8 @@ template< class NodeType >                     //tMeshtList
 int tMeshList< NodeType >::
 isActiveEmpty() const
 {
-     //cout << "checking if tMeshList empty of active nodes" << endl;
-   if( lastactive == 0 )
-   {
-        //cout << "tMeshList is empty of active nodes" << endl;
-      return 1;
-   }
-   else
-   {
-        //cout << "tMeshList is not empty of active nodes" << endl;
-      return 0;
-   }
+  if( lastactive == 0 ) return 1;
+  else return 0;
 }
 
 template< class NodeType >                     //tMeshtList
@@ -749,14 +740,8 @@ template< class NodeType >   //tMeshListIter
 NodeType* tMeshListIter< NodeType >::
 FirstBoundaryP()
 {
-   tMeshList< NodeType > *meshlistPtr;
-   meshlistPtr = static_cast< tMeshList< NodeType > * >(listPtr);
-   assert( meshlistPtr != 0 );
-   if( meshlistPtr->isActiveEmpty() ) curnode = listPtr->first;
-   else if( meshlistPtr->isBoundEmpty() ) curnode = 0;
-   else curnode = meshlistPtr->lastactive->next;
-   if( curnode != 0 ) return curnode->getDataPtrNC();
-   else return 0;
+  if ( FirstBoundary() ) return curnode->getDataPtrNC();
+  else return 0;
 }
 
 
@@ -772,11 +757,7 @@ template< class NodeType >   //tMeshListIter
 NodeType *tMeshListIter< NodeType >::
 LastActiveP()
 {
-   tMeshList< NodeType > *meshlistPtr;
-   meshlistPtr = static_cast< tMeshList< NodeType > * >(listPtr);
-   assert( meshlistPtr != 0 );
-   curnode = meshlistPtr->lastactive;
-   if( curnode != 0 ) return curnode->getDataPtrNC();
+   if ( LastActive() ) return curnode->getDataPtrNC();
    else return 0;
 }
 
