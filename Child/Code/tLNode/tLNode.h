@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.5 1998-01-21 20:16:53 gtucker Exp $
+**  $Id: tLNode.h,v 1.6 1998-01-28 00:00:54 stlancas Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -106,7 +106,7 @@ class tSurface
   private:
    float veg;          /* Percent vegetation cover*/
    float tauc;         /* Threshold*/
-     /*float vegresistfactor;*/
+   float vegerody;     //erodibility of vegetated surface (or channel bank)
 };
 
 /** class tRegolith ************************************************************/
@@ -215,6 +215,14 @@ class tLNode : public tNode
 #ifndef NDEBUG
    void TellAll();
 #endif
+   void setAlluvThickness( float );
+   float getAlluvThickness() const;
+   void setVegErody( float );
+   float getVegErody() const;
+   void setBedErody( float );
+   float getBedErody() const;
+   void setReachMember( int );
+   int getReachMember() const;
    
   protected:
    tBedrock rock;
