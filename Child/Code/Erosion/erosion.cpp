@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.8 1998-03-09 22:48:30 gtucker Exp $
+**  $Id: erosion.cpp,v 1.9 1998-03-10 23:30:31 stlancas Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -214,7 +214,7 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
 {
    double dt,
        dtmax = 1000000.0; // time increment: initialize to arbitrary large val
-   double frac = 0.9; //fraction of time to zero slope
+   double frac = 0.1; //fraction of time to zero slope
    int i;
    tLNode * cn, *dn;
    int nActNodes = gridPtr->GetNodeList()->getActiveSize();
@@ -222,29 +222,44 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
    tArray<double> //dz( nActNodes ), // Erosion depth @ each node
        dzdt( nActNodes ); //Erosion rate @ ea. node
    double ratediff;
+   double slp, dslpdt;
 
    // Iterate until total time dtg has been consumed
    do
    {
       //first find erosion rate:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->SetQs( -bedErode.DetachCapacity( cn ) + UPtr->GetRate() );
+          cn->SetDzDt( -bedErode.DetachCapacity( cn ) );
       dtmax = dtg;
       //find max. time step s.t. slope does not reverse:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
-         dn = cn->GetDownstrmNbr();
-         ratediff = dn->GetQs() - cn->GetQs();
+         slp = cn->GetSlope();
+         dslpdt = cn->GetDSlopeDt();
+         if( slp > 0.0 )
+         {
+            if( dslpdt < 0.0 )
+            {
+               dt = slp / (-dslpdt - UPtr->GetRate() ) * frac;
+               if( dt > 0 && dt < dtmax ) dtmax = dt;
+            }
+         }
+         
+         /*dn = cn->GetDownstrmNbr();
+         if( dn->getBoundaryFlag() == kNonBoundary )
+             ratediff = dn->GetDzDt() - cn->GetDzDt();
+         else
+             ratediff = dn->GetDzDt() - cn->GetDzDt() - UPtr->GetRate();
          if( ratediff > 0 && cn->getZ() > dn->getZ() )
          {
             dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
             if( dt > 0 && dt < dtmax ) dtmax = dt;
-         }
+         }*/
       }
       //assert( dtmax > 0 );
       //apply erosion:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->EroDep( cn->GetQs() * dtmax );
+          cn->EroDep( cn->GetDzDt() * dtmax );
       //update time:
       dtg -= dtmax;
    } while( dtg>0 );
