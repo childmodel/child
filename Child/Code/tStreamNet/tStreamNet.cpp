@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.53 1999-01-29 00:14:05 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.54 1999-02-22 17:59:08 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -245,7 +245,7 @@ double tStreamNet::getInSedLoad() const {return inlet.inSedLoad;}
 tArray< double > tStreamNet::getInSedLoadm( ) const {return inlet.inSedLoadm;}
 
 tLNode *tStreamNet::getInletNodePtr() const {return inlet.innode;}
-tLNode *tStreamNet::getInletNodePtrNC() {return inlet.innode;}
+tLNode *tStreamNet::getInletNodePtrNC() {   return inlet.innode;}
 
 double tStreamNet::getMndrDirChngProb() const {return mndrDirChngProb;}
 
@@ -279,7 +279,7 @@ void tStreamNet::setInSedLoadm( int i, double val )
 }
 
 void tStreamNet::setInletNodePtr( tLNode *Ptr )
-{inlet.innode = ( Ptr > 0 ) ? Ptr : 0;}
+{ inlet.innode = ( Ptr > 0 ) ? Ptr : 0;}
 
 void tStreamNet::setMndrDirChngProb( double val )
 {mndrDirChngProb = ( val >= 0.0 && val <= 1.0 ) ? val : 1.0;}
@@ -424,7 +424,7 @@ void tStreamNet::CheckNetConsistency()
       } 
    }
       
-   cout << "NETWORK PASSED\n";
+   //cout << "NETWORK PASSED\n";
 
    return;
    
@@ -680,7 +680,7 @@ void tStreamNet::FlowDirs()
 //           if(curnode->getID()==795 ){
 //              cout<<"in flowdirs with node 795"<<endl;
 //           }
-         
+
          curnode->setFloodStatus( kNotFlooded );  // Init flood status flag
          firstedg =  curnode->getFlowEdg();
          if( firstedg <= 0 )
@@ -820,7 +820,6 @@ void tStreamNet::DrainAreaVoronoi()
       inlet.FindNewInlet();
       RouteFlowArea( inlet.innode, inlet.inDrArea );
    }
-
    //cout << "DrainAreaVoronoi() finished" << endl << flush;
 }
 
@@ -924,7 +923,8 @@ void tStreamNet::RouteRunoff( tLNode *curnode, double addedArea,
 \*****************************************************************************/
 void tStreamNet::MakeFlow( double tm )
 {
-   //cout << "MakeFlow()..." << endl << flush;
+   //cout << "MakeFlow()..."<<endl<<flush;
+      
    if( filllakes ) FillLakes();
    DrainAreaVoronoi();
 
@@ -948,7 +948,7 @@ void tStreamNet::MakeFlow( double tm )
       default:
           FlowUniform();      // Spatially uniform infiltration-excess runoff
    }
-   
+
    //cout << "MakeFlow() finished" << endl;
 }
 
@@ -1595,7 +1595,7 @@ void tStreamNet::FindHydrGeom()
       //based on the channel width "downstream":
       if( optrainvar)
       {
-         qpsec = cn->getQ();
+         qpsec = cn->getQ()/SECPERYEAR;
          width = pow(cn->getChanWidth(), widpow) * kwdspow * pow(qpsec, ewstn);
          cn->setHydrWidth( width );
          depth = pow(cn->getChanDepth(), deppow) * kddspow * pow(qpsec, edstn);
@@ -1663,7 +1663,8 @@ void tStreamNet::FindChanGeom()
       //took out an if cn->Meanders() so stuff will be calculated at all nodes
 // qbffactor is now in m^3/s
       qbf = cn->getDrArea() * qbffactor;
-      if( !qbf ) qbf = cn->getQ();  // q is now in m^3/s
+      if( !qbf ) qbf = cn->getQ()/SECPERYEAR;  // q is now in m^3/s
+      //if(cn->getID()==300) cout<<"FCG discharge is (m^3/sec) "<<qbf<<endl;
       width = kwds * pow(qbf, ewds);
       depth = kdds * pow(qbf, edds);      
       rough = knds * pow(qbf, ends);
@@ -1696,7 +1697,6 @@ void tStreamNet::FindChanGeom()
       //nmg
       if( slope <= 0.00000001 ){
          cn->setMeanderStatus( kNonMeanderNode );
-         //cout<<"tSN:: FCG node "<< cn->getID()<<" slope "<<slope<<endl;
       }
       if( slope < 0.0 )
       {
