@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.85 2003-05-23 17:50:30 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.86 2003-05-27 10:32:57 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -477,7 +477,7 @@ int tStreamMeander::InterpChannel( double time )
 		  if (0){ //DEBUG
 		    if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
 		  }
-		  meshPtr->AddNode( nn, 1., time );
+		  meshPtr->AddNode( nn, true, time );
 		  if (0) //DEBUG
 		    cout<<"IC pt added at " << x << "," << y << endl;
 		}
@@ -511,7 +511,7 @@ int tStreamMeander::InterpChannel( double time )
 		      if (0){ //DEBUG
 			if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
 		      }
-		      meshPtr->AddNode( nn, 1., time );
+		      meshPtr->AddNode( nn, true, time );
 		      if (0) //DEBUG
 			cout<<"IC pt added at " << x << "," << y << endl;
 		    }
