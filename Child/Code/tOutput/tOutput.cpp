@@ -9,7 +9,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.47 2002-02-11 09:20:51 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.48 2002-04-11 09:59:44 arnaud Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -65,7 +65,7 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile )
 \*************************************************************************/
 template< class tSubNode >
 void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
-                                           char *extension )
+                                           const char *extension )
 {
    char fullName[kMaxNameSize+6];  // name of file to be created
    

@@ -26,7 +26,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.24 2002-02-11 09:21:54 gtucker Exp $
+**  $Id: tOutput.h,v 1.25 2002-04-11 09:59:45 arnaud Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -62,10 +62,11 @@ class tOutput
 {
 public:
     tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
+    virtual ~tOutput() {}
     void WriteOutput( double time );
     void WriteTSOutput( double time );
     virtual void WriteNodeData( double time );
-    void CreateAndOpenFile( ofstream * theOFStream, char * extension );
+    void CreateAndOpenFile( ofstream * theOFStream, const char * extension );
 
 protected:
     tMesh<tSubNode> * m;          // ptr to mesh (for access to nodes, etc)
