@@ -3,7 +3,7 @@
 **  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
 **                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.6 1998-02-12 23:22:45 stlancas Exp $
+**  $Id: tPtrList.cpp,v 1.7 1998-02-12 23:57:17 stlancas Exp $
 \**************************************************************************/
 
 #include "tPtrList.h"
@@ -380,18 +380,20 @@ Flush()
    {
         //cout<<"Destroying nodes ... "<<endl;
       tPtrListNode<NodeType > * current = first, * temp;
-      while( current != 0 )
+      first = 0;
+      while( last != 0 )
       {
          temp = current;
          //cout<<temp->data<<endl;
-         current = current->next;
+         if( current != last ) current = current->next;
+         else
+         {
+            current = 0;
+            last = 0;
+         }
          delete temp;
       }
    }
-   first = last = 0;
-     //cout<<"All nodes destroyed"<<endl<<endl;
-//   NodeType *data;
-//   while( removeFromBack( data ) );
    assert( isEmpty() );
    nNodes = 0;
 }
