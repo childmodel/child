@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.7 2002-03-29 17:35:52 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.8 2002-04-11 10:27:47 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2067,13 +2067,12 @@ void tStreamNet::RouteFlowKinWave( double rainrate )
              cn->setHydrDepth( 0.0 );
 
          // Route flow downhill
-         tLNode * dn;
          if( sum>0.0 )
          {
             ce = cn->getEdg();
             do
             {
-               dn = (tLNode *)ce->getDestinationPtr();
+	       tLNode * dn = (tLNode *)ce->getDestinationPtrNC();
                if( cn->getZ() > dn->getZ() && ce->FlowAllowed() )
                    dn->AddDischarge( cn->getQ()
                                      * (sqrt(ce->getSlope())*ce->getVEdgLen())/sum );
