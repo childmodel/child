@@ -9,7 +9,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.12 1999-04-01 17:30:42 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.13 1999-05-11 19:08:23 gtucker Exp $
 \**************************************************************************/
 
 
@@ -38,7 +38,7 @@ tStorm::tStorm( int optvar )
    p = 1.0;
    stdur = 1.0;
    istdur = 1.0;
-   srand( 0 );
+   //srand( 0 );
 }
 
 
@@ -63,7 +63,7 @@ tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar )
    stdur = stdurMean;
    istdur = istdurMean;
    seed = sd;
-   srand( seed );
+   //srand( seed );
 }
 
 
@@ -115,7 +115,7 @@ tStorm::tStorm( tInputFile &infile )
 
    // Read and initialize seed for random number generation
    seed = infile.ReadItem( seed, "SEED" );
-   srand( seed );
+   //srand( seed );
 }
 
 
@@ -169,7 +169,7 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
          stdur = stdurMean*ExpDev( &seed );
          /*cout << "P " << p << "  ST " << stdur << "  IST " << istdur
               << "  DP " << p*stdur << endl;*/
-         srand( seed );
+         //srand( seed );
       } while( p<=minp && (p*stdur)<=mind );
    }
 }
