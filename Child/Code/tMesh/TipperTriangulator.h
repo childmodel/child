@@ -43,11 +43,33 @@ public:
 public:
   int from,to;
   int lef,let,ref,ret;
+  //                       .
+  //        to             .
+  //    let /|\ ret        .
+  //       / | \           .
+  //       \ | /           .
+  //    lef \|/ ref        .
+  //       from            .
 };
 
+// connectivity table element to node and edge
 class elem {
 public:
-  int p1, p2, p3;
-  int e1, e2, e3;
+  int p1, p2, p3;  // nodes
+  int e1, e2, e3;  // edges 
+  bool eo1, eo2, eo3; // orientation of edges
+  int t1, t2, t3;  // triangles (or elements)
+  //
+  //         P1       .
+  //        -/\       .
+  //   T3 e2/  \e1 T2 .
+  //       /    \     .
+  //      /      \-   .
+  //     P2------P3   .
+  //       | e3       .
+  //         T1       .
+
 };
+
+
 
