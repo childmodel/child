@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.49 2004-05-10 10:46:24 childcvs Exp $
+**   $Id: Definitions.h,v 1.50 2004-06-14 12:15:35 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -16,6 +16,7 @@
 #define VERSION "2.3.0, April 2004"
 
 #include <stdlib.h> // abort()
+#include <assert.h>
 
 typedef enum { // type of boundary condition
   kClosedBoundary = 1,
