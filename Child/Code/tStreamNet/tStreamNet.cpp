@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.52 2003-08-13 13:26:18 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.53 2003-08-13 13:45:31 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -418,7 +418,6 @@ void tStreamNet::CheckNetConsistency()
    tLNode *cn, *dn;
    tMeshListIter< tLNode > nI( meshPtr->getNodeList() ),
        tI( meshPtr->getNodeList() );
-   const long nodesInMesh = meshPtr->getNodeList()->getSize();
    enum{
      expensive_test = false
    };
@@ -465,35 +464,9 @@ void tStreamNet::CheckNetConsistency()
 	}
    }
 
-   for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
-   {
-      // Make sure each node has path to outlet (or to a sink):
-      int ctr = 0;
-      dn = cn->getDownstrmNbr();
-      while( dn->getBoundaryFlag() == kNonBoundary
-             && dn->getFloodStatus() != kSink )
-      {
-         dn = dn->getDownstrmNbr();
-         ctr++;
-         if( ctr > nodesInMesh )
-             dn->TellAll();
-         if( ctr > nodesInMesh+4 )
-         {
-            cerr << "NODE #" << cn->getID()
-                 << " has infinite loop in path downstream\n";
-            goto error;
-         }
-      }
-      if( dn->getBoundaryFlag() != kOpenBoundary
-          && dn->getFloodStatus() != kSink )
-      {
-         cerr << "NODE #" << cn->getID()
-              << " does not flow to outlet\n";
-         cerr << "Flow ends up at the following node:\n";
-         dn->TellAll();
-         goto error;
-      }
-   }
+   if (CheckNetConsistencyFlowPath())
+     goto error;
+
    if (0) //DEBUG
      cout << "NETWORK PASSED\n";
 
@@ -506,7 +479,45 @@ void tStreamNet::CheckNetConsistency()
 }
 #undef kLargeNumber
 
+int tStreamNet::CheckNetConsistencyFlowPath()
+{
+   tLNode *cn;
+   tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
+   const long nodesInMesh = meshPtr->getNodeList()->getSize();
+   for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+   {
+      // Make sure each node has path to outlet (or to a sink):
+      int ctr = 0;
+      tLNode *dn = cn;
+      do {
+	dn = dn->getDownstrmNbr();
+	ctr++;
+	if( ctr > nodesInMesh ) {
+	  dn->TellAll();
+	  if( ctr > nodesInMesh+4 )
+	    {
+	      cerr << "NODE #" << cn->getID()
+		   << " has infinite loop in path downstream\n";
+	      goto error;
+	    }
+	}
+      } while( dn->getBoundaryFlag() == kNonBoundary
+	       && dn->getFloodStatus() != kSink );
 
+      if( dn->getBoundaryFlag() != kOpenBoundary
+          && dn->getFloodStatus() != kSink )
+      {
+         cerr << "NODE #" << cn->getID()
+              << " does not flow to outlet\n";
+         cerr << "Flow ends up at the following node:\n";
+         dn->TellAll();
+         goto error;
+      }
+   }
+   return 0;
+ error:
+   return 1;
+}
 /****************************************************************************\
 **
 **  CalcSlopes
