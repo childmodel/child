@@ -4,7 +4,7 @@
 **                tPtrListIter. (see tPtrList.h for a description of
 **                what these classes do)
 **
-**  $Id: tPtrList.cpp,v 1.15 1999-04-01 17:12:26 gtucker Exp $
+**  $Id: tPtrList.cpp,v 1.16 1999-12-07 19:45:06 gtucker Exp $
 \**************************************************************************/
 
 #include "tPtrList.h"
@@ -704,6 +704,35 @@ getIthPtrNC( int num ) const
 template< class NodeType >                      //tPtrList
 void tPtrList< NodeType >::
 makeCircular() {assert( first != 0 ); last->next = first;}
+
+
+/**************************************************************************\
+**
+**  tPtrList::DataCopy
+**
+**  Creates and returns a complete copy of the list, including copies of
+**  the items that are pointed to.
+**
+**  Created 12/7/99, GT
+**  Assumes: NodeType has a copy constructor defined
+**
+\**************************************************************************/
+template< class NodeType >                      //tPtrList
+void tPtrList< NodeType >::
+DataCopy()
+{
+   tPtrListIter iter( this );
+   NodeType * curr, * newitem;
+   tPtrList * newlist = new tPtrList();
+   
+   for( curr=iter.FirstP(); !(iter.AtEnd()); curr=iter.NextP() )
+   {
+      newitem = new NodeType( *curr );
+      newlist.insertAtBack( newitem );
+   }
+   return newlist;
+}
+
 
 
 /**************************************************************************\
