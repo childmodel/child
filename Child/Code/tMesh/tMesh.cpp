@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.168 2003-07-10 16:05:09 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.169 2003-07-15 17:25:06 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1760,15 +1760,15 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    cout << "begin interpolation\n";
    // Read and initialize seed for random number generation
    seed = infile.ReadItem( seed, "SEED" );
-   srand48( seed );
+   init_genrand( seed );
    numpts = numcols * numrows;
    tempnode.setBoundaryFlag( kNonBoundary );
    //Xn = 0;
    mindist = delgrid / 10.0;
    for( i=0; i<numpts; ++i )
    {
-      xgen = drand48() * (di - 1.0);
-      ygen = drand48() * (dj - 1.0);
+      xgen = genrand_res53() * (di - 1.0);
+      ygen = genrand_res53() * (dj - 1.0);
 
       zinterp = InterpSquareGrid( xgen, ygen, elev, nodata );
 
