@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.73 2004-04-19 16:23:49 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.74 2004-04-19 16:32:50 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -19,6 +19,20 @@
 //#include <string>
 #include "../errors/errors.h"
 #include "tStreamNet.h"
+
+kChannelType_t IntToChannelType( int c ){
+  switch(c){
+  case 1: return kRegimeChannels;
+  case 2: return kParkerChannels;
+  default:
+    cout << "You asked for channel geometry model number " << c
+	 << " but there is no such thing.\n"
+      "Available models are:\n"
+      " 1. Regime theory (empirical power-law scaling)\n"
+      " 2. Parker-Paola self-formed channel theory\n";
+    ReportFatalError( "Unrecognized channel geometry model code.\n" );
+  }
+}
 
 /*****************************************************************************\
 **
@@ -208,21 +222,12 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    // Read remaining hydraulic geometry parameters according to which
    // (of currently 2) model is chosen
    {
-     int tmp_;
-     tmp_ = infile.ReadItem( tmp_, "CHAN_GEOM_MODEL" );
-     miChannelType = static_cast<kChannelType_t>(tmp_);
+     int cread;
+     cread = infile.ReadItem( cread, "CHAN_GEOM_MODEL" );
+     miChannelType = IntToChannelType(cread);
    }
-   if( miChannelType < kChannelType_Begin ||
-       miChannelType > kChannelType_End )
-   {
-     cout << "You asked for channel geometry model number " << miChannelType
-	  << " but there is no such thing.\n"
-       "Available models are:\n"
-       " 1. Regime theory (empirical power-law scaling)\n"
-       " 2. Parker-Paola self-formed channel theory\n";
-     ReportFatalError( "Unrecognized channel geometry model code.\n" );
-   }
-   if( miChannelType==kRegimeChannels )
+   switch(miChannelType){
+   case kRegimeChannels:
      {
        kwds = infile.ReadItem( kwds, "HYDR_WID_COEFF_DS" );
        //cout << "kwds: " << kwds << endl;
@@ -233,8 +238,11 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
        edds = infile.ReadItem( edds, "HYDR_DEP_EXP_DS" );
        edstn = infile.ReadItem( edstn, "HYDR_DEP_EXP_STN" );
      }
-   else // Parker Channels
+     break;
+   case kParkerChannels:
      mpParkerChannels = new tParkerChannels( infile );
+     break;
+   }
 
    // Option for adaptive meshing related to drainage area
    int optMeshAdapt = infile.ReadItem( optMeshAdapt, "OPTMESHADAPTAREA" );

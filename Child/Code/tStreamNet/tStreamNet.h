@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.59 2004-04-19 14:02:10 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.60 2004-04-19 16:32:52 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -54,11 +54,11 @@ typedef enum {
 
 
 typedef enum {
-  kChannelType_Begin = 1,
-  kRegimeChannels = kChannelType_Begin,
-  kParkerChannels,
-  kChannelType_End = kParkerChannels
+  kRegimeChannels = 1,
+  kParkerChannels = 2
 } kChannelType_t;
+
+kChannelType_t IntToChannelType( int );
 
 double DistanceToLine( double x2, double y2, double a, double b, double c );
 double DistanceToLine( double x2, double y2, tNode const *p0, tNode const *p1 );
