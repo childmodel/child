@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.161 2003-05-30 12:40:47 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.162 2003-05-30 14:46:20 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2117,6 +2117,7 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
    tEdge * ce, * cne, * ccwedg;
    tTriangle * ct, * optr;
    bool boundary_check_ok;
+   const bool verbose = false;
    int i, nvop;
 
    // Edges: make sure complementary pairs are together in the list
@@ -2218,7 +2219,11 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
       }
 
    }
-   //cout << "EDGES PASSED\n";
+   // Edges: check active/boundary list
+   if (CheckMeshListConsistency(edgeList, "edge"))
+     goto error;
+   if (verbose)
+     cout << "EDGES PASSED\n";
 
    // Nodes: check for valid edg pointer, spoke connectivity, and connection
    // to at least one non-boundary or open boundary node
@@ -2305,7 +2310,11 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
       }
 
    }
-     //cout << "NODES PASSED\n";
+   // Nodes: check active/boundary list
+   if (CheckMeshListConsistency(nodeList, "node"))
+     goto error;
+   if (verbose)
+     cout << "NODES PASSED\n";
 
    // Triangles: check for valid points and connectivity
    for( ct=triIter.FirstP(); !(triIter.AtEnd()); ct=triIter.NextP() )
@@ -2391,8 +2400,10 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
 	   }
       }
    }
-     //cout << "TRIANGLES PASSED\n";
-   //cout << "MESH PASSED\n";
+   if (verbose)
+     cout << "TRIANGLES PASSED\n";
+   if (verbose)
+     cout << "MESH PASSED\n";
    return;
 
   error:

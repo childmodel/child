@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.20 2003-05-28 16:01:00 childcvs Exp $
+**  $Id: tMeshList.h,v 1.21 2003-05-30 14:46:22 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -759,4 +759,41 @@ IsActive() const
    return 0;
 }
 
+
+template< class NodeType >
+int CheckMeshListConsistency( tMeshList<NodeType> &list,
+			       const char *ListName){
+  NodeType *cl;
+  tMeshListIter<NodeType> Iter( list );
+  int nactive = 0;
+  for( cl=Iter.FirstP(); ; cl=Iter.NextP() ){
+    if (!Iter.IsActive()){
+      cerr << "Element #" << cl->getID()
+	   << " is not active but within the active part of the "
+	   << ListName << " list.\n";
+      return 1;
+    }
+    ++nactive;
+    if (Iter.NodePtr() == list.getLastActive()) break;
+    if (Iter.AtEnd()) {
+      assert(0); /*NOTREACHED*/
+      abort();
+    }
+  }
+  if (nactive != list.getActiveSize()){
+    cerr << "The " << ListName << " list contains " << nactive
+	 << " elements but 'getActiveSize()' gives "
+	 << list.getActiveSize() << ".\n";
+    return 1;
+  }
+  for( cl=Iter.FirstBoundaryP(); !(Iter.AtEnd()); cl=Iter.NextP() ){
+    if (Iter.IsActive()){
+      cerr << "Element #" << cl->getID()
+	   << " is active but within the boundary part of "
+	   << ListName << " list.\n";
+      return 1;
+    }
+  }
+  return 0;
+}
 #endif
