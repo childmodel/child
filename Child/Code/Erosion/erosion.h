@@ -48,7 +48,7 @@
 **       a new DensifyMesh function and supporting data member
 **       mdMeshAdaptMaxFlux (gt 2/2000)
 **
-**  $Id: erosion.h,v 1.29 2000-04-04 20:43:03 nmgaspar Exp $
+**  $Id: erosion.h,v 1.30 2000-04-19 22:02:48 nmgaspar Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -168,6 +168,41 @@ private:
    
 };
 
+/************************************************************************\
+ ** class tSedTransMineTailings
+ **
+ ** Manages data and routines to compute sediment transport capacity
+ ** using the parameters and equation from Willgoose and Riley (1998).
+ ** This study was performed on mine tailings in an Australian Uranium 
+ ** mine.  Don't have a critical shear stress method, so just use that of
+ ** of Wilcock for sand and gravel.
+ **
+ ** added 04/2000 ng
+ \************************************************************************/
+class tSedTransMineTailings
+{
+public:
+   tSedTransMineTailings( tInputFile &infile );
+   double TransCapacity( tLNode * n ); // returns total volumetric load
+   double TransCapacity( tLNode *n, int i, double weight);
+
+private:
+   //all of these are just the same as for tSedTransWilcock since using 
+   //the same critical shear stress method
+   double taudim;
+   double refs;
+   double refg;
+   double lowtaucs;
+   double lowtaucg;
+   double sandb;
+   double hightaucs;
+   double hightaucg;
+   double sands;
+   double gravb;
+   double gravs;
+   tArray< double > grade;
+   
+};
 
 /***************************************************************************\
 **  class tBedErodePwrLaw
@@ -227,7 +262,7 @@ public:
 private:
     tMesh<tLNode> *meshPtr;    // ptr to mesh
     tBedErodePwrLaw bedErode;  // bed erosion object
-    tSedTransWilcock sedTrans;        // sediment transport object 
+    tSedTransMineTailings sedTrans;        // sediment transport object 
     double kd;                 // Hillslope transport (diffusion) coef
     double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
 

@@ -9,6 +9,7 @@
 **  Transport objects:
 **    tSedTransPwrLaw
 **    tSedTransWilcock
+**    tSedTransMineTailings //added 4/00 ng
 **  Detachment objects:
 **    tBedErodePwrLaw
 **
@@ -27,7 +28,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.82 2000-04-04 19:56:49 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.83 2000-04-19 22:02:32 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -736,7 +737,239 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
        
 }
 
+/*************************************************************************\
+**  FUNCTIONS FOR CLASS tSedTransMineTailings
+\**************************************************************************/
 
+/*************************************************************************\
+**  
+**  tSedTransMineTailings constructor
+**  
+**  note that for now this is the same as tSedTransWilcock 
+**  constructor since it is using same taucrit function
+\**************************************************************************/
+tSedTransMineTailings::tSedTransMineTailings( tInputFile &infile )
+        : grade()
+{
+   int i;
+   char add[1], name[20];
+   double help;
+
+   cout << "tSedTransMineTailings(infile)\n" << endl;
+   strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
+   grade.setSize(2);
+   for(i=0; i<=1; i++){
+      strcpy( name, "GRAINDIAM");
+      strcat( name, add );
+      help = infile.ReadItem( help, name);
+      add[0]++;
+      grade[i] = help;
+   }
+
+   taudim= RHO*GRAV;
+   refs = (RHOSED-RHO)*9.81*grade[0];
+   refg = (RHOSED-RHO)*9.81*grade[1];
+   lowtaucs = 0.8*(grade[1]/grade[0])*0.040*refs*0.8531;
+   lowtaucg = 0.04*refg*0.8531;
+   hightaucs = 0.04*refs*0.8531;
+   hightaucg = 0.01*refg*0.8531;
+   sands = (lowtaucs-hightaucs)/(-0.3);
+   // slope = m = del y / del x
+   sandb = lowtaucs-(sands*0.1);
+   // intercept = y - mx
+   gravs = (lowtaucg-hightaucg)/(-0.3);
+   gravb = lowtaucg-(gravs*0.1);
+}
+
+/*********************************************************************\
+**
+**  tSedTransMineTailings::TransCapacity
+**
+**  This function uses the sediment transport model developed on
+**  mine tailings slopes in Australia by Willgoose and Riley (1998)
+**  to calculate sediment transport rates of the sand and
+**  gravel fraction individually.  
+**
+**  For now This function should only be used with
+**  two grain sizes because it uses the Wilcock method to calculate taucrit.
+**  It is assumed that grain size one is in the
+**  sand range and grain size 2 is in the gravel range.  The sediment
+**  transport rate of both grain sizes is calculated, and the sum of
+**  these two rates is returned. (rate here is in m^3/yr)
+**
+\***********************************************************************/
+#define YEARPERSEC 3.171e-8
+double tSedTransMineTailings::TransCapacity( tLNode *nd )
+{
+   double tau;
+   double taucrit;
+   double persand=nd->getLayerDgrade(0,0)/(nd->getLayerDepth(0));
+   //not sure what the point of factor was
+   //double factor=nd->getLayerDepth(0)/nd->getMaxregdep();
+
+   if( nd->getSlope() < 0 ){
+      nd->setQs(0, 0);
+      nd->setQs(1, 0);
+      nd->setQs(0);
+      return 0.0;
+   }
+
+//    if(nd->getX()==12.5&nd->getY()==20){
+//       cout<<"factor is "<<factor<<endl;
+//    }
+
+   // units of Q are m^3/yr; convert to m^3/sec
+   //tau = taudim*pow(nd->getHydrRough()*nd->getQ()*YEARPERSEC/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
+   tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
+   
+   //cout << "hydrrough is " << nd->getChanRough() << endl;
+   //cout << "q is " << nd->getQ() << endl;
+   //cout << "slope is " << nd->getSlope() << endl;
+   //cout << "taudim is " << taudim << endl;
+
+   //Calculate Sand transport rates first
+   
+   if(persand<.10)
+       taucrit=lowtaucs;
+   else if(persand<=.40)
+       taucrit=((sands*persand)+sandb);
+   else
+       taucrit=hightaucs;
+
+   //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
+   
+   if(tau>taucrit){
+       nd->setQs(0,(0.0541/RHOSED)*SECPERYEAR*persand*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit) );
+   }
+   else 
+       nd->setQs( 0, 0.0 ) ;
+
+   //Now calculate Gravel transport rates
+
+   if(persand<.10)
+       taucrit=lowtaucg;
+   else if(persand<=.40)
+       taucrit=((gravs*persand)+gravb);
+   else
+       taucrit=hightaucg;
+
+   //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
+
+   if(tau>taucrit){
+       nd->setQs(1, (0.0541/RHOSED)*SECPERYEAR*(1-persand)*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit));
+   }
+   else
+       nd->setQs(1,0.0);
+
+   nd->setQs(nd->getQs(0)+nd->getQs(1));
+   return nd->getQs();
+       
+}
+
+/*********************************************************************\
+**
+**  tSedTransMineTailings::TransCapacity
+**
+**  *nd - pointer to the node which you are calculating tranport rates at.
+**  i - the layer which you are basing the transport rate on (for texture)
+**  weight - used in erosion algorithm, a weight based on layer depths.
+**
+**  This function uses the sediment transport model and parameters in
+**  Willgoose and Riley (1998) to calculate sediment transport rates 
+**  of the sand and gravel fraction individually.  
+**  For now, this function should only be used with two grain sizes 
+**  (it is using the wilcock model to calculate tau crit)
+**  and it is assumed that grain size one is in the
+**  sand range and grain size 2 is in the gravel range.  The sediment
+**  transport rate of both grain sizes is calculated, and the sum of
+**  these two rates is returned. (rate here is in m^3/yr)
+**  Note that this function assumes that you are looping through layers,
+**  (which is why you need the weight) and so qs total and for each size
+**  was initialized to zero and you just add to it in this function.
+**  It is VERY IMPORTANT that qs is reset to zero before you use this
+**  funtion in a loop.
+\***********************************************************************/
+double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
+{
+   double tau;
+   double taucrit;
+   if( nd->getLayerDepth(i)<=0 ) {
+      cout << "Uh-oh: i=" << i << " LD=" << nd->getLayerDepth(i) << endl;
+      nd->TellAll();
+   }
+   assert( nd->getLayerDepth(i)>0 );
+   double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
+   //double timeadjust=31536000.00; /* number of seconds in a year */
+   double qss, qsg=0; //gravel and sand transport rate
+
+   //cout << "tSedTransMineTailings::TransCapacity(tLNode,int,double)\n";
+
+   if( nd->getSlope() < 0 ){
+      nd->setQs(0, 0);
+      if(nd->getNumg()==2)
+          nd->setQs(1, 0);
+      nd->setQs(0);
+      return 0.0;
+   }
+
+   // units of Q are m^3/yr; convert to m^3/sec
+   //NIC check to see what taudim is -> probably right but U R anal
+   tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
+
+   //cout << "channel rough is " << nd->getChanRough() << endl;
+   //cout << "channel width is " << nd->getChanWidth() << endl;
+   
+   //cout << "q is " << nd->getQ() << endl;
+   //cout << "slope is " << nd->getSlope() << endl;
+   //cout << "taudim is " << taudim << endl;
+
+   //Calculate Sand transport rates first
+   
+   // here calculating critical shear stress, same as with wilcock
+   if(persand<.10)
+       taucrit=lowtaucs;
+   else if(persand<=.40)
+       taucrit=((sands*persand)+sandb);
+   else
+       taucrit=hightaucs;
+
+   //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
+   //remember tau is in units of sec, so compute everything in seconds
+   //and transfer back to years in the end.
+   if(tau>taucrit){
+      qss=(0.0541/RHOSED)*weight*SECPERYEAR*persand*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit);
+       nd->addQs(0, qss);
+       //cout << "nic sand transport rate is " << qss << endl;
+   }
+   else 
+       qss=0 ;
+
+   //Now calculate Gravel transport rates
+   if(nd->getNumg()==2){
+      if(persand<.10)
+          taucrit=lowtaucg;
+      else if(persand<=.40)
+          taucrit=((gravs*persand)+gravb);
+      else
+          taucrit=hightaucg;
+
+      //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
+      
+      if(tau>taucrit){
+         qsg=(0.0541/RHOSED)*weight*SECPERYEAR*(1-persand)*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit);
+         nd->addQs(1,qsg);
+         //cout << "nic nic nic gravel transport is happening" << endl;
+      }
+      else
+          qsg=0;
+   }
+   
+   //NOTE - don't need to update total qs cause this gets updates
+   //with update of qs of individual sizes
+
+   return qsg+qss;
+       
+}
 
 /***************************************************************************\
 **  FUNCTIONS FOR CLASS tErosion
