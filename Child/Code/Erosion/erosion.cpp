@@ -43,7 +43,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.101 2002-07-26 10:16:14 gtucker Exp $
+**  $Id: erosion.cpp,v 1.102 2002-07-26 10:29:31 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -2733,6 +2733,8 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
 #if TRACKFNS
    cout << "tErosion::Diffuse()" << endl << flush;
 #endif
+
+   if( kd==0 ) return;
    
    // Compute maximum stable time-step size based on Courant condition
    // for FTCS (here used as an approximation).
@@ -2749,6 +2751,7 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
 	 }
        //Xif( (denom=kd*ce->getVEdgLen() ) > kVerySmall )
        // Evaluate DT <= DX^2 / Kd
+       assert( kd > 0.0 );
        delt = kEpsOver2 * ce->getLength()*ce->getLength() / kd;
        if( delt < dtmax )
 	 {
