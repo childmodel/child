@@ -140,7 +140,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.28 1998-04-16 21:46:20 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.29 1998-04-22 00:15:21 stlancas Exp $
 \**************************************************************************/
 
 
@@ -304,6 +304,7 @@ void tStreamNet::UpdateNet()
    InitFlowDirs();
    FlowDirs();
    MakeFlow();
+   CheckNetConsistency();
    //cout << "UpdateNet() finished" << endl;	
 }
 
@@ -319,10 +320,83 @@ void tStreamNet::UpdateNet( tStorm &storm )
    InitFlowDirs();
    FlowDirs();
    MakeFlow();
+   CheckNetConsistency();
    //cout << "UpdatNet(...) finished" << endl;	
 }
 
+#define kLargeNumber 1000000
+void tStreamNet::CheckNetConsistency()
+{
+   int ctr = 0;
+   tLNode *cn, *dn, *ln;
+   tGridListIter< tLNode > nI( gridPtr->GetNodeList() ),
+       tI( gridPtr->GetNodeList() );
+   for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+   {
+      //make sure each node has a viable downstrm nbr:
+      dn = cn->GetDownstrmNbr();
+      if( dn == 0 )
+      {
+         cerr << "NODE #" << cn->getID() << " has no downstrm nbr\n";
+         goto error;
+      }
+      if( ln = tI.GetP( dn->getID() ) )
+      {
+         if( ln != dn )
+         {
+            cerr << "NODE #" << cn->getID()
+                 << " downstrm nbr not id. to node in nodeList with same ID\n";
+            goto error;
+         }
+      }
+      else
+      {
+         cerr << "NODE #" << cn->getID()
+              << " downstrm nbr is not in nodeList\n";
+         goto error;
+      }
+      if( cn->Meanders() )
+      {
+         if( cn->GetSlope() < 0.0 )
+         {
+            cerr << "NODE #" << cn->getID()
+                 << " meanders and returns negative GetSlope\n";
+            goto error;
+         }
+      }
+   }
+   
+   for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+   {
+      //make sure each node has path to outlet:
+      dn = cn->GetDownstrmNbr();
+      while( dn->getBoundaryFlag() == kNonBoundary )
+      {
+         dn = dn->GetDownstrmNbr();
+         ctr++;
+         if( ctr > kLargeNumber )
+         {
+            cerr << "NODE #" << cn->getID()
+                 << " has infinite loop in path downstream\n";
+            goto error;
+         }
+      }
+      if( dn->getBoundaryFlag() != kOpenBoundary )
+      {
+         cerr << "NODE #" << cn->getID()
+              << " does not flow to outlet\n";
+         goto error;
+      } 
+   }
+      
+   cout << "NETWORK PASSED\n";
 
+   return;
+   
+  error:
+   ReportFatalError( "Error in network consistency." );
+}
+#undef kLargeNumber
 
 /****************************************************************************\
 **
