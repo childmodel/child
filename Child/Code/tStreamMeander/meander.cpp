@@ -124,7 +124,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.6 2003-01-17 17:30:44 childcvs Exp $ */
+/*     $Id: meander.cpp,v 1.7 2003-05-09 17:06:07 childcvs Exp $ */
 
 void meander_(const integer *stations, const integer *stnserod, 
 	      const doublereal *x, const doublereal *y,
@@ -663,7 +663,7 @@ void forcedist_(const integer *stnserod, const integer *stations,
 		xstrt = xs[s];
 	    }
 	    sp = s;
-	    while(xs[sp] <= xtrmnt && sp <= *stnserod) {
+	    while( sp <= *stnserod && xs[sp] <= xtrmnt) {
 		if (xs[sp] >= xstrt) {
 		    xdel = fabs(xdest - xs[sp]);
 		    if (lambda[s] != 0.) {

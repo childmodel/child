@@ -42,7 +42,7 @@ c     version 1.6: eliminated erroneous division by dels in shear
 c     stress calculation
 c                 1.7  8/11: debugged version SL
 c
-c     $Id: meander.f,v 1.6 2002-11-04 17:36:52 childcvs Exp $
+c     $Id: meander.f,v 1.7 2003-05-09 17:06:07 childcvs Exp $
 c
       subroutine meander (stations, stnserod, x, y, xs, dels, flow,  
      +                    rerody, lerody, slope, width, depth, 
@@ -469,7 +469,8 @@ c     increment and bank depth) lateral direction vectors:
             xstrt = xdest - 2.d0 * lambda(s)
             if (xstrt .lt. xs(s)) xstrt = xs(s)
             sp = s
-            do while (xs(sp) .le. xtrmnt .and. sp .le. stnserod)
+            do while ( sp .le. stnserod )
+               if (.not.( xs(sp) .le. xtrmnt)) exit
                if (xs(sp) .ge. xstrt) then
                   xdel = abs(xdest - xs(sp))
                   if (lambda(s) .ne. 0.d0) then
