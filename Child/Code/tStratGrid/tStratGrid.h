@@ -12,7 +12,7 @@
  **
  **  Created 5/2003 (QC)
  **
- **  $Id: tStratGrid.h,v 1.1 2004-03-03 12:10:29 childcvs Exp $
+ **  $Id: tStratGrid.h,v 1.2 2004-04-16 18:28:37 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -48,7 +48,7 @@ class tStratNode
 public:
   tStratNode();
   tStratNode( int ); // for tMatrix
-  tStratNode( tInputFile &infile );
+  tStratNode( tInputFile const &infile );
   tStratNode( double , double );
   tStratNode( double , double , const tStratNode &);
   tStratNode( const tStratNode & );
@@ -171,6 +171,7 @@ class tStratGrid
 {
   tStratGrid(const tStratGrid&);
   tStratGrid& operator=(const tStratGrid&);
+  tStratGrid();
 
 public:
   tStratGrid( tInputFile &infile, tMesh<tLNode> *mp );
@@ -213,7 +214,7 @@ public:
   int getnWrite() const;
   void updateConnect();
   double CalculateMeanderCurrent(tTriangle *, double, double);
-  double CompassAngle(tLNode *,tLNode *);
+  double CompassAngle(tLNode *,tLNode *) const;
 
 protected:			          // can be accessed by friend classes
 

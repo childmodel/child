@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.7 2004-04-01 09:58:33 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.8 2004-04-16 18:28:36 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -844,7 +844,7 @@ double tStratGrid::CalculateMeanderCurrent( tTriangle *tri, double sx, double sy
  **  returns a compass angle. Assumes Y+ = North and X+ = East
  **
 \*********************************************************/
-double tStratGrid::CompassAngle(tLNode *cn, tLNode *dn)
+double tStratGrid::CompassAngle(tLNode *cn, tLNode *dn) const
 {
   double cnx = cn->getX();              // node itself
   double cny = cn->getY();
@@ -928,7 +928,7 @@ tStratNode::tStratNode(double x_, double y_,
 
 
 // 4) tStratNode constructor for layerlist initialisation by inputfile
-tStratNode::tStratNode( tInputFile &infile ) :
+tStratNode::tStratNode( tInputFile const &infile ) :
   layerlist(),ClosestNode(0),
   x(0.),y(0.), z(0.),sectionZ(0.),newz(0.),i(0),j(0)
 {

@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.70 2004-04-14 13:20:22 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.71 2004-04-16 18:29:04 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -575,7 +575,7 @@ int tStreamNet::CheckNetConsistencyFlowPath( tLNode **pcn )
 }
 
 
-void tStreamNet::CheckMeander()
+void tStreamNet::CheckMeander() const
 {
 
    tLNode *cn, *secondnode,*thirdnode;
@@ -735,7 +735,7 @@ void tStreamNet::CheckMeander()
       }
 
       if(cn != NULL){
-        if(cn->getFloodStatus()>0){
+        if(cn->getFloodStatus() != kNotFlooded){
       	  cout<<"Warning: node "<<cn->getID()<<' '<<cn->getX()<<' '<<cn->getY()<<' '<<cn->getZ()<<endl;
       	  cout<<"has flood status: "<<cn->getFloodStatus()<<endl;
       	}
@@ -751,7 +751,7 @@ void tStreamNet::CheckMeander()
 
       if(cn == NULL) break;
 
-      if(cn->getBoundaryFlag() != 0) break;
+      if(cn->getBoundaryFlag() != kNonBoundary) break;
 
       }
 
@@ -766,7 +766,7 @@ void tStreamNet::CheckMeander()
 } // CheckMeander
 
 //---------------------------------------------------------
-void tStreamNet::ShowMeanderNeighbours(int debugID)
+void tStreamNet::ShowMeanderNeighbours(int debugID) const
 {
 
          tLNode *cn = getInletNodePtr();
@@ -2009,7 +2009,7 @@ tLNode *tStreamNet::BuildLakeList( tPtrList< tLNode > &lakeList, tLNode *cn )
 **
 \*****************************************************************************/
 void tStreamNet::FillLakesFlowDirs(tPtrListIter< tLNode > &lakeIter,
-				   tLNode *lowestNode)
+				   tLNode *lowestNode) const
 {
   // Now we've found an outlet for the current lake.
   // This next bit of code assigns a flowsTo for each node so there's
@@ -3267,7 +3267,8 @@ void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
 	}
 	cn->setHydrDepth( 1. );
 	cn->setChanDepth( cn->getHydrDepth() );
-	if( cn->getChanWidth()==0. && cn->getFloodStatus()==0 ) cn->TellAll();
+	if( cn->getChanWidth()==0. && cn->getFloodStatus()==kNotFlooded )
+	  cn->TellAll();
       }
 
 }
@@ -3275,7 +3276,7 @@ void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
 
 
 
-void tStreamNet::DebugShowNbrs( tLNode *theNode )
+void tStreamNet::DebugShowNbrs( tLNode *theNode ) const
 {
 
   if(theNode->getX() < 12000 && theNode->getX() > 7000){	// stay within boundary

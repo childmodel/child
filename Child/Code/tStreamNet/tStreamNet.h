@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.57 2004-04-02 11:23:07 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.58 2004-04-16 18:29:05 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -164,6 +164,9 @@ class tParkerChannels
   double mdDepthexp; // Exponent used in computing depth via Manning/Chezy
   int miNumGrainSizeClasses;  // Number of grain size classes
   tArray<double> mD50BySizeClass; // Array recording D50 of each size class
+
+private:
+  tParkerChannels();
 };
 
 
@@ -198,9 +201,9 @@ class tParkerChannels
 /**************************************************************************/
 class tStreamNet
 {
-  //friend class tStreamMeander; //necessary?
     tStreamNet(const tStreamNet&);
     tStreamNet& operator=(const tStreamNet&);
+    tStreamNet();
 public:
     tStreamNet( tMesh< tLNode > &, tStorm &, const tInputFile & );
     ~tStreamNet();
@@ -233,7 +236,7 @@ public:
     void UpdateNet( double time, tStorm & );
     void CheckNetConsistency();
     int CheckNetConsistencyFlowPath( tLNode **);
-    void CheckMeander();
+    void CheckMeander() const;
     void CalcSlopes();
     void InitFlowDirs();
     void ReInitFlowDirs();
@@ -258,11 +261,11 @@ public:
     void FindChanGeom();
     void FindHydrGeom();
     void DensifyMeshDrArea( double time=0.0 );  // Densifies mesh locally
-    void ShowMeanderNeighbours(int);
+    void ShowMeanderNeighbours(int) const;
 
 protected:
     tLNode *BuildLakeList( tPtrList< tLNode > &, tLNode *);
-    void FillLakesFlowDirs(tPtrListIter< tLNode > &, tLNode *);
+    void FillLakesFlowDirs(tPtrListIter< tLNode > &, tLNode *) const;
     inline static void RouteFlowArea( tLNode *, double );
     inline static void RouteRunoff( tLNode *, double, double );
     static void RouteError( tLNode * ) ATTRIBUTE_NORETURN;
@@ -295,7 +298,7 @@ protected:
     double mdHydrgrphShapeFac;  // "Fhs" for hydrograph peak method
     double mdFlowVelocity;      // Runoff velocity for computing travel time
 
-  void DebugShowNbrs( tLNode * theNode );  // debugging function shows neighbor nodes
+  void DebugShowNbrs( tLNode * theNode ) const;  // debugging function shows neighbor nodes
 };
 
 #endif
