@@ -21,7 +21,7 @@
 **  the CHILD model. In the future, such inherited classes will be
 **  kept in separate files to preserve the generality of tOutput.
 **
-**  $Id: tOutput.h,v 1.8 1999-04-05 15:08:27 gtucker Exp $
+**  $Id: tOutput.h,v 1.9 1999-09-01 15:57:38 gtucker Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -68,6 +68,7 @@ protected:
     ofstream edgofs;              // output file for edge data
     ofstream triofs;              // output file for triangle data
     ofstream zofs;                // output file for node "z" data
+    ofstream vaofs;               // output file for Voronoi areas
 };
 
 
