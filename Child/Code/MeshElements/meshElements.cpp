@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.18 1998-05-08 23:42:05 stlancas Exp $
+**  $Id: meshElements.cpp,v 1.19 1998-05-12 22:09:27 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -159,13 +159,13 @@ tNode::get2DCoords() const
    return xy;
 }
 
-int tNode::getID() const {return id;}                                //tNode
+int tNode::getID() const {return id;}                    //tNode
 double tNode::getX() const {return x;}
 double tNode::getY() const {return y;}
 double tNode::getZ() const {return z;}
-double tNode::getVArea() const {return varea;}                        //tNode
-double tNode::getVArea_Rcp() const {return varea_rcp;}                //tNode
-int tNode::getBoundaryFlag() const {return boundary;}                //tNode
+double tNode::getVArea() const {return varea;}             //tNode
+double tNode::getVArea_Rcp() const {return varea_rcp;}     //tNode
+int tNode::getBoundaryFlag() const {return boundary;}      //tNode
 
 tEdge * tNode::GetEdg() 
 {
