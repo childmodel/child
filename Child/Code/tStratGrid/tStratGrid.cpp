@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.5 2004-03-26 17:32:44 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.6 2004-03-30 09:49:10 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -1178,6 +1178,7 @@ double tStratNode::AlluvialColumnThickness()
 {
   double totalthickness = 0.;
   tListIter<tLayer> ly ( layerlist );
+  ly.First();
   // skip first layer (hence initialisation of 'layer' with NextP())
   for (tLayer *layer = ly.NextP(); !( ly.AtEnd() ); layer = ly.NextP() ) {
     const double thickness = layer->getDepth();
