@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.139 2003-05-01 12:27:01 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.140 2003-05-06 12:20:34 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -783,7 +783,7 @@ BatchAddNodes()
    // put all nodes in tmpnodList:
    for( cn = nI.FirstP(); !( nI.AtEnd() ); cn = nI.NextP() )
        tmpnodList.insertAtBack( cn );
-   while( tmpbndList.removeFromFront( ce ) ) // current bndy edge removed from list
+   while( (ce = tmpbndList.removeFromFront()) ) // current bndy edge removed from list
    {
       n0 = static_cast< tSubNode* >(ce->getOriginPtrNC());
       n1 = static_cast< tSubNode* >(ce->getDestinationPtrNC());
@@ -929,7 +929,7 @@ BatchAddNodes()
          if( bI.Get( n2->EdgToNod( n0 )->getID() ) ) // remove edge from boundary list
          {
             tmpbndList.moveToBack( bI.NodePtr() );
-            tmpbndList.removeFromBack( be );
+            be = tmpbndList.removeFromBack();
          }
          else cerr << "n2-n0 edge "
                    << n2->EdgToNod( n0 )->getID() << " not in temp bound list\n";
@@ -1832,7 +1832,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    for( cn = dI.FirstP(); !( dI.AtEnd() ); cn = dI.FirstP() )
    {
       DeleteNode( cn, kNoRepair );
-      deletelist.removeFromFront( cn );
+      cn  = deletelist.removeFromFront();
    }
    cout << "deleted superfluous boundary nodes\n";
    cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: "
@@ -2045,7 +2045,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    for( cn = dI.FirstP(); !( dI.AtEnd() ); cn = dI.FirstP() )
    {
       DeleteNode( cn, kNoRepair );
-      deletelist.removeFromFront( cn );
+      cn = deletelist.removeFromFront();
    }
    cout << "deleted superfluous boundary nodes\n";
    cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: "
@@ -2802,7 +2802,7 @@ ExtricateEdge( tEdge * edgePtr )
    //edgePtr->TellCoords();
    assert( edgePtr != 0 );
    //temporary objects:
-   tEdge *tempedgePtr=0, *ce, *cce;
+   tEdge *ce, *cce;
    tMeshListIter< tEdge > edgIter( edgeList );
    tSpkIter spokIter;
    tListNode< tEdge > *listnodePtr1, *listnodePtr2;
@@ -2819,7 +2819,7 @@ ExtricateEdge( tEdge * edgePtr )
    spokIter.Reset( ce->getOriginPtrNC() );
    if( spokIter.Get( ce ) )
        if( spokIter.Next() )
-           tempedgePtr = spokIter.removePrev();
+	 spokIter.removePrev();
 
    // Find the triangle that points to the edge
    //cout << "find triangle; " << flush;
@@ -2861,7 +2861,7 @@ ExtricateEdge( tEdge * edgePtr )
    spokIter.Reset( cce->getOriginPtrNC() );
    if( spokIter.Get( cce ) )
        if( spokIter.Next() )
-           tempedgePtr = spokIter.removePrev();
+	 spokIter.removePrev();
 
    //Since WarnSpokeLeaving can set a node to a boundary node if
    //There is no longer a legit place to flow, we need to check
@@ -3146,7 +3146,6 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    if (0) //DEBUG
      cout << "RepairMesh: " << endl;
    if( nbrList.getSize() < 3 ) return 0;
-   tSubNode * meshnodePtr = 0;
    nbrList.makeCircular();
    tPtrListIter< tSubNode > nbrIter( nbrList );
 
@@ -3160,7 +3159,8 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
            //cout << "found 3 Delaun!\n";
          AddEdgeAndMakeTriangle( nbrList, nbrIter );
            //remove "closed off" pt
-         nbrList.removeNext( meshnodePtr, nbrIter.NodePtr() );
+	 /* tSubNode * meshnodePtr = */
+         nbrList.removeNext( nbrIter.NodePtr() );
       }
         //else cout << "Not delaun\n";
 
@@ -3630,9 +3630,6 @@ CheckTrianglesAt( tSubNode* nPtr )
 {
    // put 3 last (new) triangles in ptr list and
    // re-triangulate to fix mesh (make it Delaunay)
-   int i, ctr;
-   tTriangle *ct;
-
    tPtrList< tTriangle > triptrList;
    tListIter< tTriangle > triIter( triList );
    triptrList.insertAtBack( triIter.LastP() );
@@ -3642,10 +3639,11 @@ CheckTrianglesAt( tSubNode* nPtr )
    tPtrListIter< tTriangle > triptrIter( triptrList );
    //check list for flips; if flip, put new triangles at end of list
    const bool flip = true;
-   ctr = 0;
-   while( !( triptrList.isEmpty() ) )
+   int ctr = 0;
+   tTriangle *ct;
+   while( (ct = triptrList.removeFromFront()) )
      {
-       ctr++;
+       ++ctr;
        if( ctr > kLargeNumber ) // Make sure to prevent endless loops
          {                        // TODO: remove for release ver
 	   cerr << "Mesh error: adding node " << nPtr->getID()
@@ -3653,22 +3651,20 @@ CheckTrianglesAt( tSubNode* nPtr )
 		<< endl;
 	   ReportFatalError( "Bailing out of CheckTrianglesAt()" );
          }
-       ct = triptrIter.FirstP();
 
-       for( i=0; i<3; i++ )
+       for( int i=0; i<3; i++ )
          {
 	   if( ct->tPtr(i) != 0 )
 	     {
                if( CheckForFlip( ct, i, flip ) )
 		 {
+		   // two new triangles built, insert them
 		   triptrList.insertAtBack( triIter.LastP() );
 		   triptrList.insertAtBack( triIter.PrevP() );
 		   break;
 		 }
 	     }
          }
-
-       triptrList.removeFromFront( ct );
      }
 }
 
@@ -4214,7 +4210,6 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
 {
    if (0) //DEBUG
      cout << "FlipEdge(...)..." << endl;
-   tSubNode *cn = 0;
    tPtrList< tSubNode > nbrList;
    //DumpTriangles();
 
@@ -4234,7 +4229,7 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
    tPtrListIter< tSubNode > nbrIter( nbrList );
    AddEdgeAndMakeTriangle( nbrList, nbrIter );
    nbrIter.First();
-   nbrList.removeNext( cn, nbrIter.NodePtr() );
+   /* tSubNode *cn = */ nbrList.removeNext( nbrIter.NodePtr() );
    MakeTriangle( nbrList, nbrIter );
    //cout << "finished" << endl;
 
@@ -4291,8 +4286,6 @@ CheckLocallyDelaunay()
    tPtrList< tTriangle > triPtrList;
    tPtrListIter< tTriangle > triPtrIter( triPtrList );
    tListIter< tTriangle > triIter( triList );
-   int i;
-   bool change;
    //Xint id0, id1, id2;
    tArray< int > npop(3);
    tSubNode *nodPtr;
@@ -4303,8 +4296,8 @@ CheckLocallyDelaunay()
    //put each triangle into the stack
    for( at = triIter.FirstP(); !( triIter.AtEnd() ); at = triIter.NextP() )
    {
-      change = false;
-      for( i = 0; i < 3; i++ )
+      bool change = false;
+      for( int i = 0; i < 3; i++ )
       {
          nodPtr = static_cast< tSubNode * >(at->pPtr(i));
          if( nodPtr->Meanders() ) change = true;
@@ -4314,16 +4307,14 @@ CheckLocallyDelaunay()
 
    // Check list for flips; if flip, put new triangles at end of list
    tPtrListIter< tTriangle > duptriPtrIter( triPtrList );
-   tTriangle *tn, *tp;
-   while( !( triPtrList.isEmpty() ) ) // keep going 'til we've done em all
+   while( (at = triPtrList.removeFromFront()) ) // keep going 'til we've done em all
    {
-      at = triPtrIter.FirstP();
-      for( i=0; i<3; i++ )
+      for( int i=0; i<3; i++ )
       {
          // If a neighboring triangle exists across this face, check for flip
          if( at->tPtr(i) != 0 )
          {
-            tp = at->tPtr(i);
+ 	    tTriangle *tp = at->tPtr(i);
 
             // If the neighboring triangle is also on the triPtrList, find
             // the item on the list that comes just before it. This is done
@@ -4333,6 +4324,7 @@ CheckLocallyDelaunay()
             // duptriPtrIter will either point to the item just before the
             // neighbor triangle, or it will point to the last item;
             // if tn is nonzero, it means the former is true.
+	    tTriangle *tn;
             for( tn = duptriPtrIter.FirstP();
                  duptriPtrIter.ReportNextP() != tp &&
                      !( duptriPtrIter.AtEnd() );
@@ -4375,7 +4367,7 @@ CheckLocallyDelaunay()
                // recreated during CheckForFlip)
                //cout << "flipped tri's, got tri ";
                if( tn != 0 )
-                   triPtrList.removeNext( tn, duptriPtrIter.NodePtr() );
+                   triPtrList.removeNext( duptriPtrIter.NodePtr() );
 
                // Now put the two recreated triangles on the triPtrList
                // We assume that CheckForFlip has put them at the back of
@@ -4414,7 +4406,6 @@ CheckLocallyDelaunay()
       // triPtrList (if it wasn't flipped, we no longer need to consider it;
       // if it was, it will have been deleted and its replacement added to
       // the back of the triPtrList)
-      triPtrList.removeFromFront( at );
    }
       //for each triangle in the stack
 /*      for( at = triPtrIter.FirstP(); !( triPtrIter.AtEnd() );
@@ -4499,7 +4490,7 @@ CheckTriEdgeIntersect()
       }
         //for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
       for( ct = tpIter.FirstP(); !(triptrList.isEmpty());
-           triptrList.removeFromFront( ct ), ct = tpIter.FirstP() )
+           ct = triptrList.removeFromFront(), ct = tpIter.FirstP() )
       {
            //cout<<"PA: check triangle "<<ct->id<<", w edges "
            //<<ct->e[0]->id<<", "<<ct->e[1]->id<<", "<<ct->e[2]->id<<endl<<flush;
@@ -4557,7 +4548,7 @@ CheckTriEdgeIntersect()
                                  if( !(tpIter.AtEnd()) ) //ctop is in tri ptrlist
                                  {
                                     tpListNode = tpIter.NodePtr();
-                                    triptrList.removeNext( rmtri, tpListNode );
+                                    triptrList.removeNext( tpListNode );
                                  }
                                  nv = ct->nVOp( ctop );
                                  nvopp = ctop->nVOp( ct );
@@ -4590,7 +4581,7 @@ CheckTriEdgeIntersect()
                                        if( !(tpIter.AtEnd()) ) //rmtri is in tri ptrlist
                                        {
                                           tpListNode = tpIter.NodePtr();
-                                          triptrList.removeNext( rmtri, tpListNode );
+                                          triptrList.removeNext( tpListNode );
                                        }
                                     }
                                       //delete the node;
