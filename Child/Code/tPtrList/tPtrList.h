@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.39 2003-09-01 13:57:09 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.40 2003-09-18 15:24:30 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -251,6 +251,7 @@ public:
   void Reset( tPtrList< NodeType > & );
   NodeType *NextP();
   NodeType *GetP( int ); //use only if NodeType has member getID()!!
+  NodeType* GetP( NodeType* );
   NodeType *FirstP();
   NodeType *LastP();
   NodeType *PrevP();
@@ -1368,6 +1369,12 @@ GetP( int num )
     curptrnode->Ptr : 0;
 }
 
+template< class NodeType >
+inline NodeType * tPtrListIter< NodeType >::GetP( NodeType* nPtr )
+{
+   return ( Get( nPtr ) ) ?
+       curptrnode->Ptr : 0;
+}
 
 /**************************************************************************\
  **
