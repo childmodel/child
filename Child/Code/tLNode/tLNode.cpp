@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.39 1998-04-29 14:47:34 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.40 1998-04-30 15:47:20 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -900,7 +900,7 @@ int tLNode::NoMoreTracers()
 void tLNode::EroDep( double dz )
 {
    z += dz;
-   //cout << "  eroding " << id << " by " << dz << endl;
+   //cout << "  eroding " << id << " by " << dz << endl << flush;
    
    //sed += dz;
    //if( sed<0 ) sed=0;
