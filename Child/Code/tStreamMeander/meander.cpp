@@ -126,7 +126,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.13 2003-06-30 09:39:58 childcvs Exp $ */
+/*     $Id: meander.cpp,v 1.14 2003-10-15 09:22:46 childcvs Exp $ */
 
 void meander_(const integer *stations, const integer *stnserod, 
 	      const doublereal *x, const doublereal *y,
@@ -329,8 +329,8 @@ void channel_(const integer *stnserod, const integer *stations,
     i__1 = *stnserod - 1;
     for (s = 1; s <= i__1; ++s) {
 	if (slope[s] <= 0.) {
-	cout << "neg. or zero slope:" << slope[s] << " " << s 
-	     << " " << flow[s] << endl;
+	  cout << "neg. or zero slope:" << slope[s] << " " << s 
+	       << " " << flow[s] << endl;
 	}
 	if (width[s] != 0. && width[s] != depth[s] * -2.) {
 /*          radh = (width(s) * depth(s)) / (width(s) + 2.d0 * depth(s)) */
