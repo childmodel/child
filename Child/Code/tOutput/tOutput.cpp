@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.18 1999-03-18 23:39:08 nmgaspar Exp $
+**  $Id: tOutput.cpp,v 1.19 1999-03-25 17:24:33 nmgaspar Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -202,8 +202,6 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       layofs << cn->getNumLayer() << endl;
       i=0;
       while(i<cn->getNumLayer()){
-         //NIC - change output of layerflag which is obsolete to
-         //output exposure time - TODO
          layofs << cn->getLayerCtime(i) << " " << cn->getLayerRtime(i) << " " << cn->getLayerEtime(i) << endl;
          layofs << cn->getLayerDepth(i) << " " << cn->getLayerErody(i) << " " << cn->getLayerSed(i) << endl;
          j=0;
