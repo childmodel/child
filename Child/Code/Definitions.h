@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.33 2003-05-23 17:47:55 childcvs Exp $
+**   $Id: Definitions.h,v 1.34 2003-05-26 17:42:27 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -47,10 +47,13 @@
 #define ROUND(x)    static_cast<int>((x)+0.5)
 #define SIGN(x)     ( (x)>0 ? 1 : 0 )
 
+#define BOOL(x) x
 #if defined(__SUNPRO_CC)
 # if __SUNPRO_CC==0x420 && !defined(ENUM_BOOL_DEFINED)
 #  define ENUM_BOOL_DEFINED 1
 typedef enum { false=0, true } bool;
+#undef BOOL
+#define BOOL(x) ((x)?true:false)
 # endif
 #endif
 
