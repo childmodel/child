@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.18 1998-03-09 17:40:29 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.19 1998-03-09 22:48:54 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -666,6 +666,9 @@ void tLNode::TellAll()
               << nbr->getY() << "," << nbr->getZ() << ")\n";
       }
       else cout << "  Flowedg is undefined\n";
+      cout << "  qs: " << GetQs() << "  qsin: " << GetQsin() << "  slp: "
+           << GetSlope() << endl;
+      cout << "  dzdt: " << dzdt << "  drdt: " << drdt << endl;
    }
    else cout << "  edg is undefined!\n";
    
