@@ -2,7 +2,7 @@
 **
 **  tUplift.cpp: Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.7 2000-06-05 12:55:22 gtucker Exp $
+**  $Id: tUplift.cpp,v 1.8 2000-06-15 17:43:04 gtucker Exp $
 \************************************************************************/
 
 #include "tUplift.h"
@@ -67,6 +67,9 @@ tUplift::tUplift( tInputFile &infile )
           foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
           slipRate = infile.ReadItem( slipRate, "TIGHTENINGRATE" );
           faultPosition = infile.ReadItem( faultPosition, "ANTICLINEYCOORD" );
+          deformStartTime1 = 
+              infile.ReadItem( deformStartTime1, "YFOLDINGSTART" );
+          foldParam2 = infile.ReadItem( foldParam2, "UPSUBRATIO" );
           break;
    }
    
@@ -257,18 +260,37 @@ void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double uprate;
+   static double elapsedTime = 0;
 
    // For each node, the uplift rate is the uplift rate constant ("rate") times
-   // the cosine function in x and y. Note that the variable "faultPosition"
+   // the cosine function in the y- and (if lateral y-directed tightening has
+   // begun) x-directions. Note that the variable "faultPosition"
    // is used to store the Y location of the anticline peak (normally, the
-   // upper boundary)
-   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+   // upper boundary). The ratio of uplift to subsidence rates is controlled
+   // by the parameter "foldParam2"; if uplift is positive, the rate is
+   // multiplied by this factor.
+   if( elapsedTime >= deformStartTime1 )
    {
-      uprate = rate * 
-          ( cos(PI*cn->getX()/foldParam) 
-            + cos(TWOPI*(faultPosition-cn->getY())/foldParam) );
-      cn->ChangeZ( uprate*delt );
+      for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+      {
+         uprate = rate * 
+             ( cos(PI*cn->getX()/foldParam) 
+               + cos(TWOPI*(faultPosition-cn->getY())/foldParam) );
+         if( uprate>0.0 ) uprate *= foldParam2;
+         cn->ChangeZ( uprate*delt );
+      }
    }
+   else
+   {
+      for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+      {
+         uprate = rate * 
+             cos(TWOPI*(faultPosition-cn->getY())/foldParam);
+         if( uprate>0.0 ) uprate *= foldParam2;
+         cn->ChangeZ( uprate*delt );
+      }
+   }
+   elapsedTime += delt;
 
    // The "tightening" of the folds through time is simulated by
    // progressively decreasing the fold wavelength. (Here the variable
