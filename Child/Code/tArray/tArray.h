@@ -13,7 +13,7 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.17 2003-02-11 17:43:59 childcvs Exp $
+**  $Id: tArray.h,v 1.18 2003-05-15 16:07:56 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -64,8 +64,6 @@ private:
     T * avalue; // the array itself
 };
 
-template< class T >                                               //tArray
-ostream &operator<<( ostream &output, const tArray< T > &a );
 template< class T >                                               //tArray
 ostream &operator<<( ostream &output, const tArray< T > &a );
 
