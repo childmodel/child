@@ -181,7 +181,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.32 1998-04-28 16:19:14 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.33 1998-04-29 21:27:19 gtucker Exp $
 \**************************************************************************/
 
 
@@ -613,6 +613,7 @@ int tStreamNet::DamBypass( tLNode *snknod )
    tArray< double > cxy, nxy, nnxy;
    tPtrListIter< tEdge > sI( snknod->getSpokeListNC() );
    cxy = snknod->get2DCoords();
+   
    cz = snknod->getZ();
    //while( uphill && cntr <= maxcnt )
    //{
@@ -633,7 +634,7 @@ int tStreamNet::DamBypass( tLNode *snknod )
       }
       else
       {
-         mytri = gridPtr->TriWithEdgePtr( gridPtr->getEdgeCompliment( fedg ) );
+         mytri = gridPtr->TriWithEdgePtr( gridPtr->getEdgeComplement( fedg ) );
          nv = mytri->nVtx( snknod );
          othernbr = (tLNode *) mytri->pPtr( (nv+1)%3 );
       }
@@ -651,7 +652,7 @@ int tStreamNet::DamBypass( tLNode *snknod )
          nz = ce->getDestinationPtrNC()->getZ();
          slp = ( cz - nz ) / ce->getLength();
          ce->setSlope( slp );
-         gridPtr->getEdgeCompliment( ce )->setSlope( -slp );
+         gridPtr->getEdgeComplement( ce )->setSlope( -slp );
          //if( ce->getDestinationPtrNC()->getZ() < cz ) uphill = 0;
       }
       //}
@@ -1331,7 +1332,7 @@ void tStreamNet::SortNodesByNetOrder()
 #if TRACKFNS
    cout << "SortNodesByNetOrder" << endl;
 #endif
-   
+
    // Assign initial tracers: use "qs" field, which contains garbage at
    // this stage.
    for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
@@ -1345,6 +1346,7 @@ void tStreamNet::SortNodesByNetOrder()
       cn = listIter.FirstP();
       for( i=1; i<=nUnsortedNodes; i++ )
       {
+         assert( cn!=0 );
          cn->MoveSortTracerDownstream();
          cn = listIter.NextP();
       }
