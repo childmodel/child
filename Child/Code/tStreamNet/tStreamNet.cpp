@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.54 1999-02-22 17:59:08 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.55 1999-02-22 23:01:31 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -191,6 +191,7 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    CalcSlopes();  // TODO: should be in tGrid
    InitFlowDirs(); // TODO: should all be done in call to updatenet
    FlowDirs();
+   CheckNetConsistency();
    MakeFlow( 0.0 );
    cout << "finished" << endl;
 }
@@ -461,7 +462,7 @@ void tStreamNet::CalcSlopes()
 	tGridListIter<tEdge> i( gridPtr->getEdgeList() );
   double slp, length;
 
-  //cout << "CalcSlopes()...";
+  cout << "CalcSlopes()...";
 
   // Loop through each pair of edges on the list
 	for( curedg = i.FirstP(); !( i.AtEnd() ); curedg = i.NextP() )
@@ -486,7 +487,7 @@ void tStreamNet::CalcSlopes()
      //curedg->setLength( length );
      assert( curedg->getLength() > 0 );
 	}
-  //cout << "CalcSlopes() finished" << endl;	
+  cout << "CalcSlopes() finished" << endl;	
 }
 
 
@@ -513,6 +514,8 @@ void tStreamNet::InitFlowDirs()
    tEdge * flowedg;
    int ctr;
 
+   cout << "InitFlowDirs()...\n";
+   
    // For every active (non-boundary) node, initialize it to flow to a
    // non-boundary node (ie, along a "flowAllowed" edge)
    curnode = i.FirstP();
@@ -545,6 +548,9 @@ void tStreamNet::InitFlowDirs()
       assert( curnode->getFlowEdg() > 0 );
       curnode = i.NextP();
    }
+
+   cout << "finished\n";
+   
 }
 #undef kMaxSpokes
 
@@ -665,7 +671,7 @@ void tStreamNet::FlowDirs()
    int ctr;
    
 //#if TRACKFNS
-   //cout << "FlowDirs" << endl;
+   cout << "FlowDirs()..." << endl;
 //#endif
 
    //int redo = 1;
@@ -677,9 +683,9 @@ void tStreamNet::FlowDirs()
       curnode = i.FirstP();
       while( i.IsActive() )  // DO for each non-boundary (active) node
       {
-//           if(curnode->getID()==795 ){
-//              cout<<"in flowdirs with node 795"<<endl;
-//           }
+           if(curnode->getID()==151 ){
+              cout<<"in flowdirs with node 151"<<endl;
+           }
 
          curnode->setFloodStatus( kNotFlooded );  // Init flood status flag
          firstedg =  curnode->getFlowEdg();
@@ -688,12 +694,12 @@ void tStreamNet::FlowDirs()
          assert( firstedg > 0 );
          slp = firstedg->getSlope();
          nbredg = firstedg;
-//           if(curnode->getID()==795 | curnode->getID()==793){
-//              nbr = (tLNode *)firstedg->getDestinationPtrNC();
-//              cout<<"node "<<curnode->getID()<<" edge "<<nbredg->getID()<<" slp "<<slp<<" downstream nbr "<<nbr->getID()<<endl;
-//              cout<<"z "<<curnode->getZ()<<" dsn z "<<nbr->getZ();
-//              cout<<" meander "<<curnode->Meanders()<<endl;
-//           }
+         if(curnode->getID()==151 ) {
+            nbr = (tLNode *)firstedg->getDestinationPtrNC();
+            cout<<"node "<<curnode->getID()<<" edge "<<nbredg->getID()<<" slp "<<slp<<" downstream nbr "<<nbr->getID()<<endl;
+            cout<<"z "<<curnode->getZ()<<" dsn z "<<nbr->getZ();
+            cout<<" meander "<<curnode->Meanders()<<endl;
+         }
          curedg = firstedg->getCCWEdg();
          ctr = 0;         
          
@@ -701,10 +707,10 @@ void tStreamNet::FlowDirs()
          // back to the beginning
          while( curedg!=firstedg )
          {
-//              if(curnode->getID()==795 | curnode->getID()==793){
-//                 nbr = (tLNode *)curedg->getDestinationPtrNC();
-//                 cout<<"node "<<curnode->getID()<<" edge "<<curedg->getID()<<" slp "<<slp<<" downstream nbr "<<nbr->getID()<<endl;
-//              }
+              if(curnode->getID()==151){
+                 nbr = (tLNode *)curedg->getDestinationPtrNC();
+                 cout<<"node "<<curnode->getID()<<" edge "<<curedg->getID()<<" slp "<<slp<<" downstream nbr "<<nbr->getID()<<endl;
+              }
             tempnode=curedg->getOriginPtr();
             assert( curedg > 0 );
             if ( curedg->getSlope() > slp && curedg->FlowAllowed() )
@@ -768,7 +774,7 @@ void tStreamNet::FlowDirs()
       
       
       //}
-   //cout << "FlowDirs() finished" << endl << flush;
+   cout << "FlowDirs() finished" << endl << flush;
   
 }
 #undef kLargeNegative
@@ -923,7 +929,7 @@ void tStreamNet::RouteRunoff( tLNode *curnode, double addedArea,
 \*****************************************************************************/
 void tStreamNet::MakeFlow( double tm )
 {
-   //cout << "MakeFlow()..."<<endl<<flush;
+   cout << "MakeFlow()..."<<flush;
       
    if( filllakes ) FillLakes();
    DrainAreaVoronoi();
@@ -949,7 +955,7 @@ void tStreamNet::MakeFlow( double tm )
           FlowUniform();      // Spatially uniform infiltration-excess runoff
    }
 
-   //cout << "MakeFlow() finished" << endl;
+   cout << "MakeFlow() finished" << endl;
 }
 
 
