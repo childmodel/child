@@ -14,7 +14,7 @@
  **   - Remove dead code. Add findRightTime (AD 07/03)
  **   - Add Random number generator handling. (AD 08/03)
  **
- **  $Id: tListInputData.cpp,v 1.18 2003-08-01 17:14:55 childcvs Exp $
+ **  $Id: tListInputData.cpp,v 1.19 2003-08-08 09:13:08 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -140,6 +140,10 @@ tListInputData( tInputFile &infile, tRand &rand )          //tListInputData
   int nrandom;
   findRightTime( randominfile, nrandom, intime,
 		 basename, SRANDOM, "random number generator");
+  if ( rand.numberRecords() != nrandom ) {
+    cerr << "Invalid number of records for the random number generator\n";
+    ReportFatalError( "Input error" );
+  }
 
   // Dimension the arrays accordingly
   x.setSize( nnodes );
