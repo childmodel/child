@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.45 2003-08-05 13:08:52 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.46 2003-08-06 13:13:11 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -49,16 +49,6 @@
 #define kConstSoilStore 3  // Option for "bucket"-type flow generation
 #define k2DKinematicWave 4 // Option for 2D steady kinematic wave multi-flow
 #define kHydrographPeakMethod 5  // Option for hydrograph peak method
-
-#define kFlooded     1  // Flooding (lake) codes: part of a lake...
-#define kNotFlooded  0  // ...or not...
-#define kCurrentLake 2  // ...or part one that is currently being computed...
-//defined in tLNode.h
-//#define kSink        3  // ...or a dry sink (unfilled depression).
-#define kOutletFlag  4  // Used as temporary flag in FillLakes.
-#define kOutletPreFlag 5 // ditto
-//defined in tLNode.h
-//#define kVeryHigh 100000  // Used in FillLakes
 
 #define kNumChanGeomModels 2
 #define kRegimeChannels 1
@@ -262,6 +252,7 @@ public:
     void DensifyMeshDrArea( double time=0.0 );  // Densifies mesh locally
 
 protected:
+    void FillLakesFlowDirs(tPtrListIter< tLNode > &, tLNode *);
     inline static void RouteFlowArea( tLNode *, double );
     inline static void RouteRunoff( tLNode *, double, double );
 

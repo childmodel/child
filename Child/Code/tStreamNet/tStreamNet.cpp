@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.44 2003-08-05 15:36:07 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.45 2003-08-06 13:13:09 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1379,8 +1379,7 @@ void tStreamNet::FillLakes()
    tLNode *cn,             // Node on list: if a sink, then process
        *thenode,           // Node on lake perimeter
        *lowestNode,        // Lowest node on perimeter found so far
-       *cln,               // current lake node
-       *node;              // placeholder
+       *cln;               // current lake node
    tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() ); // node iterator
    tEdge *ce;              // Pointer to an edge
    double lowestElev;      // Lowest elevation found so far on lake perimeter
@@ -1469,55 +1468,7 @@ void tStreamNet::FillLakes()
             }
          } while( !done );
 
-         // Now we've found an outlet for the current lake.
-         // This next bit of code assigns a flowsTo for each node so there's
-         // a complete flow path toward the lake's outlet. This isn't strictly
-         // necessary --- the nodes could all point directly to the outlet,
-         // skipping anything in between --- but it prevents potential problems
-         // in ordering the list by network order. This also works by pointing
-         // each node toward the first neighboring node they happen to find
-         // that has been flagged as having its flow direction resolved.
-         // Initially, the low node is thus flagged, and the algorithm repeats
-         // until all the lake nodes are flagged as having a flow direction.
-         // The algorithm isn't unique---there are many paths that could be
-         // taken; this simply finds the most convenient one.
-         lowestNode->setFloodStatus( kOutletFlag );
-
-         // Test for error in mesh: if the lowestNode is a closed boundary, it
-         // means no outlet can be found.
-         do
-         {
-            done = true;  // assume done until proven otherwise
-            for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
-                 cln = lakeIter.NextP() )
-            {
-               if( cln->getFloodStatus() != kOutletFlag )
-               {
-                  done = false;
-
-                  // Check each neighbor
-                  ce = cln->getEdg();
-                  do
-                  {
-                     node = static_cast<tLNode *>(ce->getDestinationPtrNC());
-                     if( node->getFloodStatus() == kOutletFlag )
-                     {     // found one!
-                        cln->setFloodStatus( kOutletPreFlag );
-                        cln->setFlowEdg( ce );
-                     }
-                  } while( cln->getFloodStatus() != kOutletFlag
-                           && ( ce=ce->getCCWEdg() ) != cln->getEdg() );
-               } // END if node not flagged as outlet
-            } // END for each lake node
-
-            // Now flag all the "preflagged" lake nodes as outlets
-            for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
-                 cln = lakeIter.NextP() )
-                if( cln->getFloodStatus() == kOutletPreFlag )
-                    cln->setFloodStatus( kOutletFlag );
-
-         } while( !done );
-         lowestNode->setFloodStatus( kNotFlooded );
+	 FillLakesFlowDirs(lakeIter, lowestNode);
 
          // Finally, flag all of the
          // nodes in it as "kFlooded" and clear the list so we can move on to
@@ -1531,6 +1482,74 @@ void tStreamNet::FillLakes()
      cout << "FillLakes() finished" << endl;
 
 } // end of tStreamNet::FillLakes
+
+
+/*****************************************************************************\
+**
+**  tStreamNet::FillLakesFlowDirs
+**
+**  Moved from FillLakes (AD 08/2003)
+**
+\*****************************************************************************/
+void tStreamNet::FillLakesFlowDirs(tPtrListIter< tLNode > &lakeIter,
+				   tLNode *lowestNode)
+{
+  tLNode
+    *cln;               // current lake node
+  tEdge *ce;              // Pointer to an edge
+  bool done;               // Flag indicating whether outlet has been found
+
+  // Now we've found an outlet for the current lake.
+  // This next bit of code assigns a flowsTo for each node so there's
+  // a complete flow path toward the lake's outlet. This isn't strictly
+  // necessary --- the nodes could all point directly to the outlet,
+  // skipping anything in between --- but it prevents potential problems
+  // in ordering the list by network order. This also works by pointing
+  // each node toward the first neighboring node they happen to find
+  // that has been flagged as having its flow direction resolved.
+  // Initially, the low node is thus flagged, and the algorithm repeats
+  // until all the lake nodes are flagged as having a flow direction.
+  // The algorithm isn't unique---there are many paths that could be
+  // taken; this simply finds the most convenient one.
+  lowestNode->setFloodStatus( kOutletFlag );
+
+  // Test for error in mesh: if the lowestNode is a closed boundary, it
+  // means no outlet can be found.
+  do
+    {
+      done = true;  // assume done until proven otherwise
+      for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
+	   cln = lakeIter.NextP() )
+	{
+	  if( cln->getFloodStatus() != kOutletFlag )
+	    {
+	      done = false;
+
+	      // Check each neighbor
+	      ce = cln->getEdg();
+	      do
+		{
+		  tLNode *
+		    node = static_cast<tLNode *>(ce->getDestinationPtrNC());
+		  if( node->getFloodStatus() == kOutletFlag )
+		    {     // found one!
+		      cln->setFloodStatus( kOutletPreFlag );
+		      cln->setFlowEdg( ce );
+		    }
+		} while( cln->getFloodStatus() != kOutletFlag
+			 && ( ce=ce->getCCWEdg() ) != cln->getEdg() );
+	    } // END if node not flagged as outlet
+	} // END for each lake node
+
+      // Now flag all the "preflagged" lake nodes as outlets
+      for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
+	   cln = lakeIter.NextP() )
+	if( cln->getFloodStatus() == kOutletPreFlag )
+	  cln->setFloodStatus( kOutletFlag );
+
+    } while( !done );
+  lowestNode->setFloodStatus( kNotFlooded );
+}
 
 
 /*****************************************************************************\
