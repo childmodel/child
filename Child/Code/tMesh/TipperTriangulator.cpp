@@ -35,13 +35,13 @@ using namespace std;
 static inline
 double vecprod(int p0,int p1,int p2,const point *p){
   return
-    (p[p1].x-p[p0].x)*(p[p2].y-p[p0].y)
-    -(p[p1].y-p[p0].y)*(p[p2].x-p[p0].x);
+    (p[p1].x()-p[p0].x())*(p[p2].y()-p[p0].y())
+    -(p[p1].y()-p[p0].y())*(p[p2].x()-p[p0].x());
 }
 
 const point &point::operator=( const point &p ) {
   if ( &p != this ) {
-    x=p.x; y=p.y; id=p.id;
+    _x=p.x(); _y=p.y(); _id=p.id();
   }
   return *this;
 }
@@ -49,13 +49,13 @@ const point &point::operator=( const point &p ) {
 // we sort according x *and* y (if x are equal) so that
 // vertically aligned point are ordered.
 int point::operator < (const point& p) const {
-  return x == p.x ? y<p.y : x<p.x;
+  return x() == p.x() ? y()<p.y() : x()<p.x();
 }
 
 #if defined(DEBUG_PRINT)
-void point::print () const {cout << x << ' '<< y <<endl;}
+void point::print () const {cout << x() << ' '<< y() <<endl;}
 #endif
-void point::write(ofstream& f) const {f<<x<<' '<<y<<endl;}
+void point::write(ofstream& f) const {f<<x()<<' '<<y()<<endl;}
 
 
 #if defined(DEBUG_PRINT)
@@ -535,7 +535,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
   
   for (int i=next_point;i<npoints;i++){
     saved_edge=-1;
-    if (p[i-1].x == p[i].x && p[i-1].y == p[i].y){
+    if (p[i-1].x() == p[i].x() && p[i-1].y() == p[i].y()){
       continue; // skip the duplicated point
     }
 
@@ -659,9 +659,9 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 static
 void tt_verify_sort(int npoints, const point *p){
   for(int ipoint=1; ipoint < npoints; ++ipoint){
-    assert(p[ipoint-1].x <= p[ipoint].x);
-    if (p[ipoint-1].x == p[ipoint].x)
-      assert(p[ipoint-1].y <= p[ipoint].y);
+    assert(p[ipoint-1].x() <= p[ipoint].x());
+    if (p[ipoint-1].x() == p[ipoint].x())
+      assert(p[ipoint-1].y() <= p[ipoint].y());
   }
 }
 
@@ -924,12 +924,12 @@ void tt_build_elem_table(int npoints, const point *p,
       // points should not be aligned.
       if (v==0.){
 	cout << "These points are aligned: "
-	     << elems[ielem].p1 << "(" << p[elems[ielem].p1].x
-	     << "," << p[elems[ielem].p1].y << "), " 
-	     << elems[ielem].p2 << "(" << p[elems[ielem].p2].x
-	     << "," << p[elems[ielem].p2].y << "), " 
-	     << elems[ielem].p3 << "(" << p[elems[ielem].p3].x
-	     << "," << p[elems[ielem].p3].y << ")" 
+	     << elems[ielem].p1 << "(" << p[elems[ielem].p1].x()
+	     << "," << p[elems[ielem].p1].y() << "), " 
+	     << elems[ielem].p2 << "(" << p[elems[ielem].p2].x()
+	     << "," << p[elems[ielem].p2].y() << "), " 
+	     << elems[ielem].p3 << "(" << p[elems[ielem].p3].x()
+	     << "," << p[elems[ielem].p3].y() << ")" 
 	     << endl;
       }
       assert(v != 0.);
@@ -962,11 +962,14 @@ void tt_build_elem_table(int npoints, const point *p,
     for(int ielem=0;ielem<nelem;ielem++){
       cout << "elem=" << ielem
 	   << " p1=" << elems[ielem].p1
-	   << " (" << p[elems[ielem].p1].x <<"," << p[elems[ielem].p1].y << ")"
+	   << " (" << p[elems[ielem].p1].x()
+	   <<"," << p[elems[ielem].p1].y() << ")"
 	   << " p2=" << elems[ielem].p2
-	   << " (" << p[elems[ielem].p2].x <<"," << p[elems[ielem].p2].y << ")"
+	   << " (" << p[elems[ielem].p2].x()
+	   <<"," << p[elems[ielem].p2].y() << ")"
 	   << " p3=" << elems[ielem].p3
-	   << " (" << p[elems[ielem].p3].x <<"," << p[elems[ielem].p3].y << ")"
+	   << " (" << p[elems[ielem].p3].x()
+	   <<"," << p[elems[ielem].p3].y() << ")"
 	   << endl;
     }
   }

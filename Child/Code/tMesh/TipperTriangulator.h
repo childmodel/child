@@ -41,22 +41,26 @@ void tt_error_handler(void);
 
 class point{
 public:
-  point() : x(0.), y(0.), id(-1) {}
-  point(double ix,double iy) : x(ix), y(iy), id(-1) {}
-  point(const point& p) : x(p.x), y(p.y), id(p.id) {}
+  point() : _x(0.), _y(0.), _id(-1) {}
+  point(double ix,double iy) : _x(ix), _y(iy), _id(-1) {}
+  point(double ix,double iy,int iid) : _x(ix), _y(iy), _id(iid) {}
+  point(const point& p) : _x(p.x()), _y(p.y()), _id(p.id()) {}
   const point &operator=( const point &p );
   int operator < (const point& p) const;
-  point operator - (const point& p) const {return point(x-p.x,y-p.y);}
-  point operator + (const point& p) const {return point(x+p.x,y+p.y);}
-  point operator / (double f) const {return point(x/f,y/f);}
-  double dot(const point& p) const {return (x*p.x+y*p.y);}
+  point operator - (const point& p) const {return point(x()-p.x(),y()-p.y());}
+  point operator + (const point& p) const {return point(x()+p.x(),y()+p.y());}
+  point operator / (double f) const {return point(x()/f,y()/f);}
+  double dot(const point& p) const {return (x()*p.x()+y()*p.y());}
 #if defined(DEBUG_PRINT)
   void print () const;
 #endif
   void write(ofstream& f) const;
-public:
-  double x,y;
-  int id;
+  double x() const { return _x; }
+  double y() const { return _y; }
+  int id() const { return _id; }
+private:
+  double _x,_y;
+  int _id;
 };
 
 class edge{

@@ -7,6 +7,7 @@
 
 #include <math.h>
 #if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
 # include <fstream>
 using namespace std;
 #else
@@ -150,8 +151,8 @@ void generate_dataset(int n,point* p){
   srand(0);
   for (int i=0;i<n;i++){
     for(int j=0;j<n;j++){
-      p[i+j*n].x=double(i)+double(rand())/RAND_MAX*n*1.e-3;
-      p[i+j*n].y=double(j)+double(rand())/RAND_MAX*n*1.e-3;
+      p[i+j*n] = point(double(i)+double(rand())/RAND_MAX*n*1.e-3,
+		       double(j)+double(rand())/RAND_MAX*n*1.e-3);
     } 
   }
   if (WRITE_FILES) {
@@ -182,8 +183,10 @@ void test_triangulate_from_file(){
   file >> npoints;
   point *p = new point[npoints];
   for(int i=0;i<npoints;++i){
-    file >> p[i].x;
-    file >> p[i].y;
+    double x, y;
+    file >> x;
+    file >> y;
+    p[i] = point(x,y);
   }
 
   test_sort_triangulate(npoints,p);

@@ -157,15 +157,13 @@ BuildDelaunayMeshTipper()
      tSubNode* cn;
      int inode = 0;
      for( cn=nodIter.FirstP(); !(nodIter.AtEnd()); cn=nodIter.NextP()){
-       p[inode].x = cn->getX();
-       p[inode].y = cn->getY();
-       p[inode].id = cn->getID();
+       p[inode] = point(cn->getX(), cn->getY(), cn->getID());
        ++inode;
      }
 
      if (0) { // DEBUG
        for (int i=0; i<nnodes; ++i){
-	 cout << i << " x=" << p[i].x << " y=" << p[i].y << endl;
+	 cout << i << " x=" << p[i].x() << " y=" << p[i].y() << endl;
        }
      }
    }
@@ -184,12 +182,12 @@ BuildDelaunayMeshTipper()
      cout << "After sort_triangulate:\n";
      for( int iedge=0; iedge < nedgesl; ++iedge) {
        cout << "edge " << 2*iedge
-	    << " from=" << p[edges[iedge].from].id 
-	    << " (" << p[edges[iedge].from].x << ","
-	    << p[edges[iedge].from].y << ")"
-	    << " to=" << p[edges[iedge].to].id
-	    << " (" << p[edges[iedge].to].x << ","
-	    << p[edges[iedge].to].y << ")"
+	    << " from=" << p[edges[iedge].from].id()
+	    << " (" << p[edges[iedge].from].x() << ","
+	    << p[edges[iedge].from].y() << ")"
+	    << " to=" << p[edges[iedge].to].id()
+	    << " (" << p[edges[iedge].to].x() << ","
+	    << p[edges[iedge].to].y() << ")"
 	    << endl;
      }
    }
@@ -212,13 +210,13 @@ BuildDelaunayMeshTipper()
        tempedge1.setID( e_t2c(iedge,true) );
        tempedge2.setID( e_t2c(iedge,false) );
        {
-	 tSubNode *nodPtr1 = NodeTable[p[edges[iedge].from].id];
+	 tSubNode *nodPtr1 = NodeTable[p[edges[iedge].from].id()];
 	 tempedge1.setOriginPtr( nodPtr1 );
 	 tempedge2.setDestinationPtr( nodPtr1 );
 	 obnd = (*nodPtr1).getBoundaryFlag();
        }
        {
-	 tSubNode *nodPtr2 = NodeTable[p[edges[iedge].to].id];
+	 tSubNode *nodPtr2 = NodeTable[p[edges[iedge].to].id()];
 	 tempedge1.setDestinationPtr( nodPtr2 );
 	 tempedge2.setOriginPtr( nodPtr2 );
 	 dbnd = (*nodPtr2).getBoundaryFlag();
@@ -271,7 +269,7 @@ BuildDelaunayMeshTipper()
      // connectivity point - sorted point
      tArray< int > p2sp(nnodes);
      for(int inodes=0;inodes!=nnodes;++inodes){
-       p2sp[p[inodes].id] = inodes;
+       p2sp[p[inodes].id()] = inodes;
      }
 
      tMeshListIter< tSubNode > nodIter(nodeList);
@@ -344,23 +342,23 @@ BuildDelaunayMeshTipper()
        tTriangle newtri;
        newtri.setID( ielem );
        if (0) { // DEBUG
-	 cout << "p0=" << p[elems[ielem].p1].id << " "
-	      << "(" << p[elems[ielem].p1].x
-	      << "," << p[elems[ielem].p1].y << "), " 
-	      << "p1=" << p[elems[ielem].p2].id << " "
-	      << "(" << p[elems[ielem].p2].x
-	      << "," << p[elems[ielem].p2].y << "), " 
-	      << "p2=" << p[elems[ielem].p3].id << " "
-	      << "(" << p[elems[ielem].p3].x
-	      << "," << p[elems[ielem].p3].y << "), " 
+	 cout << "p0=" << p[elems[ielem].p1].id() << " "
+	      << "(" << p[elems[ielem].p1].x()
+	      << "," << p[elems[ielem].p1].y() << "), " 
+	      << "p1=" << p[elems[ielem].p2].id() << " "
+	      << "(" << p[elems[ielem].p2].x()
+	      << "," << p[elems[ielem].p2].y() << "), " 
+	      << "p2=" << p[elems[ielem].p3].id() << " "
+	      << "(" << p[elems[ielem].p3].x()
+	      << "," << p[elems[ielem].p3].y() << "), " 
 	      << "e0=" << elems[ielem].e1 << " "
 	      << "e1=" << elems[ielem].e2 << " "
 	      << "e2=" << elems[ielem].e3 << endl;
        }
        {
-	 newtri.setPPtr( 0, NodeTable[p[elems[ielem].p1].id] );
-	 newtri.setPPtr( 1, NodeTable[p[elems[ielem].p2].id] );
-	 newtri.setPPtr( 2, NodeTable[p[elems[ielem].p3].id] );
+	 newtri.setPPtr( 0, NodeTable[p[elems[ielem].p1].id()] );
+	 newtri.setPPtr( 1, NodeTable[p[elems[ielem].p2].id()] );
+	 newtri.setPPtr( 2, NodeTable[p[elems[ielem].p3].id()] );
        }
        {
 	 newtri.setEPtr( 0, EdgeTable[e_t2c(elems[ielem].e1, 
