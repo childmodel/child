@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.9 1998-02-02 17:05:21 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.10 1998-02-02 18:15:55 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -477,6 +477,7 @@ tGrid( tListInputData< tSubNode > &input )                           //tGrid
    while( trIter1.Next() );
    //cout<<"set list data values"<<endl;
 
+   UpdateMesh();
    CheckMeshConsistency();
    
 }
@@ -696,6 +697,7 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
    while( trIter1.Next() );
    //cout<<"set list data values"<<endl;
    //cout << "tGrid( input )" << endl;
+   UpdateMesh();
 
    CheckMeshConsistency();
 }
@@ -1060,6 +1062,7 @@ tGrid( tInputFile &infile )
       }
    }
    MakeCCWEdges();
+   UpdateMesh();
    CheckMeshConsistency();
 }
 
