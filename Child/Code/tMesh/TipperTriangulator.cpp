@@ -256,6 +256,13 @@ int cyclist::addAfter(int a,int ej){
   void cyclist::print() const {int j=ejs[0].next;for (int i=0;i<num;i++){cout<<ejs[j].data<<endl;j=ejs[j].next;}}
 #endif
 
+// vector product (or cross product) of p0p1,p0p2
+static
+double vecprod(int p0,int p1,int p2,const point *p){
+  return
+    (p[p1].x-p[p0].x)*(p[p2].y-p[p0].y)
+    -(p[p1].y-p[p0].y)*(p[p2].x-p[p0].x);
+}
 
 void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 
@@ -271,23 +278,26 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 
   //make first three edges  - these will form the initial convex hull
   //make sure orientation is anticlockwise
-  //modify for equal x coords!!!!!
-  assert(p[1].x != p[0].x);
-  if (p[2].y>p[0].y+(p[1].y-p[0].y)*(p[2].x-p[0].x)/(p[1].x-p[0].x)){
-    edges[0].from=0;
-    edges[0].to=1;
-    edges[1].from=1;
-    edges[1].to=2;
-    edges[2].from=2;
-    edges[2].to=0;
-  }
-  else{
-    edges[0].from=0;
-    edges[0].to=2;
-    edges[1].from=2;
-    edges[1].to=1;
-    edges[2].from=1;
-    edges[2].to=0;
+  // Arnaud: orientation is counter clockwise <=> angle(p0p1,p0p2) >= 0
+  //  <=> sin(p0p1,p0p2) >=0 <=> vect_prod(p0p1,p0p2) >= 0
+  {
+    const double v = vecprod(0,1,2,p);
+    if (v>0) {
+      edges[0].from=0;
+      edges[0].to=1;
+      edges[1].from=1;
+      edges[1].to=2;
+      edges[2].from=2;
+      edges[2].to=0;
+    }
+    else{
+      edges[0].from=0;
+      edges[0].to=2;
+      edges[1].from=2;
+      edges[1].to=1;
+      edges[2].from=1;
+      edges[2].to=0;
+    }
   }
   //make left edges
   edges[0].lef=2;
@@ -687,12 +697,11 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
       }
       // orientation: counter clockwise
       // angle(p2p1.p2p3) must be negative (counter clockwise)
-      // <=> sine(p2p1.p2p3) <= 0 <=> vect_prod(p2p1,p2p3) <=0
-      double v=
-	(p[elems[ielem].p1].x-p[elems[ielem].p2].x)*
-	(p[elems[ielem].p3].y-p[elems[ielem].p2].y)
-	-(p[elems[ielem].p1].y-p[elems[ielem].p2].y)*
-	(p[elems[ielem].p3].x-p[elems[ielem].p2].x);
+      // <=> sin(p2p1.p2p3) <= 0 <=> vect_prod(p2p1,p2p3) <=0
+      const double v=
+	vecprod(elems[ielem].p2,elems[ielem].p1,elems[ielem].p3,p);
+      // points should not be aligned.
+      assert(v != 0.);
       if (v>0) {
 	SWAP_E(p1,p3)
 	SWAP_E(e2,e3);
