@@ -13,7 +13,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.82 2003-08-01 17:14:58 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.83 2003-08-04 14:47:36 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -225,16 +225,14 @@ void tOutput<tSubNode>::WriteOutput( double time )
   // Write triangle file
   WriteTimeNumberElements( triofs, time, ntri);
   if (!CanonicalNumbering) {
-    const int index[] = { 0, 1, 2 };
     for( tTriangle *ct=titer.FirstP(); !(titer.AtEnd()); ct=titer.NextP() )
-      WriteTriangleRecord(ct, index);
+      WriteTriangleRecord( ct );
   } else {
     // write triangles in ID order
     tIdArray< tTriangle > RTri(*(m->getTriList()));
     for( int i=0; i<ntri; ++i ) {
-      int index[3];
-      SetTriangleIndex(RTri[i], index);
-      WriteTriangleRecord(RTri[i], index);
+      assert( RTri[i]->isIndexIDOrdered() );
+      WriteTriangleRecord( RTri[i] );
     }
   }
 
@@ -270,17 +268,19 @@ inline void tOutput<tSubNode>::WriteEdgeRecord( tEdge *ce )
 }
 
 template< class tSubNode >
-inline void tOutput<tSubNode>::WriteTriangleRecord( tTriangle const *ct,
-						    const int index[3])
+inline void tOutput<tSubNode>::WriteTriangleRecord( tTriangle const *ct)
 {
-  int i;
-  for( i=0; i<=2; i++ )
-    triofs << ct->pPtr(index[i])->getID() << ' ';
-  for( i=0; i<=2; i++ )
-    triofs << (ct->tPtr(index[i]) ? ct->tPtr(index[i])->getID() : -1) << ' ';
-  triofs << ct->ePtr(index[0])->getID() << ' '
-	 << ct->ePtr(index[1])->getID() << ' '
-	 << ct->ePtr(index[2])->getID() << '\n';
+  const int index[3] = {ct->index()[0], ct->index()[1], ct->index()[2]};
+  triofs
+    << ct->pPtr(index[0])->getID() << ' '
+    << ct->pPtr(index[1])->getID() << ' '
+    << ct->pPtr(index[2])->getID() << ' '
+    << (ct->tPtr(index[0]) ? ct->tPtr(index[0])->getID() : -1) << ' '
+    << (ct->tPtr(index[1]) ? ct->tPtr(index[1])->getID() : -1) << ' '
+    << (ct->tPtr(index[2]) ? ct->tPtr(index[2])->getID() : -1) << ' '
+    << ct->ePtr(index[0])->getID() << ' '
+    << ct->ePtr(index[1])->getID() << ' '
+    << ct->ePtr(index[2])->getID() << '\n';
 }
 
 /*************************************************************************\
@@ -330,7 +330,8 @@ void tOutput<tSubNode>::RenumberIDCanonically()
     qsort(RNode.getArrayPtr(), RNode.getSize(), sizeof(RNode[0]),
 	  orderRNode
 	  );
-    for(i=0; i<RNode.getSize(); ++i)
+    const int s_ = RNode.getSize();
+    for(i=0; i<s_; ++i)
       RNode[i]->setID(i);
     m->SetmiNextNodeID( RNode.getSize() );
   }
@@ -379,7 +380,8 @@ void tOutput<tSubNode>::RenumberIDCanonically()
     qsort(REdge2.getArrayPtr(), REdge2.getSize(), sizeof(REdge2[0]),
 	  orderREdge
 	  );
-    for(i=0; i<REdge2.getSize(); ++i) {
+    const int s_ = REdge2.getSize();
+    for(i=0; i<s_; ++i) {
       assert (REdge2[i]->getOriginPtr()->getID() <
 	      REdge2[i]->getDestinationPtr()->getID() );
       REdge2[i]->setID(2*i);
@@ -392,12 +394,15 @@ void tOutput<tSubNode>::RenumberIDCanonically()
     tArray< tTriangle* > RTri(ntri);
     int i;
     tTriangle *ct;
-    for( ct=titer.FirstP(), i=0; i<ntri; ct=titer.NextP(), ++i )
+    for( ct=titer.FirstP(), i=0; i<ntri; ct=titer.NextP(), ++i ){
+      ct->SetIndexIDOrdered(); // set ct->index_ in ID order
       RTri[i] = ct;
+    }
     qsort(RTri.getArrayPtr(), RTri.getSize(), sizeof(RTri[0]),
 	  orderRTriangle
 	  );
-    for(i=0; i<RTri.getSize(); ++i)
+    const int s_ = RTri.getSize();
+    for(i=0; i<s_; ++i)
       RTri[i]->setID(i);
     m->SetmiNextTriID( RTri.getSize() );
   }
@@ -451,23 +456,6 @@ int tOutput<tSubNode>::orderREdge( const void *a_, const void *b_ )
   abort();
 }
 
-// Build a circular array so that ct->pPtr(index[0])->getID() is the lowest
-template< class tSubNode >
-void tOutput<tSubNode>::SetTriangleIndex( tTriangle const *ct, int index[3] )
-{
-  const int ID[] = { ct->pPtr(0)->getID(),
-		     ct->pPtr(1)->getID(),
-		     ct->pPtr(2)->getID() };
-  // find the vertex with the lowest ID, can be 0 or 1 or 2
-  int ID_;
-  index[0] = 0; ID_ = ID[0];
-  if (ID[1] < ID_ ) { index[0] = 1; ID_ = ID[1]; }
-  if (ID[2] < ID_ ) { index[0] = 2; }
-  // complete the sequence
-  index[1] = (index[0]+1)%3;
-  index[2] = (index[1]+1)%3;
-}
-
 // qsort comparison function for canonical triangles ordering
 template< class tSubNode >
 int tOutput<tSubNode>::orderRTriangle( const void *a_, const void *b_ )
@@ -475,15 +463,11 @@ int tOutput<tSubNode>::orderRTriangle( const void *a_, const void *b_ )
   tTriangle *T1 = *static_cast<tTriangle *const *>(a_);
   tTriangle *T2 = *static_cast<tTriangle *const *>(b_);
 
-  int iT1[3];
-  SetTriangleIndex(T1,iT1);
-  int iT2[3];
-  SetTriangleIndex(T2,iT2);
-
+  assert(T1 && T2);
   // The comparison itself related to vertexes ID
   for(int i=0;i<3;++i) {
-    const int i1 = T1->pPtr(iT1[i])->getID();
-    const int i2 = T2->pPtr(iT2[i])->getID();
+    const int i1 = T1->pPtr(T1->index()[i])->getID();
+    const int i2 = T2->pPtr(T2->index()[i])->getID();
     if (i1 < i2) return -1;
     if (i1 > i2) return 1;
   }

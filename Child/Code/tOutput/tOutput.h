@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.44 2003-08-01 17:14:58 childcvs Exp $
+ **  $Id: tOutput.h,v 1.45 2003-08-04 14:47:36 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -118,11 +118,10 @@ private:
   static int orderREdge(const void*, const void*);
   static int orderRTriangle(const void*, const void*);
   void RenumberIDCanonically();
-  static void SetTriangleIndex(tTriangle const *, int[3]);
   // write an individual record
   inline void WriteNodeRecord( tNode * );
   inline void WriteEdgeRecord( tEdge * );
-  inline void WriteTriangleRecord( tTriangle const *, const int[3]);
+  inline void WriteTriangleRecord( tTriangle const *);
 };
 
 
