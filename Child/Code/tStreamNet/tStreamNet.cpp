@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.48 1998-08-18 18:37:49 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.49 1998-08-18 18:38:42 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -729,14 +729,7 @@ void tStreamNet::FlowDirs()
             }
          }*/
          curnode->setFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
-         //cout << "Node " << curnode->getID() << " flows to "
-         //     << curnode->getDownstrmNbr()->getID() << endl;
-         if( curnode->getID()==156 )
-         {
-            cout << "AFTER***\n";
-            curnode->TellAll();
-         }
-         
+        
          curnode = i.NextP();
 
       }
