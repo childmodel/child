@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.93 2004-05-10 10:52:49 childcvs Exp $
+ **  $Id: tLNode.h,v 1.94 2004-05-27 09:36:27 childcvs Exp $
  */
 /************************************************************************/
 
@@ -1297,7 +1297,7 @@ inline void tLNode::FlagDownhillNodes()
 
 inline void tLNode::AddTracer()
 {
-  if( !boundary ) tracer++;
+  if( boundary == kNonBoundary ) tracer++;
 }
 
 inline void tLNode::setAlluvThickness( double val )
