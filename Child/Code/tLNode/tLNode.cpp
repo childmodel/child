@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.2 1998-01-16 00:15:45 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.3 1998-01-20 15:28:58 stlancas Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -447,6 +447,29 @@ void tLNode::setNew2DCoords( float val1, float val2 )                    //tNode
    chan.migration.newx = val1;
    chan.migration.newy = val2;
 }
+
+tArray< float > tLNode::
+getLatDisplace() const
+{
+   tArray< float > xy(2);
+   xy[0] = chan.migration.deltax;
+   xy[1] = chan.migration.deltay;
+   return xy;
+}
+
+void tLNode::setLatDisplace( float dx, float dy )
+{
+   chan.migration.deltax = dx;
+   chan.migration.deltay = dy;
+}
+
+void tLNode::addLatDisplace( float dx, float dy )
+{
+   chan.migration.deltax += dx;
+   chan.migration.deltay += dy;
+}
+
+
 
 void tLNode::setDischarge( float val ) {chan.q = ( val > 0 ) ? val : 0;}
 
