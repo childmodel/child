@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.32 1998-04-10 19:14:26 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.33 1998-04-16 22:49:43 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -66,7 +66,7 @@ tStreamMeander::tStreamMeander()
    optdiamvar = optrainvar = 0;
    critflow = meddiam = kwds = ewds = ewstn = knds = ends = enstn =
        klambda = elambda = dscrtwids = leavefrac = vegerod = rockerod =
-       latadjust = 0;
+       latadjust = Pdz = 0;
 }
 
 tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
@@ -116,6 +116,8 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
    double shrcoeff = 1.0 / ( 1000.0 * 9.81 * pow( knds / kwds, 0.6 ) );
    vegerod *= shrcoeff * latadjust;
    rockerod *= shrcoeff * latadjust;
+   //find dependence of bank erody on bank height, P, 0<=P<=1:
+   Pdz = infile.ReadItem( Pdz, "BNKHTDEP" );
    //MakeReaches();
    assert( &reachList != 0 );
 }
@@ -758,8 +760,8 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
          xs += delsa[j];
          bankerody = FindBankErody( curnode );
          //curnode->GetErodibility( rerody, lerody, pr->kf);
-         rerodya[j] = bankerody[0];
-         lerodya[j] = bankerody[1];
+         lerodya[j] = bankerody[0];
+         rerodya[j] = bankerody[1];
 //         slopea[j] = fedg->getSlope();
          slopea[j] = curnode->getHydrSlope();
          widtha[j] = curnode->getHydrWidth();
@@ -1274,6 +1276,9 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
 **        for d1, d2 = the two distances to the perp. line; D = d1 + d2;
 **        E1, E2 = erod'y of two pts; E = effective erod'y;
 **              E = [E1 * (D - d1) + E2 * (D - d2)] / D
+**        Bank erody may be totally, partially, or not at all dependent on
+**        bank height, according to whether Pdz=1, 0<Pdz<1, or Pdz = 0:
+**        E1 = E1 * (Pdz * H / dz + (1 - Pdz)), dz >= H. 
 **
 **
 **		Parameters:	tSurface::vegerody; tBedrock::erodibility
@@ -1284,7 +1289,82 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
 tArray< double >
 tStreamMeander::FindBankErody( tLNode *nPtr )
 {
-/*   double x1, y1, x2, y2, dx, dy, dx1, dy1, a, b, c, d, dmin, dlast,
+   tArray< double > spD( nPtr->getSpokeListNC()->getSize() );
+   int i, j;
+   tLNode *nNPtr, *cn, *node1, *node2;
+   tEdge *ce, *fe, *ne;
+   tArray< double > xyz1, xy2, dxy(2), lrerody(2);
+   double a, b, c, s1, s2, D, d1, d2, E1, E2, dz1, dz2, H;
+   nNPtr = nPtr->GetDownstrmNbr();
+   xyz1 = nPtr->get3DCoords();
+   xy2 = nNPtr->get2DCoords();
+   dxy[0] = xy2[0] - xyz1[0];
+   dxy[1] = xy2[1] - xyz1[1];
+   a = dxy[0];
+   b = dxy[1];
+   c = -dxy[1] * xyz1[1] - dxy[0] * xyz1[0];
+   //find remainders of pts wrt line perpendicular to downstream direction
+   fe = nPtr->GetFlowEdg();
+   ce = fe;
+   do
+   {
+      cn = ce->getDestinationPtrNC();
+      xy = cn->get2DCoords();
+      d = a * xy[0] + b * xy[1] + c;
+      spD(i) = d;
+      ce = ce->GetCCWEdg();
+   } while( ce != fe );
+   H = nPtr->getHydrDepth();
+   //find point pairs:
+   i=0;
+   j=0;
+   ce = fe;
+   do
+   {
+      //find signs of 'this' and 'next' remainders
+      if( spD(i) != 0.0 ) s1 = spD(i) / fabs( spD(i) );
+      else s1 = 0.0;
+      if( spD(i + 1) != 0.0 ) s2 = spD(i + 1) / fabs( spD(i + 1) );
+      else s2 = 0.0;
+      if( s1 != s2 ) //points are on opposite sides of the perp.
+      {
+         assert( j<2 );
+         //find absolute values of remainders and their sum:
+         d1 = fabs( spD(i) );
+         d2 = fabs( spD(i + 1) );
+         D = d1 + d2;
+         //find erodibilities of nbr nodes wrt nPtr
+         ne = ce->GetCCWEdg();
+         node1 = ce->getDestinationPtrNC();
+         node2 = ne->getDestinationPtrNC();
+         //find elev. diff's:
+         dz1 = node1->getZ() - xyz1[2];
+         dz2 = node2->getZ() - xyz1[2];
+         //find whether bedrock or alluvial bank:
+         if( dz1 > node1->getAlluvThickness() ) E1 = rockerod;//node1->getBedErody();
+         else E1 = vegerod;//node1->getVegErody();
+         if( dz2 > node2->getAlluvThickness() ) E2 = rockerod;//node2->getBedErody();
+         else E2 = vegerod;//node2->getVegErody();
+         //find height dependence:
+         //if elev diff > hydraulic depth, ratio of depth to bank height;
+         //o.w., keep nominal erody:
+         if( dz1 >= H ) E1 *= (Pdz * H / dz1 + (1 - Pdz));
+         if( dz2 >= H ) E2 *= (Pdz * H / dz2 + (1 - Pdz));
+         //now we've found erod'ies at ea. node, find weighted avg:
+         lrerody[j] = (E1 * d2 + E2 * d1) / D;
+         j++;
+      }
+      i++;
+      ce = ce->GetCCWEdg();
+   } while( ce != fe );
+   return lrerody;
+}
+
+   
+//old code which didn't work:
+   /*
+{
+   double x1, y1, x2, y2, dx, dy, dx1, dy1, a, b, c, d, dmin, dlast,
        dzleft, dzright, depth, dfactor, dtotal, erody, sed;
    tArray< double > xy, xyz1, xy2, dxy(2), rlerody(2);
    tEdge * curedg, * ledg, * redg, *ce;
@@ -1294,7 +1374,6 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
    tPtrListIter< tLNode > rIter( rList ), lIter( lList );
 //simplest thing: find points on right and left which have smallest distance 
 //to the perpendicular; those determine right and left erodibility, resp.
-//(another way: weighted average according to distance from perpendicular.)
    xyz1 = nPtr->get3DCoords();
      //cout << "FindBankErody: node " << nPtr->getID() << endl << flush;
    dn = nPtr->GetDownstrmNbr();
@@ -1304,15 +1383,15 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
    for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
    {
       cn = (tLNode *) ce->getDestinationPtrNC();
-      if( cn != dn && cn->GetDownstrmNbr() != nPtr )
-      {
+      //if( cn != dn && cn->GetDownstrmNbr() != nPtr )
+      //{
          xy = cn->get2DCoords();
          a = (xyz1[1] - xy[1]) * (xy2[0] - xy[0]);
          b = (xyz1[0] - xy[0]) * (xy2[1] - xy[1]);
          c = a - b;
          if( c > 0.0 ) rList.insertAtBack( cn );
          else lList.insertAtBack( cn );
-      }
+         //}
    }
    dxy[0] = xy2[0] - xyz1[0];
    dxy[1] = xy2[1] - xyz1[1];
@@ -1363,21 +1442,21 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
       sed = ln->getAlluvThickness();
       if( dzleft > sed ) rlerody[1] = rockerod;
       else rlerody[1] = vegerod;
-   }*/
+   }
 
    tArray< double > rlerody(2);
    rlerody[0] = rlerody[1] = rockerod;
-   /*
+   
    if( dzright <= 0.0 ) dfactor = 2.0;
    else dfactor = depth / dzright;
    rlerody[0] = dfactor * erody;
    if( dzleft <= 0.0 ) dfactor = 2.0;
    else dfactor = depth / dzleft;
    rlerody[1] = dfactor * erody;
-   */
+   
      //cout << endl;
    return rlerody;
-}
+}*/
 
 /*****************************************************************************\
 **
