@@ -4,7 +4,7 @@
 **  @brief Global functions used by tGrid and other modules of
 **         CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.14 2003-04-09 16:36:30 childcvs Exp $
+**  $Id: globalFns.cpp,v 1.15 2003-05-16 14:00:02 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -463,7 +463,7 @@ tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
    if( !edge )
    {
       cout<<"IntersectsAnyEdge: Warning: invalid edge"<<endl<<flush;
-      return( NULL );
+      return 0;
    }
    
    // check all edges in list; implication is that the list contains
@@ -477,7 +477,7 @@ tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
       
    }
    assert( edgIter.AtEnd() );
-   return( NULL );
+   return 0;
 }
 
 
