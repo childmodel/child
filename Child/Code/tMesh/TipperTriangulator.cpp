@@ -9,6 +9,7 @@
 
 #include <math.h>
 #include <fstream.h>
+#include <iostream.h>
 #include <stdlib.h>
 #include <time.h>
 #include <assert.h>
