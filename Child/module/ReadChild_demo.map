@@ -82,7 +82,7 @@
 	(instanceName "ReadChild<2>")
 	(parent "netRoot")
 	(host "localhost")
-	(path "/miami/academic/arnaud/ForGreg/Child/module")
+	(path "${EXPLORERUSERHOME}/module")
 	(isSelected =cxBoolean cx_false)
 	(isEnabled =cxBoolean cx_true)
 	(openedGroup =cxBoolean cx_true)
