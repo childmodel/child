@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.20 1998-03-10 23:30:07 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.21 1998-03-16 18:53:54 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -31,7 +31,7 @@ tDeposit::tDeposit ( int num )
      //cout << "tDeposit( num )" << endl;
 }
 
-tDeposit::tDeposit( const tDeposit &orig )                                //tDeposit
+tDeposit::tDeposit( const tDeposit &orig )                         //tDeposit
         :dgrade( orig.dgrade )
 {
    if( &orig != 0 )
@@ -246,6 +246,19 @@ const tSurface &tSurface::operator=( const tSurface &right )     //tSurface
    return *this;
 }
 
+/***** Functions for class tRegolith **************************************/
+
+/**************************************************************************\
+**
+**  Constructors:
+**   - Default: initializes variables to zero.
+**   - Input file: takes a tInputFile reference as an argument, and 
+**              reads the default initial thickness from the file.
+**   - Copy: copies all fields of tLNode and calls copy constructors for
+**              embedded objects.
+**
+\**************************************************************************/
+
 tRegolith::tRegolith()                                          //tRegolith
         : dgrade( NUMG ), dpth( ACTDEPTH )
 {
@@ -253,6 +266,14 @@ tRegolith::tRegolith()                                          //tRegolith
    numal = 0;
      //dpth = ACTDEPTH;
      //cout << "  tRegolith()" << endl;
+}
+
+tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
+        : dgrade( NUMG ), dpth( ACTDEPTH )
+{
+   cout << "tRegolith(infile)\n";
+   thickness = infile.ReadItem( thickness, "REGINIT" );
+   numal = 0;
 }
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
@@ -264,7 +285,7 @@ tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
       numal = orig.numal;
       dpth = orig.dpth;
    }
-     //cout << "  tRegolith( orig )" << endl;
+   cout << "  tRegolith( orig ) " << thickness << endl;
 }
 
 tRegolith::tRegolith( int numg, double vald )                    //tRegolith
@@ -350,10 +371,36 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
    return *this;
 }
 
+
+/***** Functions for class tLNode *****************************************/
+
+/**************************************************************************\
+**
+**  Constructors:
+**   - Default: initializes several variables to zero and calls
+**              constructors for embedded objects.
+**   - Input file: takes a tInputFile reference as an argument, and 
+**              passes it to the constructor(s) for embedded objects so
+**              that they can read values for default parameters, etc.
+**   - Copy: copies all fields of tLNode and calls copy constructors for
+**              embedded objects.
+**
+\**************************************************************************/
+
 tLNode::tLNode()                                                   //tLNode
         : tNode(), rock(), surf(), reg(), chan()
 {
      //cout << "=>tLNode()" << endl;
+   flood = 0;
+   flowedge = 0;
+   tracer = 0;
+   dzdt = drdt = qs = qsin = uplift = 0.0;
+}
+
+tLNode::tLNode( tInputFile &infile )                               //tLNode
+        : tNode(), rock(), surf(), reg( infile ), chan()
+{
+   //cout << "=>tLNode( infile )" << endl;
    flood = 0;
    flowedge = 0;
    tracer = 0;
@@ -373,7 +420,7 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
    qs = orig.qs;
    qsin = orig.qsin;
    uplift = orig.uplift;
-     //cout << "=>tLNode( orig )" << endl;
+   //cout << "=>tLNode( orig )" << endl;
 }
 
 tLNode::~tLNode()                                                  //tLNode
@@ -459,6 +506,7 @@ double tLNode::getChanSlope() const {return chan.chanslope;}
 double tLNode::getDiam() const {return chan.diam;}
 double tLNode::getBankRough() const {return chan.migration.bankrough;}
 
+//TODO: suggest doing away with the zero test for performance enhancement
 void tLNode::setHydrWidth( double val )  {chan.hydrwidth = ( val > 0 ) ? val : 0;}
 void tLNode::setChanWidth( double val )  {chan.chanwidth = ( val > 0 ) ? val : 0;}
 void tLNode::setHydrDepth( double val )  {chan.hydrdepth = ( val > 0 ) ? val : 0;}
@@ -719,8 +767,9 @@ void tLNode::TellAll()
       }
       else cout << "  Flowedg is undefined\n";
       cout << "  qs: " << GetQs() << "  qsin: " << GetQsin() << "  slp: "
-           << GetSlope() << endl;
+           << GetSlope() << "  reg: " << reg.thickness << endl;
       cout << "  dzdt: " << dzdt << "  drdt: " << drdt << endl;
+      
    }
    else cout << "  edg is undefined!\n";
    
