@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.23 2003-01-17 17:30:43 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.24 2003-05-23 11:54:14 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -232,7 +232,7 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
 **                   (adapted from Numerical Recipes).
 **
 \**************************************************************************/
-double tStorm::ExpDev( long *idum )
+double tStorm::ExpDev( long *idum ) const
 {
     double dum;
 
@@ -265,7 +265,7 @@ double tStorm::getMeanPrecip() const {return pMean;}
 **  (Note: not actually called; provided for future use).
 **
 \**************************************************************************/
-double tStorm::GammaDev(double m, long * idum)
+double tStorm::GammaDev(double m, long * idum) const
 {
   double x, y,z, c,t,b,u,w,v;
   
@@ -306,7 +306,7 @@ double tStorm::GammaDev(double m, long * idum)
           x = b + y;
           if ( x>= 0)
             {
-              z = 64*( pow(w,3))*v*v;
+              z = 64*( pow(w,3.))*v*v;
               accept = (z <= ( 1 - 2*y*y/x)) || ( log(z) <= (2*(b*log(x/b) - y)));
             }
         }

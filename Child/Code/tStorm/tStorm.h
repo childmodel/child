@@ -28,7 +28,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.21 2003-01-17 17:30:43 childcvs Exp $
+**  $Id: tStorm.h,v 1.22 2003-05-23 11:54:14 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -54,8 +54,8 @@ public:
     double getOptVar() const;
    
 private:
-    double ExpDev( long * );
-    double GammaDev(double, long*);
+    double ExpDev( long * ) const;
+    double GammaDev(double, long*) const;
    
     int optVariable;   // Flag indicating whether storms are random or not
     int optSinVar;     // Option for sinusoidal variation in storm params
