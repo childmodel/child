@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.36 2003-08-05 13:32:29 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.37 2003-08-06 16:11:59 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -55,7 +55,7 @@ using namespace std;
 # include <fstream.h>
 #endif
 #include <assert.h>
-//#include "../Classes.h" // TODO: include only needed stuff
+#include "../compiler.h"
 
 // do not support these ill-defined functions
 #undef SUPPORT_DEPRECATED
@@ -1190,7 +1190,7 @@ template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 Next()
 {
-  if( curptrnode != 0 )
+  if( likely(curptrnode != 0) )
     {
       curptrnode = curptrnode->next;
       ++counter;
@@ -1214,7 +1214,7 @@ template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 Prev()
 {
-  if( curptrnode != 0 )
+  if( likely(curptrnode != 0) )
     {
       curptrnode = curptrnode->prev;
       --counter;

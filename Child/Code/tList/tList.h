@@ -33,12 +33,14 @@
  **      track position on list w/o an iterator, 1/22/99
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **
- **  $Id: tList.h,v 1.43 2003-08-05 13:32:28 childcvs Exp $
+ **  $Id: tList.h,v 1.44 2003-08-06 16:11:58 childcvs Exp $
  */
 /**************************************************************************/
 
 #ifndef TLIST_H
 #define TLIST_H
+
+#include "../compiler.h"
 
 template< class NodeType > class tList;
 template< class NodeType > class tListIter;
@@ -1261,7 +1263,7 @@ template< class NodeType >        //tListIter
 inline int tListIter< NodeType >::
 Next()
 {
-  if( curnode != 0 )
+  if( likely(curnode != 0) )
     {
       curnode = curnode->next;
       ++counter;
@@ -1285,7 +1287,7 @@ template< class NodeType >       //tListIter
 inline int tListIter< NodeType >::
 Prev()
 {
-  if( curnode != 0 )
+  if( likely(curnode != 0) )
     {
       curnode = curnode->prev;
       --counter;
