@@ -12,40 +12,46 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.7 1999-01-05 22:22:58 stlancas Exp $
+**  $Id: tArray.h,v 1.8 1999-01-12 21:21:38 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TARRAY_H
 #define TARRAY_H
 
 #include <iostream.h>
-//#include "../Classes.h"
-//#include "../GlobalFns.h"
 
-/** class tArray  **********************************************************/
+
+/***************************************************************************\
+**
+**  class tArray
+**
+**  The tArray template class implements 1D arrays (ie, vectors) of any
+**  data type.
+**
+\***************************************************************************/
 template< class T >
 class tArray
 {
-   friend ostream &operator<<( ostream &, const tArray< T > & );
-   //friend istream &operator>>( istream &, tArray< T > & );
-   //friend ofstream &operator<<( ofstream &, const tArray< T > & );
-   //friend ifstream &operator>>( ifstream &, tArray< T > & );*/
-  public:
-   tArray();
-   tArray( int );
-   tArray( const tArray< T > & );
-   ~tArray();
-   const tArray< T > &operator=( const tArray< T > & ); // memberwise assignmt
-   int operator==( const tArray< T > & ) const;    // memberwise comparison
-   int operator!=( const tArray< T > & ) const;    // memberwise comparison
-   T &operator[]( int );               
-   int getSize() const;       // returns the number of elements in the array
-   void setSize( int );       // reinitializes and sets array size
-   T *getArrayPtr();          // returns the actual array; needed for passing
-                              // to fortran.
-  private:
-   int npts;
-   T * avalue;
+    friend ostream &operator<<( ostream &, const tArray< T > & );
+    //friend istream &operator>>( istream &, tArray< T > & );
+    //friend ofstream &operator<<( ofstream &, const tArray< T > & );
+    //friend ifstream &operator>>( ifstream &, tArray< T > & );*/
+public:
+    tArray();                      // default constructor
+    tArray( int );                 // constructor that initializes array size
+    tArray( const tArray< T > & ); // copy constructor
+    ~tArray();                     // destructor
+    const tArray< T > &operator=( const tArray< T > & ); // memberwise assignmt
+    int operator==( const tArray< T > & ) const;    // memberwise comparison
+    int operator!=( const tArray< T > & ) const;    // memberwise comparison
+    T &operator[]( int );      // overloaded array index operator
+    int getSize() const;       // returns the number of elements in the array
+    void setSize( int );       // reinitializes and sets array size
+    T *getArrayPtr();          // returns the actual array; needed for passing
+                               // to fortran.
+private:
+    int npts;   // size of array
+    T * avalue; // the array itself
 };
 
 #endif
