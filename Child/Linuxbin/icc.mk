@@ -13,8 +13,10 @@ WARNINGFLAGS = -Wall -wd279,981,810 -wd444 -wd383
 
 # -march=pentiumiii -xK: generates code for pentium III and later
 ARCH := -march=pentiumiii -xK
-CFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH) -c
-LDFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH)
+# optimise
+PROFILE =# -p
+CFLAGS = $(WARNINGFLAGS) -g $(PROFILE) -O2 $(ARCH) -c
+LDFLAGS = $(WARNINGFLAGS) -g $(PROFILE) -O2 $(ARCH)
 # no optimisation, build is faster
 #CFLAGS = $(WARNINGFLAGS) -g -c
 #LDFLAGS = $(WARNINGFLAGS) -g
