@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.28 2003-07-31 13:13:00 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.29 2003-08-01 13:53:04 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -268,7 +268,7 @@ void tInputFile::writeLogFile() const
   ofstream inoutfile;  // output file in which items are recorded
   char inoutname[kMaxNameLength];
   // Create log file for inputs
-  ReadItem( inoutname, sizeof(kMaxNameLength), "OUTFILENAME" );
+  ReadItem( inoutname, sizeof(inoutname), "OUTFILENAME" );
   strcat( inoutname, ".inputs" );
   inoutfile.open( inoutname );
   if( !inoutfile.good() )
