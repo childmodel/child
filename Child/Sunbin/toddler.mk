@@ -8,7 +8,8 @@ LIBS = -L/usr/local/lib -lm
 OBJECTS = toddlermain.o erosion.o meshElements.o mathutil.o \
  tInputFile.o tLNode.o tRunTimer.o \
 tPtrList.o tStorm.o tStreamNet.o tUplift.o errors.o tFloodplain.o \
-tEolian.o globalFns.o predicates.o tVegetation.o
+tEolian.o globalFns.o predicates.o tVegetation.o \
+ParamMesh_t.o
 
 toddler: $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o toddler $(LIBS)
