@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.101 2004-06-16 13:37:40 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.102 2005-02-17 16:28:58 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -88,6 +88,7 @@ private:
   typedef enum{ DIRI, DIRJ } direction_t;
   void WriteStratGridSections( double time );
   void WriteGravelBodies( double time, int );
+  void WriteCompleteStratigraphy( double time, int );
   void WritePreservationPotential( double time, int );
   void WriteSingleSection( double time,
 			   int section,
@@ -398,7 +399,11 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
   if( (optStratGrid = infile.ReadItem(optStratGrid,"OPTSTRATGRID")) !=0){
     stratOutput = new tStratOutputImp< tSubNode >(meshPtr, infile);
   }
-  Surfer = infile.ReadBool( "SURFER", false);
+  {
+    int opOpt;
+    Surfer = (opOpt = infile.ReadItem( opOpt, "SURFER", false)) != 0;
+  }
+  //XSurfer = infile.ReadBool( "SURFER", false);
 }
 
 /*************************************************************************\
@@ -778,6 +783,145 @@ void tStratOutputImp<tSubNode>::WriteSingleSection(double time,
   std::cout << "Output::Finished writing section line " << section
        << "..." << '\n';
 }
+
+/************************************************************\
+ WriteCompleteStratigraphy
+ Functions which writes the complete stratigraphic subsurface
+ matrix to a file, needed in Geo-Archeaology simulations
+ 
+ Quintijn Clevis, may 2004, @CU Boulder
+\*************************************************************/
+
+template< class tSubNode >
+void tStratOutputImp<tSubNode>::WriteCompleteStratigraphy(double time, int counter_)
+{
+	
+	// Open the file for writing map-view data
+  std::ofstream stratxyzofs;
+  std::ofstream stratofs;
+  std::ofstream lithoofs;
+  std::ofstream channelofs;
+  
+	// File 1, containing the seperate x,y,z locations
+#define MY_EXT ".stratxyz" 
+  char ext[sizeof(MY_EXT)+10];  // name of file to be created
+
+  sprintf( ext, "%s%d", MY_EXT, counter_ );
+#undef MY_EXT
+  this->CreateAndOpenFile( &stratxyzofs, ext );
+  
+  //File 2, containing the full stratigraphic matrix containing archaeology
+#define MY_EXT ".strat" 
+  char extb[sizeof(MY_EXT)+10];  // name of file to be created
+
+  sprintf( extb, "%s%d", MY_EXT, counter_ );
+#undef MY_EXT
+  this->CreateAndOpenFile( &stratofs, extb );
+  
+  
+  //File 3,containing the full stratigraphic matrix containing lithology
+#define MY_EXT ".litho" 
+  char extc[sizeof(MY_EXT)+10];  // name of file to be created
+
+  sprintf( extc, "%s%d", MY_EXT, counter_ );
+#undef MY_EXT
+  this->CreateAndOpenFile( &lithoofs, extc );  
+  
+  
+  //File 4, containing the channel locations
+#define MY_EXT ".channelmap" 
+  char extd[sizeof(MY_EXT)+10];  // name of file to be created
+
+  sprintf( extd, "%s%d", MY_EXT, counter_ );
+#undef MY_EXT
+  this->CreateAndOpenFile( &channelofs, extd );
+	
+  const int imax = stratGrid->getImax();
+  const int jmax = stratGrid->getJmax();
+  const int numCells = ((imax-2)*(jmax-2));
+  tMatrix<tStratNode> const *StratNodeMatrix = stratGrid->getStratNodeMatrix();
+  tMatrix<tTriangle*> const *StratConnect = stratGrid->getStratConnect();
+  
+  stratxyzofs<< time << '\n' << numCells << '\n'<< imax-1 << '\n' <<jmax-1 << '\n';
+  stratofs   << time << '\n' << numCells << '\n'<< imax-1 << '\n' <<jmax-1 << '\n';
+  lithoofs   << time << '\n' << numCells << '\n'<< imax-1 << '\n' <<jmax-1 << '\n';
+  channelofs << time << '\n' << numCells << '\n'<< imax-1 << '\n' <<jmax-1 << '\n';
+  
+  // Loop over the inner part of the StratGrid
+  int i,j;
+  for(j=1;j<jmax-1;j++){
+    for(i=1;i<imax-1;i++){
+
+      tStratNode const &sn = (*StratNodeMatrix)(i,j);
+
+      // File 1; Write the location of the node to the xyz file
+      stratxyzofs << sn.getX() << ' ' << sn.getY() << ' ' << sn.getZ() << '\n';
+      
+      // File 2; Write loaction and discharge info
+      tTriangle *ct =   (*StratConnect)(i,j);									// fetch  Triangle
+      const double sx = sn.getX();                						// i,j's  X-value
+      const double sy = sn.getY();	        									// i,j's  Y-value
+      
+      tLNode *lnds[3];					// put the nodes in an array
+      
+       if(ct != NULL){				                    // If Triangle present
+       	int p;
+       	int numnodes=0;
+       	for(p=0; p<=2; p++){
+	      lnds[numnodes] = static_cast<tLNode *>(ct->pPtr(p));
+	      numnodes++;
+        }
+      }
+	     // and interpolate the discharge value
+    	const tArray<double> tri_drainage(lnds[0]->getDrArea(),lnds[1]->getDrArea(),lnds[2]->getDrArea() );
+      const double drainage = PlaneFit(sx, sy, lnds[0]->get2DCoords(), lnds[1]->get2DCoords(),
+				     lnds[2]->get2DCoords(), tri_drainage );
+				     
+		  // Write File 2
+		  channelofs << sn.getX() << ' ' << sn.getY() << ' ' << sn.getZ() << ' '<< drainage/1000.0 <<'\n';		     
+				     
+      
+      // Get the number of layers present at this stratnode location
+      const int numlayers = sn.getNumLayer();
+      stratofs << numlayers-1 << '\n';
+      lithoofs << numlayers-1 << '\n';
+      
+      int l=1;
+      while(l<numlayers){
+        const double thickness = sn.getLayerDepth(l);
+        const double texture =(thickness !=0.0) ? sn.getLayerDgrade(l,0)/thickness: 0.;
+        const double lasttime  = sn.getLayerRtime(l);
+        const double depotime  = sn.getLayerCtime(l);
+        //facies  = sn.getLayerFacies(l);
+        //const double paleocurrent = sn.getPaleoCurrent(l);
+
+        stratofs << thickness << ' ' << texture<< ' '
+	       << lasttime << ' ' << depotime << '\n';
+	       
+	      lithoofs << thickness << ' ' << texture<< ' '
+	       << lasttime << ' ' << depotime << '\n';
+      
+
+
+        l++;   // increment, loop down the layer list.
+      }
+      
+    } //-i
+  } //-j
+  
+  //stratxyzofs << flush;
+  //stratofs << flush;
+  
+  stratxyzofs.close();
+  stratofs.close();
+  lithoofs.close();
+  channelofs.close();
+  
+ 
+  std::cout << "Output::Finished writing complete subsurface stratigraphy file...\n";
+
+} // end writing complete stratigraphy
+
 
 /*************************************************************\
  tLOutput::WriteGravelBodies  Function that writes all layers
@@ -1381,6 +1525,7 @@ void tStratOutputImp<tSubNode>::WriteNodeData( double time, int counter )
 {
   WriteStratGridSections(time);
   WriteGravelBodies(time, counter);
+  WriteCompleteStratigraphy(time, counter);
   WritePreservationPotential(time, counter);
   Flush();
 }
