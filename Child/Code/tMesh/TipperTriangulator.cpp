@@ -60,29 +60,11 @@ bool edge::visible(const point p[],int i) const {
   //rely on the fact that a) hull is anticlockwise oriented
   //b)data is positive x ordered
 
-#if 1
-  // visible if p[i] is on the right of p[from]p[to] and not colinear,
   // that is if angle(from-to,from-i) < 0 
   const double v = vecprod(from,to,i, p);
   if (v>=0)
     return false;
   return true;
-#else
-  const double mindistance = 0.0000001;
-  if (fabs(p[from].x-p[to].x) < mindistance) return true;
-  if (fabs(p[to].y-p[from].y)<mindistance){
-    if(p[from].x<p[to].x && p[i].y<p[from].y)return true;
-    if(p[from].x>p[to].x && p[i].y>p[from].y)return true;
-  }
-  if (p[to].y>=p[i].y && p[from].y<=p[i].y && fabs(p[from].y-p[to].y)>mindistance)return true;
-
-  if (p[to].x>p[from].x){
-    if(p[i].y<p[from].y+(p[to].y-p[from].y)/(p[to].x-p[from].x)*(p[i].x-p[from].x))return true;
-  }else if (p[to].x<p[from].x) {
-    if(p[i].y>p[from].y+(p[to].y-p[from].y)/(p[to].x-p[from].x)*(p[i].x-p[from].x))return true;
-  }
-  return false;
-#endif
 }
 
 int edge::swap(int tint,edge e[],const point p[]){
@@ -897,9 +879,8 @@ void tt_build_elem_table(int npoints, const point *p,
       elems[ielem].eo1 = (edges[elems[ielem].e1].from == elems[ielem].p1);
 #undef SWAP_E
     }
-#if 1
-    sanity_check_elems(edges, elems, edges_visit, ielem);
-#endif
+    if (1) //DEBUG
+      sanity_check_elems(edges, elems, edges_visit, ielem);
     {
       // build t1, t2, t3
       if (elems[ielem].eo2){
@@ -920,17 +901,18 @@ void tt_build_elem_table(int npoints, const point *p,
 
     }
   }
-#if 0
-  {
+  if (0) { //DEBUG
     for(int ielem=0;ielem<nelem;ielem++){
       cout << "elem=" << ielem
-	   << " p1=" << elems[ielem].p1 << " (" << p[elems[ielem].p1].x <<"," << p[elems[ielem].p1].y << ")"
-	   << " p2=" << elems[ielem].p2 << " (" << p[elems[ielem].p2].x <<"," << p[elems[ielem].p2].y << ")"
-	   << " p3=" << elems[ielem].p3 << " (" << p[elems[ielem].p3].x <<"," << p[elems[ielem].p3].y << ")"
+	   << " p1=" << elems[ielem].p1
+	   << " (" << p[elems[ielem].p1].x <<"," << p[elems[ielem].p1].y << ")"
+	   << " p2=" << elems[ielem].p2
+	   << " (" << p[elems[ielem].p2].x <<"," << p[elems[ielem].p2].y << ")"
+	   << " p3=" << elems[ielem].p3
+	   << " (" << p[elems[ielem].p3].x <<"," << p[elems[ielem].p3].y << ")"
 	   << endl;
     }
   }
-#endif
   delete [] edges_visit; edges_visit = NULL;
   *pnelem = nelem;
   *pelems_ret = elems;
