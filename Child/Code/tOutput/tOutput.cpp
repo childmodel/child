@@ -1,13 +1,14 @@
 /*************************************************************************\
 **
-**  tOutput.cpp: Functions for output objects
+**  tOutput.cpp: Functions for output classes tOutput and tLOutput
 **
-**  
+**  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.19 1999-03-25 17:24:33 nmgaspar Exp $
+**  $Id: tOutput.cpp,v 1.20 1999-04-01 16:03:04 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
+
 
 /*************************************************************************\
 **
@@ -41,9 +42,9 @@ tOutput<tSubNode>::tOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile )
 
 /*************************************************************************\
 **
-**  CreateAndOpenFile
+**  tOutput::CreateAndOpenFile
 **
-**  Opens the output file stream pointed by theOFStream, giving it the
+**  Opens the output file stream pointed to by theOFStream, giving it the
 **  name <baseName><extension>, and checks to make sure that the ofstream
 **  is valid.
 **
@@ -59,7 +60,7 @@ template< class tSubNode >
 void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
                                            char *extension )
 {
-   char fullName[kMaxNameSize+6];
+   char fullName[kMaxNameSize+6];  // name of file to be created
    
    strcpy( fullName, baseName );
    strcat( fullName, extension );
@@ -67,16 +68,14 @@ void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
 
    if( !theOFStream->good() )
        ReportFatalError(
-           "I can't create files for output. Memory may be exhausted." );
+           "I can't create files for output. Storage space may be exhausted.");
         
 }
 
 
-
-
 /*************************************************************************\
 **
-**  WriteOutput
+**  tOutput::WriteOutput
 **
 **  This function writes information about the mesh to four files called
 **  name.nodes, name.edges, name.tri, and name.z, where "name" is a
@@ -95,16 +94,16 @@ void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
 template< class tSubNode >
 void tOutput<tSubNode>::WriteOutput( double time )
 {
-   tGridListIter<tSubNode> niter( g->getNodeList() );
-   tGridListIter<tEdge> eiter( g->getEdgeList() );
-   tListIter<tTriangle> titer( g->getTriList() );
-   tNode * cn;
-   tEdge * ce;
-   tTriangle * ct;
-   int id;
-   int nnodes = g->getNodeList()->getSize();
-   int nedges = g->getEdgeList()->getSize();
-   int ntri = g->getTriList()->getSize();
+   tGridListIter<tSubNode> niter( g->getNodeList() ); // node list iterator
+   tGridListIter<tEdge> eiter( g->getEdgeList() );    // edge list iterator
+   tListIter<tTriangle> titer( g->getTriList() );     // tri list iterator
+   tNode * cn;       // current node
+   tEdge * ce;       // current edge
+   tTriangle * ct;   // current triangle
+   int id;           // id of element (node, edge, or triangle)
+   int nnodes = g->getNodeList()->getSize();  // # of nodes on list
+   int nedges = g->getEdgeList()->getSize();  // "    edges "
+   int ntri = g->getTriList()->getSize();     // "    triangles "
 
    cout << "tOutput::WriteOutput()\n";
    
@@ -149,16 +148,33 @@ void tOutput<tSubNode>::WriteOutput( double time )
              << ct->ePtr(1)->getID() << " " 
              << ct->ePtr(2)->getID() << endl;
    }
-   
+
+   // Call virtual function to write any additional data
    WriteNodeData( time );
    
 }
 
+
+/*************************************************************************\
+**
+**  tOutput::WriteNodeData
+**
+**  This is a virtual function which can be overridden to write any
+**  additional node data. The base class version does nothing.
+**
+\*************************************************************************/
 template< class tSubNode >
 void tOutput<tSubNode>::WriteNodeData( double time ) 
 {}
 
 
+/*************************************************************************\
+**
+**  tLOutput constructor
+**
+**  Creates and opens a series of files for drainage areas, slopes, etc.
+**
+\*************************************************************************/
 template< class tSubNode >
 tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile ) 
         : tOutput<tSubNode>( g, infile )  // call base-class constructor
@@ -173,25 +189,35 @@ tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile )
 }
 
 
+/*************************************************************************\
+**
+**  tLOutput::WriteNodeData
+**
+**  This overridden virtual function writes output for tLNodes, including
+**  drainage areas, flow pathways, slopes, discharges, layer info, etc.
+**
+\*************************************************************************/
 //TODO: should output boundary points as well so they'll map up with nodes
 // for plotting. Means changing getSlope so it returns zero if flowedg
 // undefined
 template< class tSubNode >
 void tLOutput<tSubNode>::WriteNodeData( double time )
 {
-   tGridListIter<tSubNode> ni( g->getNodeList() );
-   tSubNode *cn;
-   int nActiveNodes = g->getNodeList()->getActiveSize();
-   int nnodes = g->getNodeList()->getSize();
-   int i, j;
+   tGridListIter<tSubNode> ni( g->getNodeList() ); // node list iterator
+   tSubNode *cn;   // current node
+   int nActiveNodes = g->getNodeList()->getActiveSize(); // # active nodes
+   int nnodes = g->getNodeList()->getSize();             // total # nodes
+   int i, j;      // counters
 
+   // Write current time in each file
    drareaofs << " " << time << "\n " << nActiveNodes << endl;
    netofs << " " << time << "\n " << nActiveNodes << endl;
    slpofs << " " << time << "\n " << nActiveNodes << endl;
    qofs << " " << time << "\n " << nnodes << endl;
    layofs << " " << time << "\n" << nActiveNodes << endl;
    texofs << " " << time << "\n" << nnodes << endl;
-   
+
+   // Write data, including layer info
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
    {
       assert( cn>0 );
@@ -214,16 +240,9 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       }
    }
 
+   // Write texture data
    for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() ){
       qofs << cn->getQ() << endl;
-      // temporary fix of zero-layer problem (TODO: solve)
-      /*if( cn->getLayerDgrade(0,0)<1e-6 )
-      {
-         cout << "Warning from tOutput::WriteNodeData(): "
-              << "Anomalously low top layer dgrade at " << cn->getID() << endl;
-         texofs << cn->getLayerDgrade(0,0) << endl;
-      }
-      else*/
       if( cn->getNumg()>1 ) // temporary hack TODO
       {
             texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;
