@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.79 2004-03-31 17:53:51 childcvs Exp $
+**  $Id: tMesh.h,v 1.80 2004-04-16 18:41:36 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -56,6 +56,7 @@ template< class T, class LN  = tListNodeBasic<T> > class tIdArray;
 template< class T, class LN >
 class tIdArray
 {
+  tIdArray();
   tArray< T* > e_;
 public:
   tIdArray(tList< T, LN >& List);
@@ -241,7 +242,7 @@ public:
    void SetmiNextEdgID(int);
    void SetmiNextTriID(int);
    // find triangles between one node and the next, not connected by an edge
-   tPtrList< tTriangle > InterveningTriangles( tNode*, tNode* );
+   tPtrList< tTriangle > InterveningTriangles( tNode*, tNode* ) const;
    void ForceFlow( tSubNode*, tSubNode*, double );
 
 #ifndef NDEBUG

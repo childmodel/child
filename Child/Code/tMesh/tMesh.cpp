@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.206 2004-04-14 12:57:38 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.207 2004-04-16 18:41:34 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -89,7 +89,7 @@ tMesh()
   miNextEdgID(0),
   miNextTriID(0),
   layerflag(false),
-  runCheckMeshConsistency(CHECKMESHCONSISTENCY)
+  runCheckMeshConsistency(true)
 {
   if (0) //DEBUG
    cout<<"tMesh()"<<endl;
@@ -5314,7 +5314,7 @@ int tMesh<tSubNode>::orderRTriangle( const void *a_, const void *b_ )
 \*****************************************************************************/
 template<class tSubNode>
 tPtrList< tTriangle > tMesh<tSubNode>::
-InterveningTriangles( tNode* un, tNode* dn )
+InterveningTriangles( tNode* un, tNode* dn ) const
 {
    assert( un->EdgToNod( dn ) == NULL );
 
