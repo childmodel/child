@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.64 2004-01-08 11:54:39 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.65 2004-02-18 16:51:49 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -920,6 +920,39 @@ void tTriangle::SetIndexIDOrdered()
   // complete the sequence
   index_[1] = (index_[0]+1)%3;
   index_[2] = (index_[1]+1)%3;
+}
+
+/*****************************************************************************\
+**
+**  tTriangle::NbrToward
+**
+**  Geometric calculations to find triangle neighbor
+**
+\*****************************************************************************/
+tTriangle* tTriangle::NbrToward( double x, double y )
+{
+  tTriangle* ct = 0;
+  tArray< double > xy0(2);
+  xy0[0] = x;
+  xy0[1] = y;
+  tArray< double > xy1(2);
+  tArray< double > xy2(2);
+  tArray< double > xy3(2);
+  p[0]->get2DCoords( xy1 );
+  p[1]->get2DCoords( xy2 );
+  p[2]->get2DCoords( xy3 );
+  // use Predicates::orient2d:
+  double c = predicate.orient2d( xy1.getArrayPtr(), xy2.getArrayPtr(),
+				 xy0.getArrayPtr() );
+  if( c < 0.0 )
+    return ct = t[2];
+  c = predicate.orient2d( xy2.getArrayPtr(), xy3.getArrayPtr(), xy0.getArrayPtr() );
+  if( c < 0.0 )
+    return ct = t[0];
+  c = predicate.orient2d( xy3.getArrayPtr(), xy1.getArrayPtr(), xy0.getArrayPtr() );
+  if( c < 0.0 )
+    return ct = t[1];
+  return ct;
 }
 
 /*****************************************************************************\
