@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.207 2004-04-16 18:41:34 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.208 2004-04-19 12:09:45 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -75,25 +75,6 @@ int Next3Delaunay( tPtrList< tSubNode > & /*nbrList*/,
 /**************************************************************************\
 **  FUNCTIONS FOR CLASS tMesh
 \**************************************************************************/
-
-//default constructor
-template< class tSubNode >     //tMesh
-tMesh< tSubNode >::
-tMesh()
-  :
-  mSearchOriginTriPtr(0),
-  nnodes(0),
-  nedges(0),
-  ntri(0),
-  miNextNodeID(0),
-  miNextEdgID(0),
-  miNextTriID(0),
-  layerflag(false),
-  runCheckMeshConsistency(true)
-{
-  if (0) //DEBUG
-   cout<<"tMesh()"<<endl;
-}
 
 //copy constructor (created 11/99, GT)
 //WARNING: this constructor relies on the behavior of assignment operations

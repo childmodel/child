@@ -57,7 +57,7 @@
  **     - Added codes to go along with erosion & transport options, to
  **       enable checking against user-specified options (GT 7/02)
  **
- **  $Id: erosion.h,v 1.53 2004-04-16 18:34:29 childcvs Exp $
+ **  $Id: erosion.h,v 1.54 2004-04-19 12:07:40 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -148,6 +148,7 @@ public:
 /***************************************************************************/
 class tSedTransPwrLaw : public tSedTrans
 {
+  tSedTransPwrLaw();
 public:
   tSedTransPwrLaw( const tInputFile &infile );
   double TransCapacity( tLNode * n );
@@ -174,6 +175,7 @@ private:
 /***************************************************************************/
 class tSedTransPwrLaw2 : public tSedTrans
 {
+  tSedTransPwrLaw2();
 public:
   tSedTransPwrLaw2( const tInputFile &infile );
   double TransCapacity( tLNode * n );
@@ -201,6 +203,7 @@ private:
 /***************************************************************************/
 class tSedTransBridgeDom : public tSedTrans
 {
+  tSedTransBridgeDom();
 public:
   tSedTransBridgeDom( const tInputFile &infile );
   double TransCapacity( tLNode * n );
@@ -229,6 +232,7 @@ private:
 /***************************************************************************/
 class tSedTransPwrLawMulti : public tSedTrans
 {
+  tSedTransPwrLawMulti();
 public:
   tSedTransPwrLawMulti( const tInputFile &infile );
   double TransCapacity( tLNode * n );
@@ -258,6 +262,7 @@ private:
 /**************************************************************************/
 class tSedTransWilcock : public tSedTrans
 {
+  tSedTransWilcock();
 public:
   tSedTransWilcock( const tInputFile &infile );
   double TransCapacity( tLNode * n ); // returns total volumetric load
@@ -295,6 +300,7 @@ private:
 /************************************************************************/
 class tSedTransMineTailings : public tSedTrans
 {
+  tSedTransMineTailings();
 public:
   tSedTransMineTailings( const tInputFile &infile );
   double TransCapacity( tLNode * n ); // returns total volumetric load
@@ -352,6 +358,7 @@ public:
 /***************************************************************************/
 class tBedErodePwrLaw : public tBedErode
 {
+  tBedErodePwrLaw();
 public:
   tBedErodePwrLaw( const tInputFile &infile );
   //Computes depth of potential erosion at node n over time interval dt
@@ -392,6 +399,7 @@ private:
 /***************************************************************************/
 class tBedErodePwrLaw2 : public tBedErode
 {
+  tBedErodePwrLaw2();
 public:
   tBedErodePwrLaw2( const tInputFile &infile );
   //Computes depth of potential erosion at node n over time interval dt

@@ -16,7 +16,7 @@
  **     to avoid multiple definition errors resulting from mixing
  **     template & non-template classes (1/99)
  **
- **  $Id: tListInputData.h,v 1.26 2003-11-18 15:45:59 childcvs Exp $
+ **  $Id: tListInputData.h,v 1.27 2004-04-19 12:09:02 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -152,6 +152,7 @@ class tListInputDataMesh : private tListInputDataBase
 {
   friend class tMesh< tSubNode >;  // gives tMesh direct access
 
+  tListInputDataMesh();
 public:
   tListInputDataMesh( const tInputFile & ); // Read filename & time from main inp file
 
@@ -193,6 +194,7 @@ private:
 /**************************************************************************/
 class tListInputDataRand : private tListInputDataBase
 {
+  tListInputDataRand();
 public:
   tListInputDataRand( const tInputFile &, tRand & );
 };
@@ -206,6 +208,7 @@ public:
 /**************************************************************************/
 class tListInputDataVegetation : private tListInputDataBase
 {
+  tListInputDataVegetation();
 public:
   tListInputDataVegetation( const tInputFile &);
   tArray< double > vegCov;

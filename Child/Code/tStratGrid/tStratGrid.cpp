@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.8 2004-04-16 18:28:36 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.9 2004-04-19 12:08:22 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -203,6 +203,7 @@ void tStratGrid::setSectionBase()
  ** AD - 26 March 2004
 \**************************************************************************/
 class TriBox{
+  TriBox();
 public:
   int imin;
   int imax;

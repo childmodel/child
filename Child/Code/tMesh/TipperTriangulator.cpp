@@ -141,6 +141,8 @@ bool edge::visible(const point p[],int i) const {
 class cyclist{
   const cyclist &operator=( const cyclist & );
   cyclist( const cyclist & );
+  cyclist();
+
   void delNext(int list_pos);
   void add(int ej);
   void invariant() const;

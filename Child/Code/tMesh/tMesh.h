@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.80 2004-04-16 18:41:36 childcvs Exp $
+**  $Id: tMesh.h,v 1.81 2004-04-19 12:09:45 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -116,6 +116,7 @@ class tMesh
 {
    tMesh(const tMesh&);
    tMesh& operator=(const tMesh&);
+   tMesh();
 
    void MakePointBoundary( const ParamMMFS_t &, const tInputFile &,
 			   tPtrList< tSubNode > &, tRand &);
@@ -146,7 +147,6 @@ public:
    typedef tIdArray< tEdge, tListNodeListable< tEdge > > tIdArrayEdge_t;
    typedef tIdArray< tTriangle, tListNodeListable< tTriangle > > tIdArrayTri_t;
 
-   tMesh();
    tMesh( const tInputFile &, bool checkMeshConsistency );
    tMesh( tMesh const * );
    ~tMesh();
