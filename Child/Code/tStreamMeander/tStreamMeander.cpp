@@ -4,11 +4,11 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.31 1998-04-09 22:40:08 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.32 1998-04-10 19:14:26 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
-#define kBugTime 5000
+#define kBugTime 6000000
 
 extern "C" 
 {
@@ -283,7 +283,7 @@ void tStreamMeander::FindChanGeom()
          //make sure slope will produce a positive depth:
          critS = qbf * qbf * rough * rough * 8.0 * pow( 2.0, 0.333 )/
              ( width * width * width * width * width * pow( width, 0.333 ) );
-         if( slope > critS )
+         if( slope > critS ) //should also catch negative slope flag
          {
               //cout << "in FindChanGeom, slope = " << slope << endl << flush;
             cn->setChanSlope( slope );
@@ -293,6 +293,12 @@ void tStreamMeander::FindChanGeom()
             cn->setChanDepth( depth );
          }
          else cn->SetMeanderStatus( kNonMeanderNode );
+         if( slope < 0.0 )
+         {
+            cout << "negative slope,"
+                 << " probably from infinite loop in tLNode::GetSlope()" << endl;
+            ReportFatalError("negative slope in tStreamMeander::FindChanGeom");
+         }
       }
    }
    //cout << "done FindChanGeom" << endl;
@@ -339,10 +345,23 @@ int tStreamMeander::InterpChannel()
       {
          if( timetrack >= kBugTime ) cout << "node " << crn->getID() << endl << flush;
          curwidth = crn->getHydrWidth();
+         if( timetrack >= kBugTime ) cout << "found width" << endl << flush;
          nPtr = crn->GetDownstrmNbr();
+         if( timetrack >= kBugTime ) cout << "found dnstrm nbr" << endl << flush;         
          curseglen = crn->GetFlowEdg()->getLength();
+         if( timetrack >= kBugTime ) cout << "found flowedge length" << endl << flush;
          assert( curseglen > 0 );
+         //ran into an infinite loop in tLNode::GetSlope; now, if it runs into
+         //an infinite loop, it returns a negative number (-1) as an alarm
+         //flag instead of generating a fatal error; in such case, bail out of
+         //these loops through the nodes and call UpdateNet():
          slope = crn->GetSlope();
+         if( slope < 0.0 )
+         {
+            change = 1;
+            break;
+         }
+         if( timetrack >= kBugTime ) cout << "found slope" << endl << flush;
          defseglen = dscrtwids * curwidth;
          maxseglen = 2.0 * defseglen;
          //if current flowedg length is greater than
@@ -411,6 +430,7 @@ int tStreamMeander::InterpChannel()
             }
          }
       }
+      if( slope < 0.0 ) break; //'change' has already been set to 1
    }
    if( change )
    {
@@ -1648,176 +1668,64 @@ void tStreamMeander::CheckBrokenFlowedg()
             {
                fedg = cn->GetFlowEdg();
                assert( fedg != 0 );
-                 //make sure flow edge exists and is on list;
-                 //if not, reassign flowedge:
-                 /*if( fedg == 0 || !( eIter.Get( fedg->getID() ) ) )
-                   {
-                   sIter.Reset( cn->getSpokeListNC() );
-                   for( ce = sIter.FirstP(); !(sIter.AtEnd()); ce = sIter.NextP() )
-                   {
-                   on = (tLNode *) ce->getDestinationPtrNC();
-                   if( on == dn ) break;
-                   }
-                   if( !(sIter.AtEnd()) )
-                   {
-                   cn->SetFlowEdg( ce );
-                   fedg = ce;
-                   }
-                   else fedg = 0;
-                   }*/
-                 //if( fedg != 0 && !( eIter.Get( fedg->getID() ) ) )
-                 //{
-               cedg = gridPtr->getEdgeCompliment( fedg );
-               assert( cedg != 0 );
-               ltri = gridPtr->TriWithEdgePtr( fedg );
-               rtri = gridPtr->TriWithEdgePtr( cedg );
-               assert( ltri != 0 );
-               assert( rtri != 0 );
-                 //if( ltri != 0 && rtri != 0 )
-                 //{
-               nln = ltri->nVOp( rtri );
-                 //nrn = rtri->nVOp( ltri );
-                 //check for flip of flowedge (tri's on either side of flowedge:
-               if( gridPtr->CheckForFlip( ltri, nln, flip ) )
+               //now getting a bug: assertion in getEdgeCompliment that fedg is in
+               //the edgeList failed; so I guess I need to add another firewall here
+               //to make sure it's in the list; if not, just bail 'cos we don't need
+               //to worry about breaking it if it doesn't really exist:
+               if( eIter.Get( fedg->getID() ) )
                {
-                    //if flowedge to be flipped, delete closer of two "third" nodes
-                    //if their drareas are smaller:
-                  nrn = rtri->nVOp( ltri );
-                  ln = (tLNode *) ltri->pPtr( nln );
-                  rn = (tLNode *) rtri->pPtr( nrn );
-                  area = cn->getDrArea();
-                  if( ln->getDrArea() < area && rn->getDrArea() < area )
+                  cedg = gridPtr->getEdgeCompliment( fedg );
+                  assert( cedg != 0 );
+                  ltri = gridPtr->TriWithEdgePtr( fedg );
+                  rtri = gridPtr->TriWithEdgePtr( cedg );
+                  assert( ltri != 0 );
+                  assert( rtri != 0 );
+                  //if( ltri != 0 && rtri != 0 )
+                  //{
+                  nln = ltri->nVOp( rtri );
+                  //nrn = rtri->nVOp( ltri );
+                  //check for flip of flowedge (tri's on either side of flowedge:
+                  if( gridPtr->CheckForFlip( ltri, nln, flip ) )
                   {
-                     breakedge = 1;
-                     dis0 = ln->DistNew( cn, dn );
-                     dis1 = rn->DistNew( cn, dn );
-                       //delete closer node if it's not a boundary node;
-                       //if it is, revert to old coords.
-                     if( dis0 < dis1 )
+                     //if flowedge to be flipped, delete closer of two "third" nodes
+                     //if their drareas are smaller:
+                     nrn = rtri->nVOp( ltri );
+                     ln = (tLNode *) ltri->pPtr( nln );
+                     rn = (tLNode *) rtri->pPtr( nrn );
+                     area = cn->getDrArea();
+                     if( ln->getDrArea() < area && rn->getDrArea() < area )
                      {
-                        if( ln->getBoundaryFlag() == kNonBoundary )
+                        breakedge = 1;
+                        dis0 = ln->DistNew( cn, dn );
+                        dis1 = rn->DistNew( cn, dn );
+                        //delete closer node if it's not a boundary node;
+                        //if it is, revert to old coords.
+                        if( dis0 < dis1 )
                         {
-                           gridPtr->DeleteNode( ln );
-                           cn->SetFlowEdg( cn->EdgToNod( dn ) );
+                           if( ln->getBoundaryFlag() == kNonBoundary )
+                           {
+                              gridPtr->DeleteNode( ln );
+                              cn->SetFlowEdg( cn->EdgToNod( dn ) );
+                           }
+                           else cn->RevertToOldCoords();
                         }
-                        else cn->RevertToOldCoords();
-                     }
-                     else
-                     {
-                        if( rn->getBoundaryFlag() == kNonBoundary )
+                        else
                         {
-                           gridPtr->DeleteNode( rn );
-                           cn->SetFlowEdg( cn->EdgToNod( dn ) );
+                           if( rn->getBoundaryFlag() == kNonBoundary )
+                           {
+                              gridPtr->DeleteNode( rn );
+                              cn->SetFlowEdg( cn->EdgToNod( dn ) );
+                           }
+                           else cn->RevertToOldCoords();
                         }
-                        else cn->RevertToOldCoords();
                      }
                   }
                }
-                 //}
-                 //else cn->RevertToOldCoords();
-                 //}
             }
          }
       }
         //repeat
    } while( breakedge && nloops < MAXLOOPS );
-/*OLD CODE BLOCK:
-   int i;
-   int breakedge;
-   int change = 0;
-   int flipped;
-   int flip = 0;
-   double dis0, dis1;
-   tArray< int > npop(3);
-   tLNode *pointtodelete, *lnodePtr, * pedg[2];  
-   tEdge * fedg, *tedg[2];
-   tTriangle * ct, * trop[3];
-   tListIter< tTriangle > triIter( gridPtr->GetTriList() );
-     //check for broken flow edges that we don't want broken
-   breakedge = 1;
-   tPtrList< tTriangle > triPtrList;
-   do
-   {
-      breakedge = 0;
-        //cout << "breaking edge loop: form tri stack" << endl << flush;
-      for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
-      {
-         change = 0;
-         for( i = 0; i < 3; i++ )
-         {
-            lnodePtr = (tLNode *) ct->pPtr(i);
-            if( lnodePtr->Meanders() )
-            {
-               change = 1;
-                 //cout << " add triangle " << ct->getID() << " to ptrlist" << endl;
-               break;
-            }
-         }
-         if( change ) triPtrList.insertAtBack( ct );
-      }
-        //for each triangle in the stack
-      tPtrListIter< tTriangle > triPtrIter( triPtrList );
-      for( ct = triPtrIter.FirstP(); !( triPtrIter.AtEnd() );
-           ct = triPtrIter.NextP() )
-      {
-         assert( ct != 0 );
-           //cout << " check triangle " << ct->getID() << endl;
-         for( i=0; i<3; i++ )
-         {
-            trop[i] = ct->tPtr(i);
-            if( trop[i] ) npop[i] = trop[i]->nVOp( ct );
-            else npop[i] = NULL;
-         }
-         for( i=0; i<3; i++ )
-         {
-            if( gridPtr->CheckForFlip( trop[i], npop[i], flip ) )
-            {
-               pedg[0] = (tLNode *) ct->pPtr( (i+1)%3 );
-               pedg[1] = (tLNode *) ct->pPtr( (i+2)%3 );
-               tedg[0] = ct->ePtr( (i+1)%3 );
-               tedg[1] = gridPtr->getEdgeCompliment( tedg[0] );
-               fedg = 0;
-               if( pedg[0]->GetFlowEdg() )
-                   if( tedg[0]->getID() == pedg[0]->GetFlowEdg()->getID() )
-                       fedg = tedg[0];
-               if( pedg[1]->GetFlowEdg() )
-                   if( tedg[1]->getID() == pedg[1]->GetFlowEdg()->getID() )
-                       fedg = tedg[1];
-               if( fedg )
-               {
-                  lnodePtr = (tLNode *) ct->pPtr(i);
-                  dis0 = lnodePtr->DistNew( pedg[0], pedg[1] );
-                  lnodePtr = (tLNode *) trop[i]->pPtr( npop[i] );
-                  dis1 = lnodePtr->DistNew( pedg[0], pedg[1] );
-                  if( dis0 < dis1 ) pointtodelete = (tLNode *) ct->pPtr(i);
-                  else pointtodelete = (tLNode *) trop[i]->pPtr( npop[i] );
-                  lnodePtr = (tLNode *) fedg->getOriginPtr();
-                  if( pointtodelete->getDrArea() > lnodePtr->getDrArea() )
-                      pointtodelete = NULL;
-                  else if( pointtodelete->getBoundaryFlag() )
-                  {
-                     for( i=0; i<2; i++ )
-                     {
-                        pedg[i]->RevertToOldCoords();
-                     }
-                  }
-                  else
-                  {
-                       //DumpTriangles();
-                       //DumpNodes();
-                       //DumpEdges();
-                     //cout<<"delete flow edge breaker"<<endl<<flush;
-                     gridPtr->DeleteNode( pointtodelete );
-                     breakedge = 1;
-                     break;
-                  }
-               }  
-            }
-         }
-         if( breakedge ) break;
-      }
-      triPtrList.Flush();
-   } while( breakedge );*/
    cout << "finished" << endl << flush;
 }
 #undef MAXLOOPS
@@ -1838,11 +1746,13 @@ int tStreamMeander::InChannel( tLNode *mnode, tLNode *bnode )
    double L, b, a, d, mindist;
    tArray< double > up, dn, bnk;
    tGridListIter< tLNode > dI( gridPtr->GetNodeList() );
+   tGridListIter< tEdge > eI( gridPtr->GetEdgeList() );
    b = mnode->getHydrWidth();
    if( b == 0 ) return 0;
    tLNode *dnode = mnode->GetDownstrmNbr();
-     //if downstrm nbr exists and is still in nodeList:
-   if( dnode != 0 && dI.Get( dnode->getID() ) )
+   tEdge *fe = mnode->GetFlowEdg();
+     //if downstrm nbr exists and is still in nodeList; also flowedge:
+   if( dnode != 0 && dI.Get( dnode->getID() ) && fe != 0 && eI.Get( fe->getID() ) )
    {
       L = mnode->GetFlowEdg()->getLength();
         //mindist = sqrt( L * L + b * b );

@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.32 1998-04-09 22:39:17 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.33 1998-04-10 19:14:44 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -665,8 +665,12 @@ double tLNode::GetQ()
 **   ones for which hydraulic geometry is now calculated; if we want to
 **   use a reach slope everywhere, then we need to also calculate the
 **   hydraulic geometry everywhere.
+**   AND make sure that the node 'crn' is not at a lower elevation than
+**   the outlet; in the latter case, it returns slope=0; if it runs into
+**   an infinite loop either searching for the 10-widths-downstream node
+**   or the outlet node, it returns a negative number (-1)
 \************************************************************************/
-#define kLargeNumber 10000000
+#define kLargeNumber 1000000
 double tLNode::GetSlope()
 {
    int ctr;
@@ -680,13 +684,21 @@ double tLNode::GetSlope()
       curlen = 0.0;
       dn = this;
       ctr = 0;
+      //built a couple of 'firewalls' in these loops; first, quit loop if
+      //we have a flowedge with zero length; second, if we've somehow gotten
+      //an infinite loop, return a negative number as a flag to the calling
+      //routine that it needs to update the network (tStreamNet::UpdateNet())
+      //and reaches (tStreamMeander::MakeReaches). We've run across this loop
+      //bug in a call from tStreamMeander::InterpChannel, which is called by
+      //tStreamMeander::MakeReaches.
       while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary &&
              dn->flowedge->getLength() > 0 )
       {
          ctr++;
          if( ctr > kLargeNumber )
          {
-            ReportFatalError("infinite loop in tLNode::GetSlope(), 1st loop");
+            return (-1);
+            //ReportFatalError("infinite loop in tLNode::GetSlope(), 1st loop");
          }
          curlen += dn->flowedge->getLength();
          dn = dn->GetDownstrmNbr();
@@ -701,7 +713,8 @@ double tLNode::GetSlope()
          ctr++;
          if( ctr > kLargeNumber )
          {
-            ReportFatalError("infinite loop in tLNode::GetSlope(), 2nd loop");
+            return (-1);
+            //ReportFatalError("infinite loop in tLNode::GetSlope(), 2nd loop");
          }
          on = on->GetDownstrmNbr();
       }
