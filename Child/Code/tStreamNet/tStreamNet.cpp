@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.79 2004-05-10 10:52:50 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.80 2004-05-27 17:21:04 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -136,7 +136,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
   stormPtr(&storm),
   trans(0), infilt(0),
   inlet( &meshRef, infile ),
-  optSinVarInfilt(0),
+  optSinVarInfilt(false),
   mpParkerChannels(0)
 {
    if (1) //DEBUG
@@ -152,18 +152,14 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
      tmp_ = infile.ReadItem( tmp_, "FLOWGEN" );
      miOptFlowgen = static_cast<kFlowGen_t>(tmp_);
    }
-   {
-     int tmp_;
-     tmp_ = infile.ReadItem( tmp_, "LAKEFILL" );
-     filllakes = BOOL( tmp_ != 0 );
-   }
+   filllakes = infile.ReadBool( "LAKEFILL" );
    if( miOptFlowgen == kSaturatedFlow1 || miOptFlowgen==kSaturatedFlow2 )
       trans = infile.ReadItem( trans, "TRANSMISSIVITY" );
    if( miOptFlowgen==kSaturatedFlow2 || miOptFlowgen==kConstSoilStore
        || miOptFlowgen==kHortonian )
    {
       infilt = infile.ReadItem( infilt, "INFILTRATION" );
-      optSinVarInfilt = infile.ReadItem( optSinVarInfilt, "OPTSINVARINFILT" );
+      optSinVarInfilt = infile.ReadBool( "OPTSINVARINFILT" );
       if( optSinVarInfilt )
       {
          twoPiLam = (2.0*PI)/(infile.ReadItem( twoPiLam, "PERIOD_INFILT" ));
@@ -192,11 +188,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    // Get the initial rainfall rate from the storm object, and read in option
    // for stochastic variation in rainfall
    rainrate = stormPtr->getRainrate();
-   {
-     int tmp_;
-     tmp_ = infile.ReadItem( tmp_, "OPTVAR" );
-     optrainvar = BOOL(tmp_ != 0 );
-   }
+   optrainvar = infile.ReadBool( "OPTVAR" );
    // Arnaud: useless
    // Options related to stream meandering
    // int itMeanders = infile.ReadItem( itMeanders, "OPTMEANDER" );
@@ -245,7 +237,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    }
 
    // Option for adaptive meshing related to drainage area
-   int optMeshAdapt = infile.ReadItem( optMeshAdapt, "OPTMESHADAPTAREA" );
+   bool optMeshAdapt = infile.ReadBool( "OPTMESHADAPTAREA" );
    if( optMeshAdapt )
    {
       mdMeshAdaptMinArea = infile.ReadItem( mdMeshAdaptMinArea,
@@ -2804,8 +2796,9 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
   inSedLoad(0.),
   meshPtr(gPtr)
 {
-   int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" ),
-       numg = infile.ReadItem( numg, "NUMGRNSIZE" );
+   bool inletbc = infile.ReadBool( "OPTINLET" );
+   int i;
+   int numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    int add = 1;       // Use AddNode at for placing the inlet
    //char end, name[20];
    double xin, yin,   // Coords of inlet node

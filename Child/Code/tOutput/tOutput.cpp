@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.98 2004-04-27 10:50:42 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.99 2004-05-27 17:20:59 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -378,7 +378,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
     this->CreateAndOpenFile( &flowdepofs, ".dep" );
 
   // Time-series output: if requested
-  if( (opOpt = infile.ReadItem( opOpt, "OPTTSOUTPUT" ) ) != 0) {
+  if( infile.ReadBool( "OPTTSOUTPUT" ) ) {
     TSOutput = new tTSOutputImp< tSubNode >(meshPtr, infile);
   }
 
@@ -403,10 +403,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
   if( (optStratGrid = infile.ReadItem(optStratGrid,"OPTSTRATGRID")) !=0){
     stratOutput = new tStratOutputImp< tSubNode >(meshPtr, infile);
   }
-  {
-    int opOpt;
-    Surfer = (opOpt = infile.ReadItem( opOpt, "SURFER", false)) != 0;
-  }
+  Surfer = infile.ReadBool( "SURFER", false);
 }
 
 /*************************************************************************\

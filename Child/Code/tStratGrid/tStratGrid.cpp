@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.14 2004-04-27 10:41:37 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.15 2004-05-27 17:21:02 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -71,9 +71,6 @@ tStratGrid::tStratGrid( tInputFile const &infile, tMesh<tLNode> *mp_)
 
   // Read in values related to dimensions and resolution of the mesh
   // and desired output format of the stratigraphic sections
-
-  optSurferFiles = infile.ReadItem(optSurferFiles, "OPT_SURFERFILES");
-
   xcorner  = infile.ReadItem(xcorner,"XCORNER");
   ycorner  = infile.ReadItem(ycorner,"YCORNER");
   griddx   = infile.ReadItem(griddx,"GRIDDX");
@@ -980,9 +977,9 @@ tStratNode::tStratNode( tInputFile const &infile ) :
 
   // Initializing the layering below:
 
-  i = infile.ReadItem( i, "OPTREADLAYER" );
+  bool lay = infile.ReadBool( "OPTREADLAYER" );
 
-  if(i!=1){
+  if(!lay){
 
     dgradehelp.setSize( numg );
     dgradebrhelp.setSize( numg );
@@ -992,7 +989,7 @@ tStratNode::tStratNode( tInputFile const &infile ) :
     add[0]='1';
 
     while ( i<numg ){
-      // Reading in proportions for intital regolith and bedrock
+      // Reading in proportions for initial regolith and bedrock
       strcpy( name, "REGPROPORTION");
       strcat( name, add );
       help = infile.ReadItem( help, name);

@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.62 2004-05-10 10:52:52 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.63 2004-05-27 17:21:06 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -283,7 +283,7 @@ protected:
     double infilt;        // soil infiltration capacity
     double soilStore;     // soil water storage, depth equiv (m)
     tInlet inlet;         // inlet
-    int optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
+    bool optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
     kChannelType_t miChannelType; // code for type of channels: "regime", "parker"
     tParkerChannels *mpParkerChannels;  // -> tParkerChannels object
     double infilt_dev;    // max +/- variation from mean infilt cap

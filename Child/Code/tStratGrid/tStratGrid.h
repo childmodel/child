@@ -12,7 +12,7 @@
  **
  **  Created 5/2003 (QC)
  **
- **  $Id: tStratGrid.h,v 1.5 2004-04-27 10:41:38 childcvs Exp $
+ **  $Id: tStratGrid.h,v 1.6 2004-05-27 17:21:04 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -180,10 +180,6 @@ class tStratGrid
 public:
   tStratGrid( tInputFile const &infile, tMesh<tLNode> *mp );
   ~tStratGrid();
-
-  bool OptSurferFiles() const {
-    return optSurferFiles != 0;
-  };
 
   int getImax() const
   {

@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.23 2004-04-27 10:41:36 childcvs Exp $
+**  $Id: childmain.cpp,v 1.24 2004-05-27 17:20:54 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -47,13 +47,13 @@ Predicates predicate;
 
 int main( int argc, char **argv )
 {
-   int optDetachLim,      // Option for detachment-limited erosion only
-       optFloodplainDep,  // Option for floodplain (overbank) deposition
-       optLoessDep,       // Option for eolian deposition
-       optVegetation=0,     // Option for dynamic vegetation cover
-       optMeander,        // Option for stream meandering
-       optDiffuseDepo,    // Option for deposition / no deposition by diff'n
-       optStratGrid;      // Option to enable stratigraphy grid
+   bool optDetachLim,      // Option for detachment-limited erosion only
+        optFloodplainDep,  // Option for floodplain (overbank) deposition
+        optLoessDep,       // Option for eolian deposition
+        optVegetation,     // Option for dynamic vegetation cover
+        optMeander,        // Option for stream meandering
+        optDiffuseDepo,    // Option for deposition / no deposition by diff'n
+        optStratGrid;      // Option to enable stratigraphy grid
    tVegetation *vegetation(0);  // -> vegetation object
    tFloodplain *floodplain(0);  // -> floodplain object
    tStratGrid *stratGrid(0);     // -> Stratigraphy Grid object
@@ -103,13 +103,13 @@ int main( int argc, char **argv )
    tUplift uplift( inputFile );
 
    // Get various options
-   optDetachLim = inputFile.ReadItem( optDetachLim, "OPTDETACHLIM" );
-   optDiffuseDepo = inputFile.ReadItem( optDiffuseDepo, "OPTDIFFDEP" );
-   optVegetation = inputFile.ReadItem( optVegetation, "OPTVEG" );
-   optFloodplainDep = inputFile.ReadItem( optFloodplainDep, "OPTFLOODPLAIN" );
-   optLoessDep = inputFile.ReadItem( optLoessDep, "OPTLOESSDEP" );
-   optMeander = inputFile.ReadItem( optMeander, "OPTMEANDER" );
-   optStratGrid = inputFile.ReadItem( optStratGrid, "OPTSTRATGRID" ,false);
+   optDetachLim = inputFile.ReadBool( "OPTDETACHLIM" );
+   optDiffuseDepo = inputFile.ReadBool( "OPTDIFFDEP" );
+   optVegetation = inputFile.ReadBool( "OPTVEG" );
+   optFloodplainDep = inputFile.ReadBool( "OPTFLOODPLAIN" );
+   optLoessDep = inputFile.ReadBool( "OPTLOESSDEP" );
+   optMeander = inputFile.ReadBool( "OPTMEANDER" );
+   optStratGrid = inputFile.ReadBool( "OPTSTRATGRID" ,false);
 
    // If applicable, create Vegetation object
    if( optVegetation )
@@ -257,7 +257,7 @@ OptTSOutput." );
 
       // Do interstorm...
       erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
-      optDiffuseDepo );
+		       optDiffuseDepo );
 
       erosion.UpdateExposureTime( storm.getStormDuration() +
                                       storm.interstormDur() );

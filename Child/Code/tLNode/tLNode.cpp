@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.135 2004-05-10 10:52:47 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.136 2004-05-27 17:20:56 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -377,12 +377,7 @@ public1(-1)
   accumdh[0]=0.0;
   accumdh[1]=0.0;
 
-  bool optReadLayer;
-  {
-    int tmp_;
-    tmp_ = infile.ReadItem( tmp_, "OPTREADLAYER" );
-    optReadLayer = tmp_ != 0;
-  }
+  bool optReadLayer = infile.ReadBool( "OPTREADLAYER" );
 
   if(!optReadLayer){
 

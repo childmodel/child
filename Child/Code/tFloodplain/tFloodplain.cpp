@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.27 2004-04-19 12:53:10 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.28 2004-05-27 17:20:55 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -113,11 +113,7 @@ tFloodplain::tFloodplain( const tInputFile &infile, tMesh<tLNode> *mp )
    deparr.setSize(numg); // dimension & init to 0 the deparr array
    deparrRect.setSize(numg+1);
 
-   {
-     int tmp_;
-     optControlMainChan = BOOL(infile.ReadItem( tmp_,
-						"FP_OPTCONTROLCHAN" ));
-   }
+   optControlMainChan = infile.ReadBool( "FP_OPTCONTROLCHAN" );
    if( optControlMainChan )
      chanDriver = new tMainChannelDriver( infile );
 }

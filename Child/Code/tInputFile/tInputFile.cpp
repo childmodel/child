@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.34 2004-05-26 16:21:30 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.35 2004-05-27 17:20:55 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -146,7 +146,7 @@ void skipCommentsAndReadValue(char *headerLine, ifstream& infile){
 	   isComment(headerLine) );
 }
 
-// strip a string at the first ' ' or ':' found. 
+// strip a string at the first ' ' or ':' found.
 static
 void stripKey(char *key){
   char c;
@@ -368,35 +368,17 @@ void ReportNonExistingKeyWord(const char *itemCode, bool reqParam ){
 
 int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode, bool reqParam ) const
 {
-  const int i = findKeyWord( itemCode );
-  if (i == notFound)
-  {
-     ReportNonExistingKeyWord( itemCode, reqParam );
-     return( 0 );
-  }
-  return atoi(KeyWordTable[i].value());
+  return ReadInt( itemCode, reqParam );
 }
 
 long tInputFile::ReadItem( const long & /*datType*/, const char *itemCode, bool reqParam ) const
 {
-  const int i = findKeyWord( itemCode );
-  if (i == notFound)
-  {
-    ReportNonExistingKeyWord( itemCode, reqParam );
-    return( 0 );
-  }
-  return atol(KeyWordTable[i].value());
+  return ReadLong( itemCode, reqParam );
 }
 
 double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode, bool reqParam ) const
 {
-  const int i = findKeyWord( itemCode );
-  if (i == notFound)
-  {
-    ReportNonExistingKeyWord( itemCode, reqParam );
-    return( 0.0 );
-  }
-  return atof(KeyWordTable[i].value());
+  return ReadDouble( itemCode, reqParam );
 }
 
 // The size of 'theString' is 'len' including the trailing '\0'
@@ -421,22 +403,63 @@ void tInputFile::ReadItem( char * theString, size_t len,
     theString[llen-1] = '\0';
 }
 
-int tInputFile::ReadInt( const char *itemCode ) const
+bool tInputFile::ReadBool( const char *itemCode, bool reqParam ) const
 {
-  int datTypeInt;
-  return ReadItem( datTypeInt, itemCode );
+  const int i = findKeyWord( itemCode );
+  if (i == notFound)
+  {
+     ReportNonExistingKeyWord( itemCode, reqParam );
+     return false;
+  }
+
+  const char * const v = KeyWordTable[i].value();
+  if (strlen(v)>=4
+      && (v[0] == 'T' || v[0] == 't' )
+      && (v[1] == 'R' || v[1] == 'r' )
+      && (v[2] == 'U' || v[2] == 'u' )
+      && (v[3] == 'E' || v[3] == 'e' )
+      ) return true;
+  if (strlen(v)>=5
+      && (v[0] == 'F' || v[0] == 'f' )
+      && (v[1] == 'A' || v[1] == 'a' )
+      && (v[2] == 'L' || v[2] == 'l' )
+      && (v[3] == 'S' || v[3] == 's' )
+      && (v[4] == 'S' || v[4] == 'e' )
+      ) return false;
+  return 0 != atoi(KeyWordTable[i].value());
 }
 
-double tInputFile::ReadDouble( const char *itemCode ) const
+int tInputFile::ReadInt( const char *itemCode, bool reqParam ) const
 {
-  double datTypeDouble;
-  return ReadItem( datTypeDouble, itemCode );
+  const int i = findKeyWord( itemCode );
+  if (i == notFound)
+  {
+     ReportNonExistingKeyWord( itemCode, reqParam );
+     return 0;
+  }
+  return atoi(KeyWordTable[i].value());
 }
 
-long tInputFile::ReadLong( const char *itemCode ) const
+double tInputFile::ReadDouble( const char *itemCode, bool reqParam  ) const
 {
-  long datTypeLong;
-  return ReadItem( datTypeLong, itemCode );
+  const int i = findKeyWord( itemCode );
+  if (i == notFound)
+  {
+    ReportNonExistingKeyWord( itemCode, reqParam );
+    return 0.0;
+  }
+  return atof(KeyWordTable[i].value());
+}
+
+long tInputFile::ReadLong( const char *itemCode, bool reqParam ) const
+{
+  const int i = findKeyWord( itemCode );
+  if (i == notFound)
+  {
+    ReportNonExistingKeyWord( itemCode, reqParam );
+    return 0L;
+  }
+  return atol(KeyWordTable[i].value());
 }
 
 tArray< tKeyPair > & tInputFile::GetKeyWordTableRef()

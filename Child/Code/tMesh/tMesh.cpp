@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.214 2004-04-27 14:22:17 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.215 2004-05-27 17:20:57 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -143,11 +143,8 @@ tMesh( const tInputFile &infile, bool checkMeshConsistency  )
    // in initialisation list
 
    // As "layerflag" is used in this constructor, we compute it now.
-   {
-     int help;
-     help = infile.ReadItem( help, "OPTINTERPLAYER" );
-     layerflag = BOOL(help>0);
-   }
+   layerflag =  infile.ReadBool( "OPTINTERPLAYER" );
+
    // option for reading/generating initial mesh
    int read;
    read = infile.ReadItem( read, "OPTREADINPUT" );
@@ -170,11 +167,11 @@ tMesh( const tInputFile &infile, bool checkMeshConsistency  )
        // compile-time assertion
        void require_option_equal(int d[( OPTREADINPUT_PREVIOUS == 1 ?1:-1)]);
 
-       int lay;  // option for reading layer info
        //create mesh by reading data files.
        MakeMeshFromInputData( infile );
-       lay = infile.ReadItem( lay, "OPTREADLAYER" );
-       if( lay == 1 )
+       bool lay;  // option for reading layer info
+       lay = infile.ReadBool( "OPTREADLAYER" );
+       if( lay )
 	 MakeLayersFromInputData( infile );
      }
      break;

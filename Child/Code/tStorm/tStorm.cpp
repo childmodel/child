@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.34 2004-02-27 11:14:22 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.35 2004-05-27 17:21:02 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -74,11 +74,8 @@ tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
   rand(rand_)
 {
    // Read + set parameters for storm intensity, duration, and spacing
-   {
-     int tmp_;
-     tmp_ = infile.ReadItem( tmp_, "OPTVAR" );
-     optVariable = BOOL(tmp_ != 0);
-   }
+   optVariable = infile.ReadBool( "OPTVAR" );
+
    infile.WarnObsoleteKeyword("PMEAN", "ST_PMEAN");
    infile.WarnObsoleteKeyword("STDUR", "ST_STDUR");
    infile.WarnObsoleteKeyword("ISTDUR", "ST_ISTDUR");
