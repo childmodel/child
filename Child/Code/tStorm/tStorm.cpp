@@ -9,7 +9,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.18 2000-05-10 19:46:11 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.19 2001-06-24 12:41:02 gtucker Exp $
 \**************************************************************************/
 
 
@@ -210,7 +210,7 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
          //            endl;
          //srand( seed );
       } while( (p<=minp || (p*stdur)<=mind) && (tm+istdur+stdur<endtm) );
-      stormfile << tm << " " << p << " " << stdur << endl;
+      stormfile << istdur << " " << p << " " << stdur << endl;
    }
 }
 
