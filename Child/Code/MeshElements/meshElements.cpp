@@ -13,12 +13,15 @@
 **   - added tNode::AttachNewSpoke and tEdge::WelcomeCCWNeighbor gt 2/99
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions to .h file to inline them
+**   - 2/2000 GT added tNode functions getVoronoiVertexList and
+**     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.35 2000-02-02 22:33:24 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.36 2000-03-09 19:52:13 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
 #include "meshElements.h"
+#include "../globalFns.h" // For PlaneFit; this could go in geometry; TODO
 
 int PointsCCW( tArray< double > &, tArray< double > &, tArray< double > & );
 
@@ -490,6 +493,99 @@ double tNode::ComputeVoronoiArea()
       }*/
    
    return area;
+}
+
+/*******************************************************************\
+**
+**  tNode::getVoronoiVertexList
+**
+**  Creates and returns a list of (x,y) coordinates for the
+**  Voronoi vertices associated with the node. The list is 
+**  created by moving around the spokes and adding each spoke's
+**  right-hand Voronoi vertex to the back of the list.
+**    A pointer to the vertex list is passed as a parameter; any
+**  prior contents are flushed before the list of points is created.
+**
+**    Created: 2/2000 GT
+**
+\*******************************************************************/
+void tNode::getVoronoiVertexList( tList<Point2D> * vertexList )
+{
+   tArray<double> vtxarr;
+   Point2D vtx;
+
+   assert( !boundary );
+
+   vertexList->Flush();
+
+   // Loop around spokes, adding the right-hand Voronoi vertex of
+   // each to the list, until we've gone all the way around
+   tEdge *ce = edg;
+   do
+   {
+      vtxarr = ce->getRVtx();
+      vtx.x = vtxarr[0];
+      vtx.y = vtxarr[1];
+      cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << endl;
+      vertexList->insertAtBack( vtx );
+      ce = ce->getCCWEdg();
+   }
+   while( ce!=edg );
+   
+   assert( vertexList->getSize()!=0 );
+}
+/*******************************************************************\
+**
+**  tNode::getVoronoiVertexXYZList
+**
+**  Creates and returns a list of (x,y,z) coordinates for the
+**  Voronoi vertices associated with the node. The list is 
+**  created by moving around the spokes and adding each spoke's
+**  right-hand Voronoi vertex to the back of the list. The z
+**  coordinate is obtained by linear interpolation from the 3
+**  points of the triangle of which the vertex is the circumcenter.
+**    A pointer to the vertex list is passed as a parameter; any
+**  prior contents are flushed before the list of points is created.
+**
+**    Created: 2/2000 GT
+**
+\*******************************************************************/
+void tNode::getVoronoiVertexXYZList( tList<Point3D> * vertexList )
+{
+   tArray<double> vtxarr,
+       zvals(3),
+       p0(2), p1(2), p2(2);
+   Point3D vtx;
+   tNode *n1, *n2;
+
+   assert( !boundary );
+
+   vertexList->Flush();
+
+   // Loop around spokes, adding the right-hand Voronoi vertex of
+   // each to the list, until we've gone all the way around
+   tEdge *ce = edg;
+   tEdge *prevedg = ce;
+   n2 = ce->getDestinationPtrNC();
+   do
+   {
+      ce = ce->getCCWEdg();
+      n1 = n2;
+      n2 = ce->getDestinationPtrNC();
+      vtxarr = ce->getRVtx();
+      vtx.x = vtxarr[0];
+      vtx.y = vtxarr[1];
+      zvals[0] = this->z;
+      zvals[1] = n1->getZ();
+      zvals[2] = n2->getZ();
+      vtx.z = PlaneFit( vtx.x, vtx.y, this->get2DCoords(), n1->get2DCoords(), n2->get2DCoords(), zvals );
+      cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << " z " << vtx.z << endl;
+      vertexList->insertAtBack( vtx );
+      prevedg = ce;
+   }
+   while( ce!=edg );
+   
+   assert( vertexList->getSize()!=0 );
 }
 
 
