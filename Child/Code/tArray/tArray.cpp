@@ -3,7 +3,7 @@
  **  @file tArray.cpp
  **  @brief Functions for template class tArray< T >
  **
- **  $Id: tArray.cpp,v 1.21 2003-08-08 12:07:00 childcvs Exp $
+ **  $Id: tArray.cpp,v 1.22 2003-08-12 13:30:29 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -105,6 +105,7 @@ inline tArray< T >::
  **
  **  Modifications:
  **   - Assignment: now allows assignment of empty arrays - GT 7/98
+ **   - Do not reallocate if the size is the same - AD 8/2003
  **
 \**************************************************************************/
 
@@ -114,12 +115,17 @@ const tArray< T > &tArray< T >::operator=( const tArray< T > &right )
 {
   if( &right != this )
     {
-      delete [] avalue; avalue = 0;
-      npts = right.npts;
-      if( npts>0 )
+      if (npts != right.npts) { // delete and reallocate
+	delete [] avalue; avalue = 0;
+	npts = right.npts;
+	if( npts>0 )
 	{
 	  assert( right.avalue != 0 );
 	  avalue = new T [npts];
+	}
+      }
+      if( npts>0 )
+	{
 	  for( int i = 0; i < npts; i++ )
 	    avalue[i] = right.avalue[i];
 	}
