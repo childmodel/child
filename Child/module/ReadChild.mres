@@ -380,7 +380,7 @@
 	    }
 	)
 	(t cx_widget_text
-	    {	(initVal "")
+	    {	(initVal "1")
 	    }
 	)
     }
