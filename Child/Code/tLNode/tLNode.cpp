@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.29 1998-04-07 16:14:30 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.30 1998-04-09 18:37:36 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -304,7 +304,7 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
 }
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
-        : dgrade( orig.dgrade ), grade( orig.grade ),
+        : dgrade( orig.dgrade ), grade( orig.grade ), 
 	  depositList( orig.depositList )
 {
    if( &orig != 0 )
