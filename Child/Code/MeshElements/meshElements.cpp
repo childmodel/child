@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.14 1998-03-23 21:17:45 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.15 1998-04-28 17:58:51 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -782,7 +782,7 @@ void tEdge::TellCoords()
    cout << "EDGE " << id << ":\n";
    cout << "  " << org->getID() << " (" << org->getX() << ","
         << org->getY() << ") -> " << dest->getID() << " ("
-        << dest->getX() << "," << dest->getY() << endl;
+        << dest->getX() << "," << dest->getY() << ")" << endl;
 }
 
 
