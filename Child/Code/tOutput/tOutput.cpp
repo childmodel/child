@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.71 2003-05-16 16:20:11 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.72 2003-05-19 13:30:09 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -175,9 +175,6 @@ void tOutput<tSubNode>::WriteOutput( double time )
    // Call virtual function to write any additional data
    WriteNodeData( time );
 
-   // to ensure a proper numbering of the edges
-   m->ResetEdgeID();
-
    if (0)//DEBUG
      cout << "tOutput::WriteOutput() Output done" << endl;
 }
@@ -237,7 +234,7 @@ void tOutput<tSubNode>::RenumberIDInListOrder()
 **  Set IDs in a canonical ordering independent of the list ordering
 **  As well, set tNode.edg to the spoke with the lowest destination node ID
 **
-**  AD, April 2003
+**  AD, April-May 2003
 \*************************************************************************/
 template< class tSubNode >
 void tOutput<tSubNode>::RenumberIDCanonically()
@@ -281,32 +278,40 @@ void tOutput<tSubNode>::RenumberIDCanonically()
        cn->setEdg(thece);
      }
    }
+   // Set Edge ID with respect to Node ID
+   // #1 The pair edge-complement is ordered so that
+   // (IDorig IDdest) (IDdest IDorig) with IDorig < IDdest
    {
-     // Set Edge ID with respect to Node ID
-     // #1 The pair edge-complement is ordered so that
-     // (IDorig IDdest) (IDdest IDorig) with IDorig < IDdest
-     // #2 Then pairs are ordered with IDorig1 < IDorig2 and
-     // if IDorig1 == IDorig2 IDdest1 < IDdest2
-
-     // IMPORTANT: the edge pairs will NOT have odd-even IDs in order
+     tEdge *ce;
+     for( ce=eiter.FirstP(); !(eiter.AtEnd()); ce=eiter.NextP() ) {
+       tListNode< tEdge >* enodePtr1 = eiter.NodePtr();
+       eiter.Next();
+       tListNode< tEdge >* enodePtr2 = eiter.NodePtr();
+       if (ce->getOriginPtr()->getID() > ce->getDestinationPtr()->getID()) {
+	 // swap edges
+	 m->getEdgeList()->moveToAfter(enodePtr1, enodePtr2);
+	 eiter.Next();
+       }
+     }
+   }
+   // #2 Then pairs are ordered with IDorig1 < IDorig2 and
+   // if IDorig1 == IDorig2 IDdest1 < IDdest2
+   {
      tArray< tEdge* > REdge2(nedges/2);
-     tEdge *ce = eiter.FirstP();
+     tEdge *ce;
      int i;
-     for(i=0; i<nedges; i+=2, ce=eiter.NextP()) {
-       tEdge *ce1=ce;
-       tEdge *ce2=eiter.NextP();
-       REdge2[i/2] =
-	 ce1->getOriginPtr()->getID() < ce1->getDestinationPtr()->getID() ?
-	 ce1:ce2;
+     for( ce=eiter.FirstP(), i=0; !(eiter.AtEnd()); ce=eiter.NextP(), ++i ) {
+       REdge2[i] = ce;
+       eiter.Next();
      }
      qsort(REdge2.getArrayPtr(), REdge2.getSize(), sizeof(REdge2[0]),
 	   orderREdge
 	   );
-     for(i=0; i<REdge2.getSize()*2; i+=2) {
-       assert (REdge2[i/2]->getOriginPtr()->getID() <
-	       REdge2[i/2]->getDestinationPtr()->getID() );
-       REdge2[i/2]->setID(i);
-       REdge2[i/2]->getComplementEdge()->setID(i+1);
+     for(i=0; i<REdge2.getSize(); ++i) {
+       assert (REdge2[i]->getOriginPtr()->getID() <
+	       REdge2[i]->getDestinationPtr()->getID() );
+       REdge2[i]->setID(2*i);
+       REdge2[i]->getComplementEdge()->setID(2*i+1);
      }
      m->SetmiNextEdgID( 2*REdge2.getSize() );
    }
