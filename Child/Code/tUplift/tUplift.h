@@ -23,13 +23,12 @@
 **  Major modifications:
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **
-**  $Id: tUplift.h,v 1.12 2002-07-08 17:21:52 arnaud Exp $
+**  $Id: tUplift.h,v 1.13 2002-09-23 12:10:44 arnaud Exp $
 \************************************************************************/
 
 #ifndef TUPLIFT_H
 #define TUPLIFT_H
 
-#include <iostream.h>
 #include "../tInputFile/tInputFile.h"
 #include "../tMesh/tMesh.h"
 
