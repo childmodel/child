@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.16 1998-04-03 15:37:14 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.17 1998-04-04 00:06:59 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -48,21 +48,11 @@ class tErode
      /*int erodtype;*/
    double sedinput;     /* Sed. volume input (output if neg) during an iteration*/
    double dz;           /* Elevation change during an iteration*/
-   tArray< double > dzm; /* multi size; dz for each grain size, 
-			    dzm[0]=total dz */
    double zp;           /* Predicted elevation (used in numerical scheme)*/
    double qs;           /* Sediment transport rate*/
-   tArray< double > qsm; /* multi size; sediment transport rate for each grn
-			    size, qsm[0]=total qs */	      
    double qsp;          /* Predicted sed trans rate at new time step*/
-   tArray< double > qspm; /* multi size; pred. sed trans rate for each grn
-			     size, qspm[0]=total qsp */
    double qsin;         /* Sediment influx rate*/
-   tArray< double > qsinm; /* multi size; Sed. influx rate of each grn size
-			      qsinm[0]=total qsin */
    double qsinp;        /* Predicted sed influx at new time step*/
-   tArray< double > qsinpm /* multi size; Predicted sed influx of each grn
-			      size, qsinpm[0]=total qsinpm */
    int nsmpts;         /* # of points downstream over which to apply smoothing*/
    tArray< double > smooth; /*weights for erosion applied to downstrm nodes*/
    double tau;          /* Shear stress (or similar quantity)*/
@@ -139,7 +129,11 @@ class tRegolith
    int numg;           /* number of grain sizes */
    tArray< double > dgrade;/* depth of each sediment class in active layer [m]
 			     dgrade[0]= total depth of active layer */
-   double dpth;         /* depth of active layer */
+   tArray< double > grade; /* representative grain diameter of each of 
+			      the grain size classes 
+			      grade[0]= 0*/
+   double dpth;         /* dynamic depth of active layer */
+   double actdpth;      /* standard active layer depth */
    tList< tDeposit > depositList;
 };
 
@@ -275,7 +269,9 @@ protected:
     double dzdt;      /* Erosion rate */
     double drdt;      /* Rock erosion rate */
     double qs;           /* Sediment transport rate*/
+    tArray< double > qsm; /* multi size; transport rate of each size fraction*/
     double qsin;         /* Sediment influx rate*/
+    tArray< double > qsinm; /* multi size; influx rate of each size fraction*/
     double uplift;  /*uplift rate*/
 };
 
