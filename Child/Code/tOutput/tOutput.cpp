@@ -13,7 +13,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.83 2003-08-04 14:47:36 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.84 2003-08-05 12:58:55 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -670,8 +670,8 @@ inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
   i=0;
   while(i<cn->getNumLayer()){
     layofs << cn->getLayerCtime(i) << ' ' << cn->getLayerRtime(i) << ' '
-	   << cn->getLayerEtime(i) << '\n';
-    layofs << cn->getLayerDepth(i) << ' ' << cn->getLayerErody(i) << ' '
+	   << cn->getLayerEtime(i) << '\n'
+	   << cn->getLayerDepth(i) << ' ' << cn->getLayerErody(i) << ' '
 	   << cn->getLayerSed(i) << '\n';
     j=0;
     while(j<cn->getNumg()){
