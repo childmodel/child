@@ -1,8 +1,9 @@
 /**************************************************************************\
 **
-**  gridElements.h: Header file for mesh (grid) elements tNode, tEdge,
-**                  and tTriangle. Each of these grid elements is
+**  meshElements.h: Header file for mesh elements tNode, tEdge,
+**                  and tTriangle. Each of these mesh elements is
 **                  implemented as an object, as described below.
+**                  (formerly called gridElements)
 **
 **  This file contains declarations of the three classes that collectively
 **  make up the triangulated mesh. These classes are:
@@ -14,7 +15,7 @@
 **                triangles, and its 3 clockwise-oriented edges
 **
 **  Lists of each of these 3 types of mesh element are maintained by the
-**  tGrid class, which implements the mesh and its routines. Connectivity
+**  tMesh class, which implements the mesh and its routines. Connectivity
 **  between mesh elements is managed using pointers, as follows:
 **   - Each tNode object points to one of its "spokes" (the tEdges that
 **     originate at the node). In the current implementation, each
@@ -35,19 +36,19 @@
 **     neighboring triangle 1, and so on. Node 1 is also the origin for
 **     edge 1, etc.
 **   
-**  $Id: meshElements.h,v 1.21 1999-02-04 21:56:51 gtucker Exp $
+**  $Id: meshElements.h,v 1.22 1999-04-04 21:32:41 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
 
-#ifndef GRIDELEMENTS_H
-#define GRIDELEMENTS_H
+#ifndef MESHELEMENTS_H
+#define MESHELEMENTS_H
 
 #include <iostream.h>
 #include "../Definitions.h"
 #include "../tPtrList/tPtrList.h"
 #include "../tArray/tArray.h"
-#include "../tGridList/tGridList.h"
+#include "../tMeshList/tMeshList.h"
 
 class tEdge;
 
@@ -71,7 +72,7 @@ class tEdge;
 **  (outer boundary, not counted as part of the solution domain), and
 **  open (boundary node not part of the solution domain but representing
 **  a valid exit point for mass or energy flows). Note that these boundary
-**  codes are used by tGrid to segregate nodes according to whether they
+**  codes are used by tMesh to segregate nodes according to whether they
 **  are boundary or non-boundary points. Note also that while all hull
 **  points must be boundaries, interior points do not necessarily have to
 **  be flagged as non-boundaries (e.g., one could include an "island" of
