@@ -12,21 +12,23 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.4 1998-02-18 22:32:51 gtucker Exp $
+**  $Id: tArray.h,v 1.5 1998-02-27 22:57:16 stlancas Exp $
 \***************************************************************************/
 
 #ifndef TARRAY_H
 #define TARRAY_H
 
+#include <iostream.h>
 #include "../Classes.h"
+#include "../GlobalFns.h"
 /** class tArray  **********************************************************/
 template< class T >
 class tArray
 {
-     /*friend ostream &operator<<( ostream &, const tArray< T > & );
-   friend istream &operator>>( istream &, tArray< T > & );
-   friend ofstream &operator<<( ofstream &, const tArray< T > & );*/
-     /*friend ifstream &operator>>( ifstream &, tArray< T > & );*/
+   friend ostream &operator<<( ostream &, const tArray< T > & );
+   //friend istream &operator>>( istream &, tArray< T > & );
+   //friend ofstream &operator<<( ofstream &, const tArray< T > & );
+   //friend ifstream &operator>>( ifstream &, tArray< T > & );*/
   public:
    tArray();
    tArray( int );

@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.14 1998-02-27 17:33:44 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.15 1998-02-27 22:57:03 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -756,7 +756,12 @@ void tLNode::setQs( double val ) {chan.erosion.qs = val;}
 double tLNode::getQs() const {return chan.erosion.qs;}
 
 void tLNode::setXYZD( tArray< double > arr )
-{chan.migration.xyzd = ( arr.getSize() == 4 ) ? arr : tArray< double >(4);}
+{
+   chan.migration.xyzd = ( arr.getSize() == 4 ) ? arr : tArray< double >(4);
+   cout << "setXYZD: " << chan.migration.xyzd[0] 
+        << " " << chan.migration.xyzd[1] << " " << chan.migration.xyzd[2]
+        << " " << chan.migration.xyzd[3] << endl;
+}
 
 tArray< double >
 tLNode::getXYZD() const {return chan.migration.xyzd;}

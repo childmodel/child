@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.24 1998-02-27 17:33:22 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.25 1998-02-27 22:56:53 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -696,6 +696,8 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
             oldpos[0] = curnode->getX();
             oldpos[1] = curnode->getY();
             curnode->setXYZD( oldpos );
+            cout << "set old x,y to current coords for node "
+                 << curnode->getID() << endl;
          }
            //newxy = curnode->getNew2DCoords();
            //cout << "init. new coords to " << newxy[0] << " " << newxy[1] << endl;
@@ -815,6 +817,11 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
          delta = curnode->getLatDisplace();
          delta[0] *= dtm;
          delta[1] *= dtm;
+         if( curnode == netPtr->getInletNodePtr() )
+         {
+            delta[0] = 0;
+            delta[1] = 0;
+         }
          curnode->setLatDisplace( delta[0], delta[1] );
          newxy = curnode->getNew2DCoords();
          newxy[0] += delta[0];
@@ -884,6 +891,7 @@ void tStreamMeander::Migrate()
 \*****************************************************************************/
 void tStreamMeander::MakeChanBorder()
 {
+   cout << "MakeChanBorder()" << endl;
    int i, j, num, pccw;
    double x0, y0, x1, y1, x, y, z, delx, dely, phi, width, xdisp, ydisp;
    double val;
@@ -906,6 +914,8 @@ void tStreamMeander::MakeChanBorder()
          {
             if( cn->DistFromOldXY() >= 0.5 * width )
             {
+               cout << "node " << cn->getID()
+                    << " >= width/2 from old coords" << endl;
                cnpos = cn->get2DCoords();
                cnbr = cn->GetDownstrmNbr();
                dsnpos = cnbr->get2DCoords();
@@ -924,15 +934,23 @@ void tStreamMeander::MakeChanBorder()
                {
                   oldpos[0] = x0 - xdisp;
                   oldpos[1] = y0 + ydisp;
+                  //oldpos[0] = x0 + xdisp;
+                  //oldpos[1] = y0 - ydisp;
                   oldpos[2] = ( rl[1] > z ) ? rl[1] : z;
                   oldpos[3] = 1.0;
+                  cout << "node " << cn->getID()
+                       << " old pos set, on left side of channel" << endl;
                }
                else
                {
                   oldpos[0] = x0 + xdisp;
                   oldpos[1] = y0 - ydisp;
+                  //oldpos[0] = x0 - xdisp;
+                  //oldpos[1] = y0 + ydisp;
                   oldpos[2] = ( rl[0] > z ) ? rl[0] : z;
                   oldpos[3] = -1.0;
+                  cout << "node " << cn->getID()
+                       << " old pos set, on right side of channel" << endl;
                }
                cn->setXYZD( oldpos );
             }
@@ -952,6 +970,9 @@ void tStreamMeander::MakeChanBorder()
                oldpos[2] = 0.0;
                oldpos[3] = 0.0;
                cn->setXYZD( oldpos );
+               cout << "node " << cn->getID()
+                    << " switched sides of channel: reinitialize z coord."
+                    << endl;
             }
          }         
       }
@@ -1017,6 +1038,7 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
 \*****************************************************************************/
 void tStreamMeander::AddChanBorder()
 {
+   cout << "AddChanBorder()" << endl;
    int i, inchan, pccw, sameside;
    double lvdist, width;
    tArray< double > xy, xyd, oldpos;
@@ -1039,6 +1061,8 @@ void tStreamMeander::AddChanBorder()
             //select for nodes far enough away from the old coords:
             if( cn->DistFromOldXY() > lvdist )
             {
+               cout << "node " << cn->getID()
+                    << " ready to drop new node" << endl;
                //just make sure new node will be
                //(a) not in a channel and
                //(b) on the same side of the channel:
@@ -1077,11 +1101,18 @@ void tStreamMeander::AddChanBorder()
                            }
                         }
                      }
-                     if( sameside ) gridPtr->AddNode( channode );
+                     if( sameside )
+                     {
+                        cout << "node " << cn->getID()
+                             << "'s old coords pass: add new node" << endl;
+                        gridPtr->AddNode( channode );
+                     }
                   }
                }
                for( i=0; i<4; i++ ) oldpos[i] = 0.0;
                cn->setXYZD( oldpos );
+               cout << "node " << cn->getID()
+                    << ": reinitialize old coords" << endl;
             }
          }
       }
