@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.88 2003-06-19 15:01:52 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.89 2003-07-16 12:58:23 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -379,31 +379,29 @@ int tStreamMeander::InterpChannel( double time )
     if( timetrack >= kBugTime )
       cout << "InterpChannel()\n";
   }
-  int i, j, npts, num;
-  double curwidth;
-  double curseglen, defseglen, maxseglen, bigseglen;
-  double x, y, z, val, phi, x0, y0, z0, x1, y1, slope=0.;
-  tPtrListIter< tLNode > rnIter;
-  tPtrList< tLNode > *creach;
   const tArray< double > zeroArr(4);
-  tLNode *crn, nn, *nPtr;
-  int change = 0; //haven't added any nodes yet
+  double slope=0.;
+  bool change = false; //haven't added any nodes yet
   //loop through reaches:
   if (0) {//DEBUG
     if( timetrack >= kBugTime ) cout << "loop through reaches" << endl;
   }
 
+  int i;
+  tPtrList< tLNode > *creach;
   for( creach = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
        creach = rlIter.NextP(), i++ )
     {
       if (0) //DEBUG
 	cout<<"reach " << i << endl;
-      rnIter.Reset( *creach );
-      num = nrnodes[i];
+      tPtrListIter< tLNode > rnIter( *creach );
+      const int num = nrnodes[i];
       //loop through reach nodes:
       if (0) {//DEBUG
 	if( timetrack >= kBugTime ) cout << "loop through reach nodes" << endl;
       }
+      int j;
+      tLNode *crn;
       for( crn = rnIter.FirstP(), j=0; j<num;
            crn = rnIter.NextP(), j++ )
 	{
@@ -411,16 +409,16 @@ int tStreamMeander::InterpChannel( double time )
 	    if( timetrack >= kBugTime ) cout << "node " << crn->getID() << endl;
 	  }
 	  // GT changed from hydr to chan width, 6/99:
-	  curwidth = crn->getChanWidth();
+	  const double curwidth = crn->getChanWidth();
 	  //curwidth = crn->getHydrWidth();
 	  if (0){ //DEBUG
 	    if( timetrack >= kBugTime ) cout << "found width" << endl;
 	  }
-	  nPtr = crn->getDownstrmNbr();
+	  tLNode *nPtr = crn->getDownstrmNbr();
 	  if (0){ //DEBUG
 	    if( timetrack >= kBugTime ) cout << "found dnstrm nbr" << endl;
 	  }
-	  curseglen = crn->getFlowEdg()->getLength();
+	  const double curseglen = crn->getFlowEdg()->getLength();
 	  if (0){ //DEBUG
 	    if( timetrack >= kBugTime ) cout << "found flowedge length" << endl;
 	  }
@@ -432,42 +430,43 @@ int tStreamMeander::InterpChannel( double time )
 	  slope = crn->getSlope();
 	  if( slope < 0.0 )
 	    {
-	      change = 1;
+	      change = true;
 	      break;
 	    }
 	  if (0){ //DEBUG
 	    if( timetrack >= kBugTime ) cout << "found slope" << endl;
 	  }
-	  defseglen = dscrtwids * curwidth;
-	  maxseglen = 2.0 * defseglen;
+	  const double defseglen = dscrtwids * curwidth;
+	  const double maxseglen = 2.0 * defseglen;
 	  //if current flowedg length is greater than
 	  //a given proportion of hydraulic width
 	  if( curseglen > maxseglen )
 	    {
-	      change = 1;//flag so we know that we need to update the network
-	      nn = *crn; //added nodes are copies of the upstream node except xyz.
+	      change = true;//flag so we know that we need to update the network
+	      tLNode nn = *crn; //added nodes are copies of the upstream node except xyz.
 	      nn.setXYZD( zeroArr ); //and xyzd ('old' coords)
-	      x0 = crn->getX();
-	      y0 = crn->getY();
-	      z0 = crn->getZ();
-	      x1 = nPtr->getX();
-	      y1 = nPtr->getY();
-	      y = y1 - y0;
-	      x = x1 - x0;
-	      phi = atan2( y, x );
-	      bigseglen = 3.0 * defseglen;
+
+	      const double x0 = crn->getX();
+	      const double y0 = crn->getY();
+	      const double z0 = crn->getZ();
+	      const double x1 = nPtr->getX();
+	      const double y1 = nPtr->getY();
+	      const double y = y1 - y0;
+	      const double x = x1 - x0;
+	      const double phi = atan2( y, x );
+	      const double bigseglen = 3.0 * defseglen;
 	      //if we can get the desired spacing by adding a single node
 	      //use linear interpolation with noise added
 	      //(for Delaunay mesh, avoid precisely co-linear points):
 	      if( curseglen <= bigseglen )
 		{
-		  val = ran3(&seed) - 0.5;
-		  x = x0 + curseglen * cos(phi) /
-		    2.0 + 0.01 * val * defseglen;//pow(defseglen, 2.0);
-		  val = ran3(&seed) - 0.5;
-		  y = y0 + curseglen * sin(phi) /
-		    2.0 + 0.01 * val * defseglen;//pow(defseglen, 2.0);
-		  z = z0 - curseglen / 2.0 * slope;
+		  const double val1 = ran3(&seed) - 0.5;
+		  const double x = x0 + curseglen * cos(phi) /
+		    2.0 + 0.01 * val1 * defseglen;//pow(defseglen, 2.0);
+		  const double val2 = ran3(&seed) - 0.5;
+		  const double y = y0 + curseglen * sin(phi) /
+		    2.0 + 0.01 * val2 * defseglen;//pow(defseglen, 2.0);
+		  const double z = z0 - curseglen / 2.0 * slope;
 		  nn.set3DCoords( x, y, z );
 		  if (0){ //DEBUG
 		    if( timetrack >= kBugTime ) cout << "add a node" << endl;
@@ -483,22 +482,20 @@ int tStreamMeander::InterpChannel( double time )
 	      //from being too much of a doozy):
 	      else
 		{
-		  npts = ROUND( curseglen / defseglen );
+		  const int npts = ROUND( curseglen / defseglen );
 		  tArray< double > xp( npts), yp(npts), zp(npts);
 		  for(int i=1; i<npts; i++ )
 		    {
 		      xp[i] = static_cast<double>(i) * defseglen;
-		      val = ran3(&seed) - 0.5;
+		      const double val = ran3(&seed) - 0.5;
 		      yp[i] = yp[i-1] + 0.01 * val * exp(-yp[i-1] * val)
 			* defseglen;//pow(defseglen, 2.0);
 		      zp[i] = xp[i] * slope;
 		      const double dd = sqrt(xp[i] * xp[i] + yp[i] * yp[i]);
 		      const double da = atan2(yp[i], xp[i]);
-		      x = dd * cos(da + phi);
-		      y = dd * sin(da + phi);
-		      x += x0;
-		      y += y0;
-		      z = z0 - zp[i];
+		      const double x = dd * cos(da + phi) + x0;
+		      const double y = dd * sin(da + phi) + y0;
+		      const double z = z0 - zp[i];
 		      if (0) //DEBUG
 			cout<<"InterpChannel: call AddNode"<<endl;
 		      nn.set3DCoords( x, y, z );
@@ -880,44 +877,44 @@ void tStreamMeander::FindReaches()
 void tStreamMeander::CalcMigration( double &time, double const &duration,
                                     double &cummvmt )
 {
-  int i, j;       // counters
-  tPtrList< tLNode > *creach;
-  tLNode *curnode, *nxtnode;
-
   if (0) //DEBUG
     cout<<"tStreamMeander::CalcMigration()...";
 
   //loop through reaches:
+  int i;
+  tPtrList< tLNode > *creach;
   for( creach = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
        creach = rlIter.NextP(), i++ )
     {
       tPtrListIter< tLNode > rnIter;
       rnIter.Reset( *creach );
-       {
-	 const int num = nrnodes[i];
-	 for( curnode = rnIter.FirstP(), j=0; j<num;
-	      curnode = rnIter.NextP(), j++ )
-	   //initialize deltax, deltay, newx, newy:
-	   {
-	     curnode->setLatDisplace( 0.0, 0.0 );
-	     curnode->setNew2DCoords( curnode->getX(), curnode->getY() );
-	     //set old x,y if necessary
-	     tArray< double > oldpos = curnode->getXYZD();
-	     if( oldpos[0] == 0.0 && oldpos[1] == 0.0 )
-	       {
-		 oldpos[0] = curnode->getX();
-		 oldpos[1] = curnode->getY();
-		 curnode->setXYZD( oldpos );
-		 if (0) //DEBUG
-		   cout << "set old x,y to current coords for node "
-			<< curnode->getID() << endl;
-	       }
-	     if (0){ //DEBUG
-	       const tArray< double > newxy = curnode->getNew2DCoords();
-	       cout << "init. new coords to " << newxy[0] << " " << newxy[1] << endl;
-	     }
-	   }
-       }
+      {
+	const int num = nrnodes[i];
+	int j;
+	tLNode *curnode;
+	for( curnode = rnIter.FirstP(), j=0; j<num;
+	     curnode = rnIter.NextP(), j++ )
+	  //initialize deltax, deltay, newx, newy:
+	  {
+	    curnode->setLatDisplace( 0.0, 0.0 );
+	    curnode->setNew2DCoords( curnode->getX(), curnode->getY() );
+	    //set old x,y if necessary
+	    tArray< double > oldpos = curnode->getXYZD();
+	    if( oldpos[0] == 0.0 && oldpos[1] == 0.0 )
+	      {
+		oldpos[0] = curnode->getX();
+		oldpos[1] = curnode->getY();
+		curnode->setXYZD( oldpos );
+		if (0) //DEBUG
+		  cout << "set old x,y to current coords for node "
+		       << curnode->getID() << endl;
+	      }
+	    if (0){ //DEBUG
+	      const tArray< double > newxy = curnode->getNew2DCoords();
+	      cout << "init. new coords to " << newxy[0] << " " << newxy[1] << endl;
+	    }
+	  }
+      }
       if (0) //DEBUG
 	cout << "reach " << i << " length " << nrnodes[i] << endl;
 
@@ -933,49 +930,53 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
 	diama(nttlnodes), deltaxa(nttlnodes), deltaya(nttlnodes),
 	rdeptha(nttlnodes), ldeptha(nttlnodes), lambdaa(nttlnodes);
 
-      double xs = 0.0;
-      for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
-           curnode = rnIter.NextP(), j++ )
-	{
-	  // Set up the coordinate, streamwise length & distance, and Q arrays
-	  tEdge *fedg = curnode->getFlowEdg();
-	  xa[j] = curnode->getX();
-	  ya[j] = curnode->getY();
-	  xsa[j] = xs;
-	  //xs += fedg->getLength(); BUG?? GT 3/16/99 seems to dup line below!
-	  qa[j] = curnode->getQ()/SECPERYEAR;
-	  delsa[j] = fedg->getLength();
-	  xs += delsa[j];
+      {
+	double xs = 0.0;
+	tLNode *curnode;
+	int j;
+	for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
+	     curnode = rnIter.NextP(), j++ )
+	  {
+	    // Set up the coordinate, streamwise length & distance, and Q arrays
+	    tEdge *fedg = curnode->getFlowEdg();
+	    xa[j] = curnode->getX();
+	    ya[j] = curnode->getY();
+	    xsa[j] = xs;
+	    //xs += fedg->getLength(); BUG?? GT 3/16/99 seems to dup line below!
+	    qa[j] = curnode->getQ()/SECPERYEAR;
+	    delsa[j] = fedg->getLength();
+	    xs += delsa[j];
 
-	  // For debugging: make sure the next node on the reach is the
-	  // downstream neighbor of the current node
-	  if( j < creach->getSize() - 1 )
-	    {
-	      nxtnode = rnIter.ReportNextP();
-	      if( nxtnode != curnode->getDownstrmNbr() )
-		{
-		  curnode->TellAll();
-		  nxtnode->TellAll();
-		  ReportFatalError( "downstream nbr not next reach node" );
-		}
-	    }
+	    // For debugging: make sure the next node on the reach is the
+	    // downstream neighbor of the current node
+	    if( j < creach->getSize() - 1 )
+	      {
+		tLNode *nxtnode = rnIter.ReportNextP();
+		if( nxtnode != curnode->getDownstrmNbr() )
+		  {
+		    curnode->TellAll();
+		    nxtnode->TellAll();
+		    ReportFatalError( "downstream nbr not next reach node" );
+		  }
+	      }
 
-	  // Set bank erodibility on left and right banks
-	  const tArray< double > bankerody = FindBankErody( curnode );
-	  //curnode->GetErodibility( rerody, lerody, pr->kf);
-	  lerodya[j] = bankerody[0];
-	  rerodya[j] = bankerody[1];
+	    // Set bank erodibility on left and right banks
+	    const tArray< double > bankerody = FindBankErody( curnode );
+	    //curnode->GetErodibility( rerody, lerody, pr->kf);
+	    lerodya[j] = bankerody[0];
+	    rerodya[j] = bankerody[1];
 
-	  // Set slope, width, depth, grainsize, and roughness arrays
-	  slopea[j] = curnode->getHydrSlope();
-	  widtha[j] = curnode->getHydrWidth();
-	  deptha[j] = curnode->getHydrDepth();
-	  if (0) //DEBUG
-	    cout << "width, depth " << widtha[j] << " " << deptha[j] << endl;
-	  /*diama[j] = curnode->diam;*/
-	  diama[j] = ( optdiamvar ) ? curnode->getDiam() : meddiam;
-	  lambdaa[j] = curnode->getBankRough();
-	}
+	    // Set slope, width, depth, grainsize, and roughness arrays
+	    slopea[j] = curnode->getHydrSlope();
+	    widtha[j] = curnode->getHydrWidth();
+	    deptha[j] = curnode->getHydrDepth();
+	    if (0) //DEBUG
+	      cout << "width, depth " << widtha[j] << " " << deptha[j] << endl;
+	    /*diama[j] = curnode->diam;*/
+	    diama[j] = ( optdiamvar ) ? curnode->getDiam() : meddiam;
+	    lambdaa[j] = curnode->getBankRough();
+	  }
+      }
 
       // Now we pass all this information to meander.f
       if (0) //DEBUG
@@ -1005,17 +1006,21 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
       // Now reset the node values according to the arrays:
       double dbg=0.;
       static double cumdbg=0.0; //debug
-      for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
-           curnode = rnIter.NextP(), j++ )
-	{
-	  dbg+=deltaxa[j];
-	  cumdbg+=deltaxa[j];
-	  curnode->addLatDisplace( deltaxa[j], deltaya[j] );
-	}
-      if (0) //DEBUG
-	cout << "MEAN X CHG: " << dbg/static_cast<double>(j)
-	     << "  CUM: " << cumdbg << endl;
-      //assert( cumdbg>-1e6 );
+      {
+	tLNode *curnode;
+	int j;
+	for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
+	     curnode = rnIter.NextP(), j++ )
+	  {
+	    dbg+=deltaxa[j];
+	    cumdbg+=deltaxa[j];
+	    curnode->addLatDisplace( deltaxa[j], deltaya[j] );
+	  }
+	if (0) //DEBUG
+	  cout << "MEAN X CHG: " << dbg/static_cast<double>(j)
+	       << "  CUM: " << cumdbg << endl;
+	//assert( cumdbg>-1e6 );
+      }
 
       //arbitrary change for simple debugging:
       //( 0.1, 0.01*(ran3(&seed)-.5)
@@ -1023,6 +1028,8 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
       {
 	const int num = nrnodes[i];
 	double dbg2=0;
+	tLNode *curnode;
+	int j;
 	for( curnode = rnIter.FirstP(), j=0; j<num;
 	     curnode = rnIter.NextP(), j++ )
 	  {
@@ -1049,6 +1056,8 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
       tPtrListIter< tLNode > rnIter;
       rnIter.Reset( *creach );
       const int num = nrnodes[i];
+      tLNode *curnode;
+      int j;
       for( curnode = rnIter.FirstP(), j=0; j<num;
            curnode = rnIter.NextP(), j++ )
 	{
@@ -1073,6 +1082,8 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
       tPtrListIter< tLNode > rnIter;
       rnIter.Reset( *creach );
       const int num = nrnodes[i];
+      tLNode *curnode;
+      int j;
       for( curnode = rnIter.FirstP(), j=0; j<num;
            curnode = rnIter.NextP(), j++ )
 	{
@@ -1145,8 +1156,8 @@ void tStreamMeander::Migrate( double ctime )
 {
   if (0) //DEBUG
     cout<<"Migrate time=" << ctime <<endl;
-  double duration = netPtr->getStormPtrNC()->getStormDuration();
-  duration += ctime;
+  const double duration = netPtr->getStormPtrNC()->getStormDuration()
+    + ctime;
   double cummvmt = 0.0;
   //timeadjust = 86400. * pr->days;
 
