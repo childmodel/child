@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.120 2003-02-12 12:00:37 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.121 2003-02-12 14:22:54 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -4663,63 +4663,6 @@ CheckLocallyDelaunay()
    } while( flipped );*/
    //cout << "finished" << endl;
 }
-
-
-/*****************************************************************************\
-**
-**  tMesh::IntersectsAnyEdge
-**
-**  Returns the first edge in the list which intersects
-**  "edge" or NULL if "edge" intersects no other edges
-**
-**      Data members updated: Mesh
-**      Called by: APPARENTLY NEVER CALLED! Replaced by global
-**                 function IntersectsAnyEdgeInList. Retain code in case
-**                 it needs to be revived.
-**      Calls: Intersect
-**      Created: SL fall, '97
-**
-\*****************************************************************************/
-/*template< class tSubNode >
-tEdge *tMesh< tSubNode >::
-IntersectsAnyEdge( tEdge * edge )
-{
-   //cout << "IntersectsAnyEdge( tEdge * edge )..." << endl;
-   int i;
-   tEdge * ce;
-   tMeshListIter< tEdge > edgIter( edgeList );
-
-   if( !edge )
-   {
-      cout<<"IntersectsAnyEdge: Warning: invalid edge"<<endl<<flush;
-      return( NULL );
-   }
-     //cout<<"IAE: nedges "<<nedges<<endl<<flush;
-     //cout << "call Intersect for edges " << edge->getID()
-     //   << " from nodes " << edge->getOriginPtr()->getID()
-     //   << " to " << edge->getDestinationPtr()->getID() << "; " << endl;
-
-   // For every other edge on the list, call Intersect to test
-   for( ce = edgIter.FirstP(); !(edgIter.AtEnd());
-        edgIter.Next(), ce = edgIter.NextP() )
-   {
-      assert( edgIter.NodePtr()->getNext() != 0 );
-      if( edge->getID() != ce->getID() &&
-          edge->getID() != getEdgeComplement( edge )->getID() )
-      {
-           //cout  << " and " << ce->getID() << " from nodes "
-           //    << ce->getOriginPtr()->getID()
-           //    << " to " << ce->getDestinationPtr()->getID() << endl;
-         if( Intersect( edge, ce ) ) return( ce );
-      }
-      
-   }
-   assert( edgIter.AtEnd() );
-   //if( i < nedges - 1 )
-   //  cout<<"IntersectsAnyEdge: Warning: whole list not checked"<<endl<<flush;
-   return( NULL );
-}*/
-
 
 /*****************************************************************************\
 **
