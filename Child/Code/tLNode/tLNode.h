@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.74 2003-08-12 15:54:17 childcvs Exp $
+ **  $Id: tLNode.h,v 1.75 2003-08-13 13:19:38 childcvs Exp $
  */
 /************************************************************************/
 
@@ -524,14 +524,14 @@ public:
   inline double getLayerDgrade(int, int) const;  // first int is layer index
   // second int is grade index - see note above for indexing directions
   inline int getNumLayer() const;
-  void setLayerCtime(int, double);
-  void setLayerRtime(int, double);
-  void setLayerEtime(int, double);
-  void addLayerEtime(int, double);
-  void setLayerDepth(int, double);
-  void setLayerErody(int, double);
-  void setLayerSed(int, int);
-  void setLayerDgrade(int, int, double);
+  inline void setLayerCtime(int, double);
+  inline void setLayerRtime(int, double);
+  inline void setLayerEtime(int, double);
+  inline void addLayerEtime(int, double);
+  inline void setLayerDepth(int, double);
+  inline void setLayerErody(int, double);
+  inline void setLayerSed(int, int);
+  inline void setLayerDgrade(int, int, double);
   tArray<double> EroDep(int, tArray<double>, double);
   // returns the depth of of each size that was actually deposited or
   // eroded.  Important in case less can be eroded than planned.
@@ -981,6 +981,48 @@ inline double tLNode::getLayerDgrade( int i, int num ) const
 inline int tLNode::getNumLayer() const
 {
   return layerlist.getSize();
+}
+
+inline void tLNode::setLayerCtime( int i, double tt)
+{
+  layerlist.getIthDataPtrNC( i )->setCtime( tt );
+}
+
+inline void tLNode::setLayerRtime( int i, double tt)
+{
+  layerlist.getIthDataPtrNC( i )->setRtime( tt );
+}
+
+inline void tLNode::setLayerEtime( int i, double tt)
+{
+  layerlist.getIthDataPtrNC( i )->setEtime( tt );
+}
+
+inline void tLNode::addLayerEtime( int i, double tt)
+{
+  layerlist.getIthDataPtrNC( i )->addEtime( tt );
+}
+
+inline void tLNode::setLayerDepth( int i, double dep)
+{
+  assert( dep > 0.0 );
+  layerlist.getIthDataPtrNC( i )->setDepth( dep );
+}
+
+inline void tLNode::setLayerErody( int i, double ero)
+{
+  layerlist.getIthDataPtrNC( i )->setErody( ero );
+}
+
+inline void tLNode::setLayerSed( int i, int s)
+{
+  layerlist.getIthDataPtrNC( i )->setSed( s );
+}
+
+inline void tLNode::setLayerDgrade( int i, int g, double val)
+{
+  assert( val>=0.0 );
+  layerlist.getIthDataPtrNC( i )->setDgrade(g, val );
 }
 
 inline tVegCover & tLNode::getVegCover()

@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.119 2003-08-12 13:28:31 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.120 2003-08-13 13:19:36 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -832,140 +832,6 @@ void tLNode::addQs( tArray< double > const & val )
   }
 
 
-}
-
-
-void tLNode::setLayerCtime( int i, double tt)
-{
-  tListIter<tLayer> ly ( layerlist );
-  tLayer  * hlp;
-  hlp=ly.FirstP();
-
-  int n=0;
-
-  while(n<i){
-    n++;
-    hlp=ly.NextP();
-  }
-
-  hlp->setCtime( tt );
-}
-
-void tLNode::setLayerRtime( int i, double tt)
-{
-  tListIter<tLayer> ly ( layerlist );
-  tLayer  * hlp;
-  hlp=ly.FirstP();
-
-  int n=0;
-
-  while(n<i){
-    n++;
-    hlp=ly.NextP();
-  }
-
-  hlp->setRtime( tt );
-}
-
-void tLNode::setLayerEtime( int i, double tt)
-{
-  tListIter<tLayer> ly ( layerlist );
-  tLayer  * hlp;
-  hlp=ly.FirstP();
-
-  int n=0;
-
-  while(n<i){
-    n++;
-    hlp=ly.NextP();
-  }
-
-  hlp->setEtime( tt );
-}
-
-void tLNode::addLayerEtime( int i, double tt)
-{
-  tListIter<tLayer> ly ( layerlist );
-  tLayer  * hlp;
-  hlp=ly.FirstP();
-
-  int n=0;
-
-  while(n<i){
-    n++;
-    hlp=ly.NextP();
-  }
-
-  hlp->addEtime( tt );
-}
-
-
-void tLNode::setLayerDepth( int i, double dep)
-{
-  assert( dep > 0.0 );
-  tListIter<tLayer> ly ( layerlist );
-  tLayer  * hlp;
-  hlp=ly.FirstP();
-
-  int n=0;
-
-  while(n<i){
-    n++;
-    hlp=ly.NextP();
-  }
-
-  hlp->setDepth( dep );
-}
-
-void tLNode::setLayerErody( int i, double ero)
-{
-  tListIter<tLayer> ly ( layerlist );
-  tLayer  * hlp;
-  hlp=ly.FirstP();
-
-  int n=0;
-
-  while(n<i){
-    n++;
-    hlp=ly.NextP();
-  }
-
-  hlp->setErody( ero );
-}
-
-
-void tLNode::setLayerSed( int i, int s)
-{
-  tListIter<tLayer> ly ( layerlist );
-  tLayer  * hlp;
-  hlp=ly.FirstP();
-
-  int n=0;
-
-  while(n<i){
-    n++;
-    hlp=ly.NextP();
-  }
-
-  hlp->setSed( s );
-}
-
-void tLNode::setLayerDgrade( int i, int g, double val)
-{
-  tListIter<tLayer> ly ( layerlist );
-  tLayer  * hlp;
-  hlp=ly.FirstP();
-
-  assert( val>=0.0 );
-
-  int n=0;
-
-  while(n<i){
-    n++;
-    hlp=ly.NextP();
-  }
-
-  hlp->setDgrade(g, val );
 }
 
 /************************************************************************\
@@ -2129,15 +1995,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 void tLNode::addtoLayer(int i, int g, double val, double tt)
 {
   // For adding material to a layer, grain size by grain size
-  tListIter<tLayer> ly ( layerlist );
-  tLayer  * hlp;
-  hlp=ly.FirstP();
-
-  int n=0;
-  while(n<i){
-    n++;
-    hlp=ly.NextP();
-  }
+  tLayer *hlp = layerlist.getIthDataPtrNC( i );
 
   if(tt>0)
     hlp->setRtime( tt );
@@ -2170,23 +2028,15 @@ tArray<double> tLNode::addtoLayer(int i, double val)
 {
   assert( val<0.0 ); // Function should only be called for erosion
 
-  tListIter<tLayer> ly ( layerlist );
-  tLayer *hlp;
-  hlp=ly.FirstP();
   tArray<double> ret(numg);
-  double amt;
 
-  int n=0;
-  while(n<i){
-    n++;
-    hlp=ly.NextP();
-  }
+  tLayer *hlp = layerlist.getIthDataPtrNC( i );
 
   if(hlp->getDepth()+val>1e-7)
     {
       // have enough material in this layer to fufill all erosion needs
-      amt=hlp->getDepth();
-      n=0;
+      const double amt=hlp->getDepth();
+      int n=0;
       while(n<numg)
 	{
 	  ret[n]=hlp->getDgrade(n)*val/amt;
@@ -2198,7 +2048,7 @@ tArray<double> tLNode::addtoLayer(int i, double val)
   else
     {
       // need to remove entire layer
-      n=0;
+      int n=0;
       while(n<numg)
 	{
 	  ret[n]=-1*hlp->getDgrade(n);
