@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.27 1998-06-17 23:43:58 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.28 1998-07-03 19:53:00 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -45,12 +45,18 @@ class tLayer
    double getErody() const;
    void setSed( int );
    int getSed() const;
+   void setFlag( int );
+   int getFlag() const;   
    void setDgradesize( int );
    int getDgradesize();
    void setDgrade( int, double );
    double getDgrade( int );
    tArray< double > getDgrade() const;
    void addDgrade(int, double);
+   void setDrDtsize( int );
+   int getDrDtsize();
+   void setDrDt( int, double );
+   double getDrDt( int );
    
   protected:
    double ctime; // time of creation of layer
@@ -61,8 +67,11 @@ class tLayer
    // may be multi-sizes.  although multiple sizes are stored for
    // bedrock, this is the texture of what the bedrock will break up
    // into, not what is there on the bed.
-   // Later this may be used as a flag for alluvium vs. regolith, etc.
-   tArray< double > dgrade; // depth of each size if multi size   
+   // Later sed may be used as a flag for alluvium vs. regolith, etc.
+   tArray< double > dgrade; // depth of each size if multi size
+   tArray< double > drdt; //detachment rate of each grain size
+   int flag; // put in to see if last change was erosion or deposition
+   // 1=erosion, 2=deposition - testing purposes only
 };
 
 /** class tErode ***********************************************************/
@@ -286,6 +295,7 @@ public:
     int OnBedrock();
     double getDzDt();
     void setDzDt( double );
+   void addDrDt(double);
     double getDrDt();
     void setDrDt( double );
     void setUplift( double );
@@ -307,21 +317,25 @@ public:
    double getLayerDepth(int) const;
    double getLayerErody(int) const;
    int getLayerSed(int) const;
+   int getLayerFlag(int) const;   
    double getLayerDgrade(int, int) const;  // first int is layer index
    // second int is grade index - see note above for indexing directions
+   double getLayerDrDt(int, int) const;
    int getNumLayer() const;
    void setLayerCtime(int, double);
    void setLayerRtime(int, double);
    void setLayerDepth(int, double);
    void setLayerErody(int, double);
    void setLayerSed(int, int);
+   void setLayerFlag(int, int);
    void setLayerDgrade(int, int, double); 
+   void setLayerDrDt(int, int, double);
    tArray<double> EroDep(int, tArray<double>, double);
    // returns the depth of of each size that was actually deposited or
    // eroded.  Important in case less can be eroded than planned.
    // Can be used for erosion of bedrock.
    // Algorithm assumes that the material being deposited is the
-   // Same material as that which in the layer you are depositing into.
+   // Same material as that in the layer you are depositing into.
    tArray<double> addtoLayer(int, double, double);
    // Used if removing material from lower layers -
    // only called from EroDep
@@ -361,7 +375,7 @@ protected:
    // number of grain sizes recognized NIC should be the same for all
    // nodes, maybe put this somewhere else when you figure out what is going on
    static tArray< double > grade;
-   // size of each grain size class, again, you may
+   // size of each grain size class, NIC again, you may
    // want to put this somewhere else
    static double maxregdep;
 };
