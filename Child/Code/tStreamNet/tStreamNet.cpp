@@ -132,7 +132,7 @@ void tInlet::FindNewInlet()
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.21 1998-03-20 15:36:37 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.22 1998-03-21 21:48:06 gtucker Exp $
 \**************************************************************************/
 
 
@@ -188,8 +188,8 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    CalcSlopes();  // TODO: should be in tGrid
    InitFlowDirs(); // TODO: should all be done in call to updatenet
    FlowDirs();
-   SetVoronoiVertices(); //TODO tgrid
-   CalcVAreas();  // TODO: tgrid
+   //XSetVoronoiVertices(); //TODO tgrid
+   //XCalcVAreas();  // TODO: tgrid
    MakeFlow();
    cout << "finished" << endl;	
 }
@@ -278,8 +278,8 @@ void tStreamNet::UpdateNet()
 {
    //cout << "UpdateNet()...";
    CalcSlopes();          // TODO: should be in tGrid
-   SetVoronoiVertices();  // TODO: should be in tGrid
-   CalcVAreas();          // TODO: should be in tgrid
+   //XSetVoronoiVertices();  // TODO: should be in tGrid
+   //XCalcVAreas();          // TODO: should be in tgrid
    InitFlowDirs();
    FlowDirs();
    MakeFlow();
@@ -293,8 +293,8 @@ void tStreamNet::UpdateNet( tStorm &storm )
    assert( stormPtr != 0 );
    rainrate = stormPtr->GetRainrate();
    CalcSlopes();   // TODO: as above
-   SetVoronoiVertices();
-   CalcVAreas();
+   //XSetVoronoiVertices();
+   //XCalcVAreas();
    InitFlowDirs();
    FlowDirs();
    MakeFlow();
@@ -356,7 +356,7 @@ void tStreamNet::CalcSlopes()
 }
 
 
-// NB: TODO: move to tGrid
+// NB: TODO: moved to tGrid; delete!
 // TODO: change L-hand to R-hand orientation of Voronoi vertices and
 // create faster Voronoi edge length computation scheme
 void tStreamNet::CalcVAreas()
@@ -892,7 +892,7 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
 **  triangle. This routine finds the Voronoi vertex associated with
 **  each triangle by finding the triangle's circumcenter. 
 **
-**  The vertex coordinates are stored in the three counter-clockwise-
+**  The vertex coordinates are stored in the three clockwise-
 **  oriented tEdge objects associated with each triangle. This is a 
 **  space-for-time tradeoff: the coordinates could be stored in the triangles, 
 **  saving redundancy (3 copies of each point are stored here), but in
