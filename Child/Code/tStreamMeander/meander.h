@@ -11,8 +11,8 @@
 void meander_( const int *, const int *, const double *, const double *,
 	       const double *, const double *, 
 	       const double *, const double *, const double *,
-	       const double *, double *, 
-	       double *, const double *, double *, double *, double *,
+	       const double *, const double *, 
+	       const double *, const double *, double *, double *, double *,
 	       double *, double * ); 
 
 #endif

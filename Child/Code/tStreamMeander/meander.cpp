@@ -10,6 +10,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #if !defined(HAVE_NO_NAMESPACE)
 # include <iostream>
@@ -124,14 +125,14 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.9 2003-05-16 16:19:31 childcvs Exp $ */
+/*     $Id: meander.cpp,v 1.10 2003-05-23 12:00:32 childcvs Exp $ */
 
 void meander_(const integer *stations, const integer *stnserod, 
 	      const doublereal *x, const doublereal *y,
 	      const doublereal *xs, const doublereal *dels, 
 	      const doublereal *flow, const doublereal *rerody,
 	      const doublereal *lerody, const doublereal *slope,
-	      doublereal *width, doublereal *depth, const doublereal *diam, 
+	      const doublereal *width, const doublereal *depth, const doublereal *diam, 
 	      doublereal *delta_x__, doublereal *delta_y__,
 	      doublereal *rightdepth, doublereal *leftdepth,
 	      doublereal *lambda)
@@ -152,6 +153,12 @@ void meander_(const integer *stations, const integer *stnserod,
       *deln = new doublereal[*stnserod],
       *latforce = new doublereal[*stations],
       *lag = new doublereal[*stations];
+
+
+    //memset(acs,0,*stnserod*sizeof(doublereal));
+    //memset(deln,0,*stnserod*sizeof(doublereal));
+    //memset(latforce,0,*stations*sizeof(doublereal));
+    //memset(lag,0,*stations*sizeof(doublereal));
 
     /* Parameter adjustments */
     --lambda;
@@ -276,7 +283,7 @@ void channel_(const integer *stnserod, const integer *stations,
 	      const doublereal *flow, const doublereal *slope,
 	      const doublereal *diam, const doublereal *width,
 	      const doublereal * /*rho*/, const doublereal * /*grav*/,
-	      const doublereal *phi, doublereal *curvature,
+	      const doublereal * /*phi*/, doublereal *curvature,
 	      const doublereal *dels, 
 	      doublereal *acs, doublereal *deln, doublereal *rightdepth,
 	      doublereal *leftdepth, const doublereal *depth, 
@@ -308,7 +315,7 @@ void channel_(const integer *stnserod, const integer *stations,
     --acs;
     --dels;
     --curvature;
-    --phi;
+    //--phi;
     --width;
     --diam;
     --slope;
@@ -622,10 +629,10 @@ void forcelag_(const integer *stnserod, const integer *stations,
 
 
 void forcedist_(const integer *stnserod, const integer *stations, 
-		const doublereal *lambda, const doublereal *width,
+		const doublereal *lambda, const doublereal */*width*/,
 		const doublereal *lag, const doublereal *latforce,
-		const doublereal *dels, const doublereal *phi,
-		const doublereal *curvature, const doublereal *depth,
+		const doublereal */*dels*/, const doublereal *phi,
+		const doublereal *curvature, const doublereal */*depth*/,
 		doublereal *spreaddelta_x__, doublereal *spreaddelta_y__,
 		const doublereal *rightdepth, const doublereal *leftdepth, 
 		const doublereal *xs, doublereal *tauwall)
@@ -649,13 +656,13 @@ void forcedist_(const integer *stnserod, const integer *stations,
     --rightdepth;
     --spreaddelta_y__;
     --spreaddelta_x__;
-    --depth;
+    //--depth;
     --curvature;
     --phi;
-    --dels;
+    //--dels;
     --latforce;
     --lag;
-    --width;
+    //--width;
     --lambda;
 
     /* Function Body */
@@ -743,7 +750,7 @@ void changeposition_(const integer *stnserod, const integer * /*stations*/,
 		     const doublereal *spreaddelta_x__,
 		     const doublereal *spreaddelta_y__,
 		     const doublereal *delx, const doublereal *dely,
-		     const doublereal *depth,
+		     const doublereal */*depth*/,
 		     doublereal *delta_x__, doublereal *delta_y__)
 {
     /* System generated locals */
@@ -760,7 +767,7 @@ void changeposition_(const integer *stnserod, const integer * /*stations*/,
     /* Parameter adjustments */
     --delta_y__;
     --delta_x__;
-    --depth;
+    //--depth;
     --dely;
     --delx;
     --spreaddelta_y__;
