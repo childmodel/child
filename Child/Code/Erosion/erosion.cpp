@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.37 1998-07-25 00:12:57 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.38 1998-07-25 21:48:03 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1503,7 +1503,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                
                i=0;
                depck=0;
-               while(dz<-0.000000001&depck<cn->getChanDepth()){   
+               while(dz<-0.000000001&depck<cn->getChanDepth()&i<cn->getNumLayer()){   
                   depck+=cn->getLayerDepth(i);
                   if(-dz<=cn->getLayerDepth(i)){//top layer can supply total depth
 //                      if(cn->getID()==79 && timegb >= 1756){
