@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.75 1999-04-07 19:13:13 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.76 1999-04-09 22:39:14 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1738,7 +1738,6 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
          newtex=0;
          newerody=0;
          sum=0;
-         //Now, you need to interpolate bedrock layer here
          for(i=0; i<=2; i++){
             //NOTE - This only works for two sizes right now.
             newtex+=lnds[i]->getLayerDgrade(layindex[i],0)/dist[i];
@@ -1768,19 +1767,20 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
       //Now, you need to interpolate bedrock layer here
       for(i=0; i<=2; i++){
          //NOTE - This only works for two sizes right now.
-         /*if(lnds[i]->getNumLayer()==2){
-           lnds[i]->TellAll();
-           for(int j=0; j<2; j++){
-           cout << "layer " << j+1<<endl ;
-           cout << lnds[i]->getLayerCtime(j);
-           cout << " " << lnds[i]->getLayerRtime(j);
-           cout << " "<<lnds[i]->getLayerEtime(j)<<endl;
-           cout << lnds[i]->getLayerDepth(j);
-           cout << " " << lnds[i]->getLayerErody(j);
-           cout << " " << lnds[i]->getLayerSed(j) << endl;
-           cout << lnds[i]->getLayerDgrade(j,0);
-           }
-           }   */  
+         //debugging routine
+         if(lnds[i]->getNumLayer()<=layindex[i]){
+            lnds[i]->TellAll();
+            for(int j=0; j<lnds[i]->getNumLayer(); j++){
+               cout << "layer " << j+1<<endl ;
+               cout << lnds[i]->getLayerCtime(j);
+               cout << " " << lnds[i]->getLayerRtime(j);
+               cout << " "<<lnds[i]->getLayerEtime(j)<<endl;
+               cout << lnds[i]->getLayerDepth(j);
+               cout << " " << lnds[i]->getLayerErody(j);
+               cout << " " << lnds[i]->getLayerSed(j) << endl;
+               cout << lnds[i]->getLayerDgrade(j,0);
+            }
+         } 
          newtex+=lnds[i]->getLayerDgrade(layindex[i],0)/dist[i];
          newerody+=lnds[i]->getLayerErody(layindex[i])*lnds[i]->getLayerDepth(layindex[i])/dist[i];
          newetime+=lnds[i]->getLayerEtime(layindex[i])*lnds[i]->getLayerDepth(layindex[i])/dist[i];
@@ -2100,6 +2100,8 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
    }
    
    layerlist=helplist;
+   if(getNumLayer()<=2)
+       cout<<"layerinterp made 2 layers at "<<x<<", "<<y<<endl;
 
    //Below  if for debugging purposes
    /*if(getLayerEtime(0)<0 || (tx>505.0 && tx<506.0 && ty>331.0 && ty<332.0)  ){
@@ -2275,9 +2277,10 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    int h;
 
    //if(x<560.418 && x>560.416){
-   // cout<<"ERODEP x "<<x<<" y "<<y<<" numlayers "<<getNumLayer();
-   //   cout<<" to erode b4 "<<valgrd[0]<<endl;
-   //}
+   if(getNumLayer()==2){
+      cout<<"ERODEP x "<<x<<" y "<<y<<" numlayers "<<getNumLayer();
+      cout<<" to erode b4 "<<valgrd[0]<<endl;
+   }
    
    g=0;
    val=0;
@@ -2357,6 +2360,26 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       }
       if(getLayerDepth(i)<1e-7)
           removeLayer(i);
+      if(getLayerDepth(i)>maxregdep*10 && getLayerSed(i) !=0 ){
+         //Make a top layer that is maxregdep deep so that further erosion
+         //is not screwed up
+         cout<<"correcting for missing top layer at "<<x<<","<<y<<endl;
+         cout<<"val was "<<val<<endl;
+         for(g=0; g<getNumLayer(); g++){
+            cout<<getLayerCtime(g)<<" "<<getLayerRtime(g)<<" "<<getLayerEtime(g)<<endl;
+            cout<<getLayerDepth(g)<<" "<<getLayerErody(g)<<" "<<getLayerSed(g)<<endl;
+         }
+         hupdate = addtoLayer(i, -1*maxregdep);
+         for(g=0; g<numg; g++)
+             hupdate[g]=-1* hupdate[g];
+         makeNewLayerBelow(-1,1,getLayerErody(i),hupdate, tt);
+         setLayerRtime(i,0);
+         cout<<"after"<<endl;
+         for(g=0; g<getNumLayer(); g++){
+            cout<<getLayerCtime(g)<<" "<<getLayerRtime(g)<<" "<<getLayerEtime(g)<<endl;
+            cout<<getLayerDepth(g)<<" "<<getLayerErody(g)<<" "<<getLayerSed(g)<<endl;
+         }
+      }
    }
    else if(min >= 0.0 && max > 0.0000000001)
    {
@@ -2608,8 +2631,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       }
    }
 
-//   if(getNumLayer()<=2)
-//       cout<<"erodep 2 or less layers x "<<getX()<<" y "<<getY()<<endl;
+   if(getNumLayer()<=2)
+       cout<<"erodep 2 or less layers x "<<getX()<<" y "<<getY()<<endl;
    
 
    return valgrd;
@@ -2619,7 +2642,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 
 /**************************************************************
  ** tLNode::addtoLayer(int i, int g, double val, double tt)
- ** This function is called from the EroDep which updates layering.
+ ** This function is called from the EroDep which updates layerin.
  ** Used when material is added/removed to/from a layer, grain size 
  ** by grain size. i.e. texture may change
  ** i = layer to add to
