@@ -179,6 +179,11 @@ BuildDelaunayMeshTipper()
    elem* elems(0);
    int nnodes_unique;
    tt_sort_triangulate(nnodes, p, &nnodes_unique, &nedgesl, &edges, &nelem, &elems);
+   if (nnodes == nnodes_unique){
+      cerr << "\nDuplicated points: '" << endl;
+      ReportFatalError( "Please fix your points file." );
+   }
+
    cout << "done.\n";
 
    if (0) { // DEBUG
