@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.21 1998-02-24 01:40:07 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.22 1998-02-25 00:36:33 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -787,7 +787,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
          newxy[0] += delta[0];
          newxy[1] += delta[1];
          curnode->setNew2DCoords( newxy[0], newxy[1] );
-         newxy = curnode->getNew2DCoords();
+           //newxy = curnode->getNew2DCoords();
            //cout << "new coords set to " << newxy[0] << " " << newxy[1] << endl;
       }
    }
@@ -817,9 +817,9 @@ void tStreamMeander::Migrate()
    {
       CalcMigration( time, duration, cummvmt ); //incremented time
       MakeChanBorder( bList ); //bList of coordinate arrays made
+      CheckBrokenFlowedg();
       CheckBanksTooClose();
       CheckFlowedgCross();
-      CheckBrokenFlowedg();
       gridPtr->MoveNodes();
       AddChanBorder( bList );
       //after the channel migrates a certain amount
@@ -937,7 +937,7 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
             }
          }
          //if one of the vertices is a meandering node,
-         //and the smallest distance to a vertex is less than
+         //and the smallest distance to a vertex is greater than
          //half a channel width (any way to do a different distance?),
          //copy the meand. node, reset
          //its coords., and add it to the grid:
@@ -1076,22 +1076,17 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
 \*****************************************************************************/
 void tStreamMeander::CheckBanksTooClose()
 {
-   //cout << "CheckBanksTooClose()..." << flush << endl;
+   cout << "CheckBanksTooClose()..." << flush << endl;
    int tooclose, i, j, num, onlist;
-   //tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
    tPtrList< tLNode > delPtrList;
    tPtrListIter< tEdge > spokIter;
    tPtrListIter< tLNode > dIter( delPtrList );
-   tLNode * cn, *pointtodelete, *dn;
+   tLNode * cn, *pointtodelete, *dn, *sn;
    tEdge *ce;
    tPtrList< tLNode > *cr;
    tPtrListIter< tLNode > rnIter;
-   tArray< double > xyz(3), rl;     //check for proximity to channel:
-   //tooclose = 1;
-   //do
-   //{
-   //tooclose = 0;
-   //nodIter.First();
+   tArray< double > xyz(3), rl; 
+   
    for( cr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
         cr = rlIter.NextP(), i++ )
    {
@@ -1100,20 +1095,17 @@ void tStreamMeander::CheckBanksTooClose()
       for( cn = rnIter.FirstP(), j=0; j<num;
            cn = rnIter.NextP(), j++ )
       {
-//for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
-         //    {
          pointtodelete = 0;
-         //if( cn->Meanders() )
-         //{
          spokIter.Reset( cn->getSpokeListNC() );
          for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
               ce = spokIter.NextP() )
          {
-            if( ce->getLength() < cn->getHydrWidth()/2.0 )
+            sn = (tLNode *) ce->getDestinationPtrNC();
+              //check for proximity to channel:
+            if( !(sn->Meanders()) && InChannel( cn, sn ) )
             {
                //cout<<"too close: cn, cn->hydrwidth "<<cn->getID()<<" "
                //    <<cn->getHydrWidth()<<endl<<flush;
-               //tooclose = 1;
                pointtodelete = (tLNode *) ce->getDestinationPtrNC();
                if( pointtodelete->getBoundaryFlag() == kNonBoundary )
                {
@@ -1134,10 +1126,8 @@ void tStreamMeander::CheckBanksTooClose()
                else cn->RevertToOldCoords();
             }
          }
-         //}
-         //if( pointtodelete != 0 ) gridPtr->DeleteNode( pointtodelete );
       }
-   } //while( tooclose );
+   } 
    for( dn = dIter.FirstP(); !(dIter.AtEnd()); dn = dIter.FirstP() )
    {
       //cout << "CBTC: delete node " << dn->getID() << endl << flush;
@@ -1174,7 +1164,7 @@ void tStreamMeander::CheckBanksTooClose()
 \*****************************************************************************/
 void tStreamMeander::CheckFlowedgCross()
 {
-   //cout << "CheckFlowedgCross()..." << flush << endl;
+   cout << "CheckFlowedgCross()..." << flush << endl;
    int i, j, nv, nvopp, id0, id1;
    int ft;
    int flipped;
@@ -1274,8 +1264,8 @@ void tStreamMeander::CheckFlowedgCross()
                      xy1 = dscn->getNew2DCoords();
                      if( gridPtr->LocateTriangle( xy1[0], xy1[1] ) == 0 )
                          dscn->RevertToOldCoords();
-                     assert( gridPtr->LocateTriangle( xy0[0], xy0[1] ) == 0 ||
-                             gridPtr->LocateTriangle( xy1[0], xy1[1] ) == 0 );
+                       //assert( gridPtr->LocateTriangle( xy0[0], xy0[1] ) == 0 ||
+                       //        gridPtr->LocateTriangle( xy1[0], xy1[1] ) == 0 );
                   }
                }
             }
@@ -1318,77 +1308,108 @@ void tStreamMeander::CheckFlowedgCross()
 **		Created: 2/98 SL
 **
 \*****************************************************************************/
+#define MAXLOOPS 100
 void tStreamMeander::CheckBrokenFlowedg()
 {
    cout << "CheckBrokenFlowedg()..." << flush << endl;
    int nrn, nln, breakedge = 1;
+   int nloops = 0;
    double area;
    int flip = 0;
    double dis0, dis1;
-   tLNode *cn, *dn, *rn, *ln;
-   tEdge *fedg, *cedg;
+   tLNode *cn, *dn, *rn, *ln, *on;
+   tEdge *fedg, *cedg, *ce;
    tTriangle *rtri, *ltri;
    tGridListIter< tLNode > nIter( gridPtr->GetNodeList() );
+   tGridListIter< tEdge > eIter( gridPtr->GetEdgeList() );
+   tPtrListIter< tEdge > sIter;
    do
    {
+      nloops++;
       breakedge = 0;
       cout << "checking..." << endl << flush;
-      //look through meandering nodes:
+        //look through meandering nodes:
       for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
       {
          if( cn->Meanders() )
          {
             dn = cn->GetDownstrmNbr();
+              //make sure downstrm nbr exists and is still in edgeList:
+            assert( dn != 0 && nIter.Get( dn->getID() ) );
             fedg = cn->GetFlowEdg();
             assert( fedg != 0 );
+              //make sure flow edge exists and is on list;
+              //if not, reassign flowedge:
+              /*if( fedg == 0 || !( eIter.Get( fedg->getID() ) ) )
+                {
+                sIter.Reset( cn->getSpokeListNC() );
+                for( ce = sIter.FirstP(); !(sIter.AtEnd()); ce = sIter.NextP() )
+                {
+                on = (tLNode *) ce->getDestinationPtrNC();
+                if( on == dn ) break;
+                }
+                if( !(sIter.AtEnd()) )
+                {
+                cn->SetFlowEdg( ce );
+                fedg = ce;
+                }
+                else fedg = 0;
+                }*/
+              //if( fedg != 0 && !( eIter.Get( fedg->getID() ) ) )
+              //{
             cedg = gridPtr->getEdgeCompliment( fedg );
             assert( cedg != 0 );
             ltri = gridPtr->TriWithEdgePtr( fedg );
             rtri = gridPtr->TriWithEdgePtr( cedg );
             assert( ltri != 0 );
             assert( rtri != 0 );
-            nln = ltri->nVOp( rtri );
-            //nrn = rtri->nVOp( ltri );
-            //check for flip of flowedge (tri's on either side of flowedge:
-            if( gridPtr->CheckForFlip( ltri, nln, flip ) )
-            {
-               //if flowedge to be flipped, delete closer of two "third" nodes
-               //if their drareas are smaller:
-               nrn = rtri->nVOp( ltri );
-               ln = (tLNode *) ltri->pPtr( nln );
-               rn = (tLNode *) rtri->pPtr( nrn );
-               area = cn->getDrArea();
-               if( ln->getDrArea() < area && rn->getDrArea() < area )
+              //if( ltri != 0 && rtri != 0 )
+              //{
+               nln = ltri->nVOp( rtri );
+                 //nrn = rtri->nVOp( ltri );
+                 //check for flip of flowedge (tri's on either side of flowedge:
+               if( gridPtr->CheckForFlip( ltri, nln, flip ) )
                {
-                  breakedge = 1;
-                  dis0 = ln->DistNew( cn, dn );
-                  dis1 = rn->DistNew( cn, dn );
-                  //delete closer node if it's not a boundary node;
-                  //if it is, revert to old coords.
-                  if( dis0 < dis1 )
+                    //if flowedge to be flipped, delete closer of two "third" nodes
+                    //if their drareas are smaller:
+                  nrn = rtri->nVOp( ltri );
+                  ln = (tLNode *) ltri->pPtr( nln );
+                  rn = (tLNode *) rtri->pPtr( nrn );
+                  area = cn->getDrArea();
+                  if( ln->getDrArea() < area && rn->getDrArea() < area )
                   {
-                     if( ln->getBoundaryFlag() == kNonBoundary )
+                     breakedge = 1;
+                     dis0 = ln->DistNew( cn, dn );
+                     dis1 = rn->DistNew( cn, dn );
+                       //delete closer node if it's not a boundary node;
+                       //if it is, revert to old coords.
+                     if( dis0 < dis1 )
                      {
-                        gridPtr->DeleteNode( ln );
-                        cn->SetFlowEdg( cn->EdgToNod( dn ) );
+                        if( ln->getBoundaryFlag() == kNonBoundary )
+                        {
+                           gridPtr->DeleteNode( ln );
+                           cn->SetFlowEdg( cn->EdgToNod( dn ) );
+                        }
+                        else cn->RevertToOldCoords();
                      }
-                     else cn->RevertToOldCoords();
-                  }
-                  else
-                  {
-                     if( rn->getBoundaryFlag() == kNonBoundary )
+                     else
                      {
-                        gridPtr->DeleteNode( rn );
-                        cn->SetFlowEdg( cn->EdgToNod( dn ) );
+                        if( rn->getBoundaryFlag() == kNonBoundary )
+                        {
+                           gridPtr->DeleteNode( rn );
+                           cn->SetFlowEdg( cn->EdgToNod( dn ) );
+                        }
+                        else cn->RevertToOldCoords();
                      }
-                     else cn->RevertToOldCoords();
                   }
                }
-            }
+                 //}
+                 //else cn->RevertToOldCoords();
+              //}
          }
       }
-      //repeat
-   } while( breakedge );
+        //repeat
+   } while( breakedge && nloops < MAXLOOPS );
 /*   int i;
    int breakedge;
    int change = 0;
@@ -1487,7 +1508,40 @@ void tStreamMeander::CheckBrokenFlowedg()
    } while( breakedge );*/
    //cout << "finished" << endl;
 }
+#undef MAXLOOPS
 
+/****************************************************************\
+**
+**   InChannel: find whether a node falls within an oval with
+**      focii at up- and downstream nodes of channel segment,
+**      minor axis of one channel width.
+**
+**		Parameters:	
+**		Called by:	
+**		Created: 1/98 SL
+**
+\***************************************************************/
+int tStreamMeander::InChannel( tLNode *mnode, tLNode *bnode )
+{
+   double L, b, a, d, mindist;
+   tArray< double > up, dn, bnk;
+   b = mnode->getHydrWidth();
+   if( b == 0 ) return 0;
+   tLNode *dnode = mnode->GetDownstrmNbr();
+   L = mnode->GetFlowEdg()->getLength();
+     //mindist = sqrt( L * L + b * b );
+     //for perp. distance from mnode > b/2:
+   mindist = sqrt( L * L + 0.5 * b * b + b * sqrt( L * L + 0.25 * b * b ) );
+   up = mnode->getNew2DCoords();
+   dn = dnode->getNew2DCoords();
+   bnk = bnode->get2DCoords();   
+   a = sqrt( (bnk[0] - up[0]) * (bnk[0] - up[0]) +
+             (bnk[1] - up[1]) * (bnk[1] - up[1]) );
+   d = sqrt( (bnk[0] - dn[0]) * (bnk[0] - dn[0]) +
+             (bnk[1] - dn[1]) * (bnk[1] - dn[1]) );
+   if( a + d < mindist ) return 1;
+   else return 0;
+}
 
 
 /****************************************************************\

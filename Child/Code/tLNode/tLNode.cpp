@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.11 1998-02-20 23:01:48 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.12 1998-02-25 00:37:19 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -605,14 +605,23 @@ double tLNode::GetSlope()
 \*****************************************************************************/
 double tLNode::DistNew(tLNode * p0,tLNode * p1 )
 {
-  double a,b,c,res;
+  double a,b,c,res, xp, yp, x0, y0, x1, y1;
 
-  a = (p1->chan.migration.newy) - (p0->chan.migration.newy);  
-  b = -((p1->chan.migration.newx) - (p0->chan.migration.newx));
-  c = -((a*(p0->chan.migration.newx)) + (b*(p0->chan.migration.newy)));
-  res = (a*chan.migration.newx + b*chan.migration.newy + c) / sqrt(a*a+b*b);
-  if (res<0) res=-res;
-  return(res);
+  x0 = ( p0->Meanders() ) ? p0->chan.migration.newx : p0->x;
+  y0 = ( p0->Meanders() ) ? p0->chan.migration.newy : p0->y;
+  x1 = ( p1->Meanders() ) ? p1->chan.migration.newx : p1->x;
+  y1 = ( p1->Meanders() ) ? p1->chan.migration.newy : p0->y;
+  xp = ( Meanders() ) ? chan.migration.newx : x;
+  yp = ( Meanders() ) ? chan.migration.newy : y;
+  
+  a = y1 - y0; //(p1->chan.migration.newy) - (p0->chan.migration.newy);  
+  b = x0 - x1; //-((p1->chan.migration.newx) - (p0->chan.migration.newx));
+  c = -( a * x0 + b * y0 );
+    //-((a*(p0->chan.migration.newx)) + (b*(p0->chan.migration.newy)));
+  res = (a * xp + b * yp + c) / sqrt( a * a + b * b );
+    //res = (a*chan.migration.newx + b*chan.migration.newy + c) / sqrt(a*a+b*b);
+  if( res < 0 ) res = -res;
+  return res;
 }
 
 

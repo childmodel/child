@@ -3,7 +3,7 @@
 **  tList.cpp:  Functions for class tList and related classes tListNode
 **              and tListIter.
 **
-**  $Id: tList.cpp,v 1.5 1998-02-11 00:02:06 stlancas Exp $
+**  $Id: tList.cpp,v 1.6 1998-02-25 00:37:30 stlancas Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -734,7 +734,11 @@ int tListIter< NodeType >::
 Get( int num )
 {
    assert( listPtr != 0 );
-   if( num < 0 ) return 0;
+   if( num < 0 )
+   {
+      cout << "tListIter::Get(num): num < 0" << endl;
+      return 0;
+   }
    tListNode< NodeType > *tempnodeptr;
    for( tempnodeptr = listPtr->first, counter = 0;
         counter <= listPtr->nNodes && tempnodeptr != 0;
@@ -742,8 +746,16 @@ Get( int num )
    {
       if( tempnodeptr->data.getID() == num ) break;
    }
-   if( tempnodeptr == 0 ) return 0;
-   if( tempnodeptr->data.getID() != num ) return 0;
+   if( tempnodeptr == 0 )
+   {
+      cout << "tListIter::Get(num): tempnodeptr == 0" << endl;
+      return 0;
+   }
+   if( tempnodeptr->data.getID() != num )
+   {
+      cout << "tListIter::Get(num): tempnodeptr->data.getID() != num" << endl;
+      return 0;
+   }
    curnode = tempnodeptr;
    return 1;
 }

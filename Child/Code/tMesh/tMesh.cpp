@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.17 1998-02-24 01:40:20 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.18 1998-02-25 00:36:53 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2454,7 +2454,11 @@ template< class tSubNode >
 int tGrid< tSubNode >::
 CheckForFlip( tTriangle * tri, int nv, int flip )
 {
-   if( tri == 0 ) return 0;
+   if( tri == 0 )
+   {
+      cout << "CheckForFlip: tri == 0" << endl;
+      return 0;
+   }
    assert( nv < 3 );
      //cout << "THIS IS CheckForFlip(...) " << tri->getID() << endl;
    tSubNode *node0, *node1, *node2, *node3;
