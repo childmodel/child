@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.42 1998-07-31 19:16:28 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.43 1998-08-01 22:36:59 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -418,7 +418,7 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
 
 double tSedTransWilcock::TransCapacity( tLNode *nd )
 {
-   double tau;
+   double tau, tauold;
    double taucrit;
    double persand=nd->getLayerDgrade(0,0)/(nd->getLayerDepth(0));
    double timeadjust=31536000.00; /* number of seconds in a year */
@@ -438,8 +438,9 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    // units of Q are m^3/sec
    //NIC you are doing a test here to see what is causing the
    //downstream coarsening.
-   //tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
-   tau = taudim*pow(0.03, 0.6)*pow(nd->getQ(), 0.3)*pow( nd->getSlope(), 0.7);
+   tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
+   //tauold = taudim*pow(0.03, 0.6)*pow(nd->getQ(), 0.3)*pow( nd->getSlope(), 0.7);
+   
    //cout << "hydrrough is " << nd->getChanRough() << endl;
    //cout << "q is " << nd->getQ() << endl;
    //cout << "slope is " << nd->getSlope() << endl;
@@ -457,8 +458,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
    
    if(tau>taucrit){
-       nd->setQs(0, ((0.058/RHOSED)*factor*pow(nd->getQ(),0.5)*timeadjust*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) ));
-       //cout << "nic sand transport rate is " << nd->getQs(0) << endl;
+       nd->setQs(0, ((0.058/RHOSED)*factor*nd->getHydrWidth()*timeadjust*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) ));
    }
    else 
        nd->setQs( 0, 0.0 ) ;
@@ -475,9 +475,8 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
 
    if(tau>taucrit){
-       nd->setQs(1, (0.058*timeadjust*factor*pow(nd->getQ(),0.5)/(RHOSED))*
+       nd->setQs(1, (0.058*timeadjust*factor*nd->getHydrWidth()/(RHOSED))*
                  (1-persand)*pow(tau,1.5)*pow((1-(taucrit/tau)),4.5));
-       //  cout << "nic nic nic gravel transport is happening" << endl;
    }
    else
        nd->setQs(1,0.0);
@@ -523,8 +522,8 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
    }
 
    // units of Q are m^3/sec
-   //tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
-   tau = taudim*pow(0.03, 0.6)*pow(nd->getQ(), 0.3)*pow( nd->getSlope(), 0.7);
+   tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
+   //tau = taudim*pow(0.03, 0.6)*pow(nd->getQ(), 0.3)*pow( nd->getSlope(), 0.7);
 
    //cout << "channel rough is " << nd->getChanRough() << endl;
    //cout << "channel width is " << nd->getChanWidth() << endl;
@@ -545,7 +544,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
    //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
    
    if(tau>taucrit){
-      qss=((0.058/RHOSED)*weight*pow(nd->getQ(),0.5)*timeadjust*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) );
+      qss=((0.058/RHOSED)*weight*nd->getHydrWidth()*timeadjust*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) );
        nd->addQs(0, qss);
        //cout << "nic sand transport rate is " << qss << endl;
    }
@@ -565,7 +564,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
       //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
       
       if(tau>taucrit){
-         qsg=(0.058*timeadjust*weight*pow(nd->getQ(),0.5)/(RHOSED))*
+         qsg=(0.058*timeadjust*weight*nd->getHydrWidth()/(RHOSED))*
              (1-persand)*pow(tau,1.5)*pow((1-(taucrit/tau)),4.5);
          nd->addQs(1,qsg);
          //cout << "nic nic nic gravel transport is happening" << endl;
