@@ -3,7 +3,7 @@
 **  globalFns.cpp: Global functions used by tGrid and other modules of
 **                 CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.5 2002-05-01 14:48:23 arnaud Exp $
+**  $Id: globalFns.cpp,v 1.6 2002-08-13 12:31:49 arnaud Exp $
 \**************************************************************************/
 
 #include "globalFns.h"
@@ -23,9 +23,9 @@ tArray< double > UnitVector( tEdge* ePtr )
    assert( ePtr != 0 );
    tArray< double > oxy( ePtr->getOriginPtr()->get2DCoords() );
    tArray< double > dxy( ePtr->getDestinationPtr()->get2DCoords() );
-   double dx = dxy[0] - oxy[0];
-   double dy = dxy[1] - oxy[1];
-   double mag = sqrt( dx * dx + dy * dy );
+   const double dx = dxy[0] - oxy[0];
+   const double dy = dxy[1] - oxy[1];
+   const double mag = sqrt( dx * dx + dy * dy );
    tArray< double > uvect(2);
    uvect[0] = dx / mag;
    uvect[1] = dy / mag;
@@ -64,10 +64,10 @@ double FindCosineAngle0_2_1( tArray< double > &p0,
 **  other?
 **
 \***************************************************************************/
-int TriPasses( tArray< double > &ptest,
-               tArray< double > &p0,
-               tArray< double > &p1,
-               tArray< double > &p2 )
+int TriPasses( tArray< double > const &ptest,
+               tArray< double > const &p0,
+               tArray< double > const &p1,
+               tArray< double > const &p2 )
 {
    assert( (&ptest != 0) && (&p0 != 0) && (&p1 != 0) && (&p1 != 0) );
      //cout << "TriPasses? ";
@@ -551,8 +551,8 @@ double InterpSquareGrid( double xgen, double ygen, tMatrix< double >& elev,
 **  Created 2/1999 ng
 **
 \**********************************************************************/
-double PlaneFit(double x, double y, tArray<double> p0,
-                tArray<double> p1, tArray<double> p2, tArray<double> zs)
+double PlaneFit(double x, double y, tArray<double> const &p0,
+                tArray<double> const &p1, tArray<double> const &p2, tArray<double> const &zs)
 {
    double a, b, c;
    double y0, y1, y2, x0, x1, x2, z0, z1, z2;
@@ -583,11 +583,11 @@ double PlaneFit(double x, double y, tArray<double> p0,
 
 double LineFit(double x1, double y1, double x2, double y2, double nx)
 {
-   double slope = (y2-y1)/(x2-x1);
-   return(slope*(nx-x1)+y1);
+   const double slope = (y2-y1)/(x2-x1);
+   return slope*(nx-x1)+y1;
 }                  
 
 double DistanceBW2Points(double x1, double y1, double x2, double y2)
 {
-   return(pow(pow(x1-x2,2)+pow(y1-y2,2),0.5));
+   return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
 }

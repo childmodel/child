@@ -16,7 +16,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.39 2002-05-01 14:48:24 arnaud Exp $
+**  $Id: meshElements.cpp,v 1.40 2002-08-13 12:31:56 arnaud Exp $
 \**************************************************************************/
 
 #include "../tAssert.h"
@@ -40,10 +40,10 @@ int PointsCCW( tArray< double > &, tArray< double > &, tArray< double > & );
 **  Called by:  tNode::ComputeVoronoiArea
 **
 \*************************************************************************/
-tArray< double > FindIntersectionCoords( tArray< double > xy1,
-                                         tArray< double > xy2,
-                                         tArray< double > xy3,
-                                         tArray< double > xy4 )
+tArray< double > FindIntersectionCoords( tArray< double > const &xy1,
+                                         tArray< double > const &xy2,
+                                         tArray< double > const &xy3,
+                                         tArray< double > const &xy4 )
 {
    double dxa, dxb, dya, dyb, a, b, c, f, g, h;
    //Xx, y;

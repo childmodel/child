@@ -11,7 +11,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.6 2002-07-08 17:21:49 arnaud Exp $
+**  $Id: globalFns.h,v 1.7 2002-08-13 12:31:49 arnaud Exp $
 \**************************************************************************/
 
 #ifndef GLOBALFNS_H
@@ -43,8 +43,8 @@ tArray< double > UnitVector( tEdge* );
 double FindCosineAngle0_2_1( tArray< double > &, tArray< double > &,
                              tArray< double > & );
 
-int TriPasses( tArray< double > &, tArray< double > &,
-               tArray< double > &, tArray< double > & );
+int TriPasses( tArray< double > const &, tArray< double > const &,
+               tArray< double > const &, tArray< double > const & );
 
 int PointsCCW( tArray< double > &, tArray< double > &, tArray< double > & );
 
@@ -65,10 +65,10 @@ tEdge* IntersectsAnyEdgeInList( tEdge*, tPtrList< tEdge >& );
 
 double InterpSquareGrid( double, double, tMatrix< double >&, int );
 
-tArray< double > FindIntersectionCoords( tArray< double >,
-                                         tArray< double >,
-                                         tArray< double >,
-                                         tArray< double > );
+tArray< double > FindIntersectionCoords( tArray< double > const&,
+                                         tArray< double > const&,
+                                         tArray< double > const&,
+                                         tArray< double > const&);
 
 template< class T > 
 ostream &operator<<( ostream &, const tArray< T > & );
@@ -77,8 +77,8 @@ ostream &operator<<( ostream &, const tArray< T > & );
 
 //Returns z value at location x,y on the plane defined by the
 //x-y coordinates in p0, p1, and p2, and their zvals in the zs array
-double PlaneFit(double x, double y, tArray<double> p0,
-                tArray<double> p1, tArray<double> p2, tArray<double> zs);
+double PlaneFit(double x, double y, tArray<double> const &p0,
+                tArray<double>const & p1, tArray<double> const &p2, tArray<double> const &zs);
 
 double LineFit(double x1, double y1, double x2, double y2, double nx);
 
