@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.165 2003-06-19 15:03:02 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.166 2003-06-23 10:31:21 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2220,7 +2220,7 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
 
    }
    // Edges: check active/boundary list
-   if (CheckMeshListConsistency(edgeList, "edge"))
+   if (edgeList.CheckConsistency("edge"))
      goto error;
    if (verbose)
      cout << "EDGES PASSED\n";
@@ -2311,7 +2311,7 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
 
    }
    // Nodes: check active/boundary list
-   if (CheckMeshListConsistency(nodeList, "node"))
+   if (nodeList.CheckConsistency("node"))
      goto error;
    if (verbose)
      cout << "NODES PASSED\n";

@@ -1,4 +1,4 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /**************************************************************************/
 /**
@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.21 2003-05-30 14:46:22 childcvs Exp $
+**  $Id: tMeshList.h,v 1.22 2003-06-23 10:31:23 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -39,7 +39,7 @@
 
 #include "../Classes.h"
 #include "../tList/tList.h"
-#include "../tAssert.h"
+#include <assert.h>
 
 /**************************************************************************/
 /**
@@ -88,7 +88,8 @@ class tMeshList : public tList< NodeType >
    void moveToAfter( tListNode< NodeType >*, tListNode< NodeType >* );
    int InActiveList( tListNode< NodeType > const * );
    void Flush();
-   
+   int CheckConsistency( const char * );
+
   protected:
    int nActiveNodes;                    // # of active nodes on list
    tListNode< NodeType > * lastactive;  // ptr to last active node
@@ -271,7 +272,7 @@ removeFromBoundFront( NodeType &value )
    if( lastactive == 0 ) return removeFromFront( value );
    return removeNext( value, lastactive );
 }
-   
+
 
 template< class NodeType >                     //tMeshtList
 void tMeshList< NodeType >::
@@ -355,16 +356,16 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
 **    - if moved node is active, nActiveNodes is now decremented 4/98 GT
 **        (note: does not properly handle the case of list w/ only one node
 **      that's active -- in this case, node is not moved (it's already last)
-**      and nActiveNodes isn't updated. TODO) 
+**      and nActiveNodes isn't updated. TODO)
 **
 \**************************************************************************/
 template< class NodeType >                         //tList
 void tMeshList< NodeType >::
-moveToBack( tListNode< NodeType > * mvnode ) 
+moveToBack( tListNode< NodeType > * mvnode )
 {
    if (0) //DEBUG
      cout << "moveToBack( tListNode )\n";
-   
+
    assert( mvnode!=0 );
    if( mvnode != this->last )
    {
@@ -417,7 +418,7 @@ moveToBack( NodeType const * mvnodedata )
 \**************************************************************************/
 template< class NodeType >                         //tList
 void tMeshList< NodeType >::
-moveToFront( tListNode< NodeType > * mvnode ) 
+moveToFront( tListNode< NodeType > * mvnode )
 {
    if( mvnode != this->first )
    {
@@ -440,7 +441,7 @@ moveToFront( tListNode< NodeType > * mvnode )
 \**************************************************************************/
 template< class NodeType >                         //tList
 void tMeshList< NodeType >::
-moveToActiveBack( tListNode< NodeType > * mvnode ) 
+moveToActiveBack( tListNode< NodeType > * mvnode )
 {
    if( !lastactive )
    {
@@ -490,7 +491,7 @@ moveToActiveBack( tListNode< NodeType > * mvnode )
 \**************************************************************************/
 template< class NodeType >                         //tList
 void tMeshList< NodeType >::
-moveToBoundFront( tListNode< NodeType > * mvnode ) 
+moveToBoundFront( tListNode< NodeType > * mvnode )
 {
    if( !lastactive )
    {
@@ -587,7 +588,51 @@ InActiveList( tListNode< NodeType > const * theNode )
        listnode = listnode->next;
    if( listnode==theNode ) return 1;
    else return 0;
-   
+
+}
+
+/**************************************************************************\
+**
+**  tMeshList::CheckConsistency
+**
+**  Internal consistency check
+**
+\**************************************************************************/
+template< class NodeType >
+int tMeshList< NodeType >::
+CheckConsistency( const char *ListName ){
+  NodeType *cl;
+  tMeshListIter<NodeType> Iter( this );
+  int nactive = 0;
+  for( cl=Iter.FirstP(); ; cl=Iter.NextP() ){
+    if (!Iter.IsActive()){
+      cerr << "Element #" << cl->getID()
+	   << " is not active but within the active part of the "
+	   << ListName << " list.\n";
+      return 1;
+    }
+    ++nactive;
+    if (Iter.NodePtr() == this->getLastActive()) break;
+    if (Iter.AtEnd()) {
+      assert(0); /*NOTREACHED*/
+      abort();
+    }
+  }
+  if (nactive != this->getActiveSize()){
+    cerr << "The " << ListName << " list contains " << nactive
+	 << " elements but 'getActiveSize()' gives "
+	 << this->getActiveSize() << ".\n";
+    return 1;
+  }
+  for( cl=Iter.FirstBoundaryP(); !(Iter.AtEnd()); cl=Iter.NextP() ){
+    if (Iter.IsActive()){
+      cerr << "Element #" << cl->getID()
+	   << " is active but within the boundary part of "
+	   << ListName << " list.\n";
+      return 1;
+    }
+  }
+  return 0;
 }
 
 /**************************************************************************/
@@ -595,7 +640,7 @@ InActiveList( tListNode< NodeType > const * theNode )
 ** @class tMeshListIter
 **
 ** Helper class for tMeshList, derived from tListIter ("iterators" that
-** walk up and down a tList, fetching items -- see tList.h/.cpp). 
+** walk up and down a tList, fetching items -- see tList.h/.cpp).
 ** In addition to tListIter capabilities, tMeshListIter adds methods to
 ** move to and/or fetch the last active or first boundary (inactive)
 ** items, and to indicate whether it is on currently on the active portion
@@ -620,7 +665,7 @@ class tMeshListIter
 //   NodeType * FirstP();
 //   NodeType * NextP();
   //private:
-   //tMeshList< NodeType > *meshlistPtr; 
+   //tMeshList< NodeType > *meshlistPtr;
 };
 
 /**************************************************************************\
@@ -670,7 +715,7 @@ template< class NodeType >   //tMeshListIter
 int tMeshListIter< NodeType >::
 LastActive()
 {
-   tMeshList< NodeType > *meshlistPtr = 
+   tMeshList< NodeType > *meshlistPtr =
      static_cast< tMeshList< NodeType > * >(this->listPtr);
    assert( meshlistPtr != 0 );
    this->curnode = meshlistPtr->lastactive;
@@ -691,7 +736,7 @@ template< class NodeType >   //tMeshListIter
 int tMeshListIter< NodeType >::
 FirstBoundary()
 {
-   tMeshList< NodeType > *meshlistPtr = 
+   tMeshList< NodeType > *meshlistPtr =
      static_cast< tMeshList< NodeType > * >(this->listPtr);
    assert( meshlistPtr != 0 );
    if( meshlistPtr->isActiveEmpty() ) this->curnode = this->listPtr->first;
@@ -753,47 +798,10 @@ IsActive() const
    if( this->curnode!=0 )
    {
       assert( this->curnode->getDataPtr()!=0 );
-      return 
+      return
 	this->curnode->getDataRef().getBoundaryFlag() == kNonBoundary;
    }
    return 0;
 }
 
-
-template< class NodeType >
-int CheckMeshListConsistency( tMeshList<NodeType> &list,
-			       const char *ListName){
-  NodeType *cl;
-  tMeshListIter<NodeType> Iter( list );
-  int nactive = 0;
-  for( cl=Iter.FirstP(); ; cl=Iter.NextP() ){
-    if (!Iter.IsActive()){
-      cerr << "Element #" << cl->getID()
-	   << " is not active but within the active part of the "
-	   << ListName << " list.\n";
-      return 1;
-    }
-    ++nactive;
-    if (Iter.NodePtr() == list.getLastActive()) break;
-    if (Iter.AtEnd()) {
-      assert(0); /*NOTREACHED*/
-      abort();
-    }
-  }
-  if (nactive != list.getActiveSize()){
-    cerr << "The " << ListName << " list contains " << nactive
-	 << " elements but 'getActiveSize()' gives "
-	 << list.getActiveSize() << ".\n";
-    return 1;
-  }
-  for( cl=Iter.FirstBoundaryP(); !(Iter.AtEnd()); cl=Iter.NextP() ){
-    if (Iter.IsActive()){
-      cerr << "Element #" << cl->getID()
-	   << " is active but within the boundary part of "
-	   << ListName << " list.\n";
-      return 1;
-    }
-  }
-  return 0;
-}
 #endif
