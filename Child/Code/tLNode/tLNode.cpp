@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.16 1998-03-03 22:26:19 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.17 1998-03-05 23:54:48 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -389,6 +389,15 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
    return *this;
 }
 
+const tBedrock &tLNode::getRock() const {return rock;}
+const tSurface &tLNode::getSurf() const {return surf;}
+const tRegolith &tLNode::getReg() const {return reg;}
+const tChannel &tLNode::getChan() const {return chan;}
+
+void tLNode::setRock( const tBedrock & val ) {rock = val;}
+void tLNode::setSurf( const tSurface & val ) {surf = val;}
+void tLNode::setReg( const tRegolith & val ) {reg = val;}
+void tLNode::setChan( const tChannel & val ) {chan = val;}
 
 int tLNode::GetFloodStatus() {   return flood; }
 

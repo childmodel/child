@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.26 1998-03-04 00:21:42 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.27 1998-03-05 23:54:56 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -321,7 +321,7 @@ int tStreamMeander::InterpChannel()
    double x, y, z, val, phi, x0, y0, z0, x1, y1, slope;
    tPtrListIter< tLNode > rnIter;
    tPtrList< tLNode > *creach;
-   tArray< double > xp, yp, zp, *arrPtr;
+   tArray< double > xp, yp, zp, *arrPtr, zeroArr(4);
    tLNode *crn, nn, *nPtr;
    int change = 0; //haven't added any nodes yet
    //loop through reaches:
@@ -347,6 +347,7 @@ int tStreamMeander::InterpChannel()
          {
             change = 1;//flag so we know that we need to update the network
             nn = *crn; //added nodes are copies of the upstream node except xyz.
+            nn.setXYZD( zeroArr ); //and xyzd ('old' coords)
             x0 = crn->getX();
             y0 = crn->getY();
             z0 = crn->getZ();
@@ -637,6 +638,10 @@ void tStreamMeander::FindReaches()
       }
       taillen[i] = ctaillen;
    }
+     //for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
+     //{
+     //   cout << "end FindReaches, node " << cn->getID() << endl;
+     //}
    //cout << "done FindReaches" << endl;
 }
 
@@ -869,8 +874,8 @@ void tStreamMeander::Migrate()
       //interpolate if necessary, etc.
         //if( cummvmt > 1.0 )
         //{
-         netPtr->UpdateNet();
-         MakeReaches();
+      netPtr->UpdateNet();
+      MakeReaches();
            //cummvmt = 0.0;
            //}
    }
@@ -1041,10 +1046,11 @@ void tStreamMeander::AddChanBorder()
    cout << "AddChanBorder()" << endl;
    int i, inchan, pccw, sameside;
    double lvdist, width;
-   tArray< double > xy, xyd, oldpos;
+   tArray< double > xy, xyd, oldpos, zeroArr(4), xyz(3);
    tTriangle *ct;
    tLNode *cn, *tn, *dn, *channodePtr, channode;
-   tGridListIter< tLNode > nIter( gridPtr->GetNodeList() );
+   tGridListIter< tLNode > nIter( gridPtr->GetNodeList() ),
+       tI( gridPtr->GetNodeList() );
    //go through list of coordinates made by MakeChanBorder:
    //go through active nodes:
    for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
@@ -1068,12 +1074,14 @@ void tStreamMeander::AddChanBorder()
                //(b) on the same side of the channel:
                if( ct = gridPtr->LocateTriangle( oldpos[0], oldpos[1] ) )
                {
-                  channodePtr = cn;
-                  channode = *channodePtr;
+                    //channodePtr = cn;
+                    //channode = *channodePtr;
                   //***NG: HERE IS WHERE YOU CAN FIND A DEPOSIT THICKNESS
                   //TO ADD TO THE NEW NODE***
-                  channode.set3DCoords( oldpos[0], oldpos[1], oldpos[2] );
-                  inchan = 1;
+                    //channode.set3DCoords( oldpos[0], oldpos[1], oldpos[2] );
+                    //channode.setXYZD( zeroArr ); //initialize xyzd
+                    //channode.SetMeanderStatus(0); //zero meander
+                  inchan = 0;
                   for( i=0; i<3; i++ )
                   {
                      tn = (tLNode *) ct->pPtr(i);
@@ -1110,9 +1118,17 @@ void tStreamMeander::AddChanBorder()
                      {
                         cout << "node " << cn->getID()
                              << "'s old coords pass: add new node" << endl;
-                        gridPtr->AddNode( channode );
+                        for( i=0; i<3; i++ ) xyz[i] = oldpos[i];
+                        channodePtr = gridPtr->AddNodeAt( xyz );
+                        channodePtr->setRock( cn->getRock() );
+                        channodePtr->setSurf( cn->getSurf() );
+                        channodePtr->setReg( cn->getReg() );
+                          //gridPtr->AddNode( channode );
                      }
                   }
+                  else
+                      cout << "if old coord's not in channel, no vtx was meandering"
+                           << endl;
                }
                else cout << "old coords not in any triangle" << endl;
                for( i=0; i<4; i++ ) oldpos[i] = 0.0;
@@ -1550,8 +1566,10 @@ void tStreamMeander::CheckBrokenFlowedg()
         //look through meandering nodes:
       for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
       {
+         cout << "node " << cn->getID() << endl << flush;
          if( cn->Meanders() )
          {
+            cout << "   meanders" << endl << flush;
             dn = cn->GetDownstrmNbr();
               //make sure downstrm nbr exists and is still in edgeList:
             assert( dn != 0 && nIter.Get( dn->getID() ) );
@@ -1725,7 +1743,7 @@ void tStreamMeander::CheckBrokenFlowedg()
       }
       triPtrList.Flush();
    } while( breakedge );*/
-   //cout << "finished" << endl;
+   cout << "finished" << endl << flush;
 }
 #undef MAXLOOPS
 
