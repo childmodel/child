@@ -5,7 +5,7 @@
 **
 **  A. Desitter - March 2004
 **
-**  $Id: tOption.cpp,v 1.3 2004-04-01 11:02:25 childcvs Exp $
+**  $Id: tOption.cpp,v 1.4 2004-04-14 11:17:53 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -19,6 +19,7 @@ using namespace std;
 #include <string.h>
 
 #include "tOption.h"
+#include "../Definitions.h"
 
 tOption::tOption(int argc, char const * const argv[])
   : exeName(argv[0]),
@@ -54,6 +55,10 @@ int tOption::parseOptions(char const * const argv[]) {
     usage();
     exit(EXIT_SUCCESS);
   }
+  if (strcmp(thisOption, "--version") == 0){
+    version();
+    exit(EXIT_SUCCESS);
+  }
   if (thisOption[0] == '-') {
     usage();
     exit(EXIT_FAILURE);
@@ -73,5 +78,13 @@ void tOption::usage() const {
     << " --help: display this help message.\n"
     << " --no-check: disable CheckMeshConsistency().\n"
     << " --silent-mode: silent mode.\n"
+    << " --version: display version.\n"
     << endl;
+}
+
+void tOption::version() {
+  cout
+    << "\nThis is CHILD, version " << VERSION
+    << " (compiled " __DATE__ " " __TIME__ ")"
+    << '\n' << endl;
 }

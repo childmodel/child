@@ -9,7 +9,7 @@
 **
 **  A. Desitter - March 2004
 **
-**  $Id: tOption.h,v 1.2 2004-04-01 09:57:28 childcvs Exp $
+**  $Id: tOption.h,v 1.3 2004-04-14 11:17:53 childcvs Exp $
 */
 /************************************************************************/
 
@@ -24,6 +24,7 @@ public:
   char const *inputFile;
 
   tOption(int argc, char const * const argv[]);
+  static void version();
 private:
   int parseOptions(char const * const argv[]);
   void usage() const;

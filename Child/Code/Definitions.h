@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.42 2004-03-17 12:55:40 childcvs Exp $
+**   $Id: Definitions.h,v 1.43 2004-04-14 11:17:52 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -13,10 +13,9 @@
 #define DEFINITIONS_H
 
 /** DEFINITIONS *************************************************************/
-#define VERSION "2.2.0, July 2002"
+#define VERSION "2.3.0, April 2004"
 #define TRUE 1
 #define FALSE 0
-//#define BYPASS_DEBUG_ROUTINES   // forces non-compilation & bypass of debugging routines
 typedef enum {      // method of grid construction
   kUniformMesh = 0,
   kPerturbedMesh = 1,

@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.19 2004-03-31 17:53:49 childcvs Exp $
+**  $Id: childmain.cpp,v 1.20 2004-04-14 11:17:52 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -81,9 +81,7 @@ int main( int argc, char **argv )
    tOption option( argc, argv );
 
    // Say hello
-   cout << "\nThis is CHILD, version " << VERSION
-	<< " (compiled " __DATE__ " " __TIME__ ")"
-	<< endl << endl;
+   option.version();
 
    // Open main input file
    tInputFile inputFile( option.inputFile );
