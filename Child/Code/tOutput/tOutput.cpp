@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.23 1999-09-01 15:57:12 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.24 2000-01-25 19:07:21 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -97,7 +97,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
 {
    tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
    tMeshListIter<tEdge> eiter( m->getEdgeList() );    // edge list iterator
-   tListIter<tTriangle> titer( m->getTriList() );     // tri list iterator
+   tPtrListIter<tTriangle> titer( m->getTriList() );     // tri list iterator
    tNode * cn;       // current node
    tEdge * ce;       // current edge
    tTriangle * ct;   // current triangle
@@ -177,17 +177,23 @@ void tOutput<tSubNode>::WriteNodeData( double time )
 **
 **  Creates and opens a series of files for drainage areas, slopes, etc.
 **
+**  Modifications:
+**    - 1/00 added "opOpt" and creation of veg output file (GT)
 \*************************************************************************/
 template< class tSubNode >
 tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) 
         : tOutput<tSubNode>( meshPtr, infile )  // call base-class constructor
 {
+   int opOpt;  // Optional modules: only output stuff when needed
+   
    CreateAndOpenFile( &drareaofs, ".area" );
    CreateAndOpenFile( &netofs, ".net" );
    CreateAndOpenFile( &slpofs, ".slp" );
    CreateAndOpenFile( &qofs, ".q" );
    CreateAndOpenFile( &layofs, ".lay" );
    CreateAndOpenFile( &texofs, ".tx" );
+   if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
+       CreateAndOpenFile( &vegofs, ".veg" );
    
 }
 
@@ -199,6 +205,8 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
 **  This overridden virtual function writes output for tLNodes, including
 **  drainage areas, flow pathways, slopes, discharges, layer info, etc.
 **
+**  Modifications:
+**    - 1/00 added output to veg output file (GT)
 \*************************************************************************/
 //TODO: should output boundary points as well so they'll map up with nodes
 // for plotting. Means changing getSlope so it returns zero if flowedg
@@ -219,6 +227,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    qofs << " " << time << "\n " << nnodes << endl;
    layofs << " " << time << "\n" << nActiveNodes << endl;
    texofs << " " << time << "\n" << nnodes << endl;
+   if( vegofs.good() ) vegofs << " " << time << "\n" << nnodes << endl;
 
    // Write data, including layer info
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
@@ -228,7 +237,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       if( cn->getDownstrmNbr() )
           netofs << cn->getDownstrmNbr()->getID() << endl;
       slpofs << cn->getSlope() << endl;
-      layofs << cn->getNumLayer() << endl;
+      layofs << " " << cn->getNumLayer() << endl;
       i=0;
       while(i<cn->getNumLayer()){
          layofs << cn->getLayerCtime(i) << " " << cn->getLayerRtime(i) << " " << cn->getLayerEtime(i) << endl;
@@ -243,9 +252,11 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       }
    }
 
-   // Write texture data
-   for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() ){
+   // Write discharge, vegetation, & texture data
+   for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() )
+   {
       qofs << cn->getQ() << endl;
+      if( vegofs.good() ) vegofs << cn->getVegCover().getVeg() << endl;
       if( cn->getNumg()>1 ) // temporary hack TODO
       {
             texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;
