@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.90 2003-07-18 17:51:51 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.91 2003-07-31 11:58:16 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -69,14 +69,14 @@ tStreamMeander::tStreamMeander():
   klambda(0), elambda(0), dscrtwids(0),
   allowfrac(0), leavefrac(0), /*vegerod(0), */
   rockerod(0), /*latadjust(0), */ Pdz(0),
-  seed(-1)
+  seed(0) // seed already set in tMesh
 {
 }
 
 tStreamMeander::tStreamMeander( tStreamNet &netRef, tMesh< tLNode > &mRef,
                                 tInputFile &infile ) :
   reachList(), rlIter(reachList),
-  seed(-1)
+  seed(0) // seed already set in tMesh
 {
   //if( netPtr != 0 ) netPtr = new tStreamNet( gRef );
   netPtr = &netRef;
