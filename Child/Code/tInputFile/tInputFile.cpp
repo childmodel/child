@@ -4,7 +4,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.4 1999-02-19 20:51:39 gtucker Exp $
+**  $Id: tInputFile.cpp,v 1.5 1999-02-22 17:40:12 gtucker Exp $
 \****************************************************************************/
 
 #include <iostream.h>
@@ -22,12 +22,18 @@
 
 tInputFile::tInputFile( const char *filename )
 {
+   char inoutname[kMaxNameLength];
+   
    infile.open( filename );
    if( !infile.good() )
    {
       cerr << "tInputFile::tInputFile: Unable to open '" << filename << "'." << endl;
       ReportFatalError( "The file may not exist or may be mis-named." );
    }
+   strcpy( inoutname, filename );
+   strcat( inoutname, "INPUTS" );
+   inoutfile.open( inoutname );
+   assert( inoutfile.good() );
    
 }
 
@@ -50,7 +56,7 @@ tInputFile::tInputFile( const char *filename )
 */
 int tInputFile::ReadItem( const int &datType, const char *itemCode )
 {
-   cout << "ReadItem( int )...";
+   //cout << "ReadItem( int )...";
    int item;
    char headerLine[kMaxNameLength];
    
@@ -67,7 +73,7 @@ int tInputFile::ReadItem( const int &datType, const char *itemCode )
    {
       infile >> item;
       infile.ignore( 1, '\n' );
-      cout << headerLine << endl;
+      inoutfile << itemCode << endl << item << endl;
    }
    else
 
@@ -84,7 +90,7 @@ int tInputFile::ReadItem( const int &datType, const char *itemCode )
 
 long tInputFile::ReadItem( const long &datType, const char *itemCode )
 {
-   cout << "ReadItem( long )...";
+   //cout << "ReadItem( long )...";
    long item;
    char headerLine[kMaxNameLength];
   
@@ -101,7 +107,7 @@ long tInputFile::ReadItem( const long &datType, const char *itemCode )
    {
       infile >> item;
       infile.ignore( 1, '\n' );
-      cout << headerLine << endl;
+      inoutfile << itemCode << endl << item << endl;
    }
    else
    {
@@ -115,7 +121,7 @@ long tInputFile::ReadItem( const long &datType, const char *itemCode )
 
 double tInputFile::ReadItem( const double &datType, const char *itemCode )
 {
-   cout << "ReadItem( double )...";
+   //cout << "ReadItem( double )...";
    double item;
    char headerLine[kMaxNameLength];
    
@@ -132,7 +138,7 @@ double tInputFile::ReadItem( const double &datType, const char *itemCode )
    {
       infile >> item;
       infile.ignore( 1, '\n' );
-      cout << headerLine << endl;
+      inoutfile << itemCode << endl << item << endl;
    }
    else
    {
@@ -147,7 +153,7 @@ double tInputFile::ReadItem( const double &datType, const char *itemCode )
 
 void tInputFile::ReadItem(  char * theString, const char *itemCode )
 {
-   cout << "ReadItem( char )...";
+   //cout << "ReadItem( char )...";
    char headerLine[kMaxNameLength];
    
    assert( infile.good() );
@@ -161,7 +167,7 @@ void tInputFile::ReadItem(  char * theString, const char *itemCode )
    if( !( infile.eof() ) )
    {
       infile.getline( theString, kMaxNameLength );
-      cout << headerLine << endl;
+      inoutfile << itemCode << endl << theString << endl;
    }
    else
    {
