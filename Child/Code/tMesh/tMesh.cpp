@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.23 1998-03-21 21:49:13 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.24 1998-03-23 19:53:28 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -682,7 +682,7 @@ MakeGridFromInputData( tInputFile &infile )
 **        3) adds the rest of the nodes one at a time, i.e., triangulation
 **           redone for each node added.
 **
-**       A nicer way (who wants to code it?):
+**       A nicer way (who wants to code it? oo-oo! stephen does, stephen does!):
 **        1) make boundary nodes and edges between them;
 **        2) add all other nodes at once;
 **        3) do triangulation once by making a temporary list of boundary
@@ -843,6 +843,7 @@ MakeGridFromScratch( tInputFile &infile )
    {
       upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
       n = xGrid / delGrid;
+      cout << "n=" << n << endl;
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=1, id=0; i<n; i++, id++ )
       {
@@ -863,6 +864,7 @@ MakeGridFromScratch( tInputFile &infile )
          bndList.insertAtBack( nodIter.LastP() );
       }
       tempnode.setBoundaryFlag( kOpenBoundary );
+      n = xGrid / delGrid;
       for( i=n-1; i>0; i--, id++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1026,7 +1028,7 @@ MakeGridFromScratch( tInputFile &infile )
            << " to " << ce->getDestinationPtrNC()->getID() << endl;
    }*/
    cout << "calling repair mesh for initial boundary\n";
-   assert( RepairMesh( bndList ) );
+   assert( RepairMesh( bndList ) ); //TODO: remove from assert
    cout << "filling in points\n";
    
      //FILL IN POINTS
@@ -1695,7 +1697,7 @@ ExtricateEdge( tEdge * edgePtr )
      //cout << "find other triangle; " << flush;
    triPtrArr[1] = TriWithEdgePtr( cce );
      //if triangles exist, delete them
-   cout << "conditionally calling deletetri from extricateedge\n";
+   //cout << "conditionally calling deletetri from extricateedge\n";
    if( triPtrArr[0] != 0 )
        if( !DeleteTriangle( triPtrArr[0] ) ) return 0;
    if( triPtrArr[1] != 0 )
@@ -1726,21 +1728,47 @@ ExtricateEdge( tEdge * edgePtr )
    return 1;
 }
 
+/***************************************************************************\
+**
+**  tGrid::LocateTriangle
+**
+**  Locates the triangle in which point (x,y) falls. The algorithm exploits
+**  the fact that the 3 triangle points are always in counter-clockwise
+**  order, so that the point is contained within a given triangle (p0,p1,p2)
+**  if and only if the point lies to the left of vectors p0->p1, p1->p2,
+**  and p2->p0. Here's how it works:
+**   1 - start with a given triangle (currently first on the list, but a
+**       smarter initial guess could be used -- TODO)
+**   2 - lv is the number of successful left-hand checks found so far:
+**       initialize it to zero
+**   3 - check whether (x,y) lies to the left of p(lv)->p((lv+1)%3)
+**   4 - if so, increment lv by one (ie, move on to the next vector)
+**   5 - if not, (x,y) is to the right of the current face, so move to
+**       the triangle that lies opposite that face and reset lv to zero
+**   6 - continue steps 3-5 until lv==3, which means that we've found
+**       our triangle.
+**
+**  Input: x, y -- coordinates of the point
+**  Modifies: (nothing)
+**  Returns: a pointer to the triangle that contains (x,y)
+**  Assumes: the point is contained within one of the current triangles
+**
+\***************************************************************************/
 template< class tSubNode >
 tTriangle * tGrid< tSubNode >::
 LocateTriangle( double x, double y )
 {
-   //cout << "LocateTriangle" << endl;
+   cout << "LocateTriangle (" << x << "," << y << ")\n";
    int n, lv=0;
    tListIter< tTriangle > triIter( triList );  //lt
    tTriangle *lt = &(triIter.DatRef());
    double a, b, c;
    tArray< double > xy1, xy2;
-     /* it starts from the first triangle, 
-        searches through the triangles until the point is on
-        the same side of all the edges of a triangle.
-        "lt" is the current triangle and "lv" is the edge number.
-        */
+   
+   /* it starts from the first triangle, 
+      searches through the triangles until the point is on
+      the same side of all the edges of a triangle.
+      "lt" is the current triangle and "lv" is the edge number. */
    for (n=0 ;(lv!=3)&&(lt); n++)
    {
       xy1 = lt->pPtr(lv)->get2DCoords();
@@ -1748,24 +1776,32 @@ LocateTriangle( double x, double y )
       a = (xy1[1] - y) * (xy2[0] - x);
       b = (xy1[0] - x) * (xy2[1] - y);
       c = a - b;
+
+      /*cout << "find tri for point w/ x, y, " << x << ", " << y
+           << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;
+      lt->TellAll();*/
+      cout << flush;
+
       if ( c > 0.0 )
       {
+         //cout << "    Moving on...\n";
          lt=lt->tPtr( (lv+2)%3 );
          lv=0;
       }
-      else {lv++;}
-        //if( !(n < ntri) )
-      /*if( lt != 0 )
-          cout << "find tri for point w/ x, y, " << x << ", " << y
-               << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;
-      if( n >= ntri + 20 )
+      else {
+         //cout << "    So far so good...\n";
+         lv++;}
+      
+      /*if( n >= ntri + 20 )
       {
          DumpTriangles();
          DumpNodes();
       }*/
       //cout << flush;
-      assert( n < ntri + 200 );
+      assert( n < 3*ntri );
    }
+   cout << "FOUND point in:\n";
+   lt->TellAll();
    return(lt);
 }
 
@@ -2036,7 +2072,7 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
                         tPtrListIter< tSubNode > &nbrIter )
 {
    assert( (&nbrList != 0) && (&nbrIter != 0) );
-     //cout << "AddEdgeAndMakeTriangle" << endl;
+   //cout << "AddEdgeAndMakeTriangle" << endl;
      //cout << "aemt 0\n" << flush;
    int flowflag = 1;
      //cout << "aemt 0.1\n" << flush;
@@ -2049,8 +2085,14 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
    tArray< double > p0( cn->get2DCoords() ), p1( cnn->get2DCoords() ),
        p2( cnnn->get2DCoords() );
    if( !PointsCCW( p0, p1, p2 ) )
+   {
        cout << "in AEAMT nodes not CCW: " << cn->getID() << ", "
             << cnn->getID() << ", " << cnnn->getID() << endl;
+       cn->TellAll();
+       cnn->TellAll();
+       cnnn->TellAll();
+   }
+   
      //cout << "aemt 1/2\n" << flush;
    tEdge tempEdge1, tempEdge2, *ce, *le;
    tGridListIter< tEdge > edgIter( edgeList );
@@ -2339,7 +2381,7 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
               ( ( ct->tPtr(2) != ct->tPtr(0) && ct->tPtr(2) != ct->tPtr(1) ) ||
                 ct->tPtr(2) == 0 ) );
    }
-   
+
      //cout << "  finished" << endl << flush;
    return 1;
 }
@@ -2352,7 +2394,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
 {
    assert( (&nbrList != 0) && (&nbrIter != 0) );
    assert( nbrList.getSize() == 3 );
-     //cout << "MakeTriangle" << endl;
+   //cout << "MakeTriangle" << endl;
    int i, j;
    tTriangle tempTri;
    tTriangle *nbrtriPtr;
@@ -2363,7 +2405,8 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    tGridListIter< tEdge > edgIter( edgeList );
    tPtrListIter< tEdge > spokIter;
    assert( nbrList.getSize() == 3 );
-   cn = nbrIter.DatPtr();      // cn, cnn, and cnn are the 3 nodes in the tri
+   //Xcn = nbrIter.DatPtr(); Below is bug fix:
+   cn = nbrIter.FirstP();      // cn, cnn, and cnnn are the 3 nodes in the tri
    cnn = nbrIter.NextP();
    cnnn = nbrIter.NextP();
    nbrIter.Next();
@@ -2408,6 +2451,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    for( i=0; i<3; i++ )
    {
       tempTri.setPPtr( i, cn );       //set tri VERTEX ptr i
+      //cout << "cn: " << cn->getID() << endl;
       spokIter.Reset( cn->getSpokeListNC() );
       cn = nbrIter.NextP();           //step forward once in nbrList to p(i+1)
       cnn = nbrIter.ReportNextP();    //get p(i+2) (but don't step forward)
@@ -2443,6 +2487,9 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    assert( cn == ct->pPtr(0) );           //make sure we're where we
                                           //think we are
 
+   /*cout << "IN MT, created triangle:\n";
+   ct->TellAll();*/
+   
    // Now we assign the neighbor triangle pointers. The loop successively
    // gets the spokelist for (p0,p1,p2) and sets cn to the next ccw point
    // (p1,p2,p0). It then finds the edge (spoke) that joins the two points
@@ -2455,6 +2502,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    dce = 0;
    nbrtriPtr = 0;
    cn = nbrIter.FirstP();
+   //cout << "starting w/ node " << cn->getID();
    for( j=0; j<3; j++ )
    {
       // Get spokelist for p(j) and advance to p(j+1)
@@ -2483,8 +2531,16 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
       // Find the triangle, if any, that shares (points to) this edge
       // and assign it as the neighbor triangle t((j+2)%3).
       nbrtriPtr = TriWithEdgePtr( ce );
+      /*cout << "The following tri shares edg the following edge:\n";
+      ce->TellCoords();
+      if( nbrtriPtr )
+          nbrtriPtr->TellAll();
+      else cout << "(none)\n";*/
+         
       ct->setTPtr( (j+2)%3, nbrtriPtr );      //set tri TRI ptr (j+2)%3
 
+      //cout << "This is our nbr #" << (j+2)%3 << endl << endl;
+      
       // If a neighboring triangle was found, tell it that the current
       // new triangle is its neighbor too. We need to tell it which
       // neighbor we are (0, 1, or 2), and the mapping is like this:
@@ -2499,12 +2555,10 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
             if( nbrtriPtr->ePtr(i) == ce ) break;
          }
          assert( i < 3 );
-         nbrtriPtr->setTPtr( (i+1)%3, ct );//set NBR TRI ptr to tri
+         nbrtriPtr->setTPtr( (i+1)%3, ct );  //set NBR TRI ptr to tri
       }
    }
 
-/*X   cout << "IN MT, created triangle:\n";
-   ct->TellAll();*/
 
    
    /*OLD CODE BLOCK  //set tri ptrs:
@@ -2614,8 +2668,8 @@ AddNode( tSubNode &nodeRef )
        p4( node4->get2DCoords() );
    if( xyz.getSize() == 3) //why would this ever not be the case?
    {
-      /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
+      cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
       if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
           cout << "new tri not CCW" << endl;
    }
