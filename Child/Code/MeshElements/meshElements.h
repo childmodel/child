@@ -4,7 +4,7 @@
 **                  and tTriangle. Each of these grid elements is
 **                  implemented as an object, as described below.
 **
-**  $Id: meshElements.h,v 1.7 1998-03-20 15:39:28 gtucker Exp $
+**  $Id: meshElements.h,v 1.8 1998-03-21 21:52:46 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -79,7 +79,7 @@ class tNode
    tEdge * GetEdg();
    void SetEdg( tEdge * );
    double Dist( tNode *, tNode * );
-   void CalcSpokeVEdgLengths();
+    void CalcSpokeVEdgLengths();// TODO: delete; replaced by tEdge fn
    tEdge *EdgToNod( tNode * );
    double ComputeVoronoiArea();
    void makeCCWEdges();
@@ -128,38 +128,41 @@ class tEdge
 {
    friend ostream &operator<<( ostream &, const tEdge & );
      /*friend istream &operator>>( istream &, tEdge & );*/
-  public:
-   tEdge();
-   tEdge( const tEdge & );
-   ~tEdge();
-   const tEdge &operator=( const tEdge & );
-   int getID() const;
-   int getBoundaryFlag() const;
-   double getLength() const;
-   double getSlope() const; // slope is the "z" gradient from org to dest nodes 
-   double getOrgZ();
-   double getDestZ();
-   const tNode *getOriginPtr() const;
-   const tNode *getDestinationPtr() const;
-   tNode *getOriginPtrNC();
-   tNode *getDestinationPtrNC();
-   int FlowAllowed();
-   void setID( int );
-   void setLength( double );
-   void setSlope( double );
-   void setOriginPtr( tNode * );
-   void setDestinationPtr( tNode * );
-   void setFlowAllowed( int );
-   double CalcLength();
-   double CalcSlope();
-   tEdge * GetCCWEdg();
-   void SetCCWEdg( tEdge * edg );
-   tArray< double > getRVtx() const; // Get the Voronoi vertex for LH triangle
-   void setRVtx( tArray< double > );
-   double getVEdgLen() const;  // Get length of associated Voronoi cell edge
-   void setVEdgLen( double );
-   void TellCoords();  // debug routine
-
+public:
+    tEdge();
+    tEdge( const tEdge & );
+    ~tEdge();
+    const tEdge &operator=( const tEdge & );
+    int getID() const;
+    int getBoundaryFlag() const;
+    double getLength() const;
+    double getSlope() const; // slope = "z" gradient from org to dest nodes 
+    double getOrgZ();
+    double getDestZ();
+    const tNode *getOriginPtr() const;
+    const tNode *getDestinationPtr() const;
+    tNode *getOriginPtrNC();
+    tNode *getDestinationPtrNC();
+    int FlowAllowed();
+    void setID( int );
+    void setLength( double );
+    void setSlope( double );
+    void setOriginPtr( tNode * );
+    void setDestinationPtr( tNode * );
+    void setFlowAllowed( int );
+    double CalcLength();
+    double CalcSlope();
+    tEdge * GetCCWEdg();
+    void SetCCWEdg( tEdge * edg );
+    tArray< double > getRVtx() const; // Get the Voronoi vertex for LH triangle
+    void setRVtx( tArray< double > );
+    double getVEdgLen() const;  // Get length of associated Voronoi cell edge
+    void setVEdgLen( double );
+    double CalcVEdgLen();   // Computes, sets & returns length of V cell edg
+#ifndef NDEBUG
+    void TellCoords();  // debug routine
+#endif
+    
   private:
    int id;
    int flowAllowed; // boundary flag, usu. false when org & dest = closed bds 
