@@ -8,7 +8,7 @@
 ** Scaling is nlogn for random datasets
 ** Mike Bithell 31/08/01
 **
-** Arnaud Desitter. Q2 2002. 
+** Arnaud Desitter. Q2 2002.
 ** Debugging and extension of the algorithm.
 ** Binding to CHILD data structures.
 */
@@ -35,6 +35,12 @@ using namespace std;
 
 #define TIMING 1
 
+// Geometrical routines
+// By default, accurate "predicate" algorithms are used. If DONT_USE_PREDICATE
+// is defined, simple-minded alternatives are provided. They are known to be
+// round-off sensitive.
+
+#ifdef DONT_USE_PREDICATE
 // vector product (or cross product) of p0p1,p0p2
 static inline
 double vecprod(int p0,int p1,int p2,const point *p){
@@ -42,8 +48,9 @@ double vecprod(int p0,int p1,int p2,const point *p){
     (p[p1].x()-p[p0].x())*(p[p2].y()-p[p0].y())
     -(p[p1].y()-p[p0].y())*(p[p2].x()-p[p0].x());
 }
+#endif
 
-// Orientation of p0,p1,p2
+// Orientation of p0, p1, p2
 // It returns >0 if counterclockwise, 0 if collinear, <0 if clockwise
 static inline
 double orient2d(int p0,int p1,int p2,const point *p){
@@ -51,6 +58,48 @@ double orient2d(int p0,int p1,int p2,const point *p){
   return vecprod(p0,p1,p2,p);
 #else
   return predicate.orient2d(p[p0].XY(), p[p1].XY(), p[p2].XY());
+#endif
+}
+
+static
+bool needswap(int i1, int i2, int i3, int i4, const point p[]){
+#ifdef DONT_USE_PREDICATE
+  // i3 - i4 currently joined by diagonal.
+  // i1 - i4 - i2 - i3 anti-clockwise
+  // check if i1 lies inside the circumcircle for the triangle
+  // i4-i2-i3 using the algorithm of Cline and Renka for roundoff
+  // error.
+
+  // t1=angle(i2i3,i2i4), t2=angle(i1i4,i1i3),
+  // a swap is needed if t1+t2 > pi
+  // Since t1+t2 < 2pi, this is equivalent to sin(t1+t2) < 0
+  // This leads to: cos(t1)*cos(t2)+sin(t1)*sin(t2) < 0
+  //
+  // see discussion in:
+  // Sloan, S.W. "A fast algorithm for constructing Delaunay
+  // triangulations in the plane", Adv. Eng, Software,
+  // 1987, 9(1)
+  // Cline, A.K., Renka, R.L., "A Storage efficient method for
+  // construction of a Thiessen triangulation", Rocky Mountain
+  // Journal of Mathemetics, 1984, 14(119)
+
+  const point
+    p1(p[i3]-p[i2]), p2(p[i4]-p[i2]),
+    p3(p[i4]-p[i1]), p4(p[i3]-p[i1]);
+  const double cost1=p1.dot(p2), cost2=p3.dot(p4);
+
+  if (cost1>=0 && cost2>=0)
+    return false;
+  if (cost1<0 && cost2<0)
+    return true;
+  const double sint1=vecprod(i2,i3,i4,p), sint2=vecprod(i1,i4,i3,p),
+    sint1t2 = sint1*cost2+sint2*cost1;
+  if (sint1t2 < 0)
+    return true;
+  return false;
+#else
+  return predicate.incircle(p[i4].XY(), p[i2].XY(), p[i3].XY(), p[i1].XY())
+    > 0 ? true:false;
 #endif
 }
 
@@ -76,142 +125,21 @@ void point::write(ofstream& f) const {f<<x()<<' '<<y()<<endl;}
 #if defined(DEBUG_PRINT)
 void edge::print(const point p[]) const {p[from].print();p[to].print();}
 #endif
-void edge::write(ofstream& f,const point p[]) const {p[from].write(f);p[to].write(f);}
+void edge::write(ofstream& f,const point p[]) const {
+  p[from].write(f);p[to].write(f);}
 bool edge::visible(const point p[],int i) const {
   //test whether an edge on the hull is visible from a point
   //rely on the fact that a) hull is anticlockwise oriented
   //b)data is positive x ordered
 
-  // that is if angle(from-to,from-i) < 0 
-  const double v = orient2d(from,to,i, p);
-  if (v>=0)
-    return false;
-  return true;
+  // that is if angle(from-to,from-i) < 0
+  return orient2d(from,to,i, p)<0 ? true : false;
 }
 
-static
-bool needswap(int i1, int i2, int i3, int i4, const point p[]){
-#ifdef DONT_USE_PREDICATE
-  // i3 - i4 currently joined by diagonal.
-  // i1 - i4 - i2 - i3 anti-clockwise
-  // check if i1 lies inside the circumcircle for the triangle
-  // i4-i2-i3 using the algorithm of Cline and Renka for roundoff
-  // error.
-  
-  // t1=angle(i2i3,i2i4), t2=angle(i1i4,i1i3), 
-  // a swap is needed if t1+t2 > pi
-  // Since t1+t2 < 2pi, this is equivalent to sin(t1+t2) < 0
-  // This leads to: cos(t1)*cos(t2)+sin(t1)*sin(t2) < 0
-  //
-  // see discussion in:
-  // Sloan, S.W. "A fast algorithm for constructing Delaunay 
-  // triangulations in the plane", Adv. Eng, Software,
-  // 1987, 9(1)
-  // Cline, A.K., Renka, R.L., "A Storage efficient method for 
-  // construction of a Thiessen triangulation", Rocky Mountain 
-  // Journal of Mathemetics, 1984, 14(119)
-
-  const point 
-    p1(p[i3]-p[i2]), p2(p[i4]-p[i2]),
-    p3(p[i4]-p[i1]), p4(p[i3]-p[i1]); 
-  const double cost1=p1.dot(p2), cost2=p3.dot(p4);
-
-  if (cost1>=0 && cost2>=0)
-    return false;
-  if (cost1<0 && cost2<0)
-    return true;
-  const double sint1=vecprod(i2,i3,i4,p), sint2=vecprod(i1,i4,i3,p),
-    sint1t2 = sint1*cost2+sint2*cost1;
-  if (sint1t2 < 0)
-    return true;
-  return false;
-#else
-  return predicate.incircle(p[i4].XY(), p[i2].XY(), p[i3].XY(), p[i1].XY()) > 0;
-#endif
-}
-
-static
-int tt_swap(int tint, edge e[], const point p[]){
-  
-  int& to = e[tint].to;
-  int& from = e[tint].from;
-  int& ret = e[tint].ret;
-  int& ref = e[tint].ref;
-  int& let = e[tint].let;
-  int& lef = e[tint].lef;
-
-  //edge swapping routine - each edge has four neighbour edges
-  //left and attached to from node (lef) right attached to to node (ret) etc.
-  //these edges may be oriented so that their from node is that of 
-  // the current edge, or not
-  //this routine takes the lions share of the CPU - hull construction by comparison
-  //takes much less (by about a factor of ten!)
-  if (ref==edge::none || lef==edge::none ||
-      let==edge::none || ret==edge::none) return 0;
-  //test orientation of left and right edges - store the indices of
-  //points that are not part of the current edge
-  const int leftp  = (e[lef].from==from) ? e[lef].to : e[lef].from;
-  const int rightp = (e[ref].from==from) ? e[ref].to : e[ref].from;
-
-  if (needswap(leftp, rightp, to, from, p)){
-    //now swap the left and right edges of neighbouring edges
-    //taking into account orientation
-    if (e[ref].from == from){
-      e[ref].lef=lef;
-      e[ref].let=tint;
-    }else{
-      e[ref].ref=tint;
-      e[ref].ret=lef;
-    }
-    if (e[lef].from==from){
-      e[lef].ref=ref;
-      e[lef].ret=tint;
-    }else{
-      e[lef].lef=tint;
-      e[lef].let=ref;
-    }
-    if (e[ret].to==to){
-      e[ret].lef=tint;
-      e[ret].let=let;
-    }else{
-      e[ret].ref=let;
-      e[ret].ret=tint;
-    }
-    if (e[let].to==to){
-      e[let].ref=tint;
-      e[let].ret=ret;
-    }else{
-      e[let].lef=ret;
-      e[let].let=tint;
-    }
-    {
-      //change the end-points for the current edge
-      to=rightp;
-      from=leftp;
-      //re-jig the edges
-      const int rf=ref;
-      ref=lef;
-      int rt=ret;
-      ret=rf;
-      const int lt=let;
-      let=rt;
-      lef=lt;
-    }
-    //examine the neighbouring edges for delauniness recursively - this is
-    //a lot more efficient than trying to swap all edges right at the end.
-    tt_swap(lef,e,p);
-    tt_swap(let,e,p);
-    tt_swap(ref,e,p);
-    tt_swap(ret,e,p);
-    return 1;
-  }
-  return 0;
-}
-
+// a fixed size linked cyclical list using arrays
+// the code here is not yet robust necessarily to list shrinking to zero
+// number of elements
 class cyclist{
-  //a fixed size linked cyclical list using arrays
-  //the code here is not yet robust necessarily to list shrinking to zero
-  //number of elements
   const cyclist &operator=( const cyclist & );  // assignment operator
   cyclist( const cyclist & );
   void delNext(int list_pos);
@@ -248,9 +176,9 @@ private:
   const int size; // maximum size
   // "hole" points to the next unfilled location,
   // "prev" to the location that was last filled
-  // we keep track of empty bits of the list using hole to point to an empty slot,
-  // and the value ejs[hole] to point to the next empty slot
-  // "num" is the current number of elements 
+  // we keep track of empty bits of the list using hole to point to an empty
+  // slot, and the value ejs[hole] to point to the next empty slot
+  // "num" is the current number of elements
   int prev, hole, num;
 };
 
@@ -294,12 +222,13 @@ int cyclist::delNextNeg(int list_pos){
   return ejs[list_pos].prev;
 }
 void cyclist::add(int ej){
-  //build hull from scratch in numerical order - we assume you got the orientation
-  //right!! (anti-clockwise)
+  //build hull from scratch in numerical order - we assume you got the
+  //orientation right!! (anti-clockwise)
   checkRange(hole<size);
   const int n=ejs[hole].data;
   ejs[hole].data=ej;
-  //prev stores the location of the place in the array that was most recently filled
+  //prev stores the location of the place in the array that was most recently
+  //filled
   ejs[prev].next=hole;
   //rev is the set of backward pointers
   ejs[hole].prev=prev;
@@ -313,8 +242,9 @@ void cyclist::add(int ej){
 int cyclist::addBefore(int a, int ej){
   checkRange(a);
   //first check for the empty list
-  if (num ==0){add(ej);return prev;}
-  //otherwise add on before the specified position, using the empty storage slot
+  if (num == 0){add(ej);return prev;}
+  //otherwise add on before the specified position, using the empty storage
+  //slot
   const int n=ejs[hole].data;
   ejs[hole].prev=ejs[a].prev;
   ejs[hole].next=a;
@@ -324,14 +254,15 @@ int cyclist::addBefore(int a, int ej){
   prev=hole;
   hole=n;
   num++;
-  //return the value that hole had at the start of the method 
+  //return the value that hole had at the start of the method
   return prev;
 }
 int cyclist::addAfter(int a,int ej){
   checkRange(a);
   //first check for the empty list
-  if (num ==0){add(ej);return prev;}
-  //otherwise add on after the specified position, using the empty storage slot
+  if (num == 0){add(ej);return prev;}
+  //otherwise add on after the specified position, using the empty storage
+  //slot
   const int n=ejs[hole].data;
   ejs[hole].next=ejs[a].next;
   ejs[ejs[a].next].prev=hole;
@@ -341,7 +272,7 @@ int cyclist::addAfter(int a,int ej){
   prev=hole;
   hole=n;
   num++;
-  //return the value that hole had at the start of the method 
+  //return the value that hole had at the start of the method
   return prev;
 }
 #if defined(DEBUG_PRINT)
@@ -354,12 +285,90 @@ void cyclist::print() const {
 }
 #endif
 
+// edge swapping routine - each edge has four neighbour edges
+// left and attached to from node (lef) right attached to to node (ret) etc.
+// these edges may be oriented so that their from node is that of
+// the current edge, or not
+// this routine takes the lions share of the CPU - hull construction by
+// comparison takes much less (by about a factor of ten!)
+static
+int tt_swap(int tint, edge e[], const point p[]){
+
+  int& to = e[tint].to;
+  int& from = e[tint].from;
+  int& ret = e[tint].ret;
+  int& ref = e[tint].ref;
+  int& let = e[tint].let;
+  int& lef = e[tint].lef;
+
+  if (ref==edge::none || lef==edge::none ||
+      let==edge::none || ret==edge::none) return 0;
+  //test orientation of left and right edges - store the indices of
+  //points that are not part of the current edge
+  const int leftp  = (e[lef].from==from) ? e[lef].to : e[lef].from;
+  const int rightp = (e[ref].from==from) ? e[ref].to : e[ref].from;
+
+  if (needswap(leftp, rightp, to, from, p)){
+    //now swap the left and right edges of neighbouring edges
+    //taking into account orientation
+    if (e[ref].from == from){
+      e[ref].lef=lef;
+      e[ref].let=tint;
+    }else{
+      e[ref].ref=tint;
+      e[ref].ret=lef;
+    }
+    if (e[lef].from == from){
+      e[lef].ref=ref;
+      e[lef].ret=tint;
+    }else{
+      e[lef].lef=tint;
+      e[lef].let=ref;
+    }
+    if (e[ret].to == to){
+      e[ret].lef=tint;
+      e[ret].let=let;
+    }else{
+      e[ret].ref=let;
+      e[ret].ret=tint;
+    }
+    if (e[let].to == to){
+      e[let].ref=tint;
+      e[let].ret=ret;
+    }else{
+      e[let].lef=ret;
+      e[let].let=tint;
+    }
+    {
+      //change the end-points for the current edge
+      to=rightp;
+      from=leftp;
+      //re-jig the edges
+      const int rf=ref;
+      ref=lef;
+      int rt=ret;
+      ret=rf;
+      const int lt=let;
+      let=rt;
+      lef=lt;
+    }
+    //examine the neighbouring edges for delauniness recursively - this is
+    //a lot more efficient than trying to swap all edges right at the end.
+    tt_swap(lef,e,p);
+    tt_swap(let,e,p);
+    tt_swap(ref,e,p);
+    tt_swap(ret,e,p);
+    return 1;
+  }
+  return 0;
+}
+
 // if the first points are aligned, then we build "by hand" the triangulation.
 // Draw a picture to find out. Not that difficult.
 static
-void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edge,
-			 int &next_point,
-			 int npoints, const point *p,  edge *edges,
+void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos,
+			 int &next_edge, int &next_point,
+			 int npoints, const point *p, edge *edges,
 			 cyclist &hull){
   // the 3 first points are aligned.
   // find the first non aligned point
@@ -369,13 +378,13 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edg
     const double v = orient2d(j-2,j-1,j,p);
     if (v!=0.){
       orient = -1;
-      if (v>0.) 
+      if (v>0.)
 	orient = 1;
       break;
     }
   }
   if (orient == 0){
-    cout << "All nodes aligned. Ill-conditioned problem. Bailing out." 
+    cout << "All nodes aligned. Ill-conditioned problem. Bailing out."
 	 << endl;
     tt_error_handler();
   }
@@ -383,7 +392,7 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edg
   // if orient < 0, build edge from j-1 to 0
   if (0) // DEBUG
     cout << "first non aligned j=" << j << " o=" << orient << endl;
-  
+
   const int nap = j; // first non aligned point
   if (orient > 0) {
     // aligned edges
@@ -393,10 +402,10 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edg
       edges[iedge].to=inode+1;
       inode++;
       if (0) // DEBUG
-	cout << "edge=" << iedge << " from=" << edges[iedge].from << " to=" 
-	     << edges[iedge].to << endl; 
+	cout << "edge=" << iedge << " from=" << edges[iedge].from << " to="
+	     << edges[iedge].to << endl;
     }
-    
+
   } else {
     int inode = nap-2;
     for(int iedge = 0; iedge<nap-1; ++iedge ){
@@ -404,8 +413,8 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edg
       edges[iedge].to=inode;
       inode--;
       if (0) // DEBUG
-	cout << "edge=" << iedge << " from=" << edges[iedge].from << " to=" 
-	     << edges[iedge].to << endl; 
+	cout << "edge=" << iedge << " from=" << edges[iedge].from << " to="
+	     << edges[iedge].to << endl;
     }
   }
   // close the domain
@@ -477,10 +486,10 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edg
       cout << "iedge=" << iedge
 	   << " from=" << edges[iedge].from
 	   << " to=" << edges[iedge].to
- 	   << " lef=" << edges[iedge].lef 
- 	   << " let=" << edges[iedge].let 
- 	   << " ref=" << edges[iedge].ref 
- 	   << " ret=" << edges[iedge].ret 
+ 	   << " lef=" << edges[iedge].lef
+ 	   << " let=" << edges[iedge].let
+ 	   << " ref=" << edges[iedge].ref
+ 	   << " ret=" << edges[iedge].ret
 	   << endl;
     }
   }
@@ -495,7 +504,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
   //ordered edges - since each new point adds at most 1 extra edge (nett)
   //to the hull, there are at most npoints edges on the hull
   cyclist hull(npoints);
-  
+
   //and the edges - there are at most three edges per point
   const long nn=3*npoints;
   edge* edges;
@@ -535,10 +544,10 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
       // add the edges to the hull in order
       // get upper and lower edges as indices into the hull
       // 'cos hull is cyclic, we don't need to bother if these are visible
-      // but they do need to be oriented so that upper edge is further round the 
-      // hull in a positive direction than lower_hull_pos
+      // but they do need to be oriented so that upper edge is further round
+      // the hull in a positive direction than lower_hull_pos
       int start=hull.addAfter(0,0);
-      lower_hull_pos=hull.addAfter(start,1); 
+      lower_hull_pos=hull.addAfter(start,1);
       upper_hull_pos=hull.addAfter(lower_hull_pos,2);
       // loop through the remaining points adding edges to the hull
       next_edge=3;
@@ -551,7 +560,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
   }
 
   int count,saved_edge;
-  
+
   for (int i=next_point;i<npoints;i++){
     saved_edge=-1;
     if (p[i-1].x() == p[i].x() && p[i-1].y() == p[i].y()){
@@ -578,14 +587,16 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
     else{
       //we can't see the upper edge - can we see the lower one?
       if(!edges[hull.getEdge(lower_hull_pos)].visible(p,i)){
-	//can't see the upper or lower edge - chose a bad initial state! go round
-	//the hull a bit.Upper hull will still be invisible (its what used to be lower hull)
+	//can't see the upper or lower edge - chose a bad initial state! go
+	//round the hull a bit.Upper hull will still be invisible (its what
+	//used to be lower hull)
 	if (i==3){ // only when starting from a single initial triangle
 	  lower_hull_pos=hull.getNextPos(upper_hull_pos);
 	  upper_hull_pos=hull.getNextPos(lower_hull_pos);
 	}else{
 	  //or else its an error!
-	  cout<<"Triangulate: Can't see the hull from the new point!? number is "<<i<<endl;
+	  cout << "Triangulate: Can't see the hull from the new point!? "
+	    "number is " << i <<endl;
 	  tt_error_handler();
 	}
       }
@@ -599,15 +610,15 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
       edges[next_edge].lef=next_edge+1;
       next_edge++;
     }
-    //now we need to add the upper hull edges - drop through to set edge made above
-    //to the new upper edge if upper edge not visible
+    //now we need to add the upper hull edges - drop through to set edge made
+    //above to the new upper edge if upper edge not visible
     count=0;
     while (edges[hull.getEdge(upper_hull_pos)].visible(p,i)){
       const int hup=hull.getEdge(upper_hull_pos);
       edges[next_edge].from=i;
       edges[next_edge].to=edges[hup].to;
-      //if we got here, the upper hull is visible, so we know which way the edges point
-      //set the left and right neighbour edges
+      //if we got here, the upper hull is visible, so we know which way the
+      //edges point set the left and right neighbour edges
       if (count!=0){
 	//if we're on the second time round the loop, the edge made in
 	// the previous pass needs to be connected on its right side
@@ -650,7 +661,8 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
       edges[next_edge].let=saved_edge;
       //swap it if it needs it
       tt_swap(hlow,edges,p);
-      //keep the edge for below - this is necessary in case the upper hull wasn't visible
+      //keep the edge for below - this is necessary in case the upper hull
+      //wasn't visible
       saved_edge=next_edge;
       next_edge++;
       //delete lower edge from the hull
@@ -659,12 +671,13 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
     }
     //add edge to the hull
     //set the new lower edge to the most recently created lower edge
-    //if no lower hull pos was visible, use the saved edge from the upper pos earlier on
+    //if no lower hull pos was visible, use the saved edge from the upper pos
+    //earlier on
     lower_hull_pos=hull.addAfter(lower_hull_pos,saved_edge);
   }
 
   // results
-  { 
+  {
     int i=0;
     while(edges[i].from != edge::end ) i++;
     *pnedges = i;
@@ -672,7 +685,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
   *edges_ret = edges;
 
 }
- 
+
 #include "heapsort.h"
 
 static
@@ -708,8 +721,8 @@ void tt_sort_triangulate(int npoints, point *p,
     time_t t2 = time(NULL);
     clock_t tick2 = clock();
     cout << "elapsed time (time)= " << difftime(t2,t1) << " s"
-	 << " (clock)= " << static_cast<double>(tick2-tick1)/CLOCKS_PER_SEC << " s"
-	 << endl;
+	 << " (clock)= " << static_cast<double>(tick2-tick1)/CLOCKS_PER_SEC
+	 << " s" << endl;
   }
 #endif
   if (0) { // DEBUG
@@ -717,10 +730,10 @@ void tt_sort_triangulate(int npoints, point *p,
       cout << "iedge=" << iedge
 	   << " from=" << (*edges_ret)[iedge].from
 	   << " to=" << (*edges_ret)[iedge].to
- 	   << " lef=" << (*edges_ret)[iedge].lef 
- 	   << " let=" << (*edges_ret)[iedge].let 
- 	   << " ref=" << (*edges_ret)[iedge].ref 
- 	   << " ret=" << (*edges_ret)[iedge].ret 
+ 	   << " lef=" << (*edges_ret)[iedge].lef
+ 	   << " let=" << (*edges_ret)[iedge].let
+ 	   << " ref=" << (*edges_ret)[iedge].ref
+ 	   << " ret=" << (*edges_ret)[iedge].ret
 	   << endl;
 	}
   }
@@ -749,16 +762,18 @@ private:
   bool left_visited_, right_visited_;
 };
 
-void edge_auxi_t::mark_left(int ielem) { 
+void edge_auxi_t::mark_left(int ielem) {
   left_visited_ = true;
   ie_left = ielem;
 }
-void edge_auxi_t::mark_right(int ielem) { 
+void edge_auxi_t::mark_right(int ielem) {
   right_visited_ = true;
   ie_right = ielem;
-} 
-int edge_auxi_t::ielem_left() const { assert(left_visited_); return ie_left; }
-int edge_auxi_t::ielem_right() const { assert(right_visited_); return ie_right; }
+}
+int edge_auxi_t::ielem_left() const {
+  assert(left_visited_); return ie_left; }
+int edge_auxi_t::ielem_right() const {
+  assert(right_visited_); return ie_right; }
 
 
 const oriented_edge& oriented_edge::operator=( const oriented_edge &_e ){
@@ -800,7 +815,7 @@ oriented_edge oriented_edge::ccw_edge_around_from(const edge* edges) const {
     oriented_edge e1(*this);
     for(;;){
       const oriented_edge enext = e1.next_cw_around_from(edges);
-      if (enext.nonvalid()) 
+      if (enext.nonvalid())
 	break;
       e1 = enext;
     }
@@ -827,7 +842,7 @@ void mark_as_visited(int iedge_markable, int iedge_orig,
 
 // check geometry properties of the edges in the elems table
 static
-void sanity_check_elems(const edge* edges, const elem *elems, 
+void sanity_check_elems(const edge* edges, const elem *elems,
 			const edge_auxi_t *edges_visit, int ielem){
   if (elems[ielem].eo2){
     assert(edges[elems[ielem].e2].from == elems[ielem].p2);
@@ -865,9 +880,9 @@ void tt_build_elem_table(int npoints, const point *p,
 			 int *pnelem, elem** pelems_ret){
   // Euler invariant for a triangulation:
   const int nelem = 1 + nedges - npoints;
-  elem *elems = new elem[nelem]; 
+  elem *elems = new elem[nelem];
   edge_auxi_t *edges_visit = new edge_auxi_t[nedges];
-  { 
+  {
     // build non oriented edges for each element
     // scan all edges. Assign element to right and left
     // and mark the visited sides for each edges
@@ -883,9 +898,11 @@ void tt_build_elem_table(int npoints, const point *p,
 	  ielem_current = ielem;
 	  elems[ielem].e1 = iedge;
 	  elems[ielem].e2 = edges[iedge].lef;
-	  mark_as_visited(edges[iedge].lef,iedge,edges, edges_visit, ielem_current);
+	  mark_as_visited(edges[iedge].lef,iedge,edges, edges_visit,
+			  ielem_current);
 	  elems[ielem].e3 = edges[iedge].let;
-	  mark_as_visited(edges[iedge].let,iedge,edges, edges_visit, ielem_current);
+	  mark_as_visited(edges[iedge].let,iedge,edges, edges_visit,
+			  ielem_current);
 	  ielem++;
 	} else {
 	  assert(edges[iedge].let == edge::none);
@@ -900,9 +917,11 @@ void tt_build_elem_table(int npoints, const point *p,
 	  ielem_current = ielem;
 	  elems[ielem].e1 = iedge;
 	  elems[ielem].e2 = edges[iedge].ref;
-	  mark_as_visited(edges[iedge].ref,iedge,edges, edges_visit, ielem_current);
+	  mark_as_visited(edges[iedge].ref,iedge,edges, edges_visit,
+			  ielem_current);
 	  elems[ielem].e3 = edges[iedge].ret;
-	  mark_as_visited(edges[iedge].ret,iedge,edges, edges_visit, ielem_current);
+	  mark_as_visited(edges[iedge].ret,iedge,edges, edges_visit,
+			  ielem_current);
 	  ielem++;
 	} else {
 	  assert(edges[iedge].ref == edge::none);
@@ -919,7 +938,7 @@ void tt_build_elem_table(int npoints, const point *p,
           do { const int etemp = elems[ielem].EI; \
 	  elems[ielem].EI = elems[ielem].EJ; \
 	  elems[ielem].EJ = etemp; } while(0)
-      
+
       elems[ielem].p1 = edges[elems[ielem].e2].to;
       elems[ielem].p2 = edges[elems[ielem].e2].from;
       // using e3
@@ -944,11 +963,11 @@ void tt_build_elem_table(int npoints, const point *p,
       if (v==0.){
 	cout << "These points are aligned: "
 	     << elems[ielem].p1 << "(" << p[elems[ielem].p1].x()
-	     << "," << p[elems[ielem].p1].y() << "), " 
+	     << "," << p[elems[ielem].p1].y() << "), "
 	     << elems[ielem].p2 << "(" << p[elems[ielem].p2].x()
-	     << "," << p[elems[ielem].p2].y() << "), " 
+	     << "," << p[elems[ielem].p2].y() << "), "
 	     << elems[ielem].p3 << "(" << p[elems[ielem].p3].x()
-	     << "," << p[elems[ielem].p3].y() << ")" 
+	     << "," << p[elems[ielem].p3].y() << ")"
 	     << endl;
       }
       assert(v != 0.);
@@ -957,16 +976,19 @@ void tt_build_elem_table(int npoints, const point *p,
 	SWAP_E(e2,e3);
       }
       // edges orientations
-      elems[ielem].eo2 = ((edges[elems[ielem].e2].from == elems[ielem].p2) ? true:false);
-      elems[ielem].eo3 = ((edges[elems[ielem].e3].from == elems[ielem].p3) ? true:false);
-      elems[ielem].eo1 = ((edges[elems[ielem].e1].from == elems[ielem].p1) ? true:false);
+      elems[ielem].eo2 = ((edges[elems[ielem].e2].from == elems[ielem].p2)
+			  ? true:false);
+      elems[ielem].eo3 = ((edges[elems[ielem].e3].from == elems[ielem].p3)
+			  ? true:false);
+      elems[ielem].eo1 = ((edges[elems[ielem].e1].from == elems[ielem].p1)
+			  ? true:false);
 #undef SWAP_E
     }
     if (1) //DEBUG
       sanity_check_elems(edges, elems, edges_visit, ielem);
     {
       // build t1, t2, t3
-      elems[ielem].t3 = elems[ielem].eo2 ? 
+      elems[ielem].t3 = elems[ielem].eo2 ?
 	edges_visit[elems[ielem].e2].ielem_left() :
 	edges_visit[elems[ielem].e2].ielem_right();
       elems[ielem].t2 = elems[ielem].eo1 ?
