@@ -8,7 +8,7 @@
 **    - GT added currentItem, FirstP(), and NextP(), plus modifications
 **      to prevent currentItem from getting corrupted (1/22/99)
 **
-**  $Id: tList.cpp,v 1.18 1999-05-04 17:15:56 gtucker Exp $
+**  $Id: tList.cpp,v 1.19 2000-01-20 16:52:10 gtucker Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -668,6 +668,7 @@ getIthData( int num ) const
 //        cout<<"you have "<<nNodes<<endl;
 //        cout<<"you wanted list member number "<<num<<endl;
 //     }
+   //cout<<"num="<<num<<"nNodes="<<nNodes<<endl;
    assert( num >= 0 && num < nNodes );
    for( curPtr = first, i = 0; i<num; i++ )
    {
