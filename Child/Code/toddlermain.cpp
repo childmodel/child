@@ -34,7 +34,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.3 2000-12-07 11:50:05 gtucker Exp $
+**  $Id: toddlermain.cpp,v 1.4 2002-02-11 09:22:15 gtucker Exp $
 \**************************************************************************/
 
 
@@ -51,7 +51,9 @@ main( int argc, char **argv )
        optDetachLim,      // Option for detachment-limited erosion only
        optFloodplainDep,  // Option for floodplain (overbank) deposition
        optLoessDep,       // Option for eolian deposition
+       optVegetation,     // Option for dynamic vegetation cover
        optDiffuseDepo;    // Option for deposition / no deposition by diff'n
+   tVegetation *vegetation;  // -> vegetation object
    tFloodplain *floodplain;  // -> floodplain object
    tEolian *loess;           // -> eolian deposition object
    
@@ -106,8 +108,13 @@ main( int argc, char **argv )
    // Get various options
    optDetachLim = inputFile.ReadItem( optDetachLim, "OPTDETACHLIM" );
    optDiffuseDepo = inputFile.ReadItem( optDiffuseDepo, "OPTDIFFDEP" );
+   optVegetation = inputFile.ReadItem( optVegetation, "OPTVEG" );
    optFloodplainDep = inputFile.ReadItem( optFloodplainDep, "OPTFLOODPLAIN" );
    optLoessDep = inputFile.ReadItem( optLoessDep, "OPTLOESSDEP" );
+
+   // If applicable, create Vegetation object
+   if( optVegetation )
+       vegetation = new tVegetation( &mesh, inputFile );
 
    // If applicable, create floodplain object
    if( optFloodplainDep )
@@ -117,27 +124,55 @@ main( int argc, char **argv )
    if( optLoessDep )
        loess = new tEolian( inputFile );
 
+   // Option for time series output (IN PROGRESS)
+   /*   switch( optTSOutput ){
+   case 1:   // Volume output each N years.
+     if( time.CheckTSOutputTime() )
+       output.WriteVolOutput();
+     break;
+   case 2:   // Volume and vegetation cover output each N years.
+     cout << "here" << endl;
+     if( time.CheckTSOutputTime() ){
+       cout << "there" << endl;
+       output.WriteVolVegOutput();}
+     break;
+   case 3:   // All data at each storm.
+     output.WriteTSOutput();
+     break;      
+   case 0:   // No additional timeseries output.
+     break;
+   default:  // Invalid option.
+     ReportFatalError( "The input file contains an invalid value for 
+OptTSOutput." );
+   }   */
+
    // Temporary -- for canyon range stuff
-   cout << "Densifying around fold strike ...\n";
+   /*cout << "Densifying around fold strike ...\n";
    int optFoldDens = inputFile.ReadItem( optFoldDens, "OPTFOLDDENS" );
    if( optFoldDens )
      {
        double foldDensYmin = inputFile.ReadItem( foldDensYmin, "FOLDDENSYMIN" );
        double foldDensYmax = inputFile.ReadItem( foldDensYmax, "FOLDDENSYMAX" );
+       double fault = inputFile.ReadItem( fault, "FAULTPOS" );
        for( int i=1; i<=optFoldDens; i++ )
 	 {
 	   tPtrList<tLNode> foldPoints;
 	   tMeshListIter<tLNode> ni( mesh.getNodeList() );
 	   tLNode *cn;
 	   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
-	     if( cn->getY()>=foldDensYmin && cn->getY()<=foldDensYmax )
+	     {
+	     if( cn->getY()>=foldDensYmin && cn->getY()<=foldDensYmax &&
+		 cn->getX()>=7500 && cn->getX()<=92500 )
 	       foldPoints.insertAtBack( cn );
+	     if( cn->getY()<fault )
+	       cn->setAlluvThickness( 100000 );
+	     }
 	   tPtrListIter<tLNode> fpi( foldPoints );
 	   for( cn=fpi.FirstP(); !(fpi.AtEnd()); cn=fpi.NextP() )
 	     mesh.AddNodesAround( cn, 0.0 );
 	   foldPoints.Flush();
 	 }
-     }
+	 }*/
 
 
    /**************** MAIN LOOP ******************************************\
@@ -169,10 +204,14 @@ main( int argc, char **argv )
       strmNet.UpdateNet( time.getCurrentTime(), storm );
       
       if( optDetachLim )
-          erosion.ErodeDetachLim( storm.getStormDuration() );
+          erosion.ErodeDetachLim( storm.getStormDuration(), &strmNet );
       else
           erosion.DetachErode( storm.getStormDuration(), &strmNet,
                                time.getCurrentTime() );
+
+      if( optVegetation )
+	  vegetation->UpdateVegetation( &mesh, storm.getStormDuration(),
+					storm.interstormDur() );
 
       if( optFloodplainDep )
           floodplain->DepositOverbank( storm.getRainrate(),
@@ -199,6 +238,35 @@ main( int argc, char **argv )
 
       if( time.CheckOutputTime() )
           output.WriteOutput( time.getCurrentTime() );
+
+      if( output.OptTSOutput() ) output.WriteTSOutput();
+
+      /* IN PROGRESS
+      switch( optTSOutput ){
+      case 1:   // Volume output each N years.
+        if( time.CheckTSOutputTime() )
+  output.WriteVolOutput();
+break;
+      case 2:   // Volume and vegetation cover output each N years.
+if( time.CheckTSOutputTime() )
+  output.WriteVolVegOutput();
+break;
+      case 3:   // All data at each storm.
+output.WriteTSOutput();
+break;      
+      case 0:   // No additional timeseries output.
+break;
+      default:  // Invalid option.
+ReportFatalError( "The input file contains an invalid value for OptTSOutput." 
+*/ 
+
+     /*tMeshListIter<tLNode> ni( mesh.getNodeList() );
+      tLNode *cn;
+      for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+	{
+	  if( cn->getY()<25 && cn->getX()>250 && cn->getDrArea()>1000 )
+	    cn->TellAll();
+	}*/
 
    } // end of main loop
    
