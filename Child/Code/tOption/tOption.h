@@ -9,7 +9,7 @@
 **
 **  A. Desitter - March 2004
 **
-**  $Id: tOption.h,v 1.3 2004-04-14 11:17:53 childcvs Exp $
+**  $Id: tOption.h,v 1.4 2004-04-16 18:33:54 childcvs Exp $
 */
 /************************************************************************/
 
@@ -29,6 +29,7 @@ private:
   int parseOptions(char const * const argv[]);
   void usage() const;
 private:
+  tOption();
   tOption(tOption const &);
   tOption& operator=(tOption const &);
 };

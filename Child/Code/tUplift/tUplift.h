@@ -25,7 +25,7 @@
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **    - added FaultBendFold function (srm, August 2002)
 **
-**  $Id: tUplift.h,v 1.18 2003-10-15 09:21:12 childcvs Exp $
+**  $Id: tUplift.h,v 1.19 2004-04-16 18:32:54 childcvs Exp $
 */
 /************************************************************************/
 
@@ -79,6 +79,8 @@ private:
     			   //	end of ramp.
     double meanElevation;  // Mean elevation of surface at t0.
 
+private:
+    tUplift();
 };
 
 #endif

@@ -57,7 +57,7 @@
  **     - Added codes to go along with erosion & transport options, to
  **       enable checking against user-specified options (GT 7/02)
  **
- **  $Id: erosion.h,v 1.52 2004-04-14 13:13:27 childcvs Exp $
+ **  $Id: erosion.h,v 1.53 2004-04-16 18:34:29 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -428,6 +428,7 @@ class tErosion
 {
   tErosion(const tErosion&);
   tErosion& operator=(const tErosion&);
+  tErosion();
 public:
   tErosion( tMesh< tLNode > *, const tInputFile & );
   ~tErosion();

@@ -7,7 +7,7 @@
 **         All or most routines from Numerical Recipes in C by
 **         Press et al.
 **
-**  $Id: mathutil.h,v 1.9 2003-09-02 11:55:40 childcvs Exp $
+**  $Id: mathutil.h,v 1.10 2004-04-16 18:36:16 childcvs Exp $
 */
 /*********************************************************************/
 
@@ -43,6 +43,7 @@ class tRand
 {
   tRand(tRand const &);
   tRand& operator=(tRand const &);
+  tRand();
 public:
   tRand(long);
   tRand(tInputFile const &);

@@ -11,7 +11,7 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.h,v 1.13 2004-02-27 18:43:37 childcvs Exp $
+**  $Id: tMatrix.h,v 1.14 2004-04-16 18:34:06 childcvs Exp $
 */
 /*************************************************************************/
 #ifndef TMATRIX_H
@@ -25,6 +25,7 @@ class tMatrix
 {
   tMatrix(const tMatrix&);
   tMatrix& operator=(const tMatrix&);
+  tMatrix();
 public:
   inline tMatrix( int nr, int nc );
   inline T &operator()( int row, int col );

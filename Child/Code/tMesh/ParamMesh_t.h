@@ -28,5 +28,7 @@ public:
   int numPts;                   // total no. of interior pts (if random)
 
   ParamMMFS_t(const tInputFile & );
+private:
+  ParamMMFS_t();
 };
 
