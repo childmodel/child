@@ -40,7 +40,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.25 2000-03-09 19:50:09 gtucker Exp $
+**  $Id: meshElements.h,v 1.26 2002-04-11 10:00:53 arnaud Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -99,6 +99,7 @@ public:
 
   tNode();                                   // default constructor
   tNode( const tNode & );                    // copy constructor
+  virtual ~tNode() {}
 
   const tNode &operator=( const tNode & );   // assignment operator
   tArray< double > get3DCoords() const;      // returns x,y,z
