@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.9 1998-04-23 18:49:42 nmgaspar Exp $
+**  $Id: erosion.h,v 1.10 1998-05-03 18:24:17 stlancas Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -51,10 +51,55 @@
 
 #include "../Definitions.h"
 #include "../Classes.h"
+#include "../tArray/tArray.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tLNode/tLNode.h"
 #include "../tUplift/tUplift.h"
 #include "../tStreamNet/tStreamNet.h"
+#include "../tRunTimer/tRunTimer.h"
+
+/***************************************************************************\
+**  class tEquilibCheck
+**
+**  Enables dynamic equilibrium checking, both short- and a specified long-
+**  term. The idea is to find the rate of total volume change over the grid.
+**  With meandering, this will never be zero over the short term, but we
+**  should be able to find an average over the long term.
+**
+**  Needs to look at the grid; can either make it a template or just use
+**  the grid of tLNodes. Do the latter...
+\***************************************************************************/
+class tEquilibCheck
+{
+public:
+    tEquilibCheck();
+    tEquilibCheck( tGrid< tLNode > &, tRunTimer & );
+    tEquilibCheck( tGrid< tLNode > &, tRunTimer &, tInputFile & );
+    ~tEquilibCheck();
+    double getLongTime() const; //get the interval for long-term change
+    void setLongTime( double ); //set the interval for long-term change
+    const tGrid< tLNode > *getGridPtr() const;
+    tGrid< tLNode > *getGridPtrNC();
+    void setGridPtr( tGrid< tLNode > & );
+    void setGridPtr( tGrid< tLNode > * );
+    const tRunTimer *getTimePtr() const;
+    tRunTimer *getTimePtrNC();
+    void setTimePtr( tRunTimer & );
+    void setTimePtr( tRunTimer * );
+    double getLongRate() const;
+    double getShortRate() const;
+    double FindIterChngRate(); //find the change rate since last call
+    double FindLongTermChngRate(); //find change rate over pre-set interval
+    double FindLongTermChngRate( double ); //find rate over given interval
+private:
+    tGrid< tLNode > *gridPtr; //ptr to tGrid
+    tRunTimer *timePtr; //ptr to tRunTimer
+    double longTime; //'long' time interval
+    tList< tArray< double > > massList; //linked list of arrays: (time, grid mass)
+                                        //'mass' is misnomer--actually mean elev.
+    double longRate;
+    double shortRate;
+};
 
 /***************************************************************************\
 **  class tSedTransPwrLaw

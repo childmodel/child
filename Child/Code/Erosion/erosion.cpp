@@ -2,21 +2,185 @@
 **
 **  erosion.cpp
 **
-**  Functions for sediment transport and bed erosion (detachment) objects.
+**  Functions for equilibrium checking, sediment transport and bed erosion
+**    (detachment) objects.
+**  Equilibrium check objects:
+**    tEquilibCheck
 **  Transport objects:
 **    tSedTransPwrLaw
 **  Detachment objects:
 **    tBedErodePwrLaw
 **
-**    Created 1/98 gt
+**    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.21 1998-04-30 15:47:04 gtucker Exp $
+**  $Id: erosion.cpp,v 1.22 1998-05-03 18:23:16 stlancas Exp $
 \***************************************************************************/
 
 #include <math.h>
 #include <assert.h>
 #include "erosion.h"
 
+/***************************************************************************\
+**  tEquilibCheck
+**
+**  Functions to find and report system mass change rate.
+**
+**  5/98 SL
+\***************************************************************************/
+/***************************************************************************\
+**  Constructors: default (no args) and given grid and timer as args
+\***************************************************************************/
+tEquilibCheck::tEquilibCheck()
+        : massList()
+{
+   gridPtr = 0;
+   timePtr = 0;
+   longTime = longRate = shortRate = 0.0;
+}
+
+tEquilibCheck::tEquilibCheck( tGrid< tLNode > &gridRef, tRunTimer &timeRef )
+        : massList()
+{
+   gridPtr = &gridRef;
+   timePtr = &timeRef;
+   longTime = longRate = shortRate = 0.0;
+   FindIterChngRate();
+}
+
+tEquilibCheck::tEquilibCheck( tGrid< tLNode > &gridRef, tRunTimer &timeRef,
+                              tInputFile &fileRef )
+        : massList()
+{
+   gridPtr = &gridRef;
+   timePtr = &timeRef;
+   longRate = shortRate = 0.0;
+   longTime = fileRef.ReadItem( longTime, "EQUITIME" );
+   FindIterChngRate();
+}
+
+tEquilibCheck::~tEquilibCheck()
+{
+   gridPtr = 0;
+   timePtr = 0;
+}
+
+/***************************************************************************\
+**  'get' and 'set' functions for tEquilibCheck:
+\***************************************************************************/
+double tEquilibCheck::getLongTime() const {return longTime;}
+
+void tEquilibCheck::setLongTime( double val )
+{longTime = ( val > 0 ) ? val : 0.0;}
+
+const tGrid< tLNode > *tEquilibCheck::getGridPtr() const {return gridPtr;}
+
+tGrid< tLNode > *tEquilibCheck::getGridPtrNC() {return gridPtr;}
+
+void tEquilibCheck::setGridPtr( tGrid< tLNode > &Ref )
+{gridPtr = ( &Ref > 0 ) ? &Ref : 0;}
+
+void tEquilibCheck::setGridPtr( tGrid< tLNode > *Ptr )
+{gridPtr = ( Ptr > 0 ) ? Ptr : 0;}
+
+const tRunTimer *tEquilibCheck::getTimePtr() const {return timePtr;}
+
+tRunTimer *tEquilibCheck::getTimePtrNC() {return timePtr;}
+
+void tEquilibCheck::setTimePtr( tRunTimer &Ref )
+{timePtr = ( &Ref > 0 ) ? &Ref : 0;}
+
+void tEquilibCheck::setTimePtr( tRunTimer *Ptr )
+{timePtr = ( Ptr > 0 ) ? Ptr : 0;}
+
+double tEquilibCheck::getLongRate() const {return longRate;}
+
+double tEquilibCheck::getShortRate() const {return shortRate;}
+
+/***************************************************************************\
+**  tEquilibCheck::FindIterChngRate()
+**
+**  Find average rate of elevation change since the last time the object was
+**  called, as short a time as one model iteration.
+**  Finds new average elevation, new time, and calculates rate based on last
+**  avg. elev. and time.
+\***************************************************************************/
+double tEquilibCheck::FindIterChngRate()
+{
+   assert( timePtr > 0 && gridPtr > 0 );
+   tArray< double > tmp(2), last;
+   tmp[0] = timePtr->GetCurrentTime();
+   tGridListIter< tLNode > nI( gridPtr->GetNodeList() );
+   tListIter< tArray< double > > mI( massList );
+   tLNode *cn;
+   double mass = 0.0;
+   double area = 0.0;
+   for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+   {
+      mass += cn->getZ() * cn->getVArea();
+      area += cn->getVArea();
+   }
+   tmp[1] = mass / area;
+   if( !(massList.isEmpty()) )
+   {
+      last = *(mI.LastP());
+      double dt = (tmp[0] - last[0]);
+      assert( dt > 0.0 );
+      shortRate = (tmp[1] - last[1]) / dt;
+   }
+   else
+   {
+        //cout << "tEquilibCheck::FindIterChngRate(), Warning: empty massList\n";
+      assert( tmp[0] > 0 );
+      shortRate = tmp[1] / tmp[0];
+   }
+   massList.insertAtBack( tmp );
+   return shortRate;
+}
+
+/***************************************************************************\
+**  tEquilibCheck::FindLongTermChngRate()
+**
+**  Find average rate of elevation change over a set time, as short as one
+**  model iteration.
+**  Calls FindIterChngRate() to update massList, then searches massList for
+**  time to provide rate over a time >= longTime.
+\***************************************************************************/
+double tEquilibCheck::FindLongTermChngRate()
+{
+   FindIterChngRate();
+   tListIter< tArray< double > > mI( massList );
+   tArray< double > last = *(mI.LastP());
+   tArray< double > ca, na;
+   double dt, targetTime = last[0] - longTime;
+   if( longTime == 0.0 || mI.FirstP() == mI.LastP() ) longRate = shortRate;
+   else
+   {
+      ca = *(mI.FirstP());
+      na = *(mI.NextP());
+      while( na[0] < targetTime && !(mI.AtEnd()) )
+      {
+         ca = na;
+         na = *(mI.NextP());
+      }
+      dt = last[0] - ca[0];
+      assert( dt > 0 );
+      longRate = (last[1] - ca[1]) / dt;
+   }
+   return longRate;
+}
+
+/***************************************************************************\
+**  tEquilibCheck::FindLongTermChngRate( double newtime )
+**
+**  Set longTime = newtime and call FindLongTermChngRate()
+\***************************************************************************/
+double tEquilibCheck::FindLongTermChngRate( double newtime )
+{
+   setLongTime( newtime );
+   return FindLongTermChngRate();
+}
+
+   
 /***************************************************************************\
 **  Constructors:
 **    Given a tInputFile as an argument, will read relevant parameters from
