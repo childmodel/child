@@ -20,7 +20,7 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.37 2004-03-25 17:27:50 childcvs Exp $
+**  $Id: tStreamMeander.h,v 1.38 2004-05-10 11:01:32 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -110,8 +110,8 @@ protected:
     tListIter< tPtrList< tLNode > > rlIter;//iterator for reachList
       //data items/parameters
     double critflow;  //minimum discharge for meandering
-    int optdiamvar;  //flag w/ 1=>multiple grain sizes
-    int optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
+    bool optdiamvar;  //flag w/ 1=>multiple grain sizes
+    bool optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
     double meddiam;   //median grain diameter, if optdiamvar = 0
     double kwds, ewds, ewstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width
     double knds, ends, enstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. roughness

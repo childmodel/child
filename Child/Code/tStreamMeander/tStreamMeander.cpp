@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.105 2004-04-05 10:06:47 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.106 2004-05-10 11:01:30 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -62,7 +62,7 @@ double LineRemainder( double x, double y, tNode * p0,tNode * p1 )
 tStreamMeander::tStreamMeander():
   meshPtr(0), netPtr(0), infilePtr(0),
   reachList(), rlIter(reachList),
-  critflow(0), optdiamvar(0), optrainvar(0),
+  critflow(0), optdiamvar(false), optrainvar(false),
   meddiam(0), kwds(0), ewds(0), ewstn(0),
   knds(0), ends(0), enstn(0),
   kdds(0), edds(0), edstn(0),
@@ -86,13 +86,21 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tMesh< tLNode > &mRef,
   infilePtr = &infile;
   assert( infilePtr != 0 );
   critflow = infilePtr->ReadItem( critflow, "CRITICAL_FLOW" );
-  optdiamvar = infilePtr->ReadItem( optdiamvar, "OPT_VAR_SIZE" );
+  {
+    int tmp_;
+    tmp_ = infilePtr->ReadItem( tmp_, "OPT_VAR_SIZE" );
+    optdiamvar = tmp_ != 0;
+  }
   if( !optdiamvar )
     {
       meddiam = infilePtr->ReadItem( meddiam, "MEDIAN_DIAMETER" );
       assert( meddiam > 0 );
     }
-  optrainvar = infilePtr->ReadItem( optrainvar, "OPTVAR" );
+  {
+    int tmp_;
+    tmp_ = infilePtr->ReadItem( tmp_, "OPTVAR" );
+    optrainvar = tmp_ != 0;
+  }
   kwds = infilePtr->ReadItem( kwds, "HYDR_WID_COEFF_DS" );
   kdds = infile.ReadItem( kdds, "HYDR_DEP_COEFF_DS" );
   assert( kwds > 0 );

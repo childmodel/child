@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.136 2004-05-10 10:52:45 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.137 2004-05-10 11:01:29 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -1865,7 +1865,8 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
     dcap,         // Bedrock detachment capacity
     dz,           // Depth of deposition/erosion (erosion = negative)
     dzr;          // Potential depth of bedrock erosion
-  int smallflag=0, smallcount=0;
+  bool smallflag=false;
+  int smallcount=0;
 
   cout << "tErosion::StreamErode\n";
 
@@ -1931,12 +1932,12 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 	}
       dtmax *= frac;  // Take a fraction of time-to-flattening
       if( dtmax < kSmallTimeStep ) dtmax = kSmallTimeStep;
-      if( dtmax <= 0.01 && smallflag==0 )
+      if( dtmax <= 0.01 && !smallflag )
 	{
-	  smallflag=1;
+	  smallflag=true;
 	  cout << "SMALL STEP: " << dtmax << endl;
 	}
-      if( smallflag==1 )
+      if( smallflag )
 	{
 	  smallcount++;
 	  if( smallcount==100 )
@@ -2399,7 +2400,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
     double dtmax;       // time increment: initialize to arbitrary large val
     double frac = 0.3;  //fraction of time to zero slope
     double timegb=time; //time gone by - for layering time purposes
-    int flag;
+    bool flag;
     tLNode * cn, *dn;
     // int nActNodes = meshPtr->getNodeList()->getActiveSize();
     tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() );
@@ -2584,11 +2585,11 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
             //of qs.
             if( -cn->getDrDt() < excap ){
 	      dz = cn->getDrDt()*dtmax; // detach-lim
-	      flag = 0;
+	      flag = false;
             }
             else{
 	      dz = -excap*dtmax; // trans-lim
-	      flag = 1;
+	      flag = true;
             }
 
             for(size_t i=0; i<cn->getNumg(); i++)
@@ -2611,7 +2612,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 
             if( dz<0 ) //total erosion
 	      {
-		if(flag==0){ // detach-lim
+		if(!flag){ // detach-lim
                   int i=0;
                   depck=0;
                   while(dz<-0.000000001&&depck<cn->getChanDepth()&&i<cn->getNumLayer()){
@@ -2633,7 +2634,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 		      dz=0;
 		    }
 		    else{//top layer is not deep enough, need to erode more layers
-		      flag=0;
+		      flag=false;
 		      for(size_t j=0;j<cn->getNumg();j++){
 			erolist[j]=-cn->getLayerDgrade(i,j);
 			if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
@@ -2643,7 +2644,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 			  cn->setQs(j,0.0);
 			  //need to set these to zero since the capacity has
 			  //now been filled by the stuff in this layer
-			  flag=1;
+			  flag=true;
 			  //Since not taking all of the material from the
 			  //surface, surface layer won't be removed-must inc i
 			}
@@ -2654,7 +2655,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 			//if * operator was overloaded for arrays, no loop necessary
 			cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
 		      }
-		      if(flag==1){
+		      if(flag){
 			i++;
 		      }
 		    }
@@ -2672,7 +2673,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
                   depck=0;
                   while(depck<cn->getChanDepth()){
 		    depck+=cn->getLayerDepth(i);
-		    flag=cn->getNumLayer();
+		    int flag=cn->getNumLayer();
 		    ret=cn->EroDep(i,erolist,timegb);
 		    double sum=0;
 		    for(size_t j=0;j<cn->getNumg();j++){
