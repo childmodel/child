@@ -32,7 +32,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.25 2002-07-08 17:21:50 arnaud Exp $
+**  $Id: tList.h,v 1.26 2002-08-07 09:57:34 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -508,7 +508,6 @@ insertAtBack( const NodeType &value )
 {
    tListNode< NodeType > * newPtr = getNewNode( value );
    //cout << "add new node to list in back" << endl;
-   assert( this != 0 );
    if( isEmpty() )
    {
       first = last = currentItem = newPtr;
@@ -1074,7 +1073,6 @@ tListIter() :
   listPtr(0),
   counter(0)
 {
-   assert( this != 0 );
    //cout << "tListIter()" << endl;
 }
 
@@ -1085,7 +1083,6 @@ tListIter( tList< NodeType > &list ) :
   listPtr(&list),
   counter(0)
 {
-   assert( &list != 0 );
    //assert( curnode != 0 );
    //cout << "tListIter( list )" << endl;
 }
@@ -1190,14 +1187,14 @@ Get( int num )
         counter <= listPtr->nNodes && tempnodeptr != 0;
         tempnodeptr = tempnodeptr->next, counter++ )
    {
-      if( tempnodeptr->data.getID() == num ) break;
+      if( tempnodeptr->getDataPtr()->getID() == num ) break;
    }
    if( tempnodeptr == 0 )
    {
       //cout << "tListIter::Get(num): tempnodeptr == 0" << endl;
       return 0;
    }
-   if( tempnodeptr->data.getID() != num )
+   if( tempnodeptr->getDataPtr()->getID() != num )
    {
       //cout << "tListIter::Get(num): tempnodeptr->data.getID() != num" << endl;
       return 0;
