@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.2 1998-01-16 14:52:57 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.3 1998-01-21 20:03:03 stlancas Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -42,14 +42,14 @@
 **  Constructors
 **
 **  1) The default constructor sets parameters to zero, including the
-**     grid pointer (the default constructor has no grid associated with
-**     it)
+**     grid and storm pointers (the default constructor has no grid nor
+**     storm associated with it)
 **
 **  2) The second constructor asks for references to a grid (i.e., _the_
-**     grid), a storm, and an input file). It sets the _gridPtr_,
-**     initializes the rainfall rate, and reads in various hydrologic
-**     options and parameters from the input file. It then initializes
-**     flow directions, drainage areas, etc.
+**     grid), a storm, and an input file). It sets the _gridPtr_ and
+**     _stormPtr_, initializes the rainfall rate, and reads in various
+**     hydrologic options and parameters from the input file.
+**     It then initializes flow directions, drainage areas, etc.
 **
 \**************************************************************************/
 /*tStreamNet::tStreamNet()
@@ -57,6 +57,7 @@
 {
    cout << "tStreamNet()...";
    gridPtr = 0;
+   stormPtr = 0;
    flowgen = filllakes = 0;
    rainrate = trans = infilt = 0;
    cout << "finished" << endl;	
@@ -70,6 +71,8 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    assert( &gridRef != 0 );
    gridPtr = &gridRef;
    assert( gridPtr != 0 );
+   stormPtr = &storm;
+   assert( stormPtr != 0 );
    flowgen = infile.ReadItem( flowgen, "FLOWGEN" );
    filllakes = infile.ReadItem( filllakes, "LAKEFILL" );
    if( flowgen == kSaturatedFlow )
@@ -82,7 +85,7 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
       trans = 0;
       infilt = infile.ReadItem( infilt, "INFILTRATION" );
    }
-   rainrate = storm.GetRainrate();
+   rainrate = stormPtr->GetRainrate();
    CalcSlopes();  // TODO: should be in tGrid
    InitFlowDirs(); // TODO: should all be done in call to updatenet
    FlowDirs();
@@ -96,6 +99,7 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
 tStreamNet::~tStreamNet()
 {
    gridPtr = 0;
+   stormPtr = 0;
    cout << "~tStreamNet()" << endl;
 }
 
@@ -116,6 +120,10 @@ tStreamNet::getGridPtr() const {return gridPtr;}
 
 tGrid< tLNode > *
 tStreamNet::getGridPtrNC() {return gridPtr;}
+
+const tStorm *tStreamNet::getStormPtr() const {return stormPtr;}
+
+tStorm *tStreamNet::getStormPtrNC() {return stormPtr;}
 
 int tStreamNet::getFlowGenOpt() const {return flowgen;}
 
@@ -170,7 +178,9 @@ void tStreamNet::UpdateNet()
 void tStreamNet::UpdateNet( tStorm &storm )
 {
    cout << "UpdateNet(...)...";
-   rainrate = storm.GetRainrate();
+   stormPtr = &storm;
+   assert( stormPtr != 0 );
+   rainrate = stormPtr->GetRainrate();
    CalcSlopes();   // TODO: as above
    SetVoronoiVertices();
    CalcVAreas();
