@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.80 1999-05-10 20:03:27 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.81 1999-05-11 19:05:06 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -783,10 +783,10 @@ tEdge * tLNode::getFlowEdg()
    return flowedge;
 }
 
-void tLNode::setFlowEdg( tEdge * edg )
+void tLNode::setFlowEdg( tEdge * newflowedge )
 {
-   assert( edg > 0 );  // Fails when passed an invalid edge
-   flowedge = edg;
+   assert( newflowedge > 0 );  // Fails when passed an invalid edge
+   flowedge = newflowedge;
 }
 
 void tLNode::setDrArea( double val ) {chan.drarea = val;}
