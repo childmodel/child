@@ -13,7 +13,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.88 2003-10-15 09:19:27 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.89 2003-11-17 19:04:11 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -486,7 +486,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
 
   // Vegetation cover: if dynamic vegetation option selected
   if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) != 0)
-    CreateAndOpenFile( &vegofs, ".veg" );
+    CreateAndOpenFile( &vegofs, SVEG );
 
   // Flow depth: if kinematic wave option used OR if channel geometry
   // model other than "regime" used
