@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.68 2004-03-29 16:01:23 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.69 2004-04-13 16:58:54 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -222,7 +222,7 @@ double tNode::ComputeVoronoiArea()
   vedgList.makeCircular();
   //cout << endl;
   // Check boundary status: Voronoi area only defined for non-boundary nodes
-  if( boundary == kNonBoundary )
+  if( getBoundaryFlag() == kNonBoundary )
     {
       {
 	tArray< double > xy1(2), xy2(2);
@@ -350,7 +350,8 @@ double tNode::ComputeVoronoiArea()
 	    tArray<double> const &xy1 = ne->getRVtx();
 	    //checking polygon edge is on boundary and ccw edge's RVtx is on
 	    //wrong side of bndy edge...
-	    if( ce->getBoundaryFlag() && ne->getBoundaryFlag() )
+	    if( ce->getBoundaryFlag() != kNonBoundary &&
+		ne->getBoundaryFlag() != kNonBoundary)
 	      {
 		//if( id==83 ) cout << " CASE A\n";
 		tNode *bn0, *bn1;
@@ -394,18 +395,18 @@ double tNode::ComputeVoronoiArea()
 	    tArray<double> const * const xyn = vcI.NextP(); //xyn = vtxIter.NextP()->getRVtx();// Vertex i
 	    tArray<double> const * const xynn = vcI.NextP();//vtxIter.ReportNextP()->getRVtx(); // Vertex i+1
 	    {
-	      const double dx = (*xyn)[0] - (*xy)[0];
-	      const double dy = (*xyn)[1] - (*xy)[1];
+	      const double dx = (*xyn).at(0) - (*xy).at(0);
+	      const double dy = (*xyn).at(1) - (*xy).at(1);
 	      a = sqrt( dx*dx + dy*dy );
 	    }
 	    {
-	      const double dx = (*xynn)[0] - (*xyn)[0];
-	      const double dy = (*xynn)[1] - (*xyn)[1];
+	      const double dx = (*xynn).at(0) - (*xyn).at(0);
+	      const double dy = (*xynn).at(1) - (*xyn).at(1);
 	      b = sqrt( dx*dx + dy*dy );
 	    }
 	    {
-	      const double dx = (*xynn)[0] - (*xy)[0];
-	      const double dy = (*xynn)[1] - (*xy)[1];
+	      const double dx = (*xynn).at(0) - (*xy).at(0);
+	      const double dy = (*xynn).at(1) - (*xy).at(1);
 	      c = sqrt( dx*dx + dy*dy );
 	    }
 	    // Kahan, W. 1986. Calculating Area and Angle of a Needle-like
@@ -445,7 +446,7 @@ double tNode::ComputeVoronoiArea()
       for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
 	{
 	  tArray<double> const &xy = ce->getRVtx();
-	  cout << xy[0] << " " << xy[1] << "; ";
+	  cout << xy.at(0) << " " << xy.at(1) << "; ";
 	}
       cout << endl;
       cout << "reading spokes: ";
@@ -454,7 +455,7 @@ double tNode::ComputeVoronoiArea()
 	{
 	  assert( ce!=0 );
 	  tArray<double> const &xy = ce->getRVtx();
-	  cout << xy.at(0) << " " << xy[1] << "; ";
+	  cout << xy.at(0) << " " << xy.at(1) << "; ";
 	  ce = ce->getCCWEdg();
 	} while( ce != edg );
       cout << endl;
@@ -490,7 +491,7 @@ void tNode::getVoronoiVertexList( tList<Point2D> * vertexList )
    do
    {
       tArray<double> const & vtxarr = ce->getRVtx();
-      const Point2D vtx( vtxarr[0], vtxarr[1] );
+      const Point2D vtx( vtxarr.at(0), vtxarr.at(1) );
       //cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << endl;
       vertexList->insertAtBack( vtx );
       ce = ce->getCCWEdg();
@@ -535,9 +536,9 @@ void tNode::getVoronoiVertexXYZList( tList<Point3D> * vertexList )
       tArray<double> const &vtxarr = ce->getRVtx();
       const tArray<double> zvals( this->z, n1->getZ(), n2->getZ());
       const double zz =
-	PlaneFit(vtxarr[0], vtxarr[1], this->get2DCoords(),
+	PlaneFit(vtxarr.at(0), vtxarr.at(1), this->get2DCoords(),
 		 n1->get2DCoords(), n2->get2DCoords(), zvals );
-      const Point3D vtx(vtxarr[0], vtxarr[1], zz);
+      const Point3D vtx(vtxarr.at(0), vtxarr.at(1), zz);
       if (0) //DEBUG
 	cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << " z " << vtx.z << endl;
       vertexList->insertAtBack( vtx );
@@ -603,16 +604,6 @@ void tNode::TellAll() const
 /**************************************************************************\
 \***  Functions for class tEdge  ******************************************/
 
-//istream &operator>>( istream &input, tEdge &edge )                 //'tEdge'
-//{
-     //int oid, did;
-     //cout << "edge id, origin id, dest id:";
-     //input >> edge.id >> edge.org >> edge.dest; //temporarily assign id vals to ptrs
-  // return input;
-//}
-
-
-
 /**************************************************************************\
 **
 **  tEdge::CalcLength
@@ -623,8 +614,6 @@ void tNode::TellAll() const
 \**************************************************************************/
 double tEdge::CalcLength()
 {
-   //Xconst tNode * org = getOriginPtr(); 5/99
-   //Xconst tNode * dest = getDestinationPtr(); 5/99
    assert( org!=0 );  // Failure = edge has no origin and/or destination node
    assert( dest!=0 );
 
@@ -1011,9 +1000,7 @@ void tTriangle::SetIndexIDOrdered()
 tTriangle* tTriangle::NbrToward( double x, double y )
 {
   tTriangle* ct = 0;
-  tArray< double > xy0(2);
-  xy0[0] = x;
-  xy0[1] = y;
+  tArray< double > xy0(x, y);
   tArray< double > xy1(2);
   tArray< double > xy2(2);
   tArray< double > xy3(2);
