@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.68 2004-02-18 16:51:49 childcvs Exp $
+**  $Id: meshElements.h,v 1.69 2004-02-27 16:40:56 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -951,7 +951,8 @@ inline void tEdge::setRVtx( tArray< double > const & arr )
    if (0)//DEBUG
      cout << "setRVtx for edge " << id
 	  << " to x, y, " << arr[0] << ", " << arr[1] << endl;
-   rvtx = arr;
+   rvtx[0] = arr[0];
+   rvtx[1] = arr[1];
 }
 
 inline void tEdge::setVEdgLen( double val )
