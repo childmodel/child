@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.49 1998-10-01 18:46:16 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.50 1999-01-05 17:02:02 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -56,7 +56,6 @@ int PointsCCW( tArray< double > &p0,
 {
    assert( &p0 != 0 && &p1 != 0 && &p1 != 0 );
      //cout << "PointsCCW? ";
-   int i;
    double dx0, dx1, dy0, dy1;
    double crossp;
    dx0 = p1[0] - p0[0];
@@ -123,7 +122,7 @@ template< class tSubNode >
 int Next3Delaunay( tPtrList< tSubNode > &nbrList,
                    tPtrListIter< tSubNode > &nbrIter )
 {
-   static ncalls = 0;
+   static int ncalls = 0;
    ncalls++;
    
    assert( (&nbrList != 0) && (&nbrIter != 0) );
