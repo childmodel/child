@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.32 2003-12-17 14:58:55 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.33 2004-01-30 15:00:14 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -40,57 +40,13 @@ using namespace std;
 tStorm::tStorm( bool optvar )
   :
   rand(0),
-  stdurMean(1.0),
-  istdurMean(1.0),
-  pMean(1.0),
   p(1.0),
   stdur(1.0),
   istdur(1.0),
-  p0(-1.),
-  stdur0(-1.),
-  istdur0(-1.),
-  pdev(-1.),
-  stdurdev(-1.),
-  istdurdev(-1.),
-  twoPiLam(-1.),
   endtm(1.0e9),
-  optVariable(optvar),
-  optSinVar(false)
+  optVariable(optvar)
 {
    //srand( 0 );
-}
-
-
-/**************************************************************************\
-**
-**  tStorm::tStorm:  The constructor that's really used assigns values for
-**                   mean storm depth, duration, and interstorm duration,
-**                   initializes current depth, etc, to the mean values,
-**                   and initializes the random number generator. (Note:
-**                   this constructor does not allow option for sinusoidal
-**                   variation in means).
-**
-\**************************************************************************/
-tStorm::tStorm( double mp, double ms, double mis, tRand *rand_, bool optvar, double et )
-  :
-  rand(rand_),
-  stdurMean(ms),
-  istdurMean(mis),
-  pMean(mp),
-  p(pMean),
-  stdur(stdurMean),
-  istdur(istdurMean),
-  p0(-1.),
-  stdur0(-1.),
-  istdur0(-1.),
-  pdev(-1.),
-  stdurdev(-1.),
-  istdurdev(-1.),
-  twoPiLam(-1.),
-  endtm(et),
-  optVariable(optvar),
-  optSinVar(false)
-{
 }
 
 
@@ -123,14 +79,18 @@ tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
      tmp_ = infile.ReadItem( tmp_, "OPTVAR" );
      optVariable = BOOL(tmp_ != 0);
    }
-   pMean = infile.ReadItem( pMean, "PMEAN" );
-   stdurMean = infile.ReadItem( stdurMean, "STDUR" );
-   istdurMean = infile.ReadItem( istdurMean, "ISTDUR" );
-   p = pMean;
-   stdur = stdurMean;
-   istdur = istdurMean;
+   infile.ReadItem( p_ts, "ST_PMEAN");
+   infile.ReadItem( stdur_ts, "ST_STDUR");
+   infile.ReadItem( istdur_ts, "ST_ISTDUR");
 
- 
+   infile.WarnObsoleteKeyword("PMEAN", "ST_PMEAN");
+   infile.WarnObsoleteKeyword("STDUR", "ST_STDUR");
+   infile.WarnObsoleteKeyword("ISTDUR", "ST_ISTDUR");
+
+   p = p_ts.calc(0.);
+   stdur = stdur_ts.calc(0.);
+   istdur = istdur_ts.calc(0.);
+
    endtm = infile.ReadItem( endtm, "RUNTIME" );
    double help;
 
@@ -140,30 +100,12 @@ tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
       endtm += help;
    }
 
-
-   // Handle option for sinuidoil variation in means
-   {
-     int tmp_;
-     tmp_ = infile.ReadItem( tmp_, "OPTSINVAR" );
-     optSinVar = BOOL(tmp_ != 0);
-   }
-   if( optSinVar )
-   {
-      p0 = pMean;
-      stdur0 = stdurMean;
-      istdur0 = istdurMean;
-      twoPiLam = (2.0*PI)/(infile.ReadItem( twoPiLam, "PERIOD" ));
-      offset = infile.ReadItem( offset, "START_CYCLE_TIME" );
-      pdev = infile.ReadItem( pdev, "MAXPMEAN" ) - pMean;
-      if( pdev<0 ) cerr << "Warning: MAXPMEAN < PMEAN !";
-      else if( pdev > pMean ) cerr << "Warning: MINPMEAN < 0 !";
-      stdurdev = infile.ReadItem( stdurdev, "MAXSTDURMN" ) - stdurMean;
-      if( stdurdev<0 ) cerr << "Warning: MAXSTDURMN < STDURMN !";
-      else if( stdurdev > stdurMean ) cerr << "Warning: MINSTDURMN < 0 !";
-      istdurdev = infile.ReadItem( istdurdev, "MAXISTDURMN" ) - istdurMean;
-      if( istdurdev<0 ) cerr << "Warning: MAXISTDURMN < ISTDURMN !";
-      else if( istdurdev > istdurMean ) cerr << "Warning: MINISTDURMN < 0 !";
-   }
+   infile.WarnObsoleteKeyword("OPTSINVAR", "ST_PMEAN");
+   infile.WarnObsoleteKeyword("PERIOD", "ST_PMEAN");
+   infile.WarnObsoleteKeyword("START_CYCLE_TIME", "ST_PMEAN");
+   infile.WarnObsoleteKeyword("MAXPMEAN", "ST_PMEAN");
+   infile.WarnObsoleteKeyword("MAXSTDURMN", "ST_STDUR");
+   infile.WarnObsoleteKeyword("MAXISTDURMN", "ST_ISTDUR");
 
    // If variable storms used, create a file for writing them
    if( optVariable )
@@ -209,27 +151,21 @@ tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
 \**************************************************************************/
 void tStorm::GenerateStorm( double tm, double minp, double mind )
 {
-   // If option for sinusoidal variation is on, adjust the means
-   // Also set values for current storm to the means, in case option for
-   // random storms is off.
-   if( optSinVar )
-   {
-      double sinfn = sin( (tm+offset)*twoPiLam );
-      pMean = p0 + pdev*sinfn;
-      //cout << "pMean = " << pMean << endl;
-      stdurMean = stdur0 + stdurdev*sinfn;
-      istdurMean = istdur0 + istdurdev*sinfn;
-      p = pMean;
-      stdur = stdurMean;
-      istdur = istdurMean;
-   }
-   
+
+   p = p_ts.calc(tm);
+   stdur = stdur_ts.calc(tm);
+   istdur = istdur_ts.calc(tm);
+
    // If option for random storms is on, pick a storm at random.
    // Keep picking and accumulating time until the storm depth or intensity
    // is greater than the minimum value needed to produce runoff.
 
    if( optVariable )
    {
+      const double pMean = p;
+      const double stdurMean = stdur;
+      const double istdurMean = istdur;
+
       stdur = 0;
       istdur = 0;
       do
@@ -274,9 +210,6 @@ double tStorm::ExpDev() const
 double tStorm::getStormDuration() const { return stdur; }
 double tStorm::interstormDur() const { return istdur; }
 double tStorm::getRainrate() const { return p; }
-double tStorm::getMeanStormDur() const {return stdurMean;}
-double tStorm::getMeanInterstormDur() const {return istdurMean;}
-double tStorm::getMeanPrecip() const {return pMean;}
 
 /**************************************************************************\
 **

@@ -28,7 +28,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.29 2003-12-17 14:58:56 childcvs Exp $
+**  $Id: tStorm.h,v 1.30 2004-01-30 15:00:14 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -36,6 +36,7 @@
 #define TSTORM_H
 
 #include "../tInputFile/tInputFile.h"
+#include "../tTimeSeries/tTimeSeries.h"
 
 #if !defined(HAVE_NO_NAMESPACE)
 # include <fstream>
@@ -48,15 +49,11 @@ class tStorm
 {
 public:
     tStorm( bool optVariable = true );
-    tStorm( double, double, double, tRand *, bool optvar=true, double et=1.0e9 );
     tStorm( const tInputFile &, tRand *);
-    void  GenerateStorm( double tm, double minp=0.0, double mind=0.0);
+    void GenerateStorm( double tm, double minp=0.0, double mind=0.0);
     double getStormDuration() const;
     double interstormDur() const;
     double getRainrate() const;
-    double getMeanStormDur() const;
-    double getMeanInterstormDur() const;
-    double getMeanPrecip() const;
     bool getOptVar() const;
 
 private:
@@ -65,24 +62,15 @@ private:
 
     ofstream stormfile;// File containing history of storm events
     tRand *rand;       // Random number generator
-    double stdurMean;  // Mean duration
-    double istdurMean; // Mean time between storms
-    double pMean;      // Mean rainfall intensity
+    tTimeSeries p_ts;       // Rainfall intensity for the current storm
+    tTimeSeries stdur_ts;   // Storm duration
+    tTimeSeries istdur_ts;  // Time between storms
     double p;          // Actual rainfall intensity for the current storm
     double stdur;      // Actual storm duration
     double istdur;     // Actual time between storms
-    double p0;         // Climatological mean: the "weather" means can
-    double stdur0;     //  themselves vary over geologic time; p0, etc, are
-    double istdur0;    //  the means of the means so to speak.
-    double pdev;       // Absolute magnitude of deviation from p0, etc, under
-    double stdurdev;   //  sinusoidal variation.
-    double istdurdev;
-    double twoPiLam;   // Parameter for sinusoidal variation: 2pi / period
-    double offset;     // Cycle offset (ie, starting pos'n in sin cycle)
     double endtm;      // The end time of the run, just in case a big enough
                        // storm is never generated
     bool optVariable;  // Flag indicating whether storms are random or not
-    bool optSinVar;    // Option for sinusoidal variation in storm params
 };
 
 
