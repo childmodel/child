@@ -10,7 +10,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.59 2003-01-17 17:30:40 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.60 2003-02-05 14:52:16 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -218,11 +218,11 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
 
    // Time-series output: if requested
    if( (optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) ) {
-       CreateAndOpenFile( &volsofs, ".vols" );
-       CreateAndOpenFile( &dvolsofs, ".dvols" );
+       CreateAndOpenFile( &this->volsofs, ".vols" );
+       CreateAndOpenFile( &this->dvolsofs, ".dvols" );
        if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
 	 CreateAndOpenFile( &vegcovofs, ".vcov" );
-       CreateAndOpenFile( &tareaofs, ".tarea" );
+       CreateAndOpenFile( &this->tareaofs, ".tarea" );
    }
 
    // Channel width output: if the channel geometry model is other
@@ -239,7 +239,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
    if( !(opOpt = infile.ReadItem( opOpt, "OPTDETACHLIM" ) ) )
      CreateAndOpenFile( &qsofs, ".qs" );
    
-   mdLastVolume = 0.0;
+   this->mdLastVolume = 0.0;
 }
 
 
@@ -265,10 +265,10 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    //for writing out layer info to different files at each time
    const char* const nums("0123456789");
 
-   tMeshListIter<tSubNode> ni( m->getNodeList() ); // node list iterator
+   tMeshListIter<tSubNode> ni( this->m->getNodeList() ); // node list iterator
    tSubNode *cn;   // current node
-   int nActiveNodes = m->getNodeList()->getActiveSize(); // # active nodes
-   int nnodes = m->getNodeList()->getSize();             // total # nodes
+   int nActiveNodes = this->m->getNodeList()->getActiveSize(); // # active nodes
+   int nnodes = this->m->getNodeList()->getSize();             // total # nodes
    int i, j;      // counters
 
    //taking care of layer file, since new one each time step
@@ -359,7 +359,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
 template< class tSubNode >
 void tLOutput<tSubNode>::WriteTSOutput()
 {
-   tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
+   tMeshListIter<tSubNode> niter( this->m->getNodeList() ); // node list iterator
 
    tSubNode * cn;       // current node
 
@@ -374,9 +374,10 @@ void tLOutput<tSubNode>::WriteTSOutput()
        area += cn->getVArea();
    }
    
-   volsofs << volume << endl;
-   if( mdLastVolume > 0.0 ) dvolsofs << volume - mdLastVolume << endl;
-   mdLastVolume = volume;
+   this->volsofs << volume << endl;
+   if( this->mdLastVolume > 0.0 )
+     this->dvolsofs << volume - this->mdLastVolume << endl;
+   this->mdLastVolume = volume;
    //tareaofs << area << endl;
 
    if( vegofs.good() ) {
