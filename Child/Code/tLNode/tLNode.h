@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.21 1998-04-22 22:44:22 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.22 1998-04-23 18:49:01 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -128,11 +128,8 @@ class tRegolith
    int numal;          /* total number of alluvium deposits below active layer
                           does NOT count the active layer*/
    int numg;           /* number of grain sizes */
-   tArray< double > dgrade;/* depth of each sediment class in active layer [m]
-			     dgrade[0]= total depth of active layer */
-   tArray< double > grade;/* representive grain diameter of 
-			     each sediment class [m], grade[0]=0 */
-   double dpth;         /* dynamic depth of active layer */
+   tArray< double > dgrade;/* depth of each sediment class in active layer [m] */
+   double dpth;   /* dynamic depth of active layer */
    double actdpth;      /* standard active layer depth */
    tList< tDeposit > depositList;
 };
