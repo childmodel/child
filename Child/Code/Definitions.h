@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.43 2004-04-14 11:17:52 childcvs Exp $
+**   $Id: Definitions.h,v 1.44 2004-04-19 15:08:20 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -14,8 +14,6 @@
 
 /** DEFINITIONS *************************************************************/
 #define VERSION "2.3.0, April 2004"
-#define TRUE 1
-#define FALSE 0
 typedef enum {      // method of grid construction
   kUniformMesh = 0,
   kPerturbedMesh = 1,
