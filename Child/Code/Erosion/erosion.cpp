@@ -13,7 +13,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.28 1998-05-14 14:21:31 gtucker Exp $
+**  $Id: erosion.cpp,v 1.29 1998-06-04 21:25:32 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -108,8 +108,8 @@ double tEquilibCheck::FindIterChngRate()
 {
    assert( timePtr > 0 && gridPtr > 0 );
    tArray< double > tmp(2), last;
-   tmp[0] = timePtr->GetCurrentTime();
-   tGridListIter< tLNode > nI( gridPtr->GetNodeList() );
+   tmp[0] = timePtr->getCurrentTime();
+   tGridListIter< tLNode > nI( gridPtr->getNodeList() );
    tListIter< tArray< double > > mI( massList );
    tLNode *cn;
    double mass = 0.0;
@@ -172,7 +172,7 @@ double tEquilibCheck::FindLongTermChngRate()
 /***************************************************************************\
 **  tEquilibCheck::FindLongTermChngRate( double newtime )
 **
-**  Set longTime = newtime and call FindLongTermChngRate()
+**  set longTime = newtime and call FindLongTermChngRate()
 \***************************************************************************/
 double tEquilibCheck::FindLongTermChngRate( double newtime )
 {
@@ -218,16 +218,16 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 **  Input: n -- node at which to compute detachment capacity
 **         dt -- time interval
 **  Returns: the detachment depth
-**  Assumptions: n->GetSlope() does not return a negative value (returns neg.
-**               only if infinite loop in GetSlope()); kb, mb,
+**  Assumptions: n->getSlope() does not return a negative value (returns neg.
+**               only if infinite loop in getSlope()); kb, mb,
 **               and nb all >=0.
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
-   double slp = n->GetSlope();
+   double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
-   return( kb*pow( n->GetQ(), mb )*pow( slp, nb )*dt );
+   return( kb*pow( n->getQ(), mb )*pow( slp, nb )*dt );
 }
 
 /***************************************************************************\
@@ -238,16 +238,16 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 **  Input: n -- node at which to compute detachment capacity
 ** 
 **  Returns: the detachment rate
-**  Assumptions: n->GetSlope() does not return a negative value (returns neg.
-**               only if infinite loop in GetSlope()); kb, mb,
+**  Assumptions: n->getSlope() does not return a negative value (returns neg.
+**               only if infinite loop in getSlope()); kb, mb,
 **               and nb all >=0.
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
-   double slp = n->GetSlope();
+   double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   double erorate =  kb*pow( n->GetQ(), mb )*pow( slp, nb );
+   double erorate =  kb*pow( n->getQ(), mb )*pow( slp, nb );
    n->setDrDt( -erorate );
    return erorate;
 }
@@ -268,18 +268,18 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 **
 **  Input: n -- node for which to estimate time step
 **  Returns: the estimated maximum time step size
-**  Assumptions: GetSlope() returns a value >=0, edge length>0.
+**  Assumptions: getSlope() returns a value >=0, edge length>0.
 **
 \***************************************************************************/
 double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 {
-   double slp = n->GetSlope();
+   double slp = n->getSlope();
    if( slp < 0.0 )
-       ReportFatalError("neg. slope in tBedErodePwrLaw::SetTimeStep(tLNode*)");
-   assert( n->GetQ()>=0 );
-   double eroterm = kb * pow( n->GetQ(), mb ) * pow( slp, nb-1.0 );
+       ReportFatalError("neg. slope in tBedErodePwrLaw::setTimeStep(tLNode*)");
+   assert( n->getQ()>=0 );
+   double eroterm = kb * pow( n->getQ(), mb ) * pow( slp, nb-1.0 );
    if( eroterm==0 ) return 100000;
-   return( 0.2*n->GetFlowEdg()->getLength() / eroterm );
+   return( 0.2*n->getFlowEdg()->getLength() / eroterm );
 
 }
 
@@ -295,12 +295,12 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 \***************************************************************************/
 double tSedTransPwrLaw::TransCapacity( tLNode *node )
 {
-   double slp = node->GetSlope();
+   double slp = node->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
    double cap = 0;
-   if( !node->GetFloodStatus() )
-       cap = kf * pow( node->GetQ(), mf ) * pow( slp, nf );
+   if( !node->getFloodStatus() )
+       cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
    node->setQs( cap );
    return cap;
 }
@@ -343,7 +343,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    double persand=grade[0]/(grade[0]+grade[1]);
    double timeadjust=31536000.00; /* number of seconds in a year */
 
-   if( nd->GetSlope() < 0 ){
+   if( nd->getSlope() < 0 ){
       nd->setQs(0, 0);
       nd->setQs(1, 0);
       nd->setQs(0);
@@ -352,7 +352,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
 
    taudim *= pow(nd->getHydrWidth(), 0.6);
    // nic, make sure about the units here ie units on Q
-   tau = taudim*pow(nd->GetQ()*timeadjust,0.3)*pow( nd->GetSlope(), 0.7);
+   tau = taudim*pow(nd->getQ()*timeadjust,0.3)*pow( nd->getSlope(), 0.7);
 
    
    if(persand<.10)
@@ -420,8 +420,8 @@ void tErosion::ErodeDetachLim( double dtg )
    double frac = 0.9; //fraction of time to zero slope
    int i;
    tLNode * cn, *dn;
-   int nActNodes = gridPtr->GetNodeList()->getActiveSize();
-   tGridListIter<tLNode> ni( gridPtr->GetNodeList() );
+   int nActNodes = gridPtr->getNodeList()->getActiveSize();
+   tGridListIter<tLNode> ni( gridPtr->getNodeList() );
    tArray<double> //dz( nActNodes ), // Erosion depth @ each node
        dzdt( nActNodes ); //Erosion rate @ ea. node
    double ratediff;
@@ -436,7 +436,7 @@ void tErosion::ErodeDetachLim( double dtg )
       //find max. time step s.t. slope does not reverse:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
-         dn = cn->GetDownstrmNbr();
+         dn = cn->getDownstrmNbr();
          ratediff = dn->getQs() - cn->getQs();
          if( ratediff > 0 )
          {
@@ -462,8 +462,8 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
    double frac = 0.1; //fraction of time to zero slope
    int i;
    tLNode * cn, *dn;
-   int nActNodes = gridPtr->GetNodeList()->getActiveSize();
-   tGridListIter<tLNode> ni( gridPtr->GetNodeList() );
+   int nActNodes = gridPtr->getNodeList()->getActiveSize();
+   tGridListIter<tLNode> ni( gridPtr->getNodeList() );
    tArray<double> //dz( nActNodes ), // Erosion depth @ each node
        dzdt( nActNodes ); //Erosion rate @ ea. node
    double ratediff;
@@ -480,22 +480,22 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
       //find max. time step s.t. slope does not reverse:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
-         /*slp = cn->GetSlope();
-         dslpdt = cn->GetDSlopeDt();
+         /*slp = cn->getSlope();
+         dslpdt = cn->getDSlopeDt();
          if( slp > 0.0 )
          {
             if( dslpdt < 0.0 )
             {
-               dt = slp / (-dslpdt - UPtr->GetRate() ) * frac;
+               dt = slp / (-dslpdt - UPtr->getRate() ) * frac;
                if( dt > 0 && dt < dtmax ) dtmax = dt;
             }
          }*/
          
-         dn = cn->GetDownstrmNbr();
+         dn = cn->getDownstrmNbr();
          if( dn->getBoundaryFlag() == kNonBoundary )
              ratediff = dn->getDzDt() - cn->getDzDt();
          else
-             ratediff = dn->getDzDt() - cn->getDzDt() - UPtr->GetRate();
+             ratediff = dn->getDzDt() - cn->getDzDt() - UPtr->getRate();
          if( ratediff > 0 && cn->getZ() > dn->getZ() )
          {
             dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
@@ -523,7 +523,7 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
 }
 
 
-#define kSmallTimeStep 1e-6
+#define kSmallTimeStep 1e-8
 void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 {
    double dt,
@@ -531,16 +531,17 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
    double frac = 0.3; // fraction of time to zero slope
    int i;
    tLNode * cn, *dn;
-   int nActNodes = gridPtr->GetNodeList()->getActiveSize();
-   tGridListIter<tLNode> ni( gridPtr->GetNodeList() );
+   int nActNodes = gridPtr->getNodeList()->getActiveSize();
+   tGridListIter<tLNode> ni( gridPtr->getNodeList() );
    double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
        cap,          // Transport capacity
        pedr,         // Potential erosion/deposition rate
        dcap,         // Bedrock detachment capacity
        dz,           // Depth of deposition/erosion (erosion = negative)
        dzr;          // Potential depth of bedrock erosion
+   int smallflag=0, smallcount=0;
 
-   //cout << "tErosion::StreamErode\n";
+   cout << "tErosion::StreamErode\n";
 
    // Sort so that we always work in upstream to downstream order
    strmNet->SortNodesByNetOrder();
@@ -569,15 +570,15 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          // If we're on bedrock, adjust accordingly
          if( cn->OnBedrock() && pedr<0 )
          {
-            // Get detachment capacity (this also sets node's drdt)
+            // get detachment capacity (this also sets node's drdt)
             dcap = -bedErode.DetachCapacity( cn );
             if( dcap > pedr )
                 pedr = dcap;
          }
-         // Set the erosion (deposition) rate and send the corresponding
+         // set the erosion (deposition) rate and send the corresponding
          // sediment influx downstream
          cn->setDzDt( pedr );
-         cn->GetDownstrmNbr()->AddQsin( cn->getQsin() - pedr*cn->getVArea() );
+         cn->getDownstrmNbr()->AddQsin( cn->getQsin() - pedr*cn->getVArea() );
          //cout << "RATE STEP:\n";
          //cn->TellAll();
       }
@@ -589,7 +590,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       dtmax = dtg/frac;
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
-         dn = cn->GetDownstrmNbr();
+         dn = cn->getDownstrmNbr();
          ratediff = dn->getDzDt() - cn->getDzDt(); // Are the pts converging?
          if( ratediff > 0 && cn->getZ() > dn->getZ() )  // if yes, get time
          {                                              //  to zero slope
@@ -606,6 +607,21 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       }
       dtmax *= frac;  // Take a fraction of time-to-flattening
       if( dtmax < kSmallTimeStep ) dtmax = kSmallTimeStep;
+      if( dtmax <= 0.01 && smallflag==0 )
+      {
+         smallflag=1;
+         cout << "SMALL STEP: " << dtmax << endl;
+      }
+      if( smallflag==1 )
+      {
+         smallcount++;
+         if( smallcount==100 )
+         {
+            cout << "TIME REMAINING: " << dtg << endl;
+            smallcount=0;
+         }
+      }
+      
       //cout << "  dt " << dtmax << endl;
 
       // Zero out sed influx again, because depending on bedrock-alluvial
@@ -679,7 +695,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
             cn->TellAll();
          }*/
          cn->EroDep( dz );
-         dn = cn->GetDownstrmNbr();
+         dn = cn->getDownstrmNbr();
          /*if( dn->getID()==3214 )
          {
             cout << "SENDing to 3214: " << cn->getQsin() << " - " << dz*cn->getVArea()/dtmax << endl;
@@ -704,7 +720,8 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       dtg -= dtmax;
       
    } while( dtg>1e-6 ); // Keep going until we've used up the whole time intrvl
-   
+
+   cout << "Leaving StreamErode()\n";
 }
 
 
@@ -753,8 +770,8 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
        denom,      // Denominator in Courant number (=Kd*Lve)
        delt,       // Max local step size
        dtmax;      // Max global step size (initially equal to total time rt)
-   tGridListIter<tLNode> nodIter( gridPtr->GetNodeList() );
-   tGridListIter<tEdge> edgIter( gridPtr->GetEdgeList() );
+   tGridListIter<tLNode> nodIter( gridPtr->getNodeList() );
+   tGridListIter<tEdge> edgIter( gridPtr->getEdgeList() );
 
 #if TRACKFNS
    cout << "tErosion::Diffuse()" << endl << flush;

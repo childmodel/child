@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.2 1998-01-29 19:50:11 gtucker Exp $
+**  $Id: tRunTimer.cpp,v 1.3 1998-06-04 21:27:09 gtucker Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -88,11 +88,11 @@ void tRunTimer::Start( double start, double end )
 }
 
 //****************************************************
-// GetCurrentTime
+// getCurrentTime
 //
 // Returns the current time.
 //****************************************************
-double tRunTimer::GetCurrentTime()
+double tRunTimer::getCurrentTime()
 {
 	return currentTime;
 }

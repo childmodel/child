@@ -4,7 +4,7 @@
 **                  and tTriangle. Each of these grid elements is
 **                  implemented as an object, as described below.
 **
-**  $Id: meshElements.h,v 1.11 1998-05-08 16:39:59 stlancas Exp $
+**  $Id: meshElements.h,v 1.12 1998-06-04 21:26:33 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -78,8 +78,8 @@ class tNode
    void insertBackSpokeList( tEdge * );
    void makeWheel();
    void setBoundaryFlag( int );
-   tEdge * GetEdg();
-   void SetEdg( tEdge * );
+   tEdge * getEdg();
+   void setEdg( tEdge * );
    double Dist( tNode *, tNode * );
    //X void CalcSpokeVEdgLengths();// TODO: delete; replaced by tEdge fn
    tEdge *EdgToNod( tNode * );
@@ -158,11 +158,11 @@ public:
     void setFlowAllowed( int );
     double CalcLength();
     double CalcSlope();
-    tEdge * GetCCWEdg();
-    void SetCCWEdg( tEdge * edg );
-    tArray< double > getRVtx() const; // Get the Voronoi vertex for LH triangle
+    tEdge * getCCWEdg();
+    void setCCWEdg( tEdge * edg );
+    tArray< double > getRVtx() const; // get the Voronoi vertex for LH triangle
     void setRVtx( tArray< double > );
-    double getVEdgLen() const;  // Get length of associated Voronoi cell edge
+    double getVEdgLen() const;  // get length of associated Voronoi cell edge
     void setVEdgLen( double );
     double CalcVEdgLen();   /* Computes, sets & returns length of V cell edg */
     tEdge * FindComplement();

@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.19 1998-05-12 22:09:27 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.20 1998-06-04 21:24:27 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -167,7 +167,7 @@ double tNode::getVArea() const {return varea;}             //tNode
 double tNode::getVArea_Rcp() const {return varea_rcp;}     //tNode
 int tNode::getBoundaryFlag() const {return boundary;}      //tNode
 
-tEdge * tNode::GetEdg() 
+tEdge * tNode::getEdg() 
 {
    return edg;
 }
@@ -219,7 +219,7 @@ void tNode::set3DCoords( double val1, double val2, double val3 )        //tNode
    setZ( val3 );
 }
 
-void tNode::SetEdg( tEdge * theEdg )
+void tNode::setEdg( tEdge * theEdg )
 {
    assert( theEdg > 0 );
    edg = theEdg;
@@ -344,7 +344,7 @@ tEdge *tNode::EdgToNod( tNode * nod )
 **
 **  The basic Voronoi polygon is described by the set of "right-hand
 **  Voronoi vertices" associated with each spoke (edge). These vertices
-**  are computed by SetVoronoiVertices() as the intersection of the
+**  are computed by setVoronoiVertices() as the intersection of the
 **  perpendicular bisectors of consecutive spokes. However, in some cases
 **  the basic polygon will be distorted, with consecutive vertices NOT
 **  being counter-clockwise from one another. (This seems to be the result
@@ -413,7 +413,7 @@ double tNode::ComputeVoronoiArea()
       //cout << xy[0] << " " << xy[1] << "; " << flush;
       //xy = vedgList.getLast()->getPtrNC()->getRVtx();
       //cout << xy[0] << " " << xy[1] << endl << flush;
-      ce = ce->GetCCWEdg();
+      ce = ce->getCCWEdg();
    } while( ce != edg );
    vedgList.makeCircular();
    //cout << endl << flush;
@@ -541,7 +541,7 @@ double tNode::ComputeVoronoiArea()
       tNode *bn0, *bn1;
       for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
       {
-         ne = ce->GetCCWEdg();
+         ne = ce->getCCWEdg();
          xy1 = ne->getRVtx();
          //checking polygon edge is on boundary and ccw edge's RVtx is on
          //wrong side of bndy edge...
@@ -558,7 +558,7 @@ double tNode::ComputeVoronoiArea()
                //of V. edges and bndy edge:
                xy = FindIntersectionCoords( ce->getRVtx(), xy1, xy2, xy3 );
                vcL.insertAtBack( xy );
-               nne = ne->GetCCWEdg();
+               nne = ne->getCCWEdg();
                xy = FindIntersectionCoords( xy1, nne->getRVtx(), xy2, xy3 );
                vcL.insertAtBack( xy );
             }
@@ -612,7 +612,7 @@ double tNode::ComputeVoronoiArea()
       assert( ce>0 );
       xy = ce->getRVtx();
       cout << xy[0] << " " << xy[1] << "; " << flush;
-      ce = ce->GetCCWEdg();
+      ce = ce->getCCWEdg();
    } while( ce != edg );
    cout << endl << flush;*/
    return area;
@@ -625,12 +625,12 @@ void tNode::makeCCWEdges()
    tPtrListIter< tEdge > spokIter( spokeList );
    ce = spokIter.FirstP();
    assert( ce != 0 );
-   SetEdg( ce );
+   setEdg( ce );
    for( ; !(spokIter.AtEnd()); ce = spokIter.NextP() )
    {
       ccwe = spokIter.ReportNextP();
       assert( ccwe != 0 );
-      ce->SetCCWEdg( ccwe );
+      ce->setCCWEdg( ccwe );
    }
 }
 
@@ -653,7 +653,7 @@ void tNode::ConvertToClosedBoundary()
          // get complement and change it too
       }
       
-   } while( (ce=ce->GetCCWEdg()) != edg );
+   } while( (ce=ce->getCCWEdg()) != edg );
    
 }
 
@@ -761,7 +761,7 @@ double tEdge::getDestZ()
    return( dest->getZ() );
 }
 
-tEdge * tEdge::GetCCWEdg() 
+tEdge * tEdge::getCCWEdg() 
 {
    return ccwedg;
 }
@@ -789,7 +789,7 @@ void tEdge::setDestinationPtr( tNode * ptr )                         //tEdge
 void tEdge::setFlowAllowed( int val )                                //tEdge
 {flowAllowed = ( val == 0 || val == 1 ) ? val : 0;}
 
-void tEdge::SetCCWEdg( tEdge * edg )
+void tEdge::setCCWEdg( tEdge * edg )
 {
    assert( edg > 0 );
      //assert( ccwedg > 0 );
@@ -938,13 +938,13 @@ void tEdge::TellCoords()
 \**************************************************************************/
 tEdge * tEdge::FindComplement()
 {
-   assert( org!=0 && dest!=0 && dest->GetEdg()!=0 );
+   assert( org!=0 && dest!=0 && dest->getEdg()!=0 );
    
-   tEdge * ce = dest->GetEdg();
+   tEdge * ce = dest->getEdg();
    while( ce->getDestinationPtrNC() != org )
    {
-      ce = ce->GetCCWEdg();
-      assert( ce!=0 && ce!=dest->GetEdg() );
+      ce = ce->getCCWEdg();
+      assert( ce!=0 && ce!=dest->getEdg() );
    }
    return ce;
    // TODO: test for infinite loop using assert

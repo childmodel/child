@@ -2,7 +2,7 @@
 **
 **  tUplift.cpp: Functions for class tUplift.
 **
-**  $Id: tUplift.cpp,v 1.3 1998-03-10 23:30:54 stlancas Exp $
+**  $Id: tUplift.cpp,v 1.4 1998-06-04 21:26:54 gtucker Exp $
 \************************************************************************/
 
 #include "tUplift.h"
@@ -27,7 +27,7 @@ tUplift::tUplift( tInputFile &infile )
 
    if( typeCode==kNoUplift ) return;
    
-   // Get the parameters relevant to that type
+   // get the parameters relevant to that type
    duration = infile.ReadItem( duration, "UPDUR" );
    rate = infile.ReadItem( rate, "UPRATE" );
    switch( typeCode )
@@ -53,7 +53,7 @@ void tUplift::UpliftUniform( tGrid<tLNode> *gp, double delt )
 {
    assert( gp>0 );
    tLNode *cn;
-   tGridListIter<tLNode> ni( gp->GetNodeList() );
+   tGridListIter<tLNode> ni( gp->getNodeList() );
    double rise = rate*delt;
 
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
@@ -65,12 +65,12 @@ void tUplift::UpliftUniform( tGrid<tLNode> *gp, double delt )
 
 
 
-double tUplift::GetDuration() 
+double tUplift::getDuration() 
 {
    return duration;
 }
 
-double tUplift::GetRate() const 
+double tUplift::getRate() const 
 {
    return rate;
 }

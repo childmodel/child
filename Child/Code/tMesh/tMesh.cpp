@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.40 1998-05-18 23:37:08 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.41 1998-06-04 21:26:22 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -475,7 +475,7 @@ MakeGridFromInputData( tInputFile &infile )
    int i;
    tListInputData< tSubNode > input( infile );
    seed = 0;
-   // Set the number of nodes, edges, and triangles in the grid mesh
+   // set the number of nodes, edges, and triangles in the grid mesh
    //assert( lnodflag );
    nnodes = input.x.getSize();
    nedges = input.orgid.getSize();
@@ -541,7 +541,7 @@ MakeGridFromInputData( tInputFile &infile )
          dbnd = nodIter.DatRef().getBoundaryFlag();
          //cout << nodIter.DatRef().getID() << endl;
          //}
-      // Set the "flowallowed" status (FALSE if either endpoint is a
+      // set the "flowallowed" status (FALSE if either endpoint is a
          // closed boundary) and insert edge pair onto the list --- active
          // part of list if flow is allowed, inactive if not
          //cout << "BND: " << obnd << " " << dbnd << " " << kClosedBoundary
@@ -568,10 +568,10 @@ MakeGridFromInputData( tInputFile &infile )
    }
    cout << "done.\n";
 
-   // Set up the lists of edges (spokes) connected to each node
+   // set up the lists of edges (spokes) connected to each node
    // (GT added code to also assign the 1st edge to "edg" as an alternative
    // to spokelist implementation)
-   cout << "Setting up node-edge connectivity...";
+   cout << "setting up node-edge connectivity...";
    int e1;
    int ne;
    tGridListIter< tEdge >
@@ -588,9 +588,9 @@ MakeGridFromInputData( tInputFile &infile )
       {
           curnode->insertBackSpokeList( &(edgIter.DatRef()) );
           //nodIter.DatRef().insertBackSpokeList( &(edgIter.DatRef()) );
-          curnode->SetEdg( edgIter.DatPtr() );
+          curnode->setEdg( edgIter.DatPtr() );
           /*cout << "Node " << curnode->getID() << " has edg "
-               << (curnode->GetEdg())->getID() << endl;*/
+               << (curnode->getEdg())->getID() << endl;*/
       }
       for( ne = input.nextid[e1]; ne != e1; ne = input.nextid[ne] )
       {
@@ -619,7 +619,7 @@ MakeGridFromInputData( tInputFile &infile )
       curedg = edgIter.GetP( i );
       ccwedgid = input.nextid[i];
       ccwedg = edgIter.GetP( ccwedgid );
-      curedg->SetCCWEdg( ccwedg );
+      curedg->setCCWEdg( ccwedg );
       /*cout << "Edg " << ccwedgid << " (" << ccwedg->getOriginPtr()->getID()
            << " " << ccwedg->getDestinationPtr()->getID() << ") is ccw from "
            << curedg->getID() << " ("
@@ -648,7 +648,7 @@ MakeGridFromInputData( tInputFile &infile )
    }
    while( nodIter.Next() );*/
 
-   cout << "Setting up triangle connectivity...";
+   cout << "setting up triangle connectivity...";
    tTriangle temptri;
    for ( i=0; i<ntri; i++ )
    {
@@ -1154,7 +1154,7 @@ MakeGridFromPoints( tInputFile &infile )
    tSubNode tempnode( infile ),     // temporary node used in creating new pts
        *stp1, *stp2, *stp3;         // supertriangle vertices
 
-   // Get the name of the file containing (x,y,z,b) data, open it,
+   // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
    infile.ReadItem( pointFilenm, "POINTFILENAME" );
    pointfile.open( pointFilenm );
@@ -1202,7 +1202,7 @@ MakeGridFromPoints( tInputFile &infile )
    tempnode.setID( -3 );
    nodeList.insertAtBack( tempnode );
 
-   // Set # of nodes, edges, and triangles
+   // set # of nodes, edges, and triangles
    nnodes = 3;
    nedges = ntri = 0;
 
@@ -1217,7 +1217,7 @@ MakeGridFromPoints( tInputFile &infile )
    AddEdge( stp2, stp3, stp1 );  // edges 2->3 and 3->2
    AddEdge( stp3, stp1, stp2 );  // edges 3->1 and 1->3
 
-   // Set up the triangle itself and place it on the list. To do this, we
+   // set up the triangle itself and place it on the list. To do this, we
    // just set up a list of pointers to the three nodes in the super tri
    // and pass the list (along with an iterator) to MakeTriangle.
    tPtrList<tSubNode> supertriptlist;
@@ -1358,7 +1358,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
               << " does not have a valid destination point\n";
          goto error;
       }
-      if( !(ccwedg=ce->GetCCWEdg() ) )
+      if( !(ccwedg=ce->getCCWEdg() ) )
       {
          cerr << "EDGE #" << ce->getID()
               << " does not point to a valid counter-clockwise edge\n";
@@ -1385,7 +1385,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
    for( cn=nodIter.FirstP(); !(nodIter.AtEnd()); cn=nodIter.NextP() )
    {
       // edg pointer
-      if( !(ce = cn->GetEdg()) )
+      if( !(ce = cn->getEdg()) )
       {
          cerr << "NODE #" << cn->getID()
               << " does not point to a valid edge\n";
@@ -1422,7 +1422,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
                  << ": infinite loop in spoke connectivity\n";
             goto error;
          }
-      } while( (ce=ce->GetCCWEdg())!=cn->GetEdg() );
+      } while( (ce=ce->getCCWEdg())!=cn->getEdg() );
       if( !boundary_check_ok )
       {
          cerr << "NODE #" << cn->getID()
@@ -1542,7 +1542,7 @@ MakeCCWEdges()
 
 /*****************************************************************************\
 **
-**  tGrid::SetVoronoiVertices
+**  tGrid::setVoronoiVertices
 **
 **  Each Delaunay triangle is associated with an intersection between
 **  three Voronoi cells, called a Voronoi vertex. These Voronoi vertices
@@ -1580,11 +1580,11 @@ MakeCCWEdges()
 **
 \*****************************************************************************/
 template <class tSubNode>
-void tGrid<tSubNode>::SetVoronoiVertices()
+void tGrid<tSubNode>::setVoronoiVertices()
 {
    //double x, y, x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
    //tArray< double > xyo, xyd1, xyd2, xy(2);
-   //cout << "SetVoronoiVertices()..." << endl;
+   //cout << "setVoronoiVertices()..." << endl;
    tArray< double > xy;
    tListIter< tTriangle > triIter( triList );
    tTriangle * ct;
@@ -1593,7 +1593,7 @@ void tGrid<tSubNode>::SetVoronoiVertices()
    for( ct = triIter.FirstP(); !(triIter.AtEnd()); ct = triIter.NextP() )
    {
       xy = ct->FindCircumcenter();    
-      //cout << "SetVoronoiVertices(): " << xy[0] << " " << xy[1];
+      //cout << "setVoronoiVertices(): " << xy[0] << " " << xy[1];
       // Assign the Voronoi point as the left-hand point of the three edges 
       // associated with the current triangle
       ct->ePtr(0)->setRVtx( xy );
@@ -1609,9 +1609,9 @@ void tGrid<tSubNode>::SetVoronoiVertices()
                << ct->ePtr(i)->getDestinationPtr()->getID() << ") ";
       cout << ", v verts are:\n";
       xy = ct->ePtr(0)->getRVtx();
-      cout << "  SetVoronoiVertices(): " << xy[0] << " " << xy[1] << endl;*/
+      cout << "  setVoronoiVertices(): " << xy[0] << " " << xy[1] << endl;*/
    }
-   //cout << "SetVoronoiVertices() finished" << endl;
+   //cout << "setVoronoiVertices() finished" << endl;
 }
 
 
@@ -2425,14 +2425,14 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
    tempEdge2.setOriginPtr( cnnn );               //set edge2 ORG
    tempEdge2.setDestinationPtr( cn );            //set edge2 DEST
 
-   // Get new unique ID's for the new edge pair
+   // get new unique ID's for the new edge pair
    le = edgIter.LastP();
    newid = le->getID() + 1;
    tempEdge2.setID( newid );                     //set edge1 ID
    newid++;
    tempEdge1.setID( newid );                     //set edge2 ID
 
-   // Set the boundary status of the edge pair: flow is allowed unless
+   // set the boundary status of the edge pair: flow is allowed unless
    // one of the endpoints is a closed boundary, or both are open boundaries.
    if( cn->getBoundaryFlag() == kClosedBoundary ||
        cnnn->getBoundaryFlag() == kClosedBoundary ||
@@ -2734,7 +2734,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
      //DumpEdges();
      //DumpSpokes:
    
-   // Set the ID for the new triangle based on the ID of the last triangle
+   // set the ID for the new triangle based on the ID of the last triangle
    // on the list plus one, or if there are no triangles on the list yet
    // (which happens when we're creating an initial "supertriangle" as in
    // MakeGridFromPoints), set the ID to zero.
@@ -2809,7 +2809,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    //cout << "starting w/ node " << cn->getID();
    for( j=0; j<3; j++ )
    {
-      // Get spokelist for p(j) and advance to p(j+1)
+      // get spokelist for p(j) and advance to p(j+1)
       spokIter.Reset( cn->getSpokeListNC() );
       cn = nbrIter.NextP();               //step forward once in nbrList
       if( j>0 ) dce = ce;
@@ -3209,15 +3209,15 @@ AddNodeAt( tArray< double > &xyz )
 
 template <class tSubNode>
 tGridList<tEdge> * tGrid<tSubNode>::
-GetEdgeList() {return &edgeList;}
+getEdgeList() {return &edgeList;}
 
 template <class tSubNode>
 tGridList<tSubNode> * tGrid<tSubNode>::
-GetNodeList() {return &nodeList;}
+getNodeList() {return &nodeList;}
 
 template <class tSubNode>
 tList< tTriangle > * tGrid<tSubNode>::
-GetTriList() {return &triList;}
+getTriList() {return &triList;}
 
 template< class tSubNode >
 tEdge *tGrid< tSubNode >::
@@ -3257,7 +3257,7 @@ UpdateMesh()
 
    MakeCCWEdges();
 
-   SetVoronoiVertices();
+   setVoronoiVertices();
    CalcVoronoiEdgeLengths();
    CalcVAreas();
    CheckMeshConsistency( 0 );
@@ -3273,7 +3273,7 @@ UpdateMesh()
    */
    
    // Voronoi vertices
-   //GetVoronoiVertices();
+   //getVoronoiVertices();
 
    
 

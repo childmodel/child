@@ -1,11 +1,21 @@
 /**************************************************************************\
 **
-**  tStreamNet.h: Header file for class tStreamNet.
+**  tStreamNet.h: Header file for class tStreamNet and related class
+**                tInlet.
 **
-**  tStreamNet objects contain data and functions related to flow routing
-**  and sediment transport across the landscape surface.
+**  The tStreamNet class contains data and functions related to flow 
+**  routing across the landscape surface. Data include hydrologic
+**  parameters such as infiltration capacity, soil transmissivity, etc,
+**  as well as flags that indicate which of several different options
+**  the user desires (e.g., type of runoff generation, whether uniform
+**  infiltration-excess, TOPMODEL-type saturation excess, etc). Actions
+**  include setting drainage directions, computing total drainage areas,
+**  computing overland flow discharge, and filling "lakes".
 **
-**  $Id: tStreamNet.h,v 1.21 1998-05-05 22:07:34 gtucker Exp $
+**  Class tInlet is used to model the entry of a river at an edge of the
+**  model mesh.
+**
+**  $Id: tStreamNet.h,v 1.22 1998-06-04 21:28:10 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -21,8 +31,10 @@
 #include "../tInputFile/tInputFile.h"
 #include "../tStorm/tStorm.h"
 
-#define kSaturatedFlow 1   // Option for saturation-excess flow generation
-#define kConstSoilStore 2  // Option for "bucket"-type flow generation
+#define kHortonian 0       // Option for uniform infilt-excess runoff
+#define kSaturatedFlow1 1  // Option for sat-excess runoff w/ return flow
+#define kSaturatedFlow2 2  // Option for sat-excess runoff w/o return flow
+#define kConstSoilStore 3  // Option for "bucket"-type flow generation
 #define kSecperyear 31536000  // No. of seconds in one year
 
 
@@ -98,10 +110,12 @@ public:
    void FlowDirs();
    void DrainAreaVoronoi();
    void RouteFlowArea( tLNode *, double );
+   void RouteRunoff( tLNode *, double, double );
    void SetVoronoiVertices();
    void MakeFlow();
    void FlowUniform();
-   void FlowSaturated();
+   void FlowSaturated1();
+   void FlowSaturated2();
    void FlowBucket();
    void FillLakes();
    int FindLakeNodeOutlet( tLNode * );

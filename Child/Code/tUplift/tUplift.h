@@ -18,7 +18,7 @@
 **  function, which in turn calls the appropriate function (e.g.,
 **  UpliftUniform()) to implement the desired behavior.
 **
-**  $Id: tUplift.h,v 1.2 1998-02-24 01:42:01 stlancas Exp $
+**  $Id: tUplift.h,v 1.3 1998-06-04 21:27:02 gtucker Exp $
 \************************************************************************/
 #ifndef TUPLIFT_H
 #define TUPLIFT_H
@@ -32,9 +32,9 @@ class tUplift
 public:
     tUplift( tInputFile &infile );
     void DoUplift( tGrid<tLNode> *gp, double delt );
-    double GetDuration();
+    double getDuration();
     void UpliftUniform( tGrid<tLNode> *gp, double delt );
-   double GetRate() const;
+    double getRate() const;
 
 private:
     int typeCode;

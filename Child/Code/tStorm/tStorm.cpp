@@ -19,7 +19,7 @@
 **  is included in this file.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.cpp,v 1.9 1998-05-14 14:22:12 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.10 1998-06-04 21:27:44 gtucker Exp $
 */
 
 #include <math.h>
@@ -138,11 +138,11 @@ double tStorm::ExpDev( long *idum )
 
 
 /*
-**  GetStormDuration
+**  getStormDuration
 **
 **  Returns the storm duration.
 */
-double tStorm::GetStormDuration()
+double tStorm::getStormDuration()
 {
    return stdur;
 }
@@ -152,17 +152,17 @@ double tStorm::GetStormDuration()
 **
 **  Returns the interstorm duration.
 */
-double tStorm::InterstormDur()
+double tStorm::interstormDur()
 {
    return istdur;
 }
 
 /*
-**  GetRainrate
+**  getRainrate
 **
 **  Returns the rainfall rate.
 */
-double tStorm::GetRainrate()
+double tStorm::getRainrate()
 {
    return p;
 }

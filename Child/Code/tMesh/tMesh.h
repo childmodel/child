@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.9 1998-05-08 23:42:52 stlancas Exp $
+**  $Id: tMesh.h,v 1.10 1998-06-04 21:26:14 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -55,7 +55,7 @@ public:
     void Print();
     /*makes edg, ccwedg structure from spokelists*/
     void MakeCCWEdges();
-    void SetVoronoiVertices();
+    void setVoronoiVertices();
     void CalcVoronoiEdgeLengths();
     void CalcVAreas();
     tTriangle *LocateTriangle( double, double );
@@ -84,9 +84,9 @@ public:
     int AddNode( tSubNode & );
      //add a generic node at the referenced coordinates
     tSubNode *AddNodeAt( tArray< double > & );
-    tGridList<tEdge> * GetEdgeList();
-    tGridList<tSubNode> * GetNodeList();
-    tList< tTriangle > * GetTriList();
+    tGridList<tEdge> * getEdgeList();
+    tGridList<tSubNode> * getNodeList();
+    tList< tTriangle > * getTriList();
     tEdge *getEdgeComplement( tEdge * );
       /* Tests consistency of a user-defined mesh */
     void CheckMeshConsistency( int boundaryCheckFlag=1 );

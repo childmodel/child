@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.43 1998-05-12 22:09:43 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.44 1998-06-04 21:27:56 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -489,30 +489,30 @@ void tLNode::setSurf( const tSurface & val ) {surf = val;}
 void tLNode::setReg( const tRegolith & val ) {reg = val;}
 void tLNode::setChan( const tChannel & val ) {chan = val;}
 
-int tLNode::GetFloodStatus() {   return flood; }
+int tLNode::getFloodStatus() {   return flood; }
 
-void tLNode::SetFloodStatus( int status )
+void tLNode::setFloodStatus( int status )
 {
    flood = status;
 }
 
-tEdge * tLNode::GetFlowEdg() 
+tEdge * tLNode::getFlowEdg() 
 {
    return flowedge;
 }
 
-void tLNode::SetFlowEdg( tEdge * edg )
+void tLNode::setFlowEdg( tEdge * edg )
 {
    assert( edg > 0 );  // Fails when passed an invalid edge
    //cout << "Setting flow edge to edge # " << edg->getID() << endl;
    flowedge = edg;
 }
 
-void tLNode::SetDrArea( double val ) {chan.drarea = ( val >= 0 ) ? val : 0;}
+void tLNode::setDrArea( double val ) {chan.drarea = val;}
+void tLNode::AddDrArea( double val ) {chan.drarea += val;}
+void tLNode::AddDischarge( double val ) {chan.q += val;}
 
-void tLNode::AddDrArea( double val ) {chan.drarea += ( val >= 0 ) ? val : 0;}
-
-tLNode * tLNode::GetDownstrmNbr()
+tLNode * tLNode::getDownstrmNbr()
 {
    //assert( flowedge!=0 );
    if( flowedge == 0 ) return 0;
@@ -520,7 +520,7 @@ tLNode * tLNode::GetDownstrmNbr()
 }
 
 int tLNode::Meanders() const {return chan.migration.meander;}
-void tLNode::SetMeanderStatus( int val )
+void tLNode::setMeanderStatus( int val )
 {chan.migration.meander = ( val == 0 || val == 1 ) ? val : 0;}
 
 
@@ -643,7 +643,7 @@ void tLNode::UpdateCoords()
 }
 
 // nb: if channel is integrated into node, change this
-double tLNode::GetQ()
+double tLNode::getQ()
 {
    return chan.q;
 }
@@ -667,7 +667,7 @@ double tLNode::GetQ()
 **   or the outlet node, it returns a negative number (-1)
 \************************************************************************/
 #define kLargeNumber 1000000
-double tLNode::GetSlope()
+double tLNode::getSlope()
 {
    int ctr;
    double rlen, curlen, slp, delz, downz;
@@ -697,7 +697,7 @@ double tLNode::GetSlope()
             //ReportFatalError("infinite loop in tLNode::GetSlope(), 1st loop");
          }
          curlen += dn->flowedge->getLength();
-         dn = dn->GetDownstrmNbr();
+         dn = dn->getDownstrmNbr();
          assert( dn != 0 );
       }
       assert( curlen > 0 );
@@ -718,18 +718,18 @@ double tLNode::GetSlope()
             return (-1);
             //ReportFatalError("infinite loop in tLNode::GetSlope(), 2nd loop");
          }
-         on = on->GetDownstrmNbr();
+         on = on->getDownstrmNbr();
       }
       if( z - on->z < 0.0 ) slp = 0.0;
    }
-   else slp = (z - GetDownstrmNbr()->z ) / flowedge->getLength();
+   else slp = (z - getDownstrmNbr()->z ) / flowedge->getLength();
    if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
    if( slp>=0.0 ) return slp;
    else return 0.0;
 }
 #undef kLargeNumber
 
-double tLNode::GetDSlopeDt()
+double tLNode::getDSlopeDt()
 {
    double rlen, curlen, slp;
    tLNode *dn;
@@ -743,7 +743,7 @@ double tLNode::GetDSlopeDt()
       while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary )
       {
          curlen += dn->flowedge->getLength();
-         dn = dn->GetDownstrmNbr();
+         dn = dn->getDownstrmNbr();
       }
       assert( curlen > 0 );
       //slp = (dzdt - dn->dzdt + uplift - dn->uplift ) / curlen;
@@ -753,7 +753,7 @@ double tLNode::GetDSlopeDt()
    {
       curlen = flowedge->getLength();
       assert( curlen > 0.0 );
-      dn = GetDownstrmNbr();
+      dn = getDownstrmNbr();
       //slp = (dzdt - dn->dzdt + uplift - dn->uplift ) / curlen;
    }
    slp = ( dzdt - dn->dzdt + uplift - dn->uplift ) / curlen;
@@ -821,7 +821,7 @@ void tLNode::TellAll()
    cout << "  x=" << x << " y=" << y << " z=" << z;
    if( edg ) {
       cout << "  points to edg #" << edg->getID() << endl;
-      cout << "  dr area: " << getDrArea() << "  disch: " << GetQ()
+      cout << "  dr area: " << getDrArea() << "  disch: " << getQ()
            << "  boundary: " << boundary << "  flood: " << flood
            << "\n  varea: " << varea << endl;
       
@@ -832,7 +832,7 @@ void tLNode::TellAll()
               << nbr->getY() << "," << nbr->getZ() << ")\n    with vedglen "
               << flowedge->getVEdgLen() << endl;
          cout << "  qs: " << qs << "  qsin: " << qsin << "  slp: "
-              << GetSlope() << "  reg: " << reg.thickness << endl;
+              << getSlope() << "  reg: " << reg.thickness << endl;
          cout << "  dzdt: " << dzdt << "  drdt: " << drdt << endl;
       }
       else cout << "  Flowedg is undefined\n";
@@ -873,7 +873,7 @@ void tLNode::ActivateSortTracer()
 void tLNode::MoveSortTracerDownstream()
 {
    tracer--;
-   if( flood!=kSink ) GetDownstrmNbr()->AddTracer();
+   if( flood!=kSink ) getDownstrmNbr()->AddTracer();
 }
 
 void tLNode::AddTracer()
