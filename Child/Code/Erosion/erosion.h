@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.11 1998-07-03 19:53:30 nmgaspar Exp $
+**  $Id: erosion.h,v 1.12 1998-07-23 13:56:27 nmgaspar Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -132,9 +132,9 @@ class tSedTransWilcock
 {
 public:
    tSedTransWilcock( tInputFile &infile );
-   double TransCapacity( tLNode * n ); // returns volumetric load
-   double DetachCapacity( tLNode *n, int i); //returns detachment rate m/yr
-   //Same equations used for the two above functions, just applied differently
+   double TransCapacity( tLNode * n ); // returns total volumetric load
+   double WeightedTransCap( tLNode *n, int i, double weight);
+   //returns total volumetric load
    
 private:
    double taudim;
@@ -203,9 +203,8 @@ public:
     void Diffuse( double dtg, int detach );
 
 private:
-    tGrid<tLNode> *gridPtr;
-    tBedErodePwrLaw bedErode;
-   tSedTransPwrLaw totalTrans;
+   tGrid<tLNode> *gridPtr;
+   tBedErodePwrLaw bedErode;
    tSedTransWilcock sedTrans;  
     double kd;                // Hillslope transport (diffusion) coef
 
