@@ -13,7 +13,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.25 1998-05-12 22:08:04 gtucker Exp $
+**  $Id: erosion.cpp,v 1.26 1998-05-13 21:25:54 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -606,7 +606,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       }
       dtmax *= frac;  // Take a fraction of time-to-flattening
       if( dtmax < kSmallTimeStep ) dtmax = kSmallTimeStep;
-      cout << "  dt " << dtmax << endl;
+      //cout << "  dt " << dtmax << endl;
 
       // Zero out sed influx again, because depending on bedrock-alluvial
       // interaction it may be modified; if inlet, give it strmNet->inlet.inSedLoad
@@ -669,7 +669,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          //cn->TellAll();
 
          // Update alluvium thickness and node elevation
-         if( cn->getID()==3214 )
+         /*if( cn->getID()==3214 )
          {
              cn->TellAll();
              cout << "Applying dz=" << dz << endl;
@@ -677,20 +677,20 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          if( cn->getZ() < -1 ) {
             cout << "The following node is going below baselevel:\n";
             cn->TellAll();
-         }
+         }*/
          cn->EroDep( dz );
          dn = cn->GetDownstrmNbr();
-         if( dn->getID()==3214 )
+         /*if( dn->getID()==3214 )
          {
             cout << "SENDing to 3214: " << cn->getQsin() << " - " << dz*cn->getVArea()/dtmax << endl;
             cn->TellAll();
-         }
+         }*/
 
          // Send sediment downstream: sediment flux is equal to the flux in
          // plus/minus rate of erosion/deposition times node area
          assert( dtmax>0 );
          dn->AddQsin( cn->getQsin() - dz*cn->getVArea()/dtmax );
-         if( (cn->getQsin() - dz*cn->getVArea()/dtmax) < -1e-10 )
+         if( (cn->getQsin() - dz*cn->getVArea()/dtmax) < -0.1 )
          {
             cout << "NEG OUTFLUX! (dz=" << dz << ")\n";
             cout << "outflux: " << cn->getQsin() - dz*cn->getVArea()/dtmax
