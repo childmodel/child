@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.34 2003-08-05 11:55:45 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.35 2003-08-05 12:32:43 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -230,6 +230,8 @@ template< class NodeType >
 class tPtrListIter
 {
   tPtrListIter& operator=( const tPtrListIter& );
+  int NextIfNoCurrent();  // set 1st as current undefined
+  int PrevIfNoCurrent();  // set last as current undefined
 public:
   tPtrListIter();
   tPtrListIter( const tPtrListIter< NodeType > & );
@@ -1192,12 +1194,20 @@ Next()
     {
       curptrnode = curptrnode->next;
       ++counter;
-      return curptrnode ? 1:0;
+      return curptrnode != 0 ? 1:0;
     }
+  // unlikely case
+  return NextIfNoCurrent();
+}
+
+template< class NodeType >     //tPtrListIter
+inline int tPtrListIter< NodeType >::
+NextIfNoCurrent()
+{
   assert( ptrlistPtr != 0 );
   curptrnode = ptrlistPtr->first;
   counter = 0;
-  return curptrnode ? 1:0;
+  return curptrnode !=0 ? 1:0;
 }
 
 template< class NodeType >     //tPtrListIter
@@ -1208,14 +1218,21 @@ Prev()
     {
       curptrnode = curptrnode->prev;
       --counter;
-      return curptrnode ? 1:0;
+      return curptrnode != 0 ? 1:0;
     }
+  // unlikely case
+  return PrevIfNoCurrent();
+}
+
+template< class NodeType >     //tPtrListIter
+inline int tPtrListIter< NodeType >::
+PrevIfNoCurrent()
+{
   assert( ptrlistPtr != 0 );
   curptrnode = ptrlistPtr->last;
   counter = -1;
-  return curptrnode ? 1:0;
+  return curptrnode != 0 ? 1:0;
 }
-
 
 /**************************************************************************\
  **

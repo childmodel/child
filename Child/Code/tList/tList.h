@@ -33,7 +33,7 @@
  **      track position on list w/o an iterator, 1/22/99
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **
- **  $Id: tList.h,v 1.41 2003-08-05 11:55:43 childcvs Exp $
+ **  $Id: tList.h,v 1.42 2003-08-05 12:32:42 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -1056,6 +1056,8 @@ template< class NodeType >
 class tListIter
 {
   tListIter& operator=(const tListIter&);
+  int NextIfNoCurrent();  // set 1st as current undefined
+  int PrevIfNoCurrent();  // set last as current undefined
 public:
   tListIter();                      // default constructor
   tListIter(const tListIter&);      // copy constructor
@@ -1263,12 +1265,20 @@ Next()
     {
       curnode = curnode->next;
       ++counter;
-      return curnode ? 1:0;
+      return curnode != 0 ? 1:0;
     }
+  // unlikely case
+  return NextIfNoCurrent();
+}
+
+template< class NodeType >        //tListIter
+inline int tListIter< NodeType >::
+NextIfNoCurrent()
+{
   assert( listPtr != 0 );
   curnode = listPtr->first;
   counter = 0;
-  return curnode ? 1:0;
+  return curnode != 0 ? 1:0;
 }
 
 template< class NodeType >       //tListIter
@@ -1279,14 +1289,21 @@ Prev()
     {
       curnode = curnode->prev;
       --counter;
-      return curnode ? 1:0;
+      return curnode != 0 ? 1:0;
     }
+  // unlikely case
+  return PrevIfNoCurrent();
+}
+
+template< class NodeType >       //tListIter
+inline int tListIter< NodeType >::
+PrevIfNoCurrent()
+{
   assert( listPtr != 0 );
   curnode = listPtr->last;
   counter = -1;
-  return curnode ? 1:0;
+  return curnode != 0 ? 1:0;
 }
-
 
 /**************************************************************************\
  **
