@@ -9,7 +9,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.19 2001-06-24 12:41:02 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.20 2002-04-23 14:46:21 arnaud Exp $
 \**************************************************************************/
 
 
@@ -30,16 +30,17 @@
 **
 \**************************************************************************/
 tStorm::tStorm( int optvar )
+  :
+  optVariable(optvar),
+  optSinVar(0),
+  stdurMean(1.0),
+  istdurMean(1.0),
+  pMean(1.0),
+  p(1.0),
+  stdur(1.0),
+  istdur(1.0),
+  endtm(1.0e9)
 {
-   optVariable = optvar;
-   optSinVar = 0;
-   pMean = 1.0;
-   stdurMean = 1.0;
-   istdurMean = 1.0;
-   p = 1.0;
-   stdur = 1.0;
-   istdur = 1.0;
-   endtm = 1.0e9;
    //srand( 0 );
 }
 
@@ -55,17 +56,18 @@ tStorm::tStorm( int optvar )
 **
 \**************************************************************************/
 tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar, double et )
+  :
+  optVariable(optvar),
+  optSinVar(0),
+  stdurMean(ms),
+  istdurMean(mis),
+  pMean(mp),
+  p(pMean),
+  stdur(stdurMean),
+  istdur(istdurMean),
+  seed(sd),
+  endtm(et)
 {
-   optVariable = optvar;
-   optSinVar = 0;
-   pMean = mp;
-   stdurMean = ms;
-   istdurMean = mis;
-   p = pMean;
-   stdur = stdurMean;
-   istdur = istdurMean;
-   seed = sd;
-   endtm = et;
    //srand( seed );
 }
 

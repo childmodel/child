@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.99 2002-04-22 17:56:02 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.100 2002-04-23 14:45:11 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -159,12 +159,18 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
 template< class tSubNode >     //tMesh
 tMesh< tSubNode >::
 tMesh() 
+  :
+  nnodes(0),
+  nedges(0),
+  ntri(0),
+  seed(0),
+  layerflag(FALSE),
+  miNextNodeID(0),
+  miNextEdgID(0),
+  miNextTriID(0),   
+  mSearchOriginTriPtr(0)
 {
-   nnodes = nedges = ntri = seed = 0;
-   mSearchOriginTriPtr=0;
-   miNextNodeID = miNextEdgID = miNextTriID = 0;
    cout<<"tMesh()"<<endl;
-   layerflag=FALSE;
 }
 
 //copy constructor (created 11/99, GT)
@@ -173,20 +179,20 @@ tMesh()
 //results! Caveat emptor! -GT
 template< class tSubNode >
 tMesh<tSubNode>::tMesh( tMesh *originalMesh )
-{
-   nnodes = originalMesh->nnodes;
-   nedges = originalMesh->nedges;
-   ntri = originalMesh->ntri;
-   nodeList = originalMesh->nodeList;
-   edgeList = originalMesh->edgeList;
-   triList = originalMesh->triList;
-   seed = originalMesh->seed;
-   layerflag = originalMesh->layerflag;
-   miNextNodeID = originalMesh->miNextNodeID;
-   miNextEdgID = originalMesh->miEdgNodeID;
-   miNextTriID = originalMesh->miNextTriID;   
-   mSearchOriginTriPtr=0;
-}
+  :
+  nnodes(originalMesh->nnodes),
+  nedges(originalMesh->nedges),
+  ntri(originalMesh->ntri),
+  nodeList(originalMesh->nodeList),
+  edgeList(originalMesh->edgeList),
+  triList(originalMesh->triList),
+  seed(originalMesh->seed),
+  layerflag(originalMesh->layerflag),
+  miNextNodeID(originalMesh->miNextNodeID),
+  miNextEdgID(originalMesh->miEdgNodeID),
+  miNextTriID(originalMesh->miNextTriID),   
+  mSearchOriginTriPtr(0)
+{}
 
 
 /**************************************************************************\

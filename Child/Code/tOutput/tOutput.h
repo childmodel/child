@@ -26,7 +26,7 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.26 2002-04-22 18:14:31 arnaud Exp $
+**  $Id: tOutput.h,v 1.27 2002-04-23 14:44:43 arnaud Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -102,6 +102,8 @@ protected:
 template< class tSubNode >
 class tLOutput : public tOutput<tSubNode>
 {
+  tLOutput(const tLOutput&);
+  tLOutput& operator=(const tLOutput&);
 public:
     tLOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
     void WriteNodeData( double time );  
@@ -127,7 +129,7 @@ private:
     int optTSOutput;     // temp
 
    int counter;
-   char nums[10]; //for writing out layer info to different files at each time
+   const char* const nums; //for writing out layer info to different files at each time
 };
 
 

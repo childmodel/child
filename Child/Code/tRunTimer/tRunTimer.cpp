@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.15 2002-04-17 16:50:18 arnaud Exp $
+**  $Id: tRunTimer.cpp,v 1.16 2002-04-23 14:45:52 arnaud Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -51,40 +51,43 @@
 //****************************************************
 
 tRunTimer::tRunTimer()
+  :
+  currentTime(0),
+  endTime(1),
+  outputInterval(1),
+  nextOutputTime(0),
+  optPrintEachTime(1),
+  notifyInterval(1000),
+  nextNotify(0),
+  nextTSOutputTime(0),
+  TSOutputInterval(1)
 {
-	currentTime = 0;
-	endTime = 1;
-	outputInterval = 1;
-	nextOutputTime = 0;
-	optPrintEachTime = 1;
-	notifyInterval = 1000;
-	nextNotify = 0;
-	TSOutputInterval = 1;
-	nextTSOutputTime = 0;
 }
 
 tRunTimer::tRunTimer( double duration, double opint, int optprint )
+  :
+  currentTime(0),
+  endTime(duration),
+  outputInterval(opint),
+  nextOutputTime(0),
+  optPrintEachTime(optprint),
+  notifyInterval(1000),
+  nextNotify(0),
+  nextTSOutputTime(999999999)
 {
-	currentTime = 0;
-	endTime = duration;
-	outputInterval = opint;
-	nextOutputTime = 0;
-	optPrintEachTime = optprint;
-	notifyInterval = 1000;
-	nextNotify = 0;
-	nextTSOutputTime = 999999999;
 }
 
 tRunTimer::tRunTimer( tInputFile &infile, int optprint )
+  :
+  currentTime(0),
+  optPrintEachTime(optprint),
+  notifyInterval(1000)
 {
-        currentTime = 0;
-	endTime = infile.ReadItem( endTime, "RUNTIME" );
-	outputInterval = infile.ReadItem( outputInterval, "OPINTRVL" );
-	optPrintEachTime = optprint;
-	notifyInterval = 1000;
-        optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" );
-	if( optTSOutput )
-	  TSOutputInterval = infile.ReadItem( TSOutputInterval, "TSOPINTRVL" );
+  endTime = infile.ReadItem( endTime, "RUNTIME" );
+  outputInterval = infile.ReadItem( outputInterval, "OPINTRVL" );
+  optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" );
+  if( optTSOutput )
+    TSOutputInterval = infile.ReadItem( TSOutputInterval, "TSOPINTRVL" );
 	
   //If you are reading in layering information, the timer should
   //be set to the time in which the layers were output, since

@@ -9,7 +9,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.51 2002-04-22 17:57:19 arnaud Exp $
+**  $Id: tOutput.cpp,v 1.52 2002-04-23 14:44:42 arnaud Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -30,10 +30,10 @@
 **
 \*************************************************************************/
 template< class tSubNode >
-tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile )
+tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
+  m(meshPtr)
 {
    assert( meshPtr > 0 );
-   m = meshPtr;
 
    infile.ReadItem( baseName, "OUTFILENAME" );
 
@@ -189,14 +189,14 @@ void tOutput<tSubNode>::WriteNodeData( double /* time */ )
 **    - added
 \*************************************************************************/
 template< class tSubNode >
-tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) 
-        : tOutput<tSubNode>( meshPtr, infile )  // call base-class constructor
+tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
+        tOutput<tSubNode>( meshPtr, infile ),  // call base-class constructor
+  nums("0123456789")
 {
    int opOpt;  // Optional modules: only output stuff when needed
    //int optTSOutput;
    
    counter=0;
-   strcpy(nums, "0123456789");
 
    CreateAndOpenFile( &drareaofs, ".area" );
    CreateAndOpenFile( &netofs, ".net" );

@@ -34,7 +34,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.93 2002-04-23 10:27:50 arnaud Exp $
+**  $Id: erosion.cpp,v 1.94 2002-04-23 14:49:14 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -55,29 +55,34 @@
 **  Constructors: default (no args) and given mesh and timer as args
 \***************************************************************************/
 tEquilibCheck::tEquilibCheck()
-        : massList()
-{
-   meshPtr = 0;
-   timePtr = 0;
-   longTime = longRate = shortRate = 0.0;
-}
+  :
+  meshPtr(0),
+  timePtr(0),
+  longTime(0.),
+  massList(),
+  longRate(0.), shortRate(0.)
+{}
 
 tEquilibCheck::tEquilibCheck( tMesh< tLNode > &meshRef, tRunTimer &timeRef )
-        : massList()
+  :
+  meshPtr(&meshRef),
+  timePtr(&timeRef),
+  longTime(0.),
+  massList(),
+  longRate(0.), shortRate(0.)
 {
-   meshPtr = &meshRef;
-   timePtr = &timeRef;
-   longTime = longRate = shortRate = 0.0;
    FindIterChngRate();
 }
 
 tEquilibCheck::tEquilibCheck( tMesh< tLNode > &meshRef, tRunTimer &timeRef,
                               tInputFile &fileRef )
-        : massList()
+  :
+  meshPtr(&meshRef),
+  timePtr(&timeRef),
+  longTime(0.),
+  massList(),
+  longRate(0.), shortRate(0.)
 {
-   meshPtr = &meshRef;
-   timePtr = &timeRef;
-   longRate = shortRate = 0.0;
    longTime = fileRef.ReadItem( longTime, "EQUITIME" );
    FindIterChngRate();
 }
