@@ -18,7 +18,7 @@
 **    - GT commented out inclusion of run timer, 1/99
 **    - removed obsolete class tErode, GT 4/99
 **
-**  $Id: tLNode.h,v 1.42 1999-04-15 14:21:20 gtucker Exp $
+**  $Id: tLNode.h,v 1.43 1999-05-04 17:15:38 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -171,7 +171,7 @@ class tRegolith
    friend class tLNode;
   public:
    tRegolith();
-   tRegolith( tInputFile &infile ); /* Reads needed values from input file*/
+   //tRegolith( tInputFile &infile ); /* Reads needed values from input file*/
    tRegolith( const tRegolith & );
    ~tRegolith();
    const tRegolith &operator=( const tRegolith & );
