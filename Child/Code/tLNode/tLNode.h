@@ -19,8 +19,13 @@
 **    - removed obsolete class tErode, GT 4/99
 **    - added data mbr tau to track shear stress (or stream pwr, etc),
 **      inlined most tLayer fns. GT 1/00
+**    - GT made these changes as part of addition of vegetation module:
+**        - removed tSurface class
+**        - added tauc data mbr and retrieval functions
+**        - added embedded tVegCover object and retrieval fn
+**          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.45 2000-01-24 22:22:15 gtucker Exp $
+**  $Id: tLNode.h,v 1.46 2000-01-25 19:01:17 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -35,6 +40,7 @@
 #include "../tList/tList.h"
 #include "../tInputFile/tInputFile.h"
 #include "../globalFns.h"
+#include "../tVegetation/tVegetation.h"
 
 #define kSink        3  // ...or a dry sink (unfilled depression).
 #define kVeryHigh 100000  // Used in FillLakes
@@ -305,8 +311,8 @@ class tBedrock
    double erodibility;
 };
 
-/** class tSurface *************************************************************/
-class tSurface
+/** class tSurface **********************************************************/
+/*class tSurface
 {
    friend class tLNode;
   public:
@@ -315,10 +321,10 @@ class tSurface
    ~tSurface();
    const tSurface &operator=( const tSurface & );
   private:
-   double veg;          /* Percent vegetation cover*/
-   double tauc;         /* Threshold*/
+  double veg;          // Percent vegetation cover
+  double tauc;         // Threshold
    double vegerody;     //erodibility of vegetated surface (or channel bank)
-};
+};*/
 
 /** class tRegolith ************************************************************/
 class tRegolith
@@ -371,8 +377,9 @@ public:
    //tLNode *newnode = new tLNode( *oldtLNode );
     ~tLNode();
     const tLNode &operator=( const tLNode & );   
+    tVegCover &getVegCover();
     const tBedrock &getRock() const;
-    const tSurface &getSurf() const;
+    //Xconst tSurface &getSurf() const;
     const tRegolith &getReg() const;
     const tChannel &getChan() const;
     int getFloodStatus();
@@ -418,7 +425,8 @@ public:
     void setLatDisplace( double, double );      //        "
     void addLatDisplace( double, double );      //        "
     void setRock( const tBedrock & );
-    void setSurf( const tSurface & );
+    //Xvoid setSurf( const tSurface & );
+    void setVegCover( const tLNode * );
     void setReg( const tRegolith & );
     void setChan( const tChannel & );
     void setDischarge( double );
@@ -435,8 +443,8 @@ public:
     void setAlluvThickness( double );
     double getAlluvThickness() const;
    tArray< double > getAlluvThicknessm( ) const;
-    void setVegErody( double );
-    double getVegErody() const;
+   //Xvoid setVegErody( double );
+   //Xdouble getVegErody() const;
     void setBedErody( double );
     double getBedErody() const;
     void setReachMember( int );
@@ -473,6 +481,8 @@ public:
     void setDrDt( double );
     double getTau();
     void setTau( double );
+    double getTauCrit();
+    void setTauCrit( double );
     void setUplift( double );
     double getUplift() const;
    int getNumg() const;
@@ -532,8 +542,9 @@ public:
 #endif
    
 protected:
+   tVegCover vegCover;  // Vegetation cover properties (see tVegetation.h/.cpp)
    tBedrock rock;
-   tSurface surf;
+   //XtSurface surf;
    tRegolith reg;
    tChannel chan;
    int flood;        /* flag: is the node part of a lake?*/
@@ -541,7 +552,8 @@ protected:
    int tracer;       /* Used by network sorting algorithm*/
    double dzdt;      /* Erosion rate */
    double drdt;      /* Rock erosion rate */
-   double tau;       /* Shear stress or equivalent (e.g., unit stream pwr) */
+   double tau;       // Shear stress or equivalent (e.g., unit stream pwr)
+   double tauc;      // Critical (threshold) shear stress or equiv.
    // NOTE - all sediment transport rates are volume per year
    double qs;           /* Sediment transport rate*/
    tArray< double > qsm; /* multi size; transport rate of each size fraction*/
@@ -564,6 +576,23 @@ inline double tLNode::getTau() { return tau; }
 inline void tLNode::setTau( double newtau ) 
 {
    tau = newtau;
+}
+
+inline double tLNode::getTauCrit() { return tauc; }
+
+inline void tLNode::setTauCrit( double newtauc ) 
+{
+   tauc = newtauc;
+}
+
+inline tVegCover & tLNode::getVegCover()
+{
+   return vegCover;
+}
+
+inline void tLNode::setVegCover( const tLNode *node )
+{
+   vegCover = node->vegCover;
 }
 
 
