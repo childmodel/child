@@ -15,7 +15,7 @@
 **  Class tInlet is used to model the entry of a river at an edge of the
 **  model mesh.
 **
-**  $Id: tStreamNet.h,v 1.23 1998-07-15 15:46:02 nmgaspar Exp $
+**  $Id: tStreamNet.h,v 1.24 1998-07-20 21:19:39 nmgaspar Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -138,6 +138,7 @@ protected:
    int filllakes;
    int optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
    double kwds, ewds, ewstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width
+   double kdds, edds, edstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. depth
    double knds, ends, enstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. roughness
    double klambda, elambda; //coeff & exp for downstrm bank roughness length
    double rainrate;
