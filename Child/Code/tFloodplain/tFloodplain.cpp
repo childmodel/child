@@ -62,11 +62,12 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.22 2004-01-29 17:09:22 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.23 2004-03-05 16:11:50 childcvs Exp $
 */
 /**************************************************************************/
 
 #include "tFloodplain.h"
+#include "../tListInputData/tListInputData.h"
 
 /**************************************************************************\
 **
@@ -92,20 +93,25 @@ tFloodplain::tFloodplain( const tInputFile &infile, tMesh<tLNode> *mp )
    assert( meshPtr!=0 );
 
    // Read in parameters
+   fpmode = infile.ReadItem( fpmode,"OPTFLOODPLAIN");
    drarea_min = infile.ReadItem( drarea_min, "FP_DRAREAMIN" );
    kdb = infile.ReadItem( kdb, "HYDR_DEP_COEFF_DS" );
    mqs = infile.ReadItem( mqs, "HYDR_DEP_EXP_STN" );
    mqbmqs = infile.ReadItem( mqbmqs, "HYDR_DEP_EXP_DS" ) - mqs;
    event_min = infile.ReadItem( event_min, "FP_BANKFULLEVENT" );
-   fpmu = infile.ReadItem( fpmu, "FP_MU" );
+   infile.ReadItem( fpmuVariation, "FP_MU" );
    fplamda = infile.ReadItem( fplamda, "FP_LAMBDA" );
 
    kdb = kdb*pow( event_min, mqbmqs );
+
+   if (fpmode==2)
+     cout<<"Floodplain aggradation based on suspension " <<endl;
 
    //cout << "kdb: " << kdb << "  mqbmqs " << mqbmqs << endl;
 
    numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    deparr.setSize(numg); // dimension & init to 0 the deparr array
+   deparrRect.setSize(numg+1);
 
    {
      int tmp_;
@@ -114,7 +120,6 @@ tFloodplain::tFloodplain( const tInputFile &infile, tMesh<tLNode> *mp )
    }
    if( optControlMainChan )
      chanDriver = new tMainChannelDriver( infile );
-
 }
 
 /**************************************************************************\
@@ -188,15 +193,25 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 
    // Make a list of all nodes with a drainage area large enough to be
    // considered "flood generators". Record the highest water surface height.
+   // in these channel cells
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
    {
       if( ( drarea = cn->getDrArea() ) >= drarea_min )
       {
+
+      	 // Debug:
+	 if (0) //DEBUG
+	   cout<< "Flood Nodes " <<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
+	       <<" Slp= "<<cn->calcSlope()<<" Q= "<<cn->getQ()
+	       <<" W= "<<cn->getChanWidth()<< " MStatus="<<cn->Meanders()<<endl;
+
 	 tFloodNode floodNode(cn,
 			      kdb*pow( drarea, mqbmqs )
 			      *pow( cn->getQ()/SECPERYEAR, mqs )
 			      + cn->getZ() );
-         //cout << "flood depth " << cn->getID() << " = " << floodNode.wsh-cn->getZ() << endl;
+	 if (0) //DEBUG
+	   cout << "flood depth at " << cn->getX() << ' ' << cn->getY()
+		<<' '<< cn->getZ() << " = " << floodNode.wsh-cn->getZ() << endl;
          if( floodNode.wsh > maxWSH )
              maxWSH = floodNode.wsh;
          floodList.insertAtBack( floodNode );
@@ -208,6 +223,9 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 
    // For each node, find the nearest flood node and if it's WSH is above
    // the local elevation, deposit stuff
+   
+   double fpmu = fpmuVariation.calc(ctime);
+   
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
    {
       closestNode = 0;
@@ -250,20 +268,270 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
             // dep rate as the bedload contribution, assuming that susp load
             // is not deposited in main channel (obviously an approximation!);
             // otherwise, use Howard formula
-            if( minDist==0.0 ) deparr[0] = 0.2*floodDepth*fpmu*delt;
-            else deparr[0] = floodDepth*fpmu*exp( -minDist/fplamda )*delt;
+
+            // In the channel..
+            if( minDist==0.0  ){
+
+              if (fpmode==2) {	               // Suspension concentration based
+            	deparrRect[0] = 0.0;
+            	deparrRect[1] = 0.0;
+            	deparr[0]     = 0.0;
+              } else {                         // Howard, allows some sedimentation into the channel
+                deparrRect[0] = 0.001*floodDepth*fpmu*delt;      // coarse
+                deparrRect[1] = 0.0;                             // fine
+                deparr[0]=0.001*floodDepth*fpmu*delt;           // coarse
+              }
+	      if (0) //DEBUG
+		cout<<"FP-Channel: wsh= "<< wsh <<" flooddepth= "<<floodDepth
+		    <<" dh_channel= "<<deparrRect[0] << '\n';
+            }
+            // On the floodplain...
+            else{
+               if (fpmode ==2) {                // Suspension concentration based, Gross and Small, 1998
+		 //cout<<"Calling FloodplainDh"<<endl;
+		 deparrRect[0] = 0.0;
+		 deparrRect[1] = FloodplainDh2(minDist,floodDepth,delt,fplamda);
+               } else {                         // Geometrical, Howard, 1996
+		 deparrRect[0] = 0.0;                         // coarse
+		 deparrRect[1] = floodDepth*fpmu*exp( -minDist/fplamda )*delt;
+		 deparr[0]= floodDepth*fpmu*exp( -minDist/fplamda )*delt;
+		 //double suspensiontest = FloodplainDh2(minDist,floodDepth,delt,fplamda);
+		 //cout<<"At dist "<<minDist<<" FP_1= "<<deparrRect[1]<<", FP_2= "<<suspensiontest<<endl;
+               }
+
+	       //if(minDist <=100.){
+	       //  cout<<"FP-Overbank at: " <<minDist<<" wsh=" << wsh
+	       //      <<" flooddepth= "<<floodDepth <<" dh_overbank= "<<deparrRect[1] << '\n';
+	       //}
+
+	    }
+
             if( deparr[0]>floodDepth)
-                cout << " *WARNING, deposit thicker than flood depth\n";
-            //Xcn->ChangeZ( depo ); // (note: use layering-TODO)
-            cn->EroDep( 0, deparr, ctime );
-            //cout << " OBDep " << deparr[0] << " at (" << cn->getX()
-            //  << "," << cn->getY() << ")\n";
+	      cout << " *WARNING, deposit thicker than flood depth\n";
+
+	    // Modify heights and communicate to stratigraphy tStratGrid
+	    cn->IncrementAccummulatedDh(deparrRect);           // new version, recieves 2d arry
+	    cn->EroDep( 0, deparr, ctime );                    // this one recieves 1 value
          }
       }
    }
 
+   if (0) //DEBUG
+     cout << "Floodplain:: done Overbanks...\n";
 }
 
+/************************************************************\
+ ** FloodplainDh
+ **
+ **
+ \*************************************************************/
+double tFloodplain::FloodplainDh(double minDist, double flooddepth,
+				 tLNode *fpnode)
+{
+  double C  = 0.0;
+  double dh = 0.0;
+
+  C  = getSuspendedConcentration(minDist);
+  dh = ConcentrationToHeight(flooddepth,fpnode,C);
+
+  //DEBUG, what does it produce
+  if (0) //DEBUG
+    cout<<"For node" <<fpnode->getX()<<","<<fpnode->getY()
+	<<" at dist "<<minDist
+	<<", with flooddepth "
+	<<flooddepth<<", dh = "<<dh<<endl;
+
+  if(dh > 0.5 * flooddepth){   // never deposit more than 50 % of the local flooddepth!
+    dh = 0.5* flooddepth;
+  }
+
+  return dh;
+
+}
+
+/*********************************************************\
+ **
+ ** FloodplainDh2
+ **
+ ** An alternative way of aggrading the floodplain wings.
+ ** Now, dh is dependent on sediment concentration,
+ ** which can be linked (hopefully) to emperical data of
+ ** water discharge in the main channel.
+ **
+ ** dCy/dt = Ey*(d^2Cy/dy^2) - (ws/Z)*Cy
+ **
+ ** follwing Gross and Small, 1998, in WRR, no 34-9/pp. 2365-2376
+ **
+ ** Quintijn Clevis November 2003 - January 2004
+\**********************************************************/
+double tFloodplain::FloodplainDh2(double y, double flood_depth,
+				  double /*delt*/, double Wy)
+{
+  // Arguments:
+  // y = closest distance to the meander channel
+  // flood-depth = local water depth
+  // delt = duration of flood = storm, in yrs
+  // Wy = maximum width of the flooded floodplain, e.g lamda
+  //
+  // Table of usable values:
+  // 		 median dPi (mm)	Fall velocity Ws (m/s)		Diff coeff Es (m/s^2)
+  // gravel          4.0			0.280				0.31
+  // fine sand       0.5			0.070				0.12
+  // fine silt       0.016			0.0002				0.10
+  //
+
+  double ws=0.0;
+  double Ey=0.0;
+  double Co=0.0;
+  double density=0.0;
+  double G=0.0;
+  double n=0.0;
+  double Cy=0.0;
+  double Dy=0.0;
+
+  // Hard-coded variables (rates etc.)
+  ws = 0.002;       // downward settling velocity in m/s for something between fine sand and fine silt
+  Ey = 0.10 ;       // transverse diffusion coefficient in m^2/s for fine silt
+  Co =	1.0 ;       // suspended load concentration integrated over the flow depth
+  		    // above the levee, in parts per million times meter, ppm-m
+  		    // assumtion used in Gross and Small, use 75% of the in-channel concentration
+  density = 1.8e6;   // density of silt in suspension, g/m^3
+
+  G  = Wy * sqrt(   ws/flood_depth*Ey  );	// gross and small,1998
+
+  Ey = 0.013;
+  //double Ez = 0.0076;
+  //double Vs = 0.008;
+  //double G2 = (Wy*Vs)*sqrt(Ey*Ez);                     //floodplain concavity Pizzuto,1987
+
+  n = y/Wy;
+
+  // Calculate the Local concentration
+  //Cy = Co * (  ( (sinh(G*n) * exp(-G))  /cosh(G) ) + exp(-G*n)  );
+  Co = 0.02;
+  //Cy = Co * (  ( (sinh(G*n) * exp(-G))  /cosh(G) ) + exp(-G*n)  );
+
+  Cy= Co * exp(-y/Wy);				// concentration in per m, column water thickness
+
+  // Depth deposited is estimated as the amount of excess sediment that settles
+  // within the discrete period (storm)
+  // DY = [Cy (ppm-m) * Ws (m/s) * t (s) ] /density (g/m^3) * flooddepth (m)]
+  // where ppm-m is part per million, times meter
+
+
+  //double delt_sec = delt*SECPERYEAR;
+  //Dy = (Cy * ws * delt_sec)/ (density * flood_depth);
+  //Dy = (pow(Vs,2.0)*Cy*delt_sec)/Ez;
+  Dy = Cy * flood_depth * ws;         // (m^-1) * (m) * (s) ?
+
+  return Dy;
+}
+
+/**************************************************************\
+ ** tFloodplain::getSuspendedConcentration
+ **
+ ** Calculates the supended sediment concentration in mg/l
+ ** at a certain position in the floodplain, with distance
+ ** mindist from the closest channel node
+ \**************************************************************/
+double tFloodplain::getSuspendedConcentration(double minDist)
+{
+  //double Co = k*(channelnode->getQ)
+
+  double Co = 100.0;				// hard coded sediment concentration !
+  double C = Co * exp (-minDist/fplamda);
+
+  return C;
+}
+
+/*********************************************************\
+**   ConcentrationToHeight
+**   Calculate the dry thickness of the sediment suspended
+**   present in the floodwater column
+**
+\*********************************************************/
+
+double tFloodplain::ConcentrationToHeight(double flooddepth, tLNode *fpnode, double C)
+{
+  double Varea = fpnode->getVArea();
+
+  double density = 1.2;                            // density of the silt (g/cm^3)
+  double M3toLit = 1000.0;			    // convert M^3 to liters                                             // suspended sediment concentration         (mg/l)
+  double nliters = (flooddepth * Varea)* M3toLit;  // nliters of floodwater on this cell       (l)
+  double mgsed =  nliters*C;                       // mg suspended sed in that column          (mg)
+  double gsed =   mgsed/1000.0;                    // grams                                    (g)
+  double cubCmsed =  gsed/density;                  // n cubic cm's sediment                   (cm^3)
+  double cubMsed = cubCmsed/1000000.0;		     // cubic m's sediment                      (m^3)
+  double sedheight = cubMsed/Varea;		     // height of dry sed in the water column   (m)
+
+
+  // Or use something as Rd (rate of sedimentation) = C*Vsettling*(1-To/Tc)   (kgm^2s-1
+
+  //DEBUG
+  if(sedheight < 0.0 || sedheight > 10.0){
+    cout<<"ERROR in tFloodplain::CalculateSedHeight, very thick dry sediment column "<<endl;
+    cout<<"sedheight = "<<sedheight<<endl;
+  }
+
+  return sedheight;
+}
+
+/**************************************************************************\
+ **
+ ** @tMainChannelDriver::Raisebanks
+ **
+ ** Function that ensures that the elevation of the meandering channel is
+ ** always lower than the elevation of the surrounding banks, by raising the
+ ** banks artificially.
+ **
+ ** Called by: tMainchannelDriver::UpdateMainChannelElevation
+ ** Calls:     no functions
+ **
+ ** Created 7/03 (QC)
+\**************************************************************************/
+void tMainChannelDriver::RaiseBanks(double future_bed, tLNode *cn, tLNode *upstrN, double tm )
+{
+  assert(cn);
+  assert(upstrN);
+
+  tLNode *dstrN     = cn->getDownstrmNbr();
+  tArray<double> delz( num_grnsize_fractions );
+  tArray<double> delzRect( num_grnsize_fractions + 1);
+
+  // Water depth during this timestep Flood
+  double Flooddepth = kdb*pow( cn->getDrArea(), mqbmqs )
+    *pow( cn->getQ()/SECPERYEAR, mqs );
+
+  double HFD=0.5*Flooddepth;
+
+  tEdge *ce;
+  tSpkIter spokIter( cn );
+  //cout<<"Channel node is: "<<cn->getID()<<' '<<cn->getX() <<' '<<cn->getY()<<' '<<cn->getZ()<<'\n';
+
+  for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
+    {
+      if(ce->getDestinationPtr() != NULL){
+	if(ce->getDestinationPtr() != dstrN && ce->getDestinationPtr()!=upstrN){
+
+	  tLNode* banknode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
+	  if(banknode != NULL){
+	    // Make sure w're not blocking an active meander node:
+	    if(banknode->Meanders() != 1 && banknode != dstrN && banknode!=upstrN && banknode->getZ() < future_bed + HFD){
+	      delzRect[0] = 0.0;
+	      delzRect[1] = (future_bed + HFD) - banknode->getZ();  //raise bank with fines
+	      delz[0] = (future_bed + HFD) - banknode->getZ();
+
+	      banknode->IncrementAccummulatedDh(delzRect);
+	      banknode->EroDep( 0, delz, tm );                      // normal mesh
+	    }
+	  } // != NULL
+
+
+	} // != dstrN || ustrN
+      } //!= NULL
+
+    } // spoke loop
+}
 
 /**************************************************************************\
 **
@@ -282,7 +550,13 @@ bool tFloodplain::OptControlMainChan() const { return optControlMainChan; }
 \**************************************************************************/
 void tFloodplain::UpdateMainChannelHeight( double tm, tLNode * inletNode )
 {
+  if (0) //DEBUG
+    cout << "Floodplain:: start Updating Main Channel..."<<endl;
+
   chanDriver->UpdateMainChannelElevation( tm, inletNode );
+
+  if (0) //DEBUG
+    cout << "Floodplain:: Updated Main Channel..."<<endl;
 }
 
 
@@ -308,6 +582,22 @@ tMainChannelDriver::tMainChannelDriver( const tInputFile &infile )
   infile.WarnObsoleteKeyword("FP_AMPLITUDE", "FP_INLET_ELEVATION");
 
   infile.ReadItem( InletElevationVariation, "FP_INLET_ELEVATION");
+
+   kdb = infile.ReadItem( kdb, "HYDR_DEP_COEFF_DS" );
+   mqs = infile.ReadItem( mqs, "HYDR_DEP_EXP_STN" );
+   mqbmqs = infile.ReadItem( mqbmqs, "HYDR_DEP_EXP_DS" ) - mqs;
+
+   // Create the file used EVERY timestep for writing channel sinuosity, channel belt width etc.
+
+   char fname[87];
+#define THEEXT ".meander"
+   infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
+   strcat( fname, THEEXT );
+#undef THEEXT
+   meanderfile.open( fname );
+   if( !meanderfile.good() )
+     cerr << "Warning: unable to create meander geometry data file '"
+	  << fname << "'\n";
 }
 
 
@@ -333,51 +623,171 @@ tMainChannelDriver::tMainChannelDriver( const tInputFile &infile )
 void tMainChannelDriver::UpdateMainChannelElevation( double tm,
 						     tLNode * inletNode )
 {
+  int counter;
   double newInletElevation,
     elev,
     chanslp;
   tEdge * fe;    // Ptr to flow edge of current node
-  tLNode * cn;   // Current node along main channel
+  tLNode * cn,*pn;   // Current node along main channel
 
   assert( inletNode != 0 );
 
+
+
   // Update elevation at head of channel reach (inlet)
-  newInletElevation = drop + InletElevationVariation.calc( tm );
+  newInletElevation = InletElevationVariation.calc( tm );
 
   // Compute length and slope of channel
   cn = inletNode;
+
+  if(cn->getZ() > newInletElevation){
+    cout<<"Channel goes down " <<cn->getZ()-newInletElevation<< " m"<<endl;
+  } else if(cn->getZ()< newInletElevation){
+    cout<<"Channel goes up " << newInletElevation-cn->getZ()<< " m"<<endl;
+  }
+
+  counter=0;
   double totlen = 0.0;  // Total length of channel found so far
+  double maxY = inletNode->getY();
+  double minY = inletNode->getY();
   do
     {
       fe = cn->getFlowEdg();
       assert( fe );
       totlen += fe->getLength();
+
+      if(cn->getY() > maxY){ maxY = cn->getY(); }
+      if(cn->getY() < minY){ minY = cn->getY(); }
+
+      //DEBUG
+      if( cn->getZ() < cn->getDownstrmNbr()->getZ()  ){
+      	cout<<"  "<<endl;
+      	cout<<"Bump In Floodplain loop "<<endl;
+      	cout<<"for ID "<<cn->getID()<<" z= "<<cn->getZ()<<endl;
+      	cout<<"Its downstream z = "<<cn->getDownstrmNbr()->getZ()<<endl;
+      	cout<<"  "<<endl;
+      	//exit(1);
+      }
+      //END DEBUG
+
+      counter++;
+
       cn = cn->getDownstrmNbr();
       assert( cn );
+      if (0) //DEBUG
+	cout<< "Meander Nodes " <<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
+	    <<" Q= "<<cn->getQ()<<" W= "<<cn->getChanWidth()
+	    << " MStatus="<<cn->Meanders()<<endl;
+
+
     }
-  while( cn->getBoundaryFlag()==kNonBoundary );
+  while( cn->getBoundaryFlag()==kNonBoundary && counter < 1000  );
+
+  if(counter == 1000){                                                    //DEBUG
+    cout<<"   \n";
+    cout<<"--------------------------------------------------------------------\n";
+    cout<<" WARNING:Channel does not find a boundary in function               \n";
+    cout<<" tMainChannelDriver::UpdateChannelElevation in floodplain.cpp       \n";
+    cout<<" 								       \n";
+    cout<<" Recursion along meander path ?				       \n";
+    cout<<" When this happens might also have problem in tLNode->getSlope()    \n";
+    cout<<"                                                                    \n";
+    cout<<" Showing the first 100 nodes below:                                 \n";
+    cout<<"--------------------------------------------------------------------\n";
+
+    int counter2=0;
+    cn=inletNode;
+    do
+      {
+	fe = cn->getFlowEdg();
+	assert( fe );
+	totlen += fe->getLength();
+	counter++;
+
+	cn = cn->getDownstrmNbr();
+	assert( cn );
+	cout<< "M-Nodes " <<cn->getID()<<' '<<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()<<" Q= "<<cn->getQ()<<" W= "<<cn->getChanWidth()<< " MStatus="<<cn->Meanders()<<endl;
+	counter2++;
+      }
+    while( cn->getBoundaryFlag()==kNonBoundary && counter2 < 100  );
+    //exit(1);
+
+  } //end debug
+
+  // FIXME BIG HACK
+  if(counter==1000) totlen=7000.;
   chanslp = drop / totlen;
 
+
+  cout  << "Channel Belt Geometry:       "<< endl;
+  cout  << "1) Channel length= "<<totlen << " m"<< endl;
+  cout  << "2) Sinuosity = "<<totlen/5000.0 << " - "<< endl;
+  cout  << "3) Channel belt width = "<< maxY - minY<< " m"<< endl;
+  cout  << "4) Chanslope ="<<chanslp<<" - "<< endl;
+  cout  << "5) InletElev ="<<inletNode->getZ()<<endl;
+  cout  << "       "<< endl;
+
+
+  meanderfile<<tm<<" "<<totlen<<" "<<totlen/5000.<<" "<<maxY-minY
+	     <<" "<<chanslp<<inletNode->getZ()<<endl;
+
   // Update elevations of all channel points below inlet
-  tArray<double> delz( num_grnsize_fractions );
+  tArray<double> delz( num_grnsize_fractions );           // for the triangular nodes
+  tArray<double> delzRect( num_grnsize_fractions + 1);    // CAREFUL, temp Hack by Q., this way you have 2 classes in StratGrid, but only one in the mesh
   elev = newInletElevation;
   cn = inletNode;
+  pn = cn;
+  //cout<< "Inlet Node = " <<cn->getX()<< ' ' << cn->getY()<<endl;
+
   do
     {
-      // Set elevation of current node
-      delz[num_grnsize_fractions-1] = elev - cn->getZ();
+      //RaiseBanks(elev,cn,pn,tm);
+
+      if(elev - cn->getZ() > 0.0){
+      	delzRect[0] = elev - cn->getZ();   // coarse
+      	delzRect[1] = 0.0;                 // fine
+
+      	delz[0] = elev - cn->getZ();
+
+      }
+      // 'Erosion' because channel goes down
+      // Erode only the fines, you have enough of these
+      else if( elev - cn->getZ() < 0.0){
+      	delzRect[0] = 0.0;
+      	delzRect[1] = elev - cn->getZ();
+
+      	delz[0] = elev - cn->getZ();
+      }
+
+      //cout <<" Channeldriver "<< cn->getX() << ' '<< cn->getY()<<"dh0= "<< delzRect[0] << " dh1= " <<delzRect[1] << '\n';
+
+      cn->IncrementAccummulatedDh(delzRect);
       cn->EroDep( 0, delz, tm );
 
-      // Calculate new elevation of downstream node
-      fe = cn->getFlowEdg();
-      assert( fe );
-      elev = elev - chanslp * fe->getLength();
+      // Calculate new elevation of downstream node. However
+      // First, find the local slope along this segment. If the local slope is much large than the
+      // average slope, we most likely had an avulsion, and the river is flowing down
+      // laterally over one of the floodplain/levee wings. In this case DO NOT raise
+      // the channel bed.
+
+      double local_slope = (cn->getZ()) - (cn->getDownstrmNbr()->getZ())/ cn->getFlowEdg()->getLength();
+
+      if(local_slope < 3.0*chanslp){
+        fe = cn->getFlowEdg();
+        assert( fe );
+        elev = elev - chanslp * fe->getLength();          // this will raise the slope of downstream nodes
+      }
+      else if(local_slope >= 3.0*chanslp){
+        elev= cn->getDownstrmNbr()->getZ();              // this will keep them, locally,  unchanged
+      }
 
       // Move to downstream node
+      pn = cn;
       cn = cn->getDownstrmNbr();
       assert( cn );
     }
-  while( cn->getBoundaryFlag()==kNonBoundary );
+  while( cn->getBoundaryFlag()==kNonBoundary
+	 && counter < 1000 );              // until we hit the boundary
 
 
 }

@@ -18,7 +18,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.16 2004-01-29 17:09:22 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.17 2004-03-05 16:11:50 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -30,7 +30,6 @@
 #include "../tMeshList/tMeshList.h"
 #include "../tLNode/tLNode.h"
 #include "../tInputFile/tInputFile.h"
-
 #include "../tTimeSeries/tTimeSeries.h"
 
 #define kVeryFar 1.0e12
@@ -62,11 +61,17 @@ class tMainChannelDriver
 public:
   tMainChannelDriver( const tInputFile &infile );
   void UpdateMainChannelElevation( double tm, tLNode * inletNode );
+  void RaiseBanks( double, tLNode *, tLNode*,double);
 
 private:
   tTimeSeries InletElevationVariation; // Elev oscillation [L]
   double drop;      // Channel elevation drop from top to bottom of valley [L]
+
   int num_grnsize_fractions;  // No. of grain size fractions
+  double kdb;             // depth-disch coeff (lumped; see tFloodplain.cpp)
+  double mqs;             // depth-disch at-a-station exponent
+  double mqbmqs;          // bankfull minus at-a-station exponents
+  ofstream meanderfile;   // file in which every timestep some information of the channel is written
 };
 
 
@@ -99,9 +104,14 @@ public:
   void DepositOverbank( double precip, double delt, double ctime );
   bool OptControlMainChan() const;
   void UpdateMainChannelHeight( double tm, tLNode * inletNode );
+  double FloodplainDh(double, double, tLNode * );		// Howard, 1992
+  double FloodplainDh2(double , double, double , double );      // Gross and Small, 1998
+  double getSuspendedConcentration(double);
+  double ConcentrationToHeight(double, tLNode *, double );
 
 private:
-  double fpmu;            // "mu" parameter of Howard model
+  tTimeSeries fpmuVariation;   // "mu" parameter of Howard model, value dependent of time
+  int fpmode;                  // 1) Howard   2) modified form based on suspension in column and where C~kQcha.
   double fplamda;         // "lamda" (distance-decay) parameter
   double kdb;             // depth-disch coeff (lumped; see tFloodplain.cpp)
   double event_min;       // bankfull event precip rate
@@ -111,6 +121,7 @@ private:
   tMainChannelDriver *chanDriver;   // if user wants to control chan elev
   tMesh<tLNode> *meshPtr; // ptr to mesh
   tArray<double> deparr;  // depth deposited (# grn size; all but 1st=0)
+  tArray<double> deparrRect; // same but for rectangular grid
   bool optControlMainChan;  // option to treat chan elev as boundary cond
 };
 
