@@ -5,7 +5,7 @@
 **  tStreamNet objects contain data and functions related to flow routing
 **  and sediment transport across the landscape surface.
 **
-**  $Id: tStreamNet.h,v 1.14 1998-03-31 23:52:30 stlancas Exp $
+**  $Id: tStreamNet.h,v 1.15 1998-04-22 00:15:47 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -80,6 +80,7 @@ public:
    void setMndrDirChngProb( double );
    void UpdateNet();
    void UpdateNet( tStorm & );
+   void CheckNetConsistency();
    void CalcSlopes();
    //Xvoid CalcVAreas();
    void InitFlowDirs();

@@ -4,11 +4,11 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.36 1998-04-21 00:29:43 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.37 1998-04-22 00:14:57 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
-#define kBugTime 500
+#define kBugTime 5000000
 
 extern "C" 
 {
