@@ -28,6 +28,7 @@ public:
   void write(ofstream& f) const;
 public:
   double x,y;
+  int id;
 };
 
 class edge{
