@@ -6,9 +6,12 @@
 /***************************************************************************/
 
 #include "TipperTriangulator.h"
-#include "../errors/errors.h"
 
-#include <stdlib.h>
+#if defined(TIPPER_TEST)
+# include <stdlib.h>
+#else
+# include "../errors/errors.h"
+#endif
 
 void tt_error_handler(void){
 #if defined(TIPPER_TEST)
