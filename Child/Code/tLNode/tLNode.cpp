@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.52 1998-07-20 22:25:11 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.53 1998-07-22 18:43:17 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1634,7 +1634,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
             // keep eroding until you either get all the material you
             // need to refill the top layer, or you run out of material
             hupdate = addtoLayer(i+1, val);//remove stuff from lower layer
-            setLayerFlag(i+1,1);//book keeping - might remove layer
+            setLayerFlag(i+1,1);//book keeping - might remove later
             g=0;
             while(g<numg)
             {
@@ -1663,7 +1663,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
              g++;
           }
       }
-      if(getLayerDepth(i)<=1e-15)
+      if(getLayerDepth(i)<=1e-10)
           removeLayer(i);
    }
    else if(val>0)
@@ -1806,7 +1806,7 @@ tArray<double> tLNode::addtoLayer(int i, double val)
       hlp=ly.NextP();
    }
 
-   if(-1*val<hlp->getDepth())
+   if(hlp->getDepth()+val>1e-7)
    {
       // have enough material in this layer to fufill all erosion needs
       amt=hlp->getDepth();
