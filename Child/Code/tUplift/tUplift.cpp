@@ -2,7 +2,7 @@
 **
 **  tUplift.cpp: Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.8 2000-06-15 17:43:04 gtucker Exp $
+**  $Id: tUplift.cpp,v 1.9 2000-06-19 17:39:01 gtucker Exp $
 \************************************************************************/
 
 #include "tUplift.h"
@@ -67,6 +67,7 @@ tUplift::tUplift( tInputFile &infile )
           foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
           slipRate = infile.ReadItem( slipRate, "TIGHTENINGRATE" );
           faultPosition = infile.ReadItem( faultPosition, "ANTICLINEYCOORD" );
+          positionParam1 = infile.ReadItem( positionParam1, "ANTICLINEXCOORD");
           deformStartTime1 = 
               infile.ReadItem( deformStartTime1, "YFOLDINGSTART" );
           foldParam2 = infile.ReadItem( foldParam2, "UPSUBRATIO" );
@@ -268,13 +269,14 @@ void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
    // is used to store the Y location of the anticline peak (normally, the
    // upper boundary). The ratio of uplift to subsidence rates is controlled
    // by the parameter "foldParam2"; if uplift is positive, the rate is
-   // multiplied by this factor.
+   // multiplied by this factor. "positionParam1" is used to store the 
+   // x-location of the anticline.
    if( elapsedTime >= deformStartTime1 )
    {
       for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
       {
          uprate = rate * 
-             ( cos(PI*cn->getX()/foldParam) 
+             ( cos(PI*(positionParam1 - cn->getX())/foldParam) 
                + cos(TWOPI*(faultPosition-cn->getY())/foldParam) );
          if( uprate>0.0 ) uprate *= foldParam2;
          cn->ChangeZ( uprate*delt );
