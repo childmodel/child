@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.102 2002-05-01 14:48:29 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.103 2002-05-22 16:50:02 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -222,12 +222,22 @@ tMesh<tSubNode>::tMesh( tMesh *originalMesh )
 \**************************************************************************/
 template< class tSubNode >
 tMesh< tSubNode >::
-tMesh( tInputFile &infile ) : nodeList()
+tMesh( tInputFile &infile )
+  :
+  nnodes(0),
+  nedges(0),
+  ntri(0),
+  nodeList(),
+  seed(0),
+  layerflag(FALSE),
+  miNextNodeID(0),
+  miNextEdgID(0),
+  miNextTriID(0),   
+  mSearchOriginTriPtr(0)
 {
-   int read;   // option for reading/generating initial mesh
-
-   miNextNodeID = miNextEdgID = miNextTriID = 0;
-   nnodes = nedges = ntri = 0;
+   // mSearchOriginTriPtr:
+   // initially set search origin (tTriangle*) to zero:
+   // in initialisation list
 
    // As "layerflag" is used in this constructor, we compute it now.
    {
@@ -236,7 +246,8 @@ tMesh( tInputFile &infile ) : nodeList()
      if(help>0) layerflag=TRUE;
      else layerflag=FALSE;
    }
-   read = infile.ReadItem( read, "OPTREADINPUT" );
+   // option for reading/generating initial mesh
+   int read = infile.ReadItem( read, "OPTREADINPUT" );
    if( read<0 || read>4 )
    {
       cerr << "Valid options for reading mesh input are:\n"
@@ -248,9 +259,6 @@ tMesh( tInputFile &infile ) : nodeList()
       ReportFatalError( "Invalid mesh input option requested." );
    }
    
-   // initially set search origin (tTriangle*) to zero:
-   mSearchOriginTriPtr = 0;
-
    if( read==1 ) {
      int lay;  // option for reading layer info
       MakeMeshFromInputData( infile ); //create mesh by reading data files
