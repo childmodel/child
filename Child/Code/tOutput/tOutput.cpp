@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.20 1999-04-01 16:03:04 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.21 1999-04-05 15:08:18 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -14,20 +14,20 @@
 **
 **  Constructor
 **
-**  The constructor takes two arguments, a pointer to the grid mesh and
+**  The constructor takes two arguments, a pointer to the mesh and
 **  a reference to an open input file. It reads the base name for the
 **  output files from the input file, and opens and initializes these.
 **
-**  Input: gridPtr -- pointer to a tGrid object (or descendant), assumed
+**  Input: meshPtr -- pointer to a tMesh object (or descendant), assumed
 **                    valid
 **         infile -- reference to an open input file, assumed valid
 **
 \*************************************************************************/
 template< class tSubNode >
-tOutput<tSubNode>::tOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile )
+tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile )
 {
-   assert( gridPtr > 0 );
-   g = gridPtr;
+   assert( meshPtr > 0 );
+   m = meshPtr;
 
    infile.ReadItem( baseName, "OUTFILENAME" );
 
@@ -94,16 +94,16 @@ void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
 template< class tSubNode >
 void tOutput<tSubNode>::WriteOutput( double time )
 {
-   tGridListIter<tSubNode> niter( g->getNodeList() ); // node list iterator
-   tGridListIter<tEdge> eiter( g->getEdgeList() );    // edge list iterator
-   tListIter<tTriangle> titer( g->getTriList() );     // tri list iterator
+   tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
+   tMeshListIter<tEdge> eiter( m->getEdgeList() );    // edge list iterator
+   tListIter<tTriangle> titer( m->getTriList() );     // tri list iterator
    tNode * cn;       // current node
    tEdge * ce;       // current edge
    tTriangle * ct;   // current triangle
    int id;           // id of element (node, edge, or triangle)
-   int nnodes = g->getNodeList()->getSize();  // # of nodes on list
-   int nedges = g->getEdgeList()->getSize();  // "    edges "
-   int ntri = g->getTriList()->getSize();     // "    triangles "
+   int nnodes = m->getNodeList()->getSize();  // # of nodes on list
+   int nedges = m->getEdgeList()->getSize();  // "    edges "
+   int ntri = m->getTriList()->getSize();     // "    triangles "
 
    cout << "tOutput::WriteOutput()\n";
    
@@ -176,8 +176,8 @@ void tOutput<tSubNode>::WriteNodeData( double time )
 **
 \*************************************************************************/
 template< class tSubNode >
-tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile ) 
-        : tOutput<tSubNode>( g, infile )  // call base-class constructor
+tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *m, tInputFile &infile ) 
+        : tOutput<tSubNode>( m, infile )  // call base-class constructor
 {
    CreateAndOpenFile( &drareaofs, ".area" );
    CreateAndOpenFile( &netofs, ".net" );
@@ -203,10 +203,10 @@ tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile )
 template< class tSubNode >
 void tLOutput<tSubNode>::WriteNodeData( double time )
 {
-   tGridListIter<tSubNode> ni( g->getNodeList() ); // node list iterator
+   tMeshListIter<tSubNode> ni( m->getNodeList() ); // node list iterator
    tSubNode *cn;   // current node
-   int nActiveNodes = g->getNodeList()->getActiveSize(); // # active nodes
-   int nnodes = g->getNodeList()->getSize();             // total # nodes
+   int nActiveNodes = m->getNodeList()->getActiveSize(); // # active nodes
+   int nnodes = m->getNodeList()->getSize();             // total # nodes
    int i, j;      // counters
 
    // Write current time in each file

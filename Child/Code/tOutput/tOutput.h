@@ -10,7 +10,7 @@
 **  tOutput provides functions to open and initialize output files and
 **  write output at a specified time in a simulation. The class is
 **  templated in order to allow for a pointer to a templated
-**  tGrid object.
+**  tMesh object.
 **
 **  To handle output of application-specific data, one can create a
 **  class inherited from tOutput and overload its virtual
@@ -21,7 +21,7 @@
 **  the CHILD model. In the future, such inherited classes will be
 **  kept in separate files to preserve the generality of tOutput.
 **
-**  $Id: tOutput.h,v 1.7 1999-03-31 23:08:58 gtucker Exp $
+**  $Id: tOutput.h,v 1.8 1999-04-05 15:08:27 gtucker Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -31,10 +31,10 @@
 #include <string.h>
 #include <assert.h>
 #include "../errors/errors.h"
-#include "../tGridList/tGridList.h"
-#include "../GridElements/gridElements.h"
+#include "../tMeshList/tMeshList.h"
+#include "../MeshElements/meshElements.h"
 #include "../tInputFile/tInputFile.h"
-#include "../tGrid/tGrid.h"
+#include "../tMesh/tMesh.h"
 
 #define kMaxNameSize 80
 
@@ -56,13 +56,13 @@ template< class tSubNode >
 class tOutput
 {
 public:
-    tOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile );
+    tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
     void WriteOutput( double time );
     virtual void WriteNodeData( double time );
     void CreateAndOpenFile( ofstream * theOFStream, char * extension );
 
 protected:
-    tGrid<tSubNode> * g;          // ptr to grid (for access to nodes, etc)
+    tMesh<tSubNode> * m;          // ptr to mesh (for access to nodes, etc)
     char baseName[kMaxNameSize];  // name of output files
     ofstream nodeofs;             // output file for node data
     ofstream edgofs;              // output file for edge data
@@ -84,7 +84,7 @@ template< class tSubNode >
 class tLOutput : public tOutput<tSubNode>
 {
 public:
-    tLOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile );
+    tLOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
     void WriteNodeData( double time );
 private:
     ofstream drareaofs;  // Drainage areas
