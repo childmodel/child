@@ -4,11 +4,11 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.35 1998-04-19 23:46:47 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.36 1998-04-21 00:29:43 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
-#define kBugTime 6000000
+#define kBugTime 500
 
 extern "C" 
 {
@@ -310,7 +310,17 @@ void tStreamMeander::FindChanGeom()
 /****************************************************************\
 **
 **	InterpChannel: Fill in points between widely spaced
-**			channel nodes with noisy interpolation
+**			channel nodes with noisy interpolation (i.e., don't make
+**      perfectly straight lines). If only one point is added, it's
+**      added in between the two channel nodes, colinear except for
+**      a small random perturbation. If more than one node is added
+**      between a channel pair, then the routine generates a random
+**      walk in which the step size is weighted by an exponential
+**      which decays as the distance from the line connecting the
+**      two channel points increases. This weighting tends to keep
+**      the final point of the walk within reasonable bounds.
+**
+**      Uses reachList.
 **			
 **	
 **		Parameters: dscrtwids -- default spacing in # hydr widths
@@ -454,7 +464,8 @@ int tStreamMeander::InterpChannel()
 
 /*****************************************************************************\
 **
-**      MakeReaches : takes care of the loop of
+**      MakeReaches : Does everything needed to make meandering reaches.
+**                    Takes care of the loop of
 **                    1) find meandering nodes
 **                    2) make reaches out of meandering nodes
 **                    3) go through reaches and add points
@@ -475,6 +486,7 @@ int tStreamMeander::InterpChannel()
 
 void tStreamMeander::MakeReaches()
 {
+   netPtr->UpdateNet(); //first update the net
    do
    {
       FindMeander(); //if Q > Qcrit, meander = TRUE
@@ -484,7 +496,7 @@ void tStreamMeander::MakeReaches()
       FindHydrGeom();//if meander = TRUE, find hydr. geom.
       FindReaches(); //find reaches of meandering nodes
    }
-   while( InterpChannel() );
+   while( InterpChannel() ); //updates
    //cout << "done MakeReaches" << endl;
 }
 
@@ -713,6 +725,13 @@ void tStreamMeander::FindReaches()
 **        fortran by way of the tArray member ptr, gotten
 **        with getArrayPtr().
 **
+**        Also sets "old" x and y to present node coords if they
+**        have not been set already for meandering nodes. Leaves
+**        old z and channel side flag unset (=0) to indicate that
+**        these are not the coords at which a point will be dropped.
+**        Rather, these coords are used to determine how far the
+**        meandering node has moved since it last dropped a node.
+**
 **		Parameters:	allowfrac -- fraction of chanwidth 
 **				          a node is allowed to move in a 
 **				          given meander iteration
@@ -920,12 +939,18 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
 
 /****************************************************************\
 **	
-**  Migrate: 
-**		Parameters:
+**  Migrate: The "master" meandering routine, it calls all of the
+**    routines which "do" the meandering
+**		Parameters: storm duration
 **		Called by: Main
-**    Calls: CalcMigration, MakeChanBorder, CheckBanksTooClose,
-**           CheckFlowedgCross, CheckBrokenFlowedg,
-**           tGrid::MoveNodes, AddChanBorder
+**    Calls: MakeReaches--calls all routines necessary to make reaches
+**           CalcMigration--calls meander model, sets newx, newy
+**           MakeChanBorder--sets "old" coords
+**           CheckBanksTooClose--deletes non-meandering nodes in the channel
+**           CheckFlowedgCross--deletes nodes swept over by a migrating channel
+**           CheckBrokenFlowedg--deletes points that are too close to the channel
+**           tGrid::MoveNodes--changes node coords, updates grid
+**           AddChanBorder--"drops" nodes at old coords
 **		Created: 1/98 SL
 **
 \***************************************************************/
@@ -936,35 +961,44 @@ void tStreamMeander::Migrate()
    double time = 0.0;
    double cummvmt = 0.0;
    //timeadjust = 86400. * pr->days;
-   while( time < duration && !(reachList.isEmpty()) )
+   while( time < duration )
    {
-      CalcMigration( time, duration, cummvmt ); //incremented time
-      MakeChanBorder( /*bList*/ ); //bList of coordinate arrays made
-      CheckBrokenFlowedg();
-      CheckBanksTooClose();
-      CheckFlowedgCross();
-      gridPtr->MoveNodes();
-      AddChanBorder( /*bList*/ );
-      //after the channel migrates a certain amount
-      //(here, maximum migration distances, in units of hydr. width,
-      //at each iteration are summed and compared to 1.0)
-      //update the stream net, redo the reaches,
-      //interpolate if necessary, etc.
-        //if( cummvmt > 1.0 )
-        //{
-      netPtr->UpdateNet();
-      MakeReaches();
-           //cummvmt = 0.0;
-           //}
+      MakeReaches(); //updates net, makes reachList
+      if( !(reachList.isEmpty()) )
+      {
+         CalcMigration( time, duration, cummvmt ); //incr time; uses reachList
+         MakeChanBorder(); //uses reachList
+         CheckBanksTooClose(); //uses reachList
+         CheckFlowedgCross(); //uses tGrid::nodeList
+         CheckBrokenFlowedg(); //uses tGrid::nodeList
+         gridPtr->MoveNodes(); //uses tGrid::nodeList
+         AddChanBorder(); //uses tGrid::nodeList
+      }
+        //MakeReaches(); had called from main routine and here
    }
 }
 
 
 /******************************************************************************\
 **
-**      MakeChanBorder(): Make stack of point coords for left and right banks
-**                        of meandering channels; called after _meander but
-**                        before points are actually moved on the grid.
+**      MakeChanBorder(): This function sets the "old coordinates" of the
+**                        migrating node; i.e., the coordinates at which a new
+**                        node will be "dropped" by a meander node. Checks present
+**                        coords against the coords set in CalcMigration. If the
+**                        present coords are more than half a hydraulic width
+**                        away from the old coords, then the old x, y, and z
+**                        values are set to correspond to the present location
+**                        of the bank away from which the node is moving and
+**                        the bed elevation at that bank, respectively. Also,
+**                        "d" is set to indicate which side of the channel that
+**                        bank is on, 1 for the left side, -1 for the right side.
+**                        That way, now and when it's time for the node to be dropped,
+**                        we can make sure it's still on the same side of the
+**                        channel as when the coords were set. If the channel
+**                        side changes, reset z and d to zero.
+**
+**                        All of this is done after CalcMigration has been called
+**                        but before tGrid::MoveNodes is called.
 **
 **              Parameters:     
 **              Called by:      Migrate
@@ -993,12 +1027,13 @@ void tStreamMeander::MakeChanBorder()
       {
          width = cn->getHydrWidth();
          oldpos = cn->getXYZD();
-         if( oldpos[3] == 0.0 )
+         if( oldpos[3] == 0.0 ) //if channel side is still unset,
          {
-            if( cn->DistFromOldXY() >= 0.5 * width )
+            if( cn->DistFromOldXY() >= 0.5 * width ) //if moved more than 1/2-width
             {
-               cout << "node " << cn->getID()
-                    << " >= width/2 from old coords" << endl;
+                 //cout << "node " << cn->getID()
+                 //   << " >= width/2 from old coords" << endl;
+                 //find coordinates of banks, i.e., coords at n = + and -width 
                cnpos = cn->get2DCoords();
                cnbr = cn->GetDownstrmNbr();
                dsnpos = cnbr->get2DCoords();
@@ -1013,29 +1048,26 @@ void tStreamMeander::MakeChanBorder()
                ydisp = 0.5 * width * cos(phi);
                rl = cn->getZOld();
                z = cn->getZ();
+                 //find which side of the channel the old coords are at:
                if( PointsCCW( cnpos, dsnpos, oldpos ) )
                {
                   oldpos[0] = x0 - xdisp;
                   oldpos[1] = y0 + ydisp;
-                  //oldpos[0] = x0 + xdisp;
-                  //oldpos[1] = y0 - ydisp;
                   oldpos[2] = ( rl[1] > z ) ? rl[1] : z;
                   oldpos[3] = 1.0;
-                  cout << "node " << cn->getID()
-                       << " old pos set, on left side of channel" << endl;
+                    //cout << "node " << cn->getID()
+                    //   << " old pos set, on left side of channel" << endl;
                }
                else
                {
                   oldpos[0] = x0 + xdisp;
                   oldpos[1] = y0 - ydisp;
-                  //oldpos[0] = x0 - xdisp;
-                  //oldpos[1] = y0 + ydisp;
                   oldpos[2] = ( rl[0] > z ) ? rl[0] : z;
                   oldpos[3] = -1.0;
-                  cout << "node " << cn->getID()
-                       << " old pos set, on right side of channel" << endl;
+                    //cout << "node " << cn->getID()
+                    //   << " old pos set, on right side of channel" << endl;
                }
-               cn->setXYZD( oldpos );
+               cn->setXYZD( oldpos );  //coords found, update node data member
             }
          }
          else
@@ -1053,9 +1085,9 @@ void tStreamMeander::MakeChanBorder()
                oldpos[2] = 0.0;
                oldpos[3] = 0.0;
                cn->setXYZD( oldpos );
-               cout << "node " << cn->getID()
-                    << " switched sides of channel: reinitialize z coord."
-                    << endl;
+                 //cout << "node " << cn->getID()
+                 //   << " switched sides of channel: reinitialize z coord."
+                 //   << endl;
             }
          }         
       }
@@ -1117,9 +1149,14 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
 */
 /******************************************************************************\
 **
-**	AddChanBorder: After meandering points have been moved and the
-**                       triangulation adjusted, check points in list to 
-**                       find whether they should be discarded or added.
+**	AddChanBorder: For meandering nodes with placement coords set, check whether
+**                 a new node should be dropped. First, check the distance from
+**                 the old coords vs. the distance specified in the input file.
+**                 If far enough, make sure the old coords are
+**                 not presently in the channel and that they are on the same
+**                 side of the channel as when they were set. If either of
+**                 these conditions are not met, reset old coords to zero.
+**                 If the conditions are met, add a new node.
 **
 **              Parameters:     uses node->hydrwidth and, indirectly, 
 **                              parameters which determine hydraulic geometry
@@ -1138,7 +1175,6 @@ void tStreamMeander::AddChanBorder()
    tLNode *cn, *tn, *dn, *channodePtr, channode;
    tGridListIter< tLNode > nIter( gridPtr->GetNodeList() ),
        tI( gridPtr->GetNodeList() );
-   //go through list of coordinates made by MakeChanBorder:
    //go through active nodes:
    for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
    {
@@ -1176,7 +1212,7 @@ void tStreamMeander::AddChanBorder()
                      {
                         if( inchan = InChannel( tn, &channode ) )
                         {
-                           cout << "old coord's in channel" << endl;
+                             //cout << "old coord's in channel" << endl;
                            break;
                         }
                      }
@@ -1196,15 +1232,15 @@ void tStreamMeander::AddChanBorder()
                                   ( !pccw && oldpos[3] == -1.0 ) ) )
                            {
                               sameside = 0;
-                              cout << "old coord's switched sides" << endl;
+                                //cout << "old coord's switched sides" << endl;
                               break;
                            }
                         }
                      }
                      if( sameside )
                      {
-                        cout << "node " << cn->getID()
-                             << "'s old coords pass: add new node" << endl;
+                          //cout << "node " << cn->getID()
+                          //   << "'s old coords pass: add new node" << endl;
                         for( i=0; i<3; i++ ) xyz[i] = oldpos[i];
                         channodePtr = gridPtr->AddNodeAt( xyz );
                         channodePtr->setRock( cn->getRock() );
@@ -1213,38 +1249,38 @@ void tStreamMeander::AddChanBorder()
                           //gridPtr->AddNode( channode );
                         for( i=0; i<4; i++ ) oldpos[i] = 0.0;
                         cn->setXYZD( oldpos );
-                        cout << "node " << cn->getID()
-                             << ": reinitialize old coords" << endl;
+                          //cout << "node " << cn->getID()
+                          //   << ": reinitialize old coords" << endl;
                      }
                      else
                      {
                         
                         for( i=0; i<4; i++ ) oldpos[i] = 0.0;
                         cn->setXYZD( oldpos );
-                        cout << "node " << cn->getID()
-                             << ": reinitialize old coords" << endl;
+                          //cout << "node " << cn->getID()
+                          //   << ": reinitialize old coords" << endl;
                      }
                   }
                   else
                   {
-                     cout << "if old coord's not in channel, no vtx was meandering"
-                          << endl;
+                       //cout << "if old coord's not in channel, no vtx was meandering"
+                       //   << endl;
                      if( i == 3 ) //no vtx was meandering
                      {
                         for( i=0; i<4; i++ ) oldpos[i] = 0.0;
                         cn->setXYZD( oldpos );
-                        cout << "node " << cn->getID()
-                             << ": reinitialize old coords" << endl;
+                          //cout << "node " << cn->getID()
+                          //   << ": reinitialize old coords" << endl;
                      }
                   }
                }
                else
                {
-                  cout << "old coords not in any triangle" << endl;
+                    //cout << "old coords not in any triangle" << endl;
                   for( i=0; i<4; i++ ) oldpos[i] = 0.0;
                   cn->setXYZD( oldpos );
-                  cout << "node " << cn->getID()
-                       << ": reinitialize old coords" << endl;
+                    //cout << "node " << cn->getID()
+                    //   << ": reinitialize old coords" << endl;
                }
             }
          }
@@ -1392,16 +1428,16 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
          //find height dependence:
          //if elev diff > hydraulic depth, ratio of depth to bank height;
          //o.w., keep nominal erody:
-         cout << "FBE 4" << H << " " << dz1 << endl << flush;
+           //cout << "FBE 4" << H << " " << dz1 << endl << flush;
          if( dz1 > H ) E1 *= (Pdz * H / dz1 + (1 - Pdz));
-         cout << "FBE 5" << endl << flush;
+           //cout << "FBE 5" << endl << flush;
          if( dz2 > H ) E2 *= (Pdz * H / dz2 + (1 - Pdz));
          //now we've found erod'ies at ea. node, find weighted avg:
          assert( D > 0.0 );
-         cout << "FBE 6" << endl << flush;
+           //cout << "FBE 6" << endl << flush;
          lrerody[j] = (E1 * d2 + E2 * d1) / D;
          j++;
-         cout << "FBE 7" << endl << flush;
+           //cout << "FBE 7" << endl << flush;
       }
       i++;
       ce = ce->GetCCWEdg();
@@ -1509,7 +1545,10 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
 
 /*****************************************************************************\
 **
-**        CheckBanksTooClose()
+**  CheckBanksTooClose(): This simply checks the non-meandering neighbors of all
+**                        meandering nodes to make sure they're not in the
+**                        channel segment defined by the meandering node and its
+**                        downstream neighbor.
 **
 **		Parameters:	
 **		Called by:	
