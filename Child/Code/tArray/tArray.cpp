@@ -3,7 +3,7 @@
  **  @file tArray.cpp
  **  @brief Functions for template class tArray< T >
  **
- **  $Id: tArray.cpp,v 1.25 2004-03-22 12:20:13 childcvs Exp $
+ **  $Id: tArray.cpp,v 1.26 2004-04-22 17:21:41 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -41,6 +41,16 @@ tArray( int number ) :
     avalue[i] = 0;
 }
 
+template< class T >
+tArray< T >::
+tArray( int number, const T &init) :
+  avalue(0), npts(number)
+{
+  assert( number > 0 );
+  avalue = new T [npts];
+  for( int i=0; i<npts; i++ )
+    avalue[i] = init;
+}
 //copy constructor
 template< class T >
 tArray< T >::

@@ -13,7 +13,7 @@
  **  argument passed to the constructor or by assignment of one array
  **  to another.
  **
- **  $Id: tArray.h,v 1.26 2004-03-22 12:20:14 childcvs Exp $
+ **  $Id: tArray.h,v 1.27 2004-04-22 17:21:41 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -44,6 +44,7 @@ class tArray
 public:
   inline tArray();                      // default constructor
   tArray( int );                 // constructor that initializes array size
+  tArray( int, const T& );
   tArray( const tArray< T > & ); // copy constructor
 
   inline tArray( const T&, const T& );  // Array of size 2 with 2 elements
