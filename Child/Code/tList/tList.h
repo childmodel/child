@@ -34,7 +34,7 @@
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **    - AD - March 2004: tListNode is a template argument.
  **
- **  $Id: tList.h,v 1.53 2004-03-26 18:11:33 childcvs Exp $
+ **  $Id: tList.h,v 1.54 2004-04-16 18:37:42 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -86,7 +86,7 @@ public:
   enum {
     isListable = false
   };
-  static tListNodeBasic< NodeType > *getListPtr( NodeType *ptr) {
+  static tListNodeBasic< NodeType > *getListPtr( NodeType const *ptr) {
     return 0;
   }
 
