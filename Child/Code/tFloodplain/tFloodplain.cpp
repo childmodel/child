@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.7 1999-04-16 20:50:52 nmgaspar Exp $
+**  $Id: tFloodplain.cpp,v 1.8 1999-06-10 18:45:26 gtucker Exp $
 \**************************************************************************/
 
 #include "tFloodplain.h"
@@ -125,15 +125,20 @@ tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
 **   - now uses call to EroDep with layer info. deparr is passed to
 **     EroDep; all overbank deposits are assumed to be finest fraction,
 **     which is assumed to be the 1st size in the array. GT 3/13/99
+**   - Deposition rate WITHIN main channel now reduced to 20% of
+**     nominal rate, based on the argument that (a) fine material is
+**     much less likely to settle out under the swift in-channel current,
+**     and (b) the coarse bedload material, which will, is typically
+**     ~20% of the total load. This is not ideal, but it allows
+**     in-channel deposition even under "detachment limited" conditions,
+**     and is a useful approximation for large-scale floodplain sim's.
+**     GT 6/99.
 **
 **    Parameters:
 **      precip -- precipitation rate for current storm event
 **      delt -- duration of current storm event
 **      ctime -- current time
 **    Notes:
-**      - deposition rate is current max AT flood nodes; however, there
-**        are physical arguments for reducing the deposition rate within
-**        a main channel, and this could be built in (TODO?)
 **
 \**************************************************************************/
 #define kYearpersec 3.171e-8 // 1/SecondsPerYear
@@ -154,7 +159,6 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
        dx,dy,            // x and y distance to flood node
        wsh,              // water surface height
        drarea;           // drainage area at flood node
-   //Xdepo;             // depth of sediment deposited
    
    //cout << "tFloodplain\n";
    
@@ -217,7 +221,12 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
          // computation)
          if( ( floodDepth = wsh - cn->getZ() ) > 0.0 )
          {
-            deparr[0] = floodDepth*fpmu*exp( -minDist/fplamda )*delt;
+            // Depth of deposition: if in a main channel, use 20% of
+            // dep rate as the bedload contribution, assuming that susp load
+            // is not deposited in main channel (obviously an approximation!);
+            // otherwise, use Howard formula
+            if( minDist==0.0 ) deparr[0] = 0.2*floodDepth*fpmu*delt;
+            else deparr[0] = floodDepth*fpmu*exp( -minDist/fplamda )*delt;
             if( deparr[0]>floodDepth)
                 cout << " *WARNING, deposit thicker than flood depth\n";
             //Xcn->ChangeZ( depo ); // (note: use layering-TODO)
