@@ -7,7 +7,7 @@
 **  name "tUplift" is a bit misleading in that the relative motions that
 **  the tUplift class models need not be solely vertical, but could for
 **  example include strike-slip deformation. Moreover, the class
-**  model _relative_ motion, which of course need not be of tectonic
+**  models _relative_ motion, which of course need not be of tectonic
 **  origin but could instead reflect sealevel or other baselevel changes.
 **  Since we have no good term that encompasses all these possibilities,
 **  "tUplift" seems the most convenient catch-all.
@@ -18,10 +18,12 @@
 **  function, which in turn calls the appropriate function (e.g.,
 **  UpliftUniform()) to implement the desired behavior.
 **
-**  $Id: tUplift.h,v 1.4 1999-01-05 21:22:13 gtucker Exp $
+**  $Id: tUplift.h,v 1.5 1999-04-01 19:02:40 gtucker Exp $
 \************************************************************************/
+
 #ifndef TUPLIFT_H
 #define TUPLIFT_H
+
 #include <iostream.h>
 #include "../tInputFile/tInputFile.h"
 #include "../tGrid/tGrid.h"
@@ -39,10 +41,10 @@ private:
     void BlockUplift( tGrid<tLNode> *gp, double delt );
 
 private:
-    int typeCode;
-    double duration;
-    double rate;
-    double faultPosition;
+    int typeCode;          // Code for the type of uplift desired
+    double duration;       // Duration of uplift
+    double rate;           // Rate of uplift
+    double faultPosition;  // Position of fault (y-location)
 
 };
 
