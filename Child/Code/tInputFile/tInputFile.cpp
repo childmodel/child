@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.33 2004-05-26 16:05:46 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.34 2004-05-26 16:21:30 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -28,7 +28,7 @@
 using namespace std;
 #else
 # include <iostream.h>
-# include <.h>
+# include <fstream.h>
 #endif
 
 #define kCommentMark '#'
