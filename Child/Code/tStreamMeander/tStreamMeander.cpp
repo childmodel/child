@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.65 1999-06-10 18:44:09 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.66 2000-01-13 23:55:07 gtucker Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -440,7 +440,7 @@ void tStreamMeander::FindChanGeom()
 int tStreamMeander::InterpChannel( double time )
 {
    //if( timetrack >= kBugTime ) 
-   cout << "InterpChannel()\n";
+   //cout << "InterpChannel()\n";
    int i, j, npts, num;
    double curwidth;
    double curseglen, defseglen, maxseglen, bigseglen;
@@ -908,7 +908,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
    tArray< double > bankerody;
    static double cumdbg=0.0; //debug
 
-   cout<<"tStreamMeander::CalcMigration()...";
+   //cout<<"tStreamMeander::CalcMigration()...";
 
    //loop through reaches:
    for( creach = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
@@ -1129,7 +1129,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
    time += dtm;
    cummvmt += maxfrac * dtm;
    
-   cout<<"done CalcMigration\n";
+   //cout<<"done CalcMigration\n";
    
 }
 
@@ -1177,7 +1177,7 @@ void tStreamMeander::Migrate( double ctime )
       MakeReaches( ctime ); //updates net, makes reachList
       if( !(reachList.isEmpty()) )
       {
-         cout<<"in loop "<<ctime<<" duration is "<<duration<<endl<<flush;
+         //cout<<"in loop "<<ctime<<" duration is "<<duration<<endl<<flush;
          CalcMigration( ctime, duration, cummvmt ); //incr time; uses reachList
          MakeChanBorder( ); //uses reachList
          CheckBndyTooClose();  //uses tMesh::nodeList
@@ -1225,7 +1225,7 @@ void tStreamMeander::Migrate( double ctime )
 \*****************************************************************************/
 void tStreamMeander::MakeChanBorder( )
 {
-   cout << "MakeChanBorder()" << endl;
+   //cout << "MakeChanBorder()" << endl;
    int i, j, num, pccw;
    double x0, y0, x1, y1, z, delx, dely, phi, width, xdisp, ydisp;
    //Xdouble val;
@@ -1394,7 +1394,7 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
 \***************************************************************************/
 void tStreamMeander::AddChanBorder(double time)
 {
-   cout << "AddChanBorder()" << endl;
+   //cout << "AddChanBorder()" << endl;
    int i, inchan, pccw, sameside;
    double lvdist, width;
    tArray< double > xy, xyd, oldpos, zeroArr(4), xyz(3);
@@ -1881,7 +1881,7 @@ void tStreamMeander::CheckFlowedgCross()
    tLNode *pointtodelete, *nod, *cn, *dscn;  
    tEdge * fedg, *ce;
    tTriangle * ct, *nt;
-   tListIter< tTriangle > triIter( meshPtr->getTriList() );
+   tPtrListIter< tTriangle > triIter( meshPtr->getTriList() );
    tPtrListIter< tEdge > spokIter;
      //delete node crossed by flowedg:
      //if a new triangle is !CCW and two vtcs. are connected by a flowedg AND
