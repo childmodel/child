@@ -33,7 +33,7 @@ umask 022
 - Add each ssh public key in $HOME/.ssh/authorized_keys on one line
   with the following model.
 
-command="cvs server",no-port-forwarding,no-pty,no-X11-forwarding 1024 37 11808<...>67042 foo@bar
+command="cvs server",no-port-forwarding,no-pty,no-X11-forwarding,no-agent-forwarding 1024 37 11808<...>67042 foo@bar
 
 (see 'man sshd', section 'AUTHORIZED_KEYS FILE FORMAT')
 The above line grant an access for the user having the associated private key.
