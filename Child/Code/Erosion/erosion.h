@@ -48,7 +48,7 @@
 **       a new DensifyMesh function and supporting data member
 **       mdMeshAdaptMaxFlux (gt 2/2000)
 **
-**  $Id: erosion.h,v 1.28 2000-03-30 22:41:38 gtucker Exp $
+**  $Id: erosion.h,v 1.29 2000-04-04 20:43:03 nmgaspar Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -227,7 +227,7 @@ public:
 private:
     tMesh<tLNode> *meshPtr;    // ptr to mesh
     tBedErodePwrLaw bedErode;  // bed erosion object
-    tSedTrans sedTrans;        // sediment transport object 
+    tSedTransWilcock sedTrans;        // sediment transport object 
     double kd;                 // Hillslope transport (diffusion) coef
     double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
 
