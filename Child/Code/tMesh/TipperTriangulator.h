@@ -73,11 +73,10 @@ public:
     _orientation(_e.o()) {}
   int e() const { return _edge; }
   bool o() const { return _orientation; }
-  void e(int e1) { _edge = e1; }
-  void o(bool o1) { _orientation = o1; }
-  oriented_edge next_ccw_around_to(const edge* edges) const;
-  oriented_edge next_cw_around_to(const edge* edges) const ;
-  oriented_edge ccw_edge_around_to(const edge* edges) const;
+  void set(int e1, bool o1) { _edge = e1; _orientation = o1; }
+  oriented_edge next_ccw_around_from(const edge* edges) const;
+  oriented_edge next_cw_around_from(const edge* edges) const ;
+  oriented_edge ccw_edge_around_from(const edge* edges) const;
 };
 
 // connectivity table element to node and edge

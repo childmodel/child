@@ -534,23 +534,7 @@ int edge_auxi_t::ielem_left() const { assert(left_visited_); return ie_left; }
 int edge_auxi_t::ielem_right() const { assert(right_visited_); return ie_right; }
 
 
-oriented_edge oriented_edge::next_ccw_around_to(const edge* edges) const {
-  int ires;
-  bool bres = true;
-  if (o()){
-    ires = edges[e()].ret;
-  } else {
-    ires = edges[e()].lef;
-  }
-  if (ires != -1){
-    bres = edges[ires].let == e();
-    if (!bres)
-      assert( edges[ires].ref == e());
-  }
-  return oriented_edge(ires,bres);
-}
-
-oriented_edge oriented_edge::next_cw_around_to(const edge* edges) const {
+oriented_edge oriented_edge::next_ccw_around_from(const edge* edges) const {
   int ires;
   bool bres = true;
   if (o()){
@@ -566,14 +550,30 @@ oriented_edge oriented_edge::next_cw_around_to(const edge* edges) const {
   return oriented_edge(ires,bres);
 }
 
+oriented_edge oriented_edge::next_cw_around_from(const edge* edges) const {
+  int ires;
+  bool bres = true;
+  if (o()){
+    ires = edges[e()].ret;
+  } else {
+    ires = edges[e()].lef;
+  }
+  if (ires != -1){
+    bres = edges[ires].let == e();
+    if (!bres)
+      assert( edges[ires].ref == e());
+  }
+  return oriented_edge(ires,bres);
+}
+
 // give counter clockwise edge
-oriented_edge oriented_edge::ccw_edge_around_to(const edge* edges) const {
-  oriented_edge ccw = next_ccw_around_to(edges);
+oriented_edge oriented_edge::ccw_edge_around_from(const edge* edges) const {
+  oriented_edge ccw = next_ccw_around_from(edges);
   if (ccw.e() == -1) {
     // iterated on clockwise edges
     oriented_edge e1(*this);
     for(;;){
-      const oriented_edge enext = e1.next_cw_around_to(edges);
+      const oriented_edge enext = e1.next_cw_around_from(edges);
       if (enext.e() == -1) 
 	break;
       e1 = enext;
@@ -582,7 +582,6 @@ oriented_edge oriented_edge::ccw_edge_around_to(const edge* edges) const {
   }
   return ccw;
 }
-
 
 // mark as visited the side of iedge_markable that points to
 // iedge_orig
@@ -769,15 +768,14 @@ void build_spoke(int npoints, int nedges, const edge* edges,
 		 oriented_edge** poedge){
   *poedge = new oriented_edge[npoints];
   for(int iedge=0;iedge!=nedges;++iedge){
-    const int to=edges[iedge].from;
-    if ((*poedge)[to].e() == -1) {
-      (*poedge)[to].e(iedge);
-      (*poedge)[to].o(true);
-    }
     const int from=edges[iedge].from;
     if ((*poedge)[from].e() == -1) {
-      (*poedge)[from].e(iedge);
-      (*poedge)[from].o(false);
+      (*poedge)[from].set(iedge, true);
+    } else {
+      const int to=edges[iedge].to;
+      if ((*poedge)[to].e() == -1) {
+	(*poedge)[to].set(iedge, false);
+      }
     }
   }
 }
@@ -787,5 +785,4 @@ void sort_triangulate(int npoints, point *p,
 		      int *pnelem, elem** pelems_ret){
   sort_triangulate(npoints,p,pnedges, edges_ret);
   build_elem_table(npoints, p, *pnedges, *edges_ret, pnelem, pelems_ret);
-  test_ccwedge(*pnedges, *edges_ret);
 }

@@ -18,15 +18,15 @@ void test_ccwedge(int nedges, edge* edges){
   // test ccw edge code
   for(int iedge=0; iedge<nedges; iedge++){
     const oriented_edge e1(iedge,true);
-    const oriented_edge ccw_to = e1.ccw_edge_around_to(edges);
+    const oriented_edge ccw_from = e1.ccw_edge_around_from(edges);
     const oriented_edge e2(iedge,false);
-    const oriented_edge ccw_from = e2.ccw_edge_around_to(edges);
+    const oriented_edge ccw_to = e2.ccw_edge_around_from(edges);
 #if 0
     cout << "edge=" << iedge
 	 << " ret=" << edges[iedge].ret 
 	 << " lef=" << edges[iedge].lef
-	 << " ccw_to=" << ccw_to.e()
 	 << " ccw_from=" << ccw_from.e()
+	 << " ccw_to=" << ccw_to.e()
 	 << endl;
 #endif
   }
