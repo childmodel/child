@@ -8,7 +8,7 @@
 **
 **  Designed and created by Gregory E. Tucker, Stephen T. Lancaster,
 **      Nicole M. Gasparini, and Rafael L. Bras
-** 
+**
 **
 **  @file   childmain.cpp
 **  @brief  This file contains the main() routine that handles
@@ -17,9 +17,9 @@
 **
 **  NOTE: This source code is copyrighted material. It is distributed
 **        solely for noncommercial research and educational purposes
-**        only. Use in whole or in part for commercial purposes without 
+**        only. Use in whole or in part for commercial purposes without
 **        a written license from the copyright holder(s) is expressly
-**        prohibited. Copies of this source code or any of its components 
+**        prohibited. Copies of this source code or any of its components
 **        may not be transferred to any other individuals or organizations
 **        without written consent. Copyright (C) Massachusetts Institute
 **        of Technology, 1997-2000. All rights reserved.
@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.16 2004-01-07 15:10:15 childcvs Exp $
+**  $Id: childmain.cpp,v 1.17 2004-03-05 17:12:33 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -39,6 +39,7 @@
 #include "trapfpe.h"
 #include "Inclusions.h"
 #include "tFloodplain/tFloodplain.h"
+#include "tStratGrid/tStratGrid.h"
 #include "tEolian/tEolian.h"
 
 
@@ -53,12 +54,14 @@ int main( int argc, char **argv )
        optLoessDep,       // Option for eolian deposition
        optVegetation=0,     // Option for dynamic vegetation cover
        optMeander,        // Option for stream meandering
-       optDiffuseDepo;    // Option for deposition / no deposition by diff'n
+       optDiffuseDepo,    // Option for deposition / no deposition by diff'n
+       optStratGrid;      // Option to enable stratigraphy grid
    tVegetation *vegetation(0);  // -> vegetation object
    tFloodplain *floodplain(0);  // -> floodplain object
+   tStratGrid *stratGrid(0);     // -> Stratigraphy Grid object
    tEolian *loess(0);           // -> eolian deposition object
    tStreamMeander *strmMeander(0); // -> stream meander object
-   
+
    /****************** INITIALIZATION *************************************\
    **  ALGORITHM
    **    Get command-line arguments (name of input file + any other opts)
@@ -75,7 +78,7 @@ int main( int argc, char **argv )
    **    Write output for initial state
    **    Get options for erosion type, meandering, etc.
    \**********************************************************************/
-   
+
    // Check command-line arguments
    if( argc<2 )
    {
@@ -96,6 +99,7 @@ int main( int argc, char **argv )
 
    // Create a random number generator for the simulation itself
    tRand rand( inputFile );
+
    // Create and initialize objects:
    cout << "Creating mesh...\n";
    tMesh<tLNode> mesh( inputFile );
@@ -116,6 +120,7 @@ int main( int argc, char **argv )
    optFloodplainDep = inputFile.ReadItem( optFloodplainDep, "OPTFLOODPLAIN" );
    optLoessDep = inputFile.ReadItem( optLoessDep, "OPTLOESSDEP" );
    optMeander = inputFile.ReadItem( optMeander, "OPTMEANDER" );
+   optStratGrid = inputFile.ReadItem( optStratGrid, "OPTSTRATGRID" ,false);
 
    // If applicable, create Vegetation object
    if( optVegetation )
@@ -132,6 +137,15 @@ int main( int argc, char **argv )
    // If applicable, create Stream Meander object
    if( optMeander )
      strmMeander = new tStreamMeander( strmNet, mesh, inputFile, &rand );
+
+   // If applicable, create Stratigraphy Grid object
+   // and pass it to output
+   if( optStratGrid ) {
+     if (!optFloodplainDep)
+       ReportFatalError("OPTFLOODPLAIN must be enabled.");
+     stratGrid = new tStratGrid (inputFile, &mesh);
+     output.SetStratGrid( stratGrid, &strmNet );
+   }
 
    cout << "Writing data for time zero...\n";
    tRunTimer time( inputFile, BOOL(!silent_mode) );
@@ -152,11 +166,11 @@ int main( int argc, char **argv )
      break;
    case 3:   // All data at each storm.
      output.WriteTSOutput();
-     break;      
+     break;
    case 0:   // No additional timeseries output.
      break;
    default:  // Invalid option.
-     ReportFatalError( "The input file contains an invalid value for 
+     ReportFatalError( "The input file contains an invalid value for
 OptTSOutput." );
    }   */
 
@@ -178,6 +192,7 @@ OptTSOutput." );
    **********************************************************************/
    while( !time.IsFinished() )
    {
+      cout << "         " << endl;
       time.ReportTimeStatus();
 
       // Do storm...
@@ -189,26 +204,59 @@ OptTSOutput." );
 	<< storm.interstormDur() << endl;*/
 
       strmNet.UpdateNet( time.getCurrentTime(), storm );
-      
+      cout << "UpdateNet::Done.." << endl;
+
+      // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
+      if( optStratGrid )
+      	  stratGrid->UpdateStratGrid(0, time.getCurrentTime());
+
       if( optDetachLim )
           erosion.ErodeDetachLim( storm.getStormDuration(), &strmNet,
 				  vegetation );
       else
           erosion.DetachErode( storm.getStormDuration(), &strmNet,
                                time.getCurrentTime(), vegetation );
+      cout << "Erosion::Done.." << endl;
+
+      // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
+      if( optStratGrid )
+	stratGrid->UpdateStratGrid(1,time.getCurrentTime() );
+
 
       if( optMeander )
 	  strmMeander->Migrate( time.getCurrentTime() );
 
+      cout << "Meander-Migrate::Done..\n";
+
+      // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
+      if( optStratGrid )
+	stratGrid->UpdateStratGrid(2,time.getCurrentTime());
+
+      //----------------FLOODPLAIN---------------------------------
       if( optFloodplainDep )
 	{
 	  if( floodplain->OptControlMainChan() )
 	    floodplain->UpdateMainChannelHeight( time.getCurrentTime(),
 						 strmNet.getInletNodePtr() );
-          floodplain->DepositOverbank( storm.getRainrate(),
-                                       storm.getStormDuration(),
-                                       time.getCurrentTime() );
-	}
+	    cout << "UpdateChannelHeight::Done..\n";
+
+	    if( optStratGrid ){
+	      stratGrid->UpdateStratGrid(3,time.getCurrentTime());
+	    }
+
+            floodplain->DepositOverbank( storm.getRainrate(),
+                                         storm.getStormDuration(),
+                                         time.getCurrentTime() );
+	    cout << "tFloodplain::Done..\n";
+
+	    if( optStratGrid ){
+      	       stratGrid->UpdateStratGrid(4,time.getCurrentTime());
+      	    }
+
+
+	} // end of floodplain stuff
+
+
 
 #define NEWVEG 1
       if( optVegetation ) {
@@ -224,11 +272,11 @@ OptTSOutput." );
       erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
       optDiffuseDepo );
 
-      erosion.UpdateExposureTime( storm.getStormDuration() + 
+      erosion.UpdateExposureTime( storm.getStormDuration() +
                                       storm.interstormDur() );
 
       if( optLoessDep )
-          loess->DepositLoess( &mesh, 
+          loess->DepositLoess( &mesh,
                                storm.getStormDuration()+storm.interstormDur(),
                                time.getCurrentTime() );
 
@@ -255,12 +303,12 @@ if( time.CheckTSOutputTime() )
 break;
       case 3:   // All data at each storm.
 output.WriteTSOutput();
-break;      
+break;
       case 0:   // No additional timeseries output.
 break;
       default:  // Invalid option.
-ReportFatalError( "The input file contains an invalid value for OptTSOutput." 
-*/ 
+ReportFatalError( "The input file contains an invalid value for OptTSOutput."
+*/
 
      /*tMeshListIter<tLNode> ni( mesh.getNodeList() );
       tLNode *cn;
@@ -271,12 +319,13 @@ ReportFatalError( "The input file contains an invalid value for OptTSOutput."
 	}*/
 
    } // end of main loop
-   
+
    delete vegetation;
    delete floodplain;
    delete loess;
    delete strmMeander;
-   
+   delete stratGrid;
+
    return 0;
 }
 
