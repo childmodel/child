@@ -27,7 +27,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.80 2000-03-30 22:41:09 gtucker Exp $
+**  $Id: erosion.cpp,v 1.81 2000-03-30 22:44:09 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -487,11 +487,11 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
    for(i=0; i<node->getNumg(); i++)
        node->addQs(i, cap*node->getLayerDgrade(lyr,i)/node->getLayerDepth(lyr));
    
-   if( node->getDrArea() > 1e7 ) {
+   /*if( node->getDrArea() > 1e7 ) {
        node->TellAll();
        cout << "tauex=" << tauex << " bfwid=" << node->getChanWidth()
             << " wid=" << node->getHydrWidth() << " cap=" << cap << endl;
-   }
+            }*/
    
    
    node->setQs( cap );
