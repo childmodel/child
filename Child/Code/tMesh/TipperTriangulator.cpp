@@ -8,6 +8,8 @@
 #include <time.h>
 #include <assert.h>
 
+#define DEBUG_PRINT 1
+
 class point{
 public:
   point() : x(0.), y(0.) {}
@@ -24,27 +26,34 @@ public:
   point operator + (const point& p) const {return point(x+p.x,y+p.y);}
   point operator / (double f) const {return point(x/f,y/f);}
   double dot(const point& p) const {return (x*p.x+y*p.y);}
+#if defined(DEBUG_PRINT)
   void print () const {cout << x << ' '<< y <<endl;}
+#endif
   void write(ofstream& f) const {f<<x<<' '<<y<<endl;}
+public:
   double x,y;
 };
+
 class edge{
   const edge &operator=( const edge & );  // assignment operator
 public:
-  edge(): from(-1),lef(-1),let(-1),ref(-1),ret(-1) {}
-  void write(ofstream& f,const point p[]) const {p[from].write(f);p[to].write(f);}
+  edge(): from(-1),to(-1),lef(-1),let(-1),ref(-1),ret(-1) {}
+#if defined(DEBUG_PRINT)
   void print(const point p[]) const {p[from].print();p[to].print();}
+#endif
+  void write(ofstream& f,const point p[]) const {p[from].write(f);p[to].write(f);}
   bool visible(const point p[],int i) const {
     //test whether an edge on the hull is visible from a point
     //rely on the fact that a) hull is anticlockwise oriented
     //b)data is positive x ordered
 
-    if (fabs(p[from].x-p[to].x) < 0.0000001) return true;
-    if (fabs(p[to].y-p[from].y)<0.0000001){
+    const double mindistance = 0.0000001;
+    if (fabs(p[from].x-p[to].x) < mindistance) return true;
+    if (fabs(p[to].y-p[from].y)<mindistance){
       if(p[from].x<p[to].x && p[i].y<p[from].y)return true;
       if(p[from].x>p[to].x && p[i].y>p[from].y)return true;
     }
-    if (p[to].y>=p[i].y && p[from].y<=p[i].y && fabs(p[from].y-p[to].y)>0.0000001)return true;
+    if (p[to].y>=p[i].y && p[from].y<=p[i].y && fabs(p[from].y-p[to].y)>mindistance)return true;
 
     if (p[to].x>p[from].x){
       if(p[i].y<p[from].y+(p[to].y-p[from].y)/(p[to].x-p[from].x)*(p[i].x-p[from].x))return true;
@@ -56,7 +65,7 @@ public:
   int swap(int tint,edge e[],const point p[]){
 
     //edge swapping routine - each edge has four neighbour edges
-    //left and attached to from node (lef) right attached to to (ret) etc.
+    //left and attached to from node (lef) right attached to to node (ret) etc.
     //these edges may be oriented so that their from node is that of 
     // the current edge, or not
     //this routine takes the lions share of the CPU - hull construction by comparison
@@ -64,10 +73,12 @@ public:
     if (ref==-1 || lef==-1 || let==-1 || ret==-1)return 0;
     //test orientation of left and right edges - store the indices of
     //points that are not part of the current edge
+    int leftp,rightp;
     if (e[lef].from==from)leftp=e[lef].to; else leftp=e[lef].from;
     if (e[ref].from==from)rightp=e[ref].to; else rightp=e[ref].from;
-    p1=p[leftp]-p[from];p2=p[leftp]-p[to];
-    p3=p[rightp]-p[from];p4=p[rightp]-p[to];
+    const point 
+      p1(p[leftp]-p[from]), p2(p[leftp]-p[to]), 
+      p3(p[rightp]-p[from]), p4(p[rightp]-p[to]);
     double dt1=p1.dot(p2);double dt2=p3.dot(p4);
     //only do the square roots if we really need to - saves a bit of time
     if (dt1<0 || dt2<0){
@@ -126,10 +137,11 @@ public:
     }
     return 0;
   }
-  point p1,p2,p3,p4;
-  int from,to,leftp,rightp;
+public:
+  int from,to;
   int lef,let,ref,ret;
 };
+
 class cyclist{
   //a fixed size linked cyclical list using arrays
   //the code here is not yet robust necessarily to list shrinking to zero
@@ -230,7 +242,9 @@ public:
     //return the value that hole had at the start of the method 
     return prev;
   }
+#if defined(DEBUG_PRINT)
   void print() const {int j=ejs[0].next;for (int i=0;i<num;i++){cout<<ejs[j].data<<endl;j=ejs[j].next;}}
+#endif
 private:
   const int size; 
   int *order,*rev,prev,hole,num;
@@ -242,17 +256,12 @@ private:
 
 void triangulate(int npoints,const point p[]){
 
-  ofstream file("triggy");
-
-
   //convex hull is a cyclical list - it will consist of anticlockwise
   //ordered edges - since each new point adds at most 1 extra edge (nett)
   //to the hull, there are at most npoints edges on the hull
   cyclist hull(npoints);
   
   //and the edges - there are at most three edges per point
-  //allocation here failed is I just put edge=edges[nn] on tequila, but not on pc217
-  //which has a nominally identical set up- the code below worked however -strange
   const long nn=3*npoints;
   edge* edges;
   edges=new edge[nn];
@@ -401,8 +410,18 @@ void triangulate(int npoints,const point p[]){
     lower_hull_pos=hull.addAfter(lower_hull_pos,saved_edge);
   }
 
-  int i=0;
-  while(edges[i].from != -1 ){edges[i].write(file,p);i++;}
+  {
+    ofstream file("triggy");
+    int i=0;
+    while(edges[i].from != -1 ){edges[i].write(file,p);i++;}
+  }
+#if 0
+  {
+    int i=0;
+    while(edges[i].from != -1 ){edges[i].print(p);i++;}
+    cout << "npoint=" << npoints << " nedge=" << i-1 << endl;
+  }
+#endif
 
   delete [] edges;
 }
@@ -410,7 +429,7 @@ void triangulate(int npoints,const point p[]){
 #include "heapsort.h"
 
 int main(){
-  const int n=10;
+  const int n=100;
   const long npoints=n*n;
   //set up the point array
   point *p = new point[npoints];
@@ -426,11 +445,16 @@ int main(){
   //array p will be replaced with the array sorted in x
   heapsort(npoints,p);
 
-  cout<<time(NULL)<<endl;
-  
+  time_t t1 = time(NULL);
+  clock_t tick1 = clock();
+
   //triangulate the set of points
   triangulate(npoints,p);
-  cout<<time(NULL)<<endl;
+
+  time_t t2 = time(NULL);
+  clock_t tick2 = clock();
+  cout << "elapsed time (time) = " << difftime(t2,t1) << " s" << endl;
+  cout << "elapsed time (clock)= " << (double)(tick2-tick1)/CLOCKS_PER_SEC << " s" << endl;
   
   delete [] p;
 }
