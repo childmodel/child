@@ -1,7 +1,3 @@
-#ifndef __GNUC__
-#include "tMesh.h"
-#endif
-
 #include <stdlib.h>
 #include "TipperTriangulator.h"
 
