@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.51 2004-04-19 12:07:55 childcvs Exp $
+ **  $Id: tOutput.h,v 1.52 2004-04-19 12:52:48 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -66,6 +66,7 @@ class tOutputBase
 {
   tOutputBase(const tOutputBase&);
   tOutputBase& operator=(const tOutputBase&);
+  tOutputBase();
 protected:
   tOutputBase( tMesh<tSubNode> * meshPtr, const tInputFile &infile );
   virtual ~tOutputBase() { m = 0; }
@@ -183,6 +184,7 @@ class tLOutput : public tOutput<tSubNode>
 {
   tLOutput(const tLOutput&);
   tLOutput& operator=(const tLOutput&);
+  tLOutput();
 public:
   tLOutput( tMesh<tSubNode> * meshPtr, const tInputFile &infile, tRand *);
   virtual ~tLOutput();
