@@ -20,6 +20,7 @@ using namespace std;
 #endif
 
 #include "meander.h"
+#include "../Definitions.h"
 
 #define integer int
 #define doublereal double
@@ -125,7 +126,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.12 2003-06-19 08:52:45 childcvs Exp $ */
+/*     $Id: meander.cpp,v 1.13 2003-06-30 09:39:58 childcvs Exp $ */
 
 void meander_(const integer *stations, const integer *stnserod, 
 	      const doublereal *x, const doublereal *y,
@@ -255,8 +256,8 @@ void initialize_(const integer *stnserod, doublereal *phi,
 
     /* Function Body */
 /*     print *, 'stnserod in initialize:', stnserod */
-    *rho = 1e3;
-    *grav = 9.8;
+    *rho = RHO;
+    *grav = GRAV;
 /*      do s = 1, stnserod */
 /*         lambda(s) = 2.75 * width(s) */
 /*      end do */
