@@ -7,6 +7,7 @@
 */
 /***************************************************************************/
 
+#include "../Definitions.h"
 class tInputFile;
 
 /**
@@ -16,12 +17,12 @@ class tInputFile;
 class ParamMMFS_t {
 public:
   double xGrid, yGrid;
-  int boundType;
+  tOpenBoundary_t boundType;
   int kSloped;
   double upperZ;
   double mElev;
   double randElev;              // amplitude factor for random var in elev
-  int ptPlace;
+  tMeshType_t ptPlace;
   double delGrid;               // average spacing between nodes
   double xout, yout;            // coordinates of user-specified outlet
   int numPts;                   // total no. of interior pts (if random)

@@ -24,9 +24,13 @@ ParamMMFS_t::ParamMMFS_t(tInputFile &infile) :
   //  2 = two opposite sides (upper and lower)
   //  3 = all sides
   //  4 = specify outlet coordinates
-  boundType = infile.ReadItem( boundType, "TYP_BOUND" );
-   //ng 12/99 added so that the initial surface could be sloped
-   //with one side open bndry cndtn if kSloped = 1.
+  {
+    int tmp_;
+    tmp_ = infile.ReadItem( tmp_, "TYP_BOUND" );
+    boundType = static_cast<tOpenBoundary_t>(tmp_);
+  }
+  //ng 12/99 added so that the initial surface could be sloped
+  //with one side open bndry cndtn if kSloped = 1.
   //if(boundType == kOpenSide){
       kSloped = infile.ReadItem( kSloped, "SLOPED_SURF" );
       if(kSloped)
@@ -39,7 +43,11 @@ ParamMMFS_t::ParamMMFS_t(tInputFile &infile) :
    //  0 = uniform grid;
    //  1 = perturbed grid;
    //  2 = random scatter;
-   ptPlace = infile.ReadItem( ptPlace, "OPT_PT_PLACE" );
+   {
+     int tmp_;
+     tmp_ = infile.ReadItem( tmp_, "OPT_PT_PLACE" );
+     ptPlace = static_cast<tMeshType_t>(tmp_);
+   }
    //read point spacing or number of points (excluding four boundary points)
    if( ptPlace == kUniformMesh || ptPlace == kPerturbedMesh )
      {

@@ -98,7 +98,7 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
 
       tSubNode tempnode( aNode );
       tempnode.set3DCoords( x, y, z);
-      tempnode.setBoundaryFlag( bnd );
+      tempnode.setBoundaryFlag( static_cast<tBoundary_t>(bnd) );
       miNextNodeID = i;
       tempnode.setID( miNextNodeID );
       if( bnd<0 || bnd>3 ){

@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.35 2003-08-01 17:14:53 childcvs Exp $
+**   $Id: Definitions.h,v 1.36 2003-08-06 15:10:08 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -16,24 +16,27 @@
 #define VERSION "2.2.0, July 2002"
 #define TRUE 1
 #define FALSE 0
-#define kUniformMesh 0     /*method of grid construction*/
-#define kPerturbedMesh 1
-#define kRandomMesh 2
-#define kCornerOutlet 0   /*type of open boundary*/
-#define kOpenSide 1
-#define kOppositeSidesOpen 2
-#define kAllSidesOpen 3
-#define kSpecifyOutlet 4
-#define kClosedBoundary 1
-#define kOpenBoundary 2
-#define kNonBoundary 0
-#define kFlowAllowed 1
-#define kFlowNotAllowed 0
-#define kDetachmentLimited      1
-#define kDetachLimThreshold     2
-#define kTransportLimited       3
-#define kTransLimThreshold      4
-#define kBedrockAlluvial        5
+typedef enum {      // method of grid construction
+  kUniformMesh = 0,
+  kPerturbedMesh = 1,
+  kRandomMesh = 2
+} tMeshType_t;
+typedef enum { // type of open boundary
+  kCornerOutlet = 0,
+  kOpenSide = 1,
+  kOppositeSidesOpen = 2,
+  kAllSidesOpen = 3,
+  kSpecifyOutlet = 4
+} tOpenBoundary_t;
+typedef enum { // type of boundary condition
+  kClosedBoundary = 1,
+  kOpenBoundary = 2,
+  kNonBoundary = 0
+} tBoundary_t;
+typedef enum {
+  kFlowAllowed = 1,
+  kFlowNotAllowed = 0
+} tEdgeBoundary_t;
 #define kMeanderNode true
 #define kNonMeanderNode false
 #define RHO 1000.0      /* Density of water (kg/m^3) */
@@ -59,7 +62,7 @@ typedef enum { false=0, true } bool;
 
 // file suffixes
 #define SNODES ".nodes"
-#define SEDGES ".edges" 
+#define SEDGES ".edges"
 #define STRI ".tri"
 #define SZ ".z"
 #define SRANDOM ".random"

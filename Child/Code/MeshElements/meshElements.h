@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.55 2003-08-04 14:43:11 childcvs Exp $
+**  $Id: meshElements.h,v 1.56 2003-08-06 15:10:09 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -121,7 +121,7 @@ public:
   double getZ() const;                       // returns z value
   double getVArea() const;                   // returns Voronoi area
   double getVArea_Rcp() const;               // returns 1/Voronoi area
-  int getBoundaryFlag() const;               // returns boundary code
+  tBoundary_t getBoundaryFlag() const;               // returns boundary code
   tEdge * getEdg();                          // returns ptr to one spoke
   void getVoronoiVertexList( tList<Point2D> * );  // Returns list of V vertices
   void getVoronoiVertexXYZList( tList<Point3D> * ); // As above plus interp z
@@ -135,7 +135,7 @@ public:
   void setVArea_Rcp( double );    // sets 1 / Voronoi area
   void set2DCoords( double, double );         // sets x and y values
   void set3DCoords( double, double, double ); // sets x, y, and z values
-  void setBoundaryFlag( int );    // sets boundary status flag
+  void setBoundaryFlag( tBoundary_t );    // sets boundary status flag
   void setEdg( tEdge * );         // sets ptr to one spoke
 
   double Dist( tNode const *, tNode const * ) const; // distance from node to line (node1,node2)
@@ -163,7 +163,7 @@ protected:
   double z;         // z value (representing height or any other variable)
   double varea;     // Voronoi cell area
   double varea_rcp; // Reciprocal of Voronoi area = 1/varea (for speed)
-  int boundary;     // Boundary status code
+  tBoundary_t boundary;     // Boundary status code
 private:
   tEdge * edg;      // Ptr to one edge
 };
@@ -218,7 +218,7 @@ public:
   const tEdge &operator=( const tEdge & );  // assignment operator
   void InitializeEdge( tNode*, tNode*, tNode const * );
   inline int getID() const;            // returns ID number
-  int getBoundaryFlag() const;  // returns boundary status (flow or no flow)
+  tBoundary_t getBoundaryFlag() const; // returns boundary status (flow or no flow)
   double getLength() const;     // returns edge's length (projected)
   double getSlope() const;      // slope = "z" gradient from org to dest nodes
   double getOrgZ() const;       // returns origin's z value
@@ -233,15 +233,15 @@ public:
   void setComplementEdge( tEdge* );
   tArray< double > getRVtx() const;  // returns Voronoi vertex for RH triangle
   double getVEdgLen() const;    // returns length of assoc'd Voronoi cell edge
-  int FlowAllowed() const;      // returns boundary status ("flow allowed")
+  tEdgeBoundary_t FlowAllowed() const; // returns boundary status ("flow allowed")
 
   void setID( int );                 // sets ID number
   void setLength( double );          // sets edge length
   void setSlope( double );           // sets slope
   inline void setOriginPtr( tNode * );      // sets origin ptr
   inline void setDestinationPtr( tNode * ); // sets destination ptr
-  static int isFlowAllowed( const tNode*, const tNode* );
-  void setFlowAllowed( int );        // sets boundary code
+  static tEdgeBoundary_t isFlowAllowed( const tNode*, const tNode* );
+  void setFlowAllowed( tEdgeBoundary_t );        // sets boundary code
   inline void setFlowAllowed( const tNode*, const tNode* ); // sets boundary code
   double CalcLength();               // computes & sets length
   double CalcSlope();                // computes & sets slope
@@ -260,7 +260,7 @@ public:
 
 private:
   int id;          // ID number
-  int flowAllowed; // boundary flag, usu. false when org & dest = closed bds
+  tEdgeBoundary_t flowAllowed; // boundary flag, usu. false when org & dest = closed bds
   double len;      // edge length
   double slope;    // edge slope
   tArray< double > rvtx; // (x,y) coords of Voronoi vertex in RH triangle
@@ -412,7 +412,7 @@ inline tNode::tNode() :
   id(0),
   x(0.), y(0.), z(0.),
   varea(0.), varea_rcp(0.),
-  boundary(0), edg(0)
+  boundary(kNonBoundary), edg(0)
 {}
 
 //copy constructor
@@ -521,7 +521,7 @@ inline double tNode::getY() const {return y;}
 inline double tNode::getZ() const {return z;}
 inline double tNode::getVArea() const {return varea;}
 inline double tNode::getVArea_Rcp() const {return varea_rcp;}
-inline int tNode::getBoundaryFlag() const {return boundary;}
+inline tBoundary_t tNode::getBoundaryFlag() const {return boundary;}
 inline tEdge * tNode::getEdg() {return edg;}
 
 /***********************************************************************\
@@ -563,7 +563,7 @@ inline void tNode::setVArea_Rcp( double val )
   /*varea_rcp =  ( val >= 0.0 ) ? val : 0.0;*/
 }
 
-inline void tNode::setBoundaryFlag( int val )
+inline void tNode::setBoundaryFlag( tBoundary_t val )
 {
   assert( val>=0 && val<=2 );
   boundary = val;
@@ -662,7 +662,7 @@ inline tArray< double > tNode::FuturePosn() {return get2DCoords();}
 
 //default constructor
 inline tEdge::tEdge() :
-  id(0), flowAllowed(0), len(0.), slope(0.),
+  id(0), flowAllowed(kFlowNotAllowed), len(0.), slope(0.),
   rvtx(2),
   vedglen(0.),
   org(0), dest(0), ccwedg(0), cwedg(0),
@@ -683,7 +683,7 @@ inline tEdge::tEdge( const tEdge &original ) :
 {}
 
 inline tEdge::tEdge(tNode* n1, tNode* n2) :
-  id(0), flowAllowed(0), len(0.), slope(0.),
+  id(0), flowAllowed(kFlowNotAllowed), len(0.), slope(0.),
   rvtx(2),
   vedglen(0.),
   org(0), dest(0), ccwedg(0), cwedg(0),
@@ -695,7 +695,7 @@ inline tEdge::tEdge(tNode* n1, tNode* n2) :
 }
 
 inline tEdge::tEdge(int id_, tNode* n1, tNode* n2) :
-  id(id_), flowAllowed(0), len(0.), slope(0.),
+  id(id_), flowAllowed(kFlowNotAllowed), len(0.), slope(0.),
   rvtx(2),
   vedglen(0.),
   org(0), dest(0), ccwedg(0), cwedg(0),
@@ -775,8 +775,8 @@ inline ostream &operator<<( ostream &output, const tEdge &edge )
 inline int tEdge::getID() const {return id;}
 
 //return 0 if flow allowed to match kNonBoundary:
-inline int tEdge::getBoundaryFlag() const
-{return ( flowAllowed == kFlowAllowed )?kNonBoundary:(!kNonBoundary); }
+inline tBoundary_t tEdge::getBoundaryFlag() const
+{return ( flowAllowed == kFlowAllowed )?kNonBoundary:kClosedBoundary; }
 
 inline double tEdge::getLength() const {return len;}
 
@@ -822,7 +822,7 @@ inline void tEdge::setComplementEdge( tEdge* edg )
   compedg = edg;
 }
 
-inline int tEdge::FlowAllowed() const
+inline tEdgeBoundary_t tEdge::FlowAllowed() const
 {
    return flowAllowed;
 }
@@ -879,19 +879,20 @@ inline void tEdge::setOriginPtr( tNode * ptr ) {if( ptr != 0 ) org = ptr;}
 inline void tEdge::setDestinationPtr( tNode * ptr )
 {if( ptr != 0 ) dest = ptr;}
 
-inline void tEdge::setFlowAllowed( int val )
+inline void tEdge::setFlowAllowed( tEdgeBoundary_t val )
 {
-   assert( val==0 || val==1 );
+   assert( val==kFlowAllowed || val==kFlowNotAllowed );
    flowAllowed = val;
 }
 
-inline int tEdge::isFlowAllowed( const tNode* n1, const tNode* n2 )
+inline tEdgeBoundary_t tEdge::isFlowAllowed( const tNode* n1, const tNode* n2 )
 {
    assert( n1 && n2 );
    return ( n1->getBoundaryFlag() != kClosedBoundary
 	    && n2->getBoundaryFlag() != kClosedBoundary
 	    && !( n1->getBoundaryFlag()==kOpenBoundary
-		  && n2->getBoundaryFlag()==kOpenBoundary ) ) ? 1 : 0;
+		  && n2->getBoundaryFlag()==kOpenBoundary ) ) ?
+     kFlowAllowed : kFlowNotAllowed;
 }
 
 inline void tEdge::setFlowAllowed( const tNode* n1, const tNode* n2 )

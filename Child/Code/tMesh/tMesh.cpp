@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.174 2003-08-01 17:14:55 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.175 2003-08-06 15:10:11 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -410,7 +410,7 @@ MeshDensification( tInputFile &infile )
      int nnewpoints;  // No. of new points added in a given pass
      tArray<double> newx, newy, newz;   // Lists of new coords
      tArray<double> zvals(3);   // z values of a triangle's 3 nodes
-     tempnode.setBoundaryFlag( 0 );  // assumed all interior points
+     tempnode.setBoundaryFlag( kNonBoundary );  // assumed all interior points
      tListIter< tTriangle > triIter( triList );
      tTriangle * ct;
      for( j=1; j<=initMeshDensLevel; j++ )
@@ -501,13 +501,13 @@ MakeMeshFromInputData( tInputFile &infile, tRand &randS )
    // the back of the node list.
    cout << "Creating node list..." << flush;
    tSubNode tempnode( infile );
-   int bound;
+   tBoundary_t bound;
    for( i = 0; i< nnodes; i++ )
    {
       tempnode.set3DCoords( input.x[i], input.y[i], input.z[i] );
       miNextNodeID = i;
       tempnode.setID( miNextNodeID );
-      bound = input.boundflag[i];
+      bound = static_cast<tBoundary_t>(input.boundflag[i]);
       assert( bound >= 0 && bound <= 2 );
       tempnode.setBoundaryFlag( bound );
       switch (bound){
@@ -1596,7 +1596,7 @@ MakeMeshFromPoints( tInputFile &infile )
       //cout << "IN MGFP c0, ADDING NODE " << i << endl;
       //Xtempnode.setID( miNextNodeID );
       tempnode.set3DCoords( x[i],y[i],z[i] );
-      tempnode.setBoundaryFlag( bnd[i] );
+      tempnode.setBoundaryFlag( static_cast<tBoundary_t>(bnd[i]) );
       //if(bnd[i]==kNonBoundary && z[i]<0)
       //  cout<<"problem at x "<<x[i]<<" y "<<y[i]<<endl;
       AddNode( tempnode );
