@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.17 2003-05-16 16:18:27 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.18 2003-05-23 11:44:18 childcvs Exp $
 */
 /************************************************************************/
 
@@ -55,6 +55,9 @@ tUplift::tUplift( tInputFile &infile )
    rate = infile.ReadItem( rate, "UPRATE" );
    switch( typeCode )
    {
+      case 0:
+      case 1:
+          break;
       case 2:
           faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
           break;
@@ -97,6 +100,9 @@ tUplift::tUplift( tInputFile &infile )
      	  upperKinkDip = infile.ReadItem( upperKinkDip, "UPPERKINKDIP" );
      	  meanElevation = infile.ReadItem( meanElevation, "MEAN_ELEV" );
      	  break;
+     default:
+          assert(0); /*NOTREACHED*/
+          abort();
    }
    
 }
@@ -117,6 +123,8 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
 {
    switch( typeCode )
    {
+      case 0:
+          break;
       case 1:
           UpliftUniform( mp, delt );
           break;
@@ -144,6 +152,9 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
           FaultBendFold( mp, delt );
           FaultBendFold2( mp, delt );
           break;
+     default:
+          assert(0); /*NOTREACHED*/
+          abort();
    }
    
 }
@@ -233,7 +244,7 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt ) const
         cn->setNew2DCoords( cn->getX()+slip, cn->getY() );
      }
    }
-   mp->MoveNodes( 0, false );
+   mp->MoveNodes( 0., false );
    
 }
 
@@ -580,7 +591,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
      }
      
    }
-   mp->MoveNodes( 0, 0 );
+   mp->MoveNodes( 0., false );
    
      
    /*elapsedTime += delt;*/
