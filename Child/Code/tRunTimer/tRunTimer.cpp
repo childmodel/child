@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.7 1998-09-28 21:43:05 nmgaspar Exp $
+**  $Id: tRunTimer.cpp,v 1.8 1999-02-01 21:01:28 gtucker Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -107,9 +107,8 @@ tRunTimer::tRunTimer( tInputFile &infile, int optprint )
 //****************************************************
 void tRunTimer::Start( double start, double end )
 {
-   assert( end > start );
    currentTime = start;
-   endTime = end;
+   if( end>0.0 ) endTime = end;
 }
 
 //****************************************************
