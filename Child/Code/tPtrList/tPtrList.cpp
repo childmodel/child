@@ -3,7 +3,7 @@
 **  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
 **                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.12 1999-01-05 22:36:23 stlancas Exp $
+**  $Id: tPtrList.cpp,v 1.13 1999-01-08 22:29:39 gtucker Exp $
 \**************************************************************************/
 
 #include "tPtrList.h"
@@ -293,6 +293,18 @@ insertAtPrev( NodeType *NTPtr, tPtrListNode< NodeType > * node )
    }
 }
 
+
+/*
+**  tPtrList<>::removeFromFront
+**
+**  Removes the first item on the list and points NTPtr to the new first
+**  item. Returns 0 if the list is already empty, 1 otherwise. Note that
+**  if the list is empty, NTPtr is unchanged.
+**
+**  ALERT: There is a potential bug here: if the list is circular but
+**  contains only one item (which points to itself), NTPtr will contain
+**  a dangling pointer! TODO (gt)
+*/
 template< class NodeType >                      //tPtrList
 int tPtrList< NodeType >::
 removeFromFront( NodeType *NTPtr )
@@ -314,6 +326,18 @@ removeFromFront( NodeType *NTPtr )
    }
 }
 
+
+/*
+**  tPtrList<>::removeFromBack
+**
+**  Removes the last item on the list and points NTPtr to the new last
+**  item. Returns 0 if the list is already empty, 1 otherwise. Note that
+**  if the list is empty, NTPtr is unchanged.
+**
+**  ALERT: There is a potential bug here: if the list is circular but
+**  contains only one item (which points to itself), NTPtr will contain
+**  a dangling pointer! TODO (gt)
+*/
 template< class NodeType >                      //tPtrList
 int tPtrList< NodeType >::
 removeFromBack( NodeType *NTPtr )
@@ -336,6 +360,7 @@ removeFromBack( NodeType *NTPtr )
       return 1;
    }
 }
+
 
 template< class NodeType >                      //tPtrList
 int tPtrList< NodeType >::
