@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.15 1998-03-20 15:38:04 gtucker Exp $
+**  $Id: tLNode.h,v 1.16 1998-04-03 15:37:14 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -29,8 +29,8 @@ class tDeposit
    const tDeposit &operator=( const tDeposit & );
 
   private:
-   double dpth;   /* depth of this deposit , NOTE, this ignores porosity */
-   tArray< double > dgrade;/*( NUMG );depth of that sediment class in deposit [m]*/
+   tArray< double > dgrade; /* depth of each sediment class in deposit [m]
+			       dgrade[0]=total depth of deposit */
 };
 
 /** class tErode ***********************************************************/
@@ -48,13 +48,21 @@ class tErode
      /*int erodtype;*/
    double sedinput;     /* Sed. volume input (output if neg) during an iteration*/
    double dz;           /* Elevation change during an iteration*/
-   tArray< double > newdz;  /* for each sediment class */
-   double totdz;        /* total dz = sum of dz of all sizes*/
+   tArray< double > dzm; /* multi size; dz for each grain size, 
+			    dzm[0]=total dz */
    double zp;           /* Predicted elevation (used in numerical scheme)*/
    double qs;           /* Sediment transport rate*/
+   tArray< double > qsm; /* multi size; sediment transport rate for each grn
+			    size, qsm[0]=total qs */	      
    double qsp;          /* Predicted sed trans rate at new time step*/
+   tArray< double > qspm; /* multi size; pred. sed trans rate for each grn
+			     size, qspm[0]=total qsp */
    double qsin;         /* Sediment influx rate*/
+   tArray< double > qsinm; /* multi size; Sed. influx rate of each grn size
+			      qsinm[0]=total qsin */
    double qsinp;        /* Predicted sed influx at new time step*/
+   tArray< double > qsinpm /* multi size; Predicted sed influx of each grn
+			      size, qsinpm[0]=total qsinpm */
    int nsmpts;         /* # of points downstream over which to apply smoothing*/
    tArray< double > smooth; /*weights for erosion applied to downstrm nodes*/
    double tau;          /* Shear stress (or similar quantity)*/
@@ -119,17 +127,19 @@ class tRegolith
   public:
    tRegolith();
    tRegolith( tInputFile &infile ); /* Reads needed values from input file*/
+   /* Append tRegolith so that it checks for multi size flag */
    tRegolith( const tRegolith & );
-   tRegolith( int, double ); /*no. of grain sizes and active layer thickness*/
+   //tRegolith( int, double ); /*no of grain sizes and active layer thickness*/
    ~tRegolith();
    const tRegolith &operator=( const tRegolith & );
   private:
    double thickness;
    int numal;          /* total number of alluvium deposits below active layer
                           does NOT count the active layer*/
-   tArray< double > dgrade;/* depth of each sediment class in active layer [m]*/
-   double dpth;         /* depth of active layer, changes but always returns
-                          to contant amount at end of an iteration*/
+   int numg;           /* number of grain sizes */
+   tArray< double > dgrade;/* depth of each sediment class in active layer [m]
+			     dgrade[0]= total depth of active layer */
+   double dpth;         /* depth of active layer */
    tList< tDeposit > depositList;
 };
 
