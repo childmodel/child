@@ -10,10 +10,14 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.89 2000-12-07 11:44:52 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.90 2002-02-08 08:54:18 gtucker Exp $
 \***************************************************************************/
 
+#ifndef __GNUC__
 #include "tMesh.h"
+#endif
+
+#include <stdlib.h>
 
 /***************************************************************************\
 **  Templated global functions used by tMesh here
@@ -214,9 +218,11 @@ template< class tSubNode >
 tMesh< tSubNode >::
 tMesh( tInputFile &infile )
 {
+   int read;   // option for reading/generating initial mesh
+
    miNextNodeID = miNextEdgID = miNextTriID = 0;
 
-   int read = infile.ReadItem( read, "OPTREADINPUT" );
+   read = infile.ReadItem( read, "OPTREADINPUT" );
    if( read<0 || read>4 )
    {
       cerr << "Valid options for reading mesh input are:\n"
@@ -232,8 +238,9 @@ tMesh( tInputFile &infile )
    mSearchOriginTriPtr = 0;
 
    if( read==1 ) {
+     int lay;  // option for reading layer info
       MakeMeshFromInputData( infile ); //create mesh by reading data files
-      int lay = infile.ReadItem( lay, "OPTREADLAYER" );
+      lay = infile.ReadItem( lay, "OPTREADLAYER" );
       if( lay == 1 )
           MakeLayersFromInputData( infile );
    }
@@ -246,7 +253,8 @@ tMesh( tInputFile &infile )
    else
        MakeMeshFromScratch( infile ); //create new mesh with parameters
 
-   int help = infile.ReadItem( help, "OPTINTERPLAYER" );
+   int help;
+   help = infile.ReadItem( help, "OPTINTERPLAYER" );
    if(help>0) layerflag=TRUE;
    else layerflag=FALSE;
 
@@ -333,7 +341,8 @@ MakeLayersFromInputData( tInputFile &infile )
    }
 
    tLayer layhelp;
-   int numg = infile.ReadItem( numg, "NUMGRNSIZE" );
+   int numg;
+   numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    layhelp.setDgradesize(numg);
 
    int g;
@@ -657,8 +666,8 @@ MakeMeshFromInputData( tInputFile &infile )
    // (the "level") to make -- ie, the number of times we sweep through
    // adding a node in each triangle.
    //   Added Sept. 2000, GT
-   int initMeshDensLevel = 
-     infile.ReadItem( initMeshDensLevel, "OPTINITMESHDENS" );
+   int initMeshDensLevel;
+   initMeshDensLevel = infile.ReadItem( initMeshDensLevel, "OPTINITMESHDENS" );
    if( initMeshDensLevel)
    {
      int j;  // Level counter
@@ -704,6 +713,17 @@ MakeMeshFromInputData( tInputFile &infile )
        }
      }  // end of current densification level
    } // end of optional mesh densification  
+
+   tMeshListIter< tEdge > ei( edgeList );
+   tEdge * ce;
+
+   for( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
+     {
+       ce->TellCoords();
+       cout << ce->getVEdgLen() << " " << ce->getBoundaryFlag() << endl;
+     }
+
+
 
    UpdateMesh();
    CheckMeshConsistency();
@@ -1075,15 +1095,17 @@ MakeMeshFromScratch( tInputFile &infile )
    tPtrList< tSubNode > bndList;
    seed = infile.ReadItem( seed, "SEED" );
      //reads in size of mesh (meters)
-   double xGrid = infile.ReadItem( xGrid, "X_GRID_SIZE" );
-   double yGrid = infile.ReadItem( yGrid, "Y_GRID_SIZE" );
+   double xGrid, yGrid;
+   xGrid = infile.ReadItem( xGrid, "X_GRID_SIZE" );
+   yGrid = infile.ReadItem( yGrid, "Y_GRID_SIZE" );
      //read type of open boundary:
      //  0 = corner outlet (lower left)
      //  1 = one open side (lower)
      //  2 = two opposite sides (upper and lower)
      //  3 = all sides
      //  4 = specify outlet coordinates
-   int boundType = infile.ReadItem( boundType, "TYP_BOUND" );
+   int boundType;
+   boundType = infile.ReadItem( boundType, "TYP_BOUND" );
       
    int kSloped = 0;
    //ng 12/99 added so that the initial surface could be sloped
@@ -1094,12 +1116,14 @@ MakeMeshFromScratch( tInputFile &infile )
           upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
    }
      //read mean elevation (also determines elev variation)
-   double mElev = infile.ReadItem( mElev, "MEAN_ELEV" );
+   double mElev;
+   mElev = infile.ReadItem( mElev, "MEAN_ELEV" );
      //reads method of point placement:
      //  0 = uniform grid;
      //  1 = perturbed grid;
      //  2 = random scatter;
-   int ptPlace = infile.ReadItem( ptPlace, "OPT_PT_PLACE" );
+   int ptPlace;
+   ptPlace = infile.ReadItem( ptPlace, "OPT_PT_PLACE" );
      //read point spacing or number of points (excluding four boundary points)
    if( ptPlace == kUniformMesh || ptPlace == kPerturbedMesh )
    {
@@ -1121,7 +1145,7 @@ MakeMeshFromScratch( tInputFile &infile )
       tempnode.setBoundaryFlag( kOpenBoundary );
       tempnode.set3DCoords( 0, 0, 0 );
       tempnode.setID( miNextNodeID );
-      n = xGrid / delGrid;
+      n = ROUND( xGrid / delGrid );
       tempnode.setBoundaryFlag( kOpenBoundary );
       nodeList.insertAtBack( tempnode );
       bndList.insertAtBack( nodIter.LastP() );
@@ -1134,7 +1158,7 @@ MakeMeshFromScratch( tInputFile &infile )
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = yGrid / delGrid;
+      n = ROUND( yGrid / delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1143,7 +1167,7 @@ MakeMeshFromScratch( tInputFile &infile )
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = xGrid / delGrid;
+      n = ROUND( xGrid / delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1152,7 +1176,7 @@ MakeMeshFromScratch( tInputFile &infile )
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = yGrid / delGrid;
+      n = ROUND( yGrid / delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1165,7 +1189,7 @@ MakeMeshFromScratch( tInputFile &infile )
    else if( boundType == kOpenSide )
    {
       cout << "OPEN SIDE boundary\n";
-      n = xGrid / delGrid;
+      n = ROUND( xGrid / delGrid );
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
@@ -1176,7 +1200,7 @@ MakeMeshFromScratch( tInputFile &infile )
          bndList.insertAtBack( nodIter.LastP() );
       }
       tempnode.setBoundaryFlag( kClosedBoundary );
-      n = yGrid / delGrid;
+      n = ROUND( yGrid / delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1185,7 +1209,7 @@ MakeMeshFromScratch( tInputFile &infile )
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = xGrid / delGrid;
+      n = ROUND( xGrid / delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1194,7 +1218,7 @@ MakeMeshFromScratch( tInputFile &infile )
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = yGrid / delGrid;
+      n = ROUND( yGrid / delGrid );
       for( i=n; i>=0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1207,7 +1231,7 @@ MakeMeshFromScratch( tInputFile &infile )
    if( boundType == kOppositeSidesOpen )
    {
       upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
-      n = xGrid / delGrid;
+      n = ROUND( xGrid / delGrid );
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
@@ -1218,7 +1242,7 @@ MakeMeshFromScratch( tInputFile &infile )
          bndList.insertAtBack( nodIter.LastP() );
       }
       tempnode.setBoundaryFlag( kClosedBoundary );
-      n = yGrid / delGrid;
+      n = ROUND( yGrid / delGrid );
       for( i=0; i<=n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1228,7 +1252,7 @@ MakeMeshFromScratch( tInputFile &infile )
          bndList.insertAtBack( nodIter.LastP() );
       }
       tempnode.setBoundaryFlag( kOpenBoundary );
-      n = xGrid / delGrid;
+      n = ROUND( xGrid / delGrid );
       for( i=n-1; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1238,7 +1262,7 @@ MakeMeshFromScratch( tInputFile &infile )
          bndList.insertAtBack( nodIter.FirstBoundaryP() );
       }
       tempnode.setBoundaryFlag( kClosedBoundary );
-      n = yGrid / delGrid;
+      n = ROUND( yGrid / delGrid );
       for( i=n; i>=0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1251,7 +1275,7 @@ MakeMeshFromScratch( tInputFile &infile )
    else if( boundType == kAllSidesOpen )
    {
       miNextNodeID = 0;
-      n = xGrid / delGrid;
+      n = ROUND( xGrid / delGrid );
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
@@ -1261,7 +1285,7 @@ MakeMeshFromScratch( tInputFile &infile )
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = yGrid / delGrid;
+      n = ROUND( yGrid / delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1270,7 +1294,7 @@ MakeMeshFromScratch( tInputFile &infile )
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = xGrid / delGrid;
+      n = ROUND( xGrid / delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1279,7 +1303,7 @@ MakeMeshFromScratch( tInputFile &infile )
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = yGrid / delGrid;
+      n = ROUND( yGrid / delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1296,7 +1320,7 @@ MakeMeshFromScratch( tInputFile &infile )
       yout = infile.ReadItem( yout, "OUTLET_Y_COORD" );
 
       // Create nodes for bottom (Y=0) boundary and place them on list
-      n = xGrid / delGrid;
+      n = ROUND( xGrid / delGrid );
       tempnode.setBoundaryFlag( kClosedBoundary );
       for( i=0, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
@@ -1322,7 +1346,7 @@ MakeMeshFromScratch( tInputFile &infile )
       }
 
       // Create nodes for right (X=xGrid) boundary and place them on list
-      n = yGrid / delGrid;
+      n = ROUND( yGrid / delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1343,7 +1367,7 @@ MakeMeshFromScratch( tInputFile &infile )
       }
 
       // Create nodes for top (Y=yGrid) boundary and place them on list
-      n = xGrid / delGrid;
+      n = ROUND( xGrid / delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1364,7 +1388,7 @@ MakeMeshFromScratch( tInputFile &infile )
       }
 
       // Create nodes for left (X=0) boundary and place them on list
-      n = yGrid / delGrid;
+      n = ROUND( yGrid / delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
          dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
@@ -1423,8 +1447,8 @@ MakeMeshFromScratch( tInputFile &infile )
    tempnode.setBoundaryFlag( kNonBoundary );
    if( ptPlace == kUniformMesh || ptPlace == kPerturbedMesh )
    {
-      nx = xGrid / delGrid;  // no. points in x direction
-      ny = yGrid / delGrid;  // no. points in y direction
+      nx = ROUND( xGrid / delGrid );  // no. points in x direction
+      ny = ROUND( yGrid / delGrid );  // no. points in y direction
       for( i=1; i<nx; i++ )
       {
          for( j=1; j<ny; j++, miNextNodeID++ )
