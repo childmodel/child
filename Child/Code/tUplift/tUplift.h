@@ -25,7 +25,7 @@
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **    - added FaultBendFold function (srm, August 2002)
 **
-**  $Id: tUplift.h,v 1.19 2004-04-16 18:32:54 childcvs Exp $
+**  $Id: tUplift.h,v 1.20 2004-04-27 09:55:05 childcvs Exp $
 */
 /************************************************************************/
 
@@ -61,7 +61,21 @@ private:
     void FaultBendFold2( tMesh<tLNode> *mp, double delt ) const;
 
 private:
-    int typeCode;          // Code for the type of uplift desired
+    typedef enum {
+      kNoUplift = 0,
+      k1,
+      k2,
+      k3,
+      k4,
+      k5,
+      k6,
+      k7,
+      k8
+    } tUplift_t;
+
+    static tUplift_t DecodeType(int);
+
+    tUplift_t typeCode;    // Code for the type of uplift desired
     double duration;       // Duration of uplift
     double rate;           // Rate of uplift
     double rate2;          // Second rate (e.g., second structure)

@@ -3,17 +3,13 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.24 2004-03-24 14:54:44 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.25 2004-04-27 09:55:05 childcvs Exp $
 */
 /************************************************************************/
 
 #include "tUplift.h"
 #include "../errors/errors.h"
 #include "../Mathutil/mathutil.h"
-
-#define kNumUpliftTypes 8
-#define kNoUplift 0
-
 
 /************************************************************************\
 **
@@ -28,27 +24,33 @@
 **  Inputs:  infile -- input file from which to read parameters
 **
 \************************************************************************/
+tUplift::tUplift_t tUplift::DecodeType(int type){
+  if( type < 0 || type > 8 )
+    {
+      cerr << "I don't recognize the uplift type you asked for ("
+           << type << ")\n"
+	"Valid uplift types are:\n"
+	" 0 - none\n"
+	" 1 - Spatially and temporally uniform uplift\n"
+	" 2 - Uniform uplift at Y >= fault location, zero elsewhere\n"
+	" 3 - Block uplift with strike-slip motion along given Y coord\n"
+	" 4 - Propagating fold modeled w/ simple error function curve\n"
+	" 5 - 2D cosine-based uplift-subsidence pattern\n"
+	" 6 - Block, fault, and foreland sinusoidal fold\n"
+	" 7 - Two-sided differential uplift\n"
+	" 8 - Fault bend fold\n";
+      ReportFatalError( "Please specify a valid uplift type and try again." );
+    }
+  return static_cast<tUplift_t>(type);
+}
+
 tUplift::tUplift( const tInputFile &infile ) :
   duration(0.)
 {
+  int typeCode_;
    // Find out what kind of uplift the user wants
-   typeCode = infile.ReadItem( typeCode, "UPTYPE" );
-   if( typeCode < 0 || typeCode > kNumUpliftTypes )
-   {
-      cerr << "I don't recognize the uplift type you asked for ("
-           << typeCode << ")\n"
-	   "Valid uplift types are:\n"
-	   " 0 - none\n"
-           " 1 - Spatially and temporally uniform uplift\n"
-           " 2 - Uniform uplift at Y >= fault location, zero elsewhere\n"
-           " 3 - Block uplift with strike-slip motion along given Y coord\n"
-           " 4 - Propagating fold modeled w/ simple error function curve\n"
-           " 5 - 2D cosine-based uplift-subsidence pattern\n"
-	   " 6 - Block, fault, and foreland sinusoidal fold\n"
-	   " 7 - Two-sided differential uplift\n"
-	   " 8 - Fault bend fold\n";
-      ReportFatalError( "Please specify a valid uplift type and try again." );
-   }
+   typeCode_ = infile.ReadItem( typeCode_, "UPTYPE" );
+   typeCode = DecodeType(typeCode_);
 
    if( typeCode==kNoUplift ) return;
 
@@ -57,24 +59,24 @@ tUplift::tUplift( const tInputFile &infile ) :
    rate = infile.ReadItem( rate, "UPRATE" );
    switch( typeCode )
    {
-      case 0:
-      case 1:
+      case kNoUplift:
+      case k1:
           break;
-      case 2:
+      case k2:
           faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
 	  rate2 = infile.ReadItem( rate2, "SUBSRATE" );
           break;
-      case 3:
+      case k3:
           faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
           slipRate = infile.ReadItem( slipRate, "SLIPRATE" );
           break;
-      case 4:
+      case k4:
           faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
           slipRate = infile.ReadItem( slipRate, "FOLDPROPRATE" );
           foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
           foldParam = 4.0/foldParam;
           break;
-      case 5:
+      case k5:
           foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
           slipRate = infile.ReadItem( slipRate, "TIGHTENINGRATE" );
           faultPosition = infile.ReadItem( faultPosition, "ANTICLINEYCOORD" );
@@ -83,18 +85,18 @@ tUplift::tUplift( const tInputFile &infile ) :
               infile.ReadItem( deformStartTime1, "YFOLDINGSTART" );
           foldParam2 = infile.ReadItem( foldParam2, "UPSUBRATIO" );
 	  break;
-     case 6:
+     case k6:
           foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
           slipRate = infile.ReadItem( slipRate, "FOLDLATRATE" );
           faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
 	  rate2 = infile.ReadItem( rate2, "FOLDUPRATE" );
 	  foldParam2 = infile.ReadItem( foldParam2, "FOLDPOSITION" );
           break;
-     case 7:
+     case k7:
           rate2 = infile.ReadItem( rate2, "BLFALL_UPPER" );
 	  positionParam1 = infile.ReadItem( positionParam1, "BLDIVIDINGLINE" );
 	  break;
-     case 8:
+     case k8:
      	  slipRate = infile.ReadItem( slipRate, "SLIPRATE" );
      	  faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
      	  flatDepth = infile.ReadItem( flatDepth, "FLATDEPTH" );
@@ -103,9 +105,6 @@ tUplift::tUplift( const tInputFile &infile ) :
      	  upperKinkDip = infile.ReadItem( upperKinkDip, "UPPERKINKDIP" );
      	  meanElevation = infile.ReadItem( meanElevation, "MEAN_ELEV" );
      	  break;
-     default:
-          assert(0); /*NOTREACHED*/
-          ::abort();
    }
 
 }
@@ -126,38 +125,35 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
 {
    switch( typeCode )
    {
-      case 0:
+      case kNoUplift:
           break;
-      case 1:
+      case k1:
           UpliftUniform( mp, delt );
           break;
-      case 2:
+      case k2:
           BlockUplift( mp, delt );
           break;
-      case 3:
+      case k3:
           BlockUplift( mp, delt );
           StrikeSlip( mp, delt );
           break;
-      case 4:
+      case k4:
           FoldPropErf( mp, delt );
           break;
-      case 5:
+      case k5:
           CosineWarp2D( mp, delt );
           break;
-      case 6:
+      case k6:
 	  BlockUplift( mp, delt );
 	  PropagatingFold( mp, delt );
 	  break;
-      case 7:
+      case k7:
 	  TwoSideDifferential( mp, delt );
 	  break;
-      case 8:
+      case k8:
           FaultBendFold( mp, delt );
           FaultBendFold2( mp, delt );
           break;
-     default:
-          assert(0); /*NOTREACHED*/
-          ::abort();
    }
 
 }
