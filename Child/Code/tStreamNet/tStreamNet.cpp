@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.15 2002-04-23 15:06:50 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.16 2002-04-24 16:48:01 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -118,19 +118,19 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 #define kYearpersec 3.1688e-8 // 1/SecondsPerYear
 tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
                         tInputFile &infile )
-    : inlet( &meshRef, infile )
+  :
+  meshPtr(&meshRef),
+  stormPtr(&storm),
+  trans(0), infilt(0),
+  inlet( &meshRef, infile )
 {
    cout << "tStreamNet(...)...";
-   assert( &meshRef != 0 );
-   meshPtr = &meshRef;
    assert( meshPtr != 0 );
-   stormPtr = &storm;
    assert( stormPtr != 0 );
 
    // Read option for runoff generation/routing and get relevant parameters
    miOptFlowgen = infile.ReadItem( miOptFlowgen, "FLOWGEN" );
    filllakes = infile.ReadItem( filllakes, "LAKEFILL" );
-   infilt = trans = 0;
    if( miOptFlowgen == kSaturatedFlow1 || miOptFlowgen==kSaturatedFlow2 )
       trans = infile.ReadItem( trans, "TRANSMISSIVITY" );
    if( miOptFlowgen==kSaturatedFlow2 || miOptFlowgen==kConstSoilStore
@@ -2189,10 +2189,10 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
       // Read drainage area and sediment load at inlet. If more than one
       // grain size is simulated, read in a sediment load for each size
       // individually
-     /*std::string taglinebase = "INSEDLOAD";
-     std::string digits = "123456789";
-     std::string tagline;*/
-     char tagline[11], lastdigit;
+     //std::string taglinebase = "INSEDLOAD";
+     //std::string digits = "123456789";
+     //std::string tagline;
+     char tagline[12], lastdigit;
      strcpy( tagline, "INSEDLOAD0" );
      lastdigit = '0';
       inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
@@ -2208,12 +2208,12 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
          //end='1';
          for( i=0; i<numg; i++ ) {
 	   double help;
-	   /*strcpy( name, "INSEDLOAD");
-            strcat( name, &end ); 
-            help = infile.ReadItem( help, name);*/
-	   /*tagline = taglinebase + digits.substr( i, i );
-	    cout << tagline << endl;
-	    help = infile.ReadItem( help, tagline.c_str() );*/
+	   //strcpy( name, "INSEDLOAD");
+           // strcat( name, &end ); 
+           // help = infile.ReadItem( help, name);
+	   //tagline = taglinebase + digits.substr( i, i );
+	   // cout << tagline << endl;
+	   // help = infile.ReadItem( help, tagline.c_str() );
             lastdigit++;
             tagline[9] = lastdigit;
             help = infile.ReadItem( help, tagline );

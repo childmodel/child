@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.9 2002-04-12 08:39:05 gtucker Exp $
+**  $Id: tFloodplain.cpp,v 1.10 2002-04-24 16:48:40 arnaud Exp $
 \**************************************************************************/
 
 #include "tFloodplain.h"
@@ -77,11 +77,12 @@
 **
 \**************************************************************************/
 tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
+  :
+  meshPtr(mp)
 {
    int numg;
    
    // Keep a pointer to the mesh in order to access list of nodes
-   meshPtr = mp;
    assert( meshPtr!=0 );
 
    // Read in parameters
