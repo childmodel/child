@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.63 1999-05-04 17:14:24 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.64 1999-09-09 21:15:43 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -103,6 +103,7 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 **     Modifications:
 **       - GT added input of parameters for sinusoidal variation in
 **         infiltration capacity, 7/20/98.
+**       - GT commented out mndrchngprob, which appears to be unused, 6/99
 \**************************************************************************/
 
 #define kYearpersec 3.171e-8 // 1/SecondsPerYear
@@ -147,10 +148,10 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
 
    // Options related to stream meandering
    int itMeanders = infile.ReadItem( itMeanders, "OPTMNDR" );
-   if( itMeanders )
+   /*if( itMeanders )
        mndrDirChngProb = infile.ReadItem( mndrDirChngProb, "CHNGPROB" );
    else 
-      mndrDirChngProb = 1.0;
+   mndrDirChngProb = 1.0;*/
 
    // Read hydraulic geometry parameters
    bankfullevent = infile.ReadItem( bankfullevent, "BANKFULLEVENT" );
@@ -240,7 +241,7 @@ tArray< double > tStreamNet::getInSedLoadm( ) const {return inlet.inSedLoadm;}
 tLNode *tStreamNet::getInletNodePtr() const {return inlet.innode;}
 tLNode *tStreamNet::getInletNodePtrNC() {   return inlet.innode;}
 
-double tStreamNet::getMndrDirChngProb() const {return mndrDirChngProb;}
+//double tStreamNet::getMndrDirChngProb() const {return mndrDirChngProb;}
 
 // TODO: the value checks are nice, but will hurt performance. Should
 // probably be removed.
@@ -278,8 +279,8 @@ void tStreamNet::setInSedLoadm( int i, double val )
 void tStreamNet::setInletNodePtr( tLNode *Ptr )
 { inlet.innode = ( Ptr > 0 ) ? Ptr : 0;}
 
-void tStreamNet::setMndrDirChngProb( double val )
-{mndrDirChngProb = ( val >= 0.0 && val <= 1.0 ) ? val : 1.0;}
+//void tStreamNet::setMndrDirChngProb( double val )
+//{mndrDirChngProb = ( val >= 0.0 && val <= 1.0 ) ? val : 1.0;}
 
 
 
@@ -1546,7 +1547,9 @@ void tStreamNet::SortNodesByNetOrder()
 **      Calls: no "major" functions
 **
 **      Created: SL 1/98         
-**
+**      Modified:
+**       - calculation of power terms modified to handle case of zeros
+**         GT 6/99
 **
 \*****************************************************************************/
 void tStreamNet::FindHydrGeom()
@@ -1557,12 +1560,40 @@ void tStreamNet::FindHydrGeom()
    double width, depth, rough, slope;
    tLNode *cn;
 
-   kwdspow = pow(kwds, ewstn / ewds);
-   kddspow = pow(kdds, edstn / edds);
-   kndspow = pow(knds, enstn / ends);
-   widpow = 1.0 - ewstn / ewds;
-   deppow = 1.0 - edstn / edds;
-   npow = 1.0 - enstn / ends;
+   // TODO: could be made more efficient!
+
+   // Calculate these just once and store--TODO
+   if( edds>0.0 )
+   {
+      kddspow = pow(kdds, edstn / edds);
+      deppow = 1.0 - edstn / edds;
+   }
+   else
+   {
+      kddspow = kdds;
+      deppow = 0.0;
+   }
+   if( ewds>0.0 )
+   {
+      kwdspow = pow(kwds, ewstn / ewds);
+      widpow = 1.0 - ewstn / ewds;
+   }
+   else
+   {
+      kwdspow = kwds;
+      widpow = 0.0;
+   }
+   if( ends>0.0 )
+   {
+      kndspow = pow(knds, enstn / ends);
+      npow = 1.0 - enstn / ends;
+   }
+   else
+   {
+      kndspow = knds;
+      npow = 0.0;
+   }   
+      
    tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
    for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
    {
@@ -1570,7 +1601,7 @@ void tStreamNet::FindHydrGeom()
       //removed an if cn->Meanders(), so stuff calculated everywhere
       //if rainfall varies, find hydraulic width "at-a-station"
       //based on the channel width "downstream":
-      if( optrainvar)
+      if( optrainvar) // TODO: IF should be outside loop
       {
          qpsec = cn->getQ()/SECPERYEAR;
          width = pow(cn->getChanWidth(), widpow) * kwdspow * pow(qpsec, ewstn);
@@ -1788,7 +1819,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
       xin = infile.ReadItem( xin, "INLET_X" );
       yin = infile.ReadItem( yin, "INLET_Y" );
       intri = meshPtr->LocateTriangle( xin, yin );
-      assert( intri > 0 );
+      assert( intri > 0 );  //TODO: should be error-check not assert
       for( i=0; i<3; i++ )
       {
          cn = (tLNode *) intri->pPtr(i);
@@ -1852,7 +1883,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
          //xyz[1] = yin;
          //xyz[2] = zin;
          //innode = meshPtr->AddNodeAt( xyz );
-         innode = meshPtr->AddNode( *newnode );
+         innode = meshPtr->AddNode( *newnode, 1 );  // the 1 means update mesh
          //cout << "INLET NODE IS:\n";
          //innode->TellAll();
          //Don't delet newnode because it is now part of the mesh list
@@ -1917,6 +1948,11 @@ void tInlet::FindNewInlet()
               //sure it's worth going further with all this logic;
               //so, find an active neighbor with elevation lower than
               //present inlet:
+            // DEBUG: try to catch floating excep in if below:
+            assert( mn->getZ()>0.0 );
+            assert( mn->getZ()<10000.0 );
+            assert( zmin>0.0 );
+            assert( zmin<10000.0 );
             if( mn->getBoundaryFlag() == kNonBoundary && mn->getZ() < zmin )
             {
                msI.Reset( mn->getSpokeListNC() );
