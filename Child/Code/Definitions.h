@@ -1,6 +1,6 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.10 1998-07-12 23:19:40 gtucker Exp $
+**   $Id: Definitions.h,v 1.11 1998-08-25 18:49:27 gtucker Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -32,15 +32,8 @@
 #define kTransportLimited       3
 #define kTransLimThreshold      4
 #define kBedrockAlluvial        5
-#define kFlooded     1  // Flooding (lake) codes: part of a lake...
-#define kNotFlooded  0  // ...or not...
-#define kCurrentLake 2  // ...or part one that is currently being computed...
-#define kSink        3  // ...or a dry sink (unfilled depression).
-#define kOutletFlag  4  // Used as temporary flag in FillLakes.
-#define kOutletPreFlag 5 // ditto
 #define kMeanderNode 1
 #define kNonMeanderNode 0
-#define kVeryHigh 100000  // Used in FillLakes
 #define RHO 1000.0      /* Density of water (kg/m^3) */
 #define RHOSED 2650. /* density of sediment, [kg/m^3] */
 #define GRAV 9.81       /* Gravitational acceleration, m/s^2 */
