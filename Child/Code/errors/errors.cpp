@@ -1,11 +1,11 @@
-/*
+/******************************************************************\
 **  errors.cpp
 **
 **  Error-handling routines.
 **
 **  Created Dec. 97 from earlier routine embedded in child.cpp
-**  $Id: errors.cpp,v 1.1 1998-01-14 20:51:11 gtucker Exp $
-*/
+**  $Id: errors.cpp,v 1.2 1999-01-12 21:05:51 gtucker Exp $
+\******************************************************************/
 
 #include "errors.h"
 
