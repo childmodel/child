@@ -32,7 +32,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.31 2002-08-28 14:43:54 arnaud Exp $
+**  $Id: tList.h,v 1.32 2002-09-04 16:08:41 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -116,9 +116,7 @@ template< class NodeType >                     //tListNode
 inline tListNode< NodeType >::
 tListNode() :
   next(0)
-{
-     //data = 0;
-}
+{}
 
 //copy constructor with data reference
 template< class NodeType >                     //tListNode
@@ -210,7 +208,7 @@ inline NodeType *tListNode< NodeType >::
 getDataPtrNC() {return &data;}
 
 template< class NodeType >                     //tListNode
-inline tListNode< NodeType > * tListNode< NodeType >::
+inline tListNode< NodeType > *tListNode< NodeType >::
 getNextNC() const {return next;}
 
 //return data by value
@@ -230,7 +228,7 @@ getDataPtr() const {return &data;}
 
 //return next pointer
 template< class NodeType >                     //tListNode
-inline const tListNode< NodeType > * tListNode< NodeType >::
+inline const tListNode< NodeType > *tListNode< NodeType >::
 getNext() const {return next;}
 
 
@@ -326,9 +324,7 @@ protected:
 template< class NodeType >                         //tList
 inline tList< NodeType >::tList() :
   nNodes(0), first(0), last(0), currentItem(0)
-{
-     //cout << "list instantiated" << first << endl;
-}
+{}
 
 //copy constructor
 template< class NodeType >                         //tList
@@ -339,9 +335,8 @@ tList( const tList< NodeType > *original ) :
    int i;
 
    assert( original != 0 );
-     //nNodes = original->nNodes;
    tListNode<NodeType> * current = original->first;
-   for( i=0; i<original->nNodes; i++ )
+   for( i=0; i<original->nNodes; ++i )
    {
       insertAtBack( current->data );
       current = current->next;
@@ -359,17 +354,16 @@ inline tList< NodeType >::
 {
    if( !isEmpty() )
    {
-        //cout<<"Destroying nodes ... "<<endl;
+     if (0) //DEBUG
+       cout<<"Destroying nodes ... "<<endl;
       tListNode<NodeType > * current = first, * temp;
       while( current != 0 )
       {
          temp = current;
-         //cout<<temp->data<<endl;
          current = current->next;
          delete temp;
       }
    }
-     //cout<<"All nodes destroyed"<<endl<<endl;
 }
 
 /**************************************************************************\
@@ -400,11 +394,8 @@ operator=( const tList< NodeType > &right )
           for( cn = cn->next; cn != last->next; cn = cn->next )
              insertAtBack( cn->data );
       }
-        /*first = right.first;
-      last = right.last;*/
       assert( nNodes == right.nNodes );
    }
-     //cout << "list assigned" << first << endl;
    return *this;
 }
 
@@ -443,8 +434,7 @@ getNewNode( const NodeType &value )
    tListNode< NodeType > * ptr =
        new tListNode< NodeType >( value );
    assert( ptr != 0 );
-   //cout << "new node created" << endl;
-   nNodes++;
+   ++nNodes;
    return ptr;
 }
 
@@ -481,7 +471,8 @@ template< class NodeType >                         //tList
 inline void tList< NodeType >::
 insertAtFront( const NodeType &value )
 {
-   //cout << "ADD NEW NODE TO LIST AT FRONT" << endl;
+  if (0) //DEBUG
+    cout << "ADD NEW NODE TO LIST AT FRONT" << endl;
    
    tListNode< NodeType > *newPtr = getNewNode( value );
    if( isEmpty() )
@@ -492,7 +483,6 @@ insertAtFront( const NodeType &value )
       if( last->next == first ) last->next = newPtr;
       first = newPtr;
    }
-     //nNodes++; now handled by getNewNode
 }
 
 //insert at back
@@ -501,7 +491,6 @@ inline void tList< NodeType >::
 insertAtBack( const NodeType &value )
 {
    tListNode< NodeType > * newPtr = getNewNode( value );
-   //cout << "add new node to list in back" << endl;
    if( isEmpty() )
    {
       first = last = currentItem = newPtr;
@@ -512,8 +501,6 @@ insertAtBack( const NodeType &value )
       last->next = newPtr;
       last = newPtr;
    }
-
-   //cout << "data is " << newPtr->data << endl;
 }
 
 //insert at next spot in list
@@ -560,21 +547,18 @@ inline int tList< NodeType >::
 removeFromFront( NodeType &value )
 {
    if( isEmpty() ) return 0;
+   tListNode< NodeType > * temp = first;
+   if( first == last ) first = last = currentItem = 0;
    else
    {
-      tListNode< NodeType > * temp = first;
-      if( first == last ) first = last = currentItem = 0;
-      else
-      {
-         if( last->next == first ) last->next = first->next;
-         if( currentItem==first ) currentItem = first->next;
-         first = first->next;
-      }
-      value = temp->data;
-      delete temp;
-      nNodes--;
-      return 1;
+     if( last->next == first ) last->next = first->next;
+     if( currentItem==first ) currentItem = first->next;
+     first = first->next;
    }
+   value = temp->data;
+   delete temp;
+   --nNodes;
+   return 1;
 }
 
 //delete from back
@@ -583,23 +567,20 @@ inline int tList< NodeType >::
 removeFromBack( NodeType &value )
 {
    if( isEmpty() ) return 0;
+   tListNode< NodeType > * temp = last;
+   if( first == last ) first = last = currentItem = 0;
    else
    {
-      tListNode< NodeType > * temp = last;
-      if( first == last ) first = last = currentItem = 0;
-      else
-      {
-         tListNode< NodeType > * nexttolast = first;
-         while( nexttolast->next != last ) nexttolast = nexttolast->next;
-         nexttolast->next = last->next;
-         if( currentItem==last ) currentItem = nexttolast;
-         last = nexttolast;
-      }
-      value = temp->data;
-      delete temp;
-      nNodes--;
-      return 1;
+     tListNode< NodeType > * nexttolast = first;
+     while( nexttolast->next != last ) nexttolast = nexttolast->next;
+     nexttolast->next = last->next;
+     if( currentItem==last ) currentItem = nexttolast;
+     last = nexttolast;
    }
+   value = temp->data;
+   delete temp;
+   --nNodes;
+   return 1;
 }
 
 //delete next node
@@ -607,17 +588,16 @@ template< class NodeType >                         //tList
 inline int tList< NodeType >::
 removeNext( NodeType &value, tListNode< NodeType > * ptr )
 {
-   if( ptr->next == 0 ) return 0;
    if( ptr == 0 ) return 0;
+   if( ptr->next == 0 ) return 0;
    if( ptr->next == last ) return removeFromBack( value );
-   else if( ptr->next == first ) return removeFromFront( value );
-   //if( ptr == last ) return 0;
+   if( ptr->next == first ) return removeFromFront( value );
    tListNode< NodeType > * temp = ptr->next;
    if( currentItem == temp ) currentItem = ptr;
    ptr->next = ptr->next->next;
    value = temp->data;
    delete temp;
-   nNodes--;
+   --nNodes;
    return 1;
 }
 
@@ -638,7 +618,7 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
    value = temp->data;
    if( currentItem == temp ) currentItem = prev;
    delete temp;
-   nNodes--;
+   --nNodes;
    return 1;
 }
 
@@ -658,12 +638,9 @@ Flush()
 
    if( !isEmpty() )
    {
-      //cout<<"Destroying nodes ... "<<endl;
-      //while( removeFromBack( temp ) );
       while( current != 0 )
       {
          temp = current;
-         //cout<<temp->data<<endl;
          current = current->next;
          delete temp;
       }
@@ -671,7 +648,6 @@ Flush()
    }
    assert( isEmpty() );
    nNodes = 0;
-     //cout<<"All nodes destroyed"<<endl<<endl;
 }
 
 
@@ -687,16 +663,8 @@ template< class NodeType >                         //tList
 inline int tList< NodeType >::
 isEmpty() const
 {
-   if( first == 0 )
-   {
-        //cout << "list is empty" << endl;
-      return 1;
-   }
-   else
-   {
-        //cout << "list is not empty" << endl;
-      return 0;
-   }
+  return 
+    ( first == 0 ) ? 1 : 0;
 }
 
 //display list contents -- for debugging only
@@ -787,13 +755,6 @@ getIthData( int num ) const
             cout<<"you have "<<nNodes<<endl;
             cout<<"you wanted list member number "<<num<<endl;
          }
-//     if(num<0)
-//     {
-//        cout<<"using a negative index"<<endl;
-//        cout<<"you have "<<nNodes<<endl;
-//        cout<<"you wanted list member number "<<num<<endl;
-//     }
-   //cout<<"num="<<num<<"nNodes="<<nNodes<<endl;
    assert( num >= 0 && num < nNodes );
    for( curPtr = first, i = 0; i<num; i++ )
    {
@@ -970,7 +931,10 @@ setNNodes( int val ) {nNodes = ( val >= 0 ) ? val : 0;}*/
 \**************************************************************************/
 template< class NodeType >                         //tList
 inline void tList< NodeType >::
-makeCircular() {last->next = first;}
+makeCircular()
+{
+  last->next = first;
+}
 
 
 template< class NodeType >
@@ -1067,7 +1031,8 @@ tListIter() :
   listPtr(0),
   counter(0)
 {
-   //cout << "tListIter()" << endl;
+  if (0) //DEBUG
+    cout << "tListIter()" << endl;
 }
 
 template< class NodeType >        //tListIter
@@ -1089,22 +1054,19 @@ tListIter( tList< NodeType > &list ) :
   counter(0)
 {
    //assert( curnode != 0 );
-   //cout << "tListIter( list )" << endl;
+  if (0) //DEBUG
+   cout << "tListIter( list )" << endl;
 }
 
 template< class NodeType >        //tListIter
 inline tListIter< NodeType >::
 tListIter( tList< NodeType > *ptr ) :
   curnode(0),
-  listPtr(0),
+  listPtr(ptr),
   counter(0)
 {
    assert( ptr != 0 );
-   listPtr = ptr;
    curnode = ptr->first;
-   //assert( curnode != 0 );
-     //cout << "tListIter( ptr )" << endl;
-   
 }
 
 template< class NodeType >        //tListIter
@@ -1113,7 +1075,8 @@ inline tListIter< NodeType >::
 {
    listPtr = 0;
    curnode = 0;
-     //cout << "~tListIter()" << endl;
+   if (0) //DEBUG
+     cout << "~tListIter()" << endl;
 }
 
 
@@ -1129,7 +1092,6 @@ template< class NodeType >        //tListIter
 inline void tListIter< NodeType >::
 Reset( tList< NodeType > &list )
 {
-   assert( &list != 0 );
    listPtr = &list;
    curnode = list.first;
    counter = 0;
@@ -1152,7 +1114,7 @@ First()
    curnode = listPtr->first;
    counter = 0;
    if( curnode != 0 ) return 1;
-   else if( curnode == 0 && listPtr->isEmpty() ) return 1;
+   if( curnode == 0 && listPtr->isEmpty() ) return 1;
    return 0;
 }
 
@@ -1164,7 +1126,6 @@ Last()
    curnode = listPtr->last;
    counter = -1;
    if( curnode != 0 ) return 1;
-     //else if( curnode == 0 && listPtr->isEmpty() ) return 1;
    return 0;
 }
 
@@ -1182,28 +1143,16 @@ inline int tListIter< NodeType >::
 Get( int num )
 {
    assert( listPtr != 0 );
-//     if( num < 0 )
-//     {
-//        cout << "tListIter::Get(num): num < 0" << endl;
-//        //return 0;
-//     }
+//     if( num < 0 ) cout << "tListIter::Get(num): num < 0" << endl;
    tListNode< NodeType > *tempnodeptr;
    for( tempnodeptr = listPtr->first, counter = 0;
         counter <= listPtr->nNodes && tempnodeptr != 0;
-        tempnodeptr = tempnodeptr->next, counter++ )
+        tempnodeptr = tempnodeptr->next, ++counter )
    {
       if( tempnodeptr->getDataPtr()->getID() == num ) break;
    }
-   if( tempnodeptr == 0 )
-   {
-      //cout << "tListIter::Get(num): tempnodeptr == 0" << endl;
-      return 0;
-   }
-   if( tempnodeptr->getDataPtr()->getID() != num )
-   {
-      //cout << "tListIter::Get(num): tempnodeptr->data.getID() != num" << endl;
-      return 0;
-   }
+   if( tempnodeptr == 0 ) return 0;
+   if( tempnodeptr->getDataPtr()->getID() != num ) return 0;
    curnode = tempnodeptr;
    return 1;
 }
@@ -1296,22 +1245,18 @@ template< class NodeType >        //tListIter
 inline NodeType * tListIter< NodeType >::
 FirstP()
 {
-   assert( listPtr != 0 );
-   curnode = listPtr->first;
-   counter = 0;
-   if( curnode != 0 ) return curnode->getDataPtrNC();
-   else return 0;
+   if( First() ) 
+       return curnode->getDataPtrNC();
+   return 0;
 }
    
 template< class NodeType >        //tListIter
 inline NodeType * tListIter< NodeType >::
 LastP()
 {
-   assert( listPtr != 0 );
-   curnode = listPtr->last;
-   counter = 0;
-   if( curnode != 0 ) return curnode->getDataPtrNC();
-   else return 0;
+   if( Last() ) 
+       return curnode->getDataPtrNC();
+   return 0;
 }
    
 
@@ -1328,52 +1273,18 @@ template< class NodeType >        //tListIter
 inline NodeType * tListIter< NodeType >::
 NextP()
 {
-   assert( listPtr != 0 );
-   if( curnode == 0 )
-   {
-      curnode = listPtr->first;
-      counter = 0;
-      if( curnode != 0 ) return curnode->getDataPtrNC();
-      else return 0;
-   }
-   curnode = curnode->next;
-   counter++;
-   if( curnode != 0 ) return curnode->getDataPtrNC();
-   else return 0;
+   if( Next() ) 
+       return curnode->getDataPtrNC();
+   return 0;
 }
 
 template< class NodeType >       //tListIter
 inline NodeType *tListIter< NodeType >::
 PrevP()
 {
-   assert( listPtr != 0 );
-   if( curnode == 0 )
-   {
-      curnode = listPtr->last;
-      counter = -1;
-      if( curnode != 0 ) return curnode->getDataPtrNC();
-      else return 0;
-   }
-   if( curnode == listPtr->first )
-   {
-      if( listPtr->last->next == 0 ) return 0;
-      else
-      {
-         assert( curnode == listPtr->last->next );
-         curnode = listPtr->last;
-         counter = -1;
-         return curnode->getDataPtrNC();
-      }
-   }
-   tListNode< NodeType > *tempnode;
-   //int id = curnode->data.getID();
-   for( tempnode = listPtr->first;
-        tempnode->next != curnode;  //tempnode->next->data.getID() != id;
-        tempnode = tempnode->next );
-   curnode = tempnode;
-   assert( curnode != 0 );
-   counter--;
-   return curnode->getDataPtrNC();
+   if( Prev() )
+     return curnode->getDataPtrNC();
+   return 0;
 }
 
 
@@ -1389,12 +1300,9 @@ template< class NodeType >       //tListIter
 inline NodeType * tListIter< NodeType >::
 GetP( int num )
 {
-   assert( listPtr != 0 );
-   if( num < 0 ) return 0;
-   //cout << "Get: num " << num << "; ";
-
-   return
-     (Get(num) != 0 ? curnode->getDataPtrNC() : 0 );
+   if( Get( num ) )
+     return curnode->getDataPtrNC();
+   return 0;
 }
 
 
@@ -1433,8 +1341,7 @@ AtEnd()
 {
    if( listPtr->isEmpty() ) return 1;
    if( listPtr->last->next == 0 ) return ( curnode==0 );
-   else return ( curnode == listPtr->first && counter != 0 );
-   //return curnode==0;
+   return ( curnode == listPtr->first && counter != 0 );
 }
 
 
@@ -1450,7 +1357,6 @@ template< class NodeType >       //tListIter
 inline NodeType &tListIter< NodeType >::
 DatRef()
 {
-     //if( curnode == 0 ) return 0;
    return curnode->getDataRefNC();
 }
 
@@ -1466,7 +1372,6 @@ template< class NodeType >       //tListIter
 inline tListNode< NodeType > *tListIter< NodeType >::
 NodePtr()
 {
-   //assert( curnode != 0 );
    return curnode;
 }
 
