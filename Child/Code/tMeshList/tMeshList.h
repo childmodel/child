@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.19 2003-05-19 13:26:59 childcvs Exp $
+**  $Id: tMeshList.h,v 1.20 2003-05-28 16:01:00 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -397,10 +397,11 @@ moveToBack( tListNode< NodeType > * mvnode )
 \**************************************************************************/
 template< class NodeType >                         //tList
 void tMeshList< NodeType >::
-moveToBack( NodeType const * mvnodedata ) 
+moveToBack( NodeType const * mvnodedata )
 {
-   assert( getListNode( mvnodedata )!=0 );  // failure: null or not on list
-   moveToBack( getListNode( mvnodedata ) );
+   tListNode< NodeType > * mvnode = getListNode( mvnodedata );
+   assert( mvnode!=0 );  // failure: null or not on list
+   moveToBack( mvnode );
 }
 
 
@@ -443,40 +444,36 @@ moveToActiveBack( tListNode< NodeType > * mvnode )
 {
    if( !lastactive )
    {
-      moveToBack( mvnode );
+      moveToFront( mvnode );
       lastactive = mvnode;
+      if( mvnode->getDataPtr()->getBoundaryFlag() != kNonBoundary )
+	nActiveNodes = 1;
       return;
    }
-   
+
    if( mvnode != lastactive )
    {
-      // if node was in active part of list, decrement nActiveNodes:
+      // if node was not in active part of list, increment nActiveNodes:
       if( mvnode->getDataPtr()->getBoundaryFlag() != kNonBoundary )
           ++nActiveNodes;
       // Detach mvnode from its position on the list:
-      if( mvnode == this->first )
-      {
-         //if( this->first->prev != 0 )
-         //    this->first->prev->next = this->first->next;
-         //this->first->next->prev = this->first->prev;
-         if( this->first->next ) this->first = this->first->next;
+      if( mvnode == first ) {
+	assert( first->next );
+	first = first->next;
       }
-      //else
-      //{
+      if( mvnode == last ) {
+	assert( last->prev );
+	last = last->prev;
+      }
       if( mvnode->prev ) mvnode->prev->next = mvnode->next;
       if( mvnode->next ) mvnode->next->prev = mvnode->prev;
-         //}
       // Insert it at the end of the active part of the list:
       mvnode->next = lastactive->next;
       mvnode->prev = lastactive;
       if( lastactive->next ) lastactive->next->prev = mvnode;
       lastactive->next = mvnode;
-      if( lastactive == this->last )
-      {
-         this->last = mvnode;
-         // If it's a circular list, make sure to preserve circularity:
-         if( this->last->next != 0 ) this->last->next = this->first;
-      }
+      // set lastactive and, if necessary last
+      if( lastactive == last ) last = mvnode;
       lastactive = mvnode;
    }
 }
@@ -500,7 +497,7 @@ moveToBoundFront( tListNode< NodeType > * mvnode )
       moveToFront( mvnode );
       return;
    }
-   
+
    if( mvnode != lastactive->next )
    {
       // if node was in active part of list, decrement nActiveNodes:
@@ -508,32 +505,22 @@ moveToBoundFront( tListNode< NodeType > * mvnode )
       if( mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
           --nActiveNodes;
       // Detach mvnode from its position on the list:
-      if( mvnode == this->first )
-      {
-         //if( this->first->next ) this->first->next->prev = this->first->prev;
-         if( this->first->next ) this->first = this->first->next;
+      if( mvnode == first ) {
+         assert( first->next );
+	 first = first->next;
       }
-      if( mvnode == lastactive )
-      {
-         lastactive = lastactive->prev;
-         return;
+      if( mvnode == last ) {
+         assert( last->prev );
+	 last = last->prev;
       }
-      //else
-      //{
       if( mvnode->prev ) mvnode->prev->next = mvnode->next;
       if( mvnode->next ) mvnode->next->prev = mvnode->prev;
-         //}
       // Insert it after the end of the active part of the list:
       mvnode->next = lastactive->next;
       mvnode->prev = lastactive;
       if( lastactive->next ) lastactive->next->prev = mvnode;
       lastactive->next = mvnode;
-      if( lastactive == this->last )
-      {
-         this->last = mvnode;
-         // If it's a circular list, make sure to preserve circularity:
-         if( this->last->next != 0 ) this->last->next = this->first;
-      }
+      if( lastactive == last ) last = mvnode;
    }
 }
 
