@@ -51,7 +51,7 @@
 **       transport in power-law (excess-shear stress) formulation
 **       (GT)
 **
-**  $Id: erosion.h,v 1.32 2002-02-11 09:19:09 gtucker Exp $
+**  $Id: erosion.h,v 1.33 2002-03-29 09:32:04 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -66,12 +66,13 @@
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
 
-#define tSedTrans tSedTransPwrLawMulti
-//#define SEDTRANSOPTION "Power-law transport formula"
+//#define tSedTrans tSedTransPwrLawMulti
+#define tSedTrans tSedTransPwrLaw
+#define SEDTRANSOPTION "Power-law transport formula"
 //#define tSedTrans tSedTransWilcock
 //#define SEDTRANSOPTION "Wilcock sand-gravel formula"
 //#define SEDTRANSOPTION "Willgoose/Riley mine tailings formula"
-#define SEDTRANSOPTION "Multi-size power-law formula"
+//#define SEDTRANSOPTION "Multi-size power-law formula"
 
 /***************************************************************************\
 **  class tEquilibCheck
