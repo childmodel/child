@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.69 2004-03-24 14:54:42 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.70 2004-04-14 13:20:22 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1176,7 +1176,10 @@ void tStreamNet::FlowDirs()
 	}
 	// the steepest descent one is not meandering
 	else if ( !SteepestDescentNode->Meanders() ){
-	  if(meanderslp > 0.0){				// pick the meander edge if it is positive
+	  // pick the meander edge if it is positive and the steeper choice
+	  // does not lead to an open boundary
+	  if(meanderslp > 0.0 && 
+	     nbredg->getDestinationPtr()->getBoundaryFlag() != kOpenBoundary){
 	    curnode->setFlowEdg( meanderedg);
 	    selectslope = meanderslp;
 	  }
