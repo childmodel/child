@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.121 2003-08-12 15:53:36 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.122 2003-09-05 14:24:13 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -2079,6 +2079,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
   // Potential depth of bedrock erosion of each grain size
   tArray <double> retbr( cn->getNumg() ); //br amt actually ero'd/dep'd
   tArray <double> retsed( cn->getNumg()  ); //sed amt actually ero'd/dep'd
+  const tArray <double> sedzero( cn->getNumg() );
 
   // Sort so that we always work in upstream to downstream order
   strmNet->SortNodesByNetOrder();
@@ -2097,8 +2098,8 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 	//  cout<<"93 is active"<<endl;
 	cn->setQsin(0.0); //totals are for ts calculation
 	cn->setQs(0.0);
+	cn->setQsin( zero );
 	for( i=0; i<cn->getNumg(); i++ ){
-	  cn->setQsin( i, 0.0 );
 	  cn->setQs(i,0.0);
 	}
 	//if(cn->getID()==93)
@@ -2226,8 +2227,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
       // interaction it may be modified; if inlet, give it strmNet->inlet.inSedLoad
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
 	cn->setQsin(0.0);
-	for( i=0; i<cn->getNumg(); i++ )
-	  cn->setQsin( i, 0.0 );
+	cn->setQsin( zero );
       }
 
 
@@ -2407,6 +2407,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 
     tArray <double> ret( cn->getNumg() ); //amt actually ero'd/dep'd
     tArray <double> erolist( cn->getNumg() );
+    const tArray <double> sedzero( cn->getNumg() );
     tArray <double> insed( strmNet->getInSedLoadm() );
 
     // Sort so that we always work in upstream to downstream order
@@ -2426,17 +2427,17 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             if( cn!=inletNode )
 	      {
 		cn->setQsin(0.0); //totals are for ts calculation
+		cn->setQsin( sedzero );
 		for( i=0; i<cn->getNumg(); i++ ){
-                  cn->setQsin( i, 0.0 );
                   cn->setQs(i,0.0);
 		}
 	      }
             else
 	      {
 		cn->setQsin(insedloadtotal); //totals are for ts calculation
+		cn->setQsin( insed );
 		for( i=0; i<cn->getNumg(); i++ ){
                   cn->setQs(i,0.0);
-                  cn->setQsin( i, insed[i] );
 		  //cout << "inlet qsin size " << i << "=" << insed[i] << endl;
 		}
 	      }
@@ -2514,13 +2515,11 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 	      {
 		//Note-seting qsini for each size should automatically
 		//properly set qstotal to be the sum of all qsini
-		for( i=0; i<cn->getNumg(); i++ )
-		  cn->setQsin( i, 0.0 );
+		cn->setQsin( sedzero );
 	      }
             else
 	      {
-		for( i=0; i<cn->getNumg(); i++ )
-		  cn->setQsin( i, insed[i] );
+		cn->setQsin( insed );
 	      }
 
             dn = cn->getDownstrmNbr();
