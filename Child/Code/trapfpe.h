@@ -4,9 +4,11 @@
  * will be overridden. Link with -lm.                     */
 
 #define _GNU_SOURCE 1
-#include <fenv.h>
+/* to import __GLIBC__ */
+#include <stdlib.h>
 
 #if defined (__GLIBC__)
+#include <fenv.h>
 static void __attribute__ ((constructor)) trapfpe(void)
 {
   /* Enable some exceptions.  At startup all exceptions are masked. */
