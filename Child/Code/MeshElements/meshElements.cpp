@@ -16,7 +16,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.40 2002-08-13 12:31:56 arnaud Exp $
+**  $Id: meshElements.cpp,v 1.41 2002-08-30 16:40:59 gtucker Exp $
 \**************************************************************************/
 
 #include "../tAssert.h"
@@ -258,6 +258,16 @@ double tNode::ComputeVoronoiArea()
    tArray< double > xy, xyn, xynn, xynnn, xy1, xy2, xy3, xy4;
    int i;
 
+   // the following is a temporary hack, which should be replaced by a more
+   // proper handling but i'm going away for a week tomorrow and don't
+   // have time to deal w/ it right now (gt, aug 02)
+   if( boundary!=1 ) // if not an interior node, something's wrong
+     {
+       cout << "Warning: attempt to compute Voronoi area for a boundary node: "
+	    << id << " " << x << " " << y << " " << boundary << endl;
+       return 0.0;
+     }
+
    // Create a duplicate list of edges; we will modify this list to obtain
    // the correct vertices. In some cases, we may need to delete an edge
    // to get the correct list of vertices; we don't want to delete the
@@ -468,6 +478,12 @@ double tNode::ComputeVoronoiArea()
       }
    }
    varea = area;
+   if( varea<=0.0 ) { // debug
+     cout << "Error: zero or negative varea = " << varea << endl;
+     cout << "Node: " << id << " " << x << " " << y << " " << boundary << endl;
+     edg->TellCoords();
+   }
+   assert( varea>0.0 );
    varea_rcp = 1.0/varea;
 
    // debug
