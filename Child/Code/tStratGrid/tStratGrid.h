@@ -12,7 +12,7 @@
  **
  **  Created 5/2003 (QC)
  **
- **  $Id: tStratGrid.h,v 1.2 2004-04-16 18:28:37 childcvs Exp $
+ **  $Id: tStratGrid.h,v 1.3 2004-04-19 12:52:03 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -174,7 +174,7 @@ class tStratGrid
   tStratGrid();
 
 public:
-  tStratGrid( tInputFile &infile, tMesh<tLNode> *mp );
+  tStratGrid( tInputFile const &infile, tMesh<tLNode> *mp );
   ~tStratGrid();
 
   bool OptSurferFiles() const {
@@ -213,7 +213,7 @@ public:
   double getOutputTime(int) const;
   int getnWrite() const;
   void updateConnect();
-  double CalculateMeanderCurrent(tTriangle *, double, double);
+  double CalculateMeanderCurrent(tTriangle *, double, double) const;
   double CompassAngle(tLNode *,tLNode *) const;
 
 protected:			          // can be accessed by friend classes

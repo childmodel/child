@@ -18,7 +18,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.19 2004-04-16 18:34:52 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.20 2004-04-19 12:53:11 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -105,7 +105,7 @@ public:
   void DepositOverbank( double precip, double delt, double ctime );
   bool OptControlMainChan() const;
   void UpdateMainChannelHeight( double tm, tLNode * inletNode );
-  double FloodplainDh(double, double, tLNode * );		// Howard, 1992
+  double FloodplainDh(double, double, tLNode * ) const;		// Howard, 1992
   double FloodplainDh2(double , double, double , double ) const;// Gross and Small, 1998
   double getSuspendedConcentration(double) const;
   double ConcentrationToHeight(double, tLNode *, double ) const;

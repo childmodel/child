@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.26 2004-04-16 18:34:52 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.27 2004-04-19 12:53:10 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -326,7 +326,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
  **
  \*************************************************************/
 double tFloodplain::FloodplainDh(double minDist, double flooddepth,
-				 tLNode *fpnode)
+				 tLNode *fpnode) const
 {
   double C  = 0.0;
   double dh = 0.0;

@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.9 2004-04-19 12:08:22 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.10 2004-04-19 12:52:03 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -53,7 +53,7 @@ using namespace std;
  **
  **
 \**************************************************************************/
-tStratGrid::tStratGrid( tInputFile &infile, tMesh<tLNode> *mp_)
+tStratGrid::tStratGrid( tInputFile const &infile, tMesh<tLNode> *mp_)
   : mp(mp_), StratNodeMatrix(0),
     StratConnect(0),
     imax(0), jmax(0)    //,tArray<double>surface(0),tArray<double>subsurface(0)
@@ -779,7 +779,7 @@ void tStratGrid::InterpolateErodepFromElevations(double time)
  **
 \******************************************************************************/
 
-double tStratGrid::CalculateMeanderCurrent( tTriangle *tri, double sx, double sy)
+double tStratGrid::CalculateMeanderCurrent( tTriangle *tri, double sx, double sy) const
 {
 
   double CompassAv = -1;
