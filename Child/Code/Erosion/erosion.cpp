@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.55 1999-03-11 17:39:44 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.56 1999-03-18 23:39:49 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1788,6 +1788,29 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
    
 }
 
+/***********************************************************************\
+ ** tErosion::UpdateExposureTime( double dtg)                         **
+ **                                                                   **
+ ** This function increments the exposure time of the top layer at    **
+ ** every node by the amount dtg.                                     **
+ ** Called from main loop.                                            **
+ **                                                                   **
+ ** created 3/1999 ng                                                 **
+ **********************************************************************/
+
+void tErosion::UpdateExposureTime( double dtg)
+{
+   tLNode * cn;
+   tGridListIter<tLNode> nodIter( gridPtr->getNodeList() );
+
+#if TRACKFNS
+   cout << "tErosion::UpdateExposureTime()" << endl << flush;
+#endif
+   
+   for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() ){
+      cn->addLayerEtime(0, dtg);
+   }
+}
 
 
 

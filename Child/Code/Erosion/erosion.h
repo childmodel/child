@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.19 1999-01-04 23:46:00 nmgaspar Exp $
+**  $Id: erosion.h,v 1.20 1999-03-18 23:39:57 nmgaspar Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -205,6 +205,7 @@ public:
    void DetachErode( double dtg, tStreamNet *, double time);
    double TransportCapacity(tLNode * n );
     void Diffuse( double dtg, int detach );
+   void UpdateExposureTime( double dtg);
 
 private:
    tGrid<tLNode> *gridPtr;
