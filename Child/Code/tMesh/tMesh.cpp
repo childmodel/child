@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.56 1999-02-04 19:26:06 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.57 1999-02-04 21:55:41 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2878,6 +2878,8 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
 **   - GT 1/99 -- to avoid compiler warning, now stores output of 
 **     UnitVector calls in arrays p1, p2, p3, which are then sent as
 **     arguments to PointsCCW.
+**   - GT 2/99 -- added calls to WelcomeCCWNeighbor and AttachNewSpoke
+**     to update CCW edge connectivity
 **
 \**************************************************************************/
 //vertices of tri in ccw order; edges are added between node1 and node2
@@ -2939,7 +2941,12 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
       edgeList.insertAtBack( tempEdge2 );        //put edge2 in list
       le = edgIter.LastP();                            //set edgIter to last
    }
-     //add pointers to the new edges to nodes' spokeLists:
+
+   // Add pointers to the new edges to nodes' spokeLists
+   // Three possible cases: (1) there aren't any spokes currently attached,
+   // so just put the new one at the front of the list and make it circ'r;
+   // (2) there is only one spoke, so it doesn't matter where we attach
+   // (3) there is already >1 spoke (the general case)
    spokIter.Reset( node2->getSpokeListNC() );
      //cout << "node " << node2->getID() << ": ";
    if( node2->getSpokeListNC().isEmpty() )
@@ -2948,14 +2955,21 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
         //   << " in otherwise empty list" << endl;
       node2->insertFrontSpokeList( le);
       node2->getSpokeListNC().makeCircular();
+      node2->AttachFirstSpoke( le ); // gt added to update ccwedg 2/99
    }
    else if( spokIter.ReportNextP() == spokIter.DatPtr() )
    {
       node2->insertFrontSpokeList( le);
+      ce = node2->getEdg();  // these 2 lines added by gt 2/99
+      assert( ce!=0 );
+      ce->WelcomeCCWNeighbor( le );
         //node2->getSpokeListNC().makeCircular();
    }
-   else
+   else // general case: figure out where to attach spoke
    {
+      //NB: I (GT) wonder whether we could speed this up. If you knew what
+      // triangle you were falling in, wouldn't you be easily able to find
+      // the right spoke? TODO -- investigate
         //cout << "place spoke " << edgIter.DatRef().getID()
         //   << " w/ reference to node " << node3->getID() << endl;
       for( ce = spokIter.FirstP();
@@ -2979,6 +2993,8 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
       }
       node2->getSpokeListNC().insertAtNext( le,
                                             spokIter.NodePtr() ); //put edge2 in SPOKELIST
+      assert( ce!=0 );
+      ce->WelcomeCCWNeighbor( le );
    }
    spokIter.Reset( node1->getSpokeListNC() );
    le = edgIter.PrevP();                     //step backward once in edgeList
@@ -2989,11 +3005,15 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
         //   << " in otherwise empty list" << endl;
       node1->insertFrontSpokeList( le );
       node1->getSpokeListNC().makeCircular();
+      node1->AttachFirstSpoke( le );
    }
    else if( spokIter.ReportNextP() == spokIter.DatPtr() )
    {
       node1->insertFrontSpokeList( le );
         //node2->getSpokeListNC().makeCircular();
+      ce = node1->getEdg();  // these 2 lines added by gt 2/99
+      assert( ce!=0 );
+      ce->WelcomeCCWNeighbor( le );
    }
    else
    {
@@ -3023,6 +3043,8 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
       }
       node1->getSpokeListNC().insertAtPrev( le,
                                             spokIter.NodePtr() );//put edge1 in SPOKELIST
+      assert( ce!=0 );
+      ce->WelcomeCCWNeighbor( le );
    }
    
    nedges+=2;
