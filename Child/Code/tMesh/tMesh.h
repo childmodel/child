@@ -12,7 +12,7 @@
 **    - move, add, and/or delete nodes
 **    - update Delaunay and Voronoi geometry
 **
-**  $Id: tMesh.h,v 1.19 1999-03-19 22:31:32 gtucker Exp $
+**  $Id: tMesh.h,v 1.20 1999-04-01 16:02:49 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -32,7 +32,7 @@
 #include "../GridElements/gridElements.h"
 #include "../tLNode/tLNode.h"
 #include "../tListInputData/tListInputData.h"
-#include "../tListOutputData/tListOutputData.h"
+//#include "../tListOutputData/tListOutputData.h"
 #include "../globalFns.h"
 #include "../Predicates/predicates.h"
 
