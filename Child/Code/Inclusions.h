@@ -6,7 +6,6 @@
 /** INCLUDED LIBRARY HEADER FILES **/
 //#include <stdlib.h>
 #include <math.h>
-#include <malloc.h>
 #include <iostream.h>
 #include <fstream.h>
 #include <string.h>
