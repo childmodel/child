@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.8 1999-06-10 18:45:26 gtucker Exp $
+**  $Id: tFloodplain.cpp,v 1.9 2002-04-12 08:39:05 gtucker Exp $
 \**************************************************************************/
 
 #include "tFloodplain.h"
@@ -157,7 +157,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
        dist,             // distance to flood node
        floodDepth,       // local flood depth
        dx,dy,            // x and y distance to flood node
-       wsh,              // water surface height
+       wsh=0.0,          // water surface height
        drarea;           // drainage area at flood node
    
    //cout << "tFloodplain\n";
@@ -207,6 +207,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
             
          }
          assert( closestNode!=0 ); // (should always find one)
+	 assert( wsh>0 );   // should always find a closest node & set wsh
          /*cout << " got it: " << closestNode->getID() << " dist=" << minDist
            << endl << flush;*/
 

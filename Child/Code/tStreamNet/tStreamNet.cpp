@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.12 2002-04-11 15:01:47 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.13 2002-04-12 08:39:22 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -417,7 +417,7 @@ void tStreamNet::CheckNetConsistency()
          cerr<< "NODE #" << cn->getID() << " flows to itself!\n";
          goto error;
       }
-      if( ln = tI.GetP( dn->getID() ) )
+      if( ( ln = tI.GetP( dn->getID() ) ) )
       {
          if( ln != dn )
          {
@@ -1904,7 +1904,7 @@ void tStreamNet::FindChanGeom()
    double lambda;
    tLNode *cn;
    tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
-   tStorm *sPtr = getStormPtrNC();
+   //X tStorm *sPtr = getStormPtrNC();
    // double isdmn = sPtr->getMeanInterstormDur();
    // double pmn = sPtr->getMeanPrecip();
 
@@ -2336,7 +2336,7 @@ void tInlet::FindNewInlet()
 {
    double yin, zmin, dmn, dmnn, dmin;
    tLNode *cn, *newinnode, *mn;
-   tNode *bn0, *bn1, *mnn;
+   tNode *bn0(0), *bn1(0), *mnn;
    tEdge *ce, *me;
    tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
    tPtrListIter< tEdge > sI, msI;
@@ -2389,6 +2389,8 @@ void tInlet::FindNewInlet()
                if( n > 1 )
                {
                     //find node's distance to boundary:
+		  assert( bn0 != 0 );
+		  assert( bn1 != 0 );
                   dmn = DistanceToLine( mn->getX(), mn->getY(), bn0, bn1 );
                   dmin = dmn;
                     //find it's active nbrs' distances:
