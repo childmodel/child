@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.80 2003-05-08 10:59:05 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.81 2003-05-09 17:35:48 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -888,10 +888,7 @@ void tStreamMeander::FindReaches()
 void tStreamMeander::CalcMigration( double &time, double &duration,
                                     double &cummvmt )
 {
-  int i, j,       // counters
-    *stations,  // number of actual landscape nodes on reach
-    *stnserod,  // total # of reach nodes including 'tail'
-    nttlnodes;  //   "
+  int i, j;       // counters
   tArray< double > xa, ya, xsa, qa, rerodya, lerodya, delsa,
     slopea, widtha, deptha, diama, deltaxa, deltaya,
     rdeptha, ldeptha, lambdaa;
@@ -941,9 +938,10 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
       if (0) //DEBUG
 	cout << "reach " << i << " length " << nrnodes[i] << endl;
       
-      stations = &(nrnodes[i]);
-      nttlnodes = creach->getSize();
-      stnserod = &nttlnodes;
+      const int stations  // number of actual landscape nodes on reach
+	= nrnodes[i];
+      // total # of reach nodes including 'tail'
+      const int nttlnodes = creach->getSize();
       dumArrPtr = new tArray< double >( nttlnodes );
       xa = ya = xsa = qa = rerodya = lerodya = delsa =
 	slopea = widtha = deptha = diama = deltaxa =
@@ -994,12 +992,12 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
 
       // Now we pass all this information to meander.f
       if (0) //DEBUG
-	cout << "stations, stnserod: " << *stations <<" "<< *stnserod
+	cout << "stations, stnserod: " << stations <<" "<< nttlnodes
 	     << endl << flush;
       //this looks horrible, but we need to pass the pointer to the array
       //itself, not the tArray object, which contains the array pointer.
-      meander_( stations,
-                stnserod,
+      meander_( &stations,
+                &nttlnodes,
                 xa.getArrayPtr(),
                 ya.getArrayPtr(),
                 xsa.getArrayPtr(), 
