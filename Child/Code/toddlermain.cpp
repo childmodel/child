@@ -35,7 +35,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.16 2003-11-18 12:41:21 childcvs Exp $
+**  $Id: toddlermain.cpp,v 1.17 2004-01-07 15:10:40 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -154,8 +154,9 @@ int main( int argc, char **argv )
 OptTSOutput." );
    }   */
 
+#if 0
    // Temporary -- for canyon range stuff
-   /*cout << "Densifying around fold strike ...\n";
+   cout << "Densifying around fold strike ...\n";
    int optFoldDens = inputFile.ReadItem( optFoldDens, "OPTFOLDDENS" );
    if( optFoldDens )
      {
@@ -180,8 +181,7 @@ OptTSOutput." );
 	     mesh.AddNodesAround( cn, 0.0 );
 	   foldPoints.Flush();
 	 }
-	 }*/
-
+#endif
 
    /**************** MAIN LOOP ******************************************\
    **  ALGORITHM
@@ -214,10 +214,11 @@ OptTSOutput." );
       strmNet.UpdateNet( time.getCurrentTime(), storm );
       
       if( optDetachLim )
-          erosion.ErodeDetachLim( storm.getStormDuration(), &strmNet );
+          erosion.ErodeDetachLim( storm.getStormDuration(), &strmNet,
+				  vegetation );
       else
           erosion.DetachErode( storm.getStormDuration(), &strmNet,
-                               time.getCurrentTime() );
+                               time.getCurrentTime(), vegetation );
 
       if( optFloodplainDep )
           floodplain->DepositOverbank( storm.getRainrate(),
