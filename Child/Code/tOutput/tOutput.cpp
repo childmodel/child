@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.9 1998-06-10 22:17:07 nmgaspar Exp $
+**  $Id: tOutput.cpp,v 1.10 1998-06-17 23:37:33 nmgaspar Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -168,6 +168,7 @@ tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile )
    CreateAndOpenFile( &slpofs, ".slp" );
    CreateAndOpenFile( &qofs, ".q" );
    CreateAndOpenFile( &layofs, ".lay" );
+   CreateAndOpenFile( &texofs, ".tex" );
    
 }
 
@@ -188,6 +189,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    slpofs << " " << time << "\n " << nActiveNodes << endl;
    qofs << " " << time << "\n " << nnodes << endl;
    layofs << " " << time << "\n" << nnodes << endl;
+   texofs << " " << time << "\n" << nnodes << endl;
    
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
    {
@@ -201,6 +203,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    int i, j;
    for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() ){
       qofs << cn->getQ() << endl;
+      texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << endl;      
       i=0;
       while(i<cn->getNumLayer()){
          layofs << i+1 << " " << cn->getLayerCtime(i) << " " << cn->getLayerRtime(i) << endl;
