@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.2 1998-01-15 19:38:52 gtucker Exp $
+**  $Id: tLNode.h,v 1.3 1998-01-20 15:31:36 stlancas Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -175,9 +175,12 @@ class tLNode : public tNode
    float getHydrWidth() const;
    float getChanWidth() const;
    float getDrArea() const;
-   tArray< float > getNew2DCoords() const;
-   void setNew2DCoords( float, float );
-   tArray< float > getNew3DCoords() const;
+   tArray< float > getNew2DCoords() const;   //for chan.migration.newx, newy
+   void setNew2DCoords( float, float );      //        "
+   tArray< float > getNew3DCoords() const;   //        "
+   tArray< float > getLatDisplace() const;  //for chan.migration.deltax, deltay
+   void setLatDisplace( float, float );      //        "
+   void addLatDisplace( float, float );      //        "
    void setRock( const tBedrock & );
    void setSurf( const tSurface & );
    void setReg( const tRegolith & );
