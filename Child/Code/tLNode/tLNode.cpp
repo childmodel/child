@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.102 2003-05-16 16:21:40 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.103 2003-05-19 14:54:00 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -704,8 +704,10 @@ void tLNode::RevertToOldCoords()
 
 void tLNode::UpdateCoords()
 {
-   x = chan.migration.newx;
-   y = chan.migration.newy;
+  if (Meanders()) {
+    x = chan.migration.newx;
+    y = chan.migration.newy;
+  }
 }
 
 // nb: if channel is integrated into node, change this
@@ -1983,6 +1985,15 @@ void tLNode::InitializeNode()
    // cout<<"tLNode::InitializeNode node "<<id<<" flow edge "<<flowedge->getID()<<endl;
 }
 
+/*******************************************************************\
+  tLNode::FuturePosn() virtual function
+
+  11/98 SL
+  5/2003 AD
+\*******************************************************************/
+tArray< double > tLNode::FuturePosn() {
+  return Meanders() ? getNew2DCoords() : get2DCoords();
+}
 
 /***********************************************************************\
   tArray<double> tLNode::EroDep

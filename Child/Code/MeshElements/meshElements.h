@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.50 2003-05-16 16:21:05 childcvs Exp $
+**  $Id: meshElements.h,v 1.51 2003-05-19 14:53:59 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -143,8 +143,10 @@ public:
   double ComputeVoronoiArea();     // calculates node's Voronoi area
   void ConvertToClosedBoundary();  // makes node a closed bdy & updates edges
   virtual void WarnSpokeLeaving( tEdge *); // signals node that spoke is being deleted
-   virtual void InitializeNode();  // used when new nodes are created, for now only has a purpose in inherited classes
-
+  virtual void InitializeNode();  // used when new nodes are created, for now only has a purpose in inherited classes
+  virtual tArray< double > FuturePosn();
+  virtual void UpdateCoords() {}
+  virtual bool isMobile() const { return false;}
 #ifndef NDEBUG
    void TellAll();  // Debugging routine that outputs node data
 #endif
@@ -622,6 +624,14 @@ inline void tNode::WarnSpokeLeaving( tEdge * edglvingptr )
 inline void tNode::InitializeNode()
 {
 }
+
+/*******************************************************************\
+  tNode::FuturePosn() virtual function; here, just calls get2DCoords()
+
+  11/98 SL
+  5/2003 AD
+\*******************************************************************/
+inline tArray< double > tNode::FuturePosn() {return get2DCoords();}
 
 
 

@@ -26,7 +26,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.60 2003-05-16 16:21:41 childcvs Exp $
+**  $Id: tLNode.h,v 1.61 2003-05-19 14:54:01 childcvs Exp $
 */
 /************************************************************************/
 
@@ -439,7 +439,7 @@ public:
     void setDiam( double );
     void setZOld( double, double );
     void RevertToOldCoords();
-    void UpdateCoords();
+    virtual void UpdateCoords();
     double DistNew( tLNode const *, tLNode const * ) const;
     void ActivateSortTracer();
     void DeactivateSortTracer();
@@ -541,6 +541,9 @@ public:
    void LayerInterpolation( tTriangle const *, double, double, double );
    virtual void WarnSpokeLeaving(tEdge *);
    virtual void InitializeNode();
+   virtual tArray< double > FuturePosn();
+   virtual bool isMobile() const { return Meanders();}
+
    void CopyLayerList( tLNode const * ); // Copy layerlist from another node (gt 12/99)
 
 #ifndef NDEBUG
