@@ -3,7 +3,7 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.77 1999-11-30 21:26:22 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.78 1999-12-07 16:49:30 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -988,6 +988,14 @@ MakeMeshFromScratch( tInputFile &infile )
      //  3 = all sides
      //  4 = specify outlet coordinates
    int boundType = infile.ReadItem( boundType, "TYP_BOUND" );
+   int kSloped = 0;
+   //ng 12/99 added so that the initial surface could be sloped
+   //with one side open bndry cndtn if kSloped = 1.
+   if(boundType == kOpenSide){
+      kSloped = infile.ReadItem( kSloped, "SLOPED_SURF" );
+      if(kSloped)
+          upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
+   }
      //read mean elevation (also determines elev variation)
    double mElev = infile.ReadItem( mElev, "MEAN_ELEV" );
      //reads method of point placement:
@@ -1337,7 +1345,7 @@ MakeMeshFromScratch( tInputFile &infile )
                xyz[1] += 0.5 * delGrid * ( ran3( &seed ) - 0.5 );
             }
             xyz[2] = mElev + mElev * ( ran3( &seed ) - 0.5 );
-            if( boundType == kOppositeSidesOpen )
+            if( boundType == kOppositeSidesOpen || kSloped)
             {
                slope = upperZ / yGrid;
                xyz[2] += slope * xyz[1] - mElev;
