@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.54 2003-08-13 16:11:07 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.55 2003-09-01 13:07:59 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -961,7 +961,7 @@ void tStreamNet::FlowPathLength()
   tMeshListIter<tLNode> nodeIter( meshPtr->getNodeList() );
 
   // Sort nodes in upstream-to-downstream order
-  SortNodesByNetOrder( 0 );
+  SortNodesByNetOrder( false );
 
   // Reset all flow path lengths to zero
   for( curnode = nodeIter.FirstP(); nodeIter.IsActive();
@@ -1574,7 +1574,7 @@ void tStreamNet::FillLakes()
 **
 \*****************************************************************************/
 void tStreamNet::FillLakesFlowDirs(tPtrListIter< tLNode > &lakeIter,
-				   tLNode * const lowestNode)
+				   tLNode *lowestNode)
 {
   // Now we've found an outlet for the current lake.
   // This next bit of code assigns a flowsTo for each node so there's
@@ -2199,7 +2199,7 @@ void tStreamNet::RouteFlowKinWave( double rainrate_ )
        cn->setDischarge( 0.0 );
 
    // Sort nodes uphill-to-downhill
-   SortNodesByNetOrder( 1 );
+   SortNodesByNetOrder( true );
 
    // Route flow and compute water depths
    for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
