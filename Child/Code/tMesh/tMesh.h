@@ -12,7 +12,7 @@
 **    - move, add, and/or delete nodes
 **    - update Delaunay and Voronoi geometry
 **
-**  $Id: tMesh.h,v 1.21 1999-04-04 21:33:54 gtucker Exp $
+**  $Id: tMesh.h,v 1.22 1999-05-11 19:07:55 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -137,7 +137,7 @@ protected:
    tMeshList< tEdge > edgeList;    // list of directed edges
    tList< tTriangle > triList;     // list of triangles
    long seed;                      // random seed
-   bool layerflag;                 // flag indicating whether nodes have layers
+   int layerflag;                 // flag indicating whether nodes have layers
 
 };
 
