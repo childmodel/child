@@ -1,23 +1,40 @@
 /***************************************************************************\
 **
-**  tGrid.cpp: Functions for class tGrid
+**  tGrid.cpp: Functions for class tGrid (see tGrid.h) plus global
+**             functions used by tGrid methods
 **
-**  $Id: tMesh.cpp,v 1.65 1999-03-30 18:12:35 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.66 1999-04-01 22:56:48 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
 
-//global function; determines whether nbr node currently pointed to
-//by iterator and the next two in the nbr list form a Delaunay triangle:
+/***************************************************************************\
+**  Templated global functions used by tGrid here
+\***************************************************************************/
+
+/***************************************************************************\
+**
+**  Next3Delaunay
+**
+**  global function; determines whether nbr node currently pointed to
+**  by iterator and the next two in the nbr list form a Delaunay triangle.
+**
+**  Inputs:  nbrList -- list of pointers to nodes
+**           nbrIter -- iterator for this list
+**  Returns: 1 if the next 3 nodes on the list are Delaunay, 0 otherwise
+**  Called by: tGrid::RepairMesh
+**
+\***************************************************************************/
 template< class tSubNode >
 int Next3Delaunay( tPtrList< tSubNode > &nbrList,
                    tPtrListIter< tSubNode > &nbrIter )
 {
    static int ncalls = 0;
    ncalls++;
+   tSubNode *cn, *nbrnd;
    
    assert( (&nbrList != 0) && (&nbrIter != 0) );
-   tSubNode *cn, *nbrnd;
+
    nbrnd = nbrIter.DatPtr();
      //cout << "Next3Delaunay? no calls =  " << ncalls << endl;
      //global function prototypes
@@ -37,10 +54,16 @@ int Next3Delaunay( tPtrList< tSubNode > &nbrList,
    tArray< double > p1( nbrIterCopy.NextP()->get2DCoords() );
    tArray< double > p2( nbrIterCopy.NextP()->get2DCoords() );
      //cout << "N3D: point B\n";
+
+   // If points aren't counter-clockwise, we know it's not Delaunay
    if( !PointsCCW( p0, p1, p2 ) ) return 0;
+
+   // Otherwise, compare it to each of the other potential triangles
+   // p0-p1-ptest (?) where ptest is one of the other points in the
+   // ring
    tArray< double > ptest;
-   cn = nbrIterCopy.NextP();
-   while( cn != nbrnd )
+   cn = nbrIterCopy.NextP();  // Move to next point in the ring
+   while( cn != nbrnd )       // Keep testing 'til we're back to p0
    {
       ptest = cn->get2DCoords();
       if( !TriPasses( ptest, p0, p1, p2 ) )
@@ -49,15 +72,30 @@ int Next3Delaunay( tPtrList< tSubNode > &nbrList,
          return 0;
       }
         //else cout << "Next3Del? this tri passed..\n";
-      
-      cn = nbrIterCopy.NextP();
+      cn = nbrIterCopy.NextP();  // Next point in ring
    }
    //cout << "Next3Delaunay? Yes" << endl;
    return 1;
 }
 
-//global function; determines whether nbr node currently pointed to
-//by iterator and the next two in the nbr list form a Delaunay triangle:
+
+/***************************************************************************\
+**
+**  PointAndNext2Delaunay
+**
+**  Global function that determines whether nbr node currently pointed to
+**  by iterator and the next two in the nbr list form a Delaunay triangle.
+**  Similar to Next3Delaunay but p2 is an arbitrary node (testNode) rather
+**  than one of the neighbor list nodes.
+**
+**  Inputs:  testNode -- a node to check (this is "p2")
+**           nbrList -- list of pointers to nodes
+**           nbrIter -- iterator for this list
+**  Returns: 1 if they are Delaunay, 0 otherwise
+**
+**  IS THIS EVER CALLED? OBSOLETE? TODO -- delete if not
+**
+\***************************************************************************/
 template< class tSubNode >
 int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
                            tPtrListIter< tSubNode > &nbrIter )
@@ -80,7 +118,11 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
    assert( nbrIterCopy.Next() );
    tArray< double > p1( nbrIterCopy.DatPtr()->get2DCoords() );
    tArray< double > p2( testNode.get2DCoords() );
+
+   // If the points aren't CCW then we know it's not Delaunay
    if( !PointsCCW( p0, p1, p2 ) ) return 0;
+
+   // Otherwise, call TriPasses to compare
    tArray< double > ptest;
    assert( nbrIterCopy.Next() );
    while( nbrIterCopy.DatPtr() != nbrIter.DatPtr() )
@@ -99,10 +141,9 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
 
 
 /**************************************************************************\
-**
-**         Utilities for class tGrid
-**
+**  FUNCTIONS FOR CLASS tGrid
 \**************************************************************************/
+
 //default constructor
 template< class tSubNode >
 tGrid< tSubNode >::
@@ -135,7 +176,6 @@ tGrid< tSubNode >::
 tGrid( tInputFile &infile )
 {
    int read = infile.ReadItem( read, "OPTREADINPUT" );
-	//***changed from "if( read<0 || read>2 )":
    if( read<0 || read>4 )
    {
       cerr << "Valid options for reading mesh input are:\n"
@@ -144,11 +184,10 @@ tGrid( tInputFile &infile )
            << "  2 -- create mesh from a list of (x,y,z,b) points\n"
            << "  3 -- create random mesh from ArcGrid ascii output\n"
            << "  4 -- create hexagonal mesh from ArcGrid ascii output\n";
-		//added above line to cerr << 
       ReportFatalError( "Invalid mesh input option requested." );
    }
    
-   if( read==1 ){
+   if( read==1 ) {
       MakeGridFromInputData( infile ); //create grid by reading data files
       int lay = infile.ReadItem( lay, "OPTREADLAYER" );
       if( lay == 1 )
@@ -170,19 +209,22 @@ tGrid( tInputFile &infile )
 }
 
 //destructor
-template< class tSubNode >
+/*template< class tSubNode >
 tGrid< tSubNode >::
-~tGrid() {cout << "    ~tGrid()" << endl;}                    //tGrid
+~tGrid() {cout << "    ~tGrid()" << endl;}*/                    //tGrid
 
 
 /************************************************************************\
-  MakeLayersFromInputData( infile ):
-
-  This function reads in layer information from a CHILD output file and
-  copies it to the nodes which have already been created.
-
+**
+**  tGrid::MakeLayersFromInputData( infile ):
+**
+**  This function reads in layer information from a CHILD output file and
+**  copies it to the nodes which have already been created.
+**
+**  TODO: is there a way to handle this outside of tGrid, so tGrid
+**  doesn't have to know anything about layering?
+**
 \************************************************************************/
-
 template< class tSubNode >
 void tGrid< tSubNode >::
 MakeLayersFromInputData( tInputFile &infile )
@@ -297,12 +339,12 @@ MakeLayersFromInputData( tInputFile &infile )
 }
 
 
-
 /**************************************************************************\
 **
-**   MakeGridFromInputData( infile ):
-**          formerly tGrid( tListInputData &, tlnodflag ). Constructs
-**          tListInputData obj., makes grid from data in that object.
+**   tGrid::MakeGridFromInputData
+**
+**   Formerly tGrid( tListInputData &, tlnodflag ). Constructs
+**   tListInputData obj., makes grid from data in that object.
 **                    
 **
 **   Created: 2/11/98, SL
@@ -548,6 +590,7 @@ MakeGridFromInputData( tInputFile &infile )
 
    cout << "end of tGrid( input )" << endl << flush;
 }
+
 
 /**************************************************************************\
 **
@@ -855,19 +898,23 @@ BatchAddNodes()
    }
 }
 
+
 /**************************************************************************\
 **
-**   MakeGridFromScratch( infile ):formerly tGrid( infile ). Makes
-**       grid from scratch; reads parameters
-**        from input file to get grid size, spacing, method of point
-**        placement.
-**       Could probably be done more gracefully, but here's how it does it:
+**   tGrid::MakeGridFromScratch( infile )
+**
+**   Formerly tGrid( infile ). Makes
+**   grid from scratch; reads parameters
+**   from input file to get grid size, spacing, method of point
+**   placement.
+**
+**      Could probably be done more gracefully, but here's how it does it:
 **        1) makes boundary nodes and edges between them;
 **        2) makes triangulation with only boundary nodes;
 **        3) adds the rest of the nodes one at a time, i.e., triangulation
 **           redone for each node added.
 **
-**       A nicer way (who wants to code it? oo-oo! stephen does, stephen does!):
+**      A nicer way (who wants to code it? oo-oo! stephen does, stephen does!):
 **        1) make boundary nodes and edges between them;
 **        2) add all other nodes at once;
 **        3) do triangulation once by making a temporary list of boundary
@@ -875,7 +922,6 @@ BatchAddNodes()
 **           the biggest angle with the endpoints of the edge; remove edge(s)
 **           from temp. list, make new edge(s) and triangle; add new edge(s)
 **           to temp. list. (from Du)
-**                    
 **
 **   Created: 2/11/98, SL
 **   Calls: tInputFile::ReadItem, MakeCCWEdges(),
@@ -884,7 +930,6 @@ BatchAddNodes()
 **               upperZ, xout, yout
 **   Modified: 3/13/98--now makes rows offset so pattern is "hexagonal"
 **      rather than square
-**               
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -1193,6 +1238,7 @@ MakeGridFromScratch( tInputFile &infile )
    bndList.makeCircular();
    cout << "made points; now adding edges\n";
    
+   // Add edges
    tPtrListIter< tSubNode > bndIter( bndList );
    for( node0 = bndIter.FirstP(); !( bndIter.AtEnd() ); node0 = bndIter.NextP() )
    {
@@ -1204,19 +1250,19 @@ MakeGridFromScratch( tInputFile &infile )
    nedges = edgeList.getSize();
    ntri = 0;
      //DumpEdges:
-   cout << "edges:" << endl;
+   /*cout << "edges:" << endl;
    for( ce = edgIter.FirstP(); !( edgIter.AtEnd() ); ce = edgIter.NextP() )
    {
       cout << ce->getID() << " from " << ce->getOriginPtrNC()->getID()
            << " to " << ce->getDestinationPtrNC()->getID() << endl;
-   }
+           }*/
    cout << "calling repair mesh for initial boundary\n";
    int meshok = RepairMesh( bndList );
    assert( meshok );
    cout << "filling in points\n";
-   
-     //FILL IN POINTS
-   //gt modified to use AddNode instead of AddNodeAt
+
+   // FILL IN POINTS
+   // gt modified to use AddNode instead of AddNodeAt
    tempnode.setBoundaryFlag( kNonBoundary );
    if( ptPlace == kUniformGrid || ptPlace == kPerturbedGrid )
    {
@@ -1253,6 +1299,7 @@ MakeGridFromScratch( tInputFile &infile )
    {
       for( i=0; i<numPts; i++ )
       {
+         // Randomize x,y, and z coordinates
          xyz[0] = ran3(&seed) * xGrid;
          xyz[1] = ran3(&seed) * yGrid;
          xyz[2] = mElev + mElev * ( ran3( &seed ) - 0.5 );
@@ -1263,7 +1310,6 @@ MakeGridFromScratch( tInputFile &infile )
             AddNode( tempnode );
             id++;
          }
-            //XAddNodeAt( xyz );
       }
    }
    MakeCCWEdges();
@@ -1274,16 +1320,21 @@ MakeGridFromScratch( tInputFile &infile )
 
 /**************************************************************************\
 **
-**   MakeGridFromPoints
+**   tGrid::MakeGridFromPoints
 **
 **   Constructs a mesh from a given set of (x,y,z,b) points, where
 **   b=boundary code. Unlike MakeGridFromInputData no connectivity
 **   information is needed, just the coordinates and boundary codes.
 **
-**   The format of the file containing points is ...
+**   The format of the file containing points is:
+**        NP
+**        X0 Y0 Z0 B0
+**        X1 Y1 Z1 B1 ...etc.
+**   where NP is the number of points in the file, X, Y, and Z are
+**   x, y, and z coords, and B is the boundary code.
 **
 **   Variations: to reduce memory overhead, the routine could be modified
-**   to read on (x,y,z,b) set at a time rather than reading and
+**   to read one (x,y,z,b) set at a time rather than reading and
 **   temporarily storing all the values. Also, instead of giving a
 **   boundary code for every point, a separate list of open boundary
 **   could be read (eg, from a separate file or from the main input file)
@@ -1641,6 +1692,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    UpdateMesh();
 }
 
+
 /**************************************************************************\
 **
 **   tGrid::MakeHexMeshFromArcGrid
@@ -1850,9 +1902,10 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    UpdateMesh();
 }
 
+
 /*****************************************************************************\
 **
-**  CheckMeshConsistency
+**  tGrid::CheckMeshConsistency
 **
 **  Performs a series of tests to make sure the mesh connectivity is correct.
 **  Should be called immediately after reading in a user-defined mesh (but
@@ -2275,22 +2328,24 @@ void tGrid<tSubNode>::CalcVoronoiEdgeLengths()
 }
 
 
-// NB: TODO: move to tGrid
-// TODO: change L-hand to R-hand orientation of Voronoi vertices and
-// create faster Voronoi edge length computation scheme
+/**************************************************************************\
+**
+**  tGrid::CalcVAreas
+**
+**  Computes Voronoi area for each active (non-boundary) node in the
+**  mesh (Voronoi area is only defined for interior nodes). Accomplishes
+**  this by calling ComputeVoronoiArea for each node. (see gridElements)
+**
+\**************************************************************************/
 template <class tSubNode>
  void tGrid<tSubNode>::CalcVAreas()
 {
    //cout << "CalcVAreas()..." << endl << flush;
-   double area;
-//X   tLNode * curnode; //X *cn;
+   //Xdouble area;
    tSubNode* curnode;
-   tEdge *ce;
-   tArray< double > xy;
-//X   tGridListIter<tLNode> nodIter( nodeList );
+   //XtEdge *ce;
+   //XtArray< double > xy;
    tGridListIter< tSubNode > nodIter( nodeList );
-   //XnI( nodeList );
-   //XtPtrListIter< tEdge > sI;
    
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
@@ -2303,7 +2358,12 @@ template <class tSubNode>
 }
 
 
-/* TODO: consolidate w/ the other deletenode (one calls the other) */
+/**************************************************************************\
+**
+**  tGrid::DeleteNode( tListNode<tSubNode> *, int =1 )
+**    (see DeleteNode( tSubNode *, int =1 ) below)
+**
+\**************************************************************************/
 template< class tSubNode >
 int tGrid< tSubNode >::
 DeleteNode( tListNode< tSubNode > *nodPtr, int repairFlag )
@@ -2476,51 +2536,73 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
    if( node->getSpokeList().isEmpty() ) return 1;
    return 0;
 }
+
+/**************************************************************************\
+**
+**  tGrid::DeleteEdge
+**
+**  Deletes an edge from the mesh, returning 1 if deletion succeeds and
+**  0 if not. Starts by calling ExtricateEdge to detach the edge from
+**  the other mesh elements. This function actually deletes two directed
+**  edges: edgePtr and its complement.
+**
+**  Inputs:  edgePtr -- ptr to the edge to be deleted
+**  Returns:  1 if successful, 0 if not
+**
+\**************************************************************************/
+template< class tSubNode >
+int tGrid< tSubNode >::
+DeleteEdge( tEdge * edgePtr )
+{
+   //cout << "DeleteEdge(...) " << edgePtr->getID() << endl;
+   //edgePtr->TellCoords();
+   tEdge edgeVal1, edgeVal2;
+
+   // Detach the edge from other mesh elements
+   if( !ExtricateEdge( edgePtr ) ) return 0;
+
+   // Remove the edge and its complement from the list
+   // Note, extricate edge does not actually remove the edge from
+   // the edge list, it only moves the two edges (one 'line' that
+   // has two directions) to the end or front of the list.
+   // These two edges are then actually removed here.
+   if( edgePtr->getBoundaryFlag() )
+   {
+      if( !( edgeList.removeFromBack( edgeVal1 ) ) ) return 0;
+      if( !( edgeList.removeFromBack( edgeVal2 ) ) ) return 0;
+   }
+   else
+   {
+      if( !( edgeList.removeFromFront( edgeVal1 ) ) ) return 0;
+      if( !( edgeList.removeFromFront( edgeVal2 ) ) ) return 0;
+   }
+   //    cout << "  edges " << edgeVal1.getID() << " and "
+   //         <<  edgeVal2.getID() << " between nodes "
+   //         << edgeVal1.getOriginPtr()->getID() << " and "
+   //         << edgeVal2.getOriginPtr()->getID() << " removed" << endl;
    
-  /**************************************************************************\
-  **
-  **
-  \**************************************************************************/
-  template< class tSubNode >
-  int tGrid< tSubNode >::
-  DeleteEdge( tEdge * edgePtr )
-  {
-     //cout << "DeleteEdge(...) " << edgePtr->getID() << endl;
-     //edgePtr->TellCoords();
-     tEdge edgeVal1, edgeVal2;
-     if( !ExtricateEdge( edgePtr ) ) return 0;
-     //Note, extricate edge does not actually remove the edge from
-     //the edge list, it only moves the two edges (one 'line' that
-     //has two directions) to the end or front of the list.
-     //These two edges are then actually removed here.
-     if( edgePtr->getBoundaryFlag() )
-     {
-        if( !( edgeList.removeFromBack( edgeVal1 ) ) ) return 0;
-        if( !( edgeList.removeFromBack( edgeVal2 ) ) ) return 0;
-        //assert( edgeList.removeFromBack( edgeVal1 ) );
-        //assert( edgeList.removeFromBack( edgeVal2 ) );
-     }
-     else
-     {
-        if( !( edgeList.removeFromFront( edgeVal1 ) ) ) return 0;
-        if( !( edgeList.removeFromFront( edgeVal2 ) ) ) return 0;
-        //assert( edgeList.removeFromFront( edgeVal1 ) );
-        //assert( edgeList.removeFromFront( edgeVal2 ) );
-     }
-  //    cout << "  edges " << edgeVal1.getID() << " and "
-  //         <<  edgeVal2.getID() << " between nodes "
-  //         << edgeVal1.getOriginPtr()->getID() << " and "
-  //         << edgeVal2.getOriginPtr()->getID() << " removed" << endl;
-   
-     if( &edgeVal1 == 0 || &edgeVal2 == 0 ) return 0;
-     return 1;
-  }
+   if( &edgeVal1 == 0 || &edgeVal2 == 0 ) return 0;
+   return 1;
+}
 
 
 /**************************************************************************\
- **
- **
- \**************************************************************************/
+**
+**  tGrid::ExtricateEdge
+**
+**  Here we detach an edge and its complement from the surrounding mesh 
+**  elements prior to deletion. Adjacent triangle(s) are also deleted
+**  via a call to DeleteTriangle. Calls the virtual node function
+**  WarnSpokeLeaving to signal the affected nodes to take appropriate
+**  action. (Appropriate action might depend on the application; that's
+**  why it is a virtual function that can be handled by any descendents
+**  of tNode). The two complementary edges are then placed at the back
+**  of the edge list, where DeleteEdge can conveniently find them.
+**
+**  Inputs:  edgePtr -- ptr to the edge to be deleted
+**  Returns: 1 if successful, 0 otherwise
+**
+\**************************************************************************/
 template< class tSubNode >
 int tGrid< tSubNode >::
 ExtricateEdge( tEdge * edgePtr )
@@ -2541,7 +2623,6 @@ ExtricateEdge( tEdge * edgePtr )
    ce = edgIter.GetP( edgePtr->getID() );  //NB: why necessary? isn't ce the
    // same as edgePtr??  Yes, why???
    // Puts edgIter at edgePtr's node!
-
    // Remove the edge from it's origin's spokelist
    //cout << "update origin's spokelist if not done already; " << flush;
    spkLPtr = &( ce->getOriginPtrNC()->getSpokeListNC() );
@@ -2630,162 +2711,184 @@ ExtricateEdge( tEdge * edgePtr )
 }
 
 
-  /***************************************************************************\
-  **
-  **  tGrid::LocateTriangle
-  **
-  **  Locates the triangle in which point (x,y) falls. The algorithm exploits
-  **  the fact that the 3 triangle points are always in counter-clockwise
-  **  order, so that the point is contained within a given triangle (p0,p1,p2)
-  **  if and only if the point lies to the left of vectors p0->p1, p1->p2,
-  **  and p2->p0. Here's how it works:
-  **   1 - start with a given triangle (currently first on the list, but a
-  **       smarter initial guess could be used -- TODO)
-  **   2 - lv is the number of successful left-hand checks found so far:
-  **       initialize it to zero
-  **   3 - check whether (x,y) lies to the left of p(lv)->p((lv+1)%3)
-  **   4 - if so, increment lv by one (ie, move on to the next vector)
-  **   5 - if not, (x,y) is to the right of the current face, so move to
-  **       the triangle that lies opposite that face and reset lv to zero
-  **   6 - continue steps 3-5 until lv==3, which means that we've found
-  **       our triangle.
-  **   7 - so far, a point "on the line", i.e., colinear w/ two of the
-  **       three points, still passes; that's OK unless that line is on
-  **       the boundary, so we need to check
-  **
-  **  Input: x, y -- coordinates of the point
-  **  Modifies: (nothing)
-  **  Returns: a pointer to the triangle that contains (x,y)
-  **  Assumes: the point is contained within one of the current triangles
-  **
-  \***************************************************************************/
-  template< class tSubNode >
-  tTriangle * tGrid< tSubNode >::
-  LocateTriangle( double x, double y )
-  {
-     //cout << "\nLocateTriangle (" << x << "," << y << ")\n";
-     int n, lv=0;
-     tListIter< tTriangle > triIter( triList );  //lt
-     tTriangle *lt = &(triIter.DatRef());
-     double a, b, c;
-     int online = -1;
-     tArray< double > xy1, xy2;
+/***************************************************************************\
+**
+**  tGrid::LocateTriangle
+**
+**  Locates the triangle in which point (x,y) falls. The algorithm exploits
+**  the fact that the 3 triangle points are always in counter-clockwise
+**  order, so that the point is contained within a given triangle (p0,p1,p2)
+**  if and only if the point lies to the left of vectors p0->p1, p1->p2,
+**  and p2->p0. Here's how it works:
+**   1 - start with a given triangle (currently first on the list, but a
+**       smarter initial guess could be used -- TODO)
+**   2 - lv is the number of successful left-hand checks found so far:
+**       initialize it to zero
+**   3 - check whether (x,y) lies to the left of p(lv)->p((lv+1)%3)
+**   4 - if so, increment lv by one (ie, move on to the next vector)
+**   5 - if not, (x,y) is to the right of the current face, so move to
+**       the triangle that lies opposite that face and reset lv to zero
+**   6 - continue steps 3-5 until lv==3, which means that we've found
+**       our triangle.
+**   7 - so far, a point "on the line", i.e., colinear w/ two of the
+**       three points, still passes; that's OK unless that line is on
+**       the boundary, so we need to check
+**
+**  Input: x, y -- coordinates of the point
+**  Modifies: (nothing)
+**  Returns: a pointer to the triangle that contains (x,y)
+**  Assumes: the point is contained within one of the current triangles
+**
+\***************************************************************************/
+template< class tSubNode >
+tTriangle * tGrid< tSubNode >::
+LocateTriangle( double x, double y )
+{
+   //cout << "\nLocateTriangle (" << x << "," << y << ")\n";
+   int n, lv=0;
+   tListIter< tTriangle > triIter( triList );  //lt
+   tTriangle *lt = &(triIter.DatRef());
+   double a, b, c;
+   int online = -1;
+   tArray< double > xy1, xy2;
    
-     /* it starts from the first triangle, 
-        searches through the triangles until the point is on
-        the same side of all the edges of a triangle.
-        "lt" is the current triangle and "lv" is the edge number. */
-     for (n=0 ;(lv!=3)&&(lt); n++)
-     {
-        xy1 = lt->pPtr(lv)->get2DCoords();
-        xy2 = lt->pPtr( (lv+1)%3 )->get2DCoords();
-        a = (xy1[1] - y) * (xy2[0] - x);
-        b = (xy1[0] - x) * (xy2[1] - y);
-        c = a - b;
-        /*cout << "find tri for point w/ x, y, " << x << ", " << y
-             << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;
+   /* it starts from the first triangle, 
+      searches through the triangles until the point is on
+      the same side of all the edges of a triangle.
+      "lt" is the current triangle and "lv" is the edge number. */
+   for (n=0 ;(lv!=3)&&(lt); n++)
+   {
+      xy1 = lt->pPtr(lv)->get2DCoords();
+      xy2 = lt->pPtr( (lv+1)%3 )->get2DCoords();
+      a = (xy1[1] - y) * (xy2[0] - x);
+      b = (xy1[0] - x) * (xy2[1] - y);
+      c = a - b;
+      /*cout << "find tri for point w/ x, y, " << x << ", " << y
+        << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;
         lt->TellAll();
         cout << flush;*/
-
-        if ( c > 0.0 )
+      
+      if ( c > 0.0 )
+      {
+         //cout << "    Moving on...\n";
+         lt=lt->tPtr( (lv+2)%3 );
+         lv=0;
+         online = -1;
+      }
+      else
+      {
+         //cout << "    So far so good...\n";
+         if( c == 0.0 ) online = lv;
+         lv++;
+      }
+      
+      /*if( n >= ntri + 20 )
         {
-           //cout << "    Moving on...\n";
-           lt=lt->tPtr( (lv+2)%3 );
-           lv=0;
-           online = -1;
-        }
-        else
-        {
-           //cout << "    So far so good...\n";
-           if( c == 0.0 ) online = lv;
-           lv++;
-        }
-     
-        /*if( n >= ntri + 20 )
-        {
-           DumpTriangles();
-           DumpNodes();
+        DumpTriangles();
+        DumpNodes();
         }*/
-        //cout << "NTRI: " << ntri << flush;
-        assert( n < 3*ntri );
-     }
-     //cout << "FOUND point in:\n";
-     //if( lt != 0 ) lt->TellAll(); //careful with this! TellAll() will crash
-                                      //if lt == 0, i.e., point is out of bounds,
-                                      //and we don't want that;
-                                      //calling code is built to deal with lt == 0.
-     if( online != -1 )
-         if( lt->pPtr(online)->getBoundaryFlag() != kNonBoundary &&
-             lt->pPtr( (online+1)%3 )->getBoundaryFlag() != kNonBoundary ) //point on bndy
-             return 0;
-     //else cout << "location out of bounds\n";
-     return(lt);
-  }
+      //cout << "NTRI: " << ntri << flush;
+      assert( n < 3*ntri );
+   }
+   //cout << "FOUND point in:\n";
+   //if( lt != 0 ) lt->TellAll(); //careful with this! TellAll() will crash
+   //if lt == 0, i.e., point is out of bounds,
+   //and we don't want that;
+   //calling code is built to deal with lt == 0.
+   if( online != -1 )
+       if( lt->pPtr(online)->getBoundaryFlag() != kNonBoundary &&
+           lt->pPtr( (online+1)%3 )->getBoundaryFlag() != kNonBoundary ) //point on bndy
+           return 0;
+   //else cout << "location out of bounds\n";
+   return(lt);
+}
 
-  /**************************************************************************\
-  **
-  **
-  \**************************************************************************/
-  template< class tSubNode >
-  tTriangle * tGrid< tSubNode >::
-  LocateNewTriangle( double x, double y )
-  {
-     //cout << "LocateTriangle" << endl;
-     int n, lv=0;
-     tListIter< tTriangle > triIter( triList );  //lt
-     tTriangle *lt = triIter.FirstP();
-     tSubNode *p1, *p2;
 
-     tArray< double > xy1, xy2;
-       /* it starts from the first triangle, 
-          searches through the triangles until the point is on
-          the same side of all the edges of a triangle.
-          "lt" is the current triangle and "lv" is the edge number.
-          */
-     for (n=0 ;(lv!=3)&&(lt); n++)
-     {
-        p1 = (tSubNode *) lt->pPtr(lv);
-        if( p1->Meanders() ) xy1 = p1->getNew2DCoords();
-        else xy1 = p1->get2DCoords();
-        p2 = (tSubNode *) lt->pPtr( (lv+1)%3 );
-        if( p2->Meanders() ) xy1 = p2->getNew2DCoords();
-        else xy2 = p2->get2DCoords();
-        if ( ( (xy1[1] - y) * (xy2[0] - x) ) > ( (xy1[0] - x) * (xy2[1] - y)) )
-        {
-           lt=lt->tPtr( (lv+2)%3 );
-           lv=0;
-        }
-        else {lv++;}
-          /*if( !(n < ntri) )
-            cout << "tri not found for point w/ x, y, " << x << ", " << y
-                 << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;*/
-          //assert( n < ntri + 20 );
-     }
-     return(lt);
-  }
+/**************************************************************************\
+**
+**  tGrid::LocateNewTriangle
+**
+**  HOW IS THIS DIFFERENT FROM LOCATETRI?
+**
+**  Called by: AddNodeAt
+**
+\**************************************************************************/
+template< class tSubNode >
+tTriangle * tGrid< tSubNode >::
+LocateNewTriangle( double x, double y )
+{
+   //cout << "LocateTriangle" << endl;
+   int n, lv=0;
+   tListIter< tTriangle > triIter( triList );  //lt
+   tTriangle *lt = triIter.FirstP();
+   tSubNode *p1, *p2;
+   
+   tArray< double > xy1, xy2;
+   /* it starts from the first triangle, 
+      searches through the triangles until the point is on
+      the same side of all the edges of a triangle.
+      "lt" is the current triangle and "lv" is the edge number.
+   */
+   for (n=0 ;(lv!=3)&&(lt); n++)
+   {
+      p1 = (tSubNode *) lt->pPtr(lv);
+      if( p1->Meanders() ) xy1 = p1->getNew2DCoords();
+      else xy1 = p1->get2DCoords();
+      p2 = (tSubNode *) lt->pPtr( (lv+1)%3 );
+      if( p2->Meanders() ) xy1 = p2->getNew2DCoords();
+      else xy2 = p2->get2DCoords();
+      if ( ( (xy1[1] - y) * (xy2[0] - x) ) > ( (xy1[0] - x) * (xy2[1] - y)) )
+      {
+         lt=lt->tPtr( (lv+2)%3 );
+         lv=0;
+      }
+      else {lv++;}
+      /*if( !(n < ntri) )
+        cout << "tri not found for point w/ x, y, " << x << ", " << y
+        << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;*/
+      //assert( n < ntri + 20 );
+   }
+   return(lt);
+}
 
-  /**************************************************************************\
-  **
-  **
-  \**************************************************************************/
-  template< class tSubNode >
-  tTriangle *tGrid< tSubNode >::
-  TriWithEdgePtr( tEdge *edgPtr )
-  {
-     assert( edgPtr != 0 );
-     tTriangle *ct;
-       //cout << "TriWithEdgePtr " << edgPtr->getID();
-     tListIter< tTriangle > triIter( triList );
-     for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
-         if( ct != 0 ) //TODO: is this test nec? why wd it be zero?
+
+/**************************************************************************\
+**
+**  tGrid::TriWithEdgePtr
+**
+**  Finds and returns the triangle that points to edgPtr as one of its
+**  clockwise-oriented edges.
+**
+\**************************************************************************/
+template< class tSubNode >
+tTriangle *tGrid< tSubNode >::
+TriWithEdgePtr( tEdge *edgPtr )
+{
+   assert( edgPtr != 0 );
+   tTriangle *ct;
+   //cout << "TriWithEdgePtr " << edgPtr->getID();
+   tListIter< tTriangle > triIter( triList );
+
+   for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
+       if( ct != 0 ) //TODO: is this test nec? why wd it be zero?
            if( ct->ePtr(0) == edgPtr ||
                ct->ePtr(1) == edgPtr ||
                ct->ePtr(2) == edgPtr ) return ct;
    return 0;
 }
 
+
 /**************************************************************************\
 **
+**  tGrid::DeleteTriangle
+**
+**  Deletes a triangle from the mesh. Starts off with a call to 
+**  ExtricateTriangle to detach the triangle from other mesh elements,
+**  after which the triangle is at the front of the triangle list,
+**  from whence it is then deleted.
+**
+**  Inputs:  triPtr -- ptr to the triangle to be deleted
+**  Returns:  1 if successful, 0 if not
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -2795,6 +2898,7 @@ DeleteTriangle( tTriangle * triPtr )
    //cout << "DeleteTriangle(...) " << triPtr->getID() << endl;
    //triPtr->TellAll();
    tTriangle triVal;
+
    if( !ExtricateTriangle( triPtr ) ) return 0;
    if( !( triList.removeFromFront( triVal ) ) ) return 0;
    if( &triVal == 0 ) return 0;
@@ -2803,6 +2907,11 @@ DeleteTriangle( tTriangle * triPtr )
       
 /**************************************************************************\
 **
+**  tGrid::ExtricateTriangle
+**
+**  Detaches a triangle from surrounding mesh elements and places it at
+**  the head of the triangle list, where it can be easily deleted by
+**  DeleteTriangle.
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -2812,39 +2921,51 @@ ExtricateTriangle( tTriangle *triPtr )
    //cout << "ExtricateTriangle" << endl;
    tListIter< tTriangle > triIter( triList );
    tTriangle *ct;
+
+   // Find the triangle on the list
    for( ct = triIter.FirstP(); ct != triPtr && !( triIter.AtEnd() );
         ct = triIter.NextP() );
    if( ( triIter.AtEnd() ) ) return 0;
+
+   // Tell your neighboring triangles that you're about to disappear by
+   // setting their corresponding tPtr's to zero
    int i, j;
    for( i=0; i<3; i++ ) for( j=0; j<3; j++ )
        if( triPtr->tPtr(i) != 0 )
-           if( triPtr->tPtr(i)->tPtr(j) == triPtr ) triPtr->tPtr(i)->setTPtr( j, 0 );
+           if( triPtr->tPtr(i)->tPtr(j) == triPtr ) 
+               triPtr->tPtr(i)->setTPtr( j, 0 );
+
+   // Move the triangle to the head of the list where it can be deleted
    triList.moveToFront( triIter.NodePtr() );
+
    ntri--;
    return 1;
 }
 
-/*template< class tSubNode >
-int tGrid< tSubNode >::
-MakeMesh( tPtrList< tSubNode > &bndList )
-{
-   tPtrListIter< tSubNode > bndIter( bndList );
-   tPtrList< tSubNode > nptrList;
-   tGridListIter< tSubNode > nodIter( nodeList );
-   tSubNode *cn, *cnn;
-   for( cn = nodIter.FirstP(); !( nodIter.AtEnd() ); cn = nodIter.NextP() )
-   {
-      nptrList.insertAtBack( cn );
-   }
-   for( cn = bndIter.FirstP(); bndIter.NodePtr() != 0; cn = bndIter.NextP() )
-   {
-      cnn = bndIter.ReportNextP();
-   }
-   
-}*/
 
 /**************************************************************************\
 **
+**  tGrid::RepairMesh
+**
+**  This function repairs the "hole" in the mesh that is created when
+**  a node is deleted. Essentially, this function stiches the hole back
+**  together by adding edges and triangles as needed, preserving
+**  Delaunay-ness. The nodes around the hole are stored in the input
+**  parameter nbrList. As each new triangle is added, its "interior"
+**  point is removed from the neighbor list. The process of stitching
+**  proceeds iteratively until the hole itself is a Delaunay triangle.
+**
+**  For each set of 3 successive counter-clockwise points along the rim
+**  of the whole, the function calls Next3Delaunay to compare the
+**  potential triangle p0, p1, p2 with other potential triangles
+**  p0, p1, ptest (where ptest is each of the other nodes along the rim).
+**  When a Delaunay triangle is found, AddEdgeAndMakeTriangle is called
+**  to create the necessary edge and triangle objects, and the interior
+**  node is removed from the neighbor list. (or at least that's what
+**  gt is able to deduce...)
+**
+**  Inputs: nbrList -- list of nodes surrounding the "hole"
+**  Returns: 1 if successful, 0 if not
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -2854,20 +2975,20 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    assert( &nbrList != 0 );
    //cout << "RepairMesh: " << endl;
    if( nbrList.getSize() < 3 ) return 0;
-   int flowflag, i, j;
+   int flowflag,   // Apparently not used -- delete? TODO
+       i, j;
    tSubNode * gridnodePtr = 0;
    nbrList.makeCircular();
    tPtrListIter< tSubNode > nbrIter( nbrList );
    
+   // Keep stitching until only 3 nodes are left
    while( nbrList.getSize() > 3 )
    {
       //cout << "in loop, nbr size = " << nbrList.getSize() << endl;
-      
-      flowflag = 1;
+      flowflag = 1;  // PURPOSE??
       if( Next3Delaunay( nbrList, nbrIter ) ) //checks for ccw and Del.
       {
            //cout << "found 3 Delaun!\n";
-         
          AddEdgeAndMakeTriangle( nbrList, nbrIter );
            //remove "closed off" pt
          nbrList.removeNext( gridnodePtr, nbrIter.NodePtr() );
@@ -2886,11 +3007,16 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    return 1;
 }
 
+
 /**************************************************************************\
-**  AddEdge(): function to add edge pair between two nodes. Resets edge IDs.
 **
-**  Arguments: three nodes; edge is added between first two, and third
+**  tGrid::AddEdge
+**
+**  Function to add edge pair between two nodes. Resets edge IDs.
+**
+**  Inputs: three nodes; edge is added between first two, and third
 **   should be CCW 3rd member of triangle.
+**  Returns: 1 if successful, 0 if not
 **
 **  Created: SL fall, '97
 **  Modified: SL 10/98--routine sometimes failed when node1 (or node2) had
@@ -2916,9 +3042,9 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    /*cout << "AddEdge" << 
      "between nodes " << node1->getID()
      << " and " << node2->getID() << " w/ ref to node " << node3->getID() << endl;*/
-   int flowflag = 1;
+   int flowflag = 1;  // Boundary code for new edges
    int i, j, newid;
-   tEdge tempEdge1, tempEdge2;
+   tEdge tempEdge1, tempEdge2;  // The new edges
    tEdge *ce, *le;
    tGridListIter< tEdge > edgIter( edgeList );
    tGridListIter< tSubNode > nodIter( nodeList );
@@ -2926,15 +3052,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    tPtrListNode< tEdge >* spokeNodePtr;
    tArray<double> p1, p2, p3;           // Used to store output of UnitVector
 
-        //DumpEdges:
-     /*cout << "edges:" << endl;
-   for( ce = edgIter.FirstP(); !( edgIter.AtEnd() ); ce = edgIter.NextP() )
-   {
-      cout << ce->getID() << " from " << ce->getOriginPtrNC()->getID()
-           << " to " << ce->getDestinationPtrNC()->getID() << endl;
-   }*/
-
-     //deal with new edges and new triangle:
+   // Set origin and destination nodes and find boundary status
    tempEdge1.setOriginPtr( node1 );   //set edge1 ORG
    tempEdge2.setDestinationPtr( node1 );//set edge2 DEST
    if( node1->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
@@ -2945,6 +3063,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
        && node2->getBoundaryFlag()==kOpenBoundary ) //  nodes are open bnds
        flowflag = 0;
    
+   // Set boundary status and ID
    if( !( edgeList.isEmpty() ) )
        newid = edgIter.LastP()->getID() + 1;
    else newid = 0;
@@ -2953,6 +3072,9 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    tempEdge2.setID( newid );                     //set edge2 ID
    tempEdge1.setFlowAllowed( flowflag );         //set edge1 FLOWALLOWED
    tempEdge2.setFlowAllowed( flowflag );         //set edge2 FLOWALLOWED
+
+   // Place new edge pair on the list: active back if not a boundary
+   // edge, back otherwise
    if( flowflag == 1 )
    {
       edgeList.insertAtActiveBack( tempEdge1 );  //put edge1 active in list
@@ -3029,7 +3151,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
         //   << " in otherwise empty list" << endl;
       node1->insertFrontSpokeList( le );
       node1->getSpokeListNC().makeCircular();
-      node1->AttachFirstSpoke( le );
+      node1->AttachFirstSpoke( le ); // Tell node it's getting a spoke
    }
    else if( spokIter.ReportNextP() == spokIter.DatPtr() )
    {
@@ -3037,7 +3159,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
         //node2->getSpokeListNC().makeCircular();
       ce = node1->getEdg();  // these 2 lines added by gt 2/99
       assert( ce!=0 );
-      ce->WelcomeCCWNeighbor( le );
+      ce->WelcomeCCWNeighbor( le ); // Tell node it has a new neighbor!
    }
    else
    {
@@ -3068,12 +3190,12 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
       node1->getSpokeListNC().insertAtPrev( le,
                                             spokIter.NodePtr() );//put edge1 in SPOKELIST
       assert( ce!=0 );
-      ce->WelcomeCCWNeighbor( le );
+      ce->WelcomeCCWNeighbor( le );  // Tell node it has a new neighbor!
    }
    
    nedges+=2;
-   //Xcout << "2 edges added, edge list NOW:" << endl;
-   //reset edge id's
+
+   // Reset edge id's
    for( ce = edgIter.FirstP(), i = 0; !( edgIter.AtEnd() ); ce = edgIter.NextP(), i++ )
    {
       ce->setID( i );
@@ -3086,11 +3208,14 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
 
 
 /**************************************************************************\
-**  AddEdgeAndMakeTriangle(): function to add the "missing" edge and make
-**   the triangle. Formerly more complicated than AddEdge() and
-**   MakeTriangle(); now simply calls these functions.
 **
-**  Arguments: a tPtrList<tSubNode> of nodes in triangle; a tPtrListIter
+**  tGrid::AddEdgeAndMakeTriangle 
+**
+**  Function to add the "missing" edge and make
+**  the triangle. Formerly more complicated than AddEdge() and
+**  MakeTriangle(); now simply calls these functions.
+**
+**  Inputs: a tPtrList<tSubNode> of nodes in triangle; a tPtrListIter
 **   object, the iterator of the latter list; edge is added between node
 **   currently pointed to by iterator and the node-after-next. List should
 **   be circular.
@@ -3106,13 +3231,12 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
 {
    assert( (&nbrList != 0) && (&nbrIter != 0) );
    //cout << "AddEdgeAndMakeTriangle" << endl << flush;
-     //cout << "aemt 0\n" << flush;
-   int flowflag = 1;
-     //cout << "aemt 0.1\n" << flush;
+   //int flowflag = 1;
    int i, j, newid;
    tSubNode *cn, *cnn, *cnnn;
    tPtrList< tSubNode > tmpList;
    tPtrListIter< tSubNode > tI( tmpList );
+
    cn = nbrIter.DatPtr();
    cnn = nbrIter.NextP();
    cnnn = nbrIter.ReportNextP();
@@ -3125,23 +3249,26 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
    if( !MakeTriangle( tmpList, tI ) ) return 0;
    return 1;
 }
-   
+
+
 /**************************************************************************\
-**  MakeTriangle(): function to make triangle and add it to mesh; called
+**  
+**  tGrid::MakeTriangle
+**
+**   Function to make triangle and add it to mesh; called
 **   when all necessary nodes and edges already exist, i.e., the triangle
 **   exists geometrically but not as a "triangle" member of the data
 **   structure. Checks to make sure points are CCW. Resets triangle IDs at
 **   end (necessary?). This function is relatively messy and complicated
 **   but is extensively commented below.
 **
-**  Arguments: a tPtrList<tSubNode> of nodes in triangle; a tPtrListIter
+**  Inputs: a tPtrList<tSubNode> of nodes in triangle; a tPtrListIter
 **   object, the iterator of the latter list; edge is added between node
 **   currently pointed to by iterator and the node-after-next. List must
 **   contain three, and only three, members and be circular.
 **  Created: SL fall, '97
 **
 \**************************************************************************/
-// TODO: consolidate w/ AEMT to have AEMT call this as a helper fn
 template< class tSubNode >
 int tGrid< tSubNode >::
 MakeTriangle( tPtrList< tSubNode > &nbrList,
@@ -3161,6 +3288,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    tGridListIter< tEdge > edgIter( edgeList );
    tPtrListIter< tEdge > spokIter;
    assert( nbrList.getSize() == 3 );
+
    //Xcn = nbrIter.DatPtr(); Below is bug fix:
    cn = nbrIter.FirstP();      // cn, cnn, and cnnn are the 3 nodes in the tri
    cnn = nbrIter.NextP();
@@ -3168,6 +3296,8 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    nbrIter.Next();
    tArray< double > p0( cn->get2DCoords() ), p1( cnn->get2DCoords() ),
        p2( cnnn->get2DCoords() );
+
+   // error check
    if( !PointsCCW( p0, p1, p2 ) )
    {
       cerr << "in MT nodes not CCW: " << cn->getID() << ", "
@@ -3577,15 +3707,18 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    return node2;  // Return ptr to new node
 }
 
+
 /**************************************************************************\
-**  AddNodeAt: add a node with referenced coordinates to mesh;
+**
+**  tGrid::AddNodeAt
+**
+**   add a node with referenced coordinates to mesh;
 **   this fn duplicates functionality of AddNode
 **
 **  Created: SL fall, '97
 **  Modified: NG summer, '98 to deal with layer interpolation
 **
 \**************************************************************************/
-/*      */
 //TODO: ; just assign coords
 // to a dummy new node and call AddNode
 template< class tSubNode >
@@ -3747,6 +3880,11 @@ AddNodeAt( tArray< double > &xyz, double time )
 #undef kLargeNumber
 
 
+/**************************************************************************\
+**
+**  tGrid "get" functions
+**
+\**************************************************************************/
 template <class tSubNode>
 tGridList<tEdge> * tGrid<tSubNode>::
 getEdgeList() {return &edgeList;}
@@ -3761,6 +3899,7 @@ getTriList() {return &triList;}
 
 
 /**************************************************************************\
+**
 **  tGrid::getEdgeComplement
 **
 **  Returns the complement of _edge_ (i.e., the edge that shares the same
@@ -3770,6 +3909,7 @@ getTriList() {return &triList;}
 **  even-numbered ID and the second having an odd-numbered ID.
 **
 **  Modifications: gt replaced 2nd IF with ELSE to avoid compiler warning
+**
 \**************************************************************************/
 template< class tSubNode >
 tEdge *tGrid< tSubNode >::
@@ -3781,15 +3921,23 @@ getEdgeComplement( tEdge *edge )
    assert( edgIter.Get( edgid ) );
    edgIter.Get( edgid ); // TODO: why necessary?
    if( edgid%2 == 0 ) return edgIter.GetP( edgid + 1 );
-   else /*if( edgid%2 == 1 )*/ return edgIter.GetP( edgid - 1 );
+   else return edgIter.GetP( edgid - 1 );
 }
 
 
 /**************************************************************************\
+**
 **  tGrid::UpdateMesh()
 **
-**  Master clean-up routine to update quantities inherent
-**  to mesh data structure.
+**  Updates mesh geometry:
+**   - computes edge lengths
+**   - finds Voronoi vertices
+**   - computes Voronoi edge lengths
+**   - computes Voronoi areas for interior (active) nodes
+**   - updates CCW-edge connectivity
+**
+**  Note that the call to CheckMeshConsistency is for debugging
+**  purposes and should be removed prior to release.
 **
 **  Calls: MakeCCWEdges(), setVoronoiVertices(), CalcVoronoiEdgeLengths(),
 **   CalcVAreas(), CheckMeshConsistency()
@@ -3837,15 +3985,6 @@ UpdateMesh()
       curtri = curtri->next;
    }
    */
-   
-   // Voronoi vertices
-   //getVoronoiVertices();
-
-   
-
-   // Voronoi Areas
-
-
 }
 
 
