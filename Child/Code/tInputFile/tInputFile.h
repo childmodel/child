@@ -27,7 +27,7 @@
 **  The overloaded ReadItem functions read and return parameters with a
 **  specified item code. Possible data types include integer, double, long,
 **  and string. A record of all items read is written to file
-**  &lt;filename&gt;.inputs, where <filename> is specified by the parameter
+**  &lt;filename&gt;.inputs, where &lt;filename&gt; is specified by the parameter
 **  having the item code OUTFILENAME.
 **
 **  The ReadItem function terminates with an error message if a given
@@ -40,7 +40,7 @@
 **  Modified, SL, September 2003: Can now generate non-fatal warnings and
 **    return zero-values as specified; default will be fatal error.
 **
-**  $Id: tInputFile.h,v 1.20 2004-01-07 10:58:43 childcvs Exp $
+**  $Id: tInputFile.h,v 1.21 2004-01-28 14:46:28 childcvs Exp $
 */
 /****************************************************************************/
 
