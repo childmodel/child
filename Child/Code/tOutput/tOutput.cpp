@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.22 1999-05-11 19:06:50 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.23 1999-09-01 15:57:12 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -35,6 +35,7 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile )
    CreateAndOpenFile( &edgofs, ".edges" );
    CreateAndOpenFile( &triofs, ".tri" );
    CreateAndOpenFile( &zofs, ".z" );
+   CreateAndOpenFile( &vaofs, ".varea" );
    
    
 }
@@ -115,14 +116,16 @@ void tOutput<tSubNode>::WriteOutput( double time )
    for( ct=titer.FirstP(), id=0; id<ntri; ct=titer.NextP(), id++ )
        ct->setID( id );
 
-   // Write node file and z file
+   // Write node file, z file, and varea file
    nodeofs << " " << time << endl << nnodes << endl;
    zofs << " " << time << endl << nnodes << endl;
+   vaofs << " " << time << endl << nnodes << endl;
    for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
    {
       nodeofs << cn->getX() << " " << cn->getY() << " "
               << cn->getEdg()->getID() << " " << cn->getBoundaryFlag() << endl;
       zofs << cn->getZ() << endl;
+      vaofs << cn->getVArea() << endl;
    }
    
    // Write edge file
