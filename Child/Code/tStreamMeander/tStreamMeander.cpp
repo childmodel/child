@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.48 1999-01-26 20:36:41 nmgaspar Exp $
+**  $Id: tStreamMeander.cpp,v 1.49 1999-01-26 21:10:53 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -17,7 +17,6 @@ extern "C"
                   double *, double *, double *, double *, double *, double *,
                   double * ); 
 }
-
 
 /*****************************************************************************\
 **
