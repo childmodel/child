@@ -476,8 +476,8 @@ void edge_auxi_t::mark_right(int ielem) {
   right_visited_ = true;
   ie_right = ielem;
 } 
-int edge_auxi_t::ielem_left() const { assert(ie_left!=-2); return ie_left; }
-int edge_auxi_t::ielem_right() const { assert(ie_right!=-2); return ie_right; }
+int edge_auxi_t::ielem_left() const { assert(left_visited_); return ie_left; }
+int edge_auxi_t::ielem_right() const { assert(right_visited_); return ie_right; }
 
 // mark as visited the side of iedge_markable that points to
 // iedge_orig
