@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.193 2004-02-18 15:59:21 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.194 2004-02-18 16:11:25 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3900,6 +3900,10 @@ InsertNode( tSubNode* newNodePtr, double time )
    tSubNode *cn = AddToList(*newNodePtr);
 
    tSubNode *newNodePtr2 = AttachNode( cn, tri);
+   // if couldn't add to triangulation (probably because node
+   // already existed at that location) remove the node
+   if( newNodePtr2 == NULL )
+     RemoveFromList( cn );
 
    return newNodePtr2;
 }
@@ -4076,6 +4080,25 @@ AttachNode( tSubNode* cn, tTriangle* tri )
      tSubNode* node5 = static_cast<tSubNode *>(top->pPtr( top->nVOp( tri ) ));
      assert( node1 != 0 && node2 != 0 && node3 != 0 && node4 != 0
 	     && node5 != 0 );
+
+     // error check now before adding, deleting or clearing anything
+     const tArray< double > p1( node1->get2DCoords() ), p2( node2->get2DCoords() ),
+       p3( node3->get2DCoords() ), p4( node4->get2DCoords() ),
+       p5( node5->get2DCoords() );
+     if( !PointsCCW( p1, p2, p4 ) ||
+	 !PointsCCW( p2, p1, p5 ) ||
+	 !PointsCCW( p2, p5, p3 ) ||
+	 !PointsCCW( p2, p3, p4 ) ||
+	 !PointsCCW( p2, p4, p1 ) )
+       {
+         // may be trying to add a node in exact location of another node
+         // return a NULL pointer before messing with triangulation
+         if(1) //DEBUG
+	   cout << "node cannot be added at " << node2->getX() << ", "
+		<< node2->getY() << endl;
+         return NULL;
+       }
+
      i = DeleteEdge( tri->ePtr( colinearedg ) );
      assert( i > 0 );
      AddEdge( node1, node2, node4 );
@@ -5093,75 +5116,30 @@ tPtrList< tTriangle > tMesh<tSubNode>::
 InterveningTriangles( tNode* un, tNode* dn )
 {
    assert( un->EdgToNod( dn ) == NULL );
-   // must find the two nodes that are (a) both connected to un and dn;
-   // (b) connected to each other; and (c) on either side of where we
-   // want the new flowedge to be; the edge between them is the one that
-   // needs to be flipped
-   // find line between un and dn:
-   const double a = un->getY() - dn->getY();
-   const double b = dn->getX() - un->getX();
-   const double c = -b * un->getY() - a * un->getX();
-   tSpkIter sI(un);
-   tArray< double > spD( sI.getNumSpokes() * 2 );
-   const int n = sI.getNumSpokes();
-   //find remainders of pts wrt line:
-   tEdge *fe = un->getEdg();
-   tEdge *ce = fe;
-   int i = 0;
-   do
-   {
-      tNode* cn = ce->getDestinationPtrNC();
-      const double d = a * cn->getX() + b * cn->getY() + c;
-      spD[i] = spD[n + i] = d;
-      //if d=0 then point is on line
-      ce = ce->getCCWEdg();
-      ++i;
-   } while( ce != fe );
-   //find point pairs:
-   i=0;
-   ce = fe;
-   do
-   {
-      //find signs of 'this' and 'next' remainders
-      double s1;
-      double s2;
-      if( spD[i] != 0.0 ) s1 = spD[i] / fabs( spD[i] );
-      else s1 = 0.0;
-      if( spD[i + 1] != 0.0 ) s2 = spD[i + 1] / fabs( spD[i + 1] );
-      else
-      {
-         s2 = 0.0;
-         spD[i + 1] = spD[i+2];
-         //NG added in the above line. If spD=0, the below if will be
-         //entered twice with the same node. This new line should
-         //prevent that from happening.
-         //Problem is that one of the surrounding nodes lies
-         //exactly on line.
-      }
-      //points are on opposite sides of the line, and first point is on right:
-      //const tArray< double > unpos = un->get2DCoords();
-      //const tArray< double >
-      if( s1 != s2 && PointsCCW( un->get2DCoords(),
-                                 ce->getDestinationPtr()->get2DCoords(),
-                                 dn->get2DCoords() ) )
-          break;
-      i++;
-      ce = ce->getCCWEdg();
-   } while( ce != fe );
-   tNode* an = ce->getDestinationPtrNC();
-   tNode* bn = ce->getCCWEdg()->getDestinationPtrNC();
-   // make sure these nodes are attached to dn:
-   assert( an->EdgToNod( dn ) != NULL );
-   assert( bn->EdgToNod( dn ) != NULL );
-   // edge from bn to an is clockwise edge of "upstream" triangle
-   tEdge* edgToFlip = bn->EdgToNod( an );
-   // make sure nodes are connected:
-   assert( edgToFlip != NULL );
-   // find triangles and vertex numbers and
-   // put on a list
+
+   // find triangle at upstream node:
+   const double xsep = dn->getX() - un->getX();
+   const double ysep = dn->getY() - un->getY();
+   tArray< double > uvec = UnitVector( xsep, ysep );
+   tSpkIter sI( un );
+   tEdge* ce;
+   for( ce = sI.FirstP(); !sI.AtEnd(); ce = sI.NextP() )
+       if( PointsCCW( UnitVector( ce ), uvec,
+                      UnitVector( sI.ReportNextP() ) ) )
+           break;
+   ce = sI.NextP();
    tPtrList< tTriangle > tPList;
-   tPList.insertAtBack( edgToFlip->TriWithEdgePtr() );
-   tPList.insertAtBack( edgToFlip->getComplementEdge()->TriWithEdgePtr() );
+   tPList.insertAtBack( ce->TriWithEdgePtr() );
+   // find triangle at downstream node:
+   uvec[0] *= -1.0;
+   uvec[1] *= -1.0;
+   sI.Reset( dn );
+   for( ce = sI.FirstP(); !sI.AtEnd(); ce = sI.NextP() )
+       if( PointsCCW( UnitVector( ce ), uvec,
+                      UnitVector( sI.ReportNextP() ) ) )
+           break;
+   ce = sI.NextP();
+   tPList.insertAtBack( ce->TriWithEdgePtr() );
    return tPList;
 }
 
