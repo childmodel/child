@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.7 1998-06-04 17:57:10 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.8 1998-06-04 21:25:57 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -95,16 +95,16 @@ void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
 template< class tSubNode >
 void tOutput<tSubNode>::WriteOutput( double time )
 {
-   tGridListIter<tSubNode> niter( g->GetNodeList() );
-   tGridListIter<tEdge> eiter( g->GetEdgeList() );
-   tListIter<tTriangle> titer( g->GetTriList() );
+   tGridListIter<tSubNode> niter( g->getNodeList() );
+   tGridListIter<tEdge> eiter( g->getEdgeList() );
+   tListIter<tTriangle> titer( g->getTriList() );
    tNode * cn;
    tEdge * ce;
    tTriangle * ct;
    int id;
-   int nnodes = g->GetNodeList()->getSize();
-   int nedges = g->GetEdgeList()->getSize();
-   int ntri = g->GetTriList()->getSize();
+   int nnodes = g->getNodeList()->getSize();
+   int nedges = g->getEdgeList()->getSize();
+   int ntri = g->getTriList()->getSize();
 
    cout << "tOutput::WriteOutput()\n";
    
@@ -122,7 +122,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
    for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
    {
       nodeofs << cn->getX() << " " << cn->getY() << " "
-              << cn->GetEdg()->getID() << " " << cn->getBoundaryFlag() << endl;
+              << cn->getEdg()->getID() << " " << cn->getBoundaryFlag() << endl;
       zofs << cn->getZ() << endl;
    }
    
@@ -131,7 +131,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
    for( ce=eiter.FirstP(); !(eiter.AtEnd()); ce=eiter.NextP() )
       edgofs << ce->getOriginPtrNC()->getID() << " "
              << ce->getDestinationPtrNC()->getID() << " "
-             << ce->GetCCWEdg()->getID() << endl;
+             << ce->getCCWEdg()->getID() << endl;
    
    // Write triangle file
    int i;
@@ -171,18 +171,21 @@ tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile )
 }
 
 
-
+//TODO: should output boundary points as well so they'll map up with nodes
+// for plotting. Means changing getSlope so it returns zero if flowedg
+// undefined
 template< class tSubNode >
 void tLOutput<tSubNode>::WriteNodeData( double time )
 {
-   tGridListIter<tSubNode> ni( g->GetNodeList() );
+   tGridListIter<tSubNode> ni( g->getNodeList() );
    tSubNode *cn;
-   int nActiveNodes = g->GetNodeList()->getActiveSize();
+   int nActiveNodes = g->getNodeList()->getActiveSize();
+   int nnodes = g->getNodeList()->getSize();
    
    drareaofs << " " << time << "\n " << nActiveNodes << endl;
    netofs << " " << time << "\n " << nActiveNodes << endl;
    slpofs << " " << time << "\n " << nActiveNodes << endl;
-   qofs << " " << time << "\n " << nActiveNodes << endl;
+   qofs << " " << time << "\n " << nnodes << endl;
    
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
    {
@@ -191,7 +194,9 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       if( cn->getDownstrmNbr() )
           netofs << cn->getDownstrmNbr()->getID() << endl;
       slpofs << cn->getSlope() << endl;
-      qofs << cn->getQ() << endl;
    }
+
+   for( cn = ni.FirstP(); !(ni.AtEnd()); cn = ni.NextP() )
+      qofs << cn->getQ() << endl;
    
 }
