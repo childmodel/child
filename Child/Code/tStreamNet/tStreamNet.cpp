@@ -132,7 +132,7 @@ void tInlet::FindNewInlet()
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.20 1998-03-13 22:26:16 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.21 1998-03-20 15:36:37 gtucker Exp $
 \**************************************************************************/
 
 
@@ -356,7 +356,9 @@ void tStreamNet::CalcSlopes()
 }
 
 
-// NB: move to tGrid
+// NB: TODO: move to tGrid
+// TODO: change L-hand to R-hand orientation of Voronoi vertices and
+// create faster Voronoi edge length computation scheme
 void tStreamNet::CalcVAreas()
 {
    //cout << "CalcVAreas()..." << endl << flush;
@@ -934,8 +936,17 @@ void tStreamNet::SetVoronoiVertices()
       ct->ePtr(0)->setRVtx( xy );
       ct->ePtr(1)->setRVtx( xy );
       ct->ePtr(2)->setRVtx( xy );
-      //xy = ct->ePtr(0)->getRVtx();
-      //cout << "SetVoronoiVertices(): " << xy[0] << " " << xy[1];
+
+      // debug output
+      /*cout << "FOR edges: ";
+      int i;
+      for( i=0; i<=2; i++ )
+          cout << ct->ePtr(i)->getID() << " ("
+               << ct->ePtr(i)->getOriginPtr()->getID() << ","
+               << ct->ePtr(i)->getDestinationPtr()->getID() << ") ";
+      cout << ", v verts are:\n";
+      xy = ct->ePtr(0)->getRVtx();
+      cout << "  SetVoronoiVertices(): " << xy[0] << " " << xy[1] << endl;*/
    }
    //cout << "SetVoronoiVertices() finished" << endl;
 }
