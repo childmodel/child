@@ -7,14 +7,19 @@ WARNINGFLAGS = -pedantic -Wall -W \
 	-Wwrite-strings \
 	-Wpointer-arith -Wcast-qual -Wcast-align
 
-# gcc 3.1 and later implements standard C++ headers.
-# In such a case, comment out the following line.
-WARNINGFLAGS += -DHAVE_NO_NAMESPACE
+# gcc 2.x does not put the standard C++ headers in the namespace "std"
+# In such a case, remove the comment of the following line.
+#WARNINGFLAGS += -DHAVE_NO_NAMESPACE
 
 # -march=i686: generates code from pentiumpro and later
-CFLAGS = $(WARNINGFLAGS) -g -O2 -march=i686 -c
-LDFLAGS = $(WARNINGFLAGS) -g -O2 -march=i686
-LIBS = -lm
+ARCH := -march=i686
+# optimise
+CFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH) -c
+LDFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH)
+# no optimisation, build is faster
+#CFLAGS = $(WARNINGFLAGS) -g $(ARCH) -c
+#LDFLAGS = $(WARNINGFLAGS) -g $(ARCH)
+LIBS =
 EXENAME = child
 
 OBJECTS = childmain.o erosion.o meshElements.o mathutil.o \
