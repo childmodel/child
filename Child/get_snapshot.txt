@@ -1,10 +1,10 @@
 HOW TO DOWNLOAD A SNAPSHOT OF CHILD FROM THE OXFORD REPOSITORY
 
-G. Tucker
+G. Tucker, A. Desitter
 April, 2003
 
 Updated:
-$Id: get_snapshot.txt,v 1.8 2004-04-01 12:05:45 childcvs Exp $
+$Date: 2004-04-01 12:07:20 $
 
 This describes the steps you need to take in order to obtain a snapshot
 of the CHILD source code and associated files from the code repository
