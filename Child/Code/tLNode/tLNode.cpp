@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.51 1998-07-17 22:54:33 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.52 1998-07-20 22:25:11 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1595,7 +1595,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    update.setSize(numg);
    tArray<double> hupdate;
    hupdate.setSize(numg);
-   
+
    before=getLayerDepth(i);
 
    int flag=0;
