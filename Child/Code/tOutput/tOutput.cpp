@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.32 2000-06-05 21:20:36 daniel Exp $
+**  $Id: tOutput.cpp,v 1.33 2000-06-05 21:21:34 daniel Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -186,6 +186,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
         : tOutput<tSubNode>( meshPtr, infile )  // call base-class constructor
 {
    int opOpt;  // Optional modules: only output stuff when needed
+   int optTSOutput;
    
    CreateAndOpenFile( &drareaofs, ".area" );
    CreateAndOpenFile( &netofs, ".net" );
@@ -197,7 +198,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
        CreateAndOpenFile( &vegofs, ".veg" );
    if( (opOpt = infile.ReadItem( opOpt, "OPTKINWAVE" ) ) )
        CreateAndOpenFile( &flowdepofs, ".dep" );
-   if( (int optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) )
+   if( (optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) )
        CreateAndOpenFile( &volsofs, ".vols" );
    
    
