@@ -27,7 +27,7 @@
 **
 **  See also tList, tArray, tMatrix
 **
-**  $Id: tPtrList.h,v 1.6 1999-04-01 16:24:04 gtucker Exp $
+**  $Id: tPtrList.h,v 1.7 1999-12-07 19:45:19 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
@@ -114,6 +114,8 @@ public:
     void makeCircular();
     const NodeType *getIthPtr( int ) const;
     NodeType *getIthPtrNC( int ) const;
+    tPtrList * tPtrList::DataCopy();   // copies AND CONTENTS POINTED TO (gt)
+    
 private:
     int nNodes;
     tPtrListNode< NodeType > * first;
