@@ -3,7 +3,7 @@
 **  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
 **                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.13 1999-01-08 22:29:39 gtucker Exp $
+**  $Id: tPtrList.cpp,v 1.14 1999-01-22 22:37:28 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tPtrList.h"
@@ -437,12 +437,12 @@ print() const
    }
    tPtrListNode< NodeType > * current = first;
    cout<<"The list is: ";
-   while( current != 0 )
+   do
    {
       cout<<current->Ptr->getID() <<' ';
       current = current->next;
-   }
-   cout<<endl<<endl;
+   }while( current != first && current != last );
+   cout<<current->Ptr->getID() <<endl;
 }
 
 /*template< class NodeType >                      //tPtrList
