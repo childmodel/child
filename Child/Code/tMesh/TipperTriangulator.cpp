@@ -483,6 +483,10 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
   
   for (int i=next_point;i<npoints;i++){
     saved_edge=-1;
+    if (p[i-1].x == p[i].x && p[i-1].y == p[i].y){
+      continue; // skip the duplicated point
+    }
+
     //go round the hull looking for visible edges - we need to go round
     //in two directions from the current upper and lower edges
     //first set up the new edge that joins to the point coincident
