@@ -373,7 +373,9 @@ BuildDelaunayMeshTipper()
    assert( edgeList.getSize() == 2*nedgesl );
    assert( triList.getSize() == nelem );
 
+#ifndef BYPASS_DEBUG_ROUTINES
    CheckMeshConsistency();                     //remove CMC call from UM
+#endif
    UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
 }
 
