@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.70 2004-02-27 17:28:38 childcvs Exp $
+**  $Id: meshElements.h,v 1.71 2004-03-24 13:19:02 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -60,12 +60,13 @@ using namespace std;
 #endif
 #include <math.h>       // for sqrt() used in inlined fn below
 #include "../Definitions.h"
+#include "../tList/tList.h"
 #include "../tPtrList/tPtrList.h"
 #include "../tArray/tArray.h"
-#include "../tMeshList/tMeshList.h"
 #include "../Geometry/geometry.h"   // for Point2D definitions & fns
 
 class tEdge;
+class tTriangle;
 
 /**************************************************************************/
 /**
