@@ -9,7 +9,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.h,v 1.1 1999-01-05 17:53:11 stlancas Exp $
+//  $Id: predicates.h,v 1.2 1999-05-04 17:16:21 gtucker Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -130,7 +130,12 @@
 
 #include <stdio.h> 
 //#include <stdlib.h>
+#ifdef __DECCXX
 #include <macros.h>
+#else
+#define max(a,b) ( (a>b) ? a : b )
+#define min(a,b) ( (a<b) ? a : b )
+#endif
 #include <math.h> 
 #include <sys/time.h> 
 
