@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.25 1999-05-21 17:51:05 gtucker Exp $
+**  $Id: erosion.h,v 1.26 2000-02-17 22:49:46 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -219,7 +219,7 @@ public:
 private:
     tMesh<tLNode> *meshPtr;    // ptr to mesh
     tBedErodePwrLaw bedErode;  // bed erosion object
-    tSedTransWilcock sedTrans; // sediment transport object 
+    tSedTrans sedTrans;        // sediment transport object 
     double kd;                 // Hillslope transport (diffusion) coef
 
 };
