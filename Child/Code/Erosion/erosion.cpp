@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.38 1998-07-25 21:48:03 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.39 1998-07-26 23:02:50 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -443,7 +443,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    
    
    // units of Q are m^3/sec
-   tau = taudim*pow(0.03, 0.6)*pow(nd->getQ(),0.3)*pow( nd->getSlope(), 0.7);
+   tau = taudim*pow(nd->getHydrRough(), 0.6)*pow(nd->getQ(),0.3)*pow( nd->getSlope(), 0.7);
    //cout << "hydrrough is " << nd->getChanRough() << endl;
    //cout << "q is " << nd->getQ() << endl;
    //cout << "slope is " << nd->getSlope() << endl;
@@ -461,7 +461,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
    
    if(tau>taucrit){
-       nd->setQs(0, ((0.058/RHOSED)*nd->getLayerErody(0)*factor*pow(nd->getQ(),0.5)*timeadjust*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) ));
+       nd->setQs(0, ((0.058/RHOSED)*factor*pow(nd->getHydrWidth(),0.5)*timeadjust*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) ));
        //cout << "nic sand transport rate is " << nd->getQs(0) << endl;
    }
    else 
@@ -479,7 +479,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
 
    if(tau>taucrit){
-       nd->setQs(1, (0.058*timeadjust*nd->getLayerErody(0)*factor*pow(nd->getQ(),0.5)/(RHOSED))*
+       nd->setQs(1, (0.058*timeadjust*factor*pow(nd->getHydrWidth(),0.5)/(RHOSED))*
                  (1-persand)*pow(tau,1.5)*pow((1-(taucrit/tau)),4.5));
        //  cout << "nic nic nic gravel transport is happening" << endl;
    }
@@ -989,6 +989,8 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 
    // Sort so that we always work in upstream to downstream order
    strmNet->SortNodesByNetOrder();
+   strmNet->FindChanGeom();
+   strmNet->FindHydrGeom();
 
    // Compute erosion and/or deposition until all of the elapsed time (dtg)
    // is used up
