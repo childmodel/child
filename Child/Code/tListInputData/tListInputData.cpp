@@ -15,7 +15,7 @@
  **   - Add Random number generator handling. (AD 08/03)
  **   - refactoring with multiple classes (AD 11/03)
  **
- **  $Id: tListInputData.cpp,v 1.22 2003-11-14 17:09:24 childcvs Exp $
+ **  $Id: tListInputData.cpp,v 1.23 2003-11-14 17:59:27 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -27,8 +27,9 @@ using namespace std;
 # include <iostream.h>
 #endif
 
-template< class tSubNode >
-void tListInputDataBase< tSubNode >::
+#include "../Mathutil/mathutil.h"
+
+void tListInputDataBase::
 ReportIOError(IOErrorType t, const char *filename,
 	      const char *suffix, int n) {
   cerr << "\nFile: '" << filename << suffix << "' "
@@ -56,8 +57,7 @@ ReportIOError(IOErrorType t, const char *filename,
  **  Find the right time in file and position it for reading
  **
 \**************************************************************************/
-template< class tSubNode >
-void tListInputDataBase< tSubNode >::
+void tListInputDataBase::
 openFile( ifstream &infile, const char *basename,
 	  const char *ext)
 {
@@ -83,8 +83,7 @@ openFile( ifstream &infile, const char *basename,
  **  Find the right time in file and position it for reading
  **
 \**************************************************************************/
-template< class tSubNode >
-void tListInputDataBase< tSubNode >::
+void tListInputDataBase::
 findRightTime( ifstream &infile, int &nn, double intime,
 	       const char *basename, const char *ext, const char *typefile)
 {
@@ -137,66 +136,30 @@ findRightTime( ifstream &infile, int &nn, double intime,
 
 /**************************************************************************\
  **
- **  tListInputData constructor
+ **  tListInputRand::tListInputDataRand()
  **
- **  The constructor does most of the work. It takes an input file (i.e.,
- **  the "main" input file) and reads from it the base name of the files
- **  that contain the triangulation. It then opens <basename>.nodes,
- **  <basename>.z, <basename>.edges, and <basename>.tri. Assuming the
- **  files are valid, the desired time-slice is read from infile, and
- **  the start of data for that  time-slice is sought in each of the four
- **  triangulation files. The arrays are dimensioned as needed, and
- **  GetFileEntry() is called to read the data into the arrays. Note that
- **  the time in each file is identified by a space character preceding it
- **  on the same line.
- **
- **  Modifications:
- **   - Calls to seekg appear not to be working properly with the g++
- **     compiler, and a quick web search revealed all sorts of complaints
- **     about seekg under g++. So I recoded the file reading to avoid
- **     using seekg. (GT Feb 01)
- **   - Fixed bug in which no. edges and triangles were incorrectly
- **     assigned to nnodes, instead of nedges and ntri. (GT 04/02)
+ **  Read state from file
  **
 \**************************************************************************/
-template< class tSubNode >
-tListInputData< tSubNode >::
-tListInputData( const tInputFile &infile, tRand &rand )          //tListInputData
+tListInputDataRand::
+tListInputDataRand( const tInputFile &infile, tRand &rand )
 {
   double intime;                   // desired time
-  char basename[80];               // base name of input files
+  char basename[80];
 
   // Read base name for triangulation files from infile
   infile.ReadItem( basename, sizeof(basename), "INPUTDATAFILE" );
 
   // Open each of the four files
-  openFile( nodeinfile, basename, SNODES);
-  openFile( edgeinfile, basename, SEDGES);
-  openFile( triinfile, basename, STRI);
-  openFile( zinfile, basename, SZ);
+  ifstream randominfile;
   openFile( randominfile, basename, SRANDOM);
 
   // Find out which time slice we want to extract
   intime = infile.ReadItem( intime, "INPUTTIME" );
   if (1) //DEBUG
     cout << "intime = " << intime << endl;
-  if (1) //DEBUG
-   cout << "Is node input file ok? " << nodeinfile.good()
-	<< " Are we at eof? " << nodeinfile.eof() << endl;
 
   // Find specified input times in input data files and read # items.
-  // First, nodes:
-  findRightTime( nodeinfile, nnodes, intime,
-		 basename, SNODES, "node");
-  // Then elevations (or "z" values):
-  findRightTime( zinfile, nnodes, intime,
-		 basename, SZ, "elevation");
-  // Now edges:
-  findRightTime( edgeinfile, nedges, intime,
-		 basename, SEDGES, "edge");
-  // And finally, triangles:
-  findRightTime( triinfile, ntri, intime,
-		 basename, STRI, "triangle");
  // And finally, random number generator:
   int nrandom;
   findRightTime( randominfile, nrandom, intime,
@@ -206,73 +169,6 @@ tListInputData( const tInputFile &infile, tRand &rand )          //tListInputDat
     ReportFatalError( "Input error" );
   }
 
-  // Dimension the arrays accordingly
-  x.setSize( nnodes );
-  y.setSize( nnodes );
-  z.setSize( nnodes );
-  edgid.setSize( nnodes );
-  boundflag.setSize( nnodes );
-  orgid.setSize( nedges );
-  destid.setSize( nedges );
-  nextid.setSize( nedges );
-  p0.setSize( ntri );
-  p1.setSize( ntri );
-  p2.setSize( ntri );
-  e0.setSize( ntri );
-  e1.setSize( ntri );
-  e2.setSize( ntri );
-  t0.setSize( ntri );
-  t1.setSize( ntri );
-  t2.setSize( ntri );
-
   // Read in data from file
-  GetFileEntry(rand);
-
-  // Close the files
-  nodeinfile.close();
-  edgeinfile.close();
-  triinfile.close();
-  zinfile.close();
-  randominfile.close();
-}
-
-
-/**************************************************************************\
- **
- **  tListInputData::GetFileEntry
- **
- **  Reads node, edge, and triangle data from the four triangulation input
- **  files. Assumes that each files is open and valid and that the current
- **  reading point in each corresponds the start of data for the desired
- **  time-slice.
- **
-\**************************************************************************/
-template< class tSubNode >
-void tListInputData< tSubNode >::
-GetFileEntry(tRand &rand)                  //tListInputData
-{
-  char const * const  basename = "<file>";
-  int i;
-
-  for( i=0; i< nnodes; i++ ){
-    nodeinfile >> x[i] >> y[i] >> edgid[i] >> boundflag[i];
-    if (nodeinfile.fail())
-      ReportIOError(IORecord, basename, SNODES, i);
-    zinfile >> z[i];
-    if (zinfile.fail())
-      ReportIOError(IORecord, basename, SZ, i);
-  }
-
-  for( i=0; i<nedges; i++ ) {
-    edgeinfile >> orgid[i] >> destid[i] >> nextid[i];
-    if (edgeinfile.fail())
-      ReportIOError(IORecord, basename, SEDGES, i);
-  }
-  for( i=0; i< ntri; i++ ) {
-    triinfile >> p0[i] >> p1[i] >> p2[i] >> t0[i] >> t1[i] >> t2[i]
-	      >> e0[i] >> e1[i] >> e2[i];
-    if (triinfile.fail())
-      ReportIOError(IORecord, basename, STRI, i);
-  }
   rand.readFromFile( randominfile );
 }

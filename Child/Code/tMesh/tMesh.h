@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.64 2003-10-15 09:30:59 childcvs Exp $
+**  $Id: tMesh.h,v 1.65 2003-11-14 17:59:31 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -101,13 +101,13 @@ class tMesh
    void SplitNonFlippableEdge( tPtrList< tEdge > &, double time );
 public:
    tMesh();
-   tMesh( const tInputFile &, tRand & );
+   tMesh( const tInputFile & );
    tMesh( tMesh const * );
    ~tMesh();
    void BatchAddNodes(); // quickly adds many nodes when starting w/ dense mesh
    void MakeMeshFromScratch( const tInputFile &, tRand & ); // creates a new mesh
    void MakeMeshFromScratchTipper( const tInputFile &, tRand & );   // creates a new mesh
-   void MakeMeshFromInputData( const tInputFile &, tRand & ); // reads in an existing mesh
+   void MakeMeshFromInputData( const tInputFile & ); // reads in an existing mesh
    void MakeMeshFromPoints( const tInputFile & );    // creates mesh from list of pts
    void MakeMeshFromPointsTipper( const tInputFile & ); // creates mesh from list of pts
    void MakeRandomPointsFromArcGrid( const tInputFile & ); // mesh from arc (rand)

@@ -4,7 +4,7 @@
 **  @brief Special math routines not in math libraries. Most or all
 **         from Numerical Recipes in C by Press et al.
 **
-**  $Id: mathutil.cpp,v 1.5 2003-08-01 17:14:54 childcvs Exp $
+**  $Id: mathutil.cpp,v 1.6 2003-11-14 17:59:27 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -13,7 +13,7 @@
 #include "mt19937ar-cok.cpp"
 
 #include "../tInputFile/tInputFile.h"
-
+#include "../tListInputData/tListInputData.h"
 
 /*********************************************************\
 **  ran3
@@ -35,6 +35,10 @@ tRand::tRand(long seed)
 tRand::tRand( tInputFile const &infile )
 {
   initFromFile( infile );
+  // read previous state if necessary
+  int opt;
+  if ( (opt = infile.ReadItem( opt, "OPTREADINPUT" )) == OPTREADINPUT_PREVIOUS)
+    tListInputDataRand( infile, *this );
 }
 
 void tRand::initFromFile( tInputFile const &infile )

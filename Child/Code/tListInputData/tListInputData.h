@@ -16,7 +16,7 @@
  **     to avoid multiple definition errors resulting from mixing
  **     template & non-template classes (1/99)
  **
- **  $Id: tListInputData.h,v 1.24 2003-11-14 17:09:24 childcvs Exp $
+ **  $Id: tListInputData.h,v 1.25 2003-11-14 17:59:28 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -30,6 +30,8 @@
 #include "../errors/errors.h"
 #include "../tArray/tArray.h"
 #include "../tInputFile/tInputFile.h"
+
+class tRand;
 
 #if !defined(HAVE_NO_NAMESPACE)
 # include <fstream>
@@ -48,7 +50,6 @@ using namespace std;
  **  base services for tListInputData
  */
 /**************************************************************************/
-template< class tSubNode >
 class tListInputDataBase
 {
 protected:
@@ -67,7 +68,7 @@ protected:
 
 /**************************************************************************/
 /**
- **  @class tListInputData
+ **  @class tListInputDataMesh
  **
  **  tListInputData reads an established triangulation from a set of four
  **  files, and stores the data in a series of arrays. The files are:
@@ -146,22 +147,21 @@ protected:
  */
 /**************************************************************************/
 template< class tSubNode >
-class tListInputData : private tListInputDataBase< tSubNode >
+class tListInputDataMesh : private tListInputDataBase
 {
   friend class tMesh< tSubNode >;  // gives tMesh direct access
 
 public:
-  tListInputData( const tInputFile &, tRand & ); // Read filename & time from main inp file
+  tListInputDataMesh( const tInputFile & ); // Read filename & time from main inp file
 
 private:
-  void GetFileEntry(tRand &);       // read data from files
+  void GetFileEntry();       // read data from files
 
   int nnodes, nedges, ntri;  // # nodes, edges, & triangles
   ifstream nodeinfile;   // node input file
   ifstream edgeinfile;   // edge input file
   ifstream triinfile;    // triangle input file
   ifstream zinfile;      // "z" input file
-  ifstream randominfile; // random generator input file
 
   tArray< double > x;      // node x coords
   tArray< double > y;      // node y coords
@@ -183,15 +183,152 @@ private:
 
 };
 
+/**************************************************************************/
+/**
+ **  @class tListInputDataRand
+ **
+ **  tListInputData reads an established random number generator state.
+ */
+/**************************************************************************/
+class tListInputDataRand : private tListInputDataBase
+{
+public:
+  tListInputDataRand( const tInputFile &, tRand & );
+};
 
-/*
-** The following is designed to allow for compiling under the Borland-style
-** template instantiation used by the Linux/GNU and Solaris versions of GCC
-*/
-#include "../Template_model.h"
-#ifdef CHILD_TEMPLATE_IN_HEADER
-# include "tListInputData.cpp"
-#endif
+
+
+
+/**************************************************************************\
+ **
+ **  tListInputDataMesh constructor
+ **
+ **  The constructor does most of the work. It takes an input file (i.e.,
+ **  the "main" input file) and reads from it the base name of the files
+ **  that contain the triangulation. It then opens <basename>.nodes,
+ **  <basename>.z, <basename>.edges, and <basename>.tri. Assuming the
+ **  files are valid, the desired time-slice is read from infile, and
+ **  the start of data for that  time-slice is sought in each of the four
+ **  triangulation files. The arrays are dimensioned as needed, and
+ **  GetFileEntry() is called to read the data into the arrays. Note that
+ **  the time in each file is identified by a space character preceding it
+ **  on the same line.
+ **
+ **  Modifications:
+ **   - Calls to seekg appear not to be working properly with the g++
+ **     compiler, and a quick web search revealed all sorts of complaints
+ **     about seekg under g++. So I recoded the file reading to avoid
+ **     using seekg. (GT Feb 01)
+ **   - Fixed bug in which no. edges and triangles were incorrectly
+ **     assigned to nnodes, instead of nedges and ntri. (GT 04/02)
+ **
+\**************************************************************************/
+template< class tSubNode >
+tListInputDataMesh< tSubNode >::
+tListInputDataMesh( const tInputFile &infile )
+{
+  double intime;                   // desired time
+  char basename[80];               // base name of input files
+
+  // Read base name for triangulation files from infile
+  infile.ReadItem( basename, sizeof(basename), "INPUTDATAFILE" );
+
+  // Open each of the four files
+  openFile( nodeinfile, basename, SNODES);
+  openFile( edgeinfile, basename, SEDGES);
+  openFile( triinfile, basename, STRI);
+  openFile( zinfile, basename, SZ);
+
+  // Find out which time slice we want to extract
+  intime = infile.ReadItem( intime, "INPUTTIME" );
+  if (1) //DEBUG
+    cout << "intime = " << intime << endl;
+  if (1) //DEBUG
+   cout << "Is node input file ok? " << nodeinfile.good()
+	<< " Are we at eof? " << nodeinfile.eof() << endl;
+
+  // Find specified input times in input data files and read # items.
+  // First, nodes:
+  findRightTime( nodeinfile, nnodes, intime,
+		 basename, SNODES, "node");
+  // Then elevations (or "z" values):
+  findRightTime( zinfile, nnodes, intime,
+		 basename, SZ, "elevation");
+  // Now edges:
+  findRightTime( edgeinfile, nedges, intime,
+		 basename, SEDGES, "edge");
+  // And finally, triangles:
+  findRightTime( triinfile, ntri, intime,
+		 basename, STRI, "triangle");
+
+  // Dimension the arrays accordingly
+  x.setSize( nnodes );
+  y.setSize( nnodes );
+  z.setSize( nnodes );
+  edgid.setSize( nnodes );
+  boundflag.setSize( nnodes );
+  orgid.setSize( nedges );
+  destid.setSize( nedges );
+  nextid.setSize( nedges );
+  p0.setSize( ntri );
+  p1.setSize( ntri );
+  p2.setSize( ntri );
+  e0.setSize( ntri );
+  e1.setSize( ntri );
+  e2.setSize( ntri );
+  t0.setSize( ntri );
+  t1.setSize( ntri );
+  t2.setSize( ntri );
+
+  // Read in data from file
+  GetFileEntry();
+
+  // Close the files
+  nodeinfile.close();
+  edgeinfile.close();
+  triinfile.close();
+  zinfile.close();
+}
+
+
+/**************************************************************************\
+ **
+ **  tListInputDataMesh::GetFileEntry
+ **
+ **  Reads node, edge, and triangle data from the four triangulation input
+ **  files. Assumes that each files is open and valid and that the current
+ **  reading point in each corresponds the start of data for the desired
+ **  time-slice.
+ **
+\**************************************************************************/
+template< class tSubNode >
+void tListInputDataMesh< tSubNode >::
+GetFileEntry()
+{
+  char const * const  basename = "<file>";
+  int i;
+
+  for( i=0; i< nnodes; i++ ){
+    nodeinfile >> x[i] >> y[i] >> edgid[i] >> boundflag[i];
+    if (nodeinfile.fail())
+      ReportIOError(IORecord, basename, SNODES, i);
+    zinfile >> z[i];
+    if (zinfile.fail())
+      ReportIOError(IORecord, basename, SZ, i);
+  }
+
+  for( i=0; i<nedges; i++ ) {
+    edgeinfile >> orgid[i] >> destid[i] >> nextid[i];
+    if (edgeinfile.fail())
+      ReportIOError(IORecord, basename, SEDGES, i);
+  }
+  for( i=0; i< ntri; i++ ) {
+    triinfile >> p0[i] >> p1[i] >> p2[i] >> t0[i] >> t1[i] >> t2[i]
+	      >> e0[i] >> e1[i] >> e2[i];
+    if (triinfile.fail())
+      ReportIOError(IORecord, basename, STRI, i);
+  }
+}
 
 #endif
 

@@ -5,7 +5,7 @@
 **   @file Classes.h
 **   @brief Declarations of classes used in CHILD model
 **
-**   $Id: Classes.h,v 1.6 2003-01-17 17:30:17 childcvs Exp $
+**   $Id: Classes.h,v 1.7 2003-11-14 17:59:25 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -37,7 +37,7 @@ template< class NodeType > class tMeshListIter;
 template< class NodeType > class tPtrListIter;
 
 class tInputFile;
-template< class tSubNode > class tListInputData;
+template< class tSubNode > class tListInputDataMesh;
 class tListIFStreams;
 template< class tSubNode > class tListOutputData;
 class tListOFStreams;

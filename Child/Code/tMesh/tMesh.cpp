@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.187 2003-11-14 16:38:36 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.188 2003-11-14 17:59:28 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -121,8 +121,6 @@ tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
 **                    from input, construct a mesh from a list of (x,y,z,b)
 **                    points (b=boundary code), or construct a mesh from
 **                    scratch, given parameters in infile.
-**                    randS is initialised if a mesh is built from a previous
-**                    computation.
 **
 **   Created: 2/11/98, SL
 **   Calls: tInputFile::ReadItem,
@@ -144,7 +142,7 @@ tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
 \**************************************************************************/
 template< class tSubNode >
 tMesh< tSubNode >::
-tMesh( const tInputFile &infile, tRand &randS)
+tMesh( const tInputFile &infile )
   :
   nodeList(),
   mSearchOriginTriPtr(0),
@@ -185,9 +183,12 @@ tMesh( const tInputFile &infile, tRand &randS)
      break;
    case 1:
      {
+       // compile-time assertion
+       void require_option_equal(int d[( OPTREADINPUT_PREVIOUS == 1 ?1:-1)]);
+
        int lay;  // option for reading layer info
-       //create mesh by reading data files. randS will be initialised as well.
-       MakeMeshFromInputData( infile, randS );
+       //create mesh by reading data files.
+       MakeMeshFromInputData( infile );
        lay = infile.ReadItem( lay, "OPTREADLAYER" );
        if( lay == 1 )
 	 MakeLayersFromInputData( infile );
@@ -481,10 +482,10 @@ MeshDensification( const tInputFile &infile )
 \**************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeMeshFromInputData( const tInputFile &infile, tRand &randS )
+MakeMeshFromInputData( const tInputFile &infile )
 {
    int i;
-   tListInputData< tSubNode > input( infile, randS );
+   tListInputDataMesh< tSubNode > input( infile );
    // set the number of nodes, edges, and triangles in the mesh
    //assert( lnodflag );
    nnodes = input.x.getSize();

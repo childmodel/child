@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.12 2003-10-22 13:04:27 childcvs Exp $
+**  $Id: childmain.cpp,v 1.13 2003-11-14 17:59:26 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -98,7 +98,7 @@ int main( int argc, char **argv )
    tRand rand( inputFile );
    // Create and initialize objects:
    cout << "Creating mesh...\n";
-   tMesh<tLNode> mesh( inputFile, rand );
+   tMesh<tLNode> mesh( inputFile );
 
    cout << "Creating output files...\n";
    tLOutput<tLNode> output( &mesh, inputFile, &rand );

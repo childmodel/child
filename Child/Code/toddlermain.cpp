@@ -35,7 +35,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.14 2003-08-01 17:14:54 childcvs Exp $
+**  $Id: toddlermain.cpp,v 1.15 2003-11-14 17:59:26 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -99,7 +99,7 @@ int main( int argc, char **argv )
    tRand rand( inputFile );
    // Create and initialize objects:
    cout << "Creating mesh...\n";
-   tMesh<tLNode> mesh( inputFile, rand );
+   tMesh<tLNode> mesh( inputFile );
    cout << "Creating output files...\n";
    tLOutput<tLNode> output( &mesh, inputFile, &rand );
    tStorm storm( inputFile, &rand );
