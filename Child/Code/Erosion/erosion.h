@@ -59,7 +59,7 @@
 **     - Added codes to go along with erosion & transport options, to
 **       enable checking against user-specified options (GT 7/02)
 **
-**  $Id: erosion.h,v 1.41 2002-08-08 14:33:07 arnaud Exp $
+**  $Id: erosion.h,v 1.42 2002-08-13 14:16:28 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -74,9 +74,12 @@
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
 
-// Trick exposed in:
+// Here follows a table for transport and detachment laws, which are
+// chosen at compile time using #define switches.
+//
+// ("X()" trick exposed in:
 // The New C: X Macros, Randy Meyers, C/C++ Users Journal,
-// 19(5), May 2001
+// 19(5), May 2001)
 
 #define TRANSPORT_LAW_TABLE \
 X(PowerLaw1,"Power-law transport formula"), \
@@ -103,10 +106,10 @@ const char * const TransportLaw[] =
 const int NUMBER_OF_TRANSPORT_LAWS = 
 sizeof(TransportLaw)/sizeof(TransportLaw[0]) - 1;
 
-#define tSedTrans tSedTransPwrLaw
-#define TRANSPORT_CODE PowerLaw1
-//#define tSedTrans tSedTransPwrLaw2
-//#define TRANSPORT_CODE PowerLaw2
+//#define tSedTrans tSedTransPwrLaw
+//#define TRANSPORT_CODE PowerLaw1
+#define tSedTrans tSedTransPwrLaw2
+#define TRANSPORT_CODE PowerLaw2
 //#define tSedTrans tSedTransBridgeDom
 //#define TRANSPORT_CODE BridgeDominic
 //#define tSedTrans tSedTransWilcock
@@ -138,11 +141,10 @@ const char * const DetachmentLaw[] =
 const int NUMBER_OF_DETACHMENT_LAWS =
 sizeof(DetachmentLaw)/sizeof(DetachmentLaw[0]) - 1;
 
-#define tBedErode tBedErodePwrLaw
-#define DETACHMENT_CODE DetachPwrLaw1
-//#define tBedErode tBedErodePwrLaw2
-//#define DETACHMENT_CODE DetachPwrLaw2
-#define BEDERODEOPTION DetachmentLaw[ DETACHMENT_CODE ]
+#define tBedErode tBedErodePwrLaw2
+#define DETACHMENTOPTION DetachmentLaw[ DetachPwrLaw2 ]
+#define DETACHMENT_CODE DetachPwrLaw2
+
 
 /***************************************************************************\
 **  class tEquilibCheck

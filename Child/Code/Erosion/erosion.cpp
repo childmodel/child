@@ -36,6 +36,9 @@
 **     - added a check in tErosion constructor that tests to make sure
 **       user really wants the erosion & transport options for which the
 **       executable is compiled (GT 7/02)
+**     - fixed obscure bug in EroDep in which erosion was being double-
+**       counted when both ero and dep of different sizes was happening
+**       simultaneously. Also added assertions. (GT 8/02)
 **
 **    Known bugs:
 **     - ErodeDetachLim assumes 1 grain size. If multiple grain sizes
@@ -43,7 +46,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.103 2002-07-26 11:30:31 arnaud Exp $
+**  $Id: erosion.cpp,v 1.104 2002-08-13 14:16:28 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -313,11 +316,9 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
    if( n->getFloodStatus() ) return 0.0;
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
-   //tau =  ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma ) * pow( slp, nb );
    tau =  kt*pow( n->getQ() / n->getHydrWidth(), mb ) * pow( slp, nb );
    n->setTau( tau );
    tauex = tau - n->getTauCrit();
-   //cout << "tauex: " << tauex << endl;
    tauex = (tauex>0.0) ? tauex : 0.0;
    return( n->getLayerErody(0)*pow(tauex,pb)*dt );
 }
@@ -349,7 +350,8 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
-   //cout<<"in detach capacity "<<endl<<flush;
+  if(0) //DEBUG
+    cout<<"in detach capacity "<<endl<<flush;
    assert( n->getQ()>=0.0 );
    assert( n->getQ()>=0.0 );
    
@@ -357,21 +359,19 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
    double slp = n->getSlope();
    if( slp < 0.0 )
      ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   //double tau = ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
-   //    *pow( slp, nb );
    double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
    if( n->getQ()<0.0 || n->getDrArea()<0.0 ) n->TellAll();
    assert( n->getQ()>=0.0 );
    assert( n->getDrArea()>=0.0 );
    n->setTau( tau );
    double erorate = tau - n->getTauCrit();
-   //cout << "tau " << tau;
-   //cout << " tauc " << n->getTauCrit() << endl;
+   if(0) { //DEBUG
+     cout << "tau " << tau;
+     cout << " tauc " << n->getTauCrit() << endl;
+   }
    erorate = (erorate>0.0) ? erorate : 0.0;
    erorate = n->getLayerErody(0)*pow( erorate, pb );
-   //if( n->getDrArea()>1e7 ) cout << " erorate: " << erorate << endl;
    n->setDrDt( -erorate );
-   //cout << "2erorate: " << erorate << endl;
    return erorate;
 }
 
@@ -408,20 +408,14 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   //double tau = ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
-   //    *pow( slp, nb );
    double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
    n->setTau( tau );
    double erorate = tau - n->getTauCrit();
-   //cout << "erorate: " << erorate << endl;
+   if(0) //DEBUG
+     cout << "erorate: " << erorate << endl;
    erorate = (erorate>0.0) ? erorate : 0.0;
    erorate = n->getLayerErody(i)*pow( erorate, pb );
    n->setDrDt( -erorate );
-//    if(n->getID() == 11 ){
-//       cout<<"node 11 is in detach capacity"<<endl;
-//       cout<<"layer is "<<i<<endl;
-//       cout<<"numg is "<<n->getNumg()<<endl;
-//    }
    
    return erorate;
 }
@@ -523,11 +517,11 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n, double dt )
    if( n->getFloodStatus() ) return 0.0;
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
-   //tau =  ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma ) * pow( slp, nb );
    tau =  kt*pow( n->getQ() / n->getHydrWidth(), mb ) * pow( slp, nb );
    n->setTau( tau );
    tauexpb = pow( tau, pb ) - pow( n->getTauCrit(), pb );
-   //cout << "tauex: " << tauex << endl;
+   if(0) //DEBUG
+     cout << "tauexpb: " << tauexpb << endl;
    tauexpb = (tauexpb>0.0) ? tauexpb : 0.0;
    return( n->getLayerErody(0)*tauexpb*dt );
 }
@@ -547,7 +541,8 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n, double dt )
 \***************************************************************************/
 double tBedErodePwrLaw2::DetachCapacity( tLNode * n )
 {
-   //cout<<"in detach capacity "<<endl<<flush;
+  if(0) //DEBUG
+     cout<<"in detach capacity "<<endl<<flush;
    assert( n->getQ()>=0.0 );
    assert( n->getQ()>=0.0 );
    
@@ -555,21 +550,19 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n )
    double slp = n->getSlope();
    if( slp < 0.0 )
      ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   //double tau = ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
-   //    *pow( slp, nb );
    double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
    if( n->getQ()<0.0 || n->getDrArea()<0.0 ) n->TellAll();
    assert( n->getQ()>=0.0 );
    assert( n->getDrArea()>=0.0 );
    n->setTau( tau );
    double erorate = pow( tau, pb ) - pow( n->getTauCrit(), pb );
-   //cout << "tau " << tau;
-   //cout << " tauc " << n->getTauCrit() << endl;
+   if(0) { //DEBUG
+     cout << "tau " << tau;
+     cout << " tauc " << n->getTauCrit() << endl;
+   }
    erorate = (erorate>0.0) ? erorate : 0.0;
    erorate = n->getLayerErody(0)*erorate;
-   //if( n->getDrArea()>1e7 ) cout << " erorate: " << erorate << endl;
    n->setDrDt( -erorate );
-   //cout << "2erorate: " << erorate << endl;
    return erorate;
 }
 
@@ -597,20 +590,14 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n, int i )
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   //double tau = ktb*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
-   //    *pow( slp, nb );
    double tau = kt*pow( n->getQ() / n->getHydrWidth(), mb )*pow( slp, nb );
    n->setTau( tau );
    double erorate = pow( tau, pb ) - pow( n->getTauCrit(), pb );
-   //cout << "erorate: " << erorate << endl;
+   if(0) //DEBUG
+     cout << "erorate: " << erorate << endl;
    erorate = (erorate>0.0) ? erorate : 0.0;
    erorate = n->getLayerErody(i)*erorate;
    n->setDrDt( -erorate );
-//    if(n->getID() == 11 ){
-//       cout<<"node 11 is in detach capacity"<<endl;
-//       cout<<"layer is "<<i<<endl;
-//       cout<<"numg is "<<n->getNumg()<<endl;
-//    }
    
    return erorate;
 }
@@ -704,11 +691,12 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node )
    {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
-      //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << endl;
+      if(0) //DEBUG
+	cout << "kt=" << kt << " Q=" << node->getQ() << " W=" 
+	     << node->getHydrWidth() << " S=" << node->getSlope() << endl;
       tauex = tau - tauc;
       tauex = (tauex>0.0) ? tauex : 0.0;
       cap = kf * node->getHydrWidth() * pow( tauex, pf );
-      //cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
    }
    node->setQs( cap );
    return cap;
@@ -740,23 +728,17 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
    {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
-      //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << " tau=" << tau << endl;
+      if(0) //DEBUG
+	cout << "kt=" << kt << " Q=" << node->getQ() << " W=" 
+	     << node->getHydrWidth() << " S=" << node->getSlope() 
+	     << " tau=" << tau << endl;
       tauex = tau - tauc;
       tauex = (tauex>0.0) ? tauex : 0.0;
       cap = weight * kf * node->getHydrWidth() * pow( tauex, pf );
-      //cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
    }
-   //cap = kf * weight * pow( node->getQ(), mf ) * pow( slp, nf );
    int i;
    for(i=0; i<node->getNumg(); i++)
        node->addQs(i, cap*node->getLayerDgrade(lyr,i)/node->getLayerDepth(lyr));
-   
-   /*if( node->getDrArea() > 1e7 ) {
-       node->TellAll();
-       cout << "tauex=" << tauex << " bfwid=" << node->getChanWidth()
-            << " wid=" << node->getHydrWidth() << " cap=" << cap << endl;
-            }*/
-   
    
    node->setQs( cap );
    return cap;
@@ -808,11 +790,12 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node )
    {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
-      //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << endl;
+      if(0) //DEBUG
+	cout << "kt=" << kt << " Q=" << node->getQ() << " W=" 
+	     << node->getHydrWidth() << " S=" << node->getSlope() << endl;
       tauexpf = pow( tau, pf ) - pow( tauc, pf );
       tauexpf = (tauexpf>0.0) ? tauexpf : 0.0;
       cap = kf * node->getHydrWidth() * tauexpf;
-      //cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
    }
    node->setQs( cap );
    return cap;
@@ -841,24 +824,18 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node, int lyr, double weight )
    {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
-      //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << " tau=" << tau << endl;
+      if(0) //DEBUG
+	cout << "kt=" << kt << " Q=" << node->getQ() << " W=" 
+	     << node->getHydrWidth() << " S=" << node->getSlope() 
+	     << " tau=" << tau << endl;
       tauexpf = pow( tau, pf ) - pow( tauc, pf );
       tauexpf = (tauexpf>0.0) ? tauexpf : 0.0;
       cap = weight * kf * node->getHydrWidth() * tauexpf;
-      //cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
    }
-   //cap = kf * weight * pow( node->getQ(), mf ) * pow( slp, nf );
    int i;
    for(i=0; i<node->getNumg(); i++)
        node->addQs(i, cap*node->getLayerDgrade(lyr,i)/node->getLayerDepth(lyr));
-   
-   /*if( node->getDrArea() > 1e7 ) {
-       node->TellAll();
-       cout << "tauex=" << tauex << " bfwid=" << node->getChanWidth()
-            << " wid=" << node->getHydrWidth() << " cap=" << cap << endl;
-            }*/
-   
-   
+ 
    node->setQs( cap );
    return cap;
 }
@@ -917,7 +894,9 @@ double tSedTransBridgeDom::TransCapacity( tLNode *node )
    {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
-      //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << endl;
+      if(0) //DEBUG
+	cout << "kt=" << kt << " Q=" << node->getQ() << " W=" 
+	     << node->getHydrWidth() << " S=" << node->getSlope() << endl;
       tauex = ( tau > tauc ) ? (tau - tauc) : 0.0;
       ustarex = ( tau > tauc ) ? (sqrt(tau) - sqrtTauc) : 0.0;
       cap = kf * node->getHydrWidth() * tauex * ustarex;
@@ -1010,7 +989,9 @@ tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
        tagline[9] = digit;
        mdGrndiam[i] = infile.ReadItem( mdGrndiam[i], tagline );
        mdTauc[i] = thetac * (sig-rho) * g * mdGrndiam[i];
-       //cout << "Diam " << i << " = " << mdGrndiam[i] << " tauc = " << mdTauc[i] << endl;
+       if(0) //DEBUG
+	 cout << "Diam " << i << " = " << mdGrndiam[i] << " tauc = " 
+	      << mdTauc[i] << endl;
      }
 
    // Add unit conversion factor for kt -- this is required to convert
@@ -1044,19 +1025,34 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight
    int i;
    
    // Compute D50 and fraction of each size
+   assert( node->getLayerDepth(lyr) > 0.0 );
    for( i=0; i<miNumgrnsizes; i++ )
      {
        frac[i] = node->getLayerDgrade(lyr,i) / node->getLayerDepth(lyr);
+       assert( frac[i]>=0.0 );
        d50 += frac[i] * mdGrndiam[i];
-       //cout << "frac " << i << " = " << frac[i] << endl;
+       if( i==1 && d50 <=0.0 )
+	 {
+	   cout << "uh oh2: " << node->getLayerDgrade(lyr,0) << " "
+		<< node->getLayerDgrade(lyr,1) << endl;
+	   cout << frac[0] << " " << frac[1] << endl;
+	 }
+       if(0) //DEBUG
+	 cout << "frac " << i << " = " << frac[i] << endl;
      }
-   //cout << "D50 = " << d50 << endl;
+   assert( d50>=0.0 );
+   assert( d50<1e10 );
+   if(0) //DEBUG
+     cout << "D50 = " << d50 << endl;
 
    // Compute shear stress
    if( node->getFloodStatus() ) slp = 0.0;
    tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
    node->setTau( tau );
-    //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << " tau=" << tau << endl;
+   if(0) //DEBUG
+     cout << "kt=" << kt << " Q=" << node->getQ() << " W=" 
+	  << node->getHydrWidth() << " S=" << node->getSlope() 
+	  << " tau=" << tau << endl;
 
    // Compute crit shear stress and xport capacity for each size fraction
    double totalcap = 0.0,
@@ -1064,19 +1060,14 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight
    for( i=0; i<miNumgrnsizes; i++ )
      {
        tauc = mdTauc[i] * pow( mdGrndiam[i] / d50, -mdHidingexp );
-       //cout << "tauc " << i << " = " << tauc << endl;
+       if(0) //DEBUG
+	 cout << "tauc " << i << " = " << tauc << endl;
        tauex = tau - tauc;
        tauex = (tauex>0.0) ? tauex : 0.0;
        cap = frac[i] * weight * kf * node->getHydrWidth() * pow( tauex, pf );
        totalcap += cap;
        node->addQs( i, cap );
    }
-   /*if( node->getDrArea() > 1e7 ) {
-       node->TellAll();*/
-   //cout << "tau=" << tau << "tauex=" << tauex << " bfwid=" << node->getChanWidth()
-   //<< " wid=" << node->getHydrWidth() << " cap=" << totalcap << endl;
-            
-   
    
    node->setQs( totalcap );
    return totalcap;
@@ -1101,13 +1092,8 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode * /* node */ )
 tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
         : grade()
 {
-  /*
-   int i;
-   char add[2], name[20];
-   double help;
-  */
-
-   cout << "tSedTransWilcock(infile)\n" << endl;
+  if(0) //DEBUG
+    cout << "tSedTransWilcock(infile)\n" << endl;
    //strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
    grade.setSize(2);
    /*for(i=0; i<=1; i++){
@@ -1156,10 +1142,8 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
 double tSedTransWilcock::TransCapacity( tLNode *nd )
 {
    double tau;
-   //Xtauold;
    double taucrit;
    double persand=nd->getLayerDgrade(0,0)/(nd->getLayerDepth(0));
-   //double timeadjust=31536000.00; /* number of seconds in a year */
    double factor=nd->getLayerDepth(0)/nd->getMaxregdep();
 
    if( nd->getSlope() < 0 ){
@@ -1169,31 +1153,25 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
       return 0.0;
    }
 
-//    if(nd->getX()==12.5&nd->getY()==20){
-//       cout<<"factor is "<<factor<<endl;
-//    }
-
    // units of Q are m^3/yr; convert to m^3/sec
    //NIC you are doing a test here to see what is causing the
    //downstream coarsening.
    tau = taudim*pow(nd->getHydrRough()*nd->getQ()*YEARPERSEC/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
-   //tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
    
-   //cout << "hydrrough is " << nd->getChanRough() << endl;
-   //cout << "q is " << nd->getQ() << endl;
-   //cout << "slope is " << nd->getSlope() << endl;
-   //cout << "taudim is " << taudim << endl;
+   if(0) { //DEBUG
+     cout << "hydrrough is " << nd->getChanRough() << endl;
+     cout << "q is " << nd->getQ() << endl;
+     cout << "slope is " << nd->getSlope() << endl;
+     cout << "taudim is " << taudim << endl;
+   }
 
-   //Calculate Sand transport rates first
-   
+   //Calculate Sand transport rates first   
    if(persand<.10)
        taucrit=lowtaucs;
    else if(persand<=.40)
        taucrit=((sands*persand)+sandb);
    else
        taucrit=hightaucs;
-
-   //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
    
    if(tau>taucrit){
        nd->setQs(0, ((0.058/RHOSED)*factor*nd->getHydrWidth()*SECPERYEAR*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) ));
@@ -1202,15 +1180,12 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
        nd->setQs( 0, 0.0 ) ;
 
    //Now calculate Gravel transport rates
-
    if(persand<.10)
        taucrit=lowtaucg;
    else if(persand<=.40)
        taucrit=((gravs*persand)+gravb);
    else
        taucrit=hightaucg;
-
-   //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
 
    if(tau>taucrit){
        nd->setQs(1, (0.058*SECPERYEAR*factor*nd->getHydrWidth()/(RHOSED))*
@@ -1250,18 +1225,12 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 {
    double tau;
    double taucrit;
-   if( nd->getLayerDepth(i)<=0 ) {
-      cout << "Uh-oh: i=" << i << " LD=" << nd->getLayerDepth(i) << endl;
-      nd->TellAll();
-   }
    assert( nd->getLayerDepth(i)>0 );
    double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
-   //double timeadjust=31536000.00; /* number of seconds in a year */
    double qss, qsg=0; //gravel and sand transport rate
 
-   //cout<<nd->getX()<<" "<<nd->getY()<<endl;
-   
-   //cout << "tSedTransWilcock::TransCapacity(tLNode,int,double)\n";
+   if(0) //DEBUG
+     cout << "tSedTransWilcock::TransCapacity(tLNode,int,double)\n";
 
 
    if( nd->getSlope() < 0 ){
@@ -1276,12 +1245,13 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
    //tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
    tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
 
-   //cout << "channel rough is " << nd->getChanRough() << endl;
-   //cout << "channel width is " << nd->getChanWidth() << endl;
-   
-   //cout << "q in secs is " << nd->getQ()/SECPERYEAR << endl;
-   //cout << "slope is " << nd->getSlope() << endl;
-   //cout << "taudim is " << taudim << endl;
+   if(0) { //DEBUG
+     cout << "channel rough is " << nd->getChanRough() << endl;
+     cout << "channel width is " << nd->getChanWidth() << endl;
+     cout << "q in secs is " << nd->getQ()/SECPERYEAR << endl;
+     cout << "slope is " << nd->getSlope() << endl;
+     cout << "taudim is " << taudim << endl;
+   }
 
    //Calculate Sand transport rates first
    
@@ -1292,13 +1262,9 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
    else
        taucrit=hightaucs;
 
-   //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
-   //cout<<"weight = "<<weight<<" persand = "<<persand<<endl;
-   
    if(tau>taucrit){
       qss=(0.058/RHOSED)*weight*nd->getHydrWidth()*SECPERYEAR*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) ;
       nd->addQs(0, qss);
-      //cout << "nic sand transport rate is " << qss << endl;
    }
    else 
        qss=0 ;
@@ -1312,14 +1278,11 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
           taucrit=((gravs*persand)+gravb);
       else
           taucrit=hightaucg;
-
-      //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
       
       if(tau>taucrit){
          qsg=(0.058*SECPERYEAR*weight*nd->getHydrWidth()/(RHOSED))*
              (1-persand)*pow(tau,1.5)*pow((1-(taucrit/tau)),4.5);
          nd->addQs(1,qsg);
-         //cout << "gravel transport rate " <<qsg<< endl;
       }
       else
           qsg=0;
@@ -1350,7 +1313,8 @@ tSedTransMineTailings::tSedTransMineTailings( tInputFile &infile )
    char add[2], name[20];
    double help;
 
-   cout << "tSedTransMineTailings(infile)\n" << endl;
+   if(0) //DEBUG
+     cout << "tSedTransMineTailings(infile)\n" << endl;
    strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
    grade.setSize(2);
    for(i=0; i<=1; i++){
@@ -1409,18 +1373,16 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd )
       return 0.0;
    }
 
-//    if(nd->getX()==12.5&nd->getY()==20){
-//       cout<<"factor is "<<factor<<endl;
-//    }
-
    // units of Q are m^3/yr; convert to m^3/sec
    //tau = taudim*pow(nd->getHydrRough()*nd->getQ()*YEARPERSEC/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
    tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
    
-   //cout << "hydrrough is " << nd->getChanRough() << endl;
-   //cout << "q is " << nd->getQ() << endl;
-   //cout << "slope is " << nd->getSlope() << endl;
-   //cout << "taudim is " << taudim << endl;
+   if(0) { //DEBUG
+     cout << "hydrrough is " << nd->getChanRough() << endl;
+     cout << "q is " << nd->getQ() << endl;
+     cout << "slope is " << nd->getSlope() << endl;
+     cout << "taudim is " << taudim << endl;
+   }
 
    //Calculate Sand transport rates first
    
@@ -1430,9 +1392,7 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd )
        taucrit=((sands*persand)+sandb);
    else
        taucrit=hightaucs;
-
-   //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
-   
+ 
    if(tau>taucrit){
        nd->setQs(0,(0.0541/RHOSED)*SECPERYEAR*persand*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit) );
    }
@@ -1447,8 +1407,6 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd )
        taucrit=((gravs*persand)+gravb);
    else
        taucrit=hightaucg;
-
-   //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
 
    if(tau>taucrit){
        nd->setQs(1, (0.0541/RHOSED)*SECPERYEAR*(1-persand)*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit));
@@ -1488,16 +1446,12 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
 {
    double tau;
    double taucrit;
-   if( nd->getLayerDepth(i)<=0 ) {
-      cout << "Uh-oh: i=" << i << " LD=" << nd->getLayerDepth(i) << endl;
-      nd->TellAll();
-   }
-   assert( nd->getLayerDepth(i)>0 );
+   assert( nd->getLayerDepth(i)>0.0 );
    double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
-   //double timeadjust=31536000.00; /* number of seconds in a year */
    double qss, qsg=0; //gravel and sand transport rate
 
-   //cout << "tSedTransMineTailings::TransCapacity(tLNode,int,double)\n";
+   if(0) //DEBUG
+     cout << "tSedTransMineTailings::TransCapacity(tLNode,int,double)\n";
 
    if( nd->getSlope() < 0 ){
       nd->setQs(0, 0);
@@ -1511,11 +1465,13 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
    //NIC check to see what taudim is -> probably right but U R anal
    tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
 
-   /*cout << "Q is " << nd->getQ() << endl;
-   cout << "slope is " << nd->getSlope() << endl;
-   cout << "taudim is " << taudim << endl;
-   cout << "persand is " << persand << endl;
-   cout << "weight is " << weight << endl;*/
+   if(0) { //DEBUG
+     cout << "Q is " << nd->getQ() << endl;
+     cout << "slope is " << nd->getSlope() << endl;
+     cout << "taudim is " << taudim << endl;
+     cout << "persand is " << persand << endl;
+     cout << "weight is " << weight << endl;
+   }
 
    //Calculate Sand transport rates first
    
@@ -1526,8 +1482,6 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
        taucrit=((sands*persand)+sandb);
    else
        taucrit=hightaucs;
-
-   //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
    
    //remember tau is in units of sec, so compute everything in seconds
    //and transfer back to years in the end.
@@ -1539,10 +1493,8 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
       //qss=(0.0541/RHOSED)*weight*SECPERYEAR*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit);
       qss=(0.0541/RHOSED)*weight*SECPERYEAR*persand*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit);
        nd->addQs(0, qss);
-       //cout << "nic sand transport rate is " << qss << endl;
    }
    else{
-      //cout <<"NO SAND TRANSPORT"<<endl;
       qss=0 ;
    }
    
@@ -1554,17 +1506,13 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
           taucrit=((gravs*persand)+gravb);
       else
           taucrit=hightaucg;
-
-      //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
       
       if(tau>taucrit){
          //qsg=(0.0541/RHOSED)*weight*SECPERYEAR*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit);
          qsg=(0.0541/RHOSED)*weight*SECPERYEAR*(1-persand)*pow(nd->getQ()/SECPERYEAR,1.12)*pow(nd->getSlope(),-0.24)*(tau-taucrit);
          nd->addQs(1,qsg);
-         //cout << "gravel transport is happening at a rate of " << qsg << endl;
       }
       else{
-         //cout<<"NO GRAVEL TRANSPORT"<<endl;
          qsg=0;
       }
       
@@ -1598,7 +1546,9 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
                                              "MESHADAPT_MAXNODEFLUX" );
 
    cout << "SEDIMENT TRANSPORT OPTION: " << SEDTRANSOPTION << endl;
-   cout << "DETACHMENT OPTION: " << BEDERODEOPTION << endl;
+   cout << "DETACHMENT OPTION: " 
+	<< DETACHMENTOPTION 
+	<< endl;
 
    // Make sure the user wants the detachment and transport options that
    // are compiled in this version
@@ -1611,7 +1561,7 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
        cerr << "Error: You requested the detachment law: " 
 	    << DetachmentLaw[optProcessLaw] << endl
 	    << "but this version is hard-coded with detachment law "
-	    << DETACHMENT_CODE << " (" << BEDERODEOPTION << ")\n";
+	    << DETACHMENT_CODE << " (" << DETACHMENTOPTION << ")\n";
        ReportFatalError( "Requested detachment law not available.\n"
 			 "Either switch options or modify erosion.h "
 			 "and re-compile.\n" );
@@ -1666,7 +1616,8 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
 \*****************************************************************************/
 void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
 {
-  //cout<<"ErodeDetachLim...";
+  if(0) //DEBUG
+    cout<<"ErodeDetachLim...";
    double dt,
        dtmax = 1000000.0; // time increment: initialize to arbitrary large val
    double frac = 0.9; //fraction of time to zero slope
@@ -1791,9 +1742,10 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift *UPtr )
             else
             {
                dtmax = dtmin;
-               //cout << "time step too small because of node at x,y,z "
-               //     << cn->getX() << " " << cn->getY() << " " << cn->getZ()
-               //     << endl;
+               if(0) //DEBUG
+		 cout << "time step too small because of node at x,y,z "
+		      << cn->getX() << " " << cn->getY() << " " << cn->getZ()
+		      << endl;
             }
          }
       }
@@ -1828,9 +1780,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
    double dt,
        dtmax;         // time increment: initialize to arbitrary large val
    double frac = 0.3; // fraction of time to zero slope
-   //Xint i;
    tLNode * cn, *dn;
-   // int nActNodes = meshPtr->getNodeList()->getActiveSize();
    tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
    double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
        cap,          // Transport capacity
@@ -1878,8 +1828,6 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          // sediment influx downstream
          cn->setDzDt( pedr );
          cn->getDownstrmNbr()->addQsin( cn->getQsin() - pedr*cn->getVArea() );
-         //cout << "RATE STEP:\n";
-         //cn->TellAll();
       }
 
       // Given these rates, figure out how big a time-step we can get away with
