@@ -59,7 +59,7 @@
 **     - Added codes to go along with erosion & transport options, to
 **       enable checking against user-specified options (GT 7/02)
 **
-**  $Id: erosion.h,v 1.40 2002-08-07 11:16:04 arnaud Exp $
+**  $Id: erosion.h,v 1.41 2002-08-08 14:33:07 arnaud Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -74,26 +74,31 @@
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
 
-enum {
-  PowerLaw1 = 0,
-  PowerLaw2,
-  BridgeDominic,
-  Wilcock,
-  PowerLawMulti,
-  MineTailings,
-  NoTransportLaw
-};
+// Trick exposed in:
+// The New C: X Macros, Randy Meyers, C/C++ Users Journal,
+// 19(5), May 2001
 
+#define TRANSPORT_LAW_TABLE \
+X(PowerLaw1,"Power-law transport formula"), \
+X(PowerLaw2,"Power-law transport formula, form 2"), \
+X(BridgeDominic,"Bridge-Dominic form of Bagnold bedload formula"), \
+X(Wilcock,"Wilcock sand-gravel formula"), \
+X(PowerLawMulti,"Multi-size power-law formula"), \
+X(MineTailings,"Willgoose/Riley mine tailings formula"), \
+X(NoTransportLaw,"(Invalid transport law)")
+
+#define X(a,b) a
+enum {
+  TRANSPORT_LAW_TABLE
+};
+#undef X
+
+#define X(a,b) b
 const char * const TransportLaw[] =
 {
-  "Power-law transport formula",
-  "Power-law transport formula, form 2",
-  "Bridge-Dominic form of Bagnold bedload formula",
-  "Wilcock sand-gravel formula",
-  "Multi-size power-law formula",
-  "Willgoose/Riley mine tailings formula",
-  "(Invalid transport law)"
+  TRANSPORT_LAW_TABLE
 };
+#undef X
 
 const int NUMBER_OF_TRANSPORT_LAWS = 
 sizeof(TransportLaw)/sizeof(TransportLaw[0]) - 1;
@@ -112,18 +117,23 @@ sizeof(TransportLaw)/sizeof(TransportLaw[0]) - 1;
 //#define TRANSPORT_CODE MineTailings
 #define SEDTRANSOPTION TransportLaw[ TRANSPORT_CODE ]
 
-enum {
-  DetachPwrLaw1 = 0,
-  DetachPwrLaw2,
-  NoDetachmentLaw
-};
+#define DETACHMENT_LAW_TABLE \
+X(DetachPwrLaw1,"Power law, form 1"), \
+X(DetachPwrLaw2,"Power law, form 2"), \
+X(NoDetachmentLaw,"(Invalid detachment law)")
 
+#define X(a,b) a
+enum {
+  DETACHMENT_LAW_TABLE
+};
+#undef X
+
+#define X(a,b) b
 const char * const DetachmentLaw[] =
 {
-  "Power law, form 1",
-  "Power law, form 2",
-  "(Invalid detachment law)"
+  DETACHMENT_LAW_TABLE
 };
+#undef X
 
 const int NUMBER_OF_DETACHMENT_LAWS =
 sizeof(DetachmentLaw)/sizeof(DetachmentLaw[0]) - 1;
