@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.38 1998-04-23 22:04:42 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.39 1998-04-29 14:47:34 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -512,7 +512,8 @@ void tLNode::AddDrArea( double val ) {chan.drarea += ( val >= 0 ) ? val : 0;}
 
 tLNode * tLNode::GetDownstrmNbr()
 {
-   if( flowedge == 0 ) return 0;
+   assert( flowedge!=0 );
+   //if( flowedge == 0 ) return 0;
    return (tLNode *)flowedge->getDestinationPtrNC();     
 }
 
