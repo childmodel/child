@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.7 1998-03-03 22:29:01 gtucker Exp $
+**  $Id: erosion.h,v 1.8 1998-03-20 15:42:12 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -119,11 +119,13 @@ public:
     void ErodeDetachLim( double dtg );
     void ErodeDetachLim( double dtg, tUplift * );
     void StreamErode( double dtg, tStreamNet * );
+    void Diffuse( double dtg, int detach );
 
 private:
     tGrid<tLNode> *gridPtr;
     tBedErodePwrLaw bedErode;
     tSedTransPwrLaw sedTrans;
+    double kd;                // Hillslope transport (diffusion) coef
 
 };
 
