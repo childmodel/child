@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.26 2003-05-26 17:44:53 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.27 2003-07-15 16:01:17 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -130,7 +130,7 @@ tStorm::tStorm( tInputFile &infile )
    stdur = stdurMean;
    istdur = istdurMean;
 
-
+ 
    endtm = infile.ReadItem( endtm, "RUNTIME" );
    double help;
 
@@ -238,9 +238,11 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
          p = pMean*ExpDev( &seed );
          istdur += istdurMean*ExpDev( &seed ) + stdur;
          stdur = stdurMean*ExpDev( &seed );
-         //cout << "P " << p << "  ST " << stdur << "  IST " << istdur
-         //     << "  DP " << p*stdur << " minp " << minp << " mind " <<mind <<
-         //            endl;
+	 if(0) { // Debug
+	   cout << "P " << p << "  ST " << stdur << "  IST " << istdur
+		<< "  DP " << p*stdur << " minp " << minp << " mind " <<mind <<
+	     endl;
+	 }
          //srand( seed );
       } while( (p<=minp || (p*stdur)<=mind) && (tm+istdur+stdur<endtm) );
       stormfile << istdur << " " << p << " " << stdur << endl;
