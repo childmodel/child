@@ -3,7 +3,7 @@
 /****************************************************************************\
 **   Definitions.h: Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.29 2002-07-26 10:31:34 gtucker Exp $
+**   $Id: Definitions.h,v 1.30 2002-09-16 13:13:20 arnaud Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -50,5 +50,12 @@
 typedef enum { false=0, true } bool;
 # endif
 #endif
+
+// file suffixes
+#define SNODES ".nodes"
+#define SEDGES ".edges" 
+#define STRI ".tri"
+#define SZ ".z"
+#define SVAREA ".varea"
 
 #endif
