@@ -265,7 +265,7 @@ int cyclist::addAfter(int a,int ej){
   return prev;
 }
 #if defined(DEBUG_PRINT)
-  void cyclist::print() const {int j=ejs[0].next;for (int i=0;i<num;i++){cout<<ejs[j].data<<endl;j=ejs[j].next;}}
+void cyclist::print() const {int j=ejs[0].next;for (int i=0;i<num;i++){cout<<ejs[j].data<<endl;j=ejs[j].next;}}
 #endif
 
 // vector product (or cross product) of p0p1,p0p2
@@ -461,19 +461,19 @@ void sort_triangulate(int npoints, point *p, int *pnedges, edge** edges_ret){
 
 #if defined(TIMING)
   {
-  time_t t1 = time(NULL);
-  clock_t tick1 = clock();
+    time_t t1 = time(NULL);
+    clock_t tick1 = clock();
 #endif
 
-  //triangulate the set of points
-  triangulate(npoints,p,pnedges, edges_ret);
+    //triangulate the set of points
+    triangulate(npoints,p,pnedges, edges_ret);
 
 
 #if defined(TIMING)
-  time_t t2 = time(NULL);
-  clock_t tick2 = clock();
-  cout << "elapsed time (time) = " << difftime(t2,t1) << " s" << endl;
-  cout << "elapsed time (clock)= " << (double)(tick2-tick1)/CLOCKS_PER_SEC << " s" << endl;
+    time_t t2 = time(NULL);
+    clock_t tick2 = clock();
+    cout << "elapsed time (time) = " << difftime(t2,t1) << " s" << endl;
+    cout << "elapsed time (clock)= " << (double)(tick2-tick1)/CLOCKS_PER_SEC << " s" << endl;
   }
 #endif
 }
@@ -653,7 +653,7 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
 	if (edges[iedge].lef == -1) {
 	  assert(edges[iedge].let == -1);
 	} else {
-      // don't bother with orientation at the moment
+	  // don't bother with orientation at the moment
 	  ielem_current = ielem;
 	  elems[ielem].e1 = iedge;
 	  elems[ielem].e2 = edges[iedge].lef;
@@ -670,7 +670,7 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
 	if (edges[iedge].ref == -1) {
 	  assert(edges[iedge].ref == -1);
 	} else {
-      // don't bother with orientation at the moment
+	  // don't bother with orientation at the moment
 	  ielem_current = ielem;
 	  elems[ielem].e1 = iedge;
 	  elems[ielem].e2 = edges[iedge].ref;
@@ -716,7 +716,7 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
       assert(v != 0.);
       if (v>0) {
 	SWAP_E(p1,p3)
-	SWAP_E(e2,e3);
+	  SWAP_E(e2,e3);
       }
       // edges orientations
       elems[ielem].eo2 = (edges[elems[ielem].e2].from == elems[ielem].p2);
@@ -750,11 +750,11 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
 #if 0
   {
     for(int ielem=0;ielem<nelem;ielem++){
-	cout << "elem=" << ielem
-	     << " p1=" << elems[ielem].p1 << " (" << p[elems[ielem].p1].x <<"," << p[elems[ielem].p1].y << ")"
-	     << " p2=" << elems[ielem].p2 << " (" << p[elems[ielem].p2].x <<"," << p[elems[ielem].p2].y << ")"
-	     << " p3=" << elems[ielem].p3 << " (" << p[elems[ielem].p3].x <<"," << p[elems[ielem].p3].y << ")"
-	     << endl;
+      cout << "elem=" << ielem
+	   << " p1=" << elems[ielem].p1 << " (" << p[elems[ielem].p1].x <<"," << p[elems[ielem].p1].y << ")"
+	   << " p2=" << elems[ielem].p2 << " (" << p[elems[ielem].p2].x <<"," << p[elems[ielem].p2].y << ")"
+	   << " p3=" << elems[ielem].p3 << " (" << p[elems[ielem].p3].x <<"," << p[elems[ielem].p3].y << ")"
+	   << endl;
     }
   }
 #endif
