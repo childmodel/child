@@ -8,7 +8,7 @@
 **    - GT added currentItem, FirstP(), and NextP(), plus modifications
 **      to prevent currentItem from getting corrupted (1/22/99)
 **
-**  $Id: tList.cpp,v 1.15 1999-01-26 20:35:34 gtucker Exp $
+**  $Id: tList.cpp,v 1.16 1999-04-05 18:48:40 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -656,18 +656,18 @@ getIthData( int num ) const
 {
    int i;
    tListNode< NodeType > * curPtr;
-//    if(num>= nNodes)
-//        {
-//           cout<<"using an index which is too large"<<endl;
-//           cout<<"you have "<<nNodes<<endl;
-//           cout<<"you wanted list member number "<<num<<endl;
-//        }
-//    if(num<0)
-//    {
-//       cout<<"using a negative index"<<endl;
-//       cout<<"you have "<<nNodes<<endl;
-//       cout<<"you wanted list member number "<<num<<endl;
-//    }
+//     if(num>= nNodes)
+//         {
+//            cout<<"using an index which is too large"<<endl;
+//            cout<<"you have "<<nNodes<<endl;
+//            cout<<"you wanted list member number "<<num<<endl;
+//         }
+//     if(num<0)
+//     {
+//        cout<<"using a negative index"<<endl;
+//        cout<<"you have "<<nNodes<<endl;
+//        cout<<"you wanted list member number "<<num<<endl;
+//     }
    assert( num >= 0 && num < nNodes );
    for( curPtr = first, i = 0; i<num; i++ )
    {
