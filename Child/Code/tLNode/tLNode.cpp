@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.62 1998-07-27 21:06:47 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.63 1998-07-28 16:46:18 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1149,7 +1149,13 @@ void tLNode::TellAll()
          cout << "  qs: " << qs << "  qsin: " << qsin << "  slp: "
               << getSlope() << "  reg: " << reg.thickness << endl;
          for(i=0; i<numg; i++)
-             cout<<"qsi "<<i<<" "<<qsm[i];
+             cout<<"  qsi "<<i<<" "<<qsm[i];
+         cout<<endl;
+         for(i=0; i<numg; i++)
+             cout<<"  qsini "<<i<<" "<<qsinm[i];
+         cout<<endl;         
+         for(i=0; i<numg; i++)
+             cout<<"  dgrade "<<i<<" "<<getLayerDgrade(0,i);         
          cout<<endl;
          cout << "  dzdt: " << dzdt << "  drdt: " << drdt << endl;
       }
