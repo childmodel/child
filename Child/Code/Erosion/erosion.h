@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.8 1998-03-20 15:42:12 gtucker Exp $
+**  $Id: erosion.h,v 1.9 1998-04-23 18:49:42 nmgaspar Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -74,6 +74,33 @@ class tSedTransPwrLaw
    double kf;  // Transport capacity coefficient
    double mf;  // Exponent on total discharge
    double nf;  // Exponent on slope
+};
+
+/**************************************************************************\
+**  class tSedTransWilcock
+**
+**  Manages data and routines to compute sediment transport capacity
+**  of a sand a gravel class (two grain sizes) using the sediment transport
+**  formula and critical shear stress rules developed by P. Wilcock (1997)
+\**************************************************************************/
+class tSedTransWilcock
+{
+public:
+   tSedTransWilcock( tInputFile &infile );
+   double TransCapacity( tLNode * n );
+   
+private:
+   double taudim;
+   double refs;
+   double refg;
+   double lowtaucs;
+   double lowtaucg;
+   double sandb;
+   double hightaucs;
+   double hightaucg;
+   double sands;
+   tArray< double > grade;
+   
 };
 
 
