@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.59 1999-02-05 18:43:49 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.60 1999-02-22 17:58:29 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -327,7 +327,7 @@ MakeGridFromInputData( tInputFile &infile )
    nnodes = input.x.getSize();
    nedges = input.orgid.getSize();
    ntri = input.p0.getSize();
-   cout << "nnodes, nedges, ntri: " << nnodes << " " << nedges << " " << ntri << endl << flush;
+   //cout << "nnodes, nedges, ntri: " << nnodes << " " << nedges << " " << ntri << endl << flush;
    assert( nnodes > 0 );
    assert( nedges > 0 );
    assert( ntri > 0 );
@@ -545,7 +545,7 @@ MakeGridFromInputData( tInputFile &infile )
 
    UpdateMesh();
    CheckMeshConsistency();
-   cout << "nnodes, nedges, ntri: " << nnodes << " " << nedges << " " << ntri << endl << flush;
+
    cout << "end of tGrid( input )" << endl << flush;
 }
 
@@ -1973,7 +1973,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
       }
       
    }
-     //cout << "EDGES PASSED\n";
+   //cout << "EDGES PASSED\n";
 
    // Nodes: check for valid edg pointer, spoke connectivity, and connection
    // to at least one non-boundary or open boundary node
@@ -2134,7 +2134,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
       }
    }
      //cout << "TRIANGLES PASSED\n";
-   cout << "MESH PASSED\n";
+   //cout << "MESH PASSED\n";
    return;
    
   error:
@@ -2362,7 +2362,7 @@ DeleteNode( tSubNode *node, int repairFlag )
    tSubNode nodeVal;
    
    //cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
-   //    << node->getY() << " " << node->getZ() << endl;
+   //  << node->getY() << " " << node->getZ() << endl;
    //assert( repairFlag || node->getBoundaryFlag()==kClosedBoundary );
    
    nodPtr = nodIter.NodePtr();
@@ -2378,12 +2378,12 @@ DeleteNode( tSubNode *node, int repairFlag )
       nodeList.removeFromFront( nodeVal );
    }
    
-   cout << "Removed node " << nodeVal.getID() << " at x, y "
-      << nodeVal.getX() << ", " << nodeVal.getY() << "; " << endl;
+   //cout << "Removed node " << nodeVal.getID() << " at x, y "
+   // << nodeVal.getX() << ", " << nodeVal.getY() << "; " << endl;
    nnodes = nodeList.getSize();
    nedges = edgeList.getSize();
    ntri = triList.getSize();
-   cout << "nn " << nnodes << "  ne " << nedges << "  nt " << ntri << endl;
+   //cout << "nn " << nnodes << "  ne " << nedges << "  nt " << ntri << endl;
    
    /*tPtrListIter< tSubNode > nbrIter( nbrList );
    cout << "leaving hole defined by " << endl << "   Node  x  y " << endl;
@@ -2452,7 +2452,7 @@ template< class tSubNode >
 int tGrid< tSubNode >::
 ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
 {
-   cout << "ExtricateNode: " << node->getID() << endl;
+   //cout << "ExtricateNode: " << node->getID() << endl;
    tPtrListIter< tEdge > spokIter( node->getSpokeListNC() );
    tEdge edgeVal1, edgeVal2, *ce;
    tSubNode *nbrPtr;
@@ -2471,11 +2471,11 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
       }
       if( !DeleteEdge( ce ) ) return 0;
    }  
-   nnodes--;
-   cout<<"nnodes decremented now "<<nnodes<<endl;
-     if( node->getSpokeList().isEmpty() ) return 1;
-     return 0;
-  }
+
+   //cout<<"nnodes decremented now "<<nnodes<<endl;
+   if( node->getSpokeList().isEmpty() ) return 1;
+   return 0;
+}
    
   /**************************************************************************\
   **
@@ -3350,8 +3350,8 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    tGridListIter< tSubNode > nodIter( nodeList );
    assert( &nodeRef != 0 );
 
-   cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << " time "<<time<<endl;
-   cout<<"nodeList.getSize() "<< nodeList.getSize()<<" nnodes "<<nnodes<<endl;
+   //cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << " time "<<time<<endl;
+
    //cout << "locate tri" << endl << flush;
    tri = LocateTriangle( xyz[0], xyz[1] );
    //assert( tri != 0 );
@@ -3370,20 +3370,19 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    nodeRef.setID( newid );
    if( nodeRef.getBoundaryFlag()==kNonBoundary ){
        nodeList.insertAtActiveBack( nodeRef );
-       cout<<"knonboundary"<<endl;
+       //cout<<"knonboundary"<<endl;
    }
    else if( nodeRef.getBoundaryFlag() == kOpenBoundary ){
        nodeList.insertAtBoundFront( nodeRef );
-       cout<<"kOpenBoundary"<<endl;
+       //cout<<"kOpenBoundary"<<endl;
    }
    else{
        nodeList.insertAtBack( nodeRef );
-       cout<<"other"<<endl;
+       //cout<<"other"<<endl;
    }
-   cout<<"nodeList.getSize() "<< nodeList.getSize()<<" nnodes "<<nnodes<<endl;
+
    //assert( nodeList.getSize() == nnodes + 1 );
    nnodes++;
-   cout<<"nnodes increased, now "<<nnodes<<endl;
    
    // Retrieve a pointer to the new node and flush its spoke list
    if( nodeRef.getBoundaryFlag() == kNonBoundary )
@@ -3529,207 +3528,24 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    node2->InitializeNode();
 
    if( updatemesh ) UpdateMesh();
-   //cout << "AddNode finished" << endl; 
-
-   return node2;  // Return ptr to new node
-}
-
-
-/**************************************************************************\
- **
- **   tGrid::AddNode ( tSubNode nodeRef&, int dum )
- **
- **   Adds a new node with the properties of nodRef to the mesh.
- **   Same as AddNode above, it just takes a dummy integer to indicate
- **   that layer interpolation should be done.
- **   This is not a good solution, this function should only be
- **   temporary until a better way is thought of to indicate that
- **   layer interpolation is necessary.
- **
- **   Calls: tGrid::LocateTriangle, tGrid::DeleteTriangle, tGrid::AddEdge,
- **            tGrid::AddEdgeAndMakeTriangle, tGrid::MakeTriangle,
- **            tGrid::CheckForFlip; various member functions of tNode,
- **            tGridList, tGridListIter, tPtrList, etc. Also tLNode
- **            functions (TODO: this needs to be removed somehow),
- **            and temporarily, tGrid::UpdateMesh
- **   Parameters: nodeRef -- reference to node to be added (really,
- **                          duplicated)
- **   Returns:  (always TRUE: TODO make void return type)
- **   Assumes:
- **   Created: SL fall, '97
- **   Modifications:
- **        - 4/98: node is no longer assumed to be a non-boundary (GT)
- **        - 7/98: changed return type from int (0 or 1) to ptr to
- **                the new node (GT)
- **
- \**************************************************************************/
-/*
-  #define kLargeNumber 1000000000
-  template< class tSubNode >
-  tSubNode * tGrid< tSubNode >::
-  AddNode( tSubNode &nodeRef, int dum )
-  {
-  int i, j, k, ctr;
-   tTriangle *tri;
-   tSubNode *cn;
-   tArray< double > xyz( nodeRef.get3DCoords() );
-   tGridListIter< tSubNode > nodIter( nodeList );
-   assert( &nodeRef != 0 );
-
-   //cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
-
-   //cout << "locate tri" << endl << flush;
-   tri = LocateTriangle( xyz[0], xyz[1] );
-   assert( tri != 0 );  //if( tri == 0 ) return 0;
-
-   // Assign ID to the new node and insert it at the back of either the active
-   // portion of the node list (if it's not a boundary) or the boundary
-   // portion (if it is)
-   int newid = nodIter.LastP()->getID() + 1;
-   nodeRef.setID( newid );
-   if( nodeRef.getBoundaryFlag()==kNonBoundary )
-       nodeList.insertAtActiveBack( nodeRef );
-   else
-       nodeList.insertAtBack( nodeRef );
-   assert( nodeList.getSize() == nnodes + 1 );
-   nnodes++;
-   
-   // Retrieve a pointer to the new node and flush its spoke list
-   if( nodeRef.getBoundaryFlag()==kNonBoundary )
-       cn = nodIter.LastActiveP();
-   else
-       cn = nodIter.LastP();
-   assert( cn!=0 );
-   cn->getSpokeListNC().Flush();
-   
-     //make ptr list of triangle's vertices:
-   tPtrList< tSubNode > bndyList;
-   tSubNode *tmpPtr;
-   for( i=0; i<3; i++ )
-   {
-      tmpPtr = (tSubNode *) tri->pPtr(i);
-      bndyList.insertAtBack( tmpPtr );
-   }
-   bndyList.makeCircular();
-   
-   // Delete the triangle in which the node falls
-   //Xcout << "deleting tri in which new node falls\n";
-   i = DeleteTriangle( tri );
-   assert( i != 0 );  //if ( !DeleteTriangle( tri ) ) return 0;
-
-   //make 3 new triangles
-   tPtrListIter< tSubNode > bndyIter( bndyList );
-   tSubNode *node3 = bndyIter.FirstP();     // p0 in original triangle
-   //XtSubNode *node2 = nodIter.LastActiveP(); // new node
-   tSubNode *node2 = cn;                    // new node
-   tSubNode *node1 = bndyIter.NextP();      // p1 in orig triangle
-   tSubNode *node4 = bndyIter.NextP();      // p2 in orig triangle
-   tArray< double > p1( node1->get2DCoords() ),
-       p2( node2->get2DCoords() ), p3( node3->get2DCoords() ),
-       p4( node4->get2DCoords() );
-   if( xyz.getSize() == 3) //why would this ever not be the case? If we need to access new coords:
-                           //size of xyz is basically the flag; the 4th element is never used o.w.
-   {
-      //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-      //     << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
-      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
-          cout << "new tri not CCW" << endl;
-   }
-   else
-   {
-      if( node1->Meanders() ) p1 = node1->getNew2DCoords();
-      if( node2->Meanders() ) p2 = node2->getNew2DCoords();
-      if( node3->Meanders() ) p3 = node3->getNew2DCoords();
-      if( node4->Meanders() ) p4 = node4->getNew2DCoords();  
-      //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-      //<< p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
-      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
-          cout << "new tri not CCW" << endl;
-   }
-
-   // Here's how the following works. Let the old triangle vertices be A,B,C
-   // and the new node N. The task is to create 3 new triangles ABN, NBC, and
-   // NCA, and 3 new edge-pairs AN, BN, and CN.
-   // First, edge pair BN is added. Then AEMT is called to create triangle
-   // ABN and edge pair AN. AEMT is called again to create tri NBC and edge
-   // pair CN. With all the edge pairs created, it remains only to call
-   // MakeTriangle to create tri NCA.
-   assert( node1 != 0 && node2 != 0 && node3 != 0 );
-   AddEdge( node1, node2, node3 );  //add edge between node1 and node2
-   tPtrList< tSubNode > tmpList;
-   tmpList.insertAtBack( node3 );  // ABN
-   tmpList.insertAtBack( node1 );
-   tmpList.insertAtBack( node2 );
-   tPtrListIter< tSubNode > tmpIter( tmpList );
-   AddEdgeAndMakeTriangle( tmpList, tmpIter );
-   tmpList.Flush();
-   tmpList.insertAtBack( node2 );  // NBC
-   tmpList.insertAtBack( node1 );
-   tmpList.insertAtBack( node4 );
-   tmpIter.First();
-   AddEdgeAndMakeTriangle( tmpList, tmpIter );
-   tmpList.Flush();
-   tmpList.insertAtBack( node2 );  // NCA
-   tmpList.insertAtBack( node4 );
-   tmpList.insertAtBack( node3 );
-   tmpList.makeCircular();
-   tmpIter.First();
-   MakeTriangle( tmpList, tmpIter );
-   
-   //put 3 resulting triangles in ptr list
-   if( xyz.getSize() == 3 )
-   {
-      //Xcout << "flip checking in addnode" << endl;
-      tPtrList< tTriangle > triptrList;
-      tListIter< tTriangle > triIter( triList );
-      tPtrListIter< tTriangle > triptrIter( triptrList );
-      tTriangle *ct;
-      triptrList.insertAtBack( triIter.LastP() );
-      triptrList.insertAtBack( triIter.PrevP() );
-      triptrList.insertAtBack( triIter.PrevP() );
-        //check list for flips; if flip, put new triangles at end of list
-      int flip = 1;
-      ctr = 0;
-      while( !( triptrList.isEmpty() ) )
-      {
-         ctr++;
-         if( ctr > kLargeNumber ) // Make sure to prevent endless loops
-         {
-            cerr << "Mesh error: adding node " << node2->getID()
-                 << " flip checking forever"
-                 << endl;
-            ReportFatalError( "Bailing out of AddNode()" );
-         }
-         ct = triptrIter.FirstP();
-         for( i=0; i<3; i++ )
-         {
-            if( ct->tPtr(i) != 0 )
-            {
-               if( CheckForFlip( ct, i, flip ) )
-               {
-                  triptrList.insertAtBack( triIter.LastP() );
-                  triptrList.insertAtBack( triIter.PrevP() );
-                  break;
-               }
-            }
-         }
-         triptrList.removeFromFront( ct );
-      }
-   }
-   //reset node id's
-   for( cn = nodIter.FirstP(), i=0; !( nodIter.AtEnd() ); cn = nodIter.NextP(), i++ )
-   {
-      cn->setID( i );
-   }
-   //node2->makeCCWEdges();
-   UpdateMesh();
    //cout << "AddNode finished" << endl;
+
+   tEdge *ce, *fe;
+   fe = node2->getFlowEdg();
+   ce = fe;
+
+   int hlp=0;
+   do{
+      ce=ce->getCCWEdg();
+      hlp++;
+   }while(ce != fe );
+   if(hlp !=  node2->getSpokeListNC().getSize() ){
+      cout<<"AddNode  number of spokes "<<node2->getSpokeListNC().getSize()<<" number of ccwedges "<<hlp<<endl<<flush;
+   }
+ 
+
    return node2;  // Return ptr to new node
 }
-*/
-
-
-
 
 /**************************************************************************\
 **  AddNodeAt: add a node with referenced coordinates to mesh;
@@ -3747,7 +3563,7 @@ tSubNode *tGrid< tSubNode >::
 AddNodeAt( tArray< double > &xyz, double time )
 {
    assert( &xyz != 0 );
-   cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] <<" time "<<time<< endl;
+   //cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] <<" time "<<time<< endl;
    tTriangle *tri;
    //cout << "locate tri" << endl << flush;
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
@@ -3768,7 +3584,6 @@ AddNodeAt( tArray< double > &xyz, double time )
    nodeList.insertAtActiveBack( tempNode );
    assert( nodeList.getSize() == nnodes + 1 );
    nnodes++;
-   cout<<"number of nodes is now "<<nnodes<<endl;
    
      //make ptr list of triangle's vertices:
    tPtrList< tSubNode > bndyList;
@@ -3881,6 +3696,20 @@ AddNodeAt( tArray< double > &xyz, double time )
    node2->InitializeNode();
    
    UpdateMesh();
+
+   tEdge *ce, *fe;
+   fe = node2->getFlowEdg();
+   ce = fe;
+
+   int hlp=0;
+   do{
+      ce=ce->getCCWEdg();
+      hlp++;
+   }while(ce != fe );
+   if(hlp !=  node2->getSpokeListNC().getSize() ){
+      cout<<"AddNodeAt  number of spokes "<<node2->getSpokeListNC().getSize()<<" number of ccwedges "<<hlp<<endl<<flush;
+   }
+
    //cout << "AddNodeAt finished, " << nnodes << endl;
    return node2;
 }
@@ -4507,7 +4336,7 @@ void tGrid< tSubNode >::
 MoveNodes( double time )
 {
 
-   cout << "MoveNodes()... time " << time <<flush << endl;
+   //cout << "MoveNodes()... time " << time <<flush << endl;
    tSubNode * cn;  
    tGridListIter< tSubNode > nodIter( nodeList );
    //Before any edges and triangles are changed, layer interpolation
@@ -4520,7 +4349,7 @@ MoveNodes( double time )
          if( (cn->getX()!=newxy[0]) || (cn->getY()!=newxy[1]) ){
             //Nic - there may be some issues if boundary nodes make up
             //the triangle.
-            cout<<"a point will be moved in movenodes"<<endl;
+            //cout<<"a point will be moved in movenodes"<<endl;
             tri = LocateTriangle( newxy[0], newxy[1] );
             cn->LayerInterpolation( tri, newxy[0], newxy[1], time );
          }

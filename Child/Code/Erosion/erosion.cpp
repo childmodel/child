@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.53 1999-02-04 00:50:37 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.54 1999-02-22 17:59:46 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -430,7 +430,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    double tau, tauold;
    double taucrit;
    double persand=nd->getLayerDgrade(0,0)/(nd->getLayerDepth(0));
-   double timeadjust=31536000.00; /* number of seconds in a year */
+   //double timeadjust=31536000.00; /* number of seconds in a year */
    double factor=nd->getLayerDepth(0)/nd->getMaxregdep();
 
    if( nd->getSlope() < 0 ){
@@ -444,11 +444,11 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
 //       cout<<"factor is "<<factor<<endl;
 //    }
 
-   // units of Q are m^3/sec
+   // units of Q are m^3/yr; convert to m^3/sec
    //NIC you are doing a test here to see what is causing the
    //downstream coarsening.
-   tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
-   //tauold = taudim*pow(0.03, 0.6)*pow(nd->getQ(), 0.3)*pow( nd->getSlope(), 0.7);
+   //tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
+   tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
    
    //cout << "hydrrough is " << nd->getChanRough() << endl;
    //cout << "q is " << nd->getQ() << endl;
@@ -467,7 +467,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
    
    if(tau>taucrit){
-       nd->setQs(0, ((0.058/RHOSED)*factor*nd->getHydrWidth()*timeadjust*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) ));
+       nd->setQs(0, ((0.058/RHOSED)*factor*nd->getHydrWidth()*SECPERYEAR*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) ));
    }
    else 
        nd->setQs( 0, 0.0 ) ;
@@ -484,7 +484,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
    //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
 
    if(tau>taucrit){
-       nd->setQs(1, (0.058*timeadjust*factor*nd->getHydrWidth()/(RHOSED))*
+       nd->setQs(1, (0.058*SECPERYEAR*factor*nd->getHydrWidth()/(RHOSED))*
                  (1-persand)*pow(tau,1.5)*pow((1-(taucrit/tau)),4.5));
    }
    else
@@ -520,9 +520,13 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 {
    double tau;
    double taucrit;
+   if(nd->getLayerDepth(i)<=0 ){
+      cout<<"layer depth is "<<nd->getLayerDepth(i)<<" i is "<<i<<endl<<flush;
+      nd->TellAll();
+   }
    assert( nd->getLayerDepth(i)>0 );
    double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
-   double timeadjust=31536000.00; /* number of seconds in a year */
+   //double timeadjust=31536000.00; /* number of seconds in a year */
    double qss, qsg=0; //gravel and sand transport rate
    
 
@@ -534,9 +538,9 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
       return 0.0;
    }
 
-   // units of Q are m^3/sec
-   tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
-   //tau = taudim*pow(0.03, 0.6)*pow(nd->getQ(), 0.3)*pow( nd->getSlope(), 0.7);
+   // units of Q are m^3/yr; convert to m^3/sec
+   //tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->getSlope(), 0.7);
+   tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->getSlope(), 0.7);
 
    //cout << "channel rough is " << nd->getChanRough() << endl;
    //cout << "channel width is " << nd->getChanWidth() << endl;
@@ -557,7 +561,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
    //cout<<"nic value of tau is "<<tau<<" value of taucsand is "<<taucrit<<endl;
    
    if(tau>taucrit){
-      qss=((0.058/RHOSED)*weight*nd->getHydrWidth()*timeadjust*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) );
+      qss=((0.058/RHOSED)*weight*nd->getHydrWidth()*SECPERYEAR*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) );
        nd->addQs(0, qss);
        //cout << "nic sand transport rate is " << qss << endl;
    }
@@ -577,7 +581,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
       //cout<<"nic value of tau is "<<tau<<" value of taucgrav is "<<taucrit<<endl;
       
       if(tau>taucrit){
-         qsg=(0.058*timeadjust*weight*nd->getHydrWidth()/(RHOSED))*
+         qsg=(0.058*SECPERYEAR*weight*nd->getHydrWidth()/(RHOSED))*
              (1-persand)*pow(tau,1.5)*pow((1-(taucrit/tau)),4.5);
          nd->addQs(1,qsg);
          //cout << "nic nic nic gravel transport is happening" << endl;
@@ -670,13 +674,19 @@ void tErosion::ErodeDetachLim( double dtg )
       }
       //assert( dtmax > 0 );
       //apply erosion:
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->EroDep( cn->getQs() * dtmax );
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
+         //ng added stuff below to update layering using the other erodep
+         tArray<double> valgrd;
+         valgrd.setSize(1);
+         valgrd[0]=cn->getQs() * dtmax;
+         cn->EroDep( 0, valgrd, 0);
+         //cn->EroDep( cn->getQs() * dtmax );
+      }
       //update time:
       dtg -= dtmax;
    } while( dtg>0 );
    
-}
+}//end tErosion::ErodeDetachLim( double dtg )
 
 
    
@@ -739,13 +749,19 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
       }
       //assert( dtmax > 0 );
       //apply erosion:
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->EroDep( cn->getDzDt() * dtmax );
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
+         //ng added stuff below to update layering using the other erodep
+         tArray<double> valgrd;
+         valgrd.setSize(1);
+         valgrd[0]=cn->getDzDt() * dtmax;
+         cn->EroDep( 0, valgrd, 0);
+         //cn->EroDep( cn->getDzDt() * dtmax );
+      }
       //update time:
       dtg -= dtmax;
    } while( dtg>0 );
    
-}
+}//end tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
 
 
 #define kSmallTimeStep 1e-8
@@ -1312,14 +1328,14 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
    tArray <double> erolist( cn->getNumg() );
    tArray <double> insed = strmNet->getInSedLoadm();
 
-   cout<<"sorting in DetachErode\n";
+   //cout<<"sorting in DetachErode\n";
 
    // Sort so that we always work in upstream to downstream order
    strmNet->SortNodesByNetOrder();
    strmNet->FindChanGeom();
    strmNet->FindHydrGeom();
 
-   cout<<"starting detach erode"<<endl;
+   //cout<<"starting detach erode"<<endl;
    
    // Compute erosion and/or deposition until all of the elapsed time (dtg)
    // is used up
@@ -1328,7 +1344,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
    {   
       // Zero out sed influx of all sizes
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
-         //if(cn->getID()==93)
+         //if(cn->getID()==384) cn->TellAll();
          //  cout<<"93 is active"<<endl;
          cn->setQs(0.0);
          if( cn!=inletNode )
@@ -1365,7 +1381,8 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 
 //         cout<<"finding appropriate dzdt for node "<<cn->getID()<<endl;
          
-         //cout<<"channel depth is "<<cn->getChanDepth()<<endl;
+         //cout<<"channel depth is "<<cn->getChanDepth()<<" at node ";
+         //cout<<cn->getID()<<" x "<<cn->getX()<<" y "<<cn->getY()<<endl;
          //cout<<"channel width is "<<cn->getChanWidth()<<endl;
          //cout<<"hydraulic width is "<<cn->getHydrWidth()<<endl;
          //cout<<"channel rough is "<<cn->getChanRough()<<endl;
@@ -1381,8 +1398,8 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             // units on qs are l^3/t
 
             //cout<<"depck at begining is "<<depck<<" index i is "<<i<<endl;
-            //cout<<"layer depth is "<<cn->getLayerDepth(i)<<endl;
-            //cout<<"is layer sed? "<<cn->getLayerSed(i)<<endl;
+            //cout<<"layer depth is "<<cn->getLayerDepth(i);
+            //cout<<" is layer sed? "<<cn->getLayerSed(i)<<endl;
             if((depck+cn->getLayerDepth(i))<=cn->getChanDepth()){
                //TransportCapacity function should keep running
                //sum of qs of each grain size.  
@@ -1410,7 +1427,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          if(depck>cn->getChanDepth()) //which layer are you basing detach on?
              drdt=-bedErode.DetachCapacity( cn, i-1 );
          else
-             drdt=-bedErode.DetachCapacity( cn, i );
+             drdt=-bedErode.DetachCapacity( cn, i );//[m^3/yr]
 
          //cout<<"value returned from detach capacity is "<<drdt<<endl;
          
@@ -1419,7 +1436,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 
          //cout<<"value of qsin is "<<cn->getQsin()<<endl;
          
-         excap=(qs - cn->getQsin())/cn->getVArea();
+         excap=(qs - cn->getQsin())/cn->getVArea();//[m/yr]
          //excap negative = deposition; positive = erosion
          //Note that signs are opposite to what one
          //might expect.  This works out for Qsin addition.
@@ -1467,7 +1484,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             if( dt < dtmax ) dtmax = dt;
             if( dt < 0.005 )
             {
-               cout << "Very small dt " << dt <<  endl;
+               //cout << "Very small dt " << dt <<  endl;
                //cout << "rate dif is " << ratediff << endl;
                //cout << "elev dif is " << cn->getZ() - dn->getZ() << endl;
                //cout << "dzdt upstream is " << cn->getDzDt() << endl;
@@ -1491,10 +1508,10 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       // Do erosion/deposition
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
-         //cn->TellAll();
-         //need to recalculate cause qsin may change due to time step calc
-         excap=(cn->getQs() - cn->getQsin())/cn->getVArea();
          
+         //need to recalculate cause qsin may change due to time step calc
+         excap=(cn->getQs() - cn->getQsin())/cn->getVArea();         
+
          //cout<<"actual erosion excap = "<<excap<<endl;
          //cout<<"drdt is "<<cn->getDrDt()<<endl;
          //again, excap pos if eroding, neg if depositing
@@ -1756,7 +1773,7 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
              if( cn->getQsin() > 0.0 )
                  cn->setQsin( 0.0 );
          cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area
-         //cout << cn->z << "Q: " << cn->q << "VA " << cn->varea << endl;
+         //cout<<cn->getZ()<<" Q: "<<cn->getQ()<<" dz "<<cn->getQsin() / cn->getVArea()<<" dt "<<dtmax<<endl;
          /*if( cn->id==700 ) {
            cn->TellAll();
            }*/
