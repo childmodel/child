@@ -4,7 +4,7 @@
 **  @brief Error-handling routines.
 **
 **  Created Dec. 97 from earlier routine embedded in child.cpp
-**  $Id: errors.cpp,v 1.7 2004-01-07 10:53:24 childcvs Exp $
+**  $Id: errors.cpp,v 1.8 2004-05-26 16:24:43 childcvs Exp $
 */
 /******************************************************************/
 
@@ -59,6 +59,9 @@ void ReportWarning( const char *errMsg )
   cout << "WARNING: " << errMsg <<endl;
   if (getenv(CHILD_ABORT_ON_WARNING) != NULL)
     abort();
-  cout << "(Set \"" CHILD_ABORT_ON_WARNING "\" to generate a crash.)" <<endl;
+  cout <<
+    "(Set \"" CHILD_ABORT_ON_WARNING "\" to generate a crash."
+    "\n.e.g. \"env " CHILD_ABORT_ON_WARNING "=1 child ...\")"
+       <<endl;
 }
 
