@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.50 1998-07-15 22:28:04 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.51 1998-07-17 22:54:33 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1586,8 +1586,9 @@ void tLNode::setLayerDgrade( int i, int g, double val)
 
 tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 {
-   // Checked on 6/13/98 and everything appears to be working
-   // THat was all just an illusion!
+   //i is layer to erode/dep from/into
+   //valgrd is the texture of material you are eroding
+   //tt is the time - for use if depositing
    int g;
    double amt, val, olddep, before;
    tArray<double> update;
@@ -1613,12 +1614,6 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       g++;
    }
 
-   if(val<-1){
-      cout << "ERODEP lots of erosion "<< val <<" in node "<< getID() <<endl;
-      cout << "ERODEP time is "<< tt << endl;
-   }
-   
-   
    // val is now set to the total amount of erosion or deposition
    z += val;
    //cout << "val is " << val << endl;
@@ -1638,12 +1633,13 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
          {
             // keep eroding until you either get all the material you
             // need to refill the top layer, or you run out of material
-            hupdate = addtoLayer(i+1, val, tt);
-            setLayerFlag(i+1,1);
+            hupdate = addtoLayer(i+1, val);//remove stuff from lower layer
+            setLayerFlag(i+1,1);//book keeping - might remove layer
             g=0;
             while(g<numg)
             {
-               val-=hupdate[g];
+               val-=hupdate[g];//hupdate stores texture of material that will
+               //refil the top layer
                update[g] += hupdate[g];
                g++;
             }
@@ -1651,8 +1647,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
          g=0;
          setLayerFlag(i,1);
          while(g<numg){
-            addtoLayer(i, g, valgrd[g], tt); // Erosion 
-            addtoLayer(i,g,-1*update[g],tt);//Updating with material from below
+            addtoLayer(i, g, valgrd[g], -1); // Erosion 
+            addtoLayer(i,g,-1*update[g],-1);//Updating with material from below
             g++;
          }
       }
@@ -1663,7 +1659,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
          g=0;
          setLayerFlag(i,1);
          while(g<numg){
-             addtoLayer(i, g, valgrd[g], tt); // Erosion done on this line
+             addtoLayer(i, g, valgrd[g], -1); // Erosion done on this line
              g++;
           }
       }
@@ -1674,7 +1670,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    {
       flag=2;
       // DEPOSITION
-      // NIC, all deposition cases tested and appear to be working - NOT!
+      // NIC, all deposition cases tested and appear to be working 
       // method seems to make good sense for surface layers
       // but may not be as appropriate for lower layers.
       // You may want to either make a provision for lower layers
@@ -1687,21 +1683,21 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       if(getLayerSed(i)>0){
          // top layer is sediment, so no issues
          if(getLayerDepth(i)+val>maxregdep){
-            //cout << "move out baby" << endl;
-            //cout << "total number of layers is " << getNumLayer() << endl;
-            //cout << "composition of top layer is " << getLayerSed(i) << endl;
             // Need to move stuff out of top layer to make room for deposited mat
             if(getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i+1)+val<maxregdep)
             {
                // The layer below is of the appropriate material and has space
-               amt = getLayerDepth(i)+val-maxregdep;
+               amt = getLayerDepth(i)+val-maxregdep;//how much to move out
                olddep = getLayerDepth(i);
                setLayerFlag(i+1,2);
                setLayerFlag(i,2);
                g=0;
                while(g<numg){
-                  addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, tt);
+                  addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, -1);
                   // putting material from top layer to layer below
+                  // nic, at this point you have decided not to change
+                  // the recent time on the lower layer when you move
+                  // stuff down into it.  Might think about this.
                   addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
                   // changing top layer composition by depositing and removing
                   g++;
@@ -1722,6 +1718,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                   g++;
                }
                makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt);
+               //When new layer is created then you change the time.
                setLayerFlag(i+1,2);
                // put material into a new layer which is made below
             }
@@ -1742,10 +1739,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
          // depositing sediment on top of br - create a new surface layer baby.
          // NIC this isn't correct - change this later - erody part
          // Making all new sediment have an erodibility of 1.0
-         //cout << "making new layer before had " << getNumLayer() << " of composition "<<getLayerSed(i)<<endl;
          makeNewLayerBelow(-1,1,1.0,valgrd,tt);
          setLayerFlag(0,2);
-         //cout <<"now have " << getNumLayer() << endl;
       }
       
    }
@@ -1779,19 +1774,22 @@ void tLNode::addtoLayer(int i, int g, double val, double tt)
        hlp=ly.NextP();
     }
 
-    hlp->setRtime( tt );
+    if(tt>0)
+       hlp->setRtime( tt );
     hlp->addDgrade(g,val);
     //Although check really should be here, I think there may
     //be an issue because this function is called from a loop
     //and if the layer is removed before the loop is through -> big trouble
     //if(hlp->getDepth() <= 0)
     //    removeLayer(i);
-    
 }
 
-tArray<double> tLNode::addtoLayer(int i, double val, double tt)
+
+tArray<double> tLNode::addtoLayer(int i, double val)
 {
    // for removing material from a layer, val is amount to remove
+   // Since only for erosion, nic modified this so that the time
+   // is not passed, since time will not be reset for erosion.
    if(val>0)
        ReportFatalError("Using wrong function for depositing into a layer");
 
@@ -1819,7 +1817,6 @@ tArray<double> tLNode::addtoLayer(int i, double val, double tt)
          hlp->addDgrade(n,hlp->getDgrade(n)*val/amt);
          n++;
       }
-      hlp->setRtime(tt);
       return ret;
    }
    else
