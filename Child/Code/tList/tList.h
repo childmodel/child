@@ -32,7 +32,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.32 2002-09-04 16:08:41 arnaud Exp $
+**  $Id: tList.h,v 1.33 2002-09-06 11:10:23 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -282,6 +282,7 @@ public:
     NodeType *getIthDataPtrNC( int ) const; // rtns modifiable ptr to item #
     NodeType &getIthDataRefNC( int ) const; // rtns modifiable ref to item #
     tListNode< NodeType > * getListNode( NodeType * ); // rtns ptr to node #
+    tListNode< NodeType > * getIthListNode( int ) const; 
 
 #ifndef NDEBUG
     void DebugTellPtrs();
@@ -747,8 +748,6 @@ template< class NodeType >                         //tList
 inline NodeType tList< NodeType >::
 getIthData( int num ) const
 {
-   int i;
-   tListNode< NodeType > * curPtr;
      if(num>= nNodes)
          {
             cout<<"using an index which is too large"<<endl;
@@ -756,40 +755,23 @@ getIthData( int num ) const
             cout<<"you wanted list member number "<<num<<endl;
          }
    assert( num >= 0 && num < nNodes );
-   for( curPtr = first, i = 0; i<num; i++ )
-   {
-      curPtr = curPtr->next;
-   }
-   assert( curPtr!=0 );
-   return curPtr->getData();
+   return getIthListNode(num)->getData();
 }
 
 template< class NodeType >                         //tList
 inline const NodeType &tList< NodeType >::
 getIthDataRef( int num ) const
 {
-   int i;
-   tListNode< NodeType > * curPtr;
    assert( num >= 0 && num < nNodes );
-   for( curPtr = first, i = 0; i<num; i++ )
-   {
-      curPtr = curPtr->next;
-   }
-   return curPtr->getDataRef();
+   return getIthListNode(num)->getDataRef();
 }
 
 template< class NodeType >                         //tList
 inline const NodeType *tList< NodeType >::
 getIthDataPtr( int num ) const
 {
-   int i;
-   tListNode< NodeType > * curPtr;
    assert( num >= 0 && num < nNodes );
-   for( curPtr = first, i = 0;i<num; i++ )
-   {
-      curPtr = curPtr->next;
-   }
-   return curPtr->getDataPtr();
+   return getIthListNode(num)->getDataPtr();
 }
 
 //set
@@ -797,42 +779,24 @@ template< class NodeType >                         //tList
 inline NodeType tList< NodeType >::
 getIthDataNC( int num ) const
 {
-   int i;
-   tListNode< NodeType > * curPtr;
    assert( num >= 0 && num < nNodes );
-   for( curPtr = first, i = 0; i<num; i++ )
-   {
-      curPtr = curPtr->next;
-   }
-   return curPtr->getData();
+   return getIthListNode(num)->getData();
 }
 
 template< class NodeType >                         //tList
 inline NodeType &tList< NodeType >::
 getIthDataRefNC( int num ) const
 {
-   int i;
-   tListNode< NodeType > * curPtr;
    assert( num >= 0 && num < nNodes );
-   for( curPtr = first, i = 0; i<num; i++ )
-   {
-      curPtr = curPtr->next;
-   }
-   return curPtr->getDataRefNC();
+   return getIthListNode(num)->getDataRefNC();
 }
 
 template< class NodeType >                         //tList
 inline NodeType *tList< NodeType >::
 getIthDataPtrNC( int num ) const
- {
-   int i;
-   tListNode< NodeType > * curPtr;
+{
    assert( num >= 0 && num < nNodes );
-   for( curPtr = first, i = 0; i<num; i++ )
-   {
-      curPtr = curPtr->next;
-   }
-   return curPtr->getDataPtrNC();
+   return getIthListNode(num)->getDataPtrNC();
 }
 
 
@@ -866,6 +830,34 @@ getListNode( NodeType * desiredDatPtr )
    
 }
 
+/**************************************************************************\
+**
+**  tList::getIthListNode( i )
+**
+**  Finds and returns the list node indicated by i [0,nnodes-1), 
+**  or zero if not found.
+**
+**  Parameters:  i -- number of item sought after
+**  Returns:  pointer to the ith tListNode, or zero
+**            if not found
+**  Notes: might be safer to implement with a const return type
+**  Created: 4/29/98 GT
+**
+\**************************************************************************/
+template< class NodeType >
+inline tListNode< NodeType >* tList< NodeType >::
+getIthListNode( int num ) const
+{
+   if( num < 0 || num >= nNodes )
+       return 0;
+   int i;
+   tListNode< NodeType > * curPtr;
+   for( curPtr = first, i = 0; i<num; i++ )
+   {
+      curPtr = curPtr->next;
+   }
+   return curPtr;
+}
 
 /**************************************************************************\
 **
