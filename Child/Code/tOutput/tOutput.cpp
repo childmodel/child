@@ -11,12 +11,13 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.65 2003-04-29 09:33:52 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.66 2003-05-02 07:39:35 childcvs Exp $
 */
 /*************************************************************************/
 
 #include <math.h>    // For fmod function
 #include "tOutput.h"
+#include "../tStreamNet/tStreamNet.h" // For k2DKinematicWave and kHydrographPeakMethod
 
 
 /*************************************************************************\

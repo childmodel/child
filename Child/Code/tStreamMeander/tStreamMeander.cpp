@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.78 2003-04-29 09:33:52 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.79 2003-05-02 07:39:35 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -38,76 +38,7 @@ double LineRemainder( double x, double y, tNode * p0,tNode * p1 )
   return (a * x + b * y + c);
 }
 
-/*****************************************************************************\
-**
-**
-**      DistanceToLine: given x,y coords, finds distance to the line 
-**              defined by given a, b, and c (ax + by + c = 0)
-**      Global function.
-**      Data members updated: 
-**      Called by: 
-**      Calls:  
-**        
-**
-\*****************************************************************************/
-/* MOVED TO tStreamNet
-double DistanceToLine( double x2, double y2, double a, double b, double c )
-{
-   double f, g, h, x, y, d;
 
-   f = -b;
-   g = a;
-   h = b * x2 - a * y2;
-   if( fabs(b) > 0 && fabs(a) > 0 )
-   {
-      x = (g * c / b - h) / (f - g * a / b);
-      y = (-c - a * x) / b;
-   }
-   else
-   {
-      if( fabs(a) == 0.0 )
-      {
-         y = -c / b;
-         x = -h / f;
-      }
-      else
-      {
-         y = -h / g;
-         x = -c / a;
-      }
-   }
-   d = sqrt( (x2 - x) * (x2 - x) + (y2 - y) * (y2 - y) );
-   return d;
-}*/
-
-/*****************************************************************************\
-**
-**
-**      DistanceToLine: given x,y coords, finds distance to the line 
-**              formed by points  p0->(x, y) and p1->(x, y)
-**      Global function.
-**      Data members updated: 
-**      Called by: 
-**      Calls:  
-**        
-**
-\*****************************************************************************/
-/* MOVED TO tStreamNet
-double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
-{
-   double a, b, c, f, g, h, x0, y0, x1, y1, x, y, d;
-
-   x0 = p0->getX();
-   y0 = p0->getY();
-   x1 = p1->getX();
-   y1 = p1->getY();
-   a = y1 - y0; 
-   b = x0 - x1; 
-   c = -( a * x0 + b * y0 );
-
-   d = DistanceToLine( x2, y2, a, b, c );
-   return d;
-}*/
 
 /**************************************************************************\
 **
@@ -1059,27 +990,6 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
 	  /*diama[j] = curnode->diam;*/
 	  diama[j] = ( optdiamvar ) ? curnode->getDiam() : meddiam;
 	  lambdaa[j] = curnode->getBankRough();
-	  // DEBUG
-	  /*        xa[0]=0;
-		    ya[0]=0;
-		    delsa[0]=12;
-		    xsa[0]=0;
-		    slopea[0]=0.001;
-		    widtha[0]=12;
-		    deptha[0]=2.4;
-		    qa[0]=25;
-		    if( j>0 )
-		    {
-		    qa[j]=25;
-		    xsa[j]=xsa[j-1]+12;
-		    delsa[j]=12;
-		    slopea[j] = 0.001;
-		    widtha[j] = 12;
-		    deptha[j] = 2.4;
-		    xa[j] = 30*sin( 6.28*(double)j/30.0 );
-		    ya[j] = j*10;
-		    }*/
-         
 	}
 
       // Now we pass all this information to meander.f
@@ -1413,51 +1323,7 @@ void tStreamMeander::MakeChanBorder( )
       }
   }
 }
-/*
-void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
-{
-   int i, j, num;
-   double x0, y0, x1, y1, x, y, z, delx, dely, phi, width, xdisp, ydisp;
-   double val;
-   tPtrList< tLNode > *cr;
-   tPtrListIter< tLNode > rnIter;
-   tLNode *cn, *cnbr;
-   tArray< double > xyz(3), rl;
-   for( cr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
-        cr = rlIter.NextP(), i++ )
-   {
-      rnIter.Reset( *cr );
-      num = nrnodes[i];
-      for( cn = rnIter.FirstP(), j=0; j<num;
-           cn = rnIter.NextP(), j++ )
-      {
-         z = cn->getZ();
-         width = cn->getHydrWidth();
-         rl = cn->getZOld();
-         cnbr = cn->GetDownstrmNbr();
-         x0 = cn->getX();
-         y0 = cn->getY();
-         x1 = cnbr->getX();
-         y1 = cnbr->getY();
-         delx = x1 - x0;
-         dely = y1 - y0;
-         phi = atan2( dely, delx );
-         xdisp = 0.5 * width * sin(phi);
-         ydisp = 0.5 * width * cos(phi);
-         val = ran3(&seed) - 0.5;
-         xyz[0] = x0 + xdisp * ( 1.0 + 0.01 * val );
-         val = ran3(&seed) - 0.5;
-         xyz[1] = y0 - ydisp * ( 1.0 + 0.01 * val );
-         xyz[2] = ( rl[0] > z ) ? rl[0] : z;
-         bList.insertAtBack( xyz );
-         xyz[0] = x0 - xdisp;
-         xyz[1] = y0 + ydisp;
-         xyz[2] =  ( rl[1] > z ) ? rl[1] : z;
-         bList.insertAtBack( xyz );
-      }
-   }
-}
-*/
+
 
 /****************************************************************************\
 **

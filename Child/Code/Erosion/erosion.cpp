@@ -4,7 +4,6 @@
 **  @brief Functions for equilibrium checking, sediment transport and 
 **          bed erosion(detachment) objects.
 **
-**  Equilibrium check objects:
 **    tEquilibCheck
 **  Transport objects:
 **    tSedTransPwrLaw
@@ -46,7 +45,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.110 2003-01-17 17:30:19 childcvs Exp $
+**  $Id: erosion.cpp,v 1.111 2003-05-02 07:39:33 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1053,6 +1052,9 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight
 
    // Compute shear stress
    if( node->getFloodStatus() ) slp = 0.0;
+   assert( node->getQ() >= 0.0 );
+   assert( node->getHydrWidth() >= 0.0 );
+   assert( slp >= 0.0 );
    tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
    node->setTau( tau );
    if(0) //DEBUG

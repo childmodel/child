@@ -23,14 +23,21 @@
 **
 **  Major modifications:
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
+**    - added FaultBendFold function (srm, August 2002)
 **
-**  $Id: tUplift.h,v 1.14 2003-01-17 17:30:49 childcvs Exp $
+**  $Id: tUplift.h,v 1.15 2003-05-02 07:39:36 childcvs Exp $
 */
 /************************************************************************/
 
 #ifndef TUPLIFT_H
 #define TUPLIFT_H
 
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 #include "../tInputFile/tInputFile.h"
 #include "../tMesh/tMesh.h"
 
@@ -50,6 +57,8 @@ private:
     void CosineWarp2D( tMesh<tLNode> *mp, double delt );
     void PropagatingFold( tMesh<tLNode> *mp, double delt );
     void TwoSideDifferential( tMesh<tLNode> *mp, double delt );
+    void FaultBendFold( tMesh<tLNode> *mp, double delt );
+    void FaultBendFold2( tMesh<tLNode> *mp, double delt );
 
 private:
     int typeCode;          // Code for the type of uplift desired
@@ -62,6 +71,13 @@ private:
     double foldParam;      // Parameter used in folding calculation
     double foldParam2;     // Another one
     double deformStartTime1; // Parameter for onset of uplift/deformation
+    double flatDepth;      // Depth below surface (at faultPos) of thrust flat
+    double rampDip;	   // Dip of thrust ramp (in degrees)
+    double kinkDip;	   // Dip of axial surface in hangingwall that 
+    			   //	initiates at lower end of ramp.
+    double upperKinkDip;   // Dip of axial surface that initiates at upper 
+    			   //	end of ramp.
+    double meanElevation;  // Mean elevation of surface at t0.
 
 };
 
