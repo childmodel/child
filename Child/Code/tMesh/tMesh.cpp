@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.129 2003-04-08 17:06:21 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.130 2003-04-09 16:37:45 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3534,14 +3534,7 @@ int tMesh< tSubNode >::
 AddEdgeAndMakeTriangle( tSubNode* cn, tSubNode* cnn, tSubNode* cnnn )
 {
    if( !AddEdge( cnnn, cn, cnn ) ) return 0;
-
-   tPtrList< tSubNode > tmpList;
-   tPtrListIter< tSubNode > tI( tmpList );
-   tmpList.insertAtBack( cn );
-   tmpList.insertAtBack( cnn );
-   tmpList.insertAtBack( cnnn );
-   tmpList.makeCircular();
-   if( !MakeTriangle( tmpList, tI ) ) return 0;
+   if( !MakeTriangle( cn, cnn, cnnn ) ) return 0;
    return 1;
 }
 
@@ -3568,6 +3561,20 @@ AddEdgeAndMakeTriangle( tSubNode* cn, tSubNode* cnn, tSubNode* cnnn )
 **     mesh creation. GT 1/2000
 **
 \**************************************************************************/
+template< class tSubNode >
+int tMesh< tSubNode >::
+MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
+{
+  tPtrList< tSubNode > tmpList;
+  tPtrListIter< tSubNode > tmpIter( tmpList );
+  tmpList.insertAtBack( cn );
+  tmpList.insertAtBack( cnn );
+  tmpList.insertAtBack( cnnn );
+  tmpList.makeCircular();
+  tmpIter.First();
+  return MakeTriangle(tmpList, tmpIter);
+}
+
 template< class tSubNode >
 int tMesh< tSubNode >::
 MakeTriangle( tPtrList< tSubNode > &nbrList,
@@ -3949,14 +3956,24 @@ AttachNode( tSubNode* cn, tTriangle* tri )
   tArray< double > p1( node1->get2DCoords() ),
     p2( node2->get2DCoords() ), p3( node3->get2DCoords() ),
     p4( node4->get2DCoords() );
+  int colinearedg = -1;
 
-  if( xyz.getSize() == 3) //why would this ever not be the case? If we need to access new coords:
+
+  if( xyz.getSize() == 3) // why would this ever not be the case?
+                          // If we need to access new coords:
     //size of xyz is basically the flag; the 4th element is never used o.w.
     {
       //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
       //     << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
-      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
-	cout << "new tri not CCW" << endl;
+      if( !PointsCCW( p3, p1, p2 ) ||
+	  !PointsCCW( p2, p1, p4 ) ||
+	  !PointsCCW( p2, p4, p3 ) )
+	{
+	  cout << "new tri not CCW" << endl;
+	  if( Orientation( p3, p1, p2 ) == 0 ) colinearedg = 1;
+	  if( Orientation( p2, p1, p4 ) == 0 ) colinearedg = 2;
+	  if( Orientation( p2, p4, p3 ) == 0 ) colinearedg = 0;
+	}
     }
   else
     {
@@ -3966,30 +3983,48 @@ AttachNode( tSubNode* cn, tTriangle* tri )
       if( node4->Meanders() ) p4 = node4->getNew2DCoords();
       /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
 	<< p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
-      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
+      if( !PointsCCW( p3, p1, p2 ) ||
+	  !PointsCCW( p2, p1, p4 ) ||
+	  !PointsCCW( p2, p4, p3 ) )
 	cout << "new tri not CCW" << endl;
     }
 
-  // Here's how the following works. Let the old triangle vertices be A,B,C
-  // and the new node N. The task is to create 3 new triangles ABN, NBC, and
-  // NCA, and 3 new edge-pairs AN, BN, and CN.
-  // First, edge pair BN is added. Then AEMT is called to create triangle
-  // ABN and edge pair AN. AEMT is called again to create tri NBC and edge
-  // pair CN. With all the edge pairs created, it remains only to call
-  // MakeTriangle to create tri NCA.
-  //cout << "calling AE, AEMT, AEMT, and MT\n" << flush;
+   if( colinearedg < 0 ) {
 
-  AddEdge( node1, node2, node3 );  //add edge between node1 and node2
-  AddEdgeAndMakeTriangle( node3, node1, node2 ); // ABN
-  AddEdgeAndMakeTriangle( node2, node1, node4 ); // NBC
-  tPtrList< tSubNode > tmpList;
-  tPtrListIter< tSubNode > tmpIter( tmpList );
-  tmpList.insertAtBack( node2 );  // NCA
-  tmpList.insertAtBack( node4 );
-  tmpList.insertAtBack( node3 );
-  tmpList.makeCircular();
-  tmpIter.First();
-  MakeTriangle( tmpList, tmpIter );
+     // Here's how the following works. Let the old triangle vertices be A,B,C
+     // and the new node N. The task is to create 3 new triangles ABN, NBC, and
+     // NCA, and 3 new edge-pairs AN, BN, and CN.
+     // First, edge pair BN is added. Then AEMT is called to create triangle
+     // ABN and edge pair AN. AEMT is called again to create tri NBC and edge
+     // pair CN. With all the edge pairs created, it remains only to call
+     // MakeTriangle to create tri NCA.
+     //cout << "calling AE, AEMT, AEMT, and MT\n" << flush;
+
+     AddEdge( node1, node2, node3 );  //add edge between node1 and node2
+     AddEdgeAndMakeTriangle( node3, node1, node2 ); // ABN
+     AddEdgeAndMakeTriangle( node2, node1, node4 ); // NBC
+     tPtrList< tSubNode > tmpList;
+     tPtrListIter< tSubNode > tmpIter( tmpList );
+     MakeTriangle( node2, node4, node3 );  // NCA
+   } else  {
+     // need to make four new triangles:
+     // first, delete the edge with which the new point is colinear
+     // --this will delete the other, nbr, triangle:
+     node1 = static_cast<tSubNode *>(tri->pPtr( (colinearedg+2)%3 ));
+     node3 = static_cast<tSubNode *>(tri->pPtr( colinearedg ));
+     node4 = static_cast<tSubNode *>(tri->pPtr( (colinearedg+1)%3 ));
+     tTriangle* top = tri->tPtr( (colinearedg+1)%3 );
+     tSubNode* node5 = static_cast<tSubNode *>(top->pPtr( top->nVOp( tri ) ));
+     assert( node1 != 0 && node2 != 0 && node3 != 0 && node4 != 0
+	     && node5 != 0 );
+     i = DeleteEdge( tri->ePtr( colinearedg ) );
+     assert( i > 0 );
+     AddEdge( node1, node2, node4 );
+     AddEdgeAndMakeTriangle( node2, node1, node5 );
+     AddEdgeAndMakeTriangle( node2, node5, node3 );
+     AddEdgeAndMakeTriangle( node2, node3, node4 );
+     MakeTriangle( node2, node4, node1 );
+   }
 
   return node2;
 }
@@ -4020,7 +4055,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    else tri = LocateNewTriangle( xyz[0], xyz[1] );
    if( tri == 0 )      return 0;
 
-   int i, ctr;
+   int i;
    tMeshListIter< tSubNode > nodIter( nodeList );
    tSubNode tempNode, *cn;
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );

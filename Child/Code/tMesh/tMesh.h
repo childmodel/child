@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.42 2003-04-08 17:06:23 childcvs Exp $
+**  $Id: tMesh.h,v 1.43 2003-04-09 16:37:47 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -120,6 +120,7 @@ public:
    int AddEdgeAndMakeTriangle( tSubNode*, tSubNode*, tSubNode* );
    int MakeTriangle( tPtrList< tSubNode > &,
                      tPtrListIter< tSubNode > & );
+   int MakeTriangle( tSubNode*, tSubNode*, tSubNode* );
    int AddEdge( tSubNode *, tSubNode *, tSubNode * );
    void CheckTrianglesAt( tSubNode * );
    void AddToList( tSubNode& );
