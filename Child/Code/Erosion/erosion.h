@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.10 1998-05-03 18:24:17 stlancas Exp $
+**  $Id: erosion.h,v 1.11 1998-07-03 19:53:30 nmgaspar Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -132,7 +132,9 @@ class tSedTransWilcock
 {
 public:
    tSedTransWilcock( tInputFile &infile );
-   double TransCapacity( tLNode * n );
+   double TransCapacity( tLNode * n ); // returns volumetric load
+   double DetachCapacity( tLNode *n, int i); //returns detachment rate m/yr
+   //Same equations used for the two above functions, just applied differently
    
 private:
    double taudim;
@@ -144,6 +146,8 @@ private:
    double hightaucs;
    double hightaucg;
    double sands;
+   double gravb;
+   double gravs;
    tArray< double > grade;
    
 };
@@ -164,7 +168,9 @@ class tBedErodePwrLaw
    tBedErodePwrLaw( tInputFile &infile );
      //Computes depth of potential erosion at node n over time interval dt
    double DetachCapacity( tLNode * n, double dt );
-     //Computes rate of erosion at node n 
+   //Computes rate of potential erosion of layer i at node n 
+   double DetachCapacity( tLNode * n, int i );
+     //Computes rate of erosion at node n
    double DetachCapacity( tLNode * n );
      //Returns an estimate of maximum stable & accurate time step size
    double SetTimeStep( tLNode * n );
@@ -191,12 +197,16 @@ public:
     void ErodeDetachLim( double dtg );
     void ErodeDetachLim( double dtg, tUplift * );
     void StreamErode( double dtg, tStreamNet * );
+   void StreamErodeMulti( double dtg, tStreamNet *, double time);
+   void DetachErode( double dtg, tStreamNet *, double time);
+   double TransportCapacity(tLNode * n );
     void Diffuse( double dtg, int detach );
 
 private:
     tGrid<tLNode> *gridPtr;
     tBedErodePwrLaw bedErode;
-    tSedTransPwrLaw sedTrans;
+   tSedTransPwrLaw totalTrans;
+   tSedTransWilcock sedTrans;  
     double kd;                // Hillslope transport (diffusion) coef
 
 };
