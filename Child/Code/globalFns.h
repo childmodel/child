@@ -9,7 +9,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.4 1999-05-11 15:26:39 gtucker Exp $
+**  $Id: globalFns.h,v 1.5 1999-05-11 19:09:53 gtucker Exp $
 \**************************************************************************/
 
 #ifndef GLOBALFNS_H
@@ -17,18 +17,19 @@
 
 #include <iostream.h>
 #include <math.h>
-#ifdef __DECCXX
-#include <macros.h> // for max(a,b), min(a,b), etc.
-#else
-#define max(a,b) ( (a>b) ? a : b )
-#define min(a,b) ( (a<b) ? a : b )
-#endif
 #include "tArray/tArray.h"
 #include "MeshElements/meshElements.h"
 #include "tLNode/tLNode.h"
 #include "tPtrList/tPtrList.h"
 #include "Predicates/predicates.h"
 #include "tMatrix/tMatrix.h"
+
+// Macros for max, min
+#undef max
+#undef min
+#define max(a, b)               ((a) < (b) ? (b) : (a))
+#define min(a, b)               ((a) > (b) ? (b) : (a))
+
 
 extern Predicates predicate; // object should be declared elsewhere, e.g. main
 
@@ -80,6 +81,5 @@ double PlaneFit(double x, double y, tArray<double> p0,
 double LineFit(double x1, double y1, double x2, double y2, double nx);
 
 double DistanceBW2Points(double x1, double y1, double x2, double y2 );
-
 
 #endif
