@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.71 2002-09-11 13:25:57 arnaud Exp $
+**  $Id: tStreamMeander.cpp,v 1.72 2002-09-16 16:54:07 arnaud Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -127,21 +127,22 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 **         "BANKERO" (GT 6/99)
 **
 \**************************************************************************/
-tStreamMeander::tStreamMeander()
-        : reachList(), rlIter( reachList )
+tStreamMeander::tStreamMeander():
+  meshPtr(0), netPtr(0), infilePtr(0),
+  reachList(), rlIter(reachList),
+  critflow(0), optdiamvar(0), optrainvar(0),
+  meddiam(0), kwds(0), ewds(0), ewstn(0),
+  knds(0), ends(0), enstn(0),
+  klambda(0), elambda(0), dscrtwids(0), leavefrac(0), /*vegerod(0), */
+  rockerod(0), /*latadjust(0), */ Pdz(0),
+  seed(-1)
 {
-   meshPtr = 0;
-   netPtr = 0;
-   infilePtr = 0;
-   optdiamvar = optrainvar = 0;
-   critflow = meddiam = kwds = ewds = ewstn = knds = ends = enstn =
-       klambda = elambda = dscrtwids = leavefrac = /*vegerod =*/ rockerod =
-       /*latadjust =*/ Pdz = 0;
 }
 
 tStreamMeander::tStreamMeander( tStreamNet &netRef, tMesh< tLNode > &mRef,
-                                tInputFile &infile )
-        : reachList(), rlIter( reachList )
+                                tInputFile &infile ) :
+  reachList(), rlIter(reachList),
+  seed(-1)
 {
    //if( netPtr != 0 ) netPtr = new tStreamNet( gRef );
    netPtr = &netRef;
