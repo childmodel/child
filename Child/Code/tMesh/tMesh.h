@@ -1,4 +1,4 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /***************************************************************************/
 /**
@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.43 2003-04-09 16:37:47 childcvs Exp $
+**  $Id: tMesh.h,v 1.44 2003-04-23 10:48:33 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -100,7 +100,7 @@ public:
    void CalcVAreas();
    tTriangle *LocateTriangle( double, double );
    tTriangle *LocateNewTriangle( double, double );
-   /*returns ptr to triangle which points to edge, or zero if none:*/ 
+   /*returns ptr to triangle which points to edge, or zero if none:*/
    tTriangle *TriWithEdgePtr( tEdge * );
    /*only routine needed to delete node; calls ExNode, RepairMesh:*/
    int DeleteNode( tListNode< tSubNode > *, int repairFlag=1 );
@@ -136,7 +136,7 @@ public:
    tEdge *getEdgeComplement( tEdge * );
    /* Tests consistency of a user-defined mesh */
    void CheckMeshConsistency( int boundaryCheckFlag=1 );
-   /* Updates mesh by comp'ing edg lengths & slopes & node Voronoi areas */ 
+   /* Updates mesh by comp'ing edg lengths & slopes & node Voronoi areas */
    void UpdateMesh();
    /* computes edge slopes as (Zorg-Zdest)/Length */
    //void CalcSlopes(); /* WHY is this commented out? */
@@ -151,7 +151,7 @@ public:
    void CheckLocallyDelaunay();
    //once 'newx' and 'newy' are set, this is the only function one needs to call
    //to execute the move; maybe should have a separate function for doing things
-   //peculiar to channels, but now this is the only one. 
+   //peculiar to channels, but now this is the only one.
    void MoveNodes( double time = 0.0, int interpFlag=1 );
    /*end moving routines*/
 
@@ -164,7 +164,7 @@ public:
    void DumpTriangles();
    void DumpNodes();
 #endif
-   
+
 protected:
    int nnodes, nedges, ntri;       // # of nodes, edges, and tri's (obsolete?)
    tMeshList< tSubNode > nodeList; // list of nodes
@@ -178,6 +178,31 @@ protected:
    tTriangle* mSearchOriginTriPtr; // ptr to tri. from which to start searches
 
 };
+
+/** @class tIdArray
+    @brief Lookup table per Id for a tList
+*/
+template< class T >
+class tIdArray
+{
+  tArray< T* > e_;
+public:
+  tIdArray(tList< T >& List);
+  T* operator[]( int subscript ) const {
+    // return a value and not a reference, hence the "const".
+    return e_[subscript];
+  }
+};
+
+template< class T >
+tIdArray< T >::tIdArray(tList< T >& List) :
+  e_(List.getSize())
+{
+  tListIter< T > Iter( List );
+  T *c;
+  for( c=Iter.FirstP(); !(Iter.AtEnd()); c=Iter.NextP() )
+    e_[c->getID()] = c;
+}
 
 /*
 ** The following is designed to allow for compiling under the Borland-style

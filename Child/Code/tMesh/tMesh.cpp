@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.131 2003-04-09 16:56:29 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.132 2003-04-23 10:48:31 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -20,31 +20,6 @@
 #include <stdlib.h>
 
 #include "ParamMesh_t.h"
-
-/** @class tIdArray
-    @brief Lookup table per Id for a tList
-*/
-template< class T >
-class tIdArray
-{
-  tArray< T* > e_;
-public:
-  tIdArray(tList< T >& List);
-  T* operator[]( int subscript ) const {
-    // return a value and not a reference, hence the "const".
-    return e_[subscript];
-  }
-};
-
-template< class T >
-tIdArray< T >::tIdArray(tList< T >& List) :
-  e_(List.getSize())
-{
-  tListIter< T > Iter( List );
-  T *c;
-  for( c=Iter.FirstP(); !(Iter.AtEnd()); c=Iter.NextP() )
-    e_[c->getID()] = c;
-}
 
 /***************************************************************************\
 **  Templated global functions used by tMesh here
