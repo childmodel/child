@@ -9,7 +9,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.57 2002-09-09 16:13:05 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.58 2002-09-16 13:13:52 arnaud Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -38,12 +38,12 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
 
    infile.ReadItem( baseName, "OUTFILENAME" );
 
-   CreateAndOpenFile( &nodeofs, ".nodes" );
+   CreateAndOpenFile( &nodeofs, SNODES );
    nodeofs.precision( 8 );
-   CreateAndOpenFile( &edgofs, ".edges" );
-   CreateAndOpenFile( &triofs, ".tri" );
-   CreateAndOpenFile( &zofs, ".z" );
-   CreateAndOpenFile( &vaofs, ".varea" );
+   CreateAndOpenFile( &edgofs, SEDGES );
+   CreateAndOpenFile( &triofs, STRI );
+   CreateAndOpenFile( &zofs, SZ );
+   CreateAndOpenFile( &vaofs, SVAREA );
    
    
 }
