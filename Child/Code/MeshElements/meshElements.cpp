@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.66 2004-02-27 17:28:38 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.67 2004-02-27 18:44:18 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -245,17 +245,17 @@ double tNode::ComputeVoronoiArea()
 		tArray< double > const &xy = ce->getRVtx();
 		tArray< double > const &xyn = vtxIter.NextP()->getRVtx();
 		tArray< double > const &xynn = vtxIter.NextP()->getRVtx();
-		dx0 = xynn[0] - xyn[0];
-		dy0 = xynn[1] - xyn[1];
-		dx1 = xy[0] - xyn[0];
-		dy1 = xy[1] - xyn[1];
+		dx0 = xynn.at(0) - xyn.at(0);
+		dy0 = xynn.at(1) - xyn.at(1);
+		dx1 = xy.at(0) - xyn.at(0);
+		dy1 = xy.at(1) - xyn.at(1);
 		if( dy0 * dx1 > dx0 * dy1 ) //clockwise
 		  {
 		    tArray< double > const &xynnn = vtxIter.NextP()->getRVtx();
-		    dx0 = xynnn[0] - xynn[0];
-		    dy0 = xynnn[1] - xynn[1];
-		    dx1 = xyn[0] - xynn[0];
-		    dy1 = xyn[1] - xynn[1];
+		    dx0 = xynnn.at(0) - xynn.at(0);
+		    dy0 = xynnn.at(1) - xynn.at(1);
+		    dx1 = xyn.at(0) - xynn.at(0);
+		    dy1 = xyn.at(1) - xynn.at(1);
 		    if( dy0 * dx1 > dx0 * dy1 ) //clockwise
 		      {
 			//two consecutive clockwise vertices=>want intersection
@@ -266,10 +266,10 @@ double tNode::ComputeVoronoiArea()
 			y0 = y; //node.y
 			ce->getDestinationPtr()->get2DCoords( xy1 );
 			vtxIter.PrevP()->getDestinationPtr()->get2DCoords( xy2 );
-			x1 = ( x0 + xy1[0] ) / 2;
-			y1 = ( y0 + xy1[1] ) / 2;
-			x2 = ( x0 + xy2[0] ) / 2;
-			y2 = ( y0 + xy2[1] ) / 2;
+			x1 = ( x0 + xy1.at(0) ) / 2;
+			y1 = ( y0 + xy1.at(1) ) / 2;
+			x2 = ( x0 + xy2.at(0) ) / 2;
+			y2 = ( y0 + xy2.at(1) ) / 2;
 			dx1 = x1 - x0;
 			dy1 = y1 - y0;
 			dx2 = x2 - x0;
@@ -304,12 +304,12 @@ double tNode::ComputeVoronoiArea()
 			  }
 			edgptr = vtxIter.PrevP();
 			const tArray< double > xyn( vx, vy );
-			dx = xy[0] - vx;
-			dy = xy[1] - vy;
+			dx = xy.at(0) - vx;
+			dy = xy.at(1) - vy;
 			//cout << "reset vedglen and rvtx for edge "
 			//     << edgptr->getID() << " to len "
 			//     << sqrt( dx*dx + dy*dy )
-			//     << ", x, y, " << xyn[0] << ", " << xyn[1] << endl;
+			//     << ", x, y, " << xyn.at(0) << ", " << xyn.at(1) << endl;
 			//reset 'next' edge's vertex to newly found intersection,
 			//length adjusted accordingly
 			edgptr->setVEdgLen( sqrt( dx*dx + dy*dy ) );
@@ -454,7 +454,7 @@ double tNode::ComputeVoronoiArea()
 	{
 	  assert( ce!=0 );
 	  tArray<double> const &xy = ce->getRVtx();
-	  cout << xy[0] << " " << xy[1] << "; ";
+	  cout << xy.at(0) << " " << xy[1] << "; ";
 	  ce = ce->getCCWEdg();
 	} while( ce != edg );
       cout << endl;
