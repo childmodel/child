@@ -9,7 +9,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.cpp,v 1.2 2002-04-12 08:38:37 gtucker Exp $
+//  $Id: predicates.cpp,v 1.3 2002-05-01 14:48:25 arnaud Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -938,10 +938,10 @@ double Predicates::AdaptDiffOfProdsOfDiffs( double terma, double termb,
    INEXACT REAL _i, _j;
    REAL _0;
 
-   diff1 = (REAL) ( terma - termb );
-   diff2 = (REAL) ( termc - termd );
-   diff3 = (REAL) ( terme - termf );
-   diff4 = (REAL) ( termg - termh );
+   diff1 = static_cast<REAL>( terma - termb );
+   diff2 = static_cast<REAL>( termc - termd );
+   diff3 = static_cast<REAL>( terme - termf );
+   diff4 = static_cast<REAL>( termg - termh );
 
    Two_Product( diff1, diff2, leftprod, leftprodtail );
    Two_Product( diff3, diff4, rightprod, rightprodtail );
@@ -1050,10 +1050,10 @@ REAL Predicates::orient2dadapt(REAL *pa, REAL *pb, REAL *pc, REAL detsum)
   INEXACT REAL _i, _j; 
   REAL _0; 
  
-  acx = (REAL) (pa[0] - pc[0]); 
-  bcx = (REAL) (pb[0] - pc[0]); 
-  acy = (REAL) (pa[1] - pc[1]); 
-  bcy = (REAL) (pb[1] - pc[1]); 
+  acx = static_cast<REAL>(pa[0] - pc[0]); 
+  bcx = static_cast<REAL>(pb[0] - pc[0]); 
+  acy = static_cast<REAL>(pa[1] - pc[1]); 
+  bcy = static_cast<REAL>(pb[1] - pc[1]); 
  
   Two_Product(acx, bcy, detleft, detlefttail); 
   Two_Product(acy, bcx, detright, detrighttail); 
@@ -1251,12 +1251,12 @@ REAL Predicates::incircleadapt(REAL *pa, REAL *pb, REAL *pc, REAL *pd,
   INEXACT REAL _i, _j; 
   REAL _0; 
  
-  adx = (REAL) (pa[0] - pd[0]); 
-  bdx = (REAL) (pb[0] - pd[0]); 
-  cdx = (REAL) (pc[0] - pd[0]); 
-  ady = (REAL) (pa[1] - pd[1]); 
-  bdy = (REAL) (pb[1] - pd[1]); 
-  cdy = (REAL) (pc[1] - pd[1]); 
+  adx = static_cast<REAL>(pa[0] - pd[0]); 
+  bdx = static_cast<REAL>(pb[0] - pd[0]); 
+  cdx = static_cast<REAL>(pc[0] - pd[0]); 
+  ady = static_cast<REAL>(pa[1] - pd[1]); 
+  bdy = static_cast<REAL>(pb[1] - pd[1]); 
+  cdy = static_cast<REAL>(pc[1] - pd[1]); 
  
   Two_Product(bdx, cdy, bdxcdy1, bdxcdy0); 
   Two_Product(cdx, bdy, cdxbdy1, cdxbdy0); 

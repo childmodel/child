@@ -16,10 +16,10 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.38 2000-03-24 18:06:18 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.39 2002-05-01 14:48:24 arnaud Exp $
 \**************************************************************************/
 
-#include <assert.h>
+#include "../tAssert.h"
 #include "meshElements.h"
 #include "../globalFns.h" // For PlaneFit; this could go in geometry; TODO
 

@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.101 2002-05-01 08:43:32 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.102 2002-05-01 14:48:29 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -863,8 +863,8 @@ BatchAddNodes()
        tmpnodList.insertAtBack( cn );
    while( tmpbndList.removeFromFront( ce ) ) // current bndy edge removed from list
    {      
-      n0 = ( tSubNode* ) ce->getOriginPtrNC();
-      n1 = ( tSubNode* ) ce->getDestinationPtrNC();
+      n0 = static_cast< tSubNode* >(ce->getOriginPtrNC());
+      n1 = static_cast< tSubNode* >(ce->getDestinationPtrNC());
       //cout << "bndy edge " << ce->getID() << ", endpts at "
       //     << n0->getX() << ", " << n0->getY() << ", and "
       //     << n1->getX() << ", " << n1->getY() << endl;
@@ -1039,7 +1039,7 @@ BatchAddNodes()
       ct = tI.LastP();
       for( i=0; i<3; i++ )
       {
-         cn = (tSubNode *) ct->pPtr( i );
+         cn = static_cast<tSubNode *>(ct->pPtr( i ));
          assert( cn != 0 );
          be = 0;
          for( ce = bI.FirstP(); !( bI.AtEnd() ); ce = bI.NextP() )
@@ -2760,7 +2760,7 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
      //assert( ExtricateEdge( edgptrIter.DatPtr() ) );
    for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.FirstP() )
    {
-      nbrPtr = ( tSubNode * ) ce->getDestinationPtrNC();
+      nbrPtr = static_cast< tSubNode * >(ce->getDestinationPtrNC());
       nbrList.insertAtBack( nbrPtr );
       if( node->getBoundaryFlag()                      // If node is a bdy make
           && nbrPtr->getBoundaryFlag()==kNonBoundary )// sure nbrs are also
@@ -2910,9 +2910,9 @@ ExtricateEdge( tEdge * edgePtr )
    //Need to make sure that edg member of node was not pointing
    //to one of the edges that will be removed.  Also, may be implications
    //for some types of subnodes, so take care of that also.
-   tSubNode * nodece = (tSubNode *) ce->getOriginPtrNC();
+   tSubNode * nodece = static_cast<tSubNode *>(ce->getOriginPtrNC());
    nodece->WarnSpokeLeaving( ce ); 
-   tSubNode * nodecce = (tSubNode *) cce->getOriginPtrNC();
+   tSubNode * nodecce = static_cast<tSubNode *>(cce->getOriginPtrNC());
    nodecce->WarnSpokeLeaving( cce );
 
    //now, take care of the edges who had as thier ccwedge ce or cce
@@ -3076,10 +3076,10 @@ LocateNewTriangle( double x, double y )
    */
    for (n=0 ;(lv!=3)&&(lt); n++)
    {
-      p1 = (tSubNode *) lt->pPtr(lv);
+      p1 = static_cast<tSubNode *>(lt->pPtr(lv));
       if( p1->Meanders() ) xy1 = p1->getNew2DCoords();
       else xy1 = p1->get2DCoords();
-      p2 = (tSubNode *) lt->pPtr( (lv+1)%3 );
+      p2 = static_cast<tSubNode *>(lt->pPtr( (lv+1)%3 ));
       if( p2->Meanders() ) xy1 = p2->getNew2DCoords();
       else xy2 = p2->get2DCoords();
       if ( ( (xy1[1] - y) * (xy2[0] - x) ) > ( (xy1[0] - x) * (xy2[1] - y)) )
@@ -3827,7 +3827,7 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    tSubNode *tmpPtr;
    for( i=0; i<3; i++ )
    {
-      tmpPtr = (tSubNode *) tri->pPtr(i);
+      tmpPtr = static_cast<tSubNode *>(tri->pPtr(i));
       bndyList.insertAtBack( tmpPtr );
    }
    bndyList.makeCircular();
@@ -4023,7 +4023,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    tSubNode *tmpPtr;
    for( i=0; i<3; i++ )
    {
-      tmpPtr = (tSubNode *) tri->pPtr(i);
+      tmpPtr = static_cast<tSubNode *>(tri->pPtr(i));
       bndyList.insertAtBack( tmpPtr );
    }
    bndyList.makeCircular();
@@ -4301,15 +4301,15 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
    assert( nv < 3 );
    //cout << "THIS IS CheckForFlip(...) " << tri->getID() << endl;
    tSubNode *node0, *node1, *node2, *node3;
-   node0 = ( tSubNode * ) tri->pPtr(nv);
+   node0 = static_cast< tSubNode * >(tri->pPtr(nv));
    //cout<<"node0 id "<<node0->getID()<<endl;
-   node1 = ( tSubNode * ) tri->pPtr((nv+1)%3);
+   node1 = static_cast< tSubNode * >(tri->pPtr((nv+1)%3));
    //cout<<"node1 id "<<node1->getID()<<endl;
-   node2 = ( tSubNode * ) tri->pPtr((nv+2)%3);
+   node2 = static_cast< tSubNode * >(tri->pPtr((nv+2)%3));
    //cout<<"node2 id "<<node2->getID()<<endl;
    tTriangle *triop = tri->tPtr(nv);
    int nvop = triop->nVOp( tri );
-   node3 = ( tSubNode * ) triop->pPtr( nvop );
+   node3 = static_cast< tSubNode * >(triop->pPtr( nvop ));
    tArray< double > ptest( node3->get2DCoords() ), p0( node0->get2DCoords() ),
        p1( node1->get2DCoords() ), p2( node2->get2DCoords() );
 
@@ -4393,10 +4393,10 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
    //DumpTriangles();
 
    // Place the four vertices of the two triangles on a list
-   nbrList.insertAtBack( (tSubNode *) tri->pPtr(nv) );
-   nbrList.insertAtBack( (tSubNode *) tri->pPtr((nv+1)%3) );
-   nbrList.insertAtBack( (tSubNode *) triop->pPtr( nvop ) );
-   nbrList.insertAtBack( (tSubNode *) tri->pPtr((nv+2)%3) );
+   nbrList.insertAtBack( static_cast<tSubNode *>(tri->pPtr(nv)) );
+   nbrList.insertAtBack( static_cast<tSubNode *>(tri->pPtr((nv+1)%3)) );
+   nbrList.insertAtBack( static_cast<tSubNode *>(triop->pPtr( nvop )) );
+   nbrList.insertAtBack( static_cast<tSubNode *>(tri->pPtr((nv+2)%3)) );
    nbrList.makeCircular();
 
    // Delete the edge pair between the triangles, along with the tri's
@@ -4478,7 +4478,7 @@ CheckLocallyDelaunay()
       change = FALSE;
       for( i = 0; i < 3; i++ )
       {
-         nodPtr = ( tSubNode * ) at->pPtr(i);
+         nodPtr = static_cast< tSubNode * >(at->pPtr(i));
          if( nodPtr->Meanders() ) change = TRUE;
       }
       if( change ) triPtrList.insertAtBack( at );
@@ -4721,7 +4721,7 @@ CheckTriEdgeIntersect()
       {
          for( i=0; i<3; i++ )
          {
-            cn = (tSubNode *) ct->pPtr(i);
+            cn = static_cast<tSubNode *>(ct->pPtr(i));
             if( cn->Meanders() ) break;
          }
          if( i!=3 ) triptrList.insertAtBack( ct );
@@ -4743,7 +4743,7 @@ CheckTriEdgeIntersect()
             {
                for( i=0, j=0; i<3; i++ )
                {
-                  subnodePtr = (tSubNode *) ct->pPtr(i);
+                  subnodePtr = static_cast<tSubNode *>(ct->pPtr(i));
                   subnodePtr->RevertToOldCoords();
                }
             }
@@ -4752,7 +4752,7 @@ CheckTriEdgeIntersect()
                crossed = FALSE;
                for( i=0; i<3; i++ )
                {
-                  cn = (tSubNode *) ct->pPtr(i);
+                  cn = static_cast<tSubNode *>(ct->pPtr(i));
                   if( cn->Meanders() )
                   {
                      cedg = ct->ePtr( (i+2)%3 );
@@ -4764,7 +4764,7 @@ CheckTriEdgeIntersect()
                         {
                            if( ct->tPtr(i) == 0 ) //boundary has been crossed
                            {
-                              subnodePtr = (tSubNode *) ct->pPtr(i);
+                              subnodePtr = static_cast<tSubNode *>(ct->pPtr(i));
                               subnodePtr->RevertToOldCoords();
                            }
                            else
@@ -4832,7 +4832,7 @@ CheckTriEdgeIntersect()
                                  }
                                  else
                                  {
-                                    subnodePtr = (tSubNode *) ct->pPtr(i);
+                                    subnodePtr = static_cast<tSubNode *>(ct->pPtr(i));
                                     subnodePtr->RevertToOldCoords();
                                  }
                               }

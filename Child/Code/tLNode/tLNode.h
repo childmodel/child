@@ -25,7 +25,7 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.51 2002-04-23 12:03:52 arnaud Exp $
+**  $Id: tLNode.h,v 1.52 2002-05-01 14:48:28 arnaud Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -648,7 +648,7 @@ inline void tLNode::FlagDownhillNodes()
    do
    {
       if( ce->getDestinationPtr()->getZ() < z && ce->FlowAllowed() )
-          ((tLNode *)(ce->getDestinationPtrNC()))->ActivateSortTracer();
+          (static_cast<tLNode *>(ce->getDestinationPtrNC()))->ActivateSortTracer();
       ce = ce->getCCWEdg();
    }
    while( ce!=edg );

@@ -12,10 +12,10 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.cpp,v 1.5 2002-04-30 17:17:27 arnaud Exp $
+**  $Id: tVegetation.cpp,v 1.6 2002-05-01 14:48:32 arnaud Exp $
 \**************************************************************************/
 
-#include <assert.h>
+#include "../tAssert.h"
 #include "tVegetation.h"
 #include "../tMesh/tMesh.h"
 #include "../tMeshList/tMeshList.h"

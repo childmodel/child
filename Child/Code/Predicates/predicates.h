@@ -9,7 +9,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.h,v 1.3 1999-05-11 19:10:54 gtucker Exp $
+//  $Id: predicates.h,v 1.4 2002-05-01 14:48:25 arnaud Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -173,32 +173,32 @@
  
 #define Fast_Two_Sum_Tail(a, b, x, y) bvirt = x - a; y = b - bvirt 
  
-#define Fast_Two_Sum(a, b, x, y) x = (REAL) (a + b); Fast_Two_Sum_Tail(a, b, x, y) 
+#define Fast_Two_Sum(a, b, x, y) x = static_cast<REAL>(a + b); Fast_Two_Sum_Tail(a, b, x, y) 
 
-#define Two_Sum_Tail(a, b, x, y) bvirt = (REAL) (x - a); avirt = x - bvirt; bround = b - bvirt; around = a - avirt; y = around + bround 
+#define Two_Sum_Tail(a, b, x, y) bvirt = static_cast<REAL>(x - a); avirt = x - bvirt; bround = b - bvirt; around = a - avirt; y = around + bround 
  
-#define Two_Sum(a, b, x, y) x = (REAL) (a + b); Two_Sum_Tail(a, b, x, y) 
+#define Two_Sum(a, b, x, y) x = static_cast<REAL>(a + b); Two_Sum_Tail(a, b, x, y) 
  
-#define Two_Diff_Tail(a, b, x, y) bvirt = (REAL) (a - x); avirt = x + bvirt; bround = bvirt - b; around = a - avirt; y = around + bround 
+#define Two_Diff_Tail(a, b, x, y) bvirt = static_cast<REAL>(a - x); avirt = x + bvirt; bround = bvirt - b; around = a - avirt; y = around + bround 
  
-#define Two_Diff(a, b, x, y) x = (REAL) (a - b); Two_Diff_Tail(a, b, x, y) 
+#define Two_Diff(a, b, x, y) x = static_cast<REAL>(a - b); Two_Diff_Tail(a, b, x, y) 
  
-#define Split(a, ahi, alo) c = (REAL) (splitter * a); abig = (REAL) (c - a); ahi = c - abig; alo = a - ahi 
+#define Split(a, ahi, alo) c = static_cast<REAL>(splitter * a); abig = static_cast<REAL>(c - a); ahi = c - abig; alo = a - ahi 
  
 #define Two_Product_Tail(a, b, x, y) Split(a, ahi, alo); Split(b, bhi, blo); err1 = x - (ahi * bhi); err2 = err1 - (alo * bhi); err3 = err2 - (ahi * blo); y = (alo * blo) - err3 
  
-#define Two_Product(a, b, x, y) x = (REAL) (a * b); Two_Product_Tail(a, b, x, y) 
+#define Two_Product(a, b, x, y) x = static_cast<REAL>(a * b); Two_Product_Tail(a, b, x, y) 
  
 /* Two_Product_Presplit() is Two_Product() where one of the inputs has       */ 
 /*   already been split.  Avoids redundant splitting.                        */ 
  
-#define Two_Product_Presplit(a, b, bhi, blo, x, y) x = (REAL) (a * b); Split(a, ahi, alo); err1 = x - (ahi * bhi); err2 = err1 - (alo * bhi); err3 = err2 - (ahi * blo); y = (alo * blo) - err3 
+#define Two_Product_Presplit(a, b, bhi, blo, x, y) x = static_cast<REAL>(a * b); Split(a, ahi, alo); err1 = x - (ahi * bhi); err2 = err1 - (alo * bhi); err3 = err2 - (ahi * blo); y = (alo * blo) - err3 
  
 /* Square() can be done more quickly than Two_Product().                     */ 
  
 #define Square_Tail(a, x, y) Split(a, ahi, alo); err1 = x - (ahi * ahi); err3 = err1 - ((ahi + ahi) * alo); y = (alo * alo) - err3 
  
-#define Square(a, x, y) x = (REAL) (a * a); Square_Tail(a, x, y) 
+#define Square(a, x, y) x = static_cast<REAL>(a * a); Square_Tail(a, x, y) 
  
 /* Macros for summing expansions of various fixed lengths.  These are all    */ 
 /*   unrolled versions of Expansion_Sum().                                   */ 

@@ -17,13 +17,13 @@
 **
 **  (Created 2/99 by GT)
 **
-**  $Id: tEolian.h,v 1.3 1999-04-05 13:29:45 gtucker Exp $
+**  $Id: tEolian.h,v 1.4 2002-05-01 14:48:25 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TEOLIAN_H
 #define TEOLIAN_H
 
-#include <assert.h>
+#include "../tAssert.h"
 #include "../tMesh/tMesh.h"
 #include "../tMeshList/tMeshList.h"
 #include "../tLNode/tLNode.h"

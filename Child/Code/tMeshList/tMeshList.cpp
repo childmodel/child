@@ -8,10 +8,10 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.cpp,v 1.10 2002-04-24 12:07:27 arnaud Exp $
+**  $Id: tMeshList.cpp,v 1.11 2002-05-01 14:48:30 arnaud Exp $
 \**************************************************************************/
 
-#include <assert.h>
+#include "../tAssert.h"
 #include "tMeshList.h"
 
 
@@ -606,7 +606,7 @@ LastActive()
 {
    tMeshList< NodeType > *meshlistPtr;
 
-   meshlistPtr = ( tMeshList< NodeType > * ) listPtr;
+   meshlistPtr = static_cast< tMeshList< NodeType > * >(listPtr);
    assert( meshlistPtr != 0 );
    curnode = meshlistPtr->lastactive;
    if( curnode != 0 ) return 1;
@@ -626,7 +626,7 @@ int tMeshListIter< NodeType >::
 FirstBoundary()
 {
    tMeshList< NodeType > *meshlistPtr;
-   meshlistPtr = ( tMeshList< NodeType > * ) listPtr;
+   meshlistPtr = static_cast< tMeshList< NodeType > * >(listPtr);
    assert( meshlistPtr != 0 );
    if( meshlistPtr->isActiveEmpty() ) curnode = listPtr->first;
    else if( meshlistPtr->isBoundEmpty() ) curnode = 0;
@@ -649,7 +649,7 @@ NodeType* tMeshListIter< NodeType >::
 FirstBoundaryP()
 {
    tMeshList< NodeType > *meshlistPtr;
-   meshlistPtr = ( tMeshList< NodeType > * ) listPtr;
+   meshlistPtr = static_cast< tMeshList< NodeType > * >(listPtr);
    assert( meshlistPtr != 0 );
    if( meshlistPtr->isActiveEmpty() ) curnode = listPtr->first;
    else if( meshlistPtr->isBoundEmpty() ) curnode = 0;
@@ -672,7 +672,7 @@ NodeType *tMeshListIter< NodeType >::
 LastActiveP()
 {
    tMeshList< NodeType > *meshlistPtr;
-   meshlistPtr = ( tMeshList< NodeType > * ) listPtr;
+   meshlistPtr = static_cast< tMeshList< NodeType > * >(listPtr);
    assert( meshlistPtr != 0 );
    curnode = meshlistPtr->lastactive;
    if( curnode != 0 ) return curnode->getDataPtrNC();

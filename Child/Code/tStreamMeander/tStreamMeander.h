@@ -17,14 +17,14 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.24 2002-04-22 18:14:32 arnaud Exp $
+**  $Id: tStreamMeander.h,v 1.25 2002-05-01 14:48:31 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
 
 #include <math.h>
-#include <assert.h>
+#include "../tAssert.h"
 #include <string.h>
 #include "../Classes.h"
 #include "../Definitions.h"

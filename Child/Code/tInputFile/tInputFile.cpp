@@ -6,12 +6,12 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.10 2002-04-24 16:49:17 arnaud Exp $
+**  $Id: tInputFile.cpp,v 1.11 2002-05-01 14:48:26 arnaud Exp $
 \****************************************************************************/
 
 #include <iostream.h>
 #include <fstream.h>
-#include <assert.h>
+#include "../tAssert.h"
 #include <string.h>
 //#include "../Definitions.h"
 //#include "../Classes.h"

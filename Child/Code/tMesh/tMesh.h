@@ -19,13 +19,13 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.31 2002-04-22 18:14:30 arnaud Exp $
+**  $Id: tMesh.h,v 1.32 2002-05-01 14:48:30 arnaud Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
 #define TMESH_H
 
-#include <assert.h>
+#include "../tAssert.h"
 #include <math.h>
 #include <stdlib.h>
 #include "../Classes.h"

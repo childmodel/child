@@ -36,11 +36,11 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.96 2002-05-01 08:43:13 gtucker Exp $
+**  $Id: erosion.cpp,v 1.97 2002-05-01 14:48:23 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
-#include <assert.h>
+#include "../tAssert.h"
 #include <iomanip.h>
 //#include <string>
 #include "erosion.h"
@@ -2640,10 +2640,10 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
       {
          volout = kd*ce->CalcSlope()*ce->getVEdgLen()*dtmax;
          // Record outgoing flux from origin
-         cn = (tLNode *)ce->getOriginPtrNC();
+         cn = static_cast<tLNode *>(ce->getOriginPtrNC());
          cn->addQsin( -volout );
          // Record incoming flux to dest'n
-         cn = (tLNode *)ce->getDestinationPtrNC();
+         cn = static_cast<tLNode *>(ce->getDestinationPtrNC());
          cn->addQsin( volout );
          /*cout << volout << " mass exch. from " << ce->getOriginPtr()->getID()
               << " to "

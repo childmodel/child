@@ -15,13 +15,13 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.5 2002-04-22 18:14:29 arnaud Exp $
+**  $Id: tFloodplain.h,v 1.6 2002-05-01 14:48:26 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TFLOODPLAIN_H
 #define TFLOODPLAIN_H
 
-#include <assert.h>
+#include "../tAssert.h"
 #include "../tMesh/tMesh.h"
 #include "../tMeshList/tMeshList.h"
 #include "../tLNode/tLNode.h"

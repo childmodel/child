@@ -4,12 +4,12 @@
 **
 **  Functions for template class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.11 2002-04-23 12:04:17 arnaud Exp $
+**  $Id: tArray.cpp,v 1.12 2002-05-01 14:48:25 arnaud Exp $
 \**************************************************************************/
 
 #include <iostream.h>
 #include <fstream.h>
-#include <assert.h>
+#include "../tAssert.h"
 #include "tArray.h"
 
 /**************************************************************************\
@@ -106,11 +106,11 @@ const tArray< T > &tArray< T >::operator=( const tArray< T > &right )
    int i;
    if( &right != this )
    {
-      delete [] avalue;
+      delete [] avalue; avalue = 0;
       npts = right.npts;
       if( npts>0 )
       {
-         assert( avalue != 0 && right.avalue != 0 );
+         assert( right.avalue != 0 );
          avalue = new T [npts];
         //cout << "tArray op=: npts " << npts << "; ";
          for( i = 0; i < npts; i++ )

@@ -12,10 +12,10 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.16 2002-04-24 16:48:01 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.17 2002-05-01 14:48:31 arnaud Exp $
 \**************************************************************************/
 
-#include <assert.h>
+#include "../tAssert.h"
 //#include <string>
 #include "../errors/errors.h"
 #include "tStreamNet.h"
@@ -1385,7 +1385,7 @@ void tStreamNet::FillLakes()
                ce = cln->getEdg();
                do
                {
-                  thenode = (tLNode *) ce->getDestinationPtrNC();
+                  thenode = static_cast<tLNode *>(ce->getDestinationPtrNC());
                   // Is it a potential outlet (ie, not flooded and not
                   // a boundary)?
                   if( thenode->getFloodStatus() == kNotFlooded
@@ -1462,7 +1462,7 @@ void tStreamNet::FillLakes()
                   ce = cln->getEdg();
                   do
                   {
-                     node = (tLNode *) ce->getDestinationPtrNC();
+                     node = static_cast<tLNode *>(ce->getDestinationPtrNC());
                      if( node->getFloodStatus() == kOutletFlag )
                      {     // found one!  
                         cln->setFloodStatus( kOutletPreFlag );
@@ -1534,7 +1534,7 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node )
    do
    {
       // If it passes this test, it's a valid outlet
-      dn = (tLNode *) ce->getDestinationPtrNC();
+      dn = static_cast<tLNode *>(ce->getDestinationPtrNC());
       assert( dn>0 );
 /*X      if( ce->getSlope() > maxslp &&
           dn->getFloodStatus() != kCurrentLake &&
@@ -2072,7 +2072,7 @@ void tStreamNet::RouteFlowKinWave( double rainrate_ )
             ce = cn->getEdg();
             do
             {
-	       tLNode * dn = (tLNode *)ce->getDestinationPtrNC();
+	       tLNode * dn = static_cast<tLNode *>(ce->getDestinationPtrNC());
                if( cn->getZ() > dn->getZ() && ce->FlowAllowed() )
                    dn->AddDischarge( cn->getQ()
                                      * (sqrt(ce->getSlope())*ce->getVEdgLen())/sum );
@@ -2235,12 +2235,14 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
       assert( intri > 0 );  //TODO: should be error-check not assert
       for( i=0; i<3; i++ )
       {
-         cn = (tLNode *) intri->pPtr(i);
+         cn = static_cast<tLNode *>(intri->pPtr(i));
          if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
          ntri = intri->tPtr(i);
          if( ntri != 0 )
          {
+	   // TODO BUG arnaud
             cn = (tLNode *) ntri->tPtr( ntri->nVOp( intri ) );
+	    //cn = static_cast<tLNode *>(ntri->tPtr( ntri->nVOp( intri ) ));
             if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
          }
       }
@@ -2357,7 +2359,7 @@ void tInlet::FindNewInlet()
          sI.Reset( cn->getSpokeListNC() );
          for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
          {
-            mn = (tLNode *) ce->getDestinationPtrNC();
+            mn = static_cast<tLNode *>(ce->getDestinationPtrNC());
               //easier to check node's elevation at this point to make
               //sure it's worth going further with all this logic;
               //so, find an active neighbor with elevation lower than
@@ -2394,7 +2396,7 @@ void tInlet::FindNewInlet()
                     //find it's active nbrs' distances:
                   for(  me = msI.FirstP(); !(msI.AtEnd()); me = msI.NextP() )
                   {
-                     mnn = (tLNode *) me->getDestinationPtrNC();
+                     mnn = static_cast<tLNode *>(me->getDestinationPtrNC());
                      if( mnn->getBoundaryFlag() == kNonBoundary )
                      {
                         dmnn = DistanceToLine( mnn->getX(), mnn->getY(),

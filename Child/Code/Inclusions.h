@@ -9,7 +9,7 @@
 #include <iostream.h>
 #include <fstream.h>
 #include <string.h>
-#include <assert.h>
+#include "tAssert.h"
 
 /** INCLUDED FILES **********************************************************/
 #include "Definitions.h"

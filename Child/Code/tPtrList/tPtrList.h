@@ -31,7 +31,7 @@
 **    - 3/31/00 bug fix to tPtrList copy constructors (GT)
 **    - 5/10/00 typo fix in DataCopy (GT)
 **
-**  $Id: tPtrList.h,v 1.15 2002-04-23 12:00:59 arnaud Exp $
+**  $Id: tPtrList.h,v 1.16 2002-05-01 14:48:30 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
@@ -39,7 +39,7 @@
 
 #include <iostream.h>
 #include <fstream.h>
-#include <assert.h>
+#include "../tAssert.h"
 //#include "../Classes.h" // TODO: include only needed stuff
 
 template < class NodeType > class tPtrList;

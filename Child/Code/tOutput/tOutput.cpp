@@ -9,7 +9,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.55 2002-04-30 17:17:26 arnaud Exp $
+**  $Id: tOutput.cpp,v 1.56 2002-05-01 14:48:30 arnaud Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -275,7 +275,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
        strncat( ext, &nums[counter], 1);
    else if(counter>=10){
       strncat(ext, &nums[counter/10], 1);
-      strncat(ext, &nums[(int) fmod((double)counter,10.0)], 1);
+      strncat(ext, &nums[static_cast<int>( fmod(static_cast<double>(counter),10.0) )], 1);
    }
    CreateAndOpenFile( &layofs, ext );
    counter++;

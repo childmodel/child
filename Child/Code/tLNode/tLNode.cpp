@@ -11,10 +11,10 @@
 **    - fixed problem with layer initialization in copy constructor
 **      (gt, 2/2000; see below)
 ** 
-**  $Id: tLNode.cpp,v 1.96 2002-04-24 12:03:07 arnaud Exp $
+**  $Id: tLNode.cpp,v 1.97 2002-05-01 14:48:26 arnaud Exp $
 \**************************************************************************/
 
-#include <assert.h>
+#include "../tAssert.h"
 #include <math.h>
 #include "../errors/errors.h"
 #include "tLNode.h"
@@ -636,7 +636,7 @@ tLNode * tLNode::getDownstrmNbr()
 {
    //assert( flowedge!=0 );
    if( flowedge == 0 ) return 0;
-   return (tLNode *)flowedge->getDestinationPtrNC();     
+   return static_cast<tLNode *>(flowedge->getDestinationPtrNC());     
 }
 
 int tLNode::Meanders() const {return chan.migration.meander;}
@@ -969,7 +969,7 @@ void tLNode::TellAll()
            << "\n  varea: " << varea << endl;
       
       if( flowedge ) {
-         nbr = (tLNode *)flowedge->getDestinationPtrNC();
+         nbr = static_cast<tLNode *>(flowedge->getDestinationPtrNC());
          cout << "  Flows along edg " << flowedge->getID() << " to node "
               << nbr->getID() << " at (" << nbr->getX() << ","
               << nbr->getY() << "," << nbr->getZ() << ")\n    with vedglen "
@@ -1441,7 +1441,7 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
    int numnodes=0;
    for(i=0; i<=2; i++){
       if(!tri->pPtr(i)->getBoundaryFlag()){
-         lnds[numnodes] = (tLNode *) tri->pPtr(i);
+         lnds[numnodes] = static_cast<tLNode *>(tri->pPtr(i));
          numnodes++;
       }
    }

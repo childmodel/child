@@ -3,7 +3,7 @@
 **  globalFns.cpp: Global functions used by tGrid and other modules of
 **                 CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.4 1999-05-11 15:27:11 gtucker Exp $
+**  $Id: globalFns.cpp,v 1.5 2002-05-01 14:48:23 arnaud Exp $
 \**************************************************************************/
 
 #include "globalFns.h"
@@ -169,14 +169,14 @@ int NewTriCCW( tTriangle *ct )
    assert( ct != 0 );
    tLNode *cn;
 
-   cn = (tLNode *) ct->pPtr(0);
+   cn = static_cast<tLNode *>(ct->pPtr(0));
    tArray< double > p0( cn->get2DCoords() );
 
    if( cn->Meanders() ) p0 = cn->getNew2DCoords();
-   cn = (tLNode *) ct->pPtr(1);
+   cn = static_cast<tLNode *>(ct->pPtr(1));
    tArray< double > p1( cn->get2DCoords() );
    if( cn->Meanders() ) p1 = cn->getNew2DCoords();
-   cn = (tLNode *) ct->pPtr(2);
+   cn = static_cast<tLNode *>(ct->pPtr(2));
    tArray< double > p2( cn->get2DCoords() );
    if( cn->Meanders() ) p2 = cn->getNew2DCoords();
    if( PointsCCW( p0, p1, p2 ) ) return 1;
@@ -205,10 +205,10 @@ int InNewTri( tArray< double > &xy, tTriangle *ct )
    tArray< double > xy1, xy2;
    for( j=0; j<3; j++ )
    {
-      vtx = (tLNode *) ct->pPtr(j);
+      vtx = static_cast<tLNode *>(ct->pPtr(j));
       if( vtx->Meanders() ) xy1 = vtx->getNew2DCoords();
       else xy1 = vtx->get2DCoords();
-      vtx = (tLNode *) ct->pPtr( (j+1)%3 );
+      vtx = static_cast<tLNode *>(ct->pPtr( (j+1)%3 ));
       if( vtx->Meanders() ) xy2 = vtx->getNew2DCoords();
       else xy2 = vtx->get2DCoords();
       if ( ( (xy1[1] - xy[1]) * (xy2[0] - xy[0]) ) >
@@ -250,16 +250,16 @@ int Intersect( tEdge * ae, tEdge * be )
       cout<<"Intersect: Warning: invalid org or dest"<<endl<<flush;
       return( 0 );
    }
-   lnode = (tLNode *) ae->getOriginPtrNC();
+   lnode = static_cast<tLNode *>(ae->getOriginPtrNC());
    tArray< double > A( lnode->get2DCoords() );
    if( lnode->Meanders() ) A = lnode->getNew2DCoords();
-   lnode = (tLNode *) ae->getDestinationPtrNC();
+   lnode = static_cast<tLNode *>(ae->getDestinationPtrNC());
    tArray< double > B( lnode->get2DCoords() );
    if( lnode->Meanders() ) B = lnode->getNew2DCoords();
-   lnode = (tLNode *) be->getOriginPtrNC();
+   lnode = static_cast<tLNode *>(be->getOriginPtrNC());
    tArray< double > C( lnode->get2DCoords() );
    if( lnode->Meanders() ) C = lnode->getNew2DCoords();
-   lnode = (tLNode *) be->getDestinationPtrNC();
+   lnode = static_cast<tLNode *>(be->getDestinationPtrNC());
    tArray< double > D( lnode->get2DCoords() );
    if( lnode->Meanders() ) D = lnode->getNew2DCoords();
    /* algorithm from comp.graphics.algorithms FAQ; cited were: O'Rourke, pp.249-51
@@ -473,13 +473,13 @@ double InterpSquareGrid( double xgen, double ygen, tMatrix< double >& elev,
    int nx = elev.getNumCols();
    int ny = elev.getNumRows();
    
-   int ix = (int)xgen;  //                      z3----z4
-   int iy = (int)ygen; //                       |     |
-   double xrem = xgen - (double)ix; //          |     |
-   double yrem = ygen - (double)iy; //          z1----z2
+   int ix = static_cast<int>(xgen);  //                      z3----z4
+   int iy = static_cast<int>(ygen);  //                      |     |
+   double xrem = xgen - static_cast<double>(ix); //          |     |
+   double yrem = ygen - static_cast<double>(iy); //          z1----z2
    double yrows = elev.getNumRows();
    int i = ix;
-   int j = (int)(yrows - 1.0 - ygen);
+   int j = static_cast<int>(yrows - 1.0 - ygen);
    
    double z3 = elev( j, i );
    double z4 = ( i < nx - 1 ) ? elev( j, i + 1 ) : nodata;
