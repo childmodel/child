@@ -38,7 +38,7 @@
 **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
 **      9/02: (AD)merge in main Child version
 **
-**  $Id: tPtrList.h,v 1.31 2003-05-22 09:16:46 childcvs Exp $
+**  $Id: tPtrList.h,v 1.32 2003-05-23 11:39:26 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -479,6 +479,8 @@ inline tPtrList< NodeType >::
          delete temp;
       }
    }
+   first = 0;
+   last = 0;
 }
 
 
