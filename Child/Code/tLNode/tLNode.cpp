@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.120 2003-08-13 13:19:36 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.121 2003-09-02 14:01:04 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -67,11 +67,11 @@ void tLayer::setDgrade( int i, double size )
 
 tMeander::tMeander()                                              //tMeander
   :
-meander(false),
 newx(0.), newy(0.),
-head(0), reachmember(0),
 deltax(0.), deltay(0.), zoldright(0.), zoldleft(0.), bankrough(0.),
-xyzd(4)
+xyzd(4),
+reachmember(false),
+meander(false)
 {
   if (0) //DEBUG
     cout << "  tMeander()" << endl;
@@ -79,12 +79,12 @@ xyzd(4)
 
 tMeander::tMeander( const tMeander &orig )                        //tMeander
   :
-meander(orig.meander),
 newx(orig.newx), newy(orig.newy),
-head(orig.head), reachmember(orig.reachmember),
 deltax(orig.deltax), deltay(orig.deltay),
 zoldright(orig.zoldright), zoldleft(orig.zoldleft), bankrough(orig.bankrough),
-xyzd( orig.xyzd )
+xyzd( orig.xyzd ),
+reachmember(orig.reachmember),
+meander(orig.meander)
 {
   if (0) //DEBUG
     cout << "  tMeander( orig )" << endl;
@@ -92,11 +92,11 @@ xyzd( orig.xyzd )
 
 tMeander::tMeander( bool state, double x, double y )                //tMeander
   :
-meander(state),
 newx(x), newy(y),
-head(0), reachmember(0),
 deltax(0.), deltay(0.), zoldright(0.), zoldleft(0.), bankrough(0.),
-xyzd(4)
+xyzd(4),
+reachmember(false),
+meander(state)
 {
   if (0) //DEBUG
     cout << "  tMeander( state, x, y )" << endl;
@@ -113,9 +113,6 @@ const tMeander &tMeander::operator=( const tMeander &right )     //tMeander
 {
   if( &right != this )
     {
-      meander = right.meander;
-      head = right.head;
-      reachmember = right.reachmember;
       newx = right.newx;
       newy = right.newy;
       deltax = right.deltax;
@@ -124,6 +121,8 @@ const tMeander &tMeander::operator=( const tMeander &right )     //tMeander
       zoldleft = right.zoldleft;
       bankrough = right.bankrough;
       xyzd = right.xyzd;
+      reachmember = right.reachmember;
+      meander = right.meander;
     }
   return *this;
 }

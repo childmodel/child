@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.77 2003-09-01 13:57:36 childcvs Exp $
+ **  $Id: tLNode.h,v 1.78 2003-09-02 14:01:05 childcvs Exp $
  */
 /************************************************************************/
 
@@ -302,15 +302,14 @@ public:
   ~tMeander();
   const tMeander &operator=( const tMeander & );
 private:
-  bool meander;      /* flag indicating if the point meanders */
   double newx, newy;
-  int head;         /* Flag indicating node is a reach head*/
-  int reachmember;  /* Flag indicating node has been included in a reach*/
   double deltax, deltay; /* Displacements in x and y from meandering*/
   double zoldright;	/* right bed elevation */
   double zoldleft;	/* left bed elevation*/
   double bankrough; //bank roughness (lambda in meander.f) w/ units of length
   tArray< double > xyzd;
+  bool reachmember;  /* Flag indicating node has been included in a reach*/
+  bool meander;      /* flag indicating if the point meanders */
 };
 
 /** @class tBedrock
@@ -466,8 +465,8 @@ public:
   inline tArray< double > const & getAlluvThicknessm( ) const;
   inline void setBedErody( double );
   inline double getBedErody() const;
-  inline void setReachMember( int );
-  inline int getReachMember() const;
+  inline void setReachMember( bool );
+  inline bool getReachMember() const;
   // NOTE - For the get and set functions which involve arrays of size numg,
   // the arrays go from 0 to (numg-1) and must be indexed in this manner
   inline void setQs( double );
@@ -785,10 +784,10 @@ inline void tLNode::setBedErody( double val )
 
 inline double tLNode::getBedErody() const {return rock.erodibility;}
 
-inline void tLNode::setReachMember( int val )
-{chan.migration.reachmember = ( val == 0 || val == 1 ) ? val : 0;}
+inline void tLNode::setReachMember( bool val )
+{chan.migration.reachmember = val;}
 
-inline int tLNode::getReachMember() const {return chan.migration.reachmember;}
+inline bool tLNode::getReachMember() const {return chan.migration.reachmember;}
 
 inline void tLNode::setQs( double val ) {qs = val;}
 
