@@ -9,138 +9,126 @@
 #include <assert.h>
 
 #define DEBUG_PRINT 1
+#include "hulltr_e.h"
 
-class point{
-public:
-  point() : x(0.), y(0.) {}
-  point(double ix,double iy) : x(ix), y(iy) {}
-  point(const point& p) : x(p.x), y(p.y) {}
-  const point &operator=( const point &p ) {
-    if ( &p != this ) {
-      x=p.x; y=p.y;
-    }
-    return *this;
-  }
-  int operator < (const point& p) const {return x<p.x;}
-  point operator - (const point& p) const {return point(x-p.x,y-p.y);}
-  point operator + (const point& p) const {return point(x+p.x,y+p.y);}
-  point operator / (double f) const {return point(x/f,y/f);}
-  double dot(const point& p) const {return (x*p.x+y*p.y);}
-#if defined(DEBUG_PRINT)
-  void print () const {cout << x << ' '<< y <<endl;}
+#if __SUNPRO_CC==0x420
+typedef enum { false=0, true } bool;
 #endif
-  void write(ofstream& f) const {f<<x<<' '<<y<<endl;}
-public:
-  double x,y;
-};
 
-class edge{
-  const edge &operator=( const edge & );  // assignment operator
-public:
-  edge(): from(-1),to(-1),lef(-1),let(-1),ref(-1),ret(-1) {}
-#if defined(DEBUG_PRINT)
-  void print(const point p[]) const {p[from].print();p[to].print();}
-#endif
-  void write(ofstream& f,const point p[]) const {p[from].write(f);p[to].write(f);}
-  bool visible(const point p[],int i) const {
-    //test whether an edge on the hull is visible from a point
-    //rely on the fact that a) hull is anticlockwise oriented
-    //b)data is positive x ordered
+#define TIMING 1
 
-    const double mindistance = 0.0000001;
-    if (fabs(p[from].x-p[to].x) < mindistance) return true;
-    if (fabs(p[to].y-p[from].y)<mindistance){
-      if(p[from].x<p[to].x && p[i].y<p[from].y)return true;
-      if(p[from].x>p[to].x && p[i].y>p[from].y)return true;
-    }
-    if (p[to].y>=p[i].y && p[from].y<=p[i].y && fabs(p[from].y-p[to].y)>mindistance)return true;
-
-    if (p[to].x>p[from].x){
-      if(p[i].y<p[from].y+(p[to].y-p[from].y)/(p[to].x-p[from].x)*(p[i].x-p[from].x))return true;
-    }else if (p[to].x<p[from].x) {
-      if(p[i].y>p[from].y+(p[to].y-p[from].y)/(p[to].x-p[from].x)*(p[i].x-p[from].x))return true;
-    }
-    return false;
+const point &point::operator=( const point &p ) {
+  if ( &p != this ) {
+    x=p.x; y=p.y;
   }
-  int swap(int tint,edge e[],const point p[]){
+  return *this;
+}
+#if defined(DEBUG_PRINT)
+void point::print () const {cout << x << ' '<< y <<endl;}
+#endif
+void point::write(ofstream& f) const {f<<x<<' '<<y<<endl;}
 
-    //edge swapping routine - each edge has four neighbour edges
-    //left and attached to from node (lef) right attached to to node (ret) etc.
-    //these edges may be oriented so that their from node is that of 
-    // the current edge, or not
-    //this routine takes the lions share of the CPU - hull construction by comparison
-    //takes much less (by about a factor of ten!)
-    if (ref==-1 || lef==-1 || let==-1 || ret==-1)return 0;
-    //test orientation of left and right edges - store the indices of
-    //points that are not part of the current edge
-    int leftp,rightp;
-    if (e[lef].from==from)leftp=e[lef].to; else leftp=e[lef].from;
-    if (e[ref].from==from)rightp=e[ref].to; else rightp=e[ref].from;
-    const point 
-      p1(p[leftp]-p[from]), p2(p[leftp]-p[to]), 
-      p3(p[rightp]-p[from]), p4(p[rightp]-p[to]);
-    double dt1=p1.dot(p2);double dt2=p3.dot(p4);
-    //only do the square roots if we really need to - saves a bit of time
-    if (dt1<0 || dt2<0){
-      dt1=dt1/sqrt(p1.dot(p1)*p2.dot(p2));
-      dt2=dt2/sqrt(p3.dot(p3)*p4.dot(p4));
-      if ((dt1+dt2)<0){
-	//now swap the left and right edges of neighbouring edges
-	//taking into account orientation
-	if (e[ref].from == from){
-	  e[ref].lef=lef;
-	  e[ref].let=tint;
-	}else{
-	  e[ref].ref=tint;
-	  e[ref].ret=lef;
-	}
-	if (e[lef].from==from){
-	  e[lef].ref=ref;
-	  e[lef].ret=tint;
-	}else{
-	  e[lef].lef=tint;
-	  e[lef].let=ref;
-	}
-	if (e[ret].to==to){
-	  e[ret].lef=tint;
-	  e[ret].let=let;
-	}else{
-	  e[ret].ref=let;
-	  e[ret].ret=tint;
-	}
-	if (e[let].to==to){
-	  e[let].ref=tint;
-	  e[let].ret=ret;
-	}else{
-	  e[let].lef=ret;
-	  e[let].let=tint;
-	}
-	//change the end-points for the current edge
-	to=rightp;
-	from=leftp;
-	//re-jig the edges
-	int rf=ref;
-	ref=lef;
-	int rt=ret;
-	ret=rf;
-	int lt=let;
-	let=rt;
-	lef=lt;
-	//examine the neighbouring edges for delauniness recursively - this is
-	//a lot more efficient than trying to swap all edges right at the end.
-	e[lef].swap(lef,e,p);
-	e[let].swap(let,e,p);
-	e[ref].swap(ref,e,p);
-	e[ret].swap(ret,e,p);
-	return 1;
+
+#if defined(DEBUG_PRINT)
+void edge::print(const point p[]) const {p[from].print();p[to].print();}
+#endif
+void edge::write(ofstream& f,const point p[]) const {p[from].write(f);p[to].write(f);}
+bool edge::visible(const point p[],int i) const {
+  //test whether an edge on the hull is visible from a point
+  //rely on the fact that a) hull is anticlockwise oriented
+  //b)data is positive x ordered
+
+  const double mindistance = 0.0000001;
+  if (fabs(p[from].x-p[to].x) < mindistance) return true;
+  if (fabs(p[to].y-p[from].y)<mindistance){
+    if(p[from].x<p[to].x && p[i].y<p[from].y)return true;
+    if(p[from].x>p[to].x && p[i].y>p[from].y)return true;
+  }
+  if (p[to].y>=p[i].y && p[from].y<=p[i].y && fabs(p[from].y-p[to].y)>mindistance)return true;
+
+  if (p[to].x>p[from].x){
+    if(p[i].y<p[from].y+(p[to].y-p[from].y)/(p[to].x-p[from].x)*(p[i].x-p[from].x))return true;
+  }else if (p[to].x<p[from].x) {
+    if(p[i].y>p[from].y+(p[to].y-p[from].y)/(p[to].x-p[from].x)*(p[i].x-p[from].x))return true;
+  }
+  return false;
+}
+
+int edge::swap(int tint,edge e[],const point p[]){
+  
+  //edge swapping routine - each edge has four neighbour edges
+  //left and attached to from node (lef) right attached to to node (ret) etc.
+  //these edges may be oriented so that their from node is that of 
+  // the current edge, or not
+  //this routine takes the lions share of the CPU - hull construction by comparison
+  //takes much less (by about a factor of ten!)
+  if (ref==-1 || lef==-1 || let==-1 || ret==-1)return 0;
+  //test orientation of left and right edges - store the indices of
+  //points that are not part of the current edge
+  int leftp,rightp;
+  if (e[lef].from==from)leftp=e[lef].to; else leftp=e[lef].from;
+  if (e[ref].from==from)rightp=e[ref].to; else rightp=e[ref].from;
+  const point 
+    p1(p[leftp]-p[from]), p2(p[leftp]-p[to]), 
+    p3(p[rightp]-p[from]), p4(p[rightp]-p[to]);
+  double dt1=p1.dot(p2);double dt2=p3.dot(p4);
+  //only do the square roots if we really need to - saves a bit of time
+  if (dt1<0 || dt2<0){
+    dt1=dt1/sqrt(p1.dot(p1)*p2.dot(p2));
+    dt2=dt2/sqrt(p3.dot(p3)*p4.dot(p4));
+    if ((dt1+dt2)<0){
+      //now swap the left and right edges of neighbouring edges
+      //taking into account orientation
+      if (e[ref].from == from){
+	e[ref].lef=lef;
+	e[ref].let=tint;
+      }else{
+	e[ref].ref=tint;
+	e[ref].ret=lef;
       }
+      if (e[lef].from==from){
+	e[lef].ref=ref;
+	e[lef].ret=tint;
+      }else{
+	e[lef].lef=tint;
+	e[lef].let=ref;
+      }
+      if (e[ret].to==to){
+	e[ret].lef=tint;
+	e[ret].let=let;
+      }else{
+	e[ret].ref=let;
+	e[ret].ret=tint;
+      }
+      if (e[let].to==to){
+	e[let].ref=tint;
+	e[let].ret=ret;
+      }else{
+	e[let].lef=ret;
+	e[let].let=tint;
+      }
+      //change the end-points for the current edge
+      to=rightp;
+      from=leftp;
+      //re-jig the edges
+      int rf=ref;
+      ref=lef;
+      int rt=ret;
+      ret=rf;
+      int lt=let;
+      let=rt;
+      lef=lt;
+      //examine the neighbouring edges for delauniness recursively - this is
+      //a lot more efficient than trying to swap all edges right at the end.
+      e[lef].swap(lef,e,p);
+      e[let].swap(let,e,p);
+      e[ref].swap(ref,e,p);
+      e[ret].swap(ret,e,p);
+      return 1;
     }
-    return 0;
   }
-public:
-  int from,to;
-  int lef,let,ref,ret;
-};
+  return 0;
+}
 
 class cyclist{
   //a fixed size linked cyclical list using arrays
@@ -149,101 +137,27 @@ class cyclist{
   const cyclist &operator=( const cyclist & );  // assignment operator
   cyclist( const cyclist & );
 public:
-  cyclist(int s): size(s),prev(0),hole(0),num(0),ejs(0) {
-    ejs=new item[size];
-    //fill ej array with a set of pointers to the next unfilled location
-    for (int i=0;i<size;i++)ejs[i].data=i+1;
-    //hole points to the next unfilled location, prev to the location that was last filled
-    //we keep track of empty bits of the list using hole to point to an empty slot, and the
-    //value ejs[hole] to point to the next empty slot
-  }
-  ~cyclist(){
-    delete [] ejs;
-  }
+  cyclist(int s);
+  ~cyclist();
   int getEdge(int list_pos) const {
     assert(list_pos<size);
     return ejs[list_pos].data;
   }
-  int delNextPos(int list_pos){
-    assert(list_pos<size);
-    assert(num!=0);
-    ejs[list_pos].data=hole;
-    hole=list_pos;
-    ejs[ejs[list_pos].prev].next=ejs[list_pos].next;
-    ejs[ejs[list_pos].next].prev=ejs[list_pos].prev;
-    num--;
-    return ejs[list_pos].next;
-  }
-  int delNextNeg(int list_pos){
-    assert(list_pos<size);
-    assert(num!=0);
-    ejs[list_pos].data=hole;
-    hole=list_pos;
-    ejs[ejs[list_pos].prev].next=ejs[list_pos].next;
-    ejs[ejs[list_pos].next].prev=ejs[list_pos].prev;
-    num--;
-    return ejs[list_pos].prev;
-  }
+  int delNextPos(int list_pos);
+  int delNextNeg(int list_pos);
   int getNextPos(int list_pos) const {
     assert(list_pos<size);
     return ejs[list_pos].next;
   }
-  int getNextNeg(int list_pos){
+  int getNextNeg(int list_pos) const{
     assert(list_pos<size);
     return ejs[list_pos].prev;
   }
-  void add(int ej){
-    //build hull from scratch in numerical order - we assume you got the orientation
-    //right!! (anti-clockwise)
-    assert(hole<size);
-    int n=ejs[hole].data;
-    ejs[hole].data=ej;
-    //prev stores the location of the place in the array that was most recently filled
-    ejs[prev].next=hole;
-    //rev is the set of backward pointers
-    ejs[hole].prev=prev;
-    //the list is cyclic
-    ejs[hole].next=0;
-    ejs[0].prev=hole;
-    prev=hole;
-    hole=n;num++;
-  }
-  int addBefore(int a, int ej){
-    assert(a<size);
-    //first check for the empty list
-    if (num ==0){add(ej);return prev;}
-    //otherwise add on before the specified position, using the empty storage slot
-    int n=ejs[hole].data;
-    ejs[hole].prev=ejs[a].prev;
-    ejs[hole].next=a;
-    ejs[ejs[a].prev].next=hole;
-    ejs[a].prev=hole;
-    ejs[hole].data=ej;
-    prev=hole;
-    hole=n;
-    num++;
-    //return the value that hole had at the start of the method 
-    return prev;
-  }
-  int addAfter(int a,int ej){
-    assert(a<size);
-    //first check for the empty list
-    if (num ==0){add(ej);return prev;}
-    //otherwise add on after the specified position, using the empty storage slot
-    int n=ejs[hole].data;
-    ejs[hole].next=ejs[a].next;
-    ejs[ejs[a].next].prev=hole;
-    ejs[a].next=hole;
-    ejs[hole].prev=a;
-    ejs[hole].data=ej;
-    prev=hole;
-    hole=n;
-    num++;
-    //return the value that hole had at the start of the method 
-    return prev;
-  }
+  void add(int ej);
+  int addBefore(int a, int ej);
+  int addAfter(int a,int ej);
 #if defined(DEBUG_PRINT)
-  void print() const {int j=ejs[0].next;for (int i=0;i<num;i++){cout<<ejs[j].data<<endl;j=ejs[j].next;}}
+  void print() const;
 #endif
 private:
   const int size; 
@@ -254,7 +168,93 @@ private:
   item* ejs;
 };
 
-void triangulate(int npoints,const point p[]){
+cyclist::cyclist(int s): size(s),prev(0),hole(0),num(0),ejs(0) {
+  ejs=new item[size];
+  //fill ej array with a set of pointers to the next unfilled location
+  for (int i=0;i<size;i++)ejs[i].data=i+1;
+  //hole points to the next unfilled location, prev to the location that was last filled
+  //we keep track of empty bits of the list using hole to point to an empty slot, and the
+  //value ejs[hole] to point to the next empty slot
+}
+cyclist::~cyclist(){
+  delete [] ejs;
+}
+int cyclist::delNextPos(int list_pos){
+  assert(list_pos<size);
+  assert(num!=0);
+  ejs[list_pos].data=hole;
+  hole=list_pos;
+  ejs[ejs[list_pos].prev].next=ejs[list_pos].next;
+  ejs[ejs[list_pos].next].prev=ejs[list_pos].prev;
+  num--;
+  return ejs[list_pos].next;
+}
+int cyclist::delNextNeg(int list_pos){
+  assert(list_pos<size);
+  assert(num!=0);
+  ejs[list_pos].data=hole;
+  hole=list_pos;
+  ejs[ejs[list_pos].prev].next=ejs[list_pos].next;
+  ejs[ejs[list_pos].next].prev=ejs[list_pos].prev;
+  num--;
+  return ejs[list_pos].prev;
+}
+void cyclist::add(int ej){
+  //build hull from scratch in numerical order - we assume you got the orientation
+  //right!! (anti-clockwise)
+  assert(hole<size);
+  int n=ejs[hole].data;
+  ejs[hole].data=ej;
+  //prev stores the location of the place in the array that was most recently filled
+  ejs[prev].next=hole;
+  //rev is the set of backward pointers
+  ejs[hole].prev=prev;
+  //the list is cyclic
+  ejs[hole].next=0;
+  ejs[0].prev=hole;
+  prev=hole;
+  hole=n;num++;
+}
+int cyclist::addBefore(int a, int ej){
+  assert(a<size);
+  //first check for the empty list
+  if (num ==0){add(ej);return prev;}
+  //otherwise add on before the specified position, using the empty storage slot
+  int n=ejs[hole].data;
+  ejs[hole].prev=ejs[a].prev;
+  ejs[hole].next=a;
+  ejs[ejs[a].prev].next=hole;
+  ejs[a].prev=hole;
+  ejs[hole].data=ej;
+  prev=hole;
+  hole=n;
+  num++;
+  //return the value that hole had at the start of the method 
+  return prev;
+}
+int cyclist::addAfter(int a,int ej){
+  assert(a<size);
+  //first check for the empty list
+  if (num ==0){add(ej);return prev;}
+  //otherwise add on after the specified position, using the empty storage slot
+  int n=ejs[hole].data;
+  ejs[hole].next=ejs[a].next;
+  ejs[ejs[a].next].prev=hole;
+  ejs[a].next=hole;
+  ejs[hole].prev=a;
+  ejs[hole].data=ej;
+  prev=hole;
+  hole=n;
+  num++;
+  //return the value that hole had at the start of the method 
+  return prev;
+}
+#if defined(DEBUG_PRINT)
+  void cyclist::print() const {int j=ejs[0].next;for (int i=0;i<num;i++){cout<<ejs[j].data<<endl;j=ejs[j].next;}}
+#endif
+
+
+void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 
   //convex hull is a cyclical list - it will consist of anticlockwise
   //ordered edges - since each new point adds at most 1 extra edge (nett)
@@ -269,6 +269,7 @@ void triangulate(int npoints,const point p[]){
   //make first three edges  - these will form the initial convex hull
   //make sure orientation is anticlockwise
   //modify for equal x coords!!!!!
+  assert(p[1].x != p[0].x);
   if (p[2].y>p[0].y+(p[1].y-p[0].y)*(p[2].x-p[0].x)/(p[1].x-p[0].x)){
     edges[0].from=0;
     edges[0].to=1;
@@ -410,51 +411,146 @@ void triangulate(int npoints,const point p[]){
     lower_hull_pos=hull.addAfter(lower_hull_pos,saved_edge);
   }
 
-  {
-    ofstream file("triggy");
+  { 
     int i=0;
-    while(edges[i].from != -1 ){edges[i].write(file,p);i++;}
+    while(edges[i].from != -1 ) i++;
+    *pnedges = i;
   }
-#if 0
-  {
-    int i=0;
-    while(edges[i].from != -1 ){edges[i].print(p);i++;}
-    cout << "npoint=" << npoints << " nedge=" << i-1 << endl;
-  }
-#endif
+  *edges_ret = edges;
 
-  delete [] edges;
 }
  
 #include "heapsort.h"
 
-int main(){
-  const int n=100;
-  const long npoints=n*n;
-  //set up the point array
-  point *p = new point[npoints];
-  //make a set of points perturbed from a uniform grid
-  for (int i=0;i<n;i++){
-    for(int j=0;j<n;j++){
-      p[i+j*n].x=double(i)+double(rand())/RAND_MAX*n*1.e-3;
-      p[i+j*n].y=double(j)+double(rand())/RAND_MAX*n*1.e-3;
-    } 
-  }
+void sort_triangulate(int npoints, point *p, int *pnedges, edge** edges_ret){
   //sort the points - note that the point class defines the
   // < operator so that the sort is on the x co-ordinate
   //array p will be replaced with the array sorted in x
   heapsort(npoints,p);
 
+#if defined(TIMING)
+  {
   time_t t1 = time(NULL);
   clock_t tick1 = clock();
+#endif
 
   //triangulate the set of points
-  triangulate(npoints,p);
+  triangulate(npoints,p,pnedges, edges_ret);
 
+
+#if defined(TIMING)
   time_t t2 = time(NULL);
   clock_t tick2 = clock();
   cout << "elapsed time (time) = " << difftime(t2,t1) << " s" << endl;
   cout << "elapsed time (clock)= " << (double)(tick2-tick1)/CLOCKS_PER_SEC << " s" << endl;
-  
-  delete [] p;
+  }
+#endif
+}
+
+class edge_auxi {
+public:
+  edge_auxi() : left_visited_(false), right_visited_(false) {};
+  bool left_visited() const { return left_visited_; }
+  bool right_visited() const { return right_visited_; }
+  void mark_left() { left_visited_ = true; } 
+  void mark_right() { right_visited_ = true; } 
+private:
+  bool left_visited_, right_visited_;
+};
+
+// mark as visited the side of iedge_markable that points to
+// iedge_orig
+void mark_as_visited(int iedge_markable, int iedge_orig,
+		     const edge* edges, edge_auxi* edges_auxi){
+  if (edges[iedge_markable].lef == iedge_orig ||
+      edges[iedge_markable].let == iedge_orig){
+    edges_auxi[iedge_markable].mark_left();
+  } else {
+    assert(edges[iedge_markable].ref == iedge_orig ||
+	   edges[iedge_markable].ret == iedge_orig);
+    edges_auxi[iedge_markable].mark_right();
+  }
+}
+
+void build_elem_table(int npoints, const point *p, int nedges, const edge* edges,
+		      int *pnelem, elem** pelems_ret){
+  // Euler invariant for a triangulation:
+  const int nelem = 1 + nedges - npoints;
+  elem *elems = new elem[nelem]; 
+  edge_auxi *edges_auxi = new edge_auxi[nedges];
+
+  { 
+    // build edges per element
+    int ielem = 0;
+    for(int iedge=0;iedge<nedges;iedge++) {
+      // left
+      if (! edges_auxi[iedge].left_visited()) {
+	if (edges[iedge].lef == -1) {
+	  assert(edges[iedge].let == -1);
+	} else {
+      // don't bother with orientation at the moment
+	  elems[ielem].e1 = iedge;
+	  elems[ielem].e2 = edges[iedge].lef;
+	  mark_as_visited(edges[iedge].lef,iedge,edges, edges_auxi);
+	  elems[ielem].e3 = edges[iedge].let;
+	  mark_as_visited(edges[iedge].let,iedge,edges, edges_auxi);
+	  ielem++;
+	}
+	edges_auxi[iedge].mark_left();
+      }
+      // right
+      if (! edges_auxi[iedge].right_visited()) {
+	if (edges[iedge].ref == -1) {
+	  assert(edges[iedge].ref == -1);
+	} else {
+      // don't bother with orientation at the moment
+	  elems[ielem].e1 = iedge;
+	  elems[ielem].e2 = edges[iedge].ref;
+	  mark_as_visited(edges[iedge].ref,iedge,edges, edges_auxi);
+	  elems[ielem].e3 = edges[iedge].ret;
+	  mark_as_visited(edges[iedge].ret,iedge,edges, edges_auxi);
+	  ielem++;
+	}
+	edges_auxi[iedge].mark_right();
+      }
+    }
+    assert(ielem == nelem);
+  }
+  {
+    // build vertices per element
+    for(int ielem=0;ielem<nelem;ielem++){
+      // don't bother with orientation at the moment
+      elems[ielem].p1 = edges[elems[ielem].e1].to;
+      elems[ielem].p2 = edges[elems[ielem].e1].from;
+      int itemp = edges[elems[ielem].e2].from;
+      if (itemp == elems[ielem].p1 || itemp == elems[ielem].p2){
+	elems[ielem].p3 = edges[elems[ielem].e2].to;
+      } else {
+	elems[ielem].p3 = itemp;
+      }
+    }
+  }
+#if 0
+  {
+    for(int ielem=0;ielem<nelem;ielem++){
+	cout << "elem=" << ielem
+	     << " p1=" << elems[ielem].p1
+	     << " p2=" << elems[ielem].p2
+	     << " p3=" << elems[ielem].p3
+	     << endl;
+    }
+  }
+#endif
+
+  delete [] edges_auxi;
+  *pnelem = nelem;
+  *pelems_ret = elems;
+}
+
+
+void sort_triangulate(int npoints, point *p,
+		      int *pnedges, edge** edges_ret,
+		      int *pnelem, elem** pelems_ret){
+  sort_triangulate(npoints,p,pnedges, edges_ret);
+  build_elem_table(npoints, p, *pnedges, *edges_ret, pnelem, pelems_ret);
 }
