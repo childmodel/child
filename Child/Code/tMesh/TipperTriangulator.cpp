@@ -551,9 +551,9 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
     {
       // build vertices per element
 #define SWAP_E(EI,EJ) \
-	  int etemp = elems[ielem].EI; \
+          { int etemp = elems[ielem].EI; \
 	  elems[ielem].EI = elems[ielem].EJ; \
-	  elems[ielem].EJ = etemp
+	  elems[ielem].EJ = etemp; }
       
       elems[ielem].p1 = edges[elems[ielem].e2].to;
       elems[ielem].p2 = edges[elems[ielem].e2].from;
@@ -579,11 +579,7 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
 	-(p[elems[ielem].p1].y-p[elems[ielem].p2].y)*
 	(p[elems[ielem].p3].x-p[elems[ielem].p2].x);
       if (v>0) {
-	// swap p1, p3
-	int ptemp = elems[ielem].p1;
-	elems[ielem].p1 = elems[ielem].p3;
-	elems[ielem].p3 = ptemp;
-	// swap e2, e3
+	SWAP_E(p1,p3)
 	SWAP_E(e2,e3);
       }
       // edges orientations
