@@ -31,6 +31,7 @@ tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
    if( inletbc )
    {
       inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
+      inSedLoad = infile.ReadItem( inSedLoad, "INSEDLOAD" );
       xin = infile.ReadItem( xin, "INLET_X" );
       yin = infile.ReadItem( yin, "INLET_Y" );
       intri = gridPtr->LocateTriangle( xin, yin );
@@ -124,6 +125,13 @@ void tInlet::FindNewInlet()
    innode = newinnode;
 }
 
+double tInlet::getInSedLoad() const {return inSedLoad;}
+void tInlet::setInSedLoad( double val ) {inSedLoad = ( val > 0.0 ) ? val : 0.0;}
+double tInlet::getInDrArea() const {return inDrArea;}
+void tInlet::setInDrArea( double val ) {inDrArea = ( val > 0.0 ) ? val : 0.0;}
+tLNode *tInlet::getInNodePtr() {return innode;}
+void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
+
    
 
 /**************************************************************************\
@@ -132,7 +140,7 @@ void tInlet::FindNewInlet()
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.23 1998-03-23 21:19:19 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.24 1998-03-26 01:39:08 stlancas Exp $
 \**************************************************************************/
 
 
@@ -236,7 +244,10 @@ double tStreamNet::getInfilt() const {return infilt;}
 
 double tStreamNet::getInDrArea() const {return inlet.inDrArea;}
 
+double tStreamNet::getInSedLoad() const {return inlet.inSedLoad;}
+
 tLNode *tStreamNet::getInletNodePtr() const {return inlet.innode;}
+tLNode *tStreamNet::getInletNodePtrNC() {return inlet.innode;}
 
 // TODO: the value checks are nice, but will hurt performance. Should
 // probably be removed.
@@ -256,6 +267,9 @@ void tStreamNet::setInfilt( double val )
 
 void tStreamNet::setInDrArea( double val )
 {inlet.inDrArea = ( val >= 0 ) ? val : 0;}
+
+void tStreamNet::setInSedLoad( double val )
+{inlet.inSedLoad = ( val >= 0 ) ? val : 0;}
 
 void tStreamNet::setInletNodePtr( tLNode *Ptr )
 {inlet.innode = ( Ptr > 0 ) ? Ptr : 0;}
