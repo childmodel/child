@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.9 1998-01-30 01:47:50 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.10 1998-01-30 19:13:38 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -963,10 +963,10 @@ void tStreamMeander::CheckBanksTooClose()
    tLNode * cn, *pointtodelete;
    tEdge *ce;
      //check for proximity to channel:
-   tooclose = TRUE;
+   tooclose = 1;
    do
    {
-      tooclose = FALSE;
+      tooclose = 0;
         //nodIter.First();
       for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
       {
@@ -981,7 +981,7 @@ void tStreamMeander::CheckBanksTooClose()
                {
                   cout<<"too close: cn, cn->hydrwidth "<<cn->getID()<<" "
                       <<cn->getHydrWidth()<<endl<<flush;
-                  tooclose = TRUE;
+                  tooclose = 1;
                   pointtodelete = (tLNode *) ce->getDestinationPtrNC();
                   if( pointtodelete->getDrArea() > cn->getDrArea() )
                       pointtodelete = cn;
@@ -1138,7 +1138,7 @@ void tStreamMeander::CheckBrokenFlowedg()
    int breakedge;
    int change = 0;
    int flipped;
-   int flip = FALSE;
+   int flip = 0;
    double dis0, dis1;
    tArray< int > npop(3);
    tLNode *pointtodelete, *lnodePtr, * pedg[2];  
@@ -1146,21 +1146,21 @@ void tStreamMeander::CheckBrokenFlowedg()
    tTriangle * ct, * trop[3];
    tListIter< tTriangle > triIter( gridPtr->GetTriList() );
      //check for broken flow edges that we don't want broken
-   breakedge = TRUE;
+   breakedge = 1;
    tPtrList< tTriangle > triPtrList;
    do
    {
-      breakedge = FALSE;
+      breakedge = 0;
         //cout << "breaking edge loop: form tri stack" << endl << flush;
       for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
       {
-         change = FALSE;
+         change = 0;
          for( i = 0; i < 3; i++ )
          {
             lnodePtr = (tLNode *) ct->pPtr(i);
             if( lnodePtr->Meanders() )
             {
-               change = TRUE;
+               change = 1;
                  //cout << " add triangle " << ct->getID() << " to ptrlist" << endl;
                break;
             }
@@ -1220,7 +1220,7 @@ void tStreamMeander::CheckBrokenFlowedg()
                        //DumpEdges();
                      cout<<"delete flow edge breaker"<<endl<<flush;
                      gridPtr->DeleteNode( pointtodelete );
-                     breakedge = TRUE;
+                     breakedge = 1;
                      break;
                   }
                }  

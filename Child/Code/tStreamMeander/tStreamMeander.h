@@ -12,13 +12,14 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.8 1998-01-30 01:48:00 stlancas Exp $
+**  $Id: tStreamMeander.h,v 1.9 1998-01-30 19:13:25 stlancas Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
 
 #include <math.h>
 #include <assert.h>
+#include <string.h>
 #include "../Classes.h"
 #include "../Definitions.h"
 #include "../Mathutil/mathutil.h"

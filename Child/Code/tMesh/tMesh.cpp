@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.6 1998-01-29 19:59:03 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.7 1998-01-30 19:12:46 stlancas Exp $
 \***************************************************************************/
 
 #include <assert.h>
@@ -405,7 +405,7 @@ tGrid( tListInputData< tSubNode > &input )                           //tGrid
    do                                        //for( i=0; i<nnodes; i++ )
    {
       e1 = input.edgid[i]; //THIS REF TO "i" IS UNDEFINED! fixed
-      curnode = nodIter->DatPtr();
+      curnode = nodIter.DatPtr();
       if( edgIter.Get( e1 ) ) // TODO: report error if fails
       {
           curnode->insertBackSpokeList( &(edgIter.DatRef()) );
@@ -424,11 +424,12 @@ tGrid( tListInputData< tSubNode > &input )                           //tGrid
    // immediately counterclockwise) (added by gt Dec 97 to re-implement
    // previous data structure)
    tEdge * curedg, * ccwedg;
+   int ccwedgid;
    for( i=0; i<nedges; i++ )
    {
-      curedg = edgIter.Get( i );
+      curedg = edgIter.GetP( i );
       ccwedgid = input.nextid[i];
-      ccwedg = edgIter.Get( ccwedgid );
+      ccwedg = edgIter.GetP( ccwedgid );
       curedg->SetCCWEdg( ccwedg );
       cout << "Edg " << ccwedgid << " (" << ccwedg->getOriginPtr()->getID()
            << " " << ccwedg->getDestinationPtr()->getID() << ") is ccw from "
@@ -2063,7 +2064,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
                                                           //think we are
      //set tri ptrs:
    dce = 0;
-   nbrtriPtr == 0;
+   nbrtriPtr = 0;
    for( j=0; j<3; j++ )
    {
       nbrIter.Next();                     //step forward once in nbrList   
