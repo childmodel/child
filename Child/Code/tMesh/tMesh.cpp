@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.216 2004-06-16 13:37:36 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.217 2005-02-14 19:39:42 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -228,7 +228,7 @@ template< class tSubNode >
 tMesh< tSubNode >::
 ~tMesh() {
   mSearchOriginTriPtr = 0;
-  if (1)//DEBUG
+  if (0)//DEBUG
     std::cout << "    ~tMesh()" << std::endl;
 }
 
@@ -242,6 +242,11 @@ tMesh< tSubNode >::
 **
 **  TODO: is there a way to handle this outside of tMesh, so tMesh
 **  doesn't have to know anything about layering?
+**
+**  NOTE: This is no longer compatible with the layer-file format!
+**  some time ago layer output was changed from a single file to 
+**  one file per time slice, with extensions .lay0, .lay1, etc. This
+**  routine still looks for .lay, and will not find it.
 **
 \************************************************************************/
 template< class tSubNode >
@@ -309,6 +314,12 @@ MakeLayersFromInputData( const tInputFile &infile )
          layerinfile >> ditem;
          layhelp.setEtime(ditem);
          layerinfile >> ditem;
+		 if( ditem <= 0. )
+		 {
+			std::cout << "MakeLayersFromInputData: Layer " << i << " at node " << cn->getID()
+				<< " has thickness " << ditem << std::endl;
+			ReportFatalError("Layers must have positive thickness.");
+		 }
          layhelp.setDepth(ditem);
          layerinfile >> ditem;
          layhelp.setErody(ditem);
@@ -329,19 +340,22 @@ MakeLayersFromInputData( const tInputFile &infile )
    tArray<double> dgradebrhelp( numg );
    double sumbr = 0.;
    i=0;
-   char add='1';
+   char add[2];
+   add[0]='1';
+   add[1]='\0';
    char name[20];
    double help;
 
    while ( i<numg ){
       // Reading in proportions for intital regolith and bedrock
       strcpy( name, "BRPROPORTION");
-      strcat( name, &add );
+      strcat( name, add );
+	  std::cout<<"In tMesh, reading '"<<name<<"'"<<std::endl;
       help = infile.ReadItem( help, name);
       dgradebrhelp[i]=help;
       sumbr += help;
       i++;
-      add++;
+      add[0]++;
    }
 
    assert(sumbr>0.999 && sumbr<1.001);
@@ -3866,7 +3880,7 @@ template< class tSubNode >
 tSubNode * tMesh< tSubNode >::
 InsertNode( tSubNode* newNodePtr, double time )
 {
-   if (0) //DEBUG
+   if (1) //DEBUG
      std::cout << "tMesh::InsertNode()" << std::endl;
    tTriangle *tri = LocateTriangle( newNodePtr->getX(), newNodePtr->getY() );
    if( tri == 0 )
@@ -3904,6 +3918,8 @@ AddToList( tSubNode const & newNode )
   // insert node at the back of either the
   // active portion of the node list (if it's not a boundary) or the
   // boundary portion (if it is)
+  if(1) //DEBUG
+    std::cout<<"AddToList: nnodes="<<nnodes<<std::endl;
   nodeListIter_t nodIter( nodeList );
   tSubNode *cn = 0;
   switch (newNode.getBoundaryFlag()){
@@ -3920,6 +3936,8 @@ AddToList( tSubNode const & newNode )
     cn = nodIter.LastP();
     break;
   }
+  if(1) //DEBUG
+    std::cout<<"in AddToList, list size ="<<nodeList.getSize()<<std::endl;
   assert( nodeList.getSize() == nnodes + 1 );
   ++nnodes;
   return cn;
@@ -4074,7 +4092,7 @@ AttachNode( tSubNode* cn, tTriangle* tri )
        {
          // may be trying to add a node in exact location of another node
          // return a NULL pointer before messing with triangulation
-         if(1) //DEBUG
+         if(0) //DEBUG
 	   std::cout << "node cannot be added at " << node2->getX() << ", "
 		<< node2->getY() << std::endl;
          return NULL;
@@ -4704,7 +4722,7 @@ CheckTriEdgeIntersect()
                         tmpNodeList.insertAtBack( *cn );
 
                         //DEBUG-QC
-			if (1) //DEBUG
+			if (0) //DEBUG
 			  std::cout<<"CTI, deleting node with ID,x,y,z:"
 			      << cn->getID()<<" "<<cn->getX()
 			      <<" "<<cn->getY()<<" "<<cn->getZ()<<std::endl;
@@ -4733,7 +4751,7 @@ CheckTriEdgeIntersect()
       else
           cn->RevertToOldCoords();
       //DEBUG-QC
-      if (1) //DEBUG
+      if (0) //DEBUG
 	std::cout<<"CTI, adding node with x,y,z:"
 	    <<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()<<std::endl;
 
@@ -4788,7 +4806,7 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 MoveNodes( double time, bool interpFlag )
 {
-   if (1) //DEBUG
+   if (0) //DEBUG
      std::cout << "MoveNodes()... time " << time << std::endl;
 
    //Before any edges and triangles are changed, layer interpolation
@@ -5358,7 +5376,7 @@ template<class tSubNode>
 void tMesh<tSubNode>::
 ForceFlow( tSubNode* un, tSubNode* dn, double time )
 {
-   if(1)//DEBUG
+   if(0)//DEBUG
        std::cout << "tMesh::ForceFlow connecting nodes" << un->getID()
             << " and " << dn->getID() << std::endl;
 
