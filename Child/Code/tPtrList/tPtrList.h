@@ -1,8 +1,9 @@
 /**************************************************************************\
 **
-**  tPtrList.h: Header file for tPtrList and tPtrListNode objects.
+**  tPtrList.h: Header file for tPtrList, tPtrListNode, and tPtrListIter
+**              objects.
 **
-**  $Id: tPtrList.h,v 1.1 1998-01-21 00:49:19 gtucker Exp $
+**  $Id: tPtrList.h,v 1.2 1998-01-21 01:04:48 gtucker Exp $
 \**************************************************************************/
 
 
@@ -72,4 +73,38 @@ class tPtrList
    tPtrListNode< NodeType > * getNewNode( NodeType * );
 };
 
+
+
+/** class tPtrListIter ******************************************************/
+template< class NodeType >
+class tPtrListIter
+{
+  public:
+   tPtrListIter();
+   tPtrListIter( tPtrList< NodeType > & );
+   ~tPtrListIter();
+   int First();
+   int Last();
+   int Get( int );
+   int Where();
+   NodeType *DatPtr();
+   tPtrListNode< NodeType > *NodePtr();
+   int Next();
+   int Prev();
+   int NextIsNotFirst();
+   void Reset( tPtrList< NodeType > & );
+   NodeType *NextP();
+   NodeType *GetP( int );
+   NodeType *FirstP();
+   NodeType *LastP();
+   NodeType *ReportNextP();
+   NodeType *ReportPrevP();
+   int AtEnd();
+  private:
+   tPtrList< NodeType > * ptrlistPtr;
+   tPtrListNode< NodeType > * curptrnode;
+   int counter;
+};
+
 #endif
+
