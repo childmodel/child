@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.19 1998-04-17 14:29:06 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.20 1998-04-23 18:48:34 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -141,6 +141,71 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node )
    return cap;
 }
    
+/*************************************************************************\
+** tSedTransWilcock functions
+\**************************************************************************/
+
+tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
+        : grade()
+{
+   int i;
+   char add, name[20];
+   double help, sum;
+
+   cout << "tSedTransWilcock(infile)\n";
+   add='1';
+   for(i=1; i<=2; i++){
+      strcpy( name, "GRAINDIAM");
+      strcat( name, &add );
+      help = infile.ReadItem( help, name);
+      grade[i] = help;
+   }
+
+   taudim= RHO*GRAV;
+   refs = (RHOSED-RHO)*9.81*grade[0];
+   refg = (RHOSED-RHO)*9.81*grade[1];
+   lowtaucs = 0.8*(grade[1]/grade[0])*0.040*refs*0.8531;
+   lowtaucg = 0.04*refg*0.8531;;
+   sandb = (lowtaucs-(0.04*10./40.))/(1-(10./40.));
+   hightaucs = 0.04*refs*0.8531;
+   hightaucg = 0.01*refg*0.8531; 
+   sands = (lowtaucs-0.04)/(-30.);
+}
+
+double tSedTransWilcock::TransCapacity( tLNode *nd )
+{
+   double tau;
+   double taucrit;
+   double persand=grade[0]/(grade[0]+grade[1]);
+   double timeadjust=31536000.00; /* number of seconds in a year */
+
+   if( nd->GetSlope() < 0 ){
+      nd->setQs(0, 0);
+      nd->setQs(1, 0);
+      nd->setQs(0);
+      return 0.0;
+   }
+
+   taudim *= pow(nd->getHydrWidth(), 0.6);
+   // nic, make sure about the units here ie units on Q
+   tau = taudim*pow(nd->GetQ()*timeadjust,0.3)*pow( nd->GetSlope(), 0.7);
+
+   
+   if(persand<.10)
+       taucrit=lowtaucs;
+   else if(persand<.40)
+       taucrit=((sands*persand*100)+sandb)*refs*0.8531;
+   else
+       taucrit=hightaucs;
+   
+   if(tau>taucrit)
+       nd->setQs(0, ( 1829088*persand*pow(tau,1.5)*pow((1-sqrt(taucrit/tau)),4.5) ));
+   else 
+       nd->setQs( 0, 0.0 ) ;
+   
+       
+}
+
 
 /***************************************************************************\
 **  tErosion functions
