@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.32 1998-04-30 15:31:06 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.33 1998-05-04 17:40:57 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2018,6 +2018,9 @@ ExtricateEdge( tEdge * edgePtr )
 **       the triangle that lies opposite that face and reset lv to zero
 **   6 - continue steps 3-5 until lv==3, which means that we've found
 **       our triangle.
+**   7 - so far, a point "on the line", i.e., colinear w/ two of the
+**       three points, still passes; that's OK unless that line is on
+**       the boundary, so we need to check
 **
 **  Input: x, y -- coordinates of the point
 **  Modifies: (nothing)
@@ -2034,6 +2037,7 @@ LocateTriangle( double x, double y )
    tListIter< tTriangle > triIter( triList );  //lt
    tTriangle *lt = &(triIter.DatRef());
    double a, b, c;
+   int online;
    tArray< double > xy1, xy2;
    
    /* it starts from the first triangle, 
@@ -2058,10 +2062,14 @@ LocateTriangle( double x, double y )
          //cout << "    Moving on...\n";
          lt=lt->tPtr( (lv+2)%3 );
          lv=0;
+         online = -1;
       }
-      else {
+      else
+      {
          //cout << "    So far so good...\n";
-         lv++;}
+         if( c == 0.0 ) online = lv;
+         lv++;
+      }
       
       /*if( n >= ntri + 20 )
       {
@@ -2076,7 +2084,9 @@ LocateTriangle( double x, double y )
                                     //if lt == 0, i.e., point is out of bounds,
                                     //and we don't want that;
                                     //calling code is built to deal with lt == 0.
-
+   if( online != -1 && pPtr(online)->getBoundaryFlag() != kNonBoundary &&
+       pPtr( (online+1)%3 )->getBoundaryFlag() != kNonBoundary ) //point on bndy
+       return 0;
    //else cout << "location out of bounds\n";
    return(lt);
 }
