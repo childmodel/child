@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.177 2003-08-12 13:26:59 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.178 2003-09-01 14:05:53 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -502,13 +502,13 @@ MakeMeshFromInputData( tInputFile &infile, tRand &randS )
    // the back of the node list.
    cout << "Creating node list..." << flush;
    tSubNode tempnode( infile );
-   tBoundary_t bound;
    for( i = 0; i< nnodes; i++ )
    {
       tempnode.set3DCoords( input.x[i], input.y[i], input.z[i] );
       miNextNodeID = i;
       tempnode.setID( miNextNodeID );
-      bound = static_cast<tBoundary_t>(input.boundflag[i]);
+      tBoundary_t bound;
+      bound = INT_TO_ENUM(tBoundary_t, input.boundflag[i]);
       assert( bound >= 0 && bound <= 2 );
       tempnode.setBoundaryFlag( bound );
       switch (bound){
@@ -1597,7 +1597,7 @@ MakeMeshFromPoints( tInputFile &infile )
       //cout << "IN MGFP c0, ADDING NODE " << i << endl;
       //Xtempnode.setID( miNextNodeID );
       tempnode.set3DCoords( x[i],y[i],z[i] );
-      tempnode.setBoundaryFlag( static_cast<tBoundary_t>(bnd[i]) );
+      tempnode.setBoundaryFlag( INT_TO_ENUM(tBoundary_t,bnd[i]) );
       //if(bnd[i]==kNonBoundary && z[i]<0)
       //  cout<<"problem at x "<<x[i]<<" y "<<y[i]<<endl;
       AddNode( tempnode );

@@ -14,10 +14,15 @@ using namespace std;
 # include <fstream.h>
 #endif
 
+#ifndef BOOL
+#define BOOL(x) x
+#endif
 #if defined(__SUNPRO_CC)
 # if __SUNPRO_CC==0x420 && !defined(ENUM_BOOL_DEFINED)
 #  define ENUM_BOOL_DEFINED 1
 typedef enum { false=0, true } bool;
+#undef BOOL
+#define BOOL(x) ((x)?true:false)
 # endif
 #endif
 
