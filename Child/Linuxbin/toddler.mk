@@ -1,4 +1,4 @@
-PT = $(CHILDCODE)
+PT = ../Code
 CXX = g++
 #
 # -O is necessary for -Wuninitialized to be on

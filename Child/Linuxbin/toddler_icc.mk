@@ -1,4 +1,4 @@
-PT = $(CHILDCODE)
+PT = ../Code
 CXX = icpc
 #
 # Intel compiler is picky !
