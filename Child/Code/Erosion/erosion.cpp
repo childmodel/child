@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.20 1998-04-23 18:48:34 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.21 1998-04-30 15:47:04 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -375,6 +375,8 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
        dz,           // Depth of deposition/erosion (erosion = negative)
        dzr;          // Potential depth of bedrock erosion
 
+   //cout << "tErosion::StreamErode\n";
+
    // Sort so that we always work in upstream to downstream order
    strmNet->SortNodesByNetOrder();
 
@@ -495,8 +497,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
                dz = dzr+cn->getAlluvThickness();
          }
          
-         //cout << "** THIS node has dzs " << dzs << " & dzr " << dzr
-         //     << " & net change " << dzr+dzs << endl;
+         //cout << "** THIS node has dz " << dz << endl << flush;
          //cn->TellAll();
 
          // Update alluvium thickness and node elevation
