@@ -4,7 +4,7 @@
 **
 **  Definitions of some simple geometry classes.
 **
-**  $Id: geometry.h,v 1.2 2002-04-22 17:24:20 arnaud Exp $
+**  $Id: geometry.h,v 1.3 2002-04-22 17:58:48 arnaud Exp $
 \***************************************************************************/
 
 #ifndef GEOMETRY_H
@@ -31,10 +31,9 @@ class Point3D
    double z;
 };
 
-inline Point2D::Point2D() 
-{
-   x = y = 0.0;
-}
+inline Point2D::Point2D() :
+  x(0.), y(0.)
+{}
 
 
 inline Point2D::Point2D( double ix, double iy ) :
