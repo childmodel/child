@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.10 2004-04-19 12:52:03 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.11 2004-04-19 17:24:44 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -784,35 +784,38 @@ double tStratGrid::CalculateMeanderCurrent( tTriangle *tri, double sx, double sy
 
   double CompassAv = -1;
 
-  if(tri != NULL){				                        // If Triangle present
-    tLNode *lnds[3];
-    int p;					                        // put the Triangle nodes in an array
-    int numnodes=0;
-    for(p=0; p<=2; p++){
-      if(tri->pPtr(p)->isMobile()){					// only fill the array with meandering nodes
-        lnds[numnodes] = static_cast<tLNode *>(tri->pPtr(p));
-        numnodes++;
-      }
+  if(tri == NULL)  // If Triangle not present
+    return CompassAv;
+
+  tLNode *lnds[3];
+  int numnodes=0;
+  for(size_t p=0; p<=2; ++p){
+    if(tri->pPtr(p)->isMobile()){		// only fill the array with meandering nodes
+      lnds[numnodes] = static_cast<tLNode *>(tri->pPtr(p));
+      numnodes++;
     }
+  }
 
-    // There are three surrounding meander nodes
-    if(numnodes==3){
-      tArray<double>CompassAngles(3);
-      CompassAngles[0] = CompassAngle(lnds[0],lnds[0]->getDownstrmNbr() );
-      CompassAngles[1] = CompassAngle(lnds[1],lnds[1]->getDownstrmNbr() );
-      CompassAngles[2] = CompassAngle(lnds[2],lnds[2]->getDownstrmNbr() );
-
+  switch(numnodes){
+  case 3:     // There are three surrounding meander nodes
+    {
+      const tArray<double>
+	CompassAngles(
+		      CompassAngle(lnds[0],lnds[0]->getDownstrmNbr()),
+		      CompassAngle(lnds[1],lnds[1]->getDownstrmNbr()),
+		      CompassAngle(lnds[2],lnds[2]->getDownstrmNbr())
+		      );
       CompassAv = PlaneFit(sx, sy, lnds[0]->get2DCoords(), lnds[1]->get2DCoords(),
 			   lnds[2]->get2DCoords(), CompassAngles);
-
     }
-    // There are two surrounding meander nodes
-    else if(numnodes==2){
+    break;
+  case 2:    // There are two surrounding meander nodes
+    {
       double dist[2];    //distance b/w new point and the three triangle points
-      dist[0]=DistanceBW2Points(sx, sy, lnds[0]->getX(), lnds[0]->getY());
-      dist[1]=DistanceBW2Points(sx, sy, lnds[1]->getX(), lnds[1]->getY());
+      dist[0] = DistanceBW2Points(sx, sy, lnds[0]->getX(), lnds[0]->getY());
+      dist[1] = DistanceBW2Points(sx, sy, lnds[1]->getX(), lnds[1]->getY());
 
-      tArray<double>CompassAngles(2);
+      double CompassAngles[2];
       CompassAngles[0] = CompassAngle(lnds[0],lnds[0]->getDownstrmNbr() );
       CompassAngles[1] = CompassAngle(lnds[1],lnds[1]->getDownstrmNbr() );
 
@@ -820,23 +823,18 @@ double tStratGrid::CalculateMeanderCurrent( tTriangle *tri, double sx, double sy
 			  CompassAngles[1], dist[0]);
 
     }
-    // There is one surrounding meander node
-    else if(numnodes==1){
-      CompassAv =  CompassAngle(lnds[0],lnds[0]->getDownstrmNbr() );
+    break;
+  case 1:    // There is one surrounding meander node
+    {
+      CompassAv = CompassAngle(lnds[0],lnds[0]->getDownstrmNbr() );
     }
-    // There is no surrounding meander node
-    else{
-      CompassAv = -1;
-    }
-
-  }
-  else if(tri == NULL){
+    break;
+  default:    // There is no surrounding meander node
     CompassAv = -1;
+    break;
   }
 
-
-  return(CompassAv);
-
+  return CompassAv;
 }
 
 /*********************************************************\
