@@ -27,7 +27,10 @@
 **
 **  See also tList, tArray, tMatrix
 **
-**  $Id: tPtrList.h,v 1.10 2000-01-24 22:49:15 gtucker Exp $
+**  Modifications:
+**    - 3/31/00 bug fix to tPtrList copy constructors (GT)
+**
+**  $Id: tPtrList.h,v 1.11 2000-03-31 14:13:30 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
@@ -308,6 +311,8 @@ private:
 **
 **  Modifications:
 **   - 2nd copy constructor added 1/2000, GT
+**   - bug in both copy constructors: use of undeclared variable NTPtr.
+**     Fixed 3/00, GT
 \**************************************************************************/
 
 //default constructor
@@ -332,7 +337,7 @@ tPtrList( const tPtrList< NodeType > & orig )
    {
       insertAtBack( curNode->Ptr );
       for( curNode=curNode->next; curNode!=orig.first; curNode=curNode->next )
-         insertAtBack( NTPtr );
+         insertAtBack( curNode->Ptr );
       if( orig.last->next == orig.first ) last->next = first;
    }
 }
@@ -349,7 +354,7 @@ tPtrList( const tPtrList< NodeType > * origptr )
    {
       insertAtBack( curNode->Ptr );
       for( curNode=curNode->next; curNode!=orig.first; curNode=curNode->next )
-         insertAtBack( NTPtr );
+         insertAtBack( curNode->Ptr );
       if( origptr->last->next == origptr->first ) last->next = first;
    }
 }
