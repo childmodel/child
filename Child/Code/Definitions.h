@@ -1,6 +1,6 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.1 1998-01-16 20:19:54 stlancas Exp $
+**   $Id: Definitions.h,v 1.2 1998-01-16 22:07:24 stlancas Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -34,6 +34,8 @@
 #define kSink        3  // ...or a dry sink (unfilled depression).
 #define kOutletFlag  4  // Used as temporary flag in FillLakes.
 #define kOutletPreFlag 5 // ditto
+#define kMeanderNode 1
+#define kNonMeanderNode 0
 #define kVeryHigh 100000  // Used in FillLakes
 #define RHO 1000.0      /* Density of water (kg/m^3) */
 #define RHOSED 2650. /* density of sediment, [kg/m^3] */

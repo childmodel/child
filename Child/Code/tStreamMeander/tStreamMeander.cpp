@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.1 1998-01-16 20:00:17 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.2 1998-01-16 22:05:59 stlancas Exp $
 \**************************************************************************/
 
 #include "Inclusions.h"
@@ -33,14 +33,21 @@ extern "C"
 tStreamMeander::tStreamMeander()
         : reachList(), rlIter( reachList )
 {
-   //gridPtr = 0;
+   gridPtr = 0;
    netPtr = 0;
+   critflow = 0;
 }
 
-tStreamMeander::tStreamMeander( tGrid< tLNode > &gRef, tInputFile &ifRef )
+tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
+                                tInputFile &infile )
         : reachList(), rlIter( reachList )
 {
-   if( netPtr != 0 ) netPtr = new tStreamNet( gRef );
+   //if( netPtr != 0 ) netPtr = new tStreamNet( gRef );
+   netPtr = &netRef;
+   assert( netPtr != 0 );
+   gridPtr = &gRef;
+   assert( gridPtr != 0 );
+   critflow = infile.ReadItem( critflow, "CRITICAL_FLOW" );
    FindMeander();
    MakeReaches();
    assert( &reachList != 0 );
@@ -48,11 +55,132 @@ tStreamMeander::tStreamMeander( tGrid< tLNode > &gRef, tInputFile &ifRef )
 
 tStreamMeander::~tStreamMeander()
 {
-   if( netPtr != 0 ) delete netPtr;
-   //gridPtr = 0;
+   //if( netPtr != 0 ) delete netPtr;
+   gridPtr = 0;
+   netPtr = 0;
 }
 
 
+/*****************************************************************************\
+**
+**       
+**                
+**
+**      Data members updated: 
+**      Called by: 
+**      Calls: 
+**
+**      Created:  YC
+**      Added:   YC
+**      Modified:          
+**
+**
+\*****************************************************************************/
+
+void tStreamMeander::FindMeander()
+{
+   tLNode * cn;
+   tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
+   for( cn = nodIter.FirstP(); cn->isActive(); cn = nodIter.NextP() )
+   {
+      if( cn->GetQ() >= critflow )
+          cn->SetMeanderStatus( kMeanderNode );
+      else
+          cn->SetMeanderStatus( kNonMeanderNode );
+   }
+}
+/*****************************************************************************\
+**
+**      GetOnlyReaches : constructs the reach objects       
+**                
+**
+**      Data members updated: 
+**      Called by: 
+**      Calls: 
+**
+**      Created:  
+**      Added:   YC
+**      Modified:          
+**
+**
+\*****************************************************************************/
+
+void tGrid::GetOnlyReaches()
+{
+  float curwidth, ctaillen;
+  int i, j, nmndrnbrs;
+  tNode *curn = firstnode;
+  tNode *crn, *frnode;
+  tEdge *ce;
+  nheads = 0;
+  if( firstreach )
+  {
+     delete [] firstreach;
+     firstreach = lastreach = NULL;
+  }
+
+  for (curn = firstnode , i=0 ; i<nActiveNodes ; i++)
+  {
+    if (curn->meander)
+    {
+      nmndrnbrs = 0;
+      curn->CountNbrs();
+      for (j=0, ce=curn->edg; j<curn->nnbrs; j++, ce=ce->nextedg)
+      {
+        if (ce->dest->flowedg->dest == curn 
+	      && ce->dest->meander) {nmndrnbrs++; break;}
+      }
+      if (nmndrnbrs==0)
+      {
+        nheads++;
+        curn->head = TRUE;
+      }
+    }
+    curn = curn->next;
+  }
+  firstreach = new tReach[nheads];
+
+  for (curn=firstnode , j=0 , i=0; i<nActiveNodes; i++)
+  {
+    if (curn->head)
+    {
+      firstreach[j].reachlen=0.0;
+      firstreach[j].nrnodes = 0;
+      crn = curn;
+      frnode = curn;
+      do
+      {
+        firstreach[j].nrnodes++;
+        curwidth = crn->chanwidth;
+        firstreach[j].reachlen+= crn->flowedg->len;
+        crn->reachmember = TRUE;
+        crn = crn->flowedg->dest;
+      }
+      while (!crn->reachmember && crn->boundary != kClosedBoundary);
+      firstreach[j].taillen = 10.0*curwidth;
+      ctaillen = 0.0;
+      firstreach[j].ntnodes=0;
+      do
+      {
+        ctaillen+= crn->flowedg->len;
+        crn = crn->flowedg->dest;
+        firstreach[j].ntnodes++;
+      }
+      while (ctaillen <= firstreach[j].taillen &&
+             crn->boundary != kClosedBoundary);
+        //firstreach[j].ClearNodes();
+      firstreach[j].GetReachNodes(frnode);
+      if (j<nheads-1) firstreach[j].next = &firstreach[j+1];
+      else
+      {
+         firstreach[j].next = NULL;
+         lastreach = &firstreach[j];
+      }
+      j++;
+    }
+    curn=curn->next;
+  }
+}
 
 
 /****************************************************************\
@@ -387,124 +515,3 @@ void tGrid::CheckPointStack()
 }
 
 
-/*****************************************************************************\
-**
-**       
-**                
-**
-**      Data members updated: 
-**      Called by: 
-**      Calls: 
-**
-**      Created:  YC
-**      Added:   YC
-**      Modified:          
-**
-**
-\*****************************************************************************/
-
-void tGrid::FindMeander(tParameters * pr)
-{
-tNode * curn;
-int i;
-for (i=0, curn=firstnode; i<nActiveNodes; i++)
-  {
-  curn->reachmember = FALSE;
-  curn->head = FALSE;
-  curn->meander = FALSE;
-  if (curn->drarea >= pr->acrit) curn->meander = TRUE;
-  curn = curn->next;
-  }
-}
-/*****************************************************************************\
-**
-**      GetOnlyReaches : constructs the reach objects       
-**                
-**
-**      Data members updated: 
-**      Called by: 
-**      Calls: 
-**
-**      Created:  
-**      Added:   YC
-**      Modified:          
-**
-**
-\*****************************************************************************/
-
-void tGrid::GetOnlyReaches()
-{
-  float curwidth, ctaillen;
-  int i, j, nmndrnbrs;
-  tNode *curn = firstnode;
-  tNode *crn, *frnode;
-  tEdge *ce;
-  nheads = 0;
-  if( firstreach )
-  {
-     delete [] firstreach;
-     firstreach = lastreach = NULL;
-  }
-
-  for (curn = firstnode , i=0 ; i<nActiveNodes ; i++)
-  {
-    if (curn->meander)
-    {
-      nmndrnbrs = 0;
-      curn->CountNbrs();
-      for (j=0, ce=curn->edg; j<curn->nnbrs; j++, ce=ce->nextedg)
-      {
-        if (ce->dest->flowedg->dest == curn 
-	      && ce->dest->meander) {nmndrnbrs++; break;}
-      }
-      if (nmndrnbrs==0)
-      {
-        nheads++;
-        curn->head = TRUE;
-      }
-    }
-    curn = curn->next;
-  }
-  firstreach = new tReach[nheads];
-
-  for (curn=firstnode , j=0 , i=0; i<nActiveNodes; i++)
-  {
-    if (curn->head)
-    {
-      firstreach[j].reachlen=0.0;
-      firstreach[j].nrnodes = 0;
-      crn = curn;
-      frnode = curn;
-      do
-      {
-        firstreach[j].nrnodes++;
-        curwidth = crn->chanwidth;
-        firstreach[j].reachlen+= crn->flowedg->len;
-        crn->reachmember = TRUE;
-        crn = crn->flowedg->dest;
-      }
-      while (!crn->reachmember && crn->boundary != kClosedBoundary);
-      firstreach[j].taillen = 10.0*curwidth;
-      ctaillen = 0.0;
-      firstreach[j].ntnodes=0;
-      do
-      {
-        ctaillen+= crn->flowedg->len;
-        crn = crn->flowedg->dest;
-        firstreach[j].ntnodes++;
-      }
-      while (ctaillen <= firstreach[j].taillen &&
-             crn->boundary != kClosedBoundary);
-        //firstreach[j].ClearNodes();
-      firstreach[j].GetReachNodes(frnode);
-      if (j<nheads-1) firstreach[j].next = &firstreach[j+1];
-      else
-      {
-         firstreach[j].next = NULL;
-         lastreach = &firstreach[j];
-      }
-      j++;
-    }
-    curn=curn->next;
-  }
-}
