@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.5 1998-02-02 20:36:45 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.6 1998-05-04 17:48:40 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -25,28 +25,10 @@
 template< class tSubNode >
 tOutput<tSubNode>::tOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile )
 {
-   //Xchar fullName[kMaxNameSize+6];
-   
    assert( gridPtr > 0 );
    g = gridPtr;
 
    infile.ReadItem( baseName, "OUTFILENAME" );
-/*X   strcpy( fullName, baseName );
-   strcat( fullName, ".nodes" );
-   nodeofs.open( fullName );
-   strcpy( fullName, baseName );
-   strcat( fullName, ".edges" );
-   edgofs.open( fullName );
-   strcpy( fullName, baseName );
-   strcat( fullName, ".tri" );
-   triofs.open( fullName );
-   strcpy( fullName, baseName );
-   strcat( fullName, ".z" );
-   zofs.open( fullName );
-   
-   if( !nodeofs.good() || !edgofs.good() || !triofs.good() || !zofs.good() )
-       ReportFatalError(
-           "I can't create files for output. Memory may be exhausted." );*/
 
    CreateAndOpenFile( &nodeofs, ".nodes" );
    CreateAndOpenFile( &edgofs, ".edges" );
@@ -181,20 +163,6 @@ template< class tSubNode >
 tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile ) 
         : tOutput<tSubNode>( g, infile )  // call base-class constructor
 {
-   //Xchar fullName[kMaxNameSize+6];
-
-   /*Xstrcpy( fullName, baseName );
-   strcat( fullName, ".area" );
-   drareaofs.open( fullName );
-   strcpy( fullName, baseName );
-   strcat( fullName, ".net" );
-   netofs.open( fullName );
-
-   if( !drareaofs.good() || !netofs.good() )
-       ReportFatalError(
-           "Unable to open output file. Storage space may be exhausted." );
-           */
-
    CreateAndOpenFile( &drareaofs, ".area" );
    CreateAndOpenFile( &netofs, ".net" );
    CreateAndOpenFile( &slpofs, ".slp" );
@@ -215,11 +183,13 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    netofs << " " << time << "\n " << nActiveNodes << endl;
    slpofs << " " << time << "\n " << nActiveNodes << endl;
    qofs << " " << time << "\n " << nActiveNodes << endl;
+   
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
    {
       assert( cn>0 );
       drareaofs << cn->getDrArea() << endl;
-      netofs << cn->GetDownstrmNbr()->getID() << endl;
+      if( cn->GetDownstrmNbr() )
+          netofs << cn->GetDownstrmNbr()->getID() << endl;
       slpofs << cn->GetSlope() << endl;
       qofs << cn->GetQ() << endl;
    }
