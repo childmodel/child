@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.20 1998-06-04 21:24:27 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.21 1998-08-18 17:43:51 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -657,6 +657,31 @@ void tNode::ConvertToClosedBoundary()
    
 }
 
+
+
+/**************************************************************************\
+**
+**  TellAll
+**
+**  ...is a debugging routine that prints out a bunch of info about a node.
+**
+\**************************************************************************/
+#ifndef NDEBUG
+void tNode::TellAll()
+{
+   tLNode * nbr;
+   int i;
+   
+   cout << " NODE " << id << ":\n";
+   cout << "  x=" << x << " y=" << y << " z=" << z;
+   cout << "  boundary: " << boundary
+        << "\n  varea: " << varea << endl;
+   if( edg )
+       cout << "  points to edg #" << edg->getID() << endl;
+   else cout << "  edg is undefined!\n";
+   
+}
+#endif
 
 
 /**************************************************************************\
