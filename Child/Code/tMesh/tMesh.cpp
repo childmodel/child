@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.48 1998-08-18 20:33:11 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.49 1998-10-01 18:46:16 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2078,6 +2078,10 @@ DeleteEdge( tEdge * edgePtr )
    //cout << "DeleteEdge(...) " << edgePtr->getID() << endl;
    tEdge edgeVal1, edgeVal2;
    if( !ExtricateEdge( edgePtr ) ) return 0;
+   //Note, extricate edge does not actually remove the edge from
+   //the edge list, it only moves the two edges (one 'line' that
+   //has two directions) to the end or front of the list.
+   //These two edges are then actually removed here.
    if( edgePtr->getBoundaryFlag() )
    {
       assert( edgeList.removeFromBack( edgeVal1 ) );
@@ -2088,13 +2092,15 @@ DeleteEdge( tEdge * edgePtr )
       assert( edgeList.removeFromFront( edgeVal1 ) );
       assert( edgeList.removeFromFront( edgeVal2 ) );
    }
-     //cout << "  edges " << edgeVal1.getID() << " and "
-     //   <<  edgeVal2.getID() << " between nodes "
-     //   << edgeVal1.getOriginPtr()->getID() << " and "
-     //   << edgeVal2.getOriginPtr()->getID() << " removed" << endl;
+//    cout << "  edges " << edgeVal1.getID() << " and "
+//         <<  edgeVal2.getID() << " between nodes "
+//         << edgeVal1.getOriginPtr()->getID() << " and "
+//         << edgeVal2.getOriginPtr()->getID() << " removed" << endl;
+   
    if( &edgeVal1 == 0 || &edgeVal2 == 0 ) return 0;
    return 1;
 }
+
 
 template< class tSubNode >
 int tGrid< tSubNode >::
@@ -2112,7 +2118,7 @@ ExtricateEdge( tEdge * edgePtr )
    tArray< tTriangle * > triPtrArr(2);
      //cout << "find edge in list; " << flush;
    ce = edgIter.GetP( edgePtr->getID() );  //NB: why necessary? isn't ce the
-                                       // same as edgePtr??
+                                       // same as edgePtr??  Yes, why???
 
    // Remove the edge from it's origin's spokelist
      //cout << "update origin's spokelist if not done already; " << flush;
@@ -2127,7 +2133,7 @@ ExtricateEdge( tEdge * edgePtr )
 
    // Find the triangle that points to the edge
      //cout << "find triangle; " << flush;
-   triPtrArr[0] = TriWithEdgePtr( edgePtr );
+   triPtrArr[0] = TriWithEdgePtr( edgePtr ); 
 
    // Find the edge's complement
    listnodePtr = edgIter.NodePtr();
@@ -2137,7 +2143,7 @@ ExtricateEdge( tEdge * edgePtr )
    else if( edgePtr->getID()%2 == 1 ) cce = edgIter.PrevP();
    else return 0; //NB: why whould this ever occur??
 
-   // Find the triangle
+   // Find the triangle that points to the edges complement
      //cout << "find other triangle; " << flush;
    triPtrArr[1] = TriWithEdgePtr( cce );
      //if triangles exist, delete them
@@ -2156,6 +2162,15 @@ ExtricateEdge( tEdge * edgePtr )
       spk = spokIter.NextP();
       spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
    }
+
+   //Need to make sure that edg member of node was not pointing
+   //to one of the edges that will be removed.  Also, may be implications
+   //for some types of subnodes, so take care of that also.
+    tSubNode * nodece = (tSubNode *) ce->getOriginPtrNC();
+    nodece->WarnSpokeLeaving( ce );
+    tSubNode * nodecce = (tSubNode *) cce->getOriginPtrNC();
+    nodecce->WarnSpokeLeaving( cce );
+   
    if( ce->getBoundaryFlag() )
    {
         //move edges to back of list
@@ -2572,12 +2587,12 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
    cnnn->TellAll();*/
    
         //DumpEdges:
-     /*cout << "edges:" << endl;
-   for( ce = edgIter.FirstP(); !( edgIter.AtEnd() ); ce = edgIter.NextP() )
-   {
-      cout << ce->getID() << " from " << ce->getOriginPtrNC()->getID()
-           << " to " << ce->getDestinationPtrNC()->getID() << endl;
-   }*/
+//    cout << "edges:" << endl;
+//    for( ce = edgIter.FirstP(); !( edgIter.AtEnd() ); ce = edgIter.NextP() )
+//    {
+//       cout << ce->getID() << " from " << ce->getOriginPtrNC()->getID()
+//            << " to " << ce->getDestinationPtrNC()->getID() << endl;
+//    }
 
    // Deal with new edges and new triangle:
    // Here, tempEdge1 and tempEdge2 are the complementary edges that connect
@@ -3080,6 +3095,212 @@ AddNode( tSubNode &nodeRef )
    int i, j, k, ctr;
    tTriangle *tri;
    tSubNode *cn;
+   tEdge * tedg1;
+   tEdge * tedg3;
+   tArray< double > xyz( nodeRef.get3DCoords() );
+   tGridListIter< tSubNode > nodIter( nodeList );
+   assert( &nodeRef != 0 );
+
+   //cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
+
+   //cout << "locate tri" << endl << flush;
+   tri = LocateTriangle( xyz[0], xyz[1] );
+   assert( tri != 0 );  //if( tri == 0 ) return 0;
+   
+   // Assign ID to the new node and insert it at the back of either the active
+   // portion of the node list (if it's not a boundary) or the boundary
+   // portion (if it is)
+   int newid = nodIter.LastP()->getID() + 1;
+   nodeRef.setID( newid );
+   if( nodeRef.getBoundaryFlag()==kNonBoundary )
+       nodeList.insertAtActiveBack( nodeRef );
+   else
+       nodeList.insertAtBack( nodeRef );
+   assert( nodeList.getSize() == nnodes + 1 );
+   nnodes++;
+   
+   // Retrieve a pointer to the new node and flush its spoke list
+   if( nodeRef.getBoundaryFlag()==kNonBoundary )
+       cn = nodIter.LastActiveP();
+   else
+       cn = nodIter.LastP();
+   assert( cn!=0 );
+   cn->getSpokeListNC().Flush();
+   
+   //make ptr list of triangle's vertices:
+   tPtrList< tSubNode > bndyList;
+   tSubNode *tmpPtr;
+   for( i=0; i<3; i++ )
+   {
+      tmpPtr = (tSubNode *) tri->pPtr(i);
+      bndyList.insertAtBack( tmpPtr );
+   }
+   bndyList.makeCircular();
+
+
+   // Delete the triangle in which the node falls
+   //Xcout << "deleting tri in which new node falls\n";
+   i = DeleteTriangle( tri );
+   assert( i != 0 );  //if ( !DeleteTriangle( tri ) ) return 0;
+
+
+   //make 3 new triangles
+   tPtrListIter< tSubNode > bndyIter( bndyList );
+   tSubNode *node3 = bndyIter.FirstP();     // p0 in original triangle
+   //XtSubNode *node2 = nodIter.LastActiveP(); // new node
+   tSubNode *node2 = cn;                    // new node
+   tSubNode *node1 = bndyIter.NextP();      // p1 in orig triangle
+   tSubNode *node4 = bndyIter.NextP();      // p2 in orig triangle
+   tArray< double > p1( node1->get2DCoords() ),
+       p2( node2->get2DCoords() ), p3( node3->get2DCoords() ),
+       p4( node4->get2DCoords() );
+
+   if( xyz.getSize() == 3) //why would this ever not be the case? If we need to access new coords:
+       //size of xyz is basically the flag; the 4th element is never used o.w.
+   {
+      //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+      //     << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
+      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
+          cout << "new tri not CCW" << endl;
+   }
+   else
+   {
+      if( node1->Meanders() ) p1 = node1->getNew2DCoords();
+      if( node2->Meanders() ) p2 = node2->getNew2DCoords();
+      if( node3->Meanders() ) p3 = node3->getNew2DCoords();
+      if( node4->Meanders() ) p4 = node4->getNew2DCoords();  
+      /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
+      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
+          cout << "new tri not CCW" << endl;
+   }
+
+  
+
+   // Here's how the following works. Let the old triangle vertices be A,B,C
+   // and the new node N. The task is to create 3 new triangles ABN, NBC, and
+   // NCA, and 3 new edge-pairs AN, BN, and CN.
+   // First, edge pair BN is added. Then AEMT is called to create triangle
+   // ABN and edge pair AN. AEMT is called again to create tri NBC and edge
+   // pair CN. With all the edge pairs created, it remains only to call
+   // MakeTriangle to create tri NCA.
+   assert( node1 != 0 && node2 != 0 && node3 != 0 );
+   AddEdge( node1, node2, node3 );  //add edge between node1 and node2
+   tPtrList< tSubNode > tmpList;
+   tmpList.insertAtBack( node3 );  // ABN
+   tmpList.insertAtBack( node1 );
+   tmpList.insertAtBack( node2 );
+   tPtrListIter< tSubNode > tmpIter( tmpList );
+   AddEdgeAndMakeTriangle( tmpList, tmpIter );
+   tmpList.Flush();
+   tmpList.insertAtBack( node2 );  // NBC
+   tmpList.insertAtBack( node1 );
+   tmpList.insertAtBack( node4 );
+   tmpIter.First();
+   AddEdgeAndMakeTriangle( tmpList, tmpIter );
+   tmpList.Flush();
+   tmpList.insertAtBack( node2 );  // NCA
+   tmpList.insertAtBack( node4 );
+   tmpList.insertAtBack( node3 );
+   tmpList.makeCircular();
+   tmpIter.First();
+   MakeTriangle( tmpList, tmpIter );
+
+   //hasn't changed yet
+   //put 3 resulting triangles in ptr list
+   if( xyz.getSize() == 3 )
+   {
+      //Xcout << "flip checking in addnode" << endl;
+      tPtrList< tTriangle > triptrList;
+      tListIter< tTriangle > triIter( triList );
+      tPtrListIter< tTriangle > triptrIter( triptrList );
+      tTriangle *ct;
+      triptrList.insertAtBack( triIter.LastP() );
+      triptrList.insertAtBack( triIter.PrevP() );
+      triptrList.insertAtBack( triIter.PrevP() );
+        //check list for flips; if flip, put new triangles at end of list
+      int flip = 1;
+      ctr = 0;
+
+      while( !( triptrList.isEmpty() ) )
+      {
+         ctr++;
+         if( ctr > kLargeNumber ) // Make sure to prevent endless loops
+         {
+            cerr << "Mesh error: adding node " << node2->getID()
+                 << " flip checking forever"
+                 << endl;
+            ReportFatalError( "Bailing out of AddNode()" );
+         }
+         ct = triptrIter.FirstP();
+         
+         for( i=0; i<3; i++ )
+         {
+            if( ct->tPtr(i) != 0 )
+            {
+               if( CheckForFlip( ct, i, flip ) )
+               {
+                  triptrList.insertAtBack( triIter.LastP() );
+                  triptrList.insertAtBack( triIter.PrevP() );
+                  break;
+               }
+            }
+         }
+
+         triptrList.removeFromFront( ct );
+      }
+   }
+   
+
+   //reset node id's
+   for( cn = nodIter.FirstP(), i=0; !( nodIter.AtEnd() ); cn = nodIter.NextP(), i++ )
+   {
+      cn->setID( i );
+   }
+   node2->makeCCWEdges();
+
+   UpdateMesh();
+   //cout << "AddNode finished" << endl; 
+
+   return node2;  // Return ptr to new node
+}
+
+
+/**************************************************************************\
+**
+**   tGrid::AddNode ( tSubNode nodeRef&, int dum )
+**
+**   Adds a new node with the properties of nodRef to the mesh.
+**   Same as AddNode above, it just takes a dummy integer to indicate
+**   that layer interpolation should be done.
+**   This is not a good solution, this function should only be
+**   temporary until a better way is thought of to indicate that
+**   layer interpolation is necessary.
+**
+**   Calls: tGrid::LocateTriangle, tGrid::DeleteTriangle, tGrid::AddEdge,
+**            tGrid::AddEdgeAndMakeTriangle, tGrid::MakeTriangle,
+**            tGrid::CheckForFlip; various member functions of tNode,
+**            tGridList, tGridListIter, tPtrList, etc. Also tLNode
+**            functions (TODO: this needs to be removed somehow),
+**            and temporarily, tGrid::UpdateMesh
+**   Parameters: nodeRef -- reference to node to be added (really,
+**                          duplicated)
+**   Returns:  (always TRUE: TODO make void return type)
+**   Assumes:
+**   Modifications:
+**        - 4/98: node is no longer assumed to be a non-boundary (GT)
+**        - 7/98: changed return type from int (0 or 1) to ptr to
+**                the new node (GT)
+**
+\**************************************************************************/
+#define kLargeNumber 1000000000
+template< class tSubNode >
+tSubNode * tGrid< tSubNode >::
+AddNode( tSubNode &nodeRef, int dum )
+{
+   int i, j, k, ctr;
+   tTriangle *tri;
+   tSubNode *cn;
    tArray< double > xyz( nodeRef.get3DCoords() );
    tGridListIter< tSubNode > nodIter( nodeList );
    assert( &nodeRef != 0 );
@@ -3244,7 +3465,7 @@ tSubNode *tGrid< tSubNode >::
 AddNodeAt( tArray< double > &xyz )
 {
    assert( &xyz != 0 );
-   //cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
+   cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
    tTriangle *tri;
    //cout << "locate tri" << endl << flush;
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
@@ -3255,7 +3476,7 @@ AddNodeAt( tArray< double > &xyz )
    tSubNode tempNode, *cn;
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );
    if( layerflag )
-       cn->LayerInterpolation( tri, nodeList );
+       tempNode.LayerInterpolation( tri, xyz[0], xyz[1] );
    if( xyz.getSize() != 3 ) tempNode.setNew2DCoords( xyz[0], xyz[1] );
    tempNode.setBoundaryFlag( 0 );
 
@@ -3486,8 +3707,11 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
    //cout << "THIS IS CheckForFlip(...) " << tri->getID() << endl;
    tSubNode *node0, *node1, *node2, *node3;
    node0 = ( tSubNode * ) tri->pPtr(nv);
+   //cout<<"node0 id "<<node0->getID()<<endl;
    node1 = ( tSubNode * ) tri->pPtr((nv+1)%3);
+   //cout<<"node1 id "<<node1->getID()<<endl;
    node2 = ( tSubNode * ) tri->pPtr((nv+2)%3);
+   //cout<<"node2 id "<<node2->getID()<<endl;
    tTriangle *triop = tri->tPtr(nv);
    int nvop = triop->nVOp( tri );
    node3 = ( tSubNode * ) triop->pPtr( nvop );
@@ -3519,7 +3743,22 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
    return 1;
 }
 
-/******************************************************************/
+/******************************************************************\
+   Note on notation in flip edge
+
+                d
+               /|\
+       tri->  / | \ <-triop
+             /  |  \
+            a   |   c
+             \  |  /
+              \ | /
+               \|/
+                b
+        Edge bd will be removed
+        and an edge ac will be made.
+        nbrList contains the points a, b, c, d     
+\******************************************************************/
 template< class tSubNode >
 void tGrid< tSubNode >::
 FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
@@ -3547,7 +3786,7 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
 
 /*****************************************************************************\
 **
-**      CheckLocallyDelaunay : updates teh triangulation after moving
+**      CheckLocallyDelaunay : updates the triangulation after moving
 **             some points.
 **             only uses x and y values, which have already been updated in
 **             MoveNodes (frmr PreApply).
@@ -3906,10 +4145,10 @@ CheckTriEdgeIntersect()
    }
    
    for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
-       if ( cn->Meanders() ) cn->UpdateCoords();
+       if ( cn->Meanders() ) cn->UpdateCoords();//Nic, here is where x&y change
    for( cn = tmpIter.FirstP(); !(tmpIter.AtEnd()); cn = tmpIter.NextP() )
    {
-      if ( cn->Meanders() ) cn->UpdateCoords();
+      if ( cn->Meanders() ) cn->UpdateCoords();//Nic, here is where x&y change
       //cout << "add node at " << cn->getX() << ", " << cn->getY() << ", "
       //     << cn->getZ() << endl << flush;
       cn->getSpokeListNC().Flush();
@@ -3929,7 +4168,7 @@ CheckTriEdgeIntersect()
            << id0 << ", " << id1 << ", and " << id2 << endl;
    }*/
    //cout << "finished, " << nnodes << endl;
-}
+}//end CheckTriEdgeIntersect()
 
                
 /*****************************************************************************\
@@ -3952,22 +4191,27 @@ void tGrid< tSubNode >::
 MoveNodes()
 {
 
-   //cout << "MoveNodes()..." << flush << endl;
+   cout << "MoveNodes()..." << flush << endl;
    tSubNode * cn;  
    tGridListIter< tSubNode > nodIter( nodeList );
    //Before any edges and triangles are changed, layer interpolation
    //must be performed.
-   tTriangle *tri;
-   tArray<double> newxy(2);
-   for(cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP()){
-      newxy=cn->getNew2DCoords();
-      if( (cn->getX()==newxy[0]) && (cn->getY()==newxy[1]) ){
-         //Nic - there may be some issues if boundary nodes make up
-         //the triangle.
-         tri = LocateTriangle( newxy[0], newxy[1] );
-         cn->LayerInterpolation( tri, nodeList );
+   if( layerflag ){   
+      tTriangle *tri;
+      tArray<double> newxy(2);
+      for(cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP()){
+         newxy=cn->getNew2DCoords();
+         if( (cn->getX()!=newxy[0]) && (cn->getY()!=newxy[1]) ){
+            //Nic - there may be some issues if boundary nodes make up
+            //the triangle.
+            cout<<"a point will be moved in movenodes"<<endl;
+            cout<<cn->getX()<<" "<<newxy[0]<<" "<<cn->getY()<<" "<<newxy[1]<<endl;
+            tri = LocateTriangle( newxy[0], newxy[1] );
+            cn->LayerInterpolation( tri, newxy[0], newxy[1] );
+         }
       }
    }
+   
    //check for triangles with edges which intersect (an)other edge(s)
    CheckTriEdgeIntersect(); //calls tLNode::UpdateCoords() for each node
    //resolve any remaining problems after points moved
