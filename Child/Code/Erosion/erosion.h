@@ -48,7 +48,7 @@
 **       a new DensifyMesh function and supporting data member
 **       mdMeshAdaptMaxFlux (gt 2/2000)
 **
-**  $Id: erosion.h,v 1.30 2000-04-19 22:02:48 nmgaspar Exp $
+**  $Id: erosion.h,v 1.31 2000-12-07 12:04:49 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -63,10 +63,11 @@
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
 
-#define tSedTrans tSedTransPwrLaw
-#define SEDTRANSOPTION "Power-law transport formula"
-//#define tSedTrans tSedTransWilcock
-//#define SEDTRANSOPTION "Wilcock sand-gravel formula"
+//#define tSedTrans tSedTransPwrLaw
+//#define SEDTRANSOPTION "Power-law transport formula"
+#define tSedTrans tSedTransWilcock
+#define SEDTRANSOPTION "Wilcock sand-gravel formula"
+//#define SEDTRANSOPTION "Willgoose/Riley mine tailings formula"
 
 /***************************************************************************\
 **  class tEquilibCheck
@@ -262,7 +263,7 @@ public:
 private:
     tMesh<tLNode> *meshPtr;    // ptr to mesh
     tBedErodePwrLaw bedErode;  // bed erosion object
-    tSedTransMineTailings sedTrans;        // sediment transport object 
+    tSedTrans sedTrans;        // sediment transport object 
     double kd;                 // Hillslope transport (diffusion) coef
     double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
 
