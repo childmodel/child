@@ -15,6 +15,7 @@ OBJECTS = \
  tStorm.$(OBJEXT) tStreamNet.$(OBJEXT) tUplift.$(OBJEXT) errors.$(OBJEXT) \
  tFloodplain.$(OBJEXT) tEolian.$(OBJEXT) globalFns.$(OBJEXT) \
  predicates.$(OBJEXT) tVegetation.$(OBJEXT) tListInputData.$(OBJEXT) \
+ tStratGrid.$(OBJEXT) \
  tTimeSeries.$(OBJEXT) ParamMesh_t.$(OBJEXT) TipperTriangulator.$(OBJEXT) \
  TipperTriangulatorError.$(OBJEXT)
 
@@ -47,6 +48,9 @@ tRunTimer.$(OBJEXT): $(PT)/tRunTimer/tRunTimer.cpp
 
 tStorm.$(OBJEXT): $(PT)/tStorm/tStorm.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStorm/tStorm.cpp
+
+tStratGrid.$(OBJEXT):  $(PT)/tStratGrid/tStratGrid.cpp
+	$(CXX) $(CFLAGS) $(PT)/tStratGrid/tStratGrid.cpp
 
 tTimeSeries.$(OBJEXT): $(PT)/tTimeSeries/tTimeSeries.cpp
 	$(CXX) $(CFLAGS) $(PT)/tTimeSeries/tTimeSeries.cpp
@@ -133,6 +137,7 @@ HFILES = \
 	$(PT)/tPtrList/tPtrList.h \
 	$(PT)/tRunTimer/tRunTimer.h \
 	$(PT)/tStorm/tStorm.h \
+	$(PT)/tStratGrid/tStratGrid.h \
 	$(PT)/tStreamMeander/meander.h \
 	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/tStreamNet/tStreamNet.h \
@@ -159,6 +164,7 @@ tLNode.$(OBJEXT): $(HFILES)
 tListInputData.$(OBJEXT): $(HFILES)
 tRunTimer.$(OBJEXT): $(HFILES)
 tStorm.$(OBJEXT) : $(HFILES)
+tStratGrid.$(OBJEXT) : $(HFILES)
 tStreamMeander.$(OBJEXT): $(HFILES)
 tStreamNet.$(OBJEXT): $(HFILES)
 tTimeSeries.$(OBJEXT) : $(HFILES)
