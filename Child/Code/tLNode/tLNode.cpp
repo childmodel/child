@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.5 1998-01-21 20:11:01 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.6 1998-01-28 00:00:09 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -208,8 +208,7 @@ const tBedrock &tBedrock::operator=( const tBedrock &right )     //tBedrock
 
 tSurface::tSurface()                                             //tSurface
 {
-     //vegresistfactor = 0;
-   veg = tauc = 0.0;
+   veg = tauc = vegerody = 0.0;
      //cout << "  tSurface()" << endl;
 }
 
@@ -217,9 +216,9 @@ tSurface::tSurface( const tSurface &orig )                       //tSurface
 {
    if( &orig != 0 )
    {
-        //vegresistfactor = orig.vegresistfactor;
       veg = orig.veg;
       tauc = orig.tauc;
+      vegerody = orig.vegerody;
    }
      //cout << "  tSurface( orig )" << endl;
 }
@@ -236,6 +235,7 @@ const tSurface &tSurface::operator=( const tSurface &right )     //tSurface
    {
       veg = right.veg;
       tauc = right.tauc;
+      vegerody = right.vegerody;
    }
    return *this;
 }
@@ -658,4 +658,27 @@ void tLNode::EroDep( float dz )
    
    //sed += dz;
    //if( sed<0 ) sed=0;
+   reg.thickness += dz;
+   if( reg.thickness < 0 ) reg.thickness = 0.0;
 }
+
+void tLNode::setAlluvThickness( float val )
+{reg.thickness = ( val >= 0.0 ) ? val : 0.0;}
+
+float tLNode::getAlluvThickness() const {return reg.thickness;}
+
+
+void tLNode::setVegErody( float val )
+{surf.vegerody = ( val >= 0.0 ) ? val : 0.0;}
+
+float tLNode::getVegErody() const {return surf.vegerody;}
+
+void tLNode::setBedErody( float val )
+{rock.erodibility = ( val >= 0.0 ) ? val : 0.0;}
+
+float tLNode::getBedErody() const {return rock.erodibility;}
+
+void tLNode::setReachMember( int val )
+{chan.migration.reachmember = ( val == 0 || val == 1 ) ? val : 0;}
+
+int tLNode::getReachMember() const {return chan.migration.reachmember;}
