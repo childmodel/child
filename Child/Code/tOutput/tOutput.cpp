@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.93 2004-04-05 10:07:11 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.94 2004-04-16 18:33:25 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -55,6 +55,7 @@ class tTSOutputImp : public tOutputBase<tSubNode>
 {
   tTSOutputImp(const tTSOutputImp&);
   tTSOutputImp& operator=(const tTSOutputImp&);
+  tTSOutputImp();
 public:
   tTSOutputImp( tMesh<tSubNode> * meshPtr, const tInputFile &infile );
   void WriteTSOutput();
@@ -82,6 +83,7 @@ private:
 template< class tSubNode >
 class tStratOutputImp : public tOutputBase<tSubNode>
 {
+  tStratOutputImp();
 public:
   tStratOutputImp(tMesh<tSubNode> * meshPtr, const tInputFile &infile );
   void WriteNodeData( double time, int );
@@ -1242,7 +1244,7 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
 
 	meandernode=meandernode->getDownstrmNbr();
 	counter++;
-	if(meandernode->getBoundaryFlag() != 0) break;
+	if(meandernode->getBoundaryFlag() != kNonBoundary) break;
       }
       /*****************************************************\
        // And,...what is the distance to the channel axis ?
