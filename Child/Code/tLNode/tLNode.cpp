@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.21 1998-03-16 18:53:54 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.22 1998-03-20 15:38:39 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -752,8 +752,8 @@ void tLNode::TellAll()
    tLNode * nbr;
    
    cout << " NODE " << id << ":\n";
+   cout << "  x=" << x << " y=" << y << " z=" << z;
    if( edg ) {
-      cout << "  x=" << x << " y=" << y << " z=" << z;
       cout << "  points to edg #" << edg->getID() << endl;
       cout << "  dr area: " << getDrArea() << "  discharge: " << GetQ()
            << "  boundary status: " << boundary << "  flood status: "
@@ -764,11 +764,11 @@ void tLNode::TellAll()
          cout << "  Flows along edg " << flowedge->getID() << " to node "
               << nbr->getID() << " at (" << nbr->getX() << ","
               << nbr->getY() << "," << nbr->getZ() << ")\n";
+         cout << "  qs: " << qs << "  qsin: " << qsin << "  slp: "
+              << GetSlope() << "  reg: " << reg.thickness << endl;
+         cout << "  dzdt: " << dzdt << "  drdt: " << drdt << endl;
       }
       else cout << "  Flowedg is undefined\n";
-      cout << "  qs: " << GetQs() << "  qsin: " << GetQsin() << "  slp: "
-           << GetSlope() << "  reg: " << reg.thickness << endl;
-      cout << "  dzdt: " << dzdt << "  drdt: " << drdt << endl;
       
    }
    else cout << "  edg is undefined!\n";
@@ -869,26 +869,26 @@ void tLNode::setReachMember( int val )
 
 int tLNode::getReachMember() const {return chan.migration.reachmember;}
 
-void tLNode::SetQs( double val ) {qs = val;}
+void tLNode::setQs( double val ) {qs = val;}
 
-double tLNode::GetQs() const {return qs;}
+double tLNode::getQs() const {return qs;}
 
-void tLNode::SetQsin( double val ) {qsin = val;}
+void tLNode::setQsin( double val ) {qsin = val;}
 
 void tLNode::AddQsin( double val ) 
 {
    qsin += val;
 }
 
-double tLNode::GetQsin() const {return qsin;}
+double tLNode::getQsin() const {return qsin;}
 
-void tLNode::SetDzDt( double val ) {dzdt = val;}
+void tLNode::setDzDt( double val ) {dzdt = val;}
 
-double tLNode::GetDzDt() {return dzdt;}
+double tLNode::getDzDt() {return dzdt;}
 
-void tLNode::SetDrDt( double val ) {drdt = val;}
+void tLNode::setDrDt( double val ) {drdt = val;}
 
-double tLNode::GetDrDt() {return drdt;}
+double tLNode::getDrDt() {return drdt;}
 
 void tLNode::setXYZD( tArray< double > arr )
 {
