@@ -76,7 +76,7 @@ tInlet::~tInlet()
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.14 1998-02-24 01:41:43 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.15 1998-02-27 22:57:43 stlancas Exp $
 \**************************************************************************/
 
 
@@ -180,6 +180,8 @@ double tStreamNet::getInfilt() const {return infilt;}
 
 double tStreamNet::getInDrArea() const {return inlet.inDrArea;}
 
+tLNode *tStreamNet::getInletNodePtr() const {return inlet.innode;}
+
 // TODO: the value checks are nice, but will hurt performance. Should
 // probably be removed.
 void tStreamNet::setFlowGenOpt( int val )
@@ -198,6 +200,10 @@ void tStreamNet::setInfilt( double val )
 
 void tStreamNet::setInDrArea( double val )
 {inlet.inDrArea = ( val >= 0 ) ? val : 0;}
+
+void tStreamNet::setInletNodePtr( tLNode *Ptr )
+{inlet.innode = ( Ptr > 0 ) ? Ptr : 0;}
+
 
 
 
