@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.22 1998-02-25 00:36:33 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.23 1998-02-27 00:08:25 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -18,6 +18,31 @@ extern "C"
 }
 
 
+/*****************************************************************************\
+**
+**
+**      LineRemainder: given x,y coords, finds d = ax + by + c for the line 
+**              formed by points  p0->(x, y) and p1->(x, y)
+**      Global function.
+**      Data members updated: 
+**      Called by: 
+**      Calls:  
+**        
+**
+\*****************************************************************************/
+double LineRemainder( double x, double y, tNode * p0,tNode * p1 )
+{
+  double a,b,c, x0, y0, x1, y1;
+
+  x0 = p0->x;
+  y0 = p0->y;
+  x1 = p1->x;
+  y1 = p0->y;
+  a = y1 - y0; 
+  b = x0 - x1; 
+  c = -( a * x0 + b * y0 );
+  return (a * x + b * y + c);
+}
 /**************************************************************************\
 **
 **  Constructors
@@ -643,7 +668,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
    tArray< double > xa, ya, xsa, qa, rerodya, lerodya, delsa,
        slopea, widtha, deptha, diama, deltaxa, deltaya,
        rdeptha, ldeptha, lambdaa;
-   tArray< double > *dumArrPtr, delta(2), newxy(2);
+   tArray< double > *dumArrPtr, delta(2), newxy(2), oldpos;
    double rerody, lerody, rz, lz, width;
    double maxfrac, displcmt, a, b, dtm, tmptim, frac, xs;
    double num;
@@ -664,6 +689,14 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
       {
          curnode->setLatDisplace( 0.0, 0.0 );
          curnode->setNew2DCoords( curnode->getX(), curnode->getY() );
+         //set old x,y if necessary
+         oldpos = curnode->getXYZD();
+         if( oldpos[0] == 0.0 && oldpos[1] == 0.0 )
+         {
+            oldpos[0] = curnode->getX();
+            oldpos[1] = curnode->getY();
+            curnode->setXYZD( oldpos );
+         }
            //newxy = curnode->getNew2DCoords();
            //cout << "init. new coords to " << newxy[0] << " " << newxy[1] << endl;
       }
@@ -815,13 +848,14 @@ void tStreamMeander::Migrate()
    //timeadjust = 86400. * pr->days;
    while( time < duration && !(reachList.isEmpty()) )
    {
+      SetOldXY();
       CalcMigration( time, duration, cummvmt ); //incremented time
-      MakeChanBorder( bList ); //bList of coordinate arrays made
+      MakeChanBorder( /*bList*/ ); //bList of coordinate arrays made
       CheckBrokenFlowedg();
       CheckBanksTooClose();
       CheckFlowedgCross();
       gridPtr->MoveNodes();
-      AddChanBorder( bList );
+      AddChanBorder( /*bList*/ );
       //after the channel migrates a certain amount
       //(here, maximum migration distances, in units of hydr. width,
       //at each iteration are summed and compared to 1.0)
@@ -849,7 +883,82 @@ void tStreamMeander::Migrate()
 **              Updated: 1/98 SL
 **
 \*****************************************************************************/
-
+void tStreamMeander::MakeChanBorder()
+{
+   int i, j, num, pccw;
+   double x0, y0, x1, y1, x, y, z, delx, dely, phi, width, xdisp, ydisp;
+   double val;
+   double lvdist;
+   tPtrList< tLNode > *cr;
+   tPtrListIter< tLNode > rnIter;
+   tLNode *cn, *cnbr;
+   tArray< double > cnpos, dsnpos, oldpos, rl;
+   for( cr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
+        cr = rlIter.NextP(), i++ )
+   {
+      rnIter.Reset( *cr );
+      num = nrnodes[i];
+      for( cn = rnIter.FirstP(), j=0; j<num;
+           cn = rnIter.NextP(), j++ )
+      {
+         width = cn->getHydrWidth();
+         oldpos = cn->getXYZD();
+         if( oldpos[3] == 0.0 )
+         {
+            if( cn->DistFromOldXY() >= 0.5 * width )
+            {
+               cnpos = cn->get2DCoords();
+               cnbr = cn->GetDownstrmNbr();
+               dsnpos = cnbr->get2DCoords();
+               x0 = cn->getX();
+               y0 = cn->getY();
+               x1 = cnbr->getX();
+               y1 = cnbr->getY();
+               delx = x1 - x0;
+               dely = y1 - y0;
+               phi = atan2( dely, delx );
+               xdisp = 0.5 * width * sin(phi);
+               ydisp = 0.5 * width * cos(phi);
+               rl = cn->getZOld();
+               z = cn->getZ();
+               if( PointsCCW( cnpos, dsnpos, oldpos ) )
+               {
+                  oldpos[0] = x0 - xdisp;
+                  oldpos[1] = y0 + ydisp;
+                  oldpos[2] = ( rl[1] > z ) ? rl[1] : z;
+                  oldpos[3] = 1.0;
+               }
+               else
+               {
+                  oldpos[0] = x0 + xdisp;
+                  oldpos[1] = y0 - ydisp;
+                  oldpos[2] = ( rl[0] > z ) ? rl[0] : z;
+                  oldpos[3] = -1.0;
+               }
+               cn->setXYZD( oldpos );
+            }
+         }
+         else
+         {
+            //make sure old coords are on same side of channel
+            //they were last time:
+            cnpos = cn->get2DCoords();
+            cnbr = cn->GetDownstrmNbr();
+            dsnpos = cnbr->get2DCoords();
+            pccw = PointsCCW( cnpos, dsnpos, oldpos );
+            //if not, erase old z (i.e., set to zero):
+            if( !( ( pccw && oldpos[3] == 1.0 ) ||
+                   ( !pccw && oldpos[3] == -1.0 ) ) )
+            {
+               oldpos[2] = 0.0;
+               oldpos[3] = 0.0;
+               cn->setXYZD( oldpos );
+            }
+         }         
+      }
+   }
+}
+/*
 void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
 {
    int i, j, num;
@@ -893,7 +1002,7 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
       }
    }
 }
-
+*/
 /******************************************************************************\
 **
 **	AddChanBorder: After meandering points have been moved and the
@@ -904,9 +1013,83 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
 **                              parameters which determine hydraulic geometry
 **              Called by:      Migrate
 **              Created:        8/18/97 SL
-**              Updated:        1/98 SL
+**              Updated:        1/98 SL; 2/98 SL
 **
 \*****************************************************************************/
+void tStreamMeander::AddChanBorder()
+{
+   int i, inchan, pccw, sameside;
+   double lvdist, width;
+   tArray< double > xy, xyd, oldpos;
+   tTriangle *ct;
+   tLNode *cn, *tn, *dn, *channodePtr, channode;
+   tGridListIter< tLNode > nIter( gridPtr->GetNodeList() );
+   //go through list of coordinates made by MakeChanBorder:
+   //go through active nodes:
+   for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
+   {
+      //select for meandering nodes:
+      if( cn->Meanders() )
+      {
+         oldpos = cn->getXYZD();
+         //select for nodes with old coords set:
+         if( oldpos[3] != 0.0 )
+         {
+            width = cn->getHydrWidth();
+            lvdist = leavefrac * width;
+            //select for nodes far enough away from the old coords:
+            if( cn->DistFromOldXY() > lvdist )
+            {
+               //just make sure new node will be
+               //(a) not in a channel and
+               //(b) on the same side of the channel:
+               if( ct = gridPtr->LocateTriangle( oldpos[0], oldpos[1] ) )
+               {
+                  channodePtr = cn;
+                  channode = *channodePtr;
+                  //***NG: HERE IS WHERE YOU CAN FIND A DEPOSIT THICKNESS
+                  //TO ADD TO THE NEW NODE***
+                  channode.set3DCoords( oldpos[0], oldpos[1], oldpos[2] );
+                  inchan = 1;
+                  for( i=0; i<3; i++ )
+                  {
+                     tn = (tLNode *) ct->pPtr(i);
+                     if( tn->Meanders() )
+                     {
+                        if( inchan = InChannel( tn, &channode ) ) break;
+                     }
+                  }
+                  if( !inchan )
+                  {
+                     sameside = 0;
+                     for( i=0; i<3; i++ )
+                     {
+                        tn = (tLNode *) ct->pPtr(i);
+                        if( tn->Meanders() )
+                        {
+                           xy = tn->get2DCoords();
+                           xyd = tn->GetDownstrmNbr()->get2DCoords();
+                           pccw = PointsCCW( xy, xyd, oldpos );
+                           if( !( ( pccw && oldpos[3] == 1.0 ) ||
+                                  ( !pccw && oldpos[3] == -1.0 ) ) )
+                           {
+                              sameside = 0;
+                              break;
+                           }
+                        }
+                     }
+                     if( sameside ) gridPtr->AddNode( channode );
+                  }
+               }
+               for( i=0; i<4; i++ ) oldpos[i] = 0.0;
+               cn->setXYZD( oldpos );
+            }
+         }
+      }
+   }
+}
+
+/*
 void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
 {
    int i;
@@ -952,7 +1135,7 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
    }
    assert( bList.isEmpty() ); //prob. don't need this check, but...
 }
-
+*/
 /******************************************************************************\
 **
 **	FindBankErody :	This is the routine that finds the effective erodibility 

@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.10 1998-02-20 23:02:12 stlancas Exp $
+**  $Id: tLNode.h,v 1.11 1998-02-27 00:08:45 stlancas Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -80,6 +80,7 @@ class tMeander
    double zoldright;	/* right bed elevation */
    double zoldleft;	/* left bed elevation*/
    double bankrough; //bank roughness (lambda in meander.f) w/ units of length
+   tArray< double > xyzd;
 };
 
 /** class tBedrock *************************************************************/
@@ -234,6 +235,9 @@ class tLNode : public tNode
    int getReachMember() const;
    void setQs( double );
    double getQs() const;
+   void setXYZD( tArray< double > );
+   tArray< double > getXYZD() const;
+   double DistFromOldXY() const;
    
   protected:
    tBedrock rock;

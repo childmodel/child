@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.12 1998-02-25 00:37:19 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.13 1998-02-27 00:08:36 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -119,6 +119,7 @@ const tErode &tErode::operator=( const tErode &right )     //tErode
 }
 
 tMeander::tMeander()                                              //tMeander
+        : xyzd(4)
 {
    meander = head = reachmember = 0;
    newx = newy = deltax = deltay = zoldright = zoldleft = bankrough = 0.0;
@@ -126,6 +127,7 @@ tMeander::tMeander()                                              //tMeander
 }
 
 tMeander::tMeander( const tMeander &orig )                        //tMeander
+        : xyzd( orig.xyzd )
 {
    if( &orig != 0 )
    {
@@ -144,6 +146,7 @@ tMeander::tMeander( const tMeander &orig )                        //tMeander
 }
 
 tMeander::tMeander( int state, double x, double y )                //tMeander
+        : xyzd(4)
 {
      //chanptr = 0;
    meander = state;
@@ -174,6 +177,7 @@ const tMeander &tMeander::operator=( const tMeander &right )     //tMeander
       zoldright = right.zoldright;
       zoldleft = right.zoldleft;
       bankrough = right.bankrough;
+      xyzd = right.xyzd;
    }
    return *this;
 }
@@ -751,3 +755,16 @@ void tLNode::setQs( double val ) {chan.erosion.qs = val;}
 
 double tLNode::getQs() const {return chan.erosion.qs;}
 
+void tLNode::setXYZD( tArray< double > arr )
+{chan.migration.xyzd = ( arr.getSize() == 4 ) ? arr : tArray< double >(4);}
+
+tArray< double >
+tLNode::getXYZD() const {return chan.migration.xyzd;}
+
+
+double tLNode::DistFromOldXY() const
+{
+   double xo = chan.migration.xyzd[0], yo = chan.migration.xyzd[1];
+   
+   return sqrt( (x-xo) * (x-xo) + (y-yo) * (y-yo) );
+}
