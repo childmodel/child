@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.1 1998-01-15 22:43:13 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.2 1998-01-16 14:56:34 gtucker Exp $
 \***************************************************************************/
 
 
@@ -2187,7 +2187,7 @@ UpdateMesh()
    do
    {
       len = curedg->CalcLength();
-      cout << "Edge " << curedg->getID() << " length: " << curedg->getLength() << endl;
+      //Xcout << "Edge " << curedg->getID() << " length: " << curedg->getLength() << endl;
       curedg = elist.NextP();
       assert( curedg > 0 ); // failure = complementary edges not consecutive
       curedg->setLength( len );
