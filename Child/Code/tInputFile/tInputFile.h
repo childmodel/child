@@ -4,7 +4,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.h,v 1.3 1999-02-01 21:45:22 gtucker Exp $
+**  $Id: tInputFile.h,v 1.4 1999-02-22 17:40:54 gtucker Exp $
 \****************************************************************************/
 
 #ifndef TINPUTFILE_H
@@ -29,6 +29,7 @@ public:
 
 private:
     ifstream infile;
+    ofstream inoutfile;
 };
 
 #endif
