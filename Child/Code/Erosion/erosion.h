@@ -59,7 +59,7 @@
 **     - Added codes to go along with erosion & transport options, to
 **       enable checking against user-specified options (GT 7/02)
 **
-**  $Id: erosion.h,v 1.46 2003-05-16 15:16:57 childcvs Exp $
+**  $Id: erosion.h,v 1.47 2003-05-23 11:45:28 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -74,69 +74,6 @@
 #include "../tUplift/tUplift.h"
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
-
-// Here follows a table for transport and detachment laws, which are
-// chosen at compile time using #define switches.
-//
-// ("X()" trick exposed in:
-// The New C: X Macros, Randy Meyers, C/C++ Users Journal,
-// 19(5), May 2001)
-
-#define TRANSPORT_LAW_TABLE \
-X(PowerLaw1,"Power-law transport formula"), \
-X(PowerLaw2,"Power-law transport formula, form 2"), \
-X(BridgeDominic,"Bridge-Dominic form of Bagnold bedload formula"), \
-X(Wilcock,"Wilcock sand-gravel formula"), \
-X(PowerLawMulti,"Multi-size power-law formula"), \
-X(MineTailings,"Willgoose/Riley mine tailings formula")
-
-#define TRANSPORT_LAW_TABLE2 \
-X(PowerLaw1,tSedTransPwrLaw) \
-X(PowerLaw2,tSedTransPwrLaw2) \
-X(BridgeDominic,tSedTransBridgeDom) \
-X(Wilcock,tSedTransWilcock) \
-X(PowerLawMulti,tSedTransPwrLawMulti) \
-X(MineTailings,tSedTransMineTailings)
-
-#define X(a,b) a
-enum {
-  TRANSPORT_LAW_TABLE
-};
-#undef X
-
-#define X(a,b) b
-char const * const TransportLaw[] =
-{
-  TRANSPORT_LAW_TABLE
-};
-#undef X
-
-const int NUMBER_OF_TRANSPORT_LAWS = 
-sizeof(TransportLaw)/sizeof(TransportLaw[0]);
-
-#define DETACHMENT_LAW_TABLE \
-X(DetachPwrLaw1,"Power law, form 1"), \
-X(DetachPwrLaw2,"Power law, form 2")
-
-#define DETACHMENT_LAW_TABLE2 \
-X(DetachPwrLaw1,tBedErodePwrLaw) \
-X(DetachPwrLaw2,tBedErodePwrLaw2)
-
-#define X(a,b) a
-enum {
-  DETACHMENT_LAW_TABLE
-};
-#undef X
-
-#define X(a,b) b
-char const * const DetachmentLaw[] =
-{
-  DETACHMENT_LAW_TABLE
-};
-#undef X
-
-const int NUMBER_OF_DETACHMENT_LAWS =
-sizeof(DetachmentLaw)/sizeof(DetachmentLaw[0]);
 
 /***************************************************************************/
 /*
@@ -431,7 +368,7 @@ class tBedErodePwrLaw : public tBedErode
    double kb;  // Erosion coefficient
    double kt;  // Shear stress (or stream power) coefficient
    double mb;  // Exponent on total discharge
-   double ma;  // Exponent on drainage area (can differ from mb!)
+   //double ma;  // Exponent on drainage area (can differ from mb!)
    double nb;  // Exponent on slope
    double pb;  // Exponent on excess erosion capacity (e.g., shear stress)
    double taucd;  // Erosion threshold
@@ -471,7 +408,7 @@ class tBedErodePwrLaw2 : public tBedErode
    double kb;  // Erosion coefficient
    double kt;  // Shear stress (or stream power) coefficient
    double mb;  // Exponent on total discharge
-   double ma;  // Exponent on drainage area (can differ from mb!)
+   //double ma;  // Exponent on drainage area (can differ from mb!)
    double nb;  // Exponent on slope
    double pb;  // Exponent on excess erosion capacity (e.g., shear stress)
    double taucd;  // Erosion threshold
