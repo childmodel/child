@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.44 1998-07-20 22:08:56 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.45 1998-07-21 20:34:40 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1521,7 +1521,7 @@ void tStreamNet::FindHydrGeom()
 {
    int i, j, num;
    double hradius, kwdspow, kddspow, kndspow,
-       widpow, deppow, npow, radfactor, qpsec;
+       widpow, deppow, npow, qpsec;
    double width, depth, rough, slope;
    tLNode *cn;
 
@@ -1548,7 +1548,7 @@ void tStreamNet::FindHydrGeom()
          rough = pow(cn->getChanRough(), npow) * kndspow * pow(qpsec, enstn);
          cn->setHydrRough( rough );
          slope = cn->getChanSlope();
-         assert( slope > 0 );
+         //assert( slope > 0 );
          //Depth now calculated as above - done to be consistent
          //with changes made in FindChanGeom
 //          radfactor = qpsec * rough / width / sqrt(slope);
@@ -1592,12 +1592,10 @@ void tStreamNet::FindHydrGeom()
 void tStreamNet::FindChanGeom()
 {
    int i, j, num;
-   double qbf, hradius, qbffactor=0, radfactor, width, depth, rough, slope;
+   double qbf, qbffactor=0, width, depth, rough;
    double lambda;
-   double rlen, cz, nz, critS;
-   tLNode *cn, *dsn;
+   tLNode *cn;
    tGridListIter< tLNode > nIter( gridPtr->getNodeList() );
-   tPtrList< tLNode > *plPtr;
    //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
    tStorm *sPtr = getStormPtrNC();
    double isdmn = sPtr->getMeanInterstormDur();
@@ -1617,7 +1615,7 @@ void tStreamNet::FindChanGeom()
       cn->setChanDepth( depth );
       cn->setChanRough( rough );
       cn->setBankRough( lambda );
-      slope = cn->getSlope();
+      //slope = cn->getSlope();
       
       //Nic changed below, thinks it was causing problems
       //just using discharge relation to calculate depth instead
@@ -1634,12 +1632,12 @@ void tStreamNet::FindChanGeom()
 //          cn->setChanDepth( depth );
 //       }
 //       else cn->setMeanderStatus( kNonMeanderNode );
-      if( slope < 0.0 )
-      {
-         cout << "negative slope,"
-              << " probably from infinite loop in tLNode::GetSlope()" << endl;
-         ReportFatalError("negative slope in tStreamNet::FindChanGeom");
-      }
+//       if( slope < 0.0 )
+//       {
+//          cout << "negative slope,"
+//               << " probably from infinite loop in tLNode::GetSlope()" << endl;
+//          ReportFatalError("negative slope in tStreamNet::FindChanGeom");
+//       }
    }
    //cout << "done FindChanGeom" << endl;
 }
