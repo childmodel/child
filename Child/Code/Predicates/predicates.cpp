@@ -15,7 +15,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.cpp,v 1.5 2003-02-11 17:43:57 childcvs Exp $
+//  $Id: predicates.cpp,v 1.6 2003-03-14 17:32:49 childcvs Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -133,9 +133,46 @@
  
 #include "predicates.h"
 
+// The algorithms below fail on processors using extended precision.
+// Consequently, on Intel x86, we set the control word of the x87 device.
+//
+// The present implementation works on Linux and Cygwin on x86.
+// TODO: It needs to be extended if ported to Win32.
+#if defined(i386) && (defined(linux) || defined(__CYGWIN__))
+# if defined(linux)
+#  include <fpu_control.h>
+# elif defined(__CYGWIN__)
+#  define _FPU_EXTENDED 0x300
+#  define _FPU_DOUBLE   0x200
+#  define _FPU_GETCW(cw) __asm__ ("fnstcw %0" : "=m" (*&cw))
+#  define _FPU_SETCW(cw) __asm__ ("fldcw %0" : : "m" (*&cw))
+#  define fpu_control_t unsigned int
+# else
+#  error Platform not supported
+# endif
+class Set_local_fpu_precision {
+  fpu_control_t oldcw;
+public:
+  Set_local_fpu_precision() {
+    fpu_control_t newcw;
+    _FPU_GETCW(oldcw); // Store control word value
+    // Set double precision mode
+    newcw = (oldcw & ~_FPU_EXTENDED) | _FPU_DOUBLE;
+    _FPU_SETCW(newcw); // Set control word
+  }
+  ~Set_local_fpu_precision() {
+    _FPU_SETCW(oldcw); // Restore control word
+  }
+};
+# define SET_DOUBLE_PRECISION_MODE Set_local_fpu_precision _local_precision
+#else
+# define SET_DOUBLE_PRECISION_MODE
+#endif
+
 // constructor; just calls exactinit() (SL, 10/98):
 Predicates::Predicates() 
 {
+   SET_DOUBLE_PRECISION_MODE;
    exactinit();
 }
  
@@ -894,6 +931,7 @@ double Predicates::DifferenceOfProductsOfDifferences( double a, double b,
                                                       double e, double f,
                                                       double g, double h )
 {
+   SET_DOUBLE_PRECISION_MODE;
    double left;
    double right;
    double diff, errbound;
@@ -1036,6 +1074,7 @@ REAL Predicates::orient2dfast(const REAL *pa, const REAL *pb, const REAL *pc)
  
 REAL Predicates::orient2dadapt(const REAL *pa, const REAL *pb, const REAL *pc, REAL detsum) 
 { 
+  SET_DOUBLE_PRECISION_MODE;
   INEXACT REAL acx, acy, bcx, bcy; 
   REAL acxtail, acytail, bcxtail, bcytail; 
   INEXACT REAL detleft, detright; 
@@ -1116,6 +1155,7 @@ REAL Predicates::orient2dadapt(const REAL *pa, const REAL *pb, const REAL *pc, R
  
 REAL Predicates::orient2d(const REAL *pa, const REAL *pb, const REAL *pc)
 { 
+  SET_DOUBLE_PRECISION_MODE;
   REAL detleft, detright, det; 
   REAL detsum, errbound; 
  
@@ -1198,6 +1238,7 @@ REAL Predicates::incirclefast(const REAL *pa, const REAL *pb, const REAL *pc, co
 REAL Predicates::incircleadapt(const REAL *pa, const REAL *pb, const REAL *pc, const REAL *pd,
                    REAL permanent) 
 { 
+  SET_DOUBLE_PRECISION_MODE;
   INEXACT REAL adx, bdx, cdx, ady, bdy, cdy; 
   REAL det, errbound; 
  
@@ -1767,6 +1808,7 @@ REAL Predicates::incircleadapt(const REAL *pa, const REAL *pb, const REAL *pc, c
  
 REAL Predicates::incircle(const REAL *pa, const REAL *pb, const REAL *pc, const REAL *pd)
 { 
+  SET_DOUBLE_PRECISION_MODE;
   REAL adx, bdx, cdx, ady, bdy, cdy; 
   REAL bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady; 
   REAL alift, blift, clift; 
