@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.70 2004-03-05 17:04:35 childcvs Exp $
+**  $Id: tMesh.h,v 1.71 2004-03-05 17:22:18 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -200,8 +200,6 @@ public:
    tPtrList< tTriangle > InterveningTriangles( tNode*, tNode* );
    void ForceFlow( tSubNode*, tSubNode*, double );
 
-   void setStratGrid(tStratGrid *s_) { stratGrid = s_; }
-
 #ifndef NDEBUG
    /*'dump' routines for debugging*/
    void DumpEdges();
@@ -220,8 +218,6 @@ protected:
    int miNextEdgID;                    // next ID for added edge
    int miNextTriID;                    // next ID for added triangle
    bool layerflag;                 // flag indicating whether nodes have layers
-
-   tStratGrid *stratGrid;  // ptr to stratGrid
 };
 
 /** @class tIdArray

@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.1 2004-03-03 12:10:29 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.2 2004-03-05 17:22:19 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -59,6 +59,9 @@ tStratGrid::tStratGrid( tInputFile &infile, tMesh<tLNode> *mp_)
     StratConnect(0),
     imax(0), jmax(0)    //,tArray<double>surface(0),tArray<double>subsurface(0)
 {
+  // Keep a pointer to the mesh in order to access list of nodes
+  assert( mp!=0 );
+
   int i,j,k;					  // x and y position indices (-)
   double x,y;					  // x and y coordinates (m)
   int stepx,stepy;
@@ -66,11 +69,6 @@ tStratGrid::tStratGrid( tInputFile &infile, tMesh<tLNode> *mp_)
 
   i=0;
   x=y=0.;
-
-  // Keep a pointer to the mesh in order to access list of nodes
-  assert( mp!=0 );
-  // Inform tMesh of my existence
-  mp->setStratGrid( this );
 
   // Read in values related to dimensions and resolution of the mesh
   // and desired output format of the stratigraphic sections

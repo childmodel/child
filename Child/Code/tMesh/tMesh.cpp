@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.196 2004-03-05 17:04:33 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.197 2004-03-05 17:22:14 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -88,8 +88,7 @@ tMesh()
   miNextNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),
-  layerflag(false),
-  stratGrid(0)
+  layerflag(false)
 {
   if (0) //DEBUG
    cout<<"tMesh()"<<endl;
@@ -112,8 +111,7 @@ tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
   miNextNodeID(originalMesh->miNextNodeID),
   miNextEdgID(originalMesh->miNextEdgID),
   miNextTriID(originalMesh->miNextTriID),
-  layerflag(originalMesh->layerflag),
-  stratGrid(originalMesh->stratGrid)
+  layerflag(originalMesh->layerflag)
 {}
 
 
@@ -154,8 +152,7 @@ tMesh( const tInputFile &infile )
   miNextNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),
-  layerflag(false),
-  stratGrid(0)
+  layerflag(false)
 {
    // mSearchOriginTriPtr:
    // initially set search origin (tTriangle*) to zero:
@@ -250,7 +247,6 @@ template< class tSubNode >
 tMesh< tSubNode >::
 ~tMesh() {
   mSearchOriginTriPtr = 0;
-  stratGrid = 0;
   if (1)//DEBUG
     cout << "    ~tMesh()" << endl;
 }
