@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.16 2004-06-16 13:37:42 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.17 2005-02-11 16:55:53 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -649,6 +649,8 @@ int tStratGrid::getSectionLocation(int i) const
 void tStratGrid::SweepChannelThroughRectGrid(double time)
 {
   int i,j;
+  
+  if(1) std::cout<<"SCTRG";
 
   for(i=0; i<imax; i++){
     for(j=0; j<jmax; j++){
@@ -703,6 +705,7 @@ void tStratGrid::SweepChannelThroughRectGrid(double time)
     } // i
   }   // j
 
+  if(1) std::cout<<".End" << std::endl;
 
 } // end of function tStratGrid SweepChannelThroughRectGrid(double time)
 
@@ -886,6 +889,9 @@ double tStratGrid::CompassAngle(tLNode *cn, tLNode *dn) const
  **  fn tStratNode( tInputFile &infile, tMesh<tLNode *mp );
  **  @brief Main constructor for tStratNode
  **
+ **  Modifications:
+ **    - changed input parameter MAXREGDEPTH to SG_MAXREGDEPTH to 
+ **      distinguish from the Voronoi-based layering procedure. GT 1/05
  **
 \**************************************************************************/
 
@@ -949,7 +955,7 @@ tStratNode::tStratNode( tInputFile const &infile ) :
   //by detachment limited conditions during meandering
 
   grade.setSize( numg );
-  maxregdep = infile.ReadItem( maxregdep, "MAXREGDEPTH" );
+  maxregdep = infile.ReadItem( maxregdep, "SG_MAXREGDEPTH" );
   KRnew = infile.ReadItem( KRnew, "KR" );
   if( KRnew<0.0 )
     ReportFatalError( "Erodibility factor KR must be positive." );
@@ -1473,6 +1479,11 @@ void tStratNode::setLayerDgrade( int i, int g, double val)
   tStratNode::ErodeSimple
 
   Only for use on the rectangular StratGrid !
+  
+  Modifications:
+   - Bug fix: "if(-remainder<thickness)" changed to <=, to 
+   catch special case in which -remainder==thickness
+   GT&QC 2/05
 \**************************************************************/
 
 void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current)
@@ -1630,9 +1641,10 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
 	if(getI()==debugI && getJ()==debugJ){std::cout<<" erode 2"<<std::endl;    }
 
 	remainder=dhtotal; 				    // negative value, giving the dh we need to erode
+	int debugCount=0;
 	while(remainder < 0.0 && getLayerSed(l)!=0){
 	  thickness=getLayerDepth(l);
-	  if(-remainder < thickness){                    // remainder is smaller thatn the new layer thickness
+	  if(-remainder <= thickness){                    // remainder is smaller thatn the new layer thickness
 	    if(getI()==debugI && getJ()==debugJ && 0){
 	      std::cout<<" Want to erode layer thickness= "<<thickness<< " in erode 3"<<std::endl;
 	      std::cout<<" With "<<remainder<<std::endl;
@@ -1656,7 +1668,14 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
 	      std::cout<<"and the remainder is "<<remainder<<std::endl;
 	    }
 	  }
-	  //l++;
+      if(1) {
+  	     debugCount++;
+		 if( debugCount>1e6 ) {
+		    std::cout<<"More than 1e6 iterations in tStratNode::EroDepSimple." << std::endl;
+			std::cout<<"Node "<<getI()<<","<<getJ()<<" remainder "<<remainder<<" thickness "<<thickness<<std::endl;
+			ReportFatalError("Apparent endless loop in tStratNode::EroDepSimple");
+		 }
+	  }
 	}
 
 
