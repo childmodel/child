@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.16 1998-08-01 17:39:59 nmgaspar Exp $
+**  $Id: erosion.h,v 1.17 1998-08-19 21:39:35 gtucker Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -57,6 +57,9 @@
 #include "../tUplift/tUplift.h"
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
+
+#define tSedTrans tSedTransWilcock
+
 
 /***************************************************************************\
 **  class tEquilibCheck
@@ -206,7 +209,7 @@ public:
 private:
    tGrid<tLNode> *gridPtr;
    tBedErodePwrLaw bedErode;
-   tSedTransWilcock sedTrans;  
+   tSedTrans sedTrans;  
     double kd;                // Hillslope transport (diffusion) coef
 
 };
