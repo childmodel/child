@@ -65,17 +65,38 @@ bool edge::visible(const point p[],int i) const {
 
 static
 bool needswap(int i1, int i2, int i3, int i4, const point p[]){
+  // i3 - i4 currently joined by diagonal.
+  // i1 - i4 - i2 - i3 anti-clockwise
+  // check if i1 lies inside the circumcircle for the triangle
+  // i4-i2-i3 using the algorithm of Cline and Renka for roundoff
+  // error.
+  
+  // t1=angle(i2,i3,i4), t2=angle(i1i4,i1i3), 
+  // a swap is needed if t1+t2 > pi
+  // Since t1+t2 < 2pi, this is equivalent to sin(t1+t2) < 0
+  // This leads to: cos(t1)*cos(t2)+sin(t1)*sin(t2) < 0
+  //
+  // see discussion in:
+  // Sloan, S.W. "A fast algorihtm for constructing Delaunay 
+  // triangulations in the plane", Adv. Eng, Software,
+  // 1987, 9(1)
+  // Cline, A.K., Renka, R.L., "A Storage efficient method for 
+  // construction of a Thiessen triangulation", Rocky Mountain 
+  // Journal of Mathemetics, 1984, 14(119)
+
   const point 
-    p1(p[i1]-p[i4]), p2(p[i1]-p[i3]), 
-    p3(p[i2]-p[i4]), p4(p[i2]-p[i3]);
-  double dt1=p1.dot(p2); double dt2=p3.dot(p4);
-  //only do the square roots if we really need to - saves a bit of time
-  if (dt1<0 || dt2<0){
-    dt1 /= sqrt(p1.dot(p1)*p2.dot(p2));
-    dt2 /= sqrt(p3.dot(p3)*p4.dot(p4));
-    if ((dt1+dt2)<0)
-      return true;
-  }
+    p1(p[i3]-p[i2]), p2(p[i4]-p[i2]),
+    p3(p[i4]-p[i1]), p4(p[i3]-p[i1]); 
+  const double cost1=p1.dot(p2), cost2=p3.dot(p4);
+
+  if (cost1>=0 && cost2>=0)
+    return false;
+  if (cost1<0 && cost2<0)
+    return true;
+  const double sint1=vecprod(i2,i3,i4,p), sint2=vecprod(i1,i4,i3,p),
+    sint1t2 = sint1*cost2+sint2*cost1;
+  if (sint1t2 < 0)
+    return true;
   return false;
 }
 
@@ -100,6 +121,7 @@ int tt_swap(int tint, edge e[], const point p[]){
   //points that are not part of the current edge
   const int leftp  = (e[lef].from==from) ? e[lef].to : e[lef].from;
   const int rightp = (e[ref].from==from) ? e[ref].to : e[ref].from;
+
   if (needswap(leftp, rightp, to, from, p)){
     //now swap the left and right edges of neighbouring edges
     //taking into account orientation
@@ -135,11 +157,11 @@ int tt_swap(int tint, edge e[], const point p[]){
     to=rightp;
     from=leftp;
     //re-jig the edges
-    int rf=ref;
+    const int rf=ref;
     ref=lef;
     int rt=ret;
     ret=rf;
-    int lt=let;
+    const int lt=let;
     let=rt;
     lef=lt;
     //examine the neighbouring edges for delauniness recursively - this is
