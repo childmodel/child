@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.22 1998-04-23 18:49:01 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.23 1998-04-23 22:05:01 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -239,12 +239,15 @@ public:
     void setQs( double );
     void setQs( int, double );
     double getQs() const;
+   double getQs( int );
     tArray< double > getQsm( ) const;
     void setQsin( double );
    void setQsin( int, double );
     void AddQsin( double );
+   void AddQsin( int, double );
    void AddQsinm( tArray< double > );
     double getQsin() const;
+   double getQsin( int );
    tArray< double > getQsinm( ) const;
     void setXYZD( tArray< double > );
     tArray< double > getXYZD() const;

@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.37 1998-04-23 18:49:20 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.38 1998-04-23 22:04:42 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -423,8 +423,8 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
    tracer = 0;
    dzdt = drdt = qs = qsin = uplift = 0.0;
    if( reg.numg > 1 ){
-      qsm.setSize( reg.numg+1 );
-      qsinm.setSize( reg.numg+1 );
+      qsm.setSize( reg.numg );
+      qsinm.setSize( reg.numg );
    }
    
 }
@@ -942,12 +942,20 @@ void tLNode::setQs( double val ) {qs = val;}
 
 void tLNode::setQs( int i, double val ) 
 {
-   if(i>reg.numg+1)
+   if(i>reg.numg)
        ReportFatalError( "Trying to index sediment sizes that don't exist ");
    qsm[i] = val;
+   qs += val;
 }
 
 double tLNode::getQs() const {return qs;}
+
+double tLNode::getQs( int i)
+{
+   if(i>reg.numg)
+       ReportFatalError( "Trying to index sediment sizes that don't exist ");
+   return qsm[i];
+}
 
 tArray< double >
 tLNode::getQsm( ) const
@@ -959,14 +967,24 @@ void tLNode::setQsin( double val ) {qsin = val;}
 
 void tLNode::setQsin( int i, double val ) 
 {
-   if(i>reg.numg+1)
+   if(i>reg.numg)
        ReportFatalError( "Trying to index sediment sizes that don't exist ");
-   qsm[i]=val;
+   qsinm[i]=val;
+   qsin += val;
 }
 
 void tLNode::AddQsin( double val ) 
 {
    qsin += val;
+}
+
+void tLNode::AddQsin( int i, double val )
+{
+   if(i>reg.numg)
+       ReportFatalError( "Trying to index sediment sizes that don't exist ");
+   qsinm[i] += val;
+   qsin += val;
+   
 }
 
 void tLNode::AddQsinm( tArray< double > val )
@@ -977,6 +995,13 @@ void tLNode::AddQsinm( tArray< double > val )
 }
 
 double tLNode::getQsin() const {return qsin;}
+
+double tLNode::getQsin( int i )
+{
+   if(i>reg.numg)
+       ReportFatalError( "Trying to index sediment sizes that don't exist ");
+   return qsinm[i];
+}
 
 tArray< double >
 tLNode::getQsinm( ) const
