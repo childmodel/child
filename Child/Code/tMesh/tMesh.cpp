@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.176 2003-08-12 10:10:44 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.177 2003-08-12 13:26:59 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2482,7 +2482,7 @@ void tMesh<tSubNode>::setVoronoiVertices()
    // Find the Voronoi vertex associated with each Delaunay triangle
    for( ct = triIter.FirstP(); !(triIter.AtEnd()); ct = triIter.NextP() )
    {
-      const tArray< double > xy = ct->FindCircumcenter();
+      const tArray< double > xy( ct->FindCircumcenter() );
       //cout << "setVoronoiVertices(): " << xy[0] << " " << xy[1];
       // Assign the Voronoi point as the left-hand point of the three edges
       // associated with the current triangle
