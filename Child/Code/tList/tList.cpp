@@ -1,16 +1,127 @@
 /**************************************************************************\
 **
+**  tList.cpp:  Functions for class tList and related classes tListNode
+**              and tListIter.
+**
+**  $Id: tList.cpp,v 1.2 1998-01-21 19:31:53 gtucker Exp $
+\**************************************************************************/
+
+#include "tList.h"
+
+/**************************************************************************\
+**
+**         Utilities for class tListNode< NodeType >
+**
+\**************************************************************************/
+//default constructor
+template< class NodeType >                     //tListNode
+tListNode< NodeType >::
+tListNode()
+{
+     //data = 0;
+   next = 0;
+}
+
+//copy constructor with data reference
+template< class NodeType >                     //tListNode
+tListNode< NodeType >::
+tListNode( const tListNode< NodeType > &original )
+{
+   if( &original != 0 )
+   {
+      data = original.data;
+      next = original.next;
+   }
+}
+
+//value (by reference) constructor 
+template< class NodeType >                     //tListNode
+tListNode< NodeType >::
+tListNode( const NodeType &info )
+{
+   data = info;
+   next = 0;
+}
+
+//overloaded assignment operator
+template< class NodeType >                     //tListNode
+const tListNode< NodeType > &tListNode< NodeType >::
+operator=( const tListNode< NodeType > &right )
+{
+   if( &right != this )
+   {
+        //delete data;
+        //data = new NodeType;
+      assert( &data != 0 );
+      data = right.data;
+      next = right.next;
+   }
+   return *this;
+}
+
+//overloaded equality operator:
+template< class NodeType >                     //tListNode
+int tListNode< NodeType >::
+operator==( const tListNode< NodeType > &right ) const
+{
+   if( next != right.next ) return 0;
+   if( &data != &(right.data) ) return 0;
+   return 1;
+}
+
+//overloaded inequality operator:
+template< class NodeType >                     //tListNode
+int tListNode< NodeType >::
+operator!=( const tListNode< NodeType > &right ) const
+{
+   if( next != right.next ) return 1;
+   if( &data != &(right.data) ) return 1;
+   return 0;
+}
+
+//set data by returning non-const
+template< class NodeType >                     //tListNode
+NodeType tListNode< NodeType >::
+getDataNC() {return data;}
+
+template< class NodeType >                     //tListNode
+NodeType &tListNode< NodeType >::
+getDataRefNC() {return data;}
+
+template< class NodeType >                     //tListNode
+NodeType *tListNode< NodeType >::
+getDataPtrNC() {return &data;}
+
+template< class NodeType >                     //tListNode
+tListNode< NodeType > * tListNode< NodeType >::
+getNextNC() const {return next;}
+
+//return data by value
+template< class NodeType >                     //tListNode
+NodeType tListNode< NodeType >::
+getData() const {return data;}
+
+//return data by reference
+template< class NodeType >                     //tListNode
+const NodeType &tListNode< NodeType >::
+getDataRef() const {return data;}
+
+//return data by pointer
+template< class NodeType >                     //tListNode
+const NodeType *tListNode< NodeType >::
+getDataPtr() const {return &data;}
+
+//return next pointer
+template< class NodeType >                     //tListNode
+const tListNode< NodeType > * tListNode< NodeType >::
+getNext() const {return next;}
+
+
+/**************************************************************************\
+**
 **  Functions for class tList< NodeType >
 **
-**  $Id: tList.cpp,v 1.1 1998-01-14 20:34:17 gtucker Exp $
 \**************************************************************************/
-#include <iostream.h>
-#include <fstream.h>
-#include <assert.h>
-#include "../Definitions.h"
-#include "../Classes.h"
-#include "../tListNode/tListNode.h"
-#include "tList.h"
 
 //default constructor
 template< class NodeType >                         //tList
@@ -498,4 +609,315 @@ getIthDataPtrNC( int num ) const
    }
    return curPtr->getDataPtrNC();
 }
+
+/*
+**  Code for tListIter objects.
+**
+**  A tListIter is an iterator for the linked list tList objects (and their
+**  descendants). Its services include fetching data from the current entry
+**  on the list, advancing to the next or previous item on the list, etc.
+**
+**  See also tGridList.
+**
+**  Modifications:  added an "AtEnd" function that signals whether the
+**  the iterator has fallen off the end of the list, 11/17/97 gt.
+*/
+
+/**************************************************************************\
+**
+**         Utilities for class tListIter
+**
+\**************************************************************************/
+template< class NodeType >        //tListIter
+tListIter< NodeType >::
+tListIter()
+{
+   listPtr = 0;
+   curnode = 0;
+   assert( &this != 0 );
+     //cout << "tListIter()" << endl;
+}
+
+template< class NodeType >        //tListIter
+tListIter< NodeType >::
+tListIter( tList< NodeType > &list )
+{
+   assert( &list != 0 );
+   listPtr = &list;
+   curnode = list.first;
+   //assert( curnode != 0 );
+     //cout << "tListIter( list )" << endl;
+   
+}
+
+template< class NodeType >        //tListIter
+tListIter< NodeType >::
+tListIter( tList< NodeType > *ptr )
+{
+   assert( ptr != 0 );
+   listPtr = ptr;
+   curnode = ptr->first;
+   //assert( curnode != 0 );
+     //cout << "tListIter( ptr )" << endl;
+   
+}
+
+template< class NodeType >        //tListIter
+tListIter< NodeType >::
+~tListIter()
+{
+   listPtr = 0;
+   curnode = 0;
+     //cout << "~tListIter()" << endl;
+}
+
+template< class NodeType >        //tListIter
+int tListIter< NodeType >::
+First()
+{
+   assert( listPtr != 0 );
+   curnode = listPtr->first;
+   if( curnode != 0 ) return 1;
+   else if( curnode == 0 && listPtr->isEmpty() ) return 1;
+   return 0;
+}
+
+template< class NodeType >       //tListIter
+int tListIter< NodeType >::
+Last()
+{
+   assert( listPtr != 0 );
+   curnode = listPtr->last;
+   if( curnode != 0 ) return 1;
+     //else if( curnode == 0 && listPtr->isEmpty() ) return 1;
+   return 0;
+}
+
+template< class NodeType >     //tListIter
+int tListIter< NodeType >::
+Get( int num )
+{
+   assert( listPtr != 0 );
+   if( num < 0 ) return 0;
+   tListNode< NodeType > *tempnodeptr;
+   for( tempnodeptr = listPtr->first; tempnodeptr != 0;
+        tempnodeptr = tempnodeptr->next )
+   {
+      if( tempnodeptr->data.getID() == num ) break;
+   }
+   if( tempnodeptr == 0 ) return 0;
+   if( tempnodeptr->data.getID() != num ) return 0;
+   curnode = tempnodeptr;
+   return 1;
+}
+
+//template< class NodeType >       //tListIter
+/*int tListIter< NodeType >::
+Get( int num )
+{
+   assert( listPtr != 0 );
+   if( num < 0 ) return 0;
+   int i;
+   tListNode< NodeType > *tempnodeptr = listPtr->first;
+   i = 0;
+   while( tempnodeptr->getDataPtr()->getID() != num && tempnodeptr != 0 )
+   {
+      tempnodeptr = tempnodeptr->next;
+      assert( tempnodeptr != 0 );
+      i++;
+   }
+   if( tempnodeptr == 0 ) return 0;
+   if( tempnodeptr->getDataPtr()->getID() != num ) return 0;
+   curnode = tempnodeptr;
+   return 1;
+}*/
+   
+template< class NodeType >        //tListIter
+int tListIter< NodeType >::
+Next()
+{
+   assert( listPtr != 0 );
+   if( curnode == 0 )
+   {
+      curnode = listPtr->first;
+      if( curnode != 0 ) return 1;
+      else return 0;
+   }
+   curnode = curnode->next;
+   if( curnode != 0 ) return 1;
+   else return 0;
+}
+
+template< class NodeType >       //tListIter
+int tListIter< NodeType >::
+Prev()
+{
+   assert( listPtr != 0 );
+   if( curnode == 0 )
+   {
+      curnode = listPtr->last;
+      if( curnode != 0 ) return 1;
+      else return 0;
+   }
+   if( curnode == listPtr->first )
+   {
+      if( listPtr->last->next == 0 ) return 0;
+      else
+      {
+         assert( curnode == listPtr->last->next );
+         curnode = listPtr->last;
+         return 1;
+      }
+   }
+   tListNode< NodeType > *tempnode;
+   int id = curnode->data.getID();
+   for( tempnode = listPtr->first;
+        tempnode->next->data.getID() != id;
+        tempnode = tempnode->next );
+   curnode = tempnode;
+   assert( curnode != 0 );
+   return 1;
+}
+
+template< class NodeType >       //tListIter
+int tListIter< NodeType >::
+Where()
+{
+   if( curnode == 0 ) return -1;
+   return curnode->getDataPtr()->getID();
+}
+
+template< class NodeType >       //tListIter
+int tListIter< NodeType >::
+AtEnd()
+{
+   return curnode==0;
+}
+
+template< class NodeType >       //tListIter
+NodeType &tListIter< NodeType >::
+DatRef()
+{
+     //if( curnode == 0 ) return 0;
+   return curnode->getDataRefNC();
+}
+
+template< class NodeType >       //tListIter
+NodeType *tListIter< NodeType >::
+DatPtr()
+{
+   if( curnode == 0 ) return 0;
+   return curnode->getDataPtrNC();
+}
+
+template< class NodeType >       //tListIter
+tListNode< NodeType > *tListIter< NodeType >::
+NodePtr()
+{
+   //assert( curnode != 0 );
+   return curnode;
+}
+
+template< class NodeType >        //tListIter
+void tListIter< NodeType >::
+Reset( tList< NodeType > &list )
+{
+   assert( &list != 0 );
+   listPtr = &list;
+   curnode = list.first;
+}
+
+
+template< class NodeType >        //tListIter
+NodeType * tListIter< NodeType >::
+FirstP()
+{
+   assert( listPtr != 0 );
+   curnode = listPtr->first;
+   if( curnode != 0 ) return curnode->getDataPtrNC();
+   else return 0;
+}
+   
+template< class NodeType >        //tListIter
+NodeType * tListIter< NodeType >::
+LastP()
+{
+   assert( listPtr != 0 );
+   curnode = listPtr->last;
+   if( curnode != 0 ) return curnode->getDataPtrNC();
+   else return 0;
+}
+   
+template< class NodeType >        //tListIter
+NodeType * tListIter< NodeType >::
+NextP()
+{
+   assert( listPtr != 0 );
+   if( curnode == 0 )
+   {
+      curnode = listPtr->first;
+      if( curnode != 0 ) return curnode->getDataPtrNC();
+      else return 0;
+   }
+   curnode = curnode->next;
+   if( curnode != 0 ) return curnode->getDataPtrNC();
+   else return 0;
+}
+
+template< class NodeType >       //tListIter
+NodeType *tListIter< NodeType >::
+PrevP()
+{
+   assert( listPtr != 0 );
+   if( curnode == 0 )
+   {
+      curnode = listPtr->last;
+      if( curnode != 0 ) return curnode->getDataPtrNC();
+      else return 0;
+   }
+   if( curnode == listPtr->first )
+   {
+      if( listPtr->last->next == 0 ) return 0;
+      else
+      {
+         assert( curnode == listPtr->last->next );
+         curnode = listPtr->last;
+         return curnode->getDataPtrNC();
+      }
+   }
+   tListNode< NodeType > *tempnode;
+   int id = curnode->data.getID();
+   for( tempnode = listPtr->first;
+        tempnode->next->data.getID() != id;
+        tempnode = tempnode->next );
+   curnode = tempnode;
+   assert( curnode != 0 );
+   return curnode->getDataPtrNC();
+}
+
+template< class NodeType >       //tListIter
+NodeType * tListIter< NodeType >::
+GetP( int num )
+{
+   assert( listPtr != 0 );
+   if( num < 0 ) return 0;
+   //cout << "Get: num " << num << "; ";
+   int i;
+   tListNode< NodeType > *tempnodeptr = listPtr->first;
+   i = 0;
+   while( tempnodeptr->getDataPtr()->getID() != num && tempnodeptr != 0 )
+   {
+      //cout << "Get: tempnodeptr->id " << tempnodeptr->getDataPtr()->getID()
+      //     << "; ";
+      tempnodeptr = tempnodeptr->next;
+      assert( tempnodeptr != 0 );
+      i++;
+   }
+   //cout << endl;
+   if( tempnodeptr == 0 ) return 0;
+   if( tempnodeptr->getDataPtr()->getID() != num ) return 0;
+   curnode = tempnodeptr;
+   return tempnodeptr->getDataPtrNC();
+}
+
 
