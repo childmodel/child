@@ -40,7 +40,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.24 2000-02-02 22:32:34 gtucker Exp $
+**  $Id: meshElements.h,v 1.25 2000-03-09 19:50:09 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -54,6 +54,7 @@
 #include "../tPtrList/tPtrList.h"
 #include "../tArray/tArray.h"
 #include "../tMeshList/tMeshList.h"
+#include "../Geometry/geometry.h"   // for Point2D definitions & fns
 
 class tEdge;
 
@@ -85,6 +86,8 @@ class tEdge;
 **
 **  Modifications:
 **   - 2/99 GT added tNode::AttachNewSpoke and tEdge::WelcomeCCWNeighbor
+**   - 2/00 GT added getVoronoiVertexList and getVoronoiVertexXYZList.
+**          These fns can be used in adding new nodes at V. Vertices.
 **
 \**************************************************************************/
 class tNode
@@ -96,7 +99,6 @@ public:
 
   tNode();                                   // default constructor
   tNode( const tNode & );                    // copy constructor
-  //~tNode();                                  // destructor
 
   const tNode &operator=( const tNode & );   // assignment operator
   tArray< double > get3DCoords() const;      // returns x,y,z
@@ -109,7 +111,9 @@ public:
   double getVArea_Rcp() const;               // returns 1/Voronoi area
   int getBoundaryFlag() const;               // returns boundary code
   tEdge * getEdg();                          // returns ptr to one spoke
-
+  void getVoronoiVertexList( tList<Point2D> * );  // Returns list of V vertices
+  void getVoronoiVertexXYZList( tList<Point3D> * ); // As above plus interp z
+  
   const tPtrList< tEdge > &getSpokeList() const;  // returns ref to spokelist
   tPtrList< tEdge > &getSpokeListNC();            // returns non-const ref "
   const tPtrListNode< tEdge > *getFirstSpokeNode() const; // returns 1st spoke
