@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.65 1999-09-09 21:31:25 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.66 2000-01-27 22:32:58 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -106,7 +106,7 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 **       - GT commented out mndrchngprob, which appears to be unused, 6/99
 \**************************************************************************/
 
-#define kYearpersec 3.171e-8 // 1/SecondsPerYear
+#define kYearpersec 3.1688e-8 // 1/SecondsPerYear
 tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
                         tInputFile &infile )
     : inlet( &meshRef, infile )
@@ -148,10 +148,6 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
 
    // Options related to stream meandering
    int itMeanders = infile.ReadItem( itMeanders, "OPTMNDR" );
-   /*if( itMeanders )
-       mndrDirChngProb = infile.ReadItem( mndrDirChngProb, "CHNGPROB" );
-   else 
-   mndrDirChngProb = 1.0;*/
 
    // Read hydraulic geometry parameters
    bankfullevent = infile.ReadItem( bankfullevent, "BANKFULLEVENT" );
@@ -171,13 +167,23 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    edstn = infile.ReadItem( ewstn, "HYDR_DEP_EXP_STN" );
    knds = infile.ReadItem( knds, "HYDR_ROUGH_COEFF_DS" );
    //cout << "knds: " << knds << endl;
-   assert( knds > 0 );
+   //assert( knds > 0 );
    ends = infile.ReadItem( ends, "HYDR_ROUGH_EXP_DS" );
    //cout << "ends: " << ends << endl;
    enstn = infile.ReadItem( enstn, "HYDR_ROUGH_EXP_STN" );
    //cout << "enstn: " << enstn << endl;
    klambda = infile.ReadItem( klambda, "BANK_ROUGH_COEFF" );
    elambda = infile.ReadItem( elambda, "BANK_ROUGH_EXP" );
+
+   // Option for 2D kinematic-wave overland flow routing
+   int optKinWave = infile.ReadItem( optKinWave, "OPTKINWAVE" );
+   if( optKinWave )
+   {
+       mdKinWaveExp = infile.ReadItem( mdKinWaveExp, "KINWAVE_HQEXP" );
+       mdKinWaveRough = knds * kYearpersec;
+       cout << "mdKinWaveRough " << mdKinWaveRough << endl;
+   }
+   else mdKinWaveExp = mdKinWaveRough = 0.0;
 
    // Initialize the network by calculating slopes, flow directions,
    // drainage areas, and discharge
@@ -316,7 +322,7 @@ void tStreamNet::UpdateNet( double time )
    FlowDirs();
    MakeFlow( time );
    CheckNetConsistency();
-   //cout << "UpdateNet() finished" << endl;	
+   //cout << "UpdateNet() finished" << endl;
 }
 
 void tStreamNet::UpdateNet( double time, tStorm &storm )
@@ -326,6 +332,10 @@ void tStreamNet::UpdateNet( double time, tStorm &storm )
    assert( stormPtr != 0 );
    rainrate = stormPtr->getRainrate();
    UpdateNet( time );
+
+   //debug test
+   SortNodesByNetOrder( 1 );
+   SortNodesByNetOrder();
 }
 
 
@@ -1445,18 +1455,35 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node )
 **  difference between sediment influx and carrying capacity). The sorting
 **  algorithm is based on the "cascade" algorithm of Braun and Sambridge
 **  (Basin Research, 1997, vol. 9, p. 27).
-**    The algorithm works by initially assigning a tracer (like a packet
-**  of water) to each node. At each iteration, a tracer from each node is
-**  sent downstream. Any nodes that have zero tracers left are moved to the
-**  bottom of the list (a FIFO stack), so that for example the very first
-**  node moved will be the first node on the list when the sorting is
-**  completed. The process continues until no unsorted nodes remain.
+**    The single-direction sorting algorithm works by initially assigning a 
+**  tracer (like a packet of water) to each node. At each iteration, a tracer 
+**  from each node issent downstream. Any nodes that have zero tracers left 
+**  are moved to the bottom of the list (a FIFO stack), so that for example 
+**  the very first node moved will be the first node on the list when the 
+**  sorting is completed. The process continues until no unsorted nodes 
+**  remain.
+**    The multi-flow option was added to allow for multiple flow directions
+**  and kinematic-wave routing. The algorithm is slightly different. At
+**  each pass, the unsorted nodes are "de-flagged" by setting their
+**  tracer variables to zero. Then each unsorted node flags _all_ of the
+**  adjacent nodes that are downhill by setting their tracer to 1 (this
+**  is accomplished through a call to ActivateSortTracer). Finally, any
+**  unflagged nodes are moved to the back of the list, and the process
+**  is repeated until all nodes have been sorted.
 **
 **  Modifications:
 **   - adapted from previous CHILD code by GT, 12/97
+**   - multiflow sort capability added 1/2000, GT
+**
+**  TODO: it is possible that the "flagging" method, as opposed to the
+**  "tracer movement" method, is more efficient even for single-flow
+**  routing. The added cost lies in unflagging the unsorted nodes at
+**  each pass. However, the gain comes from the fact that you never have
+**  multiple "tracers" at a node that need to be removed one by one.
+**  The two methods should be tested and compared.
 **
 \*****************************************************************************/
-void tStreamNet::SortNodesByNetOrder()
+void tStreamNet::SortNodesByNetOrder( int optMultiFlow )
 {
    int nThisPass;                      // Number moved in current iteration
    int i;
@@ -1466,74 +1493,129 @@ void tStreamNet::SortNodesByNetOrder()
    int nUnsortedNodes = nodeList->getActiveSize();  // Number not yet sorted
    tMeshListIter<tLNode> listIter( nodeList );
    
-   //test
-   /*Xcout << "BEFORE: " << endl;
-   for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
-       cout << cn->getID() << endl;*/
-   
-#if TRACKFNS
-   cout << "SortNodesByNetOrder" << endl;
-#endif
+   cout << "SortNodesByNetOrder, optMultiFlow=" << optMultiFlow << endl;
 
-   // Assign initial tracers: use "qs" field, which contains garbage at
-   // this stage.
+   //test
+   /*cout << "BEFORE: " << endl;
    for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
-      cn->ActivateSortTracer();
+   cout << cn->getID() << " " << cn->getZ() << " " << cn->getDrArea() << endl;*/
 
    // Iterate: move tracers downstream and sort until no nodes with tracers
-   // are left.
-   do
+   // are left. The only difference with the multiflow option is that we
+   // call MoveTracersDownstreamMulti to send tracers down to all lower
+   // elevation nodes, not just the steepest
+   if( !optMultiFlow )
    {
-      // Send tracers downstream
-      cn = listIter.FirstP();
-      for( i=1; i<=nUnsortedNodes; i++ )
-      {
-         assert( cn!=0 );
-         cn->MoveSortTracerDownstream();
-         cn = listIter.NextP();
-      }
-
-      // Scan for any nodes that have no tracers, and move them to the bottom
-      // of the list.
-      tListNode< tLNode > * nodeToMove;
-      nThisPass = 0;
-      done = TRUE;
-      cn = listIter.FirstP();
-      for( i=1; i<=nUnsortedNodes; i++ )
-      {
-         if( cn->NoMoreTracers() )  // If no tracers, move to bottom of list
-         {
-            nodeToMove = listIter.NodePtr();
-            cn = listIter.NextP();
-            nodeList->moveToActiveBack( nodeToMove );
-            nThisPass++;
-         }
-         else
-         {
-            cn = listIter.NextP();
-            done = FALSE;
-         }
-      }
-      
-      nUnsortedNodes -= nThisPass;
-
-      /*cout << "NO. UNSORTED: " << nUnsortedNodes << endl;
+      // Assign initial tracers: use "qs" field, which contains garbage at
+      // this stage.
       for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
-          cout << cn->getID() << " " << cn->getQ() << " " << cn->getQs()
-               << endl;*/
+          cn->ActivateSortTracer();
+      do
+      {
+         // Send tracers downstream
+         cn = listIter.FirstP();
+         for( i=1; i<=nUnsortedNodes; i++ )
+         {
+            assert( cn!=0 );
+            cn->MoveSortTracerDownstream();
+            cn = listIter.NextP();
+         }
+         
+         // Scan for any nodes that have no tracers, and move them to the
+         // bottom of the list.
+         tListNode< tLNode > * nodeToMove;
+         nThisPass = 0;
+         done = TRUE;
+         cn = listIter.FirstP();
+         for( i=1; i<=nUnsortedNodes; i++ )
+         {
+            if( cn->NoMoreTracers() ) // If no tracers, move node to bottom
+            {
+               nodeToMove = listIter.NodePtr();
+               cn = listIter.NextP();
+               nodeList->moveToActiveBack( nodeToMove );
+               nThisPass++;
+            }
+            else
+            {
+               cn = listIter.NextP();
+               done = FALSE;
+            }
+         }
+         
+         nUnsortedNodes -= nThisPass;
+         
+          /*cout << "NO. UNSORTED: " << nUnsortedNodes << endl;
+            for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
+            cout << cn->getID() << " " << cn->getQ() << " " << cn->getQs()
+            << endl;*/
+          
+      } while( !done );
+   }
 
-    } while( !done );
+   else  // For multiple flow directions (e.g., kinematic wave)
+       do
+       {
+          // Reinitialize by unflagging the nodes
+          cn = listIter.FirstP();
+          for( i=1; i<=nUnsortedNodes; i++ )
+          {
+             assert( cn!=0 );
+             cn->DeactivateSortTracer();
+             cn = listIter.NextP();
+          }
+          
+          // Send tracers downstream
+          cn = listIter.FirstP();
+          for( i=1; i<=nUnsortedNodes; i++ )
+          {
+             assert( cn!=0 );
+             cn->FlagDownhillNodes();
+             cn = listIter.NextP();
+          }
+          
+          // Scan for any nodes that are unflagged, and move them to the
+          // bottom of the list.
+          tListNode< tLNode > * nodeToMove;
+          nThisPass = 0;
+          done = TRUE;
+          cn = listIter.FirstP();
+          for( i=1; i<=nUnsortedNodes; i++ )
+          {
+             if( cn->NoMoreTracers() )  // If no tracers, move node to bottom
+             {
+                nodeToMove = listIter.NodePtr();
+                cn = listIter.NextP();
+                nodeList->moveToActiveBack( nodeToMove );
+                nThisPass++;
+             }
+             else
+             {
+                cn = listIter.NextP();
+                done = FALSE;
+             }
+          }
+          
+          nUnsortedNodes -= nThisPass;
 
-   /*Xcout << "AFTER: " << endl;
-  cn = listIter.FirstP();
-  cout << "First node:\n";
-  cn->TellAll();
-  for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
-      cout << cn->getID() << " " << cn->getQ() << endl;
-  cout << "Leaving Sort\n" << flush;*/
-  
+          /*cout << "NO. UNSORTED: " << nUnsortedNodes << endl;
+            for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
+            cout << cn->getID() << " " << cn->getZ() << " " << cn->getQs()
+            << " " << cn->getDrArea() << " " << endl;*/
+          
+       } while( !done );
+
+   /*cout << "AFTER: " << endl;
+   cn = listIter.FirstP();
+   cout << "First node:\n";
+   cn->TellAll();
+   for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() ) 
+       cout << cn->getID() << " " << cn->getZ() << " " << cn->getDrArea() << endl;
+       cout << "Leaving Sort\n" << flush;*/
+   
  
 }
+
 
 /*****************************************************************************\
 **
@@ -1733,6 +1815,134 @@ void tStreamNet::FindChanGeom()
    //cout << "done tStreamNet::FindChanGeom" << endl;
 }
 #undef kSmallNum
+
+
+/**************************************************************************\
+**
+**  tStreamNet::RouteFlowKinWave
+**
+**  This routine was created to solve for 2D flow across a surface using
+**  the kinematic wave approximation, rather than assuming channelized,
+**  unidirectional (1D) flow. The algorithm obtains a steady state
+**  solution under temporally constant runoff and discharge.
+**    The algorithm begins by calling a routine to sort all active nodes
+**  in upstream-to-downstream order, accounting for multiple downslope
+**  flow pathways. This way, we always know the incoming flow from
+**  upstream when we go to calculate depth and flow routing for each
+**  node.
+**    The velocity of downslope flow from a node i to one of its
+**  neighbors j is computed from the general Chezy/Manning equation,
+**  using the surface slope Sij between the two nodes and the water depth,
+**  Yi, at node i:
+**      Uij = (1/Kr) Yi^m Sij^(0.5)
+**  To write this in terms of total discharge, Qij, instead of velocity,
+**  we can multiply both sides by the depth, Yi, and by the width of
+**  the Voronoi polygon face across which water is flowing, Wij:
+**      Qij = (1/Kr) Yi^(m+1) Sij^(0.5) Wij
+**  Rearranging, we can solve for Yi:
+**      Yi = [ Kr Qij / (Sij^0.5 Wij) ] ^ (1/(m+1))
+**  It remains now to find the discharge in a given direction, Qij.
+**    To do so, we start by noting
+**  that the total outgoing discharge (equal to discharge coming in
+**  plus local runoff, both of which we know) is equal to the sum of
+**  Qij over all Voronoi faces:
+**      Qi = SUM[ (1/Kr) Yi^(m+1) Sij^(0.5) Wij ] for j=1 to M faces, or
+**      Qi = (1/Kr) Yi^(m+1) SUM[ Sij^(0.5) Wij ]
+**  From this, we see that the ratio Qij / Qi is given by
+**      Qij/Qi = Sij^(0.5) Wij / SUM[ Sij^(0.5) Wij ], or
+**      Qij = Qi * Sij^(0.5) Wij / SUM[ Sij^(0.5) Wij ]
+**  Substituting into the expression for Yi above, we solve for
+**      Yi = [ Kr Qi / SUM[ Sij^(0.5) Wij ] ] ^ (1/(m+1))
+**  and we've nailed it!
+**    In the algorithm below, we start by computing the sum term, then
+**  find the depth, and then apportion discharge to each lower neighbor
+**  using the expression above for Qij (Qij is added to the neighbor's
+**  total discharge; since we're working upstream-to-downstream, we
+**  know that the neighbor will have all its flow accounted for by the
+**  time we come to calculate its flow depth and routing).
+**    The method uses two parameters: the exponent 1/(m+1) (mdKinWaveExp),
+**  and the roughness factor Kr (mdKinWaveRough), which is calculated
+**  from the roughness parameter HYDR_ROUGH_COEF_DS (knds), but with
+**  a conversion factor included to convert from seconds to years.
+**
+**  Created by GT, Jan 2000
+**
+\**************************************************************************/
+void tStreamNet::RouteFlowKinWave( double rainrate )
+{
+   tLNode * cn;
+   tEdge * ce;
+   tMeshListIter<tLNode> niter( meshPtr->getNodeList() );
+   double sum;                         // Sum used in to apportion flow
+   double runoff = rainrate - infilt;  // Local runoff rate at node
+
+   cout << "RouteFlowKinWave\n";
+
+   if( runoff <= 0.0 ) return;
+   
+   // Reset discharge to zero everywhere
+   for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
+       cn->setDischarge( 0.0 );
+   
+   // Sort nodes uphill-to-downhill
+   SortNodesByNetOrder( 1 );
+   
+   // Route flow and compute water depths
+   for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
+   {
+      // Add local runoff to total incoming discharge
+      cn->AddDischarge( runoff * cn->getVArea() );
+      
+      if( cn->getFloodStatus()==kNotFlooded )
+      {
+         // Flow is apportioned among downhill neighbors according to
+         // slope and Voronoi edge width, so first we perform the summation
+         // of the product of Voronoi edge width and sqrt of slope in each dir
+         //if( cn->getQ()>50000.0 ) cn->TellAll();
+         sum = 0.0;
+         ce = cn->getEdg();
+         do
+         {
+            if( cn->getZ() > ce->getDestinationPtr()->getZ() &&
+                ce->FlowAllowed() )
+                sum += ce->getVEdgLen() * sqrt( ce->getSlope() );
+            ce = ce->getCCWEdg();
+         }
+         while( ce!=cn->getEdg() );
+         
+         // Compute the flow depth
+         //cout << "Q: " << cn->getQ() << " sum: " << sum << " DEPTH: " << cn->getHydrDepth() << endl << flush;
+         assert( cn->getQ()>0.0 );
+         if( sum>0.0 )
+             cn->setHydrDepth( pow( cn->getQ() * mdKinWaveRough / sum, 
+                                    mdKinWaveExp ) );
+         else
+             cn->setHydrDepth( 0.0 );
+
+         // Route flow downhill
+         tLNode * dn;
+         if( sum>0.0 )
+         {
+            ce = cn->getEdg();
+            do
+            {
+               dn = (tLNode *)ce->getDestinationPtr();
+               if( cn->getZ() > dn->getZ() && ce->FlowAllowed() )
+                   dn->AddDischarge( cn->getQ()
+                                     * (sqrt(ce->getSlope())*ce->getVEdgLen())/sum );
+               ce = ce->getCCWEdg();
+            }
+            while( ce!=cn->getEdg() );
+         }
+      }
+      else 
+          cn->setHydrDepth( 0.0 );
+
+   } // end of for loop
+   
+      
+} // End of tStreamNet::RouteFlowKinWave
+
 
 
 /**************************************************************************\
