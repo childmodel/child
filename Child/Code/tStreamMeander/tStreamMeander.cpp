@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.33 1998-04-16 22:49:43 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.34 1998-04-17 21:27:10 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -1289,12 +1289,12 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
 tArray< double >
 tStreamMeander::FindBankErody( tLNode *nPtr )
 {
-   tArray< double > spD( nPtr->getSpokeListNC()->getSize() );
-   int i, j;
+   tArray< double > spD( nPtr->getSpokeListNC().getSize() * 2 );
+   int i, j, n;
    tLNode *nNPtr, *cn, *node1, *node2;
    tEdge *ce, *fe, *ne;
-   tArray< double > xyz1, xy2, dxy(2), lrerody(2);
-   double a, b, c, s1, s2, D, d1, d2, E1, E2, dz1, dz2, H;
+   tArray< double > xy, xyz1, xy2, dxy(2), lrerody(2);
+   double a, b, c, d, s1, s2, D, d1, d2, E1, E2, dz1, dz2, H;
    nNPtr = nPtr->GetDownstrmNbr();
    xyz1 = nPtr->get3DCoords();
    xy2 = nNPtr->get2DCoords();
@@ -1303,16 +1303,19 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
    a = dxy[0];
    b = dxy[1];
    c = -dxy[1] * xyz1[1] - dxy[0] * xyz1[0];
+   n = nPtr->getSpokeListNC().getSize();
    //find remainders of pts wrt line perpendicular to downstream direction
    fe = nPtr->GetFlowEdg();
    ce = fe;
+   i = 0;
    do
    {
-      cn = ce->getDestinationPtrNC();
+      cn = (tLNode *) ce->getDestinationPtrNC();
       xy = cn->get2DCoords();
       d = a * xy[0] + b * xy[1] + c;
-      spD(i) = d;
+      spD[i] = spD[n + i] = d;
       ce = ce->GetCCWEdg();
+      i++;
    } while( ce != fe );
    H = nPtr->getHydrDepth();
    //find point pairs:
@@ -1322,21 +1325,21 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
    do
    {
       //find signs of 'this' and 'next' remainders
-      if( spD(i) != 0.0 ) s1 = spD(i) / fabs( spD(i) );
+      if( spD[i] != 0.0 ) s1 = spD[i] / fabs( spD[i] );
       else s1 = 0.0;
-      if( spD(i + 1) != 0.0 ) s2 = spD(i + 1) / fabs( spD(i + 1) );
+      if( spD[i + 1] != 0.0 ) s2 = spD[i + 1] / fabs( spD[i + 1] );
       else s2 = 0.0;
       if( s1 != s2 ) //points are on opposite sides of the perp.
       {
          assert( j<2 );
          //find absolute values of remainders and their sum:
-         d1 = fabs( spD(i) );
-         d2 = fabs( spD(i + 1) );
+         d1 = fabs( spD[i] );
+         d2 = fabs( spD[i + 1] );
          D = d1 + d2;
          //find erodibilities of nbr nodes wrt nPtr
          ne = ce->GetCCWEdg();
-         node1 = ce->getDestinationPtrNC();
-         node2 = ne->getDestinationPtrNC();
+         node1 = (tLNode *) ce->getDestinationPtrNC();
+         node2 = (tLNode *) ne->getDestinationPtrNC();
          //find elev. diff's:
          dz1 = node1->getZ() - xyz1[2];
          dz2 = node2->getZ() - xyz1[2];
