@@ -3,7 +3,7 @@
 **  tList.cpp:  Functions for class tList and related classes tListNode
 **              and tListIter.
 **
-**  $Id: tList.cpp,v 1.6 1998-02-25 00:37:30 stlancas Exp $
+**  $Id: tList.cpp,v 1.7 1998-03-16 18:54:57 gtucker Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -239,7 +239,7 @@ getNewNode( const NodeType &value )
    tListNode< NodeType > * ptr =
        new tListNode< NodeType >( value );
    assert( ptr != 0 );
-     //cout << "new node created" << endl;
+   //Xcout << "new node created" << endl;
    nNodes++;
    return ptr;
 }
@@ -279,7 +279,7 @@ insertAtBack( const NodeType &value )
       last = newPtr;
    }
      //nNodes++;
-     //cout << "added node to back of list" << endl;
+   //cout << "added node to back of list" << endl;
 }
 
 //insert at next spot in list

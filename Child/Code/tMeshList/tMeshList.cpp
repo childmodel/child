@@ -8,7 +8,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.cpp,v 1.3 1998-01-31 19:19:43 stlancas Exp $
+**  $Id: tMeshList.cpp,v 1.4 1998-03-16 18:54:38 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -270,17 +270,32 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
 }
 
 //'move' utilities
+/*
+**  moveToBack
+**
+**  Handles case of moved node being the last active node, in which case
+**  _lastactive_ needs to be updated. However, this routine does NOT
+**  update nActiveNodes, so be careful: you can move an active node to the back
+**  of the list, effectively making it inactive w/o updating nActiveNodes.
+**  (TODO)
+*/
 template< class NodeType >                         //tList
 void tGridList< NodeType >::
 moveToBack( tListNode< NodeType > * mvnode ) 
 {
+   assert( mvnode>0 );
    tListNode< NodeType > * prev;
    if( mvnode != last )
    {
       if( mvnode == lastactive )
       {
-         for( prev = first; prev->next != mvnode; prev = prev->next );
-         lastactive = prev;
+         if( mvnode != first )
+         {
+            for( prev = first; prev->next != mvnode; prev = prev->next );
+            lastactive = prev;
+         }
+         else
+            lastactive = 0;
       }
       tList< NodeType >::moveToBack( mvnode );
    }
