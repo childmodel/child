@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.34 1998-05-04 18:12:35 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.35 1998-05-04 22:02:47 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -576,9 +576,9 @@ MakeGridFromInputData( tInputFile &infile )
    i = 0;
    do                                        //for( i=0; i<nnodes; i++ )
    {
-      //e1 = input.edgid[i]; //error: assumes nodes are in ID order!
       curnode = nodIter.DatPtr();
       e1 = input.edgid[curnode->getID()];  //fix of above error
+      //cout << "spokes for Node " << curnode->getID() << endl;
       if( edgIter.Get( e1 ) )
       {
           curnode->insertBackSpokeList( &(edgIter.DatRef()) );
@@ -623,6 +623,7 @@ MakeGridFromInputData( tInputFile &infile )
       
    }
    
+/*   cout << "doing something else w/ spokes\n" << flush;
    tPtrListIter< tEdge > spokIter;
    assert( nodIter.First() );
    do                                        //for( i=0; i<nnodes; i++ )
@@ -639,12 +640,12 @@ MakeGridFromInputData( tInputFile &infile )
       while( spokIter.NextIsNotFirst() );
       //cout << endl;
    }
-   while( nodIter.Next() );
+   while( nodIter.Next() );*/
    
-
    tTriangle temptri;
    for ( i=0; i<ntri; i++ )
    {
+      //cout << "TRI " << i << endl << flush;
       temptri.setID( i );
       if( nodIter.Get( input.p0[i] ) )
           temptri.setPPtr( 0, &(nodIter.DatRef()) );
@@ -665,7 +666,6 @@ MakeGridFromInputData( tInputFile &infile )
        trIter1( triList );
    tListIter< tTriangle >
        trIter2( triList );
-   //cout << "tGrid: set tri ptrs" << endl;
    i = 0;
    do                                                //for ( i=0; i<ntri; i++ )
    {
@@ -682,11 +682,11 @@ MakeGridFromInputData( tInputFile &infile )
       i++;
    }
    while( trIter1.Next() );
-   //cout<<"set list data values"<<endl;
-   //cout << "tGrid( input )" << endl;
-   UpdateMesh();
+   cout<<"set list data values"<<endl;
 
+   UpdateMesh();
    CheckMeshConsistency();
+   cout << "end of tGrid( input )" << endl << flush;
 }
 
 
