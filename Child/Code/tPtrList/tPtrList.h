@@ -33,7 +33,7 @@
 **    - 3/31/00 bug fix to tPtrList copy constructors (GT)
 **    - 5/10/00 typo fix in DataCopy (GT)
 **
-**  $Id: tPtrList.h,v 1.21 2002-08-13 08:33:08 arnaud Exp $
+**  $Id: tPtrList.h,v 1.22 2002-08-30 08:51:57 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
@@ -387,7 +387,7 @@ tPtrList( const tPtrList< NodeType > & orig ) :
    if( curNode != 0 )
    {
       insertAtBack( curNode->Ptr );
-      for( curNode=curNode->next; curNode!=orig.first; curNode=curNode->next )
+      for( curNode=curNode->next; curNode!=orig.last->next; curNode=curNode->next )
          insertAtBack( curNode->Ptr );
       if( orig.last->next == orig.first ) last->next = first;
    }
@@ -404,7 +404,7 @@ tPtrList( const tPtrList< NodeType > * origptr ) :
    if( curNode != 0 )
    {
       insertAtBack( curNode->Ptr );
-      for( curNode=curNode->next; curNode!=orig.first; curNode=curNode->next )
+      for( curNode=curNode->next; curNode!=orig.last->next; curNode=curNode->next )
          insertAtBack( curNode->Ptr );
       if( origptr->last->next == origptr->first ) last->next = first;
    }
