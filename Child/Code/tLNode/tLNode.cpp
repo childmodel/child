@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.83 1999-12-04 01:00:14 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.84 1999-12-06 16:34:51 quint Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2743,7 +2743,8 @@ void tLNode::removeLayer(int i)
     tLayer  * hlp;
     tLayer niclay;
     hlp=ly.FirstP();
-    
+
+	    
     int n=0;
 
     while(n<i){
@@ -2751,9 +2752,14 @@ void tLNode::removeLayer(int i)
        hlp=ly.NextP();
     }
 
-    n=layerlist.removeNext((*hlp), layerlist.getListNode(hlp) );
+    if(i+1==layerlist.getSize()){
+	layerlist.removeFromBack(*hlp );
+	}
+    else{	
+       n=layerlist.removeNext((*hlp), layerlist.getListNode(hlp) );
+    }
     if(n==0){
-       n=0;
+//       n=0;
 //         while(n<layerlist.getSize()){
 //            cout << "layer " << n+1 << " node ID "<< getID()<< endl;
 //            niclay = layerlist.getIthData(n);
