@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.25 1998-04-03 15:25:26 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.26 1998-04-04 00:06:34 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -13,31 +13,26 @@
 
 /*************************************************************************
 **  tDeposit::tDeposit : Constructor function for tDeposit
-**                       should be fed pointer to layer below it.
-**
-**  created 7/10/97  NG
 *************************************************************************/
 tDeposit::tDeposit ()
-        : dgrade( NUMG )
+        : dgrade()
 {
-   dpth=0;
-     //cout << "tDeposit()" << endl;
+  //cout << "tDeposit( num )" << endl;
 }
 
 tDeposit::tDeposit ( int num )
-        : dgrade( num )
+        : dgrade( num+1 )
 {
-   dpth=0;
      //cout << "tDeposit( num )" << endl;
 }
 
 tDeposit::tDeposit( const tDeposit &orig )                         //tDeposit
         :dgrade( orig.dgrade )
 {
-   if( &orig != 0 )
-   {
-      dpth = orig.dpth;
-   }
+  //if( &orig != 0 )
+  // {
+  //    dpth = orig.dpth;
+  // }
 }
 
 tDeposit::~tDeposit()
@@ -50,15 +45,15 @@ const tDeposit &tDeposit::operator=( const tDeposit &right )     //tDeposit
    if( &right != this )
    {
       dgrade = right.dgrade;
-      dpth = right.dpth;
+      //dpth = right.dpth;
    }
    return *this;
 }
 
-tErode::tErode()                                                    //tErode
+tErode::tErode()                                                   //tErode
 {
      //erodtype = 0;
-   sedinput = totdz = zp = qs = qsp = qsin = qsinp = tau = dz = 0.0;
+   sedinput = zp = qs = qsp = qsin = qsinp = tau = dz = 0.0;
    nsmpts = 0;
      //cout << "  tErode()" << endl;
 }
@@ -69,7 +64,6 @@ tErode::tErode( const tErode &orig )                                //tErode
    {
         //erodtype = orig.erodtype;
       sedinput = orig.sedinput;
-      totdz = orig.totdz;
       zp = orig.zp;
       qs = orig.qs;
       qsp = orig.qsp;
@@ -78,17 +72,14 @@ tErode::tErode( const tErode &orig )                                //tErode
       tau = orig.tau;
       nsmpts = orig.nsmpts;
       dz = orig.dz;
-      newdz = orig.newdz;
-      smooth = orig.smooth;
    }
      //cout << "  tErode( orig )" << endl;
 }
 
 tErode::tErode( int numg, int nums )                                //tErode
-        : newdz( numg ), smooth( nums )
 {
    nsmpts = nums;
-   sedinput = totdz = zp = qs = qsp = qsin = qsinp = tau = dz = 0.0;
+   sedinput = zp = qs = qsp = qsin = qsinp = tau = dz = 0.0;
      //cout << "  tErode( numg, nums )" << endl;
 }
 
@@ -103,7 +94,6 @@ const tErode &tErode::operator=( const tErode &right )     //tErode
    if( &right != this )
    {
       sedinput = right.sedinput;
-      totdz = right.totdz;
       zp = right.zp;
       qs = right.qs;
       qsp = right.qsp;
@@ -112,7 +102,6 @@ const tErode &tErode::operator=( const tErode &right )     //tErode
       tau = right.tau;
       nsmpts = right.nsmpts;
       dz = right.dz;
-      newdz = right.newdz;
       smooth = right.smooth;
    }
    return *this;
@@ -260,22 +249,30 @@ const tSurface &tSurface::operator=( const tSurface &right )     //tSurface
 \**************************************************************************/
 
 tRegolith::tRegolith()                                          //tRegolith
-        : dgrade( NUMG ), dpth( ACTDEPTH )
+        : dgrade()
 {
    thickness = 0;
    numal = 0;
-     //dpth = ACTDEPTH;
+   dpth = 0;
+   actdepth = 0;
      //cout << "  tRegolith()" << endl;
 }
 
 tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
-        : dgrade( NUMG ), dpth( ACTDEPTH )
 {
 
    cout << "tRegolith(infile)\n";
    thickness = infile.ReadItem( thickness, "REGINIT" );
    numal = 0;
-   //numg = infile.ReadItem( numg, "NUMGRNSIZE");
+   numg = infile.ReadItem( numg, "NUMGRNSIZE" );
+   actdpth = infile.ReadItem( actdpth, "ACTIVEDEPTH" );
+   dpth = actdpth;
+   dgrade( numg+1 );
+   grade ( numg+1 );
+   // Need to read in the grain sizes and depth of each size here
+   // will need to read in the name of a file, open that file,
+   // and read in the data.  Filename can just be the same as
+   // the base file name, with the extension "sizedat"
    //if( numg>1 )
    //  {
    //    dgrade.insertAtFront(thickness);
@@ -283,23 +280,27 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
 }
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
-        : dgrade( orig.dgrade ), depositList( orig.depositList )
+        : dgrade( orig.dgrade ), grade( orig.grade ), 
+	  depositList( orig.depositList )
 {
    if( &orig != 0 )
    {
       thickness = orig.thickness;
       numal = orig.numal;
       dpth = orig.dpth;
+      actdpth = orig.actdpth;
    }
    cout << "  tRegolith( orig ) " << thickness << endl;
 }
 
-tRegolith::tRegolith( int numg, double vald )                    //tRegolith
-        : dgrade( numg ), dpth( vald )
+tRegolith::tRegolith( double vald )                    //tRegolith
+        : dgrade( ), dpth( vald )
 {
    assert( vald > 0.0 );
    thickness = 0.0;
    numal = 0;
+   actdpth = 0;
+   numg = 0;
      //cout << "  tRegolith( numg, vald )" << endl;
 }
 
