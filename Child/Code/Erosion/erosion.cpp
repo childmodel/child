@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.52 1999-01-29 00:11:17 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.53 1999-02-04 00:50:37 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1468,12 +1468,12 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             if( dt < 0.005 )
             {
                cout << "Very small dt " << dt <<  endl;
-               cout << "rate dif is " << ratediff << endl;
-               cout << "elev dif is " << cn->getZ() - dn->getZ() << endl;
-               cout << "dzdt upstream is " << cn->getDzDt() << endl;
-               cout << "dzdt downstream is " << dn->getDzDt() << endl;
-               cn->TellAll();
-               dn->TellAll();
+               //cout << "rate dif is " << ratediff << endl;
+               //cout << "elev dif is " << cn->getZ() - dn->getZ() << endl;
+               //cout << "dzdt upstream is " << cn->getDzDt() << endl;
+               //cout << "dzdt downstream is " << dn->getDzDt() << endl;
+               //cn->TellAll();
+               //dn->TellAll();
                //cout << "arbitrarily set dt to 0.0015" << endl;
                dtmax=0.005; //GREG I added this just because things
                // were taking forever.  I kept it for now just for
