@@ -6,7 +6,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.14 2002-09-25 14:47:15 gtucker Exp $
+**  $Id: tInputFile.cpp,v 1.15 2002-09-26 17:33:43 arnaud Exp $
 \****************************************************************************/
 
 #if !defined(HAVE_NO_NAMESPACE)
@@ -87,11 +87,25 @@ tInputFile::tInputFile( const char *filename )
 **      12/23/97 SL
 **
 \****************************************************************************/
+// read a line in headerLine and discards the any remaining characters
+static
+void readLine(char *headerLine, ifstream& infile){
+  infile.getline( headerLine, kMaxNameLength );
+  // still some characters left on the current line ?
+  if ( !infile.eof() && infile.rdstate() & ios::failbit){
+    // clear failbit
+    infile.clear(infile.rdstate() & ~ios::failbit);
+    // discard characters.
+    char c;
+    while( infile.get(c) && c != '\n');
+  }
+}
+
 static
 void readUntilKeyword(char *headerLine, ifstream& infile,
 		      const char *itemCode){
   do {
-    infile.getline( headerLine, kMaxNameLength );
+    readLine(headerLine, infile);
   } while( !( infile.eof() ) &&
 	   ( headerLine[0]==kCommentMark ||
 	     strncmp( itemCode, headerLine, strlen( itemCode ) )!=0 ) );
@@ -100,7 +114,7 @@ void readUntilKeyword(char *headerLine, ifstream& infile,
 static
 void skipCommentsAndReadValue(char *headerLine, ifstream& infile){
   do {
-    infile.getline( headerLine, kMaxNameLength );
+    readLine(headerLine, infile);
   } while( !( infile.eof() ) &&
 	   ( headerLine[0]==kCommentMark ) );
 }
@@ -115,7 +129,6 @@ int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode )
    assert( infile.good() );
 
    // NB: Should check for eof on reading each line
-   // NB: Should also check for lines that are too long (>kMaxNameLength)
 
    // look for itemCode
    readUntilKeyword(headerLine, infile, itemCode);
@@ -227,7 +240,7 @@ void tInputFile::ReadItem(  char * theString, const char *itemCode )
 
    // skip any comment and read value
    do {
-     infile.getline( headerLine, kMaxNameLength );
+     readLine(headerLine, infile);
    } while( !( infile.eof() ) &&
 	    ( headerLine[0]==kCommentMark ) );
    if( headerLine[0]!=kCommentMark )
