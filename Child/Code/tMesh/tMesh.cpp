@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.171 2003-07-19 13:19:24 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.172 2003-07-21 09:58:25 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -266,7 +266,7 @@ MakeLayersFromInputData( tInputFile &infile )
    char thestring[80], inname[80];
    char headerLine[kMaxNameLength];
    ifstream layerinfile;
-   infile.ReadItem( thestring, "INPUTDATAFILE" );
+   infile.ReadItem( thestring, sizeof(thestring), "INPUTDATAFILE" );
 
    if (0) //DEBUG
      cout<<"in MakeLayersFromInputData..."<<endl;
@@ -1492,7 +1492,7 @@ MakeMeshFromPoints( tInputFile &infile )
 
    // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
-   infile.ReadItem( pointFilenm, "POINTFILENAME" );
+   infile.ReadItem( pointFilenm, sizeof(pointFilenm), "POINTFILENAME" );
    pointfile.open( pointFilenm );
    if( !pointfile.good() )
    {
@@ -1681,7 +1681,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
 
    // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
-   infile.ReadItem( arcgridFilenm, "ARCGRIDFILENAME" );
+   infile.ReadItem( arcgridFilenm, sizeof(arcgridFilenm), "ARCGRIDFILENAME" );
    gridfile.open( arcgridFilenm );
    if( !gridfile.good() )
    {
@@ -1899,7 +1899,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
 
    // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
-   infile.ReadItem( arcgridFilenm, "ARCGRIDFILENAME" );
+   infile.ReadItem( arcgridFilenm, sizeof(arcgridFilenm), "ARCGRIDFILENAME" );
    gridfile.open( arcgridFilenm );
    if( !gridfile.good() )
    {

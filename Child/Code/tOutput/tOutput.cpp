@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.77 2003-07-19 13:19:27 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.78 2003-07-21 09:58:28 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -43,7 +43,7 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
 {
    assert( meshPtr != 0 );
 
-   infile.ReadItem( baseName, "OUTFILENAME" );
+   infile.ReadItem( baseName, sizeof(baseName), "OUTFILENAME" );
    CreateAndOpenFile( &nodeofs, SNODES );
    CreateAndOpenFile( &edgofs, SEDGES );
    CreateAndOpenFile( &triofs, STRI );

@@ -12,7 +12,7 @@
 **   - Bug fix in constructor: nnodes was being read from edge and
 **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
 **
-**  $Id: tListInputData.cpp,v 1.13 2003-05-22 09:19:11 childcvs Exp $
+**  $Id: tListInputData.cpp,v 1.14 2003-07-21 09:58:24 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -81,7 +81,7 @@ tListInputData( tInputFile &infile )                   //tListInputData
    char headerLine[kMaxNameLength]; // header line read from input file
 
    // Read base name for triangulation files from infile
-   infile.ReadItem( basename, "INPUTDATAFILE" );
+   infile.ReadItem( basename, sizeof(basename), "INPUTDATAFILE" );
    
    // Open each of the four files
    strcpy( inname, basename );

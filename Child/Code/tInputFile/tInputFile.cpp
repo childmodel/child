@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.24 2003-07-14 13:29:02 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.25 2003-07-21 09:58:23 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -268,7 +268,7 @@ void tInputFile::writeLogFile()
   ofstream inoutfile;  // output file in which items are recorded
   char inoutname[kMaxNameLength];
   // Create log file for inputs
-  ReadItem( inoutname, "OUTFILENAME" );
+  ReadItem( inoutname, sizeof(kMaxNameLength), "OUTFILENAME" );
   strcat( inoutname, ".inputs" );
   inoutfile.open( inoutname );
   if( !inoutfile.good() )
@@ -372,10 +372,14 @@ double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode )
   return atof(KeyWordTable[i].value());
 }
 
-void tInputFile::ReadItem(  char * theString, const char *itemCode )
+// The size of 'theString' is 'len' including the trailing '\0'
+void tInputFile::ReadItem( char * theString, size_t len,
+			   const char *itemCode )
 {
+  assert(len>0);
   const int i = findKeyWord( itemCode );
   if (i == notFound)
     ReportNonExistingKeyWord( itemCode );
-  strcpy(theString,KeyWordTable[i].value());
+  strncpy(theString,KeyWordTable[i].value(), len);
+  theString[len-1] = '\0';
 }

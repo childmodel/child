@@ -68,7 +68,7 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
     ifstream pointfile;              // the file (stream) itself
 
     //Read Points
-    infile.ReadItem( pointFilenm, "POINTFILENAME" );
+    infile.ReadItem( pointFilenm, sizeof(pointFilenm), "POINTFILENAME" );
     pointfile.open( pointFilenm );
     if( !pointfile.good() ){
       cerr << "\nPoint file name: '" << pointFilenm << endl;

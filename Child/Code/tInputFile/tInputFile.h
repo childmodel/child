@@ -38,7 +38,7 @@
 **  Created by Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.h,v 1.15 2003-07-14 13:29:04 childcvs Exp $
+**  $Id: tInputFile.h,v 1.16 2003-07-21 09:58:24 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -85,7 +85,7 @@ public:
   int ReadItem( const int &, const char * );       // reads an int
   long ReadItem( const long &, const char * );     // reads a long
   double ReadItem( const double &, const char * ); // reads a double
-  void ReadItem( char *, const char * );           // reads a string
+  void ReadItem( char *, size_t len, const char * );// reads a string
   // similar overrides could be added for other data types
 
 private:

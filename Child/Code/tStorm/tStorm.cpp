@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.27 2003-07-15 16:01:17 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.28 2003-07-21 09:58:29 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -168,8 +168,10 @@ tStorm::tStorm( tInputFile &infile )
    if( optVariable )
    {
       char fname[87];
-      infile.ReadItem( fname, "OUTFILENAME" );
-      strcat( fname, ".storm" );
+#define THEEXT ".storm"
+      infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
+      strcat( fname, THEEXT );
+#undef THEEXT
       stormfile.open( fname );
       if( !stormfile.good() )
           cerr << "Warning: unable to create storm data file '" 
