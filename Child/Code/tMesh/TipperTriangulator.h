@@ -48,8 +48,10 @@ public:
   const point &operator=( const point &p );
   int operator < (const point& p) const;
   point operator - (const point& p) const {return point(x()-p.x(),y()-p.y());}
+#if 0
   point operator + (const point& p) const {return point(x()+p.x(),y()+p.y());}
   point operator / (double f) const {return point(x()/f,y()/f);}
+#endif
   double dot(const point& p) const {return (x()*p.x()+y()*p.y());}
 #if defined(DEBUG_PRINT)
   void print () const;
@@ -76,7 +78,7 @@ public:
 #endif
   void write(ofstream& f,const point p[]) const;
   bool visible(const point p[],int i) const;
-public:
+
   enum { none = -1, end = -2 }; // must be strictly negative
   int from,to;
   int lef,let,ref,ret;
@@ -101,9 +103,9 @@ public:
   oriented_edge():
     _edge(edge::none),
     _orientation(true) {}
-  oriented_edge(int e, bool o):
-    _edge(e),
-    _orientation(o) {}
+  oriented_edge(int _e, bool _o):
+    _edge(_e),
+    _orientation(_o) {}
   oriented_edge(const oriented_edge & _e):
     _edge(_e.e()),
     _orientation(_e.o()) {}

@@ -140,7 +140,7 @@ bool edge::visible(const point p[],int i) const {
 // the code here is not yet robust necessarily to list shrinking to zero
 // number of elements
 class cyclist{
-  const cyclist &operator=( const cyclist & );  // assignment operator
+  const cyclist &operator=( const cyclist & );
   cyclist( const cyclist & );
   void delNext(int list_pos);
   void add(int ej);
@@ -224,7 +224,7 @@ int cyclist::delNextNeg(int list_pos){
 void cyclist::add(int ej){
   //build hull from scratch in numerical order - we assume you got the
   //orientation right!! (anti-clockwise)
-  checkRange(hole<size);
+  checkRange(hole);
   const int n=ejs[hole].data;
   ejs[hole].data=ej;
   //prev stores the location of the place in the array that was most recently
