@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.28 1998-04-09 22:41:49 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.29 1998-04-19 23:46:58 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1082,8 +1082,8 @@ MakeGridFromScratch( tInputFile &infile )
       }
    }
    MakeCCWEdges();
-   UpdateMesh();
-   CheckMeshConsistency();
+   UpdateMesh(); //calls CheckMeshConsistency()
+     //CheckMeshConsistency();
 }
 
 
@@ -1140,6 +1140,7 @@ CheckMeshConsistency( void )
    tGridListIter<tSubNode> nodIter( nodeList );
    tGridListIter<tEdge> edgIter( edgeList );
    tListIter<tTriangle> triIter( triList );
+   tPtrListIter< tEdge > sIter;
    tNode * cn, * org, * dest;
    tEdge * ce, * cne, * ccwedg;
    tTriangle * ct, * optr;
@@ -1240,7 +1241,18 @@ CheckMeshConsistency( void )
               << " is surrounded by closed boundary nodes\n";
          goto error;
       }
-      
+        //make sure node coords are consistent with edge endpoint coords:
+      sIter.Reset( cn->getSpokeListNC() );
+      for( ce = sIter.FirstP(); !(sIter.AtEnd()); ce = sIter.NextP() )
+      {
+         if( ce->getOriginPtrNC()->getX() != cn->getX() ||
+             ce->getOriginPtrNC()->getY() != cn->getY() )
+         {
+            cerr << "NODE #" << cn->getID()
+                 << " coords don't match spoke origin coords\n";
+            goto error;
+         }
+      }
    }
    cout << "NODES PASSED\n";
    
@@ -2972,6 +2984,7 @@ UpdateMesh()
    SetVoronoiVertices();
    CalcVoronoiEdgeLengths();
    CalcVAreas();
+   CheckMeshConsistency();
 
 // Triangle areas
 /*   for( tlist.First(); !tlist.AtEnd(); tlist.Next() )
@@ -3490,10 +3503,7 @@ MoveNodes()
    tSubNode * cn;  
    tGridListIter< tSubNode > nodIter( nodeList );
    //check for triangles with edges which intersect (an)other edge(s)
-   CheckTriEdgeIntersect();
-   //update coordinates
-     /*for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
-       if ( cn->Meanders() ) cn->UpdateCoords();*/
+   CheckTriEdgeIntersect(); //calls tLNode::UpdateCoords() for each node
    //resolve any remaining problems after points moved
    CheckLocallyDelaunay();
    UpdateMesh();

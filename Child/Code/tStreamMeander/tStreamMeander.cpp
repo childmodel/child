@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.34 1998-04-17 21:27:10 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.35 1998-04-19 23:46:47 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -530,7 +530,7 @@ void tStreamMeander::FindReaches()
    double curwidth, ctaillen;
    int i, j, nmndrnbrs;
    double rdrop;
-   tLNode *cn, *lnPtr, *frn, *lrn;
+   tLNode *cn, *lnPtr, *frn, *lrn, *nxn, *ln;
    tEdge *ce;
    tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
    tPtrListIter< tEdge > spokIter;
@@ -656,9 +656,11 @@ void tStreamMeander::FindReaches()
       //cout << " on reach " << i << endl << flush;
       assert( i<reachList.getSize() );
       rnIter.Reset( *plPtr );
-      curwidth = rnIter.LastP()->getHydrWidth();
+      cn = rnIter.LastP();
+      curwidth = cn->getHydrWidth();
       taillen[i] = 10.0*curwidth;
       ctaillen = 0.0;
+      cn = cn->GetDownstrmNbr();
       while (ctaillen <= taillen[i] && cn->getBoundaryFlag() == kNonBoundary)
       {
          //assert( cn->GetFlowEdg()->getLength() > 0 );
@@ -668,6 +670,33 @@ void tStreamMeander::FindReaches()
       }
       taillen[i] = ctaillen;
    }
+     //check reaches for correct connectivity:
+   for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
+        plPtr = rlIter.NextP(), i++ )
+   {
+      rnIter.Reset( *plPtr );
+        //ln = rnIter.LastP();
+      for( cn = rnIter.FirstP(), j=0; !(rnIter.AtEnd()); cn = rnIter.NextP(), j++ )
+      {
+         if( j < plPtr->getSize() - 1 )  //if( cn != ln )
+         {
+            nxn = rnIter.ReportNextP();
+            if( nxn != cn->GetDownstrmNbr() )
+            {
+               cout << "reach with " << plPtr->getSize() << " nodes: " << endl;
+               for( ln = rnIter.FirstP(); !(rnIter.AtEnd()); ln = rnIter.NextP() )
+               {
+                  cout << ln->getID() << "; ";
+               }
+               cout << endl;
+               cn->TellAll();
+               nxn->TellAll();
+               ReportFatalError( "FindReaches: downstream nbr not next reach node" );
+            }
+         }
+      }
+   }
+   
      //for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
      //{
      //   cout << "end FindReaches, node " << cn->getID() << endl;
@@ -707,9 +736,10 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
    double rerody, lerody, rz, lz, width;
    double maxfrac, displcmt, a, b, dtm, tmptim, frac, xs;
    double num;
+   double dx, dy;
    tPtrList< tLNode > *creach;
    tPtrListIter< tLNode > rnIter;
-   tLNode *curnode;
+   tLNode *curnode, *nxtnode;
    tEdge *fedg;
    tArray< double > bankerody;
    //loop through reaches:
@@ -757,6 +787,16 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
          xs += fedg->getLength();
          qa[j] = curnode->GetQ();
          delsa[j] = fedg->getLength();
+         if( j < creach->getSize() - 1 )
+         {
+            nxtnode = rnIter.ReportNextP();
+            if( nxtnode != curnode->GetDownstrmNbr() )
+            {
+               curnode->TellAll();
+               nxtnode->TellAll();
+               ReportFatalError( "downstream nbr not next reach node" );
+            }
+         }
          xs += delsa[j];
          bankerody = FindBankErody( curnode );
          //curnode->GetErodibility( rerody, lerody, pr->kf);
@@ -1295,6 +1335,7 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
    tEdge *ce, *fe, *ne;
    tArray< double > xy, xyz1, xy2, dxy(2), lrerody(2);
    double a, b, c, d, s1, s2, D, d1, d2, E1, E2, dz1, dz2, H;
+   if( nPtr->getBoundaryFlag() != kNonBoundary ) return lrerody;
    nNPtr = nPtr->GetDownstrmNbr();
    xyz1 = nPtr->get3DCoords();
    xy2 = nNPtr->get2DCoords();
@@ -1351,11 +1392,16 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
          //find height dependence:
          //if elev diff > hydraulic depth, ratio of depth to bank height;
          //o.w., keep nominal erody:
-         if( dz1 >= H ) E1 *= (Pdz * H / dz1 + (1 - Pdz));
-         if( dz2 >= H ) E2 *= (Pdz * H / dz2 + (1 - Pdz));
+         cout << "FBE 4" << H << " " << dz1 << endl << flush;
+         if( dz1 > H ) E1 *= (Pdz * H / dz1 + (1 - Pdz));
+         cout << "FBE 5" << endl << flush;
+         if( dz2 > H ) E2 *= (Pdz * H / dz2 + (1 - Pdz));
          //now we've found erod'ies at ea. node, find weighted avg:
+         assert( D > 0.0 );
+         cout << "FBE 6" << endl << flush;
          lrerody[j] = (E1 * d2 + E2 * d1) / D;
          j++;
+         cout << "FBE 7" << endl << flush;
       }
       i++;
       ce = ce->GetCCWEdg();
@@ -1705,7 +1751,7 @@ void tStreamMeander::CheckFlowedgCross()
 **		Created: 2/98 SL
 **
 \*****************************************************************************/
-#define MAXLOOPS 100
+#define MAXLOOPS 10
 void tStreamMeander::CheckBrokenFlowedg()
 {
    cout << "CheckBrokenFlowedg()..." << flush << endl;
