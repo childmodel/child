@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.15 1998-04-28 17:58:51 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.16 1998-04-29 21:40:31 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -507,6 +507,7 @@ double tNode::ComputeVoronoiArea()
    return area;
 }
 
+
 void tNode::makeCCWEdges()
 {
    tEdge *ce, *ccwe;
@@ -520,6 +521,29 @@ void tNode::makeCCWEdges()
       assert( ccwe != 0 );
       ce->SetCCWEdg( ccwe );
    }
+}
+
+
+void tNode::ConvertToClosedBoundary()
+{
+   tEdge *ce, *cec;   // an edge and its complement
+
+   // Reset boundary flag
+   boundary = kClosedBoundary;
+
+   // Signal all connected edges and their complements to become no-flow
+   ce = edg;
+   do
+   {
+      assert( ce!=0 );
+      if( ce->getBoundaryFlag()==kFlowAllowed )
+      {
+         ce->setFlowAllowed( 0 );
+         // get complement and change it too
+      }
+      
+   } while( (ce=ce->GetCCWEdg()) != edg );
+   
 }
 
 
@@ -783,6 +807,37 @@ void tEdge::TellCoords()
    cout << "  " << org->getID() << " (" << org->getX() << ","
         << org->getY() << ") -> " << dest->getID() << " ("
         << dest->getX() << "," << dest->getY() << ")" << endl;
+}
+
+
+/**************************************************************************\
+**
+**  tEdge::FindComplement
+**
+**  Finds and returns the edge's complement edge. Does this by checking
+**  the spokes connected to its destination node and returning the one
+**  that connects back to its origin.
+**
+**  Data mbrs modified:  none
+**  Returns:  ptr to the complement edge
+**  Assumes:  valid connectivity (one of destination's spokes connects
+**            back to origin)
+**  Created: 4/29/98 GT
+**
+\**************************************************************************/
+tEdge * tEdge::FindComplement()
+{
+   assert( org!=0 && dest!=0 && dest->GetEdg()!=0 );
+   
+   tEdge * ce = dest->GetEdg();
+   while( ce->getDestinationPtrNC() != org )
+   {
+      ce = ce->GetCCWEdg();
+      assert( ce!=0 && ce!=dest->GetEdg() );
+   }
+   return ce;
+   // TODO: test for infinite loop using assert
+   
 }
 
 
