@@ -12,7 +12,7 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.16 1998-04-16 22:50:15 stlancas Exp $
+**  $Id: tStreamMeander.h,v 1.17 1998-05-19 22:44:31 stlancas Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
@@ -77,6 +77,7 @@ public:
    //CheckBanksTooClose, CheckFlowedgCross, and CheckBrokenFlowedg are to check
    //for 'violations' peculiar to moving channels.
    int InChannel( tLNode *, tLNode * ); //called by CheckBanksTooClose()
+    void CheckBndyTooClose();
    void CheckBanksTooClose();
    void CheckFlowedgCross();
    void CheckBrokenFlowedg();

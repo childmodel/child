@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.39 1998-05-08 23:40:31 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.40 1998-05-19 22:44:05 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -44,6 +44,76 @@ double LineRemainder( double x, double y, tNode * p0,tNode * p1 )
   c = -( a * x0 + b * y0 );
   return (a * x + b * y + c);
 }
+
+/*****************************************************************************\
+**
+**
+**      DistanceToLine: given x,y coords, finds distance to the line 
+**              defined by given a, b, and c (ax + by + c = 0)
+**      Global function.
+**      Data members updated: 
+**      Called by: 
+**      Calls:  
+**        
+**
+\*****************************************************************************/
+double DistanceToLine( double x2, double y2, double a, double b, double c )
+{
+   double f, g, h, x, y, d;
+
+   f = -b;
+   g = a;
+   h = b * x2 - a * y2;
+   if( fabs(b) > 0 && fabs(a) > 0 )
+   {
+      x = (g * c / b - h) / (f - g * a / b);
+      y = (-c - a * x) / b;
+   }
+   else
+   {
+      if( fabs(a) == 0.0 )
+      {
+         y = -c / b;
+         x = -h / f;
+      }
+      else
+      {
+         y = -h / g;
+         x = -c / a;
+      }
+   }
+   d = sqrt( (x2 - x) * (x2 - x) + (y2 - y) * (y2 - y) );
+   return d;
+}
+
+/*****************************************************************************\
+**
+**
+**      DistanceToLine: given x,y coords, finds distance to the line 
+**              formed by points  p0->(x, y) and p1->(x, y)
+**      Global function.
+**      Data members updated: 
+**      Called by: 
+**      Calls:  
+**        
+**
+\*****************************************************************************/
+double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
+{
+   double a, b, c, f, g, h, x0, y0, x1, y1, x, y, d;
+
+   x0 = p0->getX();
+   y0 = p0->getY();
+   x1 = p1->getX();
+   y1 = p0->getY();
+   a = y1 - y0; 
+   b = x0 - x1; 
+   c = -( a * x0 + b * y0 );
+
+   d = DistanceToLine( x2, y2, a, b, c );
+   return d;
+}
+
 /**************************************************************************\
 **
 **  Constructors
@@ -968,6 +1038,7 @@ void tStreamMeander::Migrate()
       {
          CalcMigration( time, duration, cummvmt ); //incr time; uses reachList
          MakeChanBorder(); //uses reachList
+         CheckBndyTooClose();  //uses tGrid::nodeList
          CheckBanksTooClose(); //uses reachList
          CheckFlowedgCross(); //uses tGrid::nodeList
          CheckBrokenFlowedg(); //uses tGrid::nodeList
@@ -1365,7 +1436,8 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
 tArray< double >
 tStreamMeander::FindBankErody( tLNode *nPtr )
 {
-   tArray< double > spD( nPtr->getSpokeListNC().getSize() * 2 );
+   tArray< double > spD( nPtr->getSpokeListNC().getSize() * 2 ),
+       spR( nPtr->getSpokeListNC().getSize() * 2 );
    int i, j, n;
    tLNode *nNPtr, *cn, *node1, *node2;
    tEdge *ce, *fe, *ne;
@@ -1381,7 +1453,7 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
    b = dxy[1];
    c = -dxy[1] * xyz1[1] - dxy[0] * xyz1[0];
    n = nPtr->getSpokeListNC().getSize();
-   //find remainders of pts wrt line perpendicular to downstream direction
+   //find distance and remainders of pts wrt line perpendicular to downstream direction
    fe = nPtr->GetFlowEdg();
    ce = fe;
    i = 0;
@@ -1391,6 +1463,7 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
       xy = cn->get2DCoords();
       d = a * xy[0] + b * xy[1] + c;
       spD[i] = spD[n + i] = d;
+      spR[i] = spR[n + i] = DistanceToLine( xy[0], xy[1], a, b, c );
       ce = ce->GetCCWEdg();
       i++;
    } while( ce != fe );
@@ -1409,9 +1482,9 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
       if( s1 != s2 ) //points are on opposite sides of the perp.
       {
          assert( j<2 );
-         //find absolute values of remainders and their sum:
-         d1 = fabs( spD[i] );
-         d2 = fabs( spD[i + 1] );
+         //find distances to line and their sum:
+         d1 = spR[i];
+         d2 = spR[i + 1];
          D = d1 + d2;
          //find erodibilities of nbr nodes wrt nPtr
          ne = ce->GetCCWEdg();
@@ -1543,6 +1616,91 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
    return rlerody;
 }*/
 
+/*****************************************************************************\
+**
+**  CheckBndyTooClose():
+**   Go through boundary part of node list and check for meandering nbrs. Find
+**   new distance of mndr nbrs from boundary edges; if it's closer than 1/2 the
+**   hydraulic width of the mndr node, do a RevertToOldCoords() on that MF IFF
+**   migration would move it closer to the boundary (i.e., don't want to pin it
+**   next to the boundary if it's already there).
+**
+**		Parameters:	
+**		Called by: Migrate
+**		Created: 5/98 SL
+**
+**
+\*****************************************************************************/
+void tStreamMeander::CheckBndyTooClose()
+{
+   tGridListIter< tLNode > nI( gridPtr->GetNodeList() );
+   tPtrListIter< tEdge > sI;
+   tLNode *cn, *mn;
+   tNode *nn, *bn0, *bn1;
+   tEdge *ce;
+   int n; 
+   double width, mindist, d0, d1, d2, d3;
+   tArray< double > xy, xyn;
+   
+   cn = nI.LastActiveP();
+     //go through boundary nodes
+   for( cn = nI.NextP(); !(nI.AtEnd()); cn = nI.NextP() )
+   {
+      sI.Reset( cn->getSpokeListNC() );
+      n = 0;
+        //count number of meandering nbrs:
+      for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
+      {
+         mn = (tLNode *) ce->getDestinationPtrNC();
+         if( mn->Meanders() )
+         {
+            n++;
+         }
+      }
+        //proceed only if bndy node has meandering nbr(s):
+      if( n > 0 )
+      {
+         n = 0;
+           //count number of and find boundary nbrs:
+         for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
+         {
+            nn = ce->getDestinationPtrNC();
+            if( nn->getBoundaryFlag() != kNonBoundary )
+            {
+               if( n == 0 ) bn0 = nn;
+               else if( n == 1 ) bn1 = nn;
+                 //else cout << 'Warning: >2 bndy nbrs found in CheckBndyTooClose\n';
+               n++;
+            }
+         }
+           //find meandering nbrs:
+         for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
+         {
+            mn = (tLNode *) ce->getDestinationPtrNC();
+            if( mn->Meanders() )
+            {
+               width = mn->getHydrWidth();
+               mindist = width / 2.0;
+                 //find distances to boundary edges:
+               xyn = mn->getNew2DCoords();
+               d0 = DistanceToLine( xyn[0], xyn[1], cn, bn0 );
+               d1 = DistanceToLine( xyn[0], xyn[1], cn, bn1 );
+                 //if too close, RevertToOldCoords() on the meandering node:
+               if( d0 < mindist || d1 < mindist )
+               {
+                  xy = mn->get2DCoords();
+                  d2 = DistanceToLine( xy[0], xy[1], cn, bn0 );
+                  d3 = DistanceToLine( xy[0], xy[1], cn, bn1 );
+                  if( d0 < d2 || d1 < d3 ) mn->RevertToOldCoords();
+               }
+            }
+         }
+      }
+   }
+   return;
+}
+
+               
 /*****************************************************************************\
 **
 **  CheckBanksTooClose(): This simply checks the non-meandering neighbors of all
@@ -1685,6 +1843,7 @@ void tStreamMeander::CheckFlowedgCross()
                      if( nod == dscn )
                      {
                         ft = 1;
+                          //set 'nod' to third node
                         if( j == 1 ) nod = (tLNode *) ct->pPtr( (i+2)%3 );
                         else nod = (tLNode *) ct->pPtr( (i+1)%3 );
                      }
@@ -1693,8 +1852,10 @@ void tStreamMeander::CheckFlowedgCross()
                }
                if( ft ) break;
             }
+              //if 'flow triangle', i.e., meandering node and dnstrm nbr
             if( ft )
             {
+                 //check nbr tri's for new pos'n CCW
                for( i=0, j=0; i<3; i++ )
                {
                   nt = ct->tPtr(i);
@@ -1725,11 +1886,14 @@ void tStreamMeander::CheckFlowedgCross()
                if( pointtodelete != 0 )
                {
                   crossed = 1;
+                    //if the node to delete is a meandering node
+                    //with greater flow, delete the node we started with
                   if( pointtodelete->Meanders() &&
                       cn->getDrArea() < pointtodelete->getDrArea() )
                   {
                      pointtodelete = cn;
                   }
+                    //don't delete boundary node
                   else if( pointtodelete->getBoundaryFlag() )
                   {
                      pointtodelete = 0;
@@ -1740,6 +1904,9 @@ void tStreamMeander::CheckFlowedgCross()
                   }
                   else
                   {
+                       //we had found a crossed node but it was on the boundary
+                       //so we revert the other two to their original coords
+                       //if they fall outside the grid
                      xy0 = cn->getNew2DCoords();
                      if( gridPtr->LocateTriangle( xy0[0], xy0[1] ) == 0 )
                          cn->RevertToOldCoords();
