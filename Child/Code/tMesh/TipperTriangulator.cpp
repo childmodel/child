@@ -624,12 +624,6 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 
 void sort_triangulate(int npoints, point *p, int *pnedges, edge** edges_ret){
 
-  // build "id"
-  {
-    for(int ip=0;ip!=npoints;++ip)
-      p[ip].id = ip;
-  }
-
   //sort the points - note that the point class defines the
   // < operator so that the sort is on the x co-ordinate
   //array p will be replaced with the array sorted in x
