@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.48 2003-04-29 09:33:48 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.49 2003-04-30 12:11:10 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -102,7 +102,7 @@ tArray< double > FindIntersectionCoords( tArray< double > const &xy1,
 **  by points p0 p1 using x y. (replaces dis)
 **
 **      Data members updated: (none)
-**      Called by: 
+**      Called by:
 **      Calls: (none)
 **
 \*****************************************************************************/
@@ -110,7 +110,7 @@ double tNode::Dist( tNode * p0, tNode * p1 )
 {
   double a,b,c,res;
 
-  a=(p1->y)-(p0->y);  
+  a=(p1->y)-(p0->y);
   b=-((p1->x)-(p0->x));
   c=-((a*(p0->x))+(b*(p0->y)));
   res=(a*x + b*y + c) / sqrt(a*a + b*b);
@@ -161,7 +161,7 @@ tEdge *tNode::EdgToNod( tNode * nod )
 **  [J. Comp. Geom. & Appl., 1994, v. 4, p. 179], each Delaunay triangle
 **  should be associated with one Voronoi vertex). This is handled by
 **  detecting "loops" in the Voronoi polygon and cutting them off by
-**  taking the area of the closest (counterclockwise) intersection of 
+**  taking the area of the closest (counterclockwise) intersection of
 **  perpendicular bisectors.
 **
 **  TODO: for speed, return to triangle-based method of computing nodes.
@@ -374,7 +374,7 @@ double tNode::ComputeVoronoiArea()
          }
          else vcL.insertAtBack( xy1 );
       }
-      
+
       // Now that we've found the correct vertices, make triangles to
       // fill the polygon; the sum of the tri areas is the v. area.
       // For a convex polygon, we can compute the total area as the
@@ -382,9 +382,9 @@ double tNode::ComputeVoronoiArea()
       //cout << "find polygon area" << endl << flush;
       // coords of first vertex:
       xy = *(vcI.FirstP()); //ce = vtxIter.FirstP();
-      //xy = ce->getRVtx(); 
+      //xy = ce->getRVtx();
       // Find out # of vertices in polygon:
-      int nverts = vcL.getSize(); //vedgList.getSize(); 
+      int nverts = vcL.getSize(); //vedgList.getSize();
       for( i=2; i<=nverts-1; i++ )
       {
          double a, b, c;
@@ -466,7 +466,7 @@ double tNode::ComputeVoronoiArea()
 **  tNode::getVoronoiVertexList
 **
 **  Creates and returns a list of (x,y) coordinates for the
-**  Voronoi vertices associated with the node. The list is 
+**  Voronoi vertices associated with the node. The list is
 **  created by moving around the spokes and adding each spoke's
 **  right-hand Voronoi vertex to the back of the list.
 **    A pointer to the vertex list is passed as a parameter; any
@@ -497,7 +497,7 @@ void tNode::getVoronoiVertexList( tList<Point2D> * vertexList )
       ce = ce->getCCWEdg();
    }
    while( ce!=edg );
-   
+
    assert( vertexList->getSize()!=0 );
 }
 /*******************************************************************\
@@ -505,7 +505,7 @@ void tNode::getVoronoiVertexList( tList<Point2D> * vertexList )
 **  tNode::getVoronoiVertexXYZList
 **
 **  Creates and returns a list of (x,y,z) coordinates for the
-**  Voronoi vertices associated with the node. The list is 
+**  Voronoi vertices associated with the node. The list is
 **  created by moving around the spokes and adding each spoke's
 **  right-hand Voronoi vertex to the back of the list. The z
 **  coordinate is obtained by linear interpolation from the 3
@@ -548,7 +548,7 @@ void tNode::getVoronoiVertexXYZList( tList<Point3D> * vertexList )
       vertexList->insertAtBack( vtx );
    }
    while( ce!=edg );
-   
+
    assert( vertexList->getSize()!=0 );
 }
 
@@ -578,9 +578,9 @@ void tNode::ConvertToClosedBoundary()
          ce->setFlowAllowed( 0 );
          // get complement and change it too TODO
       }
-      
+
    } while( (ce=ce->getCCWEdg()) != edg );
-   
+
 }
 
 /**************************************************************************\
@@ -600,7 +600,7 @@ void tNode::TellAll()
    if( edg )
        cout << "  points to edg #" << edg->getID() << endl;
    else cout << "  edg is undefined!\n";
-   
+
 }
 #endif
 
@@ -632,7 +632,7 @@ double tEdge::CalcLength()
    //Xconst tNode * dest = getDestinationPtr(); 5/99
    assert( org!=0 );  // Failure = edge has no origin and/or destination node
    assert( dest!=0 );
-   
+
    double dx = org->getX() - dest->getX();
    double dy = org->getY() - dest->getY();
    len = sqrt( dx*dx + dy*dy );
@@ -675,7 +675,7 @@ void tEdge::TellCoords()
 tEdge * tEdge::FindComplement()
 {
    assert( org!=0 && dest!=0 && dest->getEdg()!=0 );
-   
+
    tEdge * ce = dest->getEdg();
    while( ce->getDestinationPtrNC() != org )
    {
@@ -684,7 +684,7 @@ tEdge * tEdge::FindComplement()
    }
    return ce;
    // TODO: test for infinite loop using assert
-   
+
 }
 
 
@@ -783,14 +783,14 @@ tTriangle::FindCircumcenter()
    tArray< double > xyo, xyd1, xyd2, xy(2);
 
    assert( pPtr(0) && pPtr(1) && pPtr(2) );
-   
+
    // Coordinates of triangle's nodes p0, p1, and p2
    xyo = pPtr(0)->get2DCoords();
    xyd1 = pPtr(1)->get2DCoords();
    xyd2 = pPtr(2)->get2DCoords();
 
-   // Find the midpoints of the two sides (p0,p1) and (p0,p2) and store them 
-   // in (x1,y1) & (x2,y2). Then get the distance between p0 and the 
+   // Find the midpoints of the two sides (p0,p1) and (p0,p2) and store them
+   // in (x1,y1) & (x2,y2). Then get the distance between p0 and the
    // midpoints of each side
    x1 = (xyo[0] + xyd1[0]) / 2;
    y1 = (xyo[1] + xyd1[1]) / 2;
@@ -849,7 +849,7 @@ tTriangle::FindCircumcenter()
 void tTriangle::TellAll()
 {
    int i;
-   
+
    assert( this!=0 );
    cout << "TRIANGLE #" << id << ":\n";
    for( i=0; i<3; i++ )
@@ -869,4 +869,4 @@ void tTriangle::TellAll()
 }
 #endif
 
-      
+

@@ -1,4 +1,4 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /*************************************************************************/\
 /**
@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.39 2003-04-29 15:44:00 childcvs Exp $
+**  $Id: meshElements.h,v 1.40 2003-04-30 12:11:10 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -168,7 +168,7 @@ protected:
 **
 **  tEdge objects represent the directed edges in a Delaunay triangulation
 **  of tNode objects. "Directed" means that the edge has directionality
-**  from one point to the other; one is the origin and the other the  
+**  from one point to the other; one is the origin and the other the
 **  the destination. In addition to pointing to its origin and destination
 **  nodes, each tEdge points to the tEdge that shares the same origin and
 **  lies immediately counter-clockwise. This makes it possible to obtain,
@@ -180,7 +180,7 @@ protected:
 **
 **  The boundary status of a tEdge object depends on the boundary status
 **  of the two nodes to which it is connected: if either node is a closed
-**  boundary, the edge's is a "no flow" (boundary) edge; otherwise it is a 
+**  boundary, the edge's is a "no flow" (boundary) edge; otherwise it is a
 **  "flow allowed" (non-boundary) edge.
 **
 **  Note that an edge's slope is defined as the (Zo - Zd)/L, where Zo and
@@ -212,7 +212,7 @@ public:
   int getID() const;            // returns ID number
   int getBoundaryFlag() const;  // returns boundary status (flow or no flow)
   double getLength() const;     // returns edge's length (projected)
-  double getSlope() const;      // slope = "z" gradient from org to dest nodes 
+  double getSlope() const;      // slope = "z" gradient from org to dest nodes
   double getOrgZ();             // returns origin's z value
   double getDestZ();            // returns destination's z value
   const tNode *getOriginPtr() const;      // returns ptr to origin node (const)
@@ -233,6 +233,7 @@ public:
   void setOriginPtr( tNode * );      // sets origin ptr
   void setDestinationPtr( tNode * ); // sets destination ptr
   void setFlowAllowed( int );        // sets boundary code
+  void setFlowAllowed( tNode*, tNode* ); // sets boundary code
   double CalcLength();               // computes & sets length
   double CalcSlope();                // computes & sets slope
   void setCCWEdg( tEdge * edg );     // sets ptr to counter-clockwise neighbor
@@ -250,13 +251,13 @@ public:
 
 private:
   int id;          // ID number
-  int flowAllowed; // boundary flag, usu. false when org & dest = closed bds 
+  int flowAllowed; // boundary flag, usu. false when org & dest = closed bds
   double len;      // edge length
   double slope;    // edge slope
   tArray< double > rvtx; // (x,y) coords of Voronoi vertex in RH triangle
   double vedglen;        // length of Voronoi edge shared by org & dest cells
   tNode *org, *dest;     // ptrs to origin and destination nodes
-  tEdge *ccwedg;  // ptr to counter-clockwise (left-hand) edge w/ same origin 
+  tEdge *ccwedg;  // ptr to counter-clockwise (left-hand) edge w/ same origin
   tEdge *cwedg;   // ptr to clockwise (right-hand) edge w/ same origin
   tEdge *compedg; // ptr to complement edge
   tTriangle *tri; // ptr to triangle (if any) that contains pointer to edge;
@@ -275,8 +276,8 @@ private:
 **  (where the order abc is counter-clockwise) would point to tNodes a,b,c
 **  and tEdges a->b, b->c, and c->a, as well as to the tTriangles that share
 **  sides ab, bc, and ac.
-** 
-**  Numbering convention: 
+**
+**  Numbering convention:
 **   - points p0,p1,p2 are in counter-clockwise order
 **   - adjacent triangle t0 lies opposite point p0
 **   - directed edge e0 has points p0->p2
@@ -455,8 +456,6 @@ inline istream &operator>>( istream &input, tNode &node )
 //left shift
 inline ostream &operator<<( ostream &output, tNode &node )
 {
-   //tPtrListIter< tEdge > spokeIter( node.getSpokeListNC() );
-   
    output << node.id << ": " << node.x << " " << node.y << " "
           << node.z
 	  << endl;
@@ -529,8 +528,8 @@ inline tEdge * tNode::getEdg() {return edg;}
 **
 \***********************************************************************/
 
-inline void tNode::setID( int val ) {id = val;}    
-inline void tNode::setX( double val ) {x = val;}   
+inline void tNode::setID( int val ) {id = val;}
+inline void tNode::setX( double val ) {x = val;}
 inline void tNode::setY( double val ) {y = val;}
 inline void tNode::setZ( double val ) {z = val;}
 
@@ -665,10 +664,7 @@ inline tEdge::tEdge(tNode* n1, tNode* n2) :
 {
   setOriginPtr( n1 );
   setDestinationPtr( n2 );
-  flowAllowed = ( n1->getBoundaryFlag() != kClosedBoundary
-		  && n2->getBoundaryFlag() != kClosedBoundary
-		  && !( n1->getBoundaryFlag()==kOpenBoundary
-			&& n2->getBoundaryFlag()==kOpenBoundary ) ) ? 1 : 0;
+  setFlowAllowed( n1, n2 );
 }
 
 inline tEdge::tEdge(int id_, tNode* n1, tNode* n2) :
@@ -680,10 +676,7 @@ inline tEdge::tEdge(int id_, tNode* n1, tNode* n2) :
 {
   setOriginPtr( n1 );
   setDestinationPtr( n2 );
-  flowAllowed = ( n1->getBoundaryFlag() != kClosedBoundary
-		  && n2->getBoundaryFlag() != kClosedBoundary
-		  && !( n1->getBoundaryFlag()==kOpenBoundary
-			&& n2->getBoundaryFlag()==kOpenBoundary ) ) ? 1 : 0;
+  setFlowAllowed( n1, n2 );
 }
 
 //tEdge::~tEdge() {/*cout << "    ~tEdge()" << endl;*/}      //tEdge
@@ -722,7 +715,7 @@ inline const tEdge &tEdge::operator=( const tEdge &original )
 //left shift
 inline ostream &operator<<( ostream &output, const tEdge &edge )
 {
-   output << edge.id << " " << edge.len << " " << edge.slope << " " 
+   output << edge.id << " " << edge.len << " " << edge.slope << " "
           << edge.org->getID()
           << " " << edge.dest->getID() << endl;
    return output;
@@ -755,22 +748,22 @@ inline ostream &operator<<( ostream &output, const tEdge &edge )
 inline int tEdge::getID() const {return id;}                                //tEdge
 
 //return 0 if flow allowed to match kNonBoundary:
-inline int tEdge::getBoundaryFlag() const             
-{return !( flowAllowed == kFlowAllowed );} 
+inline int tEdge::getBoundaryFlag() const
+{return ( flowAllowed == 1 )?kFlowAllowed:kNonFlowAllowed; }
 
-inline double tEdge::getLength() const {return len;}  
+inline double tEdge::getLength() const {return len;}
 
-inline double tEdge::getSlope() const {return slope;} 
+inline double tEdge::getSlope() const {return slope;}
 
-inline const tNode *tEdge::getOriginPtr() const {return org;} 
+inline const tNode *tEdge::getOriginPtr() const {return org;}
 
 inline const tNode *tEdge::getDestinationPtr() const {return dest;}
 
-inline tNode *tEdge::getOriginPtrNC() {return org;}                
+inline tNode *tEdge::getOriginPtrNC() {return org;}
 
-inline tNode *tEdge::getDestinationPtrNC() {return dest;}          
+inline tNode *tEdge::getDestinationPtrNC() {return dest;}
 
-inline double tEdge::getOrgZ() 
+inline double tEdge::getOrgZ()
 {
    //Xconst tNode * org = getOriginPtr(); 5/99
    assert( org!=0 );
@@ -848,7 +841,6 @@ inline tTriangle* tEdge::TriWithEdgePtr() {return tri;}
 inline void tEdge::setID( int val ) {
    assert( id>=0 );
    id = val;
-   /*id = ( val >=0 ) ? val : 0;*/
 }           //tEdge
 
 inline void tEdge::setLength( double val )
@@ -869,7 +861,16 @@ inline void tEdge::setFlowAllowed( int val )
 {
    assert( val==0 || val==1 );
    flowAllowed = val;
-   /*flowAllowed = ( val == 0 || val == 1 ) ? val : 0;*/}
+}
+
+inline void tEdge::setFlowAllowed( tNode* n1, tNode* n2 )
+{
+   assert( n1 && n2 );
+   flowAllowed = ( n1->getBoundaryFlag() != kClosedBoundary
+                   && n2->getBoundaryFlag() != kClosedBoundary
+                   && !( n1->getBoundaryFlag()==kOpenBoundary
+                         && n2->getBoundaryFlag()==kOpenBoundary ) ) ? 1 : 0;
+}
 
 inline void tEdge::setCCWEdg( tEdge * edg )
 {
@@ -919,7 +920,7 @@ inline double tEdge::CalcSlope()
 {
    //Xconst tNode * org = getOriginPtr(); 5/99
    //Xconst tNode * dest = getDestinationPtr(); 5/99
-   
+
    assert( org!=0 );  // Failure = edge has no origin and/or destination node
    assert( dest!=0 );
    assert( len>0.0 );
@@ -950,9 +951,9 @@ inline double tEdge::CalcSlope()
 inline double tEdge::CalcVEdgLen()
 {
 	assert( ccwedg!=0 );
-	
+
 	double dx, dy;
-	
+
 	dx = rvtx[0] - ccwedg->rvtx[0];
 	dy = rvtx[1] - ccwedg->rvtx[1];
 	vedglen = sqrt( dx*dx + dy*dy );
@@ -1040,7 +1041,7 @@ inline tTriangle::tTriangle( int id_, tNode* n0, tNode* n1, tNode* n2,
 **
 **  Overloaded operators:
 **
-**    assignment: copies all values 
+**    assignment: copies all values
 **    left shift: sends the following data to the output stream:
 **                triangle ID and the IDs of its 3 nodes, clockwise
 **                edges, ad neighboring triangles (or -1 if no
@@ -1199,7 +1200,7 @@ inline int tTriangle::nVOp( tTriangle *ct )
 **  tTriangle::nVtx
 **
 **  Returns the vertex number (0, 1, or 2) associated with node cn.
-**  (In other words, it says whether cn is vertex 0, 1, or 2 in the 
+**  (In other words, it says whether cn is vertex 0, 1, or 2 in the
 **  triangle).
 **  Assumes that cn _is_ one of the triangle's vertices.
 **
