@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.47 1998-06-17 23:42:58 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.48 1998-07-03 19:52:32 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -17,35 +17,38 @@
 **  tLayer::tLayer : Constructor function for tLayer
 *************************************************************************/
 tLayer::tLayer ()
-        : dgrade()
+        : dgrade(), drdt()
 {
    ctime=0;
    rtime=0;
    depth=0;
    erody=0;
    sed=0;
+   flag=0;
    //cout << "tLayer( num )" << endl;
 }
 
 tLayer::tLayer ( int num )
-        : dgrade( num )
+        : dgrade( num ), drdt( num )
 {
    ctime=0;
    rtime=0;
    depth=0;
    erody=0;
    sed=0;
+   flag=0;
      //cout << "tLayer( num )" << endl;
 }
 
 tLayer::tLayer( const tLayer &orig )                         //tLayer
-        :dgrade( orig.dgrade )
+        :dgrade( orig.dgrade ), drdt( orig.drdt )
 {
    ctime=orig.ctime;
    rtime=orig.rtime;
    depth=orig.depth;
    erody=orig.erody;
    sed=orig.sed;
+   flag=orig.flag;
    
   //if( &orig != 0 )
   // {
@@ -63,11 +66,13 @@ const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
    if( &right != this )
    {
       dgrade = right.dgrade;
+      drdt = right.drdt;
       ctime=right.ctime;
       rtime=right.rtime;
       depth=right.depth;
       erody=right.erody;
-      sed=right.sed; 
+      sed=right.sed;
+      flag=right.flag;
      
    }
    return *this;
@@ -76,7 +81,8 @@ const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
 
 void tLayer::setCtime( double tt )
 {
-   ctime = tt; 
+   ctime = tt;
+   
 }
 
 double tLayer::getCtime() const 
@@ -145,6 +151,16 @@ int tLayer::getSed() const
    return sed;
 }
 
+void tLayer::setFlag( int rg)
+{
+   flag = rg;
+}
+
+int tLayer::getFlag() const 
+{
+   return flag;
+}
+
 void tLayer::setDgradesize( int i )
 {
    dgrade.setSize(i);
@@ -155,11 +171,20 @@ int tLayer::getDgradesize( )
    return dgrade.getSize();
 }
 
+void tLayer::setDrDtsize( int i )
+{
+   drdt.setSize(i);
+}
+
+int tLayer::getDrDtsize( )
+{
+   return drdt.getSize();
+}
 
 void tLayer::setDgrade( int i, double size )
 {
    if(i>=dgrade.getSize())
-      ReportFatalError( "Trying to index sediment sizes that don't exist in layer");
+      ReportFatalError( "Trying to set sediment sizes in dgrade of layer that don't exist");
    dgrade[i]=size;
    // Automatically update depth when dgrade is changed
    int j=0;
@@ -174,7 +199,7 @@ void tLayer::setDgrade( int i, double size )
 void tLayer::addDgrade( int i, double size )
 {
    if(i>=dgrade.getSize())
-      ReportFatalError( "Trying to index sediment sizes that don't exist in layer");
+      ReportFatalError( "Trying to add sediment sizes in dgrade of layer that don't exist");
    dgrade[i]+=size;
    depth+=size;
 }
@@ -182,7 +207,7 @@ void tLayer::addDgrade( int i, double size )
 double tLayer::getDgrade( int i)
 {
    if(i>=dgrade.getSize())
-      ReportFatalError( "Trying to index sediment sizes that don't exist in layer");
+      ReportFatalError( "Trying to get sediment sizes in dgrade of layer that don't exist");
    return dgrade[i];
 }
 
@@ -192,7 +217,25 @@ tLayer::getDgrade( ) const
    return dgrade;
 }
    
+void tLayer::setDrDt( int i, double size )
+{
+   if(i>=drdt.getSize()){
+      cout << "size of drdt is " << drdt.getSize() << endl;
+      ReportFatalError( "Trying to set sediment sizes in drdt of layer that don't exist");
+   }
+   
+   drdt[i]=size;
+}
 
+double tLayer::getDrDt( int i )
+{
+   if(i>=drdt.getSize()){
+      cout << "size of drdt is " << drdt.getSize() << endl;
+      ReportFatalError( "Trying to get sediment sizes in drdt of layer that don't exist");
+   }
+   
+   return drdt[i];
+}
 
 tErode::tErode()                                                   //tErode
 {
@@ -633,6 +676,7 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       // the proportion of grain size available from the bedrock
       
       layhelp.setDgradesize(numg);
+      layhelp.setDrDtsize(numg);
       i=0;
       help = infile.ReadItem( help, "BEDROCKDEPTH");
       while(i<numg){
@@ -652,7 +696,7 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
          // too much regolith, create two layers the bottom layer is made here
          extra = help - maxregdep;
          //layhelp.setDepth(extra);
-         layhelp.setDgradesize(numg);
+         //layhelp.setDgradesize(numg);
          i=0;
          while(i<numg){
             layhelp.setDgrade(i, extra*dgradehelp[i]);
@@ -687,10 +731,11 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       //you use a restart file and layer info will be read from there.
       layhelp.setRtime(0.0);
       // Bedrock layer items set
-      help = infile.ReadItem( help, "KR");
+      help = infile.ReadItem( help, "KB");
       layhelp.setErody(help);
       layhelp.setSed(0);
       layhelp.setDgradesize(numg);
+      layhelp.setDrDtsize(numg);
       i=0;
       help = infile.ReadItem( help, "BEDROCKDEPTH");
       while(i<numg){
@@ -729,31 +774,26 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       i++;
       
    }
-
-   cout << "does elevation function work?" << endl;
-   cout << "depth of layers is " << getTotalLayerDepth() << endl;
-
    
-//      cout << "nic is now removing material from first layer" << endl;
-//      dgradehelp[0]=-0.5;
-//      dgradehelp[1]=-0.2;
-//      dgradebrhelp=EroDep(0,dgradehelp,0.0);
-//      cout << "returned stuff is 1 -> " << dgradebrhelp[0] << endl;
-//      cout << "ret stuff 2 is -> " << dgradebrhelp[1] << endl;
-   
-//      i=0;
-//      while(i<layerlist.getSize()){
-//         cout << "layer " << i+1 << endl;
-//         niclay = layerlist.getIthData(i);
-//         cout << "layer creation time is " << getLayerCtime(i) << endl;
-//         cout << "layer recent time is " << getLayerRtime(i) << endl;
-//         cout << "layer depth is " << getLayerDepth(i) << endl;
-//         cout << "layer erodibility is " << getLayerErody(i) << endl;
-//         cout << "is layer sediment? " << getLayerSed(i) << endl;
-//         cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
-//         cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
-//         i++;  
-//      }
+//    cout << "nic is trying to erode from first layer" << endl;
+//    dgradehelp[0]=-1.0;
+//    dgradehelp[1]=-1.0;
+//    dgradebrhelp=EroDep(0,dgradehelp,50.0);
+//    cout << "returned stuff is 1 -> " << dgradebrhelp[0] << endl;
+//    cout << "ret stuff 2 is -> " << dgradebrhelp[1] << endl;
+//    i=0;
+//    while(i<layerlist.getSize()){
+//       cout << "layer " << i+1 << endl;
+//       niclay = layerlist.getIthData(i);
+//       cout << "layer creation time is " << getLayerCtime(i) << endl;
+//       cout << "layer recent time is " << getLayerRtime(i) << endl;
+//       cout << "layer depth is " << getLayerDepth(i) << endl;
+//       cout << "layer erodibility is " << getLayerErody(i) << endl;
+//       cout << "is layer sediment? " << getLayerSed(i) << endl;
+//       cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
+//       cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
+//       i++;  
+//    }
 }
 
 tLNode::tLNode( const tLNode &orig )                               //tLNode
@@ -1377,6 +1417,7 @@ tLNode::getGrade( ) const
 double tLNode::getLayerCtime( int i ) const
 {
    tLayer hlp;
+//   cout << "in get layer ctime " << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getCtime();
 }
@@ -1386,7 +1427,7 @@ void tLNode::setLayerCtime( int i, double tt)
     tListIter<tLayer> ly ( layerlist );
     tLayer  * hlp;
     hlp=ly.FirstP();
-    
+
     int n=0;
 
     while(n<i){
@@ -1400,6 +1441,7 @@ void tLNode::setLayerCtime( int i, double tt)
 double tLNode::getLayerRtime( int i ) const
 {
    tLayer hlp;
+//   cout << "in get layer rtime " << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getRtime();
 }
@@ -1423,6 +1465,7 @@ void tLNode::setLayerRtime( int i, double tt)
 double tLNode::getLayerDepth( int i ) const
 {
    tLayer hlp;
+//   cout << "in get layer depth " << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getDepth();
 }
@@ -1446,6 +1489,7 @@ void tLNode::setLayerDepth( int i, double dep)
 double tLNode::getLayerErody( int i ) const
 {
    tLayer hlp;
+//   cout << " in get layer erody " << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getErody();
 }
@@ -1470,6 +1514,7 @@ void tLNode::setLayerErody( int i, double ero)
 int tLNode::getLayerSed( int i ) const
 {
    tLayer hlp;
+//   cout << "in get layer sed" << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getSed();
 }
@@ -1490,11 +1535,44 @@ void tLNode::setLayerSed( int i, int s)
     hlp->setSed( s );
 }
 
+int tLNode::getLayerFlag( int i ) const
+{
+   tLayer hlp;
+//   cout << "in get layer flag" << endl;
+   hlp = layerlist.getIthData(i);
+   return hlp.getFlag();
+}
+
+void tLNode::setLayerFlag( int i, int s)
+ {
+    tListIter<tLayer> ly ( layerlist );
+    tLayer  * hlp;
+    hlp=ly.FirstP();
+    
+    int n=0;
+
+    while(n<i){
+       n++;
+       hlp=ly.NextP();
+    }
+
+    hlp->setFlag( s );
+}
+
 double tLNode::getLayerDgrade( int i, int num ) const
 {
    tLayer hlp;
+//   cout << "in get layer dgrade " << endl;
    hlp = layerlist.getIthData(i);
    return hlp.getDgrade(num);
+}
+
+double tLNode::getLayerDrDt( int i, int num ) const
+{
+   tLayer hlp;
+//   cout << "in get layer dgrade " << endl;
+   hlp = layerlist.getIthData(i);
+   return hlp.getDrDt(num);
 }
 
 void tLNode::setLayerDgrade( int i, int g, double val)
@@ -1513,43 +1591,78 @@ void tLNode::setLayerDgrade( int i, int g, double val)
     hlp->setDgrade(g, val );
 }
 
+void tLNode::setLayerDrDt( int i, int g, double val)
+ {
+    tListIter<tLayer> ly ( layerlist );
+    tLayer  * hlp;
+    hlp=ly.FirstP();
+    
+    int n=0;
+
+    while(n<i){
+       n++;
+       hlp=ly.NextP();
+    }
+
+    hlp->setDrDt(g, val );
+}
+
 tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 {
-   // Checked on 6/13/98 and everything appears to be working!
+   // Checked on 6/13/98 and everything appears to be working
+   // THat was all just an illusion!
    int g;
-   double amt, val, olddep;
+   double amt, val, olddep, before;
+   tArray<double> update;
+   update.setSize(numg);
+   tArray<double> hupdate;
+   hupdate.setSize(numg);
+   
+   before=getLayerDepth(i);
 
+   int flag=0;
+
+   // if(getX()==2.75 && getY()==1)
+//        cout<<"ERODEP depth of stuff sent in to be eroded is "<<valgrd[0]<<" and "<<valgrd[1]<<endl;
+   
    g=0;
    val=0;
    while(g<numg){
       if(-1*valgrd[g]>getLayerDgrade(i,g))
           valgrd[g]=-1*getLayerDgrade(i,g);
       // Checking to see that there is enough stuff
+      //cout << "layer "<<g<<" depth is "<<getLayerDgrade(i,g)<< endl;
       val+=valgrd[g];
       g++;
-   }   
+   }
+
+   if(val<-1){
+      cout << "ERODEP lots of erosion "<< val <<" in node "<< getID() <<endl;
+      cout << "ERODEP time is "<< tt << endl;
+   }
+   
+   
    // val is now set to the total amount of erosion or deposition
    z += val;
+   //cout << "val is " << val << endl;
    // total elevation has now been changed
-   
-   tArray<double> update;
-   update.setSize(numg);
-   tArray<double> hupdate;
-   hupdate.setSize(numg);
    
    if(val<0)
    {
       // TOTAL EROSION
+      flag=1;
       if(getLayerSed(i) != 0 && getLayerSed(i) == getLayerSed(i+1))
       {
+         //cout << "eroding and updating " << endl;
          // Updating will also be done if entering this statement
          // No updating of Bedrock layers.
          // Only update if layer below has the same material
-         while(val<-0.0001 && getLayerSed(i) == getLayerSed(i+1))
+         while(val<-0.000000001 && getLayerSed(i) == getLayerSed(i+1))
          {
             // keep eroding until you either get all the material you
             // need to refill the top layer, or you run out of material
             hupdate = addtoLayer(i+1, val, tt);
+            setLayerFlag(i+1,1);
             g=0;
             while(g<numg)
             {
@@ -1559,6 +1672,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
             }
          }
          g=0;
+         setLayerFlag(i,1);
          while(g<numg){
             addtoLayer(i, g, valgrd[g], tt); // Erosion 
             addtoLayer(i,g,-1*update[g],tt);//Updating with material from below
@@ -1567,18 +1681,23 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       }
       else
       {
+         //cout << "eroding but not updating" << endl;
          // No updating, just eroding
          g=0;
+         setLayerFlag(i,1);
          while(g<numg){
              addtoLayer(i, g, valgrd[g], tt); // Erosion done on this line
              g++;
           }
       }
+      if(getLayerDepth(i)<=1e-15)
+          removeLayer(i);
    }
-   else
+   else if(val>0)
    {
+      flag=2;
       // DEPOSITION
-      // NIC, all deposition cases tested and appear to be working
+      // NIC, all deposition cases tested and appear to be working - NOT!
       // method seems to make good sense for surface layers
       // but may not be as appropriate for lower layers.
       // You may want to either make a provision for lower layers
@@ -1587,49 +1706,85 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       // Also, no test done to make sure that you are depositing the right
       // material into the layer, would need to pass the flag for this.
       // For now assume that the test will be done in another place.
-      if(getLayerDepth(i)+val>maxregdep){
-         // Need to move stuff out of top layer to make room for deposited mat
-         if(getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i+1)+val<maxregdep)
-         {
-            // The layer below is of the appropriate material and has space
-            amt = getLayerDepth(i)+val-maxregdep;
-            olddep = getLayerDepth(i);
-            g=0;
-            while(g<numg){
-               addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, tt);
-               // putting material from top layer to layer below
-               addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
-               // changing top layer composition by depositing and removing
-               g++;
+      // Need to add provision for depositing sediment on top of br.
+      if(getLayerSed(i)>0){
+         // top layer is sediment, so no issues
+         if(getLayerDepth(i)+val>maxregdep){
+            //cout << "move out baby" << endl;
+            //cout << "total number of layers is " << getNumLayer() << endl;
+            //cout << "composition of top layer is " << getLayerSed(i) << endl;
+            // Need to move stuff out of top layer to make room for deposited mat
+            if(getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i+1)+val<maxregdep)
+            {
+               // The layer below is of the appropriate material and has space
+               amt = getLayerDepth(i)+val-maxregdep;
+               olddep = getLayerDepth(i);
+               setLayerFlag(i+1,2);
+               setLayerFlag(i,2);
+               g=0;
+               while(g<numg){
+                  addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, tt);
+                  // putting material from top layer to layer below
+                  addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
+                  // changing top layer composition by depositing and removing
+                  g++;
+               }
+            }
+            else
+            {
+               // Need to create new layer
+               amt = getLayerDepth(i)+val-maxregdep;
+               olddep = getLayerDepth(i);
+               setLayerFlag(i,2);
+               g=0;
+               while(g<numg){
+                  update[g]=amt*getLayerDgrade(i,g)/olddep;
+                  // material which will be moved from top layer
+                  addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
+                  // changing top layer composition by depositing
+                  g++;
+               }
+               makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt);
+               setLayerFlag(i+1,2);
+               // put material into a new layer which is made below
             }
          }
          else
          {
-            // Need to create new layer
-            amt = getLayerDepth(i)+val-maxregdep;
-            olddep = getLayerDepth(i);
+            // cout << "depositing in surface layer " << endl;
+            // No need to move stuff out of top layer, just deposit
             g=0;
+            setLayerFlag(i,2);
             while(g<numg){
-               update[g]=amt*getLayerDgrade(i,g)/olddep;
-               // material which will be moved from top layer
-               addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
-               // changing top layer composition by depositing
+               addtoLayer(i,g,valgrd[g],tt);
                g++;
             }
-            makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt);
-            // put material into a new layer which is made below
          }
       }
-      else
-      {
-         // No need to move stuff out of top layer, just deposit
-         g=0;
-         while(g<numg){
-            addtoLayer(i,g,valgrd[g],tt);
-            g++;
-         }
+      else{
+         // depositing sediment on top of br - create a new surface layer baby.
+         // NIC this isn't correct - change this later - erody part
+         // Making all new sediment have an erodibility of 1.0
+         //cout << "making new layer before had " << getNumLayer() << " of composition "<<getLayerSed(i)<<endl;
+         makeNewLayerBelow(-1,1,1.0,valgrd,tt);
+         setLayerFlag(0,2);
+         //cout <<"now have " << getNumLayer() << endl;
       }
+      
    }
+
+   if(getLayerDepth(0)<0){
+      cout << "negative surface layer depth of " << getLayerDepth(0) << endl;
+      cout << "depth before anything happened was " << before << endl;
+      cout << "current value of val is " << val << endl;
+      cout << "flag is " << flag << endl;
+   }
+   
+   
+   //if(getLayerDepth(0)<0)
+   //  removeLayer(0);
+   
+   
    return valgrd;
 }
 
@@ -1647,10 +1802,13 @@ void tLNode::addtoLayer(int i, int g, double val, double tt)
        hlp=ly.NextP();
     }
 
-    hlp->addDgrade(g,val);
-    if(hlp->getDepth() == 0)
-        removeLayer(i);
     hlp->setRtime( tt );
+    hlp->addDgrade(g,val);
+    //Although check really should be here, I think there may
+    //be an issue because this function is called from a loop
+    //and if the layer is removed before the loop is through -> big trouble
+    //if(hlp->getDepth() <= 0)
+    //    removeLayer(i);
     
 }
 
@@ -1706,6 +1864,7 @@ void tLNode::removeLayer(int i)
 {
     tListIter<tLayer> ly ( layerlist );
     tLayer  * hlp;
+    tLayer niclay;
     hlp=ly.FirstP();
     
     int n=0;
@@ -1716,15 +1875,46 @@ void tLNode::removeLayer(int i)
     }
 
     n=layerlist.removeNext((*hlp), layerlist.getListNode(hlp) );
-    if(n==0)
-        ReportFatalError("couldn't remove next layer");
+    if(n==0){
+       n=0;
+       while(n<layerlist.getSize()){
+          cout << "layer " << n+1 << " node ID "<< getID()<< endl;
+          niclay = layerlist.getIthData(n);
+          cout << "layer creation time is " << getLayerCtime(n) << endl;
+          cout << "layer recent time is " << getLayerRtime(n) << endl;
+          cout << "layer depth is " << getLayerDepth(n) << endl;
+          cout << "layer erodibility is " << getLayerErody(n) << endl;
+          cout << "is layer sediment? " << getLayerSed(n) << endl;
+          cout << "dgrade 1 is " << getLayerDgrade(n,0) << endl;
+          cout << "dgrade 2 is " << getLayerDgrade(n,1) << endl;
+          n++;  
+       }
+       
+       ReportFatalError("couldn't remove next layer");
+    }
     
 }
 
 void tLNode::makeNewLayerBelow(int i, int sd, double erd, tArray<double> sz, double tt)
 {
-   tLayer hlp;
+   tLayer hlp, niclay;
    int n;
+
+   //cout << "making a new layer below " << i << " - layers before are:" << endl;
+
+//    n=0;
+//    while(n<layerlist.getSize()){
+//       cout << "layer " << n+1 << endl;
+//       niclay = layerlist.getIthData(n);
+//       cout << "layer creation time is " << getLayerCtime(n) << endl;
+//       cout << "layer recent time is " << getLayerRtime(n) << endl;
+//       cout << "layer depth is " << getLayerDepth(n) << endl;
+//       cout << "layer erodibility is " << getLayerErody(n) << endl;
+//       cout << "is layer sediment? " << getLayerSed(n) << endl;
+//       cout << "dgrade 1 is " << getLayerDgrade(n,0) << endl;
+//       cout << "dgrade 2 is " << getLayerDgrade(n,1) << endl;
+//       n++;  
+//    }
    
    hlp.setCtime(tt);
    hlp.setRtime(tt);
@@ -1737,18 +1927,40 @@ void tLNode::makeNewLayerBelow(int i, int sd, double erd, tArray<double> sz, dou
    hlp.setErody(erd);
    hlp.setSed(sd);
 
-   tListIter<tLayer> ly ( layerlist );
-   tLayer  * pt;
-   pt=ly.FirstP();
+   if(i>=0){
+      
+      tListIter<tLayer> ly ( layerlist );
+      tLayer  * pt;
+      pt=ly.FirstP();
+      
+      n=0;
+      
+      while(n<i){
+         n++;
+         pt=ly.NextP();
+      }  
+      
+      layerlist.insertAtNext(hlp, layerlist.getListNode(pt));
+   }
+   else{
+      layerlist.insertAtFront(hlp);
+   }
+   
 
-   n=0;
-
-   while(n<i){
-      n++;
-      pt=ly.NextP();
-   }  
-
-   layerlist.insertAtNext(hlp, layerlist.getListNode(pt));
+//    cout << "new layers are now : " << endl;
+//    n=0;
+//    while(n<layerlist.getSize()){
+//       cout << "layer " << n+1 << endl;
+//       niclay = layerlist.getIthData(n);
+//       cout << "layer creation time is " << getLayerCtime(n) << endl;
+//       cout << "layer recent time is " << getLayerRtime(n) << endl;
+//       cout << "layer depth is " << getLayerDepth(n) << endl;
+//       cout << "layer erodibility is " << getLayerErody(n) << endl;
+//       cout << "is layer sediment? " << getLayerSed(n) << endl;
+//       cout << "dgrade 1 is " << getLayerDgrade(n,0) << endl;
+//       cout << "dgrade 2 is " << getLayerDgrade(n,1) << endl;
+//       n++;  
+//    }   
    
 }
 
@@ -1777,6 +1989,11 @@ void tLNode::setDzDt( double val ) {dzdt = val;}
 double tLNode::getDzDt() {return dzdt;}
 
 void tLNode::setDrDt( double val ) {drdt = val;}
+
+void tLNode::addDrDt( double val ) 
+{
+   drdt += val;
+}
 
 double tLNode::getDrDt() {return drdt;}
 
