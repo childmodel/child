@@ -14,7 +14,7 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.11 2002-07-08 17:21:50 arnaud Exp $
+**  $Id: tArray.h,v 1.12 2002-07-12 10:04:59 arnaud Exp $
 \***************************************************************************/
 
 #ifndef TARRAY_H
@@ -38,6 +38,7 @@ class tArray
     //friend istream &operator>>( istream &, tArray< T > & );
     //friend ofstream &operator<<( ofstream &, const tArray< T > & );
     //friend ifstream &operator>>( ifstream &, tArray< T > & );*/
+    void checkSubscript(int) const;
 public:
     tArray();                      // default constructor
     tArray( int );                 // constructor that initializes array size
@@ -47,6 +48,7 @@ public:
     int operator==( const tArray< T > & ) const;    // memberwise comparison
     int operator!=( const tArray< T > & ) const;    // memberwise comparison
     T &operator[]( int );      // overloaded array index operator
+    const T &operator[]( int ) const;
     int getSize() const;       // returns the number of elements in the array
     void setSize( int );       // reinitializes and sets array size
     T *getArrayPtr();          // returns the actual array; needed for passing
