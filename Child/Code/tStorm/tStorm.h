@@ -21,13 +21,13 @@
 **
 **  Created by Greg Tucker, November 1997.
 **
-**  $Id: tStorm.h,v 1.14 1999-04-01 17:31:58 gtucker Exp $
+**  $Id: tStorm.h,v 1.15 1999-05-06 21:05:45 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTORM_H
 #define TSTORM_H
 
-#include <stdlib.h>
+//#include <stdlib.h>
 #include "../tInputFile/tInputFile.h"
 
 
