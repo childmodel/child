@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.99 2004-05-27 17:20:59 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.100 2004-06-14 14:10:19 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -1086,7 +1086,7 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
 	<<"D1"<<' '<<"DA1"<<' '<<"DA2"<<' '<<"DA3"<<' '<<"DA4"<<'\n';
   tMatrix<tStratNode> const *StratNodeMatrix = stratGrid->getStratNodeMatrix();
 
-  const int current_ts = int( round( time/stratGrid->getnWrite() ) );
+  const int current_ts = int( ROUND( time/stratGrid->getnWrite() ) );
   //cout<<"Current-Ts= " << current_ts << '\n';
 
   tArray<double> surface(current_ts+1);
