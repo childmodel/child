@@ -32,7 +32,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.27 2002-08-07 11:50:09 arnaud Exp $
+**  $Id: tList.h,v 1.28 2002-08-12 14:24:12 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -1008,10 +1008,10 @@ DebugTellPtrs()
 template< class NodeType >
 class tListIter
 {
-  tListIter(const tListIter&);
   tListIter& operator=(const tListIter&);
-public:
+ public:
     tListIter();                      // default constructor
+    tListIter(const tListIter&);      // copy constructor
     tListIter( tList< NodeType > & ); // constructor: reference to list
     tListIter( tList< NodeType > * ); // constructor: ptr to list
     ~tListIter();   // destructor
@@ -1074,6 +1074,17 @@ tListIter() :
   counter(0)
 {
    //cout << "tListIter()" << endl;
+}
+
+template< class NodeType >        //tListIter
+inline tListIter< NodeType >::
+tListIter(const tListIter& c) :
+  curnode(c.curnode),
+  listPtr(c.listPtr),
+  counter(c.counter)
+{
+  if (0) //DEBUG
+    cout << "tListIter(const tListIter&)" << endl;
 }
 
 template< class NodeType >        //tListIter
