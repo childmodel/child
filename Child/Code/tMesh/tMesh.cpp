@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.167 2003-06-23 11:12:46 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.168 2003-07-10 16:05:09 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1385,7 +1385,7 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
       if (makeMesh)
 	AddNode( tempnode );
       else
-	nodeList.insertAtActiveBack(tempnode);
+	nodeList.insertAtBoundFront( tempnode );
    }
 }
 
