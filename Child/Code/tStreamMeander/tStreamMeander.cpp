@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.63 1999-05-04 17:14:58 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.64 1999-05-11 21:26:21 gtucker Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -1044,6 +1044,8 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
       {
          rz = curnode->getZ() + deptha[j] - rdeptha[j];
          lz = curnode->getZ() + deptha[j] - ldeptha[j];
+         //rz = curnode->getZ() + deptha[j];
+         //lz = rz + deptha[j];
          dbg2 = dbg2 + (rdeptha[j]-ldeptha[j]);
          curnode->setZOld( rz, lz );
       }
