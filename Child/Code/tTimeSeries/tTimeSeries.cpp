@@ -99,6 +99,7 @@ class tDataFile {
 // The current hierarchy is:
 //   tTimeSeriesImp
 //      tConstantTimeSeriesImp
+//      tLinearGrowthTimeSeriesImp
 //      tWaveTimeSeriesImp
 //         tSinwaveTimeSeriesImp
 //         tBlockwaveTimeSeriesImp
@@ -118,7 +119,7 @@ class tTimeSeriesImp {
 
 //--------------------------------------------------------------
 // tConstantTimeSeriesImp is used for parameter defs in the form of
-//     @constant: 3.14
+//     @constant 3.14
 //--------------------------------------------------------------
 
 class  tConstantTimeSeriesImp : public tTimeSeriesImp {
@@ -129,6 +130,22 @@ class  tConstantTimeSeriesImp : public tTimeSeriesImp {
   virtual double calc(double time) const;
   virtual void TellAll() const;
 };
+
+
+//--------------------------------------------------------------
+// tLinearGrowthTimeSeriesImp is used for parameter defs in the form of
+//     @linear 0. 3.1
+//--------------------------------------------------------------
+
+class tLinearGrowthTimeSeriesImp : public tTimeSeriesImp {
+ protected:
+  double initialValue, rate;
+ public:
+  virtual void configure(const char *s);
+  virtual double calc(double time) const;
+  virtual void TellAll() const;
+};
+
 
 //--------------------------------------------------------------
 // tWaveTimeSeriesImp is used as a common ancestor for the
@@ -798,6 +815,32 @@ void tConstantTimeSeriesImp::TellAll() const
 {
   cout << "TS @constant. value=" << value << endl;
 }
+
+/*********************************************************************\
+ * tLinearGrowthTimeSeriesImp
+\*********************************************************************/
+
+void tLinearGrowthTimeSeriesImp::configure(const char *s)
+{
+  // s must be "mean amplitude period lag" format
+  int check;
+  check = sscanf(s,"%lf %lf", &initialValue, &rate);
+  assert(check==2);
+}
+
+double tLinearGrowthTimeSeriesImp::calc(double time) const
+{
+  return initialValue + rate*time;
+}
+
+void tLinearGrowthTimeSeriesImp::TellAll() const
+{
+  cout
+    << "TS @linear."
+    << " initialValue=" << initialValue
+    << " rate=" << rate
+    << endl;
+}
 /*********************************************************************\
  * tWaveTimeSeriesImp                                                    *
 \*********************************************************************/
@@ -1074,6 +1117,10 @@ void tTimeSeries::configure(const char *s)
   else if (strstr(s,"@blockwave")==s) {
     ts = new tBlockwaveTimeSeriesImp();
     p = s+9;
+  }
+  else if (strstr(s,"@linear")==s) {
+    ts = new tLinearGrowthTimeSeriesImp();
+    p = s+7;
   }
   else if (strstr(s,"@file")==s) {
     ts = new tFileTimeSeriesImp();
