@@ -141,21 +141,23 @@ class cyclist{
   cyclist( const cyclist & );
   void delNext(int list_pos);
   void add(int ej);
+  void invariant() const;
+  void checkRange(int e) const;
 public:
   cyclist(int s);
   ~cyclist();
   int getEdge(int list_pos) const {
-    assert(list_pos<size && 0<=list_pos);
+    checkRange(list_pos);
     return ejs[list_pos].data;
   }
   int delNextPos(int list_pos);
   int delNextNeg(int list_pos);
   int getNextPos(int list_pos) const {
-    assert(list_pos<size && 0<=list_pos);
+    checkRange(list_pos);
     return ejs[list_pos].next;
   }
   int getNextNeg(int list_pos) const{
-    assert(list_pos<size && 0<=list_pos);
+    checkRange(list_pos);
     return ejs[list_pos].prev;
   }
   int addBefore(int a, int ej);
@@ -182,10 +184,21 @@ cyclist::cyclist(int s): size(s),ejs(0),prev(0),hole(0),num(0) {
   for (int i=0;i<size;i++) ejs[i].data=i+1;
 }
 cyclist::~cyclist(){
+  invariant();
   delete [] ejs;
 }
+void cyclist::checkRange(int e) const {
+  assert(e<size);
+  assert(0<=e);
+}
+void cyclist::invariant() const {
+  assert(num<=size);
+  assert(0<=num);
+  checkRange(hole);
+  checkRange(prev);
+}
 void cyclist::delNext(int list_pos){
-  assert(list_pos<size && 0<=list_pos);
+  checkRange(list_pos);
   assert(num!=0);
   ejs[list_pos].data=hole;
   hole=list_pos;
@@ -204,8 +217,8 @@ int cyclist::delNextNeg(int list_pos){
 void cyclist::add(int ej){
   //build hull from scratch in numerical order - we assume you got the orientation
   //right!! (anti-clockwise)
-  assert(hole<size);
-  int n=ejs[hole].data;
+  checkRange(hole<size);
+  const int n=ejs[hole].data;
   ejs[hole].data=ej;
   //prev stores the location of the place in the array that was most recently filled
   ejs[prev].next=hole;
@@ -218,11 +231,11 @@ void cyclist::add(int ej){
   hole=n;num++;
 }
 int cyclist::addBefore(int a, int ej){
-  assert(a<size);
+  checkRange(a);
   //first check for the empty list
   if (num ==0){add(ej);return prev;}
   //otherwise add on before the specified position, using the empty storage slot
-  int n=ejs[hole].data;
+  const int n=ejs[hole].data;
   ejs[hole].prev=ejs[a].prev;
   ejs[hole].next=a;
   ejs[ejs[a].prev].next=hole;
@@ -235,11 +248,11 @@ int cyclist::addBefore(int a, int ej){
   return prev;
 }
 int cyclist::addAfter(int a,int ej){
-  assert(a<size);
+  checkRange(a);
   //first check for the empty list
   if (num ==0){add(ej);return prev;}
   //otherwise add on after the specified position, using the empty storage slot
-  int n=ejs[hole].data;
+  const int n=ejs[hole].data;
   ejs[hole].next=ejs[a].next;
   ejs[ejs[a].next].prev=hole;
   ejs[a].next=hole;
