@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.74 2003-01-17 17:30:45 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.75 2003-02-05 17:14:53 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -702,7 +702,7 @@ void tStreamMeander::MakeReaches( double ctime)
 void tStreamMeander::FindReaches()
 {
   double curwidth, ctaillen;
-  int i, j, nmndrnbrs;
+  int i;
   double rdrop;
   tLNode *cn, *lnPtr, *frn, *lrn, *nxn, *ln;
   tEdge *ce;
@@ -711,32 +711,31 @@ void tStreamMeander::FindReaches()
   tPtrListIter< tLNode > rnIter;
   tPtrList< tLNode > rnodList, *plPtr, listtodelete;
   tListNode< tPtrList< tLNode > > *tempnode;
-  tArray< int > *iArrPtr;
-  tArray< double > *fArrPtr;
 
   if (0) //DEBUG
     cout<<"tStreamMeander::FindReaches()"<<endl;
 
   if( !(reachList.isEmpty()) ) reachList.Flush();
   //loop through active nodes
-  i = 0;
   for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
     {
       //if node meanders
       if( cn->Meanders() )
 	{
+	  int nmndrnbrs = 0;
+
 	  if (0) //DEBUG
 	    cout<<"FR node "<<cn->getID()<<" meanders"<<endl<<flush;
 	  spokIter.Reset( cn->getSpokeListNC() );
-	  nmndrnbrs = 0;
 	  //loop through spokes to find upstream meandering nbr
 	  for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); 
 	       ce = spokIter.NextP() )
 	    {
 	      lnPtr = (tLNode *) ce->getDestinationPtrNC();
 	      //lnPtr points to the downstream neighbor of the current edge
-	      if( lnPtr->getBoundaryFlag() == kNonBoundary )
-                if( lnPtr->getDownstrmNbr() == cn && lnPtr->Meanders() )
+	      if( lnPtr->getBoundaryFlag() == kNonBoundary
+		  && lnPtr->getDownstrmNbr() == cn
+		  && lnPtr->Meanders() )
 		  {
 		    //If you enter here, the cn is downstream of one
 		    //of the nodes that one of the spokes on the spoke
@@ -762,13 +761,19 @@ void tStreamMeander::FindReaches()
     }
    
   if( reachList.getSize() == 0 ) return;
-  iArrPtr = new tArray< int >( reachList.getSize() );
-  nrnodes = *iArrPtr;
-  delete iArrPtr;
-  fArrPtr = new tArray< double >( reachList.getSize() );
-  reachlen = *fArrPtr;
-  taillen = *fArrPtr;
-  delete fArrPtr;
+  {
+    tArray< int > *iArrPtr;
+    iArrPtr = new tArray< int >( reachList.getSize() );
+    nrnodes = *iArrPtr;
+    delete iArrPtr;
+  }
+  {
+    tArray< double > *fArrPtr;
+    fArrPtr = new tArray< double >( reachList.getSize() );
+    reachlen = *fArrPtr;
+    taillen = *fArrPtr;
+    delete fArrPtr;
+  }
   if (0) //DEBUG
     cout << "No. reaches: " << reachList.getSize() << endl << flush;
   //loop through reaches
@@ -788,7 +793,9 @@ void tStreamMeander::FindReaches()
       nrnodes[i]++;
       reachlen[i] += cn->getFlowEdg()->getLength();
       cn = cn->getDownstrmNbr();
-      while( cn->getBoundaryFlag() == kNonBoundary && !cn->getReachMember() && cn->Meanders() )
+      while( cn->getBoundaryFlag() == kNonBoundary
+	     && !cn->getReachMember()
+	     && cn->Meanders() )
 	{
 	  //assert( cn->GetFlowEdg()->getLength() > 0 );
 	  if (0){ //DEBUG
@@ -866,7 +873,9 @@ void tStreamMeander::FindReaches()
       ctaillen = 0.0;
       cn = cn->getDownstrmNbr();
       //ng added a check to make sure slope > 0 or else code crashes
-      while (ctaillen <= taillen[i] && cn->getBoundaryFlag() == kNonBoundary && cn->getChanSlope()>0 )
+      while (ctaillen <= taillen[i]
+	     && cn->getBoundaryFlag() == kNonBoundary
+	     && cn->getChanSlope()>0 )
 	{
 	  //assert( cn->GetFlowEdg()->getLength() > 0 );
 	  ctaillen+= cn->getFlowEdg()->getLength();
@@ -881,6 +890,7 @@ void tStreamMeander::FindReaches()
     {
       rnIter.Reset( *plPtr );
       //ln = rnIter.LastP();
+      int j;
       for( cn = rnIter.FirstP(), j=0; !(rnIter.AtEnd()); cn = rnIter.NextP(), j++ )
 	{
 	  if( j < plPtr->getSize() - 1 )  //if( cn != ln )
@@ -907,8 +917,9 @@ void tStreamMeander::FindReaches()
       {
 	cout << "end FindReaches, node " << cn->getID() << endl;
       }
-    cout << "done FindReaches" << endl;
   }
+  if (0) //DEBUG
+    cout << "done FindReaches" << endl;
 }
 
 
