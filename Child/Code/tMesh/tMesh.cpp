@@ -9,7 +9,7 @@
 **      initial value of mSearchOriginTriPtr, and modified ExtricateTri...
 **      to avoid dangling ptr. GT, 1/2000
 **
-**  $Id: tMesh.cpp,v 1.82 2000-01-14 17:37:31 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.83 2000-01-20 17:15:50 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -1558,7 +1558,7 @@ MakeMeshFromPoints( tInputFile &infile )
    // Now add the points one by one to construct the mesh.
    for( i=0; i<numpts; i++ )
    {
-      cout << "IN MGFP c0, ADDING NODE " << i << endl;
+      //cout << "IN MGFP c0, ADDING NODE " << i << endl;
       //Xtempnode.setID( miNextNodeID );
       tempnode.set3DCoords( x[i],y[i],z[i] );
       tempnode.setBoundaryFlag( bnd[i] );
