@@ -4,11 +4,15 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.1 1998-01-21 01:25:43 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.2 1998-01-27 23:42:14 gtucker Exp $
 \*************************************************************************/
 
-#include "tOutput.h"
 #include <string.h>
+#include <assert.h>
+#include "../errors/errors.h"
+#include "../tGridList/tGridList.h"
+#include "../GridElements/gridElements.h"
+#include "tOutput.h"
 
 /*************************************************************************\
 **
@@ -23,7 +27,8 @@
 **         infile -- reference to an open input file, assumed valid
 **
 \*************************************************************************/
-tOutput::tOutput( tGrid<tNode> * gridPtr, tInputFile &infile )
+template< class tSubNode >
+tOutput<tSubNode>::tOutput( tGrid<tSubNode> * gridPtr, tInputFile &infile )
 {
    char fullName[kMaxNameSize+6];
    
@@ -70,21 +75,24 @@ tOutput::tOutput( tGrid<tNode> * gridPtr, tInputFile &infile )
 **  TODO: deal with option for once-only printing of mesh when mesh not
 **        deforming
 \*************************************************************************/
-void tOutput::WriteOutput( float time )
+template< class tSubNode >
+void tOutput<tSubNode>::WriteOutput( float time )
 {
-/*   tGridListIter<tNode> niter( g->GetNodeList() );
+   tGridListIter<tSubNode> niter( g->GetNodeList() );
    tGridListIter<tEdge> eiter( g->GetEdgeList() );
-   tListIter<tTriangle> titer( g->GetTriList() );*/
+   tListIter<tTriangle> titer( g->GetTriList() );
    tNode * cn;
    tEdge * ce;
    tTriangle * ct;
    int id;
    int nnodes = g->GetNodeList()->getSize();
-/*   int nedges = g->GetEdgeList()->getSize();
-   int ntri = g->GetTriList()->getSize();*/
+   int nedges = g->GetEdgeList()->getSize();
+   int ntri = g->GetTriList()->getSize();
+
+   cout << "tOutput::WriteOutput()\n";
    
    // Renumber IDs in order by position on list
-/*   for( cn=niter.FirstP(), id=0; id<nnodes; cn=niter.NextP(), id++ )
+   for( cn=niter.FirstP(), id=0; id<nnodes; cn=niter.NextP(), id++ )
        cn->setID( id );
    for( ce=eiter.FirstP(), id=0; id<nedges; ce=eiter.NextP(), id++ )
        ce->setID( id );
@@ -109,17 +117,66 @@ void tOutput::WriteOutput( float time )
              << ce->GetCCWEdg()->getID() << endl;
    
    // Write triangle file
+   int i;
    triofs << " " << time << endl << ntri << endl;
    for( ct=titer.FirstP(); !(titer.AtEnd()); ct=titer.NextP() )
-       triofs << ct->pPtr(0)->getID() << " " 
-              << ct->pPtr(1)->getID() << " " 
-              << ct->pPtr(2)->getID() << " " 
-              << ct->tPtr(0)->getID() << " " 
-              << ct->tPtr(1)->getID() << " " 
-              << ct->tPtr(2)->getID() << " " 
-              << ct->ePtr(0)->getID() << " " 
-              << ct->ePtr(1)->getID() << " " 
-              << ct->ePtr(2)->getID() << endl;*/
+   {
+      for( i=0; i<=2; i++ )
+          triofs << ct->pPtr(i)->getID() << " ";
+      for( i=0; i<=2; i++ )
+      {
+          if( ct->tPtr(i) ) triofs << ct->tPtr(i)->getID() << " ";
+          else triofs << "-1 ";
+      }
+      triofs << ct->ePtr(0)->getID() << " " 
+             << ct->ePtr(1)->getID() << " " 
+             << ct->ePtr(2)->getID() << endl;
+   }
    
+   WriteNodeData( time );
+   
+}
+
+template< class tSubNode >
+void tOutput<tSubNode>::WriteNodeData( float time ) 
+{}
+
+
+template< class tSubNode >
+tLOutput<tSubNode>::tLOutput( tGrid<tSubNode> *g, tInputFile &infile ) 
+        : tOutput<tSubNode>( g, infile )  // call base-class constructor
+{
+   char fullName[kMaxNameSize+6];
+
+   strcpy( fullName, baseName );
+   strcat( fullName, ".area" );
+   drareaofs.open( fullName );
+   strcpy( fullName, baseName );
+   strcat( fullName, ".net" );
+   netofs.open( fullName );
+
+   if( !drareaofs.good() || !netofs.good() )
+       ReportFatalError(
+           "Unable to open output file. Storage space may be exhausted." );
+   
+}
+
+
+
+template< class tSubNode >
+void tLOutput<tSubNode>::WriteNodeData( float time )
+{
+   tGridListIter<tSubNode> ni( g->GetNodeList() );
+   tSubNode *cn;
+   int nActiveNodes = g->GetNodeList()->getActiveSize();
+   
+   drareaofs << " " << time << "\n " << nActiveNodes << endl;
+   netofs << " " << time << "\n " << nActiveNodes << endl;
+   for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+   {
+      assert( cn>0 );
+      drareaofs << cn->getDrArea() << endl;
+      netofs << cn->GetDownstrmNbr()->getID() << endl;
+   }
    
 }
