@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.36 1998-05-06 21:37:38 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.37 1998-05-07 22:07:21 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1226,6 +1226,7 @@ MakeGridFromPoints( tInputFile &infile )
    // Now add the points one by one to construct the mesh.
    for( i=0; i<numpts; i++ )
    {
+      //cout << "IN MGFP, ADDING NODE " << i << endl;
       tempnode.setID( i );
       tempnode.set3DCoords( x[i], y[i], z[i] );
       tempnode.setBoundaryFlag( bnd[i] );
@@ -1245,7 +1246,7 @@ MakeGridFromPoints( tInputFile &infile )
    // Update Voronoi areas, edge lengths, etc., and test the consistency
    // of the new mesh.
    UpdateMesh();
-   CheckMeshConsistency( );
+   //CheckMeshConsistency( );
 
    // Clean up (probably not strictly necessary bcs destructors do the work)
    supertriptlist.Flush();
@@ -2200,8 +2201,8 @@ int tGrid< tSubNode >::
 RepairMesh( tPtrList< tSubNode > &nbrList )
 {
    assert( &nbrList != 0 );
-   cout << "RepairMesh: " << endl;
-   if( nbrList.getSize() < 3 ) { cout << "OOPS!\n";return 0;}
+   //cout << "RepairMesh: " << endl;
+   if( nbrList.getSize() < 3 ) return 0;
    int flowflag, i, j;
    tSubNode * gridnodePtr;
    nbrList.makeCircular();
@@ -2907,7 +2908,7 @@ AddNode( tSubNode &nodeRef )
    tGridListIter< tSubNode > nodIter( nodeList );
    assert( &nodeRef != 0 );
 
-   //Xcout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
+   //cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
 
    //cout << "locate tri" << endl << flush;
    tri = LocateTriangle( xyz[0], xyz[1] );
