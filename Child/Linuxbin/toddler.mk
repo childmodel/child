@@ -60,7 +60,7 @@ tListInputData.o: $(PT)/tListInputData/tListInputData.cpp
 tRunTimer.o: $(PT)/tRunTimer/tRunTimer.cpp
 	$(CXX) $(CFLAGS) $(PT)/tRunTimer/tRunTimer.cpp
 
-tStorm.o: $(PT)/tStorm/tStorm.h
+tStorm.o: $(PT)/tStorm/tStorm.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStorm/tStorm.cpp
 
 tStreamNet.o: $(PT)/tStreamNet/tStreamNet.cpp
