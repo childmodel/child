@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.63 2003-04-28 14:19:43 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.64 2003-04-28 17:13:29 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -36,7 +36,7 @@ template< class tSubNode >
 tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
   m(meshPtr),
   mdLastVolume(0.),
-  CanonicalNumbering(false)
+  CanonicalNumbering(true)
 {
    assert( meshPtr > 0 );
 
