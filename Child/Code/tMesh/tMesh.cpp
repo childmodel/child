@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.45 1998-07-31 23:09:10 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.46 1998-08-03 00:46:26 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -3219,8 +3219,8 @@ AddNodeAt( tArray< double > &xyz )
    tGridListIter< tSubNode > nodIter( nodeList );
    tSubNode tempNode, *cn;
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );
-//    if( layerflag )
-//        cn->LayerInterpolation( tri );
+   if( layerflag )
+       cn->LayerInterpolation( tri, nodeList );
    if( xyz.getSize() != 3 ) tempNode.setNew2DCoords( xyz[0], xyz[1] );
    tempNode.setBoundaryFlag( 0 );
 
