@@ -3,7 +3,7 @@
 **  tList.cpp:  Functions for class tList and related classes tListNode
 **              and tListIter.
 **
-**  $Id: tList.cpp,v 1.11 1998-07-20 22:24:27 nmgaspar Exp $
+**  $Id: tList.cpp,v 1.12 1999-01-05 22:21:52 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -162,7 +162,7 @@ tList( const tList< NodeType > *original )
       current = current->next;
    }
    assert( nNodes == original->nNodes );
-     //cout << "list copy instantiated" << first << endl;
+     cout << "list copy instantiated" << first << endl;
 }
 
 
