@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.69 2004-03-01 13:20:13 childcvs Exp $
+**  $Id: tMesh.h,v 1.70 2004-03-05 17:04:35 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -123,9 +123,11 @@ public:
    tTriangle *TriWithEdgePtr( tEdge * ) const;
    /*only routine needed to delete node; calls ExNode, RepairMesh:*/
    int DeleteNode( tListNode< tSubNode > *, kRepairMesh_t repairFlag=kRepairMesh,
-		   kUpdateMesh_t updateFlag=kUpdateMesh );
+		   kUpdateMesh_t updateFlag=kUpdateMesh,
+		   bool allowMobileDeletion = false );
    int DeleteNode( tSubNode const *, kRepairMesh_t repairFlag=kRepairMesh,
-		   kUpdateMesh_t updateFlag=kUpdateMesh );
+		   kUpdateMesh_t updateFlag=kUpdateMesh,
+		   bool allowMobileDeletion = false );
    /*deletes spokes, *calls ExEdge, makes nbr ptr list:*/
    int ExtricateNode( tSubNode *, tPtrList< tSubNode > & );
    int DeleteEdge( tEdge * );
@@ -198,6 +200,8 @@ public:
    tPtrList< tTriangle > InterveningTriangles( tNode*, tNode* );
    void ForceFlow( tSubNode*, tSubNode*, double );
 
+   void setStratGrid(tStratGrid *s_) { stratGrid = s_; }
+
 #ifndef NDEBUG
    /*'dump' routines for debugging*/
    void DumpEdges();
@@ -217,6 +221,7 @@ protected:
    int miNextTriID;                    // next ID for added triangle
    bool layerflag;                 // flag indicating whether nodes have layers
 
+   tStratGrid *stratGrid;  // ptr to stratGrid
 };
 
 /** @class tIdArray

@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.195 2004-03-01 13:20:12 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.196 2004-03-05 17:04:33 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -88,7 +88,8 @@ tMesh()
   miNextNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),
-  layerflag(false)
+  layerflag(false),
+  stratGrid(0)
 {
   if (0) //DEBUG
    cout<<"tMesh()"<<endl;
@@ -111,7 +112,8 @@ tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
   miNextNodeID(originalMesh->miNextNodeID),
   miNextEdgID(originalMesh->miNextEdgID),
   miNextTriID(originalMesh->miNextTriID),
-  layerflag(originalMesh->layerflag)
+  layerflag(originalMesh->layerflag),
+  stratGrid(originalMesh->stratGrid)
 {}
 
 
@@ -152,7 +154,8 @@ tMesh( const tInputFile &infile )
   miNextNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),
-  layerflag(false)
+  layerflag(false),
+  stratGrid(0)
 {
    // mSearchOriginTriPtr:
    // initially set search origin (tTriangle*) to zero:
@@ -247,6 +250,7 @@ template< class tSubNode >
 tMesh< tSubNode >::
 ~tMesh() {
   mSearchOriginTriPtr = 0;
+  stratGrid = 0;
   if (1)//DEBUG
     cout << "    ~tMesh()" << endl;
 }
@@ -2123,7 +2127,7 @@ MakeHexMeshFromArcGrid( const tInputFile &infile )
 **
 \*****************************************************************************/
 #ifndef BYPASS_DEBUG_ROUTINES
-#define kMaxSpokes 100
+#define kMaxSpokes 1000
 template<class tSubNode>
 void tMesh< tSubNode >::
 CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
@@ -2606,11 +2610,13 @@ template <class tSubNode>
 template< class tSubNode >
 int tMesh< tSubNode >::
 DeleteNode( tSubNode const *node, kRepairMesh_t repairFlag,
-	    kUpdateMesh_t updateFlag )
+	    kUpdateMesh_t updateFlag,
+	    bool allowMobileDeletion )
 {
   tMeshListIter< tSubNode > nodIter( nodeList );
   if( nodIter.Get( node->getID() ) )
-    return DeleteNode( nodIter.NodePtr(), repairFlag, updateFlag );
+    return DeleteNode( nodIter.NodePtr(), repairFlag, updateFlag,
+		       allowMobileDeletion );
   return 0;
 }
 
@@ -2656,10 +2662,20 @@ DeleteNode( tSubNode const *node, kRepairMesh_t repairFlag,
 template< class tSubNode >
 int tMesh< tSubNode >::
 DeleteNode( tListNode< tSubNode >* nodPtr, kRepairMesh_t repairFlag,
-	    kUpdateMesh_t updateFlag )
+	    kUpdateMesh_t updateFlag,
+	    bool allowMobileDeletion )
 {
    tPtrList< tSubNode > nbrList;
    tSubNode *node = nodPtr->getDataPtrNC();
+
+#if 1
+// Quintijn & Arnaud's debug code
+   if ( !allowMobileDeletion && node->isMobile() ) {
+      cout << "YYYYYY DeleteNode()in tMesh: About to delete a Meandering node: "
+           << node->getX() << " " << node->getY() <<" ,ID= " << node->getID() << endl;
+      ::abort();
+    }
+#endif
 
    if (0) //DEBUG
      cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
@@ -2870,9 +2886,9 @@ ExtricateEdge( tEdge * edgePtr )
    tTriangle* triPtr0, * triPtr1;
 
    //cout << "find edge in list; " << flush;
-   ce = edgIter.GetP( edgePtr->getID() );  //NB: why necessary? isn't ce the
-   // same as edgePtr??  Yes, why???
-   // Puts edgIter at edgePtr's node!
+
+   // point edgIter to edgePtr
+   ce = edgIter.GetP( edgePtr->getID() );
 
    // WarnSpokeLeaving is virtual:
    ce->getOriginPtrNC()->WarnSpokeLeaving( ce );
@@ -4553,7 +4569,7 @@ CheckLocallyDelaunay( double time )
   }
 
   // re-triangulate to fix mesh (make it Delaunay)
-  MakeDelaunay( triPtrList, time  );
+  MakeDelaunay( triPtrList, time );
 }
 
 /*****************************************************************************\
@@ -4753,7 +4769,15 @@ CheckTriEdgeIntersect()
 			       << ", " << xyz[2] << endl;
 			}
                         tmpNodeList.insertAtBack( *cn );
+
+                        //DEBUG-QC
+			if (1) //DEBUG
+			  cout<<"CTI, deleting node with ID,x,y,z:"
+			      << cn->getID()<<" "<<cn->getX()
+			      <<" "<<cn->getY()<<" "<<cn->getZ()<<endl;
+
                         DeleteNode( cn, kRepairMesh, kNoUpdateMesh );
+
                      }
                   }
                   if( crossed ) break;
@@ -4775,8 +4799,11 @@ CheckTriEdgeIntersect()
 	cn->UpdateCoords();//Nic, here is where x&y change
       else
           cn->RevertToOldCoords();
-      //cout << "add node at " << cn->getX() << ", " << cn->getY() << ", "
-      //     << cn->getZ() << endl;
+      //DEBUG-QC
+      if (1) //DEBUG
+	cout<<"CTI, adding node with x,y,z:"
+	    <<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()<<endl;
+
       cn = AddNode( *cn );
       assert( cn!=0 );
    }
