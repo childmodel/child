@@ -40,7 +40,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.29 2002-04-30 17:17:26 arnaud Exp $
+**  $Id: meshElements.h,v 1.30 2002-05-01 10:12:47 arnaud Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -933,8 +933,9 @@ inline void tEdge::WelcomeCCWNeighbor( tEdge * neighbor )
 
 //default
 inline tTriangle::tTriangle() :
-  id(0)
+  id(-1)
 {
+  // obvious but ...
    assert( p != 0 && e != 0 && t != 0 );
    for( int i=0; i<3; i++ )
    {
@@ -949,6 +950,7 @@ inline tTriangle::tTriangle() :
 inline tTriangle::tTriangle( const tTriangle &init ) :
   id(init.id)
 {
+  // obvious but ...
    assert( p != 0 && e != 0 && t != 0 );
    for( int i=0; i<3; i++ )
      {
