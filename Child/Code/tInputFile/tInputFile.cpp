@@ -4,7 +4,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.1 1998-01-14 20:24:10 gtucker Exp $
+**  $Id: tInputFile.cpp,v 1.2 1998-01-27 22:48:03 gtucker Exp $
 \****************************************************************************/
 
 #include <iostream.h>
@@ -14,6 +14,7 @@
 #include "../Definitions.h"
 #include "../Classes.h"
 #include "tInputFile.h"
+#include "../errors/errors.h"
 
 /*
 **  Constructors
@@ -37,7 +38,6 @@ tInputFile::tInputFile( const char *filename )
 **  will be called; it is not used by the routines).
 **
 **  Notes: add ability to ignore line followed by a comment mark,
-**  figure out how to throw exceptions
 **
 **  IMPORTANT:
 **  revised to allow arbitrary ordering of items in infile and/or ReadItem
@@ -77,15 +77,7 @@ int tInputFile::ReadItem( const int &datType, const char *itemCode )
    {
       cerr << "I expected to read the parameter '" << itemCode
            << "', but reached EOF first" << endl;
-      
-          //<< "', but instead found:" << endl
-          //<< "    " << headerLine << endl << "    " << item << endl;
-          //cerr << "'" << headerLine << "'" << endl;
-          //if( strlen( headerLine )==0 )
-          //cerr << "(This may mean there is an extra space after the "
-          //     << "parameter value immediately" << endl << " preceding "
-          //     << itemCode << ". If so, delete it and try again.)" << endl;
-      // Throw an exception
+      ReportFatalError( "Missing parameter in input file" );
    }
    //infile.seekg( original );
    infile.seekg( 0, ios::beg );
@@ -117,7 +109,7 @@ long tInputFile::ReadItem( const long &datType, const char *itemCode )
    {
       cerr << "I expected to read the parameter '" << itemCode
            << "', but reached EOF first" << endl;
-        // Throw an exception
+      ReportFatalError( "Missing parameter in input file" );
    }
    infile.seekg( 0, ios::beg );
    return item;
@@ -148,7 +140,7 @@ float tInputFile::ReadItem( const float &datType, const char *itemCode )
    {
       cerr << "I expected to read the parameter '" << itemCode
            << "', but reached EOF first" << endl;
-        // Throw an exception
+      ReportFatalError( "Missing parameter in input file" );
    }
    infile.seekg( 0, ios::beg );
    return item;
@@ -177,7 +169,7 @@ void tInputFile::ReadItem(  char * theString, const char *itemCode )
    {
       cerr << "I expected to read the parameter '" << itemCode
            << "', but reached EOF first" << endl;
-      // Throw an exception
+      ReportFatalError( "Missing parameter in input file" );
    }
    infile.seekg( 0, ios::beg );
 }
