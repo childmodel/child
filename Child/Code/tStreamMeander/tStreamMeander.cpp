@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.45 1998-07-26 23:03:19 nmgaspar Exp $
+**  $Id: tStreamMeander.cpp,v 1.46 1998-09-10 19:18:25 gtucker Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -354,24 +354,26 @@ void tStreamMeander::FindChanGeom()
          qbf = cn->getDrArea() * qbffactor;
          if( !qbf ) qbf = cn->getQ();  // q is now in m^3/s
          width = kwds * pow(qbf, ewds);
-         depth = kdds * pow(qbf, edds);
+//       depth = kdds * pow(qbf, edds);
          rough = knds * pow(qbf, ends);
          lambda = klambda * pow(qbf, elambda);
          cn->setChanWidth( width );
          cn->setChanRough( rough );
          cn->setBankRough( lambda );
          slope = cn->getSlope();
+//       cn->setChanDepth( depth );
          //make sure slope will produce a positive depth:
 //          critS = qbf * qbf * rough * rough * 8.0 * pow( 2.0, 0.333 )/
 //            ( width * width * width * width * width * pow( width, 0.333 ) );
 //          if( slope > critS ) //should also catch negative slope flag
 //          {
-//               //cout << "in FindChanGeom, slope = " << slope << endl << flush;
-//             cn->setChanSlope( slope );
-//             radfactor = qbf * rough / width / sqrt(slope);
-//             hradius = pow(radfactor, 0.6); 
+                 //cout << "in FindChanGeom, slope = " << slope << endl << flush;
+         cn->setChanSlope( slope );
+         radfactor = qbf * rough / width / sqrt(slope);
+         hradius = pow(radfactor, 0.6);
+         depth = hradius;
 //             depth = width / (width / hradius - 2.0);
-//             cn->setChanDepth( depth );
+         cn->setChanDepth( depth );
 //          }
 //          else cn->setMeanderStatus( kNonMeanderNode );
          if( slope < 0.0 )

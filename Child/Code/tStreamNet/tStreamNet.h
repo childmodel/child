@@ -15,7 +15,7 @@
 **  Class tInlet is used to model the entry of a river at an edge of the
 **  model mesh.
 **
-**  $Id: tStreamNet.h,v 1.25 1998-07-20 22:09:42 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.26 1998-09-10 19:21:19 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -35,7 +35,17 @@
 #define kSaturatedFlow1 1  // Option for sat-excess runoff w/ return flow
 #define kSaturatedFlow2 2  // Option for sat-excess runoff w/o return flow
 #define kConstSoilStore 3  // Option for "bucket"-type flow generation
+
 #define kSecperyear 31536000  // No. of seconds in one year
+
+#define kFlooded     1  // Flooding (lake) codes: part of a lake...
+#define kNotFlooded  0  // ...or not...
+#define kCurrentLake 2  // ...or part one that is currently being computed...
+#define kSink        3  // ...or a dry sink (unfilled depression).
+#define kOutletFlag  4  // Used as temporary flag in FillLakes.
+#define kOutletPreFlag 5 // ditto
+#define kVeryHigh 100000  // Used in FillLakes
+
 
 double DistanceToLine( double x2, double y2, double a, double b, double c );
 double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 );
