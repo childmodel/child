@@ -7,7 +7,7 @@
 **  time to write output, printing the current time to standard output if
 **  desired, and writing the current time to a file every so often.
 **
-**  $Id: tRunTimer.h,v 1.5 2000-06-05 15:47:05 gtucker Exp $
+**  $Id: tRunTimer.h,v 1.6 2000-06-05 18:58:47 daniel Exp $
 \***************************************************************************/
 
 #ifndef TRUNTIMER_H
@@ -27,6 +27,7 @@ public:
 	void Start( double, double=0.0 );  // Set current and (optionally) end times
 	int CheckOutputTime();             // Is it time to write output yet?
 	void ReportTimeStatus();           // Report time to file and (opt) screen
+	int CheckTSOutputTime();           // Is it time to write time series output yet?
 	
 private:
 	double currentTime;       // current time in simulation
@@ -37,6 +38,8 @@ private:
 	ofstream timeStatusFile;  // file "run.time" for tracking current time
 	double notifyInterval;    // interval for reporting time to file
 	double nextNotify;        // next time for time-reporting
+	double nextTSOutputTime;  // time of next time series output
+	double TSOutputInterval;  // interval between time series outputs
 };
 
 
