@@ -19,7 +19,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.28 2000-12-07 11:47:47 gtucker Exp $
+**  $Id: tMesh.h,v 1.29 2001-06-19 15:53:11 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -27,6 +27,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <stdlib.h>
 #include "../Classes.h"
 #include "../Definitions.h"
 #include "../tArray/tArray.h"

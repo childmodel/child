@@ -24,7 +24,7 @@
 **  Recent modifications:
 **    - 1/00: GT added vegofs for output of vegetation cover
 **
-**  $Id: tOutput.h,v 1.21 2000-12-07 12:11:04 gtucker Exp $
+**  $Id: tOutput.h,v 1.22 2001-06-19 15:56:12 gtucker Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -96,7 +96,7 @@ public:
     void WriteNodeData( double time );  
     void WriteTSOutput();
     int NodeCount();
-
+    int OptTSOutput();
    
 
 private:
@@ -109,7 +109,7 @@ private:
     ofstream vegofs;     // Vegetation cover %
     ofstream flowdepofs; // Flow depth
     ofstream vegcovofs;  // Catchment vegetation cover %
-
+    int optTSOutput;     // temp
    
 
    int counter;
