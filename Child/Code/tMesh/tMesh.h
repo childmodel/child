@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.61 2003-09-18 17:23:42 childcvs Exp $
+**  $Id: tMesh.h,v 1.62 2003-09-19 13:43:41 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -50,19 +50,8 @@
 
 
 /***************************/
-/**** Defined constants ****/
+/****** Defined types ******/
 /***************************/
-
-/* codes passed to DeleteNode (why don't default args work?) */
-#define kRepairMesh true
-#define kNoRepair false
-
-
-/****************************/
-/**** Class Declarations ****/
-/****************************/
-
-class ParamMMFS_t;
 
 typedef enum {
   FLIP_NOT_NEEDED,
@@ -70,6 +59,23 @@ typedef enum {
   FLIP_ERROR,
   FLIP_DONE
 } flipStatus_t;
+
+/* codes passed to DeleteNode/AddNode */
+typedef enum {
+  kNoRepairMesh,
+  kRepairMesh
+} kRepairMesh_t;
+typedef enum {
+  kNoUpdateMesh,
+  kUpdateMesh
+} kUpdateMesh_t;
+
+
+/****************************/
+/**** Class Declarations ****/
+/****************************/
+
+class ParamMMFS_t;
 
 /** @class tMesh
  */
@@ -110,8 +116,10 @@ public:
    /*returns ptr to triangle which points to edge, or zero if none:*/
    tTriangle *TriWithEdgePtr( tEdge * ) const;
    /*only routine needed to delete node; calls ExNode, RepairMesh:*/
-   int DeleteNode( tListNode< tSubNode > *, bool repairFlag=true );
-   int DeleteNode( tSubNode const *, bool repairFlag=true );
+   int DeleteNode( tListNode< tSubNode > *, kRepairMesh_t repairFlag=kRepairMesh,
+		   kUpdateMesh_t updateFlag=kUpdateMesh );
+   int DeleteNode( tSubNode const *, kRepairMesh_t repairFlag=kRepairMesh,
+		   kUpdateMesh_t updateFlag=kUpdateMesh );
    /*deletes spokes, *calls ExEdge, makes nbr ptr list:*/
    int ExtricateNode( tSubNode *, tPtrList< tSubNode > & );
    int DeleteEdge( tEdge * );
@@ -134,7 +142,8 @@ public:
    void CheckTrianglesAt( tSubNode * );
    tSubNode *AddToList( tSubNode const& );
    //add a node with referenced value/properties, update mesh connectivity
-   tSubNode *AddNode( tSubNode &, bool updatemesh = false, double time = 0.0 );
+   tSubNode *AddNode( tSubNode &, kUpdateMesh_t updatemesh = kNoUpdateMesh,
+		      double time = 0.0 );
    tSubNode* InsertNode( tSubNode*, double );
    //add a generic node at the referenced coordinates
    tSubNode *AddNodeAt( tArray< double > &, double time = 0.0 );
@@ -151,7 +160,7 @@ public:
    //void CalcSlopes(); /* WHY is this commented out? */
    /*routines used to move points; MoveNodes is "master" function*/
    flipStatus_t CheckForFlip( tTriangle *, int, bool, bool useFuturePosn=true );
-   void FlipEdge( tTriangle *, tTriangle *, int, int );
+   bool FlipEdge( tTriangle *, tTriangle *, int, int, bool useFuturePosn=false );
    tEdge * IntersectsAnyEdge( tEdge * );
    //CheckTriEdgeIntersect and CheckLocallyDelaunay are the essential functions
    //for point moving and are called from MoveNodes; in general, they should be

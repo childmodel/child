@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.181 2003-09-18 17:23:40 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.182 2003-09-19 13:43:39 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1607,9 +1607,9 @@ MakeMeshFromPoints( tInputFile &infile )
 
    // We no longer need the supertriangle, so remove it by deleting its
    // vertices.
-   DeleteNode( stp1, kNoRepair );
-   DeleteNode( stp2, kNoRepair );
-   DeleteNode( stp3, kNoRepair );
+   DeleteNode( stp1, kNoRepairMesh, kNoUpdateMesh );
+   DeleteNode( stp2, kNoRepairMesh, kNoUpdateMesh );
+   DeleteNode( stp3, kNoRepairMesh, kNoUpdateMesh );
 
    cout << "3 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: " << nedges << " NT: " << ntri << endl;
 
@@ -1803,7 +1803,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
       // if not too close, add it:
       if( dist > mindist )
       {
-         cn = AddNode( tempnode, /*updatemesh =*/ false );
+         cn = AddNode( tempnode, /*updatemesh =*/ kNoUpdateMesh );
          if( zinterp != nodata && zinterp < minz )
          {
             minz = zinterp;
@@ -1838,7 +1838,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    }
    for( cn = dI.FirstP(); !( dI.AtEnd() ); cn = dI.FirstP() )
    {
-      DeleteNode( cn, kNoRepair );
+      DeleteNode( cn, kNoRepairMesh, kNoUpdateMesh );
       /* cn =*/ deletelist.removeFromFront();
    }
    cout << "deleted superfluous boundary nodes\n";
@@ -2004,7 +2004,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
       tempnode.setID( miNextNodeID );
       miNextNodeID++;
       tempnode.set3DCoords( x, y, zinterp );
-      cn = AddNode( tempnode, /*updatemesh =*/ false );
+      cn = AddNode( tempnode, /*updatemesh =*/ kNoUpdateMesh );
       if( zinterp != nodata && zinterp < minz )
       {
          minz = zinterp;
@@ -2051,7 +2051,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    }
    for( cn = dI.FirstP(); !( dI.AtEnd() ); cn = dI.FirstP() )
    {
-      DeleteNode( cn, kNoRepair );
+      DeleteNode( cn, kNoRepairMesh, kNoUpdateMesh );
       /*cn =*/ deletelist.removeFromFront();
    }
    cout << "deleted superfluous boundary nodes\n";
@@ -2583,23 +2583,27 @@ template <class tSubNode>
 
 /**************************************************************************\
 **
-**  tMesh::DeleteNode( tSubNode *, int =1 )
-**    (see DeleteNode( tListNode<tSubNode> *, int =1 ) below)
+**  tMesh::DeleteNode( tSubNode *, kRepairMesh_t=kRepairMesh,
+**                     kUpdateMesh_t=kUpdateMesh )
+**    (see DeleteNode( tListNode<tSubNode> *, kRepairMesh_t,kUpdateMesh_t)
+**     below)
 **
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-DeleteNode( tSubNode const *node, bool repairFlag )
+DeleteNode( tSubNode const *node, kRepairMesh_t repairFlag,
+	    kUpdateMesh_t updateFlag )
 {
   tMeshListIter< tSubNode > nodIter( nodeList );
   if( nodIter.Get( node->getID() ) )
-    return DeleteNode( nodIter.NodePtr(), repairFlag );
+    return DeleteNode( nodIter.NodePtr(), repairFlag, updateFlag );
   return 0;
 }
 
 /**************************************************************************\
 **
-**  tMesh::DeleteNode( tListNode<tSubNode> *, int =1 )
+**  tMesh::DeleteNode( tListNode<tSubNode> *, kRepairMesh_t=kRepairMesh,
+**                     kUpdateMesh_t=kUpdateMesh )
 **
 **  Deletes a node from the mesh. This is done by first calling
 **  ExtricateNode to detach the node by removing its edges and their
@@ -2632,11 +2636,13 @@ DeleteNode( tSubNode const *node, bool repairFlag )
 **  Created: fall, '97 SL
 **  Modifications: added repairFlag 4/98 GT
 **  5/2003 SL, AD
+**  7/2003 SL: added updateFlag
 **
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-DeleteNode( tListNode< tSubNode >* nodPtr, bool repairFlag)
+DeleteNode( tListNode< tSubNode >* nodPtr, kRepairMesh_t repairFlag,
+	    kUpdateMesh_t updateFlag )
 {
    tPtrList< tSubNode > nbrList;
    tSubNode *node = nodPtr->getDataPtrNC();
@@ -2644,7 +2650,8 @@ DeleteNode( tListNode< tSubNode >* nodPtr, bool repairFlag)
    if (0) //DEBUG
      cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
 	  << node->getY() << " " << node->getZ() << endl;
-   //assert( repairFlag || node->getBoundaryFlag()==kClosedBoundary );
+   //assert( repairFlag == kRepairMesh ||
+   //        node->getBoundaryFlag()==kClosedBoundary );
 
    // extricate node from mesh and get list of its neighbors:
    if( !( ExtricateNode( node, nbrList ) ) ) return 0;
@@ -2681,7 +2688,7 @@ DeleteNode( tListNode< tSubNode >* nodPtr, bool repairFlag)
        }
    }
 
-   if( repairFlag )
+   if( repairFlag == kRepairMesh )
    {
       nbrList.makeCircular();
       if( !RepairMesh( nbrList ) ) return 0;
@@ -2700,7 +2707,7 @@ DeleteNode( tListNode< tSubNode >* nodPtr, bool repairFlag)
        }
    }
 
-   if( repairFlag ) UpdateMesh();
+   if( updateFlag ==kUpdateMesh ) UpdateMesh();
    return 1;
 }
 
@@ -3623,7 +3630,7 @@ MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
 #define kLargeNumber 1000000000
 template< class tSubNode >
 tSubNode * tMesh< tSubNode >::
-AddNode( tSubNode &nodeRef, bool updatemesh, double time )
+AddNode( tSubNode &nodeRef, kUpdateMesh_t updatemesh, double time )
 {
    const tArray< double > xyz( nodeRef.get3DCoords() );
 
@@ -3651,7 +3658,7 @@ AddNode( tSubNode &nodeRef, bool updatemesh, double time )
    ResetNodeID();
    newNodePtr->InitializeNode();
 
-   if( updatemesh ) UpdateMesh();
+   if( updatemesh ==kUpdateMesh ) UpdateMesh();
    return newNodePtr;  // Return ptr to new node
 }
 
@@ -4218,16 +4225,30 @@ CheckForFlip( tTriangle * tri, int nv, bool flip, bool useFuturePosn )
 **
 ** Edges and triangles are re-used (SL)
 ** 5/2003 AD
+** 8/2003 SL: added flag "useFuturePosn" with default value of "false",
+**   used in call to InitializeEdge; found case where flip can be
+**   done to connect two points that are already connected, added
+**   check for such a case, necessitates making FlipEdge "bool" 
+**   instead of "void", but shouldn't affect existing function calls
+**   that assume it's "void".
+** 9/2003 SL: included check whether nodes na and nc (i.e., nodes to
+**   be connected by flip) are the same node. In such a case, return
+**   no_edge = false.
 \*******************************************************************/
 template< class tSubNode >
-void tMesh< tSubNode >::
-FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
+bool tMesh< tSubNode >::
+FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop,
+          bool useFuturePosn )
 {
    if (0) //DEBUG
      cout << "FlipEdge(...)..." << endl;
    tSubNode* na = static_cast<tSubNode *>(tri->pPtr(nv));
-   tSubNode* nb = static_cast<tSubNode *>(tri->pPtr((nv+1)%3));
    tSubNode* nc = static_cast<tSubNode *>(triop->pPtr( nvop ));
+   // make sure that na and nc are not identical and not connected
+   if ( ! BOOL( na != nc && na->EdgToNod( nc ) == NULL ) )
+     return false;
+ 
+   tSubNode* nb = static_cast<tSubNode *>(tri->pPtr((nv+1)%3));
    tSubNode* nd = static_cast<tSubNode *>(tri->pPtr((nv+2)%3));
    tEdge* edg = tri->ePtr( (nv+2)%3 );
    tEdge* edgop = triop->ePtr( (nvop+2)%3 );
@@ -4251,8 +4272,8 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
    // does edg and edgop, tri and triop:
    ClearEdge( edg );
    // give edges' initialization routine nodes of tri in cw order:
-   edg->InitializeEdge( nc, na, nd );
-   edgop->InitializeEdge( na, nc, nb );
+   edg->InitializeEdge( nc, na, nd, useFuturePosn );
+   edgop->InitializeEdge( na, nc, nb, useFuturePosn );
 
    if( move )
    {
@@ -4274,6 +4295,8 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
    // give triangles' initialization routine nodes of tri in ccw order:
    tri->InitializeTriangle( nd, na, nc );
    triop->InitializeTriangle( nb, nc, na );
+
+   return true;
 }
 
 
@@ -4659,7 +4682,7 @@ AddNodesAround( tSubNode * centerNode, double time )
       tmpnode.set3DCoords( xyz->x, xyz->y, xyz->z );  // Assign to tmpnode
       //cn->TellAll();
       //cout << "Before addition\n";
-      AddNode( tmpnode, false, time );  // Add the node
+      AddNode( tmpnode, kNoUpdateMesh, time );  // Add the node
    }
    UpdateMesh();
 
