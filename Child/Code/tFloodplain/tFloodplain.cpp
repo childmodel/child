@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.17 2003-05-16 13:01:04 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.18 2003-05-23 11:46:33 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -125,6 +125,7 @@ tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
 \**************************************************************************/
 tFloodplain::~tFloodplain()
 {
+  meshPtr = 0;
   delete chanDriver;
 }
 
@@ -172,8 +173,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 
    tMeshListIter<tLNode> ni( meshPtr->getNodeList() ); // iterator for nodes
    tList<tFloodNode> floodList;    // list of "flood nodes"
-   tFloodNode floodNode,           // flood node to be added to list
-       *fn;                        // ptr to current flood node
+   tFloodNode *fn;       // ptr to current flood node
    tLNode *cn,           // current landscape node
        *closestNode;     // closest flood node
    double maxWSH = 0.0,  // maximum water surface height at any flood node
@@ -192,10 +192,10 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
    {
       if( ( drarea = cn->getDrArea() ) >= drarea_min )
       {
-         floodNode.nodePtr = cn;
-         floodNode.wsh = kdb*pow( drarea, mqbmqs )
-             *pow( cn->getQ()/SECPERYEAR, mqs )
-             + cn->getZ();
+	 tFloodNode floodNode(cn,
+			      kdb*pow( drarea, mqbmqs )
+			      *pow( cn->getQ()/SECPERYEAR, mqs )
+			      + cn->getZ() );
          //cout << "flood depth " << cn->getID() << " = " << floodNode.wsh-cn->getZ() << endl;
          if( floodNode.wsh > maxWSH )
              maxWSH = floodNode.wsh;

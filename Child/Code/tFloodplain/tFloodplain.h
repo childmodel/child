@@ -18,7 +18,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.11 2003-05-08 10:58:09 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.12 2003-05-23 11:46:33 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -129,8 +129,13 @@ private:
 /**************************************************************************/
 class tFloodNode
 {
-    friend class tFloodplain;
+    tFloodNode& operator=(const tFloodNode&);
 
+    friend class tFloodplain;
+public:
+    tFloodNode() : nodePtr(0), wsh(-1.) {}
+    tFloodNode(tLNode *p_, double w_) : nodePtr(p_), wsh(w_) {}
+    tFloodNode(const tFloodNode& c) : nodePtr(c.nodePtr), wsh(c.wsh) {}
 private:
     tLNode *nodePtr; // ptr to flood node
     double wsh;      // water surface height at flood node
