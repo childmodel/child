@@ -24,7 +24,7 @@
 **  Recent modifications:
 **    - 1/00: GT added vegofs for output of vegetation cover
 **
-**  $Id: tOutput.h,v 1.13 2000-06-05 21:03:50 daniel Exp $
+**  $Id: tOutput.h,v 1.14 2000-06-05 21:32:42 daniel Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -72,7 +72,9 @@ protected:
     ofstream edgofs;              // output file for edge data
     ofstream triofs;              // output file for triangle data
     ofstream zofs;                // output file for node "z" data
-    ofstream vaofs;               // output file for Voronoi areas
+    ofstream vaofs;               // output file for Voronoi areas    
+    ofstream volsofs;             // catchment volume
+
 };
 
 
@@ -100,7 +102,6 @@ private:
     ofstream texofs;     // Texture info
     ofstream vegofs;     // Vegetation cover %
     ofstream flowdepofs; // Flow depth
-    ofstream volsofs;    // catchment volume
 };
 
 #endif
