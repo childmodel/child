@@ -12,7 +12,7 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.11 1998-02-18 01:15:00 stlancas Exp $
+**  $Id: tStreamMeander.h,v 1.12 1998-02-20 00:12:14 stlancas Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
@@ -100,6 +100,7 @@ protected:
     double meddiam;   //median grain diameter, if optdiamvar = 0
     double kwds, ewds, ewstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width
     double knds, ends, enstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. roughness
+   double klambda, elambda; //coeff & exp for downstrm bank roughness length
     double dscrtwids; //nominal channel discretization in channel widths
     double allowfrac; //maximum channel point mvmt. in channel widths
     double leavefrac; //distance in widths to add new node

@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.8 1998-02-18 01:13:34 stlancas Exp $
+**  $Id: tLNode.h,v 1.9 1998-02-20 00:12:05 stlancas Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -79,6 +79,7 @@ class tMeander
    double deltax, deltay; /* Displacements in x and y from meandering*/
    double zoldright;	/* right bed elevation */
    double zoldleft;	/* left bed elevation*/
+   double bankrough; //bank roughness (lambda in meander.f) w/ units of length
 };
 
 /** class tBedrock *************************************************************/
@@ -195,6 +196,8 @@ class tLNode : public tNode
    double getHydrSlope() const;
    double getChanSlope() const;
    double getDiam() const;
+   void setBankRough( double );
+   double getBankRough() const;
    double getDrArea() const;
    tArray< double > getZOld() const;
    tArray< double > getNew2DCoords() const;   //for chan.migration.newx, newy
