@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.79 1999-05-04 17:15:11 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.80 1999-05-10 20:03:27 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1002,11 +1002,11 @@ double tLNode::getSlope()
       
       assert( curlen > 0 );
       downz = dn->z;
-      if( timetrack >= kBugTime ) cout << "GetSlope 1; " << flush;
+      //if( timetrack >= kBugTime ) cout << "GetSlope 1; " << flush;
       delz = z - downz;
-      if( timetrack >= kBugTime ) cout << "GS 2; " << flush;
+      //if( timetrack >= kBugTime ) cout << "GS 2; " << flush;
       slp = delz / curlen;
-      if( timetrack >= kBugTime ) cout << "GS 3; " << flush;
+      //if( timetrack >= kBugTime ) cout << "GS 3; " << flush;
       on = dn;
       ctr = 0;
       while( on->getBoundaryFlag() == kNonBoundary &&
@@ -1026,7 +1026,7 @@ double tLNode::getSlope()
       slp = (z - getDownstrmNbr()->z ) / flowedge->getLength();
    }
    
-   if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
+   //if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
    if( slp>=0.0 ) return slp;
    else return 0.0;
 }
