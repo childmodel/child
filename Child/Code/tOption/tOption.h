@@ -9,7 +9,7 @@
 **
 **  A. Desitter - March 2004
 **
-**  $Id: tOption.h,v 1.1 2004-03-31 17:53:52 childcvs Exp $
+**  $Id: tOption.h,v 1.2 2004-04-01 09:57:28 childcvs Exp $
 */
 /************************************************************************/
 
@@ -26,7 +26,10 @@ public:
   tOption(int argc, char const * const argv[]);
 private:
   int parseOptions(char const * const argv[]);
-  void usage();
+  void usage() const;
+private:
+  tOption(tOption const &);
+  tOption& operator=(tOption const &);
 };
 
 #endif

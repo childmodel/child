@@ -5,7 +5,7 @@
 **
 **  A. Desitter - March 2004
 **
-**  $Id: tOption.cpp,v 1.1 2004-03-31 17:53:52 childcvs Exp $
+**  $Id: tOption.cpp,v 1.2 2004-04-01 09:57:28 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -16,6 +16,7 @@ using namespace std;
 # include <iostream.h>
 #endif
 #include <stdlib.h>
+#include <string.h>
 
 #include "tOption.h"
 
@@ -62,7 +63,7 @@ int tOption::parseOptions(char const * const argv[]) {
   return 1;
 }
 
-void tOption::usage(){
+void tOption::usage() const {
   cerr
     << "Usage: " << exeName << " [options] <input file>\n"
     << " --help: display this help message.\n"
