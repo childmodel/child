@@ -4,21 +4,81 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.40 1998-07-12 23:19:09 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.41 1998-07-15 15:43:59 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
 #include "../errors/errors.h"
 #include "tStreamNet.h"
 
-double DistanceToLine( double, double, double, double, double );
-double DistanceToLine( double, double, tNode *, tNode * );
+/*****************************************************************************\
+**
+**
+**      DistanceToLine: given x,y coords, finds distance to the line 
+**              defined by given a, b, and c (ax + by + c = 0)
+**      Global function.
+**      Data members updated: 
+**      Called by: 
+**      Calls:  
+**        
+**
+\*****************************************************************************/
+double DistanceToLine( double x2, double y2, double a, double b, double c )
+{
+   double f, g, h, x, y, d;
 
-//HACK! what is this function??
-/*
-double DistanceToLine( double a, double b, tNode *c, tNode *d )
-{ return 0;}*/
+   f = -b;
+   g = a;
+   h = b * x2 - a * y2;
+   if( fabs(b) > 0 && fabs(a) > 0 )
+   {
+      x = (g * c / b - h) / (f - g * a / b);
+      y = (-c - a * x) / b;
+   }
+   else
+   {
+      if( fabs(a) == 0.0 )
+      {
+         y = -c / b;
+         x = -h / f;
+      }
+      else
+      {
+         y = -h / g;
+         x = -c / a;
+      }
+   }
+   d = sqrt( (x2 - x) * (x2 - x) + (y2 - y) * (y2 - y) );
+   return d;
+}
 
+/*****************************************************************************\
+**
+**
+**      DistanceToLine: given x,y coords, finds distance to the line 
+**              formed by points  p0->(x, y) and p1->(x, y)
+**      Global function.
+**      Data members updated: 
+**      Called by: 
+**      Calls:  
+**        
+**
+\*****************************************************************************/
+double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
+{
+   double a, b, c, f, g, h, x0, y0, x1, y1, x, y, d;
+
+   x0 = p0->getX();
+   y0 = p0->getY();
+   x1 = p1->getX();
+   y1 = p1->getY();
+   a = y1 - y0; 
+   b = x0 - x1; 
+   c = -( a * x0 + b * y0 );
+
+   d = DistanceToLine( x2, y2, a, b, c );
+   return d;
+}
 
 
 /**************************************************************************\
@@ -81,6 +141,25 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    if( itMeanders )
        mndrDirChngProb = infile.ReadItem( mndrDirChngProb, "CHNGPROB" );
    else mndrDirChngProb = 1.0;
+   
+   optrainvar = infile.ReadItem( optrainvar, "OPTVAR" );
+   kwds = infile.ReadItem( kwds, "HYDR_WID_COEFF_DS" );
+   //cout << "kwds: " << kwds << endl;
+   assert( kwds > 0 );
+   ewds = infile.ReadItem( ewds, "HYDR_WID_EXP_DS" );
+   //cout << "ewds: " << ewds << endl;
+   ewstn = infile.ReadItem( ewstn, "HYDR_WID_EXP_STN" );
+   //cout << "ewstn: " << ewstn << endl;
+   knds = infile.ReadItem( knds, "HYDR_ROUGH_COEFF_DS" );
+   //cout << "knds: " << knds << endl;
+   assert( knds > 0 );
+   ends = infile.ReadItem( ends, "HYDR_ROUGH_EXP_DS" );
+   //cout << "ends: " << ends << endl;
+   enstn = infile.ReadItem( enstn, "HYDR_ROUGH_EXP_STN" );
+   //cout << "enstn: " << enstn << endl;
+   klambda = infile.ReadItem( klambda, "BANK_ROUGH_COEFF" );
+   elambda = infile.ReadItem( elambda, "BANK_ROUGH_EXP" );
+   
    CalcSlopes();  // TODO: should be in tGrid
    InitFlowDirs(); // TODO: should all be done in call to updatenet
    FlowDirs();
@@ -1393,7 +1472,136 @@ void tStreamNet::SortNodesByNetOrder()
  
 }
 
+/*****************************************************************************\
+**
+**       FindHydrGeom: goes through reach nodes and calculates/assigns
+**                     values for hydraulic geometry.
+**                
+**
+**		  Parameters: kwds, ewds, ewstn, knds, ends, enstn, optrainvar
+**      Data members updated: tLNode->chan.hydrwidth, hydrnrough, hydrdepth
+**      Called by: FindReaches (needs to know how long to make reach "tails"
+**      Calls: no "major" functions
+**
+**      Created: SL 1/98         
+**
+**
+\*****************************************************************************/
+void tStreamNet::FindHydrGeom()
+{
+   int i, j, num;
+   double hradius, kwdspow, kndspow, widpow, npow, radfactor, qpsec;
+   double width, depth, rough, slope;
+   tLNode *cn;
 
+   kwdspow = pow(kwds, ewstn / ewds);
+   kndspow = pow(knds, enstn / ends);
+   widpow = 1.0 - ewstn / ewds;
+   npow = 1.0 - enstn / ends;
+   //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
+   tGridListIter< tLNode > nIter( gridPtr->getNodeList() );
+   for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
+   {
+      //removed an if cn->Meanders(), so stuff calculated everywhere
+      //if rainfall varies, find hydraulic width "at-a-station"
+      //based on the channel width "downstream":
+      if( optrainvar)
+      {
+         qpsec = cn->getQ();
+         width = pow(cn->getChanWidth(), widpow) * kwdspow * pow(qpsec, ewstn);
+         cn->setHydrWidth( width );
+         rough = pow(cn->getChanRough(), npow) * kndspow * pow(qpsec, enstn);
+         cn->setHydrRough( rough );
+         slope = cn->getChanSlope();
+         assert( slope > 0 );
+         radfactor = qpsec * rough / width / sqrt(slope);
+         hradius = pow(radfactor, 0.6);
+         depth = width / ( width / hradius - 2.0 );
+         cn->setHydrSlope( slope );
+         cn->setHydrDepth( depth );
+      }
+      //if rainfall does not vary, set hydraulic geom. = channel geom.
+      else
+      {
+         width = cn->getChanWidth();
+         rough = cn->getChanRough();
+         depth = cn->getChanDepth();
+         slope = cn->getChanSlope();
+         cn->setHydrWidth( width );
+         cn->setHydrRough( rough );
+         cn->setHydrSlope( slope );
+         cn->setHydrDepth( depth );
+      }
+   }
+   //cout << "done FindHydrGeom" << endl << flush;
+}
+
+/*****************************************************************************\
+**
+**       FindChanGeom: goes through reach nodes and calculates/assigns
+**                     values for channel geometry.
+**                
+**
+**		  Parameters: kwds, ewds, ewstn, knds, ends, enstn
+**      Data members updated: tLNode->chan.hydrwidth, hydrnrough, hydrdepth
+**      Called by: FindReaches (needs to know how long to make reach "tails"
+**      Calls: no "major" functions
+**
+**      Created: SL 1/98         
+**
+**
+\*****************************************************************************/
+#define kSmallNum 0.0000000001
+void tStreamNet::FindChanGeom()
+{
+   int i, j, num;
+   double qbf, hradius, qbffactor=0, radfactor, width, depth, rough, slope;
+   double lambda;
+   double rlen, cz, nz, critS;
+   tLNode *cn, *dsn;
+   tGridListIter< tLNode > nIter( gridPtr->getNodeList() );
+   tPtrList< tLNode > *plPtr;
+   //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
+   tStorm *sPtr = getStormPtrNC();
+   double isdmn = sPtr->getMeanInterstormDur();
+   double pmn = sPtr->getMeanPrecip();
+   if (isdmn > 0 )  qbffactor = pmn * log(1.5 / isdmn);
+   for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
+   {
+      //took out an if cn->Meanders() so stuff will be calculated at all nodes
+// qbffactor is now in m^3/s
+      qbf = cn->getDrArea() * qbffactor;
+      if( !qbf ) qbf = cn->getQ();  // q is now in m^3/s
+      width = kwds * pow(qbf, ewds);
+      rough = knds * pow(qbf, ends);
+      lambda = klambda * pow(qbf, elambda);
+      cn->setChanWidth( width );
+      cn->setChanRough( rough );
+      cn->setBankRough( lambda );
+      slope = cn->getSlope();
+      //make sure slope will produce a positive depth:
+      critS = qbf * qbf * rough * rough * 8.0 * pow( 2.0, 0.333 )/
+          ( width * width * width * width * width * pow( width, 0.333 ) );
+      if( slope > critS ) //should also catch negative slope flag
+      {
+         //cout << "in FindChanGeom, slope = " << slope << endl << flush;
+         cn->setChanSlope( slope );
+         radfactor = qbf * rough / width / sqrt(slope);
+         hradius = pow(radfactor, 0.6); 
+         depth = width / (width / hradius - 2.0);
+         cn->setChanDepth( depth );
+      }
+      else cn->setMeanderStatus( kNonMeanderNode );
+      if( slope < 0.0 )
+      {
+         cout << "negative slope,"
+              << " probably from infinite loop in tLNode::GetSlope()" << endl;
+         ReportFatalError("negative slope in tStreamMeander::FindChanGeom");
+      }
+   }
+   //cout << "done FindChanGeom" << endl;
+}
+#undef kSmallNum
 
 /**************************************************************************\
 **
