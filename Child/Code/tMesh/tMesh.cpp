@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.106 2002-06-24 12:19:49 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.107 2002-06-24 14:03:16 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -251,24 +251,18 @@ tMesh( tInputFile &infile )
    // option for reading/generating initial mesh
    int read;
    read = infile.ReadItem( read, "OPTREADINPUT" );
-   if( read<0 || read>4 )
-   {
-      cerr << "Valid options for reading mesh input are:\n"
-           << "  0 -- create rectangular offset mesh\n"
-           << "  1 -- read mesh from input data files\n"
-           << "  2 -- create mesh from a list of (x,y,z,b) points\n"
-           << "  3 -- create random mesh from ArcGrid ascii output\n"
-           << "  4 -- create hexagonal mesh from ArcGrid ascii output\n";
-      ReportFatalError( "Invalid mesh input option requested." );
-   }
-   
    switch (read){
+   case 0:
+     MakeMeshFromScratch( infile ); //create new mesh with parameters
+     break;
    case 1:
-     int lay;  // option for reading layer info
-     MakeMeshFromInputData( infile ); //create mesh by reading data files
-     lay = infile.ReadItem( lay, "OPTREADLAYER" );
-     if( lay == 1 )
-       MakeLayersFromInputData( infile );
+     {
+       int lay;  // option for reading layer info
+       MakeMeshFromInputData( infile ); //create mesh by reading data files
+       lay = infile.ReadItem( lay, "OPTREADLAYER" );
+       if( lay == 1 )
+	 MakeLayersFromInputData( infile );
+     }
      break;
    case 2:
      MakeMeshFromPoints( infile );  //create new mesh from list of points
@@ -280,7 +274,13 @@ tMesh( tInputFile &infile )
      MakeHexMeshFromArcGrid( infile );
      break;
    default:
-     MakeMeshFromScratch( infile ); //create new mesh with parameters
+     cerr << "Valid options for reading mesh input are:\n"
+	  << "  0 -- create rectangular offset mesh\n"
+	  << "  1 -- read mesh from input data files\n"
+	  << "  2 -- create mesh from a list of (x,y,z,b) points\n"
+	  << "  3 -- create random mesh from ArcGrid ascii output\n"
+	  << "  4 -- create hexagonal mesh from ArcGrid ascii output\n";
+     ReportFatalError( "Invalid mesh input option requested." );
      break;
    }
 
