@@ -42,7 +42,7 @@ c     version 1.6: eliminated erroneous division by dels in shear
 c     stress calculation
 c                 1.7  8/11: debugged version SL
 c
-c     $Id: meander.f,v 1.3 2002-04-18 09:41:55 arnaud Exp $
+c     $Id: meander.f,v 1.4 2002-08-14 10:34:26 arnaud Exp $
 c
       subroutine meander (stations, stnserod, x, y, xs, dels, flow,  
      +                    rerody, lerody, slope, width, depth, 
@@ -161,53 +161,54 @@ C
       call getcurv (stnserod, stations, delx, dely, dels, curvature)
 c     print *, 'stnserod in channel:', stnserod
       do s = 1, stnserod - 1
-         if (slope(s) .le. 0.0) 
+         if (slope(s) .le. 0.d0) 
      +       print *, 'neg. or zero slope:', slope(s), s, flow(s)
-         if (width(s) .ne. 0.0 .and. width(s) .ne. -2.d0*depth(s)) then
+         if (width(s) .ne. 0.d0 .and. width(s) .ne. -2.d0*depth(s)) 
+     +        then
 c          radh = (width(s) * depth(s)) / (width(s) + 2.d0 * depth(s)) 
 c          go back to H ~= R approx.
            radh = depth(s)
-           if (depth(s) .le. 0.0) then
+           if (depth(s) .le. 0.d0) then
               print *, depth(s)
               return
             end if
             vel(s) = flow(s) / depth(s) / width(s)
             shields = radh * slope(s) / 1.65d0 / diam(s) 
-            if (diam(s) .lt. 0.00015) then
+            if (diam(s) .lt. 0.00015d0) then
                critshields = 0.080d0 ! s*=1.01
-            else if (diam(s) .lt. 0.00025) then
+            else if (diam(s) .lt. 0.00025d0) then
                critshields = 0.052d0 ! s*=2.84
-            else if (diam(s) .lt. 0.00035) then
+            else if (diam(s) .lt. 0.00035d0) then
                critshields = 0.039d0 ! s*=5.22
-            else if (diam(s) .lt. 0.00045) then
+            else if (diam(s) .lt. 0.00045d0) then
                critshields = 0.035d0 ! s*=8.04
-            else if (diam(s) .lt. 0.00055) then
+            else if (diam(s) .lt. 0.00055d0) then
                critshields = 0.034d0 ! s*=11.2
-            else if (diam(s) .lt. 0.00065) then
+            else if (diam(s) .lt. 0.00065d0) then
                critshields = 0.033d0 ! s*=14.8
-            else if (diam(s) .lt. 0.00075) then
+            else if (diam(s) .lt. 0.00075d0) then
                critshields = 0.034d0 ! s*=18.6
-            else if (diam(s) .lt. 0.00085) then
+            else if (diam(s) .lt. 0.00085d0) then
                critshields = 0.034d0 ! s*=22.7
-            else if (diam(s) .lt. 0.00095) then
+            else if (diam(s) .lt. 0.00095d0) then
                critshields = 0.034d0 ! s*=27.1
-            else if (diam(s) .lt. 0.0015) then
+            else if (diam(s) .lt. 0.0015d0) then
                critshields = 0.035d0 ! s*=31.8
-            else if (diam(s) .lt. 0.0025) then
+            else if (diam(s) .lt. 0.0025d0) then
                critshields = 0.045d0 ! s*=89.9
-            else if (diam(s) .lt. 0.0035) then
+            else if (diam(s) .lt. 0.0035d0) then
                critshields = 0.050d0 ! s*=165.
-            else if (diam(s) .lt. 0.0045) then
+            else if (diam(s) .lt. 0.0045d0) then
                critshields = 0.055d0 ! s*=254.
             else
                critshields = 0.056d0 ! s*>=355
             end if
 c           approximate Engelund diagram for subcritical flow:
-            if (shields .ge. 0.1 .and. shields .lt. 1.0 ) then
+            if (shields .ge. 0.1d0 .and. shields .lt. 1.d0 ) then
                grainshields = 10.d0 ** (0.74d0 
      +                        * (log10(shields) + 1.03d0) ** 2.d0
      +                        - 1.18d0)
-            else if (shields .ge. 1.0 .and. shields .lt. 2.0) then
+            else if (shields .ge. 1.d0 .and. shields .lt. 2.d0) then
                grainshields = 0.4d0 * shields ** 2.d0
             else
                ! if (shields .ge. 2.0 .or. shields .lt. 0.1) then
@@ -234,7 +235,7 @@ c    +                    - 0.3606d0)
                leftdepth(s) = depth(s) - width(s) * transslope(s) / 2.d0
             else
                Acs(s) = 0.5d0 * depth(s) ** 2.d0 / xmagtransslope
-               if (curvature(s) .lt. 0.0) then
+               if (curvature(s) .lt. 0.d0) then
                   rightdepth(s) = 0.d0
                   leftdepth(s) = 2.d0 * depth(s)
                else
@@ -242,7 +243,7 @@ c    +                    - 0.3606d0)
                   leftdepth(s) = 0.d0
                end if
             end if
-            if (curvature(s) .lt. 0.0) then
+            if (curvature(s) .lt. 0.d0) then
                deln(s) = 0.5d0 * width(s) + Acs(s) * 2.d0 
      +                   / (depth(s) + rightdepth(s))
             else
@@ -271,18 +272,18 @@ c
       do s = 2, stnserod - 1
          a = dels(s) 
          b = dels(s - 1) 
-         if( a .eq. 0.0 .or. b .eq. 0.0 ) then
+         if( a .eq. 0.d0 .or. b .eq. 0.d0 ) then
             print *, 'dels(s) or dels(s-1) equals zero'
             stop
          end if
          c = sqrt((delx(s - 1) + delx(s)) * (delx(s - 1) + delx(s)) + 
      +            (dely(s - 1) + dely(s)) * (dely(s - 1) + dely(s)))
          carg = (a * a + b * b - c * c) / (2.d0 * a * b)
-         if( carg .lt. -1.0 ) then
+         if( carg .lt. -1.d0 ) then
 c            if( carg .gt. -1.0001 ) carg = -1.d0
              carg = -1.d0
          end if
-         if( carg .gt. 1.0 ) then
+         if( carg .gt. 1.d0 ) then
 c            if( carg .lt. 1.0001 ) carg = 1.d0
             carg = 1.d0
          end if
@@ -330,7 +331,7 @@ c
 c
       if (stations .ne. stnserod) then
          do s = 1, stations - 1
-            if (width(s) .ne. 0.0 .and. 
+            if (width(s) .ne. 0.d0 .and. 
      +          width(s) .gt. 2.d0 * depth(s)) then
                forcefactor = rho * vel(s) ** 2.d0 / depth(s) 
      +              * (1.d0 - 2.d0 * depth(s) / width(s))
@@ -338,14 +339,14 @@ c
                lag(s) = 0.d0
                xmagcurvep1 = sign(curvature(s + 1), 1.d0) 
                xmagcurve = sign(curvature(s), 1.d0) 
-               if ((curvature(s + 1) * curvature(s) .gt. 0.0 .and.
+               if ((curvature(s + 1) * curvature(s) .gt. 0.d0 .and.
      +           xmagcurvep1 .gt. xmagcurve .and.
-     +           xmagcurvep1 * width(s) .le. 2.0) .or.
-     +          (curvature(s) .eq. 0.0 .and.
-     +           xmagcurvep1 * width(s) .le. 2.0)) then
+     +           xmagcurvep1 * width(s) .le. 2.d0) .or.
+     +          (curvature(s) .eq. 0.d0 .and.
+     +           xmagcurvep1 * width(s) .le. 2.d0)) then
                   delAcs = (Acs(s + 1) - Acs(s))
-               else if (curvature(s + 1) * curvature(s) .lt. 0.0 .and.
-     +                  xmagcurvep1 * width(s) .le. 2.0) then
+               else if (curvature(s + 1) * curvature(s) .lt. 0.d0 .and.
+     +                  xmagcurvep1 * width(s) .le. 2.d0) then
                   delAcs = Acs(s + 1) - depth(s) * width(s) / 2.d0
                else
                   delAcs = 0.d0
@@ -354,7 +355,7 @@ c
      +                    / dels(s) * sign(1.d0, -curvature(s + 1)) 
      +                    * cos(dels(s) * xmagcurve / 2.d0)
                latvel = -1.d0 * vel(s) * delAcs / depth(s) / dels(s)
-               if (latvel .gt. 0.0) then
+               if (latvel .gt. 0.d0) then
                      lag(s) = vel(s) * (deln(s + 1) + deln(s)) / 
      +                        2.d0 / latvel 
                else
@@ -368,21 +369,21 @@ c
          end do
       else
          do s = 1, stations - 1
-            if (width(s) .ne. 0.0) then
+            if (width(s) .ne. 0.d0) then
                forcefactor = rho * vel(s) ** 2.d0 / depth(s) 
      +              * (1.d0 - 2.d0 * depth(s) / width(s))
                latforce(s) = 0.d0
                lag(s) = 0.d0
                xmagcurvep1 = sign(curvature(s + 1), 1.d0) 
                xmagcurve = sign(curvature(s), 1.d0) 
-               if ((curvature(s + 1) * curvature(s) .gt. 0.0 .and.
+               if ((curvature(s + 1) * curvature(s) .gt. 0.d0 .and.
      +           xmagcurvep1 .gt. xmagcurve .and.
-     +           xmagcurvep1 * width(s) .le. 2.0) .or.
-     +          (curvature(s) .eq. 0.0 .and.
-     +           xmagcurvep1 * width(s) .le. 2.0)) then
+     +           xmagcurvep1 * width(s) .le. 2.d0) .or.
+     +          (curvature(s) .eq. 0.d0 .and.
+     +           xmagcurvep1 * width(s) .le. 2.d0)) then
                   delAcs = (Acs(s + 1) - Acs(s))
-               else if (curvature(s + 1) * curvature(s) .lt. 0.0 .and.
-     +               xmagcurvep1 * width(s) .le. 2.0) then
+               else if (curvature(s + 1) * curvature(s) .lt. 0.d0 .and.
+     +               xmagcurvep1 * width(s) .le. 2.d0) then
                   delAcs = Acs(s + 1) - depth(s) * width(s) / 2.d0
                else
                   delAcs = 0.d0
@@ -391,7 +392,7 @@ c
      +                       / dels(s) * sign(1.d0, -curvature(s + 1)) 
      +                    * cos(dels(s) * xmagcurve / 2.d0)
                latvel = -1.d0 * vel(s) * delAcs / depth(s) / dels(s)
-               if (latvel .gt. 0.0) then
+               if (latvel .gt. 0.d0) then
                      lag(s) = vel(s) * (deln(s + 1) + deln(s)) / 
      +                        2.d0 / latvel 
                else
@@ -449,7 +450,7 @@ c     increment and bank depth) lateral direction vectors:
             do while (xs(sp) .le. xtrmnt .and. sp .le. stnserod)
                if (xs(sp) .ge. xstrt) then
                   xdel = sign(xdest - xs(sp), 1.d0)
-                  if (lambda(s) .ne. 0.0) then
+                  if (lambda(s) .ne. 0.d0) then
                      gaussian = exp(-1.d0 * xdel ** 2.d0 / 2.d0 
      +                    / lambda(s) ** 2.d0) / sqrt(2.d0 * 3.1416d0) 
      +                    / lambda(s) 
@@ -465,8 +466,8 @@ c     increment and bank depth) lateral direction vectors:
       end do
       do s = 1, stnserod
          xdepth = rightdepth(s)
-         if (curvature(s) .lt. 0.0) xdepth = leftdepth(s)
-         if (xdepth .ne. 0.0) then
+         if (curvature(s) .lt. 0.d0) xdepth = leftdepth(s)
+         if (xdepth .ne. 0.d0) then
             tauwall(s) = tauwall(s) / xdepth
             spreaddelta_x(s) = tauwall(s) * (-1.d0) * sin(phi(s))
             spreaddelta_y(s) = tauwall(s) * cos(phi(s))
@@ -506,7 +507,7 @@ c      print *,'CHANGE CHANNEL POSITION:'
       do s = 1, stnserod
 c        print *, 'ler ', lerody(s),'  rer',rerody(s)
          xcp = delx(s) * spreaddelta_y(s) - spreaddelta_x(s) * dely(s)
-         if (xcp .lt. 0.0) then
+         if (xcp .lt. 0.d0) then
 C            delta_x(s) = rerody(s) * depth(s) * spreaddelta_x(s) BUG FIX
 C            delta_y(s) = rerody(s) * depth(s) * spreaddelta_y(s) 3/99 GT
             delta_x(s) = rerody(s) * spreaddelta_x(s)
@@ -529,7 +530,7 @@ c         print *,s,delta_x(s),delta_y(s)
       if (x .ne. 0.0d0 .or. y .ne. 0.0d0) then
          angle = atan2(y, x)
       else
-         angle = 0.0
+         angle = 0.0d0
       end if
 c      if (x .lt. 0.0) then
 c         if (y .gt. 0.0) then
