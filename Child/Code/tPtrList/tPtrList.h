@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.41 2003-10-15 14:02:45 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.42 2003-10-15 15:04:05 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -425,7 +425,7 @@ tPtrList() :
 
 //copy constructor
 template< class NodeType >                      //tPtrList
-inline tPtrList< NodeType >::
+tPtrList< NodeType >::
 tPtrList( const tPtrList< NodeType > & orig ) :
   nNodes(0), first(0), last(0)
 {
@@ -443,7 +443,7 @@ tPtrList( const tPtrList< NodeType > & orig ) :
 
 //second copy constructor
 template< class NodeType >
-inline tPtrList< NodeType >::
+tPtrList< NodeType >::
 tPtrList( const tPtrList< NodeType > * origptr ) :
   nNodes(0), first(0), last(0)
 {
@@ -462,7 +462,7 @@ tPtrList( const tPtrList< NodeType > * origptr ) :
 
 //destructor
 template< class NodeType >                      //tPtrList
-inline tPtrList< NodeType >::
+tPtrList< NodeType >::
 ~tPtrList()
 {
   if( !isEmpty() )
@@ -497,7 +497,7 @@ inline tPtrList< NodeType >::
 
 //overloaded assignment operator
 template< class NodeType >                      //tPtrList
-inline const tPtrList< NodeType > &tPtrList< NodeType >::
+const tPtrList< NodeType > &tPtrList< NodeType >::
 operator=( const tPtrList< NodeType > &right )
 {
   if( this != &right )
@@ -865,7 +865,7 @@ moveToFront( tPtrListNode< NodeType > * mvnode )
  **
 \**************************************************************************/
 template< class NodeType >                      //tPtrList
-inline void tPtrList< NodeType >::
+void tPtrList< NodeType >::
 Flush()
 {
   assert( this!=0 );
@@ -959,7 +959,7 @@ getIth( int num ) const
 }
 
 template< class NodeType >
-inline tPtrListNode< NodeType >* tPtrList< NodeType >::
+tPtrListNode< NodeType >* tPtrList< NodeType >::
 getIthNC( int num ) const
 {
   int i;
@@ -1138,7 +1138,7 @@ Last()
  **
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
-inline int tPtrListIter< NodeType >::
+int tPtrListIter< NodeType >::
 Get( int num )
 {
   assert( ptrlistPtr != 0 );
@@ -1157,7 +1157,7 @@ Get( int num )
 }
 
 template< class NodeType >
-inline int tPtrListIter< NodeType >::
+int tPtrListIter< NodeType >::
 Get( const NodeType *desiredItemPtr )
 {
   assert( ptrlistPtr != 0 );

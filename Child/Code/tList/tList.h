@@ -33,7 +33,7 @@
  **      track position on list w/o an iterator, 1/22/99
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **
- **  $Id: tList.h,v 1.47 2003-10-15 14:02:44 childcvs Exp $
+ **  $Id: tList.h,v 1.48 2003-10-15 15:04:04 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -302,7 +302,7 @@ public:
   inline NodeType getIthDataNC( int ) const;     // rtns modifiable copy of item #
   inline NodeType *getIthDataPtrNC( int ) const; // rtns modifiable ptr to item #
   inline NodeType &getIthDataRefNC( int ) const; // rtns modifiable ref to item #
-  inline tListNode< NodeType > * getListNode( const NodeType * ); // rtns ptr to node #
+  tListNode< NodeType > * getListNode( const NodeType * ); // rtns ptr to node #
   tListNode< NodeType > * getIthListNode( int ) const;
 
 #ifndef NDEBUG
@@ -665,7 +665,7 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
  **
 \**************************************************************************/
 template< class NodeType >                         //tList
-inline void tList< NodeType >::
+void tList< NodeType >::
 Flush()
 {
   tListNode<NodeType > * current = first, * temp;
@@ -840,7 +840,7 @@ getIthDataPtrNC( int num ) const
  **
 \**************************************************************************/
 template< class NodeType >
-inline tListNode< NodeType > * tList< NodeType >::
+tListNode< NodeType > * tList< NodeType >::
 getListNode( const NodeType * desiredDatPtr )
 {
   tListNode< NodeType > * listnode = first;
@@ -870,7 +870,7 @@ getListNode( const NodeType * desiredDatPtr )
  **
 \**************************************************************************/
 template< class NodeType >
-inline tListNode< NodeType >* tList< NodeType >::
+tListNode< NodeType >* tList< NodeType >::
 getIthListNode( int num ) const
 {
   if( num < 0 || num >= nNodes )
@@ -1229,7 +1229,7 @@ Last()
  **
 \**************************************************************************/
 template< class NodeType >     //tListIter
-inline int tListIter< NodeType >::
+int tListIter< NodeType >::
 Get( int num )
 {
   assert( listPtr != 0 );
