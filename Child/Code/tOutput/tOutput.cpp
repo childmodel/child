@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.13 1998-07-15 22:23:58 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.14 1998-07-23 15:50:51 nmgaspar Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -189,7 +189,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    netofs << " " << time << "\n " << nActiveNodes << endl;
    slpofs << " " << time << "\n " << nActiveNodes << endl;
    qofs << " " << time << "\n " << nnodes << endl;
-   layofs << " " << time << "\n" << nnodes << endl;
+   layofs << " " << time << "\n" << nActiveNodes << endl;
    texofs << " " << time << "\n" << nnodes << endl;
    
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
