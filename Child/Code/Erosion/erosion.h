@@ -43,7 +43,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.h,v 1.12 1998-07-23 13:56:27 nmgaspar Exp $
+**  $Id: erosion.h,v 1.13 1998-07-24 20:00:27 nmgaspar Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -114,6 +114,7 @@ class tSedTransPwrLaw
   public:
    tSedTransPwrLaw( tInputFile &infile );
    double TransCapacity( tLNode * n );
+   double TransCapacity( tLNode *n, int i, double weight);
 
   private:
    double kf;  // Transport capacity coefficient
@@ -133,7 +134,7 @@ class tSedTransWilcock
 public:
    tSedTransWilcock( tInputFile &infile );
    double TransCapacity( tLNode * n ); // returns total volumetric load
-   double WeightedTransCap( tLNode *n, int i, double weight);
+   double TransCapacity( tLNode *n, int i, double weight);
    //returns total volumetric load
    
 private:
@@ -205,7 +206,7 @@ public:
 private:
    tGrid<tLNode> *gridPtr;
    tBedErodePwrLaw bedErode;
-   tSedTransWilcock sedTrans;  
+   tSedTransPwrLaw sedTrans;  
     double kd;                // Hillslope transport (diffusion) coef
 
 };

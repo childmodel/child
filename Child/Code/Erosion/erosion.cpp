@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.35 1998-07-24 19:20:34 gtucker Exp $
+**  $Id: erosion.cpp,v 1.36 1998-07-24 20:00:36 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -341,6 +341,33 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node )
    node->setQs( cap );
    return cap;
 }
+
+
+/***************************************************************************\
+**  tSedTransPwrLaw::TransCapacity
+**
+**  Computes sediment transport capacity using the simple power law
+**  Qs = kf Q^mf S^nf
+    This is a weighted version which is called from DetachErode.
+    Weight is a weighting by depth of layer.
+    Here, qsi is set by proportion in layer.
+\***************************************************************************/
+double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
+{
+   double slp = node->getSlope();
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
+   double cap = 0;
+   if( !node->getFloodStatus() )
+       cap = kf * weight * pow( node->getQ(), mf ) * pow( slp, nf );
+   int i;
+   for(i=0; i<node->getNumg(); i++)
+       node->addQs(i, cap*node->getLayerDgrade(lyr,i)/node->getLayerDepth(lyr));
+   
+   node->setQs( cap );
+   return cap;
+}
+
    
 /*************************************************************************\
 ** tSedTransWilcock functions
@@ -483,18 +510,13 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
   funtion in a loop.
 /***********************************************************************/
 
-double tSedTransWilcock::WeightedTransCap( tLNode *nd, int i, double weight )
+double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 {
    double tau;
    double taucrit;
-   cout << "BEFORE\n" << flush;
    assert( nd->getLayerDepth(i)>0 );
    double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
-   cout << "after\n" << flush;
-   cin >> tau;
-   //double timeadjust=31536000.00; /* number of seconds in a year */
-   cout << "BEFORE\n" << flush;
-   double timeadjust=1;
+   double timeadjust=31536000.00; /* number of seconds in a year */
    double qss, qsg; //gravel and sand transport rate
    
 
@@ -1337,10 +1359,10 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                //TransportCapacity function should keep running
                //sum of qs of each grain size.  
                //qs returned is in m^3/yr; qs stored in tLNode has same units
-               qs+=sedTrans.WeightedTransCap(cn,i,cn->getLayerDepth(i)/cn->getChanDepth());
+               qs+=sedTrans.TransCapacity(cn,i,cn->getLayerDepth(i)/cn->getChanDepth());
                }
             else{
-               qs+=sedTrans.WeightedTransCap(cn,i,1-(depck/cn->getChanDepth()));
+               qs+=sedTrans.TransCapacity(cn,i,1-(depck/cn->getChanDepth()));
                   // if(cn->getID() == 11)
                                              //cout<<"value from detach capacity is "<<bedErode.DetachCapacity(cn,i)<<endl;
             }

@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.56 1998-07-24 19:16:16 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.57 1998-07-24 20:00:03 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -715,7 +715,9 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
          layhelp.setSed(0);
          layhelp.setDgradesize(numg);
          i=0;
+         cout<< "nic nic nic"<<flush;
          help = infile.ReadItem( help, "BEDROCKDEPTH");
+         cout<< "nic nic nic"<<flush;
          while(i<numg){
             layhelp.setDgrade(i, help*dgradebrhelp[i]);
             i++;
@@ -727,6 +729,9 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       
       cout << layerlist.getSize() << " layers created " << endl;
    }
+
+   cout << "nicole is a crappy coder"<<endl;
+   
    
    cout << "nic, what is size of grade array ? " << grade.getSize() << endl;
    //cout << "1 is size " << grade[0] << " 2 is size " << grade[1] << endl;   

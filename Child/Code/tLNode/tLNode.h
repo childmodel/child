@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.30 1998-07-17 22:55:02 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.31 1998-07-24 20:00:16 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -343,6 +343,7 @@ public:
    // to be done first - also used for erosion from the surface layer
    void makeNewLayerBelow(int, int, double, tArray<double>, double);
    void removeLayer(int);
+   void InsertLayerBack( tLayer );
    
 #ifndef NDEBUG
    void TellAll();
