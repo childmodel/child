@@ -10,7 +10,7 @@
 **  time to write output, printing the current time to standard output if
 **  desired, and writing the current time to a file every so often.
 **
-**  $Id: tRunTimer.h,v 1.10 2003-05-16 14:01:28 childcvs Exp $
+**  $Id: tRunTimer.h,v 1.11 2003-05-23 11:47:13 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -21,8 +21,8 @@
 class tRunTimer
 {
 public:
-	tRunTimer( double duration, double opint, int optprint=1 );
-	tRunTimer( tInputFile &infile, int optprint=1 );
+	tRunTimer( double duration, double opint, bool optprint=true );
+	tRunTimer( tInputFile &infile, bool optprint=true );
 	tRunTimer();
 	double getCurrentTime() const;     // Report the current time
 	int Advance( double );             // Advance time by given amount
@@ -38,7 +38,7 @@ private:
 	double endTime;           // time at which simulation ends
 	double outputInterval;    // interval between outputs
 	double nextOutputTime;    // time of next output
-	int optPrintEachTime;     // option for reporting time to screen
+	const bool optPrintEachTime;     // option for reporting time to screen
 	ofstream timeStatusFile;  // file "run.time" for tracking current time
 	double notifyInterval;    // interval for reporting time to file
 	double nextNotify;        // next time for time-reporting
