@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.32 1998-08-01 00:25:26 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.33 1998-08-02 23:29:55 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -344,7 +344,7 @@ public:
    void makeNewLayerBelow(int, int, double, tArray<double>, double);
    void removeLayer(int);
    void InsertLayerBack( tLayer );
-   void LayerInterpolation( tTriangle * );
+   void LayerInterpolation( tTriangle *, tGridList<tLNode> );
    
 #ifndef NDEBUG
    void TellAll();
