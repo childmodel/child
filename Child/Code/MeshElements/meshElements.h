@@ -35,7 +35,7 @@
 **     neighboring triangle 1, and so on. Node 1 is also the origin for
 **     edge 1, etc.
 **   
-**  $Id: meshElements.h,v 1.18 1999-01-12 17:34:37 gtucker Exp $
+**  $Id: meshElements.h,v 1.19 1999-01-29 00:14:27 nmgaspar Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -132,7 +132,8 @@ public:
   tEdge *EdgToNod( tNode * );      // finds spoke connected to given node
   double ComputeVoronoiArea();     // calculates node's Voronoi area
   void ConvertToClosedBoundary();  // makes node a closed bdy & updates edges
-  void WarnSpokeLeaving( tEdge *); // signals node that spoke is being deleted
+  virtual void WarnSpokeLeaving( tEdge *); // signals node that spoke is being deleted
+   virtual void InitializeNode();  // used when new nodes are created, for now only has a purpose in inherited classes
    
 #ifndef NDEBUG
    void TellAll();  // Debugging routine that outputs node data

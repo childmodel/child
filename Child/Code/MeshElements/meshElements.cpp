@@ -11,7 +11,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.24 1999-01-12 19:12:33 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.25 1999-01-29 00:14:42 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -735,15 +735,25 @@ void tNode::makeCCWEdges()
 {
    tEdge *ce, *ccwe;
    tPtrListIter< tEdge > spokIter( spokeList );
-
+   
    ce = spokIter.FirstP();
    assert( ce != 0 );
    setEdg( ce );
+
+//     if(id==793){
+//        tNode * nbr = ce->getDestinationPtrNC();
+//        cout<<"makeCCWEdges() node "<<id<<endl;
+//        cout<<"edge "<<ce->getID()<<" dstn "<<nbr->getID()<<endl;
+//     }
    for( ; !(spokIter.AtEnd()); ce = spokIter.NextP() )
    {
       ccwe = spokIter.ReportNextP();
       assert( ccwe != 0 );
       ce->setCCWEdg( ccwe );
+//        if(id==793){
+//           tNode * nbr = ccwe->getDestinationPtrNC();
+//           cout<<"edge "<<ccwe->getID()<<" dstn "<<nbr->getID()<<endl;
+//        }
    }
 }
 
@@ -800,6 +810,20 @@ void tNode::WarnSpokeLeaving( tEdge * edglvingptr )
        edg = edg->getCCWEdg();
 }
 
+/**********************************************************************\
+ **
+ **  tNode::InitializeNode()
+ **
+ **  A virtual function.
+ **  This functions doesn't do anything here, only in inherited classes.
+ **  Used for initializing things in newly created nodes that are set up
+ **  for the rest of the nodes when the mesh is created.
+ **
+ **  1/1999  NG
+ \**********************************************************************/
+void tNode::InitializeNode()
+{
+}
 
 
 /**************************************************************************\
