@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.47 1998-08-11 19:24:09 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.48 1998-08-18 18:37:49 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -99,6 +99,12 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 **     hydrologic options and parameters from the input file.
 **     It then initializes flow directions, drainage areas, etc.
 **
+**     Inputs:  gridRef -- reference to tGrid object. This ref is copied
+**                         and used to communicate w/ the mesh.
+**              storm   -- ref to storm object, copied and used to obtain
+**                         rainfall input.
+**              infile  -- ref to input file used to read parameters
+**
 **     Modifications:
 **       - GT added input of parameters for sinusoidal variation in
 **         infiltration capacity, 7/20/98.
@@ -147,14 +153,19 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    if( flowgen == kConstSoilStore )
        soilStore = infile.ReadItem( soilStore, "SOILSTORE" );
    else soilStore = 0.0;
-   
+
+   // Get the initial rainfall rate from the storm object, and read in option
+   // for stochastic variation in rainfall
    rainrate = stormPtr->getRainrate();
+   optrainvar = infile.ReadItem( optrainvar, "OPTVAR" );
+
+   // Options related to stream meandering
    int itMeanders = infile.ReadItem( itMeanders, "OPTMNDR" );
    if( itMeanders )
        mndrDirChngProb = infile.ReadItem( mndrDirChngProb, "CHNGPROB" );
    else mndrDirChngProb = 1.0;
-   
-   optrainvar = infile.ReadItem( optrainvar, "OPTVAR" );
+
+   // Read hydraulic geometry parameters
    kwds = infile.ReadItem( kwds, "HYDR_WID_COEFF_DS" );
    //cout << "kwds: " << kwds << endl;
    assert( kwds > 0 );
@@ -174,7 +185,9 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    //cout << "enstn: " << enstn << endl;
    klambda = infile.ReadItem( klambda, "BANK_ROUGH_COEFF" );
    elambda = infile.ReadItem( elambda, "BANK_ROUGH_EXP" );
-   
+
+   // Initialize the network by calculating slopes, flow directions,
+   // drainage areas, and discharge
    CalcSlopes();  // TODO: should be in tGrid
    InitFlowDirs(); // TODO: should all be done in call to updatenet
    FlowDirs();
@@ -229,11 +242,7 @@ double tStreamNet::getInDrArea() const {return inlet.inDrArea;}
 
 double tStreamNet::getInSedLoad() const {return inlet.inSedLoad;}
 
-tArray< double >
-tStreamNet::getInSedLoadm( ) const
-{
-   return inlet.inSedLoadm;
-}
+tArray< double > tStreamNet::getInSedLoadm( ) const {return inlet.inSedLoadm;}
 
 tLNode *tStreamNet::getInletNodePtr() const {return inlet.innode;}
 tLNode *tStreamNet::getInletNodePtrNC() {return inlet.innode;}
@@ -282,7 +291,16 @@ void tStreamNet::setMndrDirChngProb( double val )
 **  UpdateNet
 **
 **  This function updates the network and flow field by calling various
-**  helper functions.
+**  helper functions. There are two versions; the second takes a reference
+**  to a storm object as a parameter and uses it to update the current
+**  rainfall rate.
+**
+**  Inputs:  time -- current time in simulation; passed to MakeFlow,
+**                   where it is optionally used to implement
+**                   sinusoidal time-variations in hydrologic parameters
+**                   like infiltration capacity.
+**           storm (2) -- reference to storm object, used to update
+**                        current rainfall rate.
 **
 **  Modifications:
 **    - 7/20/98: now takes current time as a param, to use for updating
@@ -313,14 +331,6 @@ void tStreamNet::UpdateNet( double time, tStorm &storm )
    assert( stormPtr != 0 );
    rainrate = stormPtr->getRainrate();
    UpdateNet( time );
-   //XCalcSlopes();   // TODO: as above
-   //XsetVoronoiVertices();
-   //XCalcVAreas();
-   //InitFlowDirs(); // necessary?
-   //FlowDirs();
-   //MakeFlow();
-   //CheckNetConsistency();
-   //cout << "UpdatNet(...) finished" << endl;	
 }
 
 #define kLargeNumber 1000000
@@ -330,6 +340,7 @@ void tStreamNet::CheckNetConsistency()
    tLNode *cn, *dn, *ln;
    tGridListIter< tLNode > nI( gridPtr->getNodeList() ),
        tI( gridPtr->getNodeList() );
+   
    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
    {
       //make sure each node has a viable downstrm nbr:
@@ -363,6 +374,7 @@ void tStreamNet::CheckNetConsistency()
             goto error;
          }
       }
+
    }
    
    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
@@ -384,6 +396,8 @@ void tStreamNet::CheckNetConsistency()
       {
          cerr << "NODE #" << cn->getID()
               << " does not flow to outlet\n";
+         cerr << "Flow ends up at the following node:\n";
+         dn->TellAll();
          goto error;
       } 
    }
@@ -393,7 +407,10 @@ void tStreamNet::CheckNetConsistency()
    return;
    
   error:
+   cerr << "Problem detected at the following node:\n";
+   cn->TellAll();
    ReportFatalError( "Error in network consistency." );
+   
 }
 #undef kLargeNumber
 
@@ -633,18 +650,19 @@ void tStreamNet::FlowDirs()
    tEdge * firstedg; // ptr to first edg
    tEdge * curedg;   // pointer to current edge
    tEdge * nbredg;   // steepest neighbouring edge so far
-   long seed = 91324;
-   double chngnum;
+   /*long seed = 91324;
+   double chngnum;*/
    int ctr;
    
 //#if TRACKFNS
-   //cout << "FlowDirs" << endl;
+   cout << "FlowDirs" << endl;
 //#endif
 
    //int redo = 1;
    //while( redo )
    //{
    //   redo = 0;
+   
       // Find the connected edge with the steepest slope
       curnode = i.FirstP();
       while( i.IsActive() )  // DO for each non-boundary (active) node
@@ -662,6 +680,8 @@ void tStreamNet::FlowDirs()
          // back to the beginning
          while( curedg!=firstedg )
          {
+            if( curedg->getDestinationPtrNC()==curnode )
+                cout << "MAJOR PROBLEMS!!!\n";
             assert( curedg > 0 );
             if ( curedg->getSlope() > slp && curedg->FlowAllowed() )
             {
@@ -711,6 +731,12 @@ void tStreamNet::FlowDirs()
          curnode->setFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
          //cout << "Node " << curnode->getID() << " flows to "
          //     << curnode->getDownstrmNbr()->getID() << endl;
+         if( curnode->getID()==156 )
+         {
+            cout << "AFTER***\n";
+            curnode->TellAll();
+         }
+         
          curnode = i.NextP();
 
       }
