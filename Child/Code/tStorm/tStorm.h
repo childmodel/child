@@ -28,7 +28,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.28 2003-10-15 09:20:09 childcvs Exp $
+**  $Id: tStorm.h,v 1.29 2003-12-17 14:58:56 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -78,6 +78,7 @@ private:
     double stdurdev;   //  sinusoidal variation.
     double istdurdev;
     double twoPiLam;   // Parameter for sinusoidal variation: 2pi / period
+    double offset;     // Cycle offset (ie, starting pos'n in sin cycle)
     double endtm;      // The end time of the run, just in case a big enough
                        // storm is never generated
     bool optVariable;  // Flag indicating whether storms are random or not

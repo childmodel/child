@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.14 2003-11-18 12:41:19 childcvs Exp $
+**  $Id: childmain.cpp,v 1.15 2003-12-17 14:58:55 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -210,7 +210,7 @@ OptTSOutput." );
                                        time.getCurrentTime() );
 	}
 
-#define NEWVEG 0
+#define NEWVEG 1
       if( optVegetation ) {
 	if( NEWVEG )
 	  vegetation->GrowVegetation( &mesh, storm.interstormDur() );

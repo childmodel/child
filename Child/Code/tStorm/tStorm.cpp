@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.31 2003-10-15 09:20:09 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.32 2003-12-17 14:58:55 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -153,6 +153,7 @@ tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
       stdur0 = stdurMean;
       istdur0 = istdurMean;
       twoPiLam = (2.0*PI)/(infile.ReadItem( twoPiLam, "PERIOD" ));
+      offset = infile.ReadItem( offset, "START_CYCLE_TIME" );
       pdev = infile.ReadItem( pdev, "MAXPMEAN" ) - pMean;
       if( pdev<0 ) cerr << "Warning: MAXPMEAN < PMEAN !";
       else if( pdev > pMean ) cerr << "Warning: MINPMEAN < 0 !";
@@ -213,7 +214,7 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
    // random storms is off.
    if( optSinVar )
    {
-      double sinfn = sin( tm*twoPiLam );
+      double sinfn = sin( (tm+offset)*twoPiLam );
       pMean = p0 + pdev*sinfn;
       //cout << "pMean = " << pMean << endl;
       stdurMean = stdur0 + stdurdev*sinfn;
