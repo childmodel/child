@@ -1,4 +1,4 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /*************************************************************************/
 /**
@@ -11,7 +11,7 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.h,v 1.11 2003-03-19 16:48:57 childcvs Exp $
+**  $Id: tMatrix.h,v 1.12 2003-06-06 12:49:32 childcvs Exp $
 */
 /*************************************************************************/
 #ifndef TMATRIX_H
@@ -26,18 +26,17 @@ class tMatrix
   tMatrix(const tMatrix&);
   tMatrix& operator=(const tMatrix&);
 public:
-  tMatrix();
   tMatrix( int nr, int nc );
   ~tMatrix();
   T &operator()( int row, int col );
   const T &operator()( int row, int col ) const;
   int getNumRows() const {return nrows;}
   int getNumCols() const {return ncols;}
-    
+
 private:
   tArray<T> *ptr;
-  int nrows;
-  int ncols;  
+  const int nrows;
+  const int ncols;
 };
 
 /*
