@@ -9,7 +9,7 @@
 #include "TipperTriangulator_test.h"
 
 // generate output files
-//#define WRITE_FILES
+const bool WRITE_FILES = false;
 
 static
 void sanity_check_ccwedge(int nedges, const edge* edges){
@@ -29,14 +29,13 @@ void sanity_check_ccwedge(int nedges, const edge* edges){
     else
       assert( edges[iedge].to == edges[ccw_to.e()].to);
     
-#if 0
-    cout << "edge=" << iedge
-	 << " ret=" << edges[iedge].ret 
-	 << " lef=" << edges[iedge].lef
-	 << " ccw_from=" << ccw_from.e()
-	 << " ccw_to=" << ccw_to.e()
-	 << endl;
-#endif
+    if (0) //DEBUG
+      cout << "edge=" << iedge
+	   << " ret=" << edges[iedge].ret 
+	   << " lef=" << edges[iedge].lef
+	   << " ccw_from=" << ccw_from.e()
+	   << " ccw_to=" << ccw_to.e()
+	   << endl;
   }
 }
 
@@ -94,7 +93,6 @@ void sanity_check_edge(edge *edges){
   }
 }
 
-#if defined(WRITE_FILES)
 static
 void write_point(int npoints, point* p)
 {
@@ -119,7 +117,6 @@ void write_edge(edge *edges, point* p)
     i++;
   }
 }
-#endif
 
 static
 void test_sort_triangulate(int npoints, point *p){
@@ -128,12 +125,10 @@ void test_sort_triangulate(int npoints, point *p){
 
   tt_sort_triangulate(npoints,p,&nedges,&edges);
 
-#if defined(WRITE_FILES)
-  write_point(npoints, p);
-#endif
-#if defined(WRITE_FILES)
-  write_edge(edges, p);
-#endif
+  if (WRITE_FILES)
+    write_point(npoints, p);
+  if (WRITE_FILES)
+    write_edge(edges, p);
 
   sanity_check_edge(edges);
   sanity_check_ccwedge(nedges, edges);
@@ -158,8 +153,7 @@ void generate_dataset(int n,point* p){
       p[i+j*n].y=double(j)+double(rand())/RAND_MAX*n*1.e-3;
     } 
   }
-#if defined(WRITE_FILES)
-  {
+  if (WRITE_FILES) {
     const long npoints=n*n;
     ofstream file("points_res");
     file << npoints << endl;
@@ -167,7 +161,6 @@ void generate_dataset(int n,point* p){
       p[i].write(file);
     }
   }
-#endif
 }
 
 static
