@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.25 1998-02-27 22:56:53 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.26 1998-03-04 00:21:42 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -1079,12 +1079,16 @@ void tStreamMeander::AddChanBorder()
                      tn = (tLNode *) ct->pPtr(i);
                      if( tn->Meanders() )
                      {
-                        if( inchan = InChannel( tn, &channode ) ) break;
+                        if( inchan = InChannel( tn, &channode ) )
+                        {
+                           cout << "old coord's in channel" << endl;
+                           break;
+                        }
                      }
                   }
                   if( !inchan )
                   {
-                     sameside = 0;
+                     sameside = 1;
                      for( i=0; i<3; i++ )
                      {
                         tn = (tLNode *) ct->pPtr(i);
@@ -1097,6 +1101,7 @@ void tStreamMeander::AddChanBorder()
                                   ( !pccw && oldpos[3] == -1.0 ) ) )
                            {
                               sameside = 0;
+                              cout << "old coord's switched sides" << endl;
                               break;
                            }
                         }
@@ -1109,6 +1114,7 @@ void tStreamMeander::AddChanBorder()
                      }
                   }
                }
+               else cout << "old coords not in any triangle" << endl;
                for( i=0; i<4; i++ ) oldpos[i] = 0.0;
                cn->setXYZD( oldpos );
                cout << "node " << cn->getID()
