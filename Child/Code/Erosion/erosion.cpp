@@ -14,7 +14,12 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.76 2000-01-25 17:09:29 gtucker Exp $
+**    Modifications:
+**     - detach capacity functions modified to use spatially variable
+**       (ie node-based, not "global") critical shear stress, in
+**       conjunction w/ veg module. GT, Jan 2000
+**
+**  $Id: erosion.cpp,v 1.77 2000-01-25 18:58:00 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -243,16 +248,19 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 **   - added threshold term and third exponent pb (GT 4/99)
 **   - added shear coefficient kt, width term, and moved erodibility coeff 
 **     (GT 5/99) (to be ver 2.0.2)
+**   - replaced spatially uniform taucd parameter with node variable
+**     tauc (GT 1/00)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
    double slp = n->getSlope(),
-       tauex;
+       tau, tauex;
 
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
-   tauex = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
-       *pow( slp, nb ) - taucd;
+   tau =  kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma ) * pow( slp, nb );
+   n->setTau( tau );
+   tauex = tau - n->getTauCrit();
    //cout << "tauex: " << tauex << endl;
    tauex = (tauex>0.0) ? tauex : 0.0;
    return( n->getLayerErody(0)*pow(tauex,pb)*dt );
@@ -276,6 +284,8 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 **   - added threshold term and third exponent pb (GT 4/99)
 **   - added shear coefficient kt, width term, and moved erodibility coeff 
 **     (GT 5/99) (ver 2.0.2)
+**   - replaced spatially uniform taucd parameter with node variable
+**     tauc (GT 1/00)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
@@ -284,8 +294,10 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   double erorate = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
-       *pow( slp, nb ) - taucd;
+   double tau = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
+       *pow( slp, nb );
+   n->setTau( tau );
+   double erorate = tau - n->getTauCrit();
    //cout << "1erorate: " << erorate << endl;
    //if( n->getDrArea()>1e7 )
    //    cout << "slp: " << slp << " Q: " << n->getQ() << " tauex: " << erorate;
@@ -317,6 +329,8 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 **  Modifications:
 **   - added shear coefficient kt, width term, and moved erodibility coeff 
 **     (GT 5/99) (ver 2.0.2)
+**   - replaced spatially uniform taucd parameter with node variable
+**     tauc (GT 1/00)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
 {
@@ -324,8 +338,10 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   double erorate = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
-       *pow( slp, nb ) - taucd;
+   double tau = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
+       *pow( slp, nb );
+   n->setTau( tau );
+   double erorate = tau - n->getTauCrit();
    //cout << "erorate: " << erorate << endl;
    erorate = (erorate>0.0) ? erorate : 0.0;
    erorate = n->getLayerErody(i)*pow( erorate, pb );
