@@ -25,22 +25,15 @@
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **    - added FaultBendFold function (srm, August 2002)
 **
-**  $Id: tUplift.h,v 1.20 2004-04-27 09:55:05 childcvs Exp $
+**  $Id: tUplift.h,v 1.21 2004-04-27 10:00:18 childcvs Exp $
 */
 /************************************************************************/
 
 #ifndef TUPLIFT_H
 #define TUPLIFT_H
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
 #include "../tInputFile/tInputFile.h"
 #include "../tMesh/tMesh.h"
-
 
 class tUplift
 {
@@ -87,9 +80,9 @@ private:
     double deformStartTime1; // Parameter for onset of uplift/deformation
     double flatDepth;      // Depth below surface (at faultPos) of thrust flat
     double rampDip;	   // Dip of thrust ramp (in degrees)
-    double kinkDip;	   // Dip of axial surface in hangingwall that 
+    double kinkDip;	   // Dip of axial surface in hangingwall that
     			   //	initiates at lower end of ramp.
-    double upperKinkDip;   // Dip of axial surface that initiates at upper 
+    double upperKinkDip;   // Dip of axial surface that initiates at upper
     			   //	end of ramp.
     double meanElevation;  // Mean elevation of surface at t0.
 

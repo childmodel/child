@@ -3,9 +3,16 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.25 2004-04-27 09:55:05 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.26 2004-04-27 10:00:18 childcvs Exp $
 */
 /************************************************************************/
+
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 
 #include "tUplift.h"
 #include "../errors/errors.h"
