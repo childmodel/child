@@ -42,7 +42,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.31 2002-07-08 17:21:49 arnaud Exp $
+**  $Id: meshElements.h,v 1.32 2002-09-23 12:11:47 arnaud Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -50,7 +50,12 @@
 #ifndef MESHELEMENTS_H
 #define MESHELEMENTS_H
 
-#include <iostream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 #include <math.h>       // for sqrt() used in inlined fn below
 #include "../Definitions.h"
 #include "../tPtrList/tPtrList.h"

@@ -8,8 +8,14 @@
 // Binding to CHILD data structures.
 
 #include <math.h>
-#include <fstream.h>
-#include <iostream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+# include <fstream>
+using namespace std;
+#else
+# include <iostream.h>
+# include <fstream.h>
+#endif
 #include <stdlib.h>
 #include <time.h>
 #include <assert.h>

@@ -13,11 +13,17 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.18 2002-05-01 14:48:30 arnaud Exp $
+**  $Id: tRunTimer.cpp,v 1.19 2002-09-23 12:11:51 arnaud Exp $
 \***************************************************************************/
 
-#include <iostream.h>
-#include <fstream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+# include <fstream>
+using namespace std;
+#else
+# include <iostream.h>
+# include <fstream.h>
+#endif
 #include "../tAssert.h"
 
 #include "../tInputFile/tInputFile.h"

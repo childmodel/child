@@ -1,7 +1,12 @@
 // test code for Tipper triangulator
 
 #include <math.h>
-#include <fstream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <fstream>
+using namespace std;
+#else
+# include <fstream.h>
+#endif
 #include <stdlib.h>
 #include <assert.h>
 

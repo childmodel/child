@@ -13,10 +13,16 @@
 **   - Bug fix in constructor: nnodes was being read from edge and
 **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
 **
-**  $Id: tListInputData.cpp,v 1.8 2002-09-16 13:15:05 arnaud Exp $
+**  $Id: tListInputData.cpp,v 1.9 2002-09-23 12:11:49 arnaud Exp $
 \**************************************************************************/
 
 #include "tListInputData.h"
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 
 template< class tSubNode >
 void tListInputData< tSubNode >::

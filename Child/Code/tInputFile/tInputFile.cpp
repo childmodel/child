@@ -6,11 +6,15 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.12 2002-05-29 13:14:19 arnaud Exp $
+**  $Id: tInputFile.cpp,v 1.13 2002-09-23 12:11:49 arnaud Exp $
 \****************************************************************************/
 
-#include <iostream.h>
-#include <fstream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 #include "../tAssert.h"
 #include <string.h>
 //#include "../Definitions.h"

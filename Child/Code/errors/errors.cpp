@@ -4,11 +4,18 @@
 **  Error-handling routines.
 **
 **  Created Dec. 97 from earlier routine embedded in child.cpp
-**  $Id: errors.cpp,v 1.3 2002-04-10 15:13:40 gtucker Exp $
+**  $Id: errors.cpp,v 1.4 2002-09-23 12:11:48 arnaud Exp $
 \******************************************************************/
 
 #include "errors.h"
 
+#include <stdlib.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 
 /*****************************************************************************\
 **

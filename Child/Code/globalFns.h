@@ -11,13 +11,12 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.7 2002-08-13 12:31:49 arnaud Exp $
+**  $Id: globalFns.h,v 1.8 2002-09-23 12:11:46 arnaud Exp $
 \**************************************************************************/
 
 #ifndef GLOBALFNS_H
 #define GLOBALFNS_H
 
-#include <iostream.h>
 #include <math.h>
 #include "tArray/tArray.h"
 #include "MeshElements/meshElements.h"

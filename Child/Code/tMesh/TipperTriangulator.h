@@ -1,6 +1,11 @@
 //-*-c++-*- 
 
-#include <fstream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <fstream>
+using namespace std;
+#else
+# include <fstream.h>
+#endif
 
 #if __SUNPRO_CC==0x420
 # if !defined(ENUM_BOOL_DEFINED)

@@ -9,7 +9,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.21 2002-04-30 17:17:27 arnaud Exp $
+**  $Id: tStorm.cpp,v 1.22 2002-09-23 12:11:51 arnaud Exp $
 \**************************************************************************/
 
 
@@ -17,6 +17,12 @@
 #include <string.h>
 #include "../Mathutil/mathutil.h"
 #include "tStorm.h"
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 
 
 

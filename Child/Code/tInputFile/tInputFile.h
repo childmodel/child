@@ -36,14 +36,18 @@
 **
 **  Created by Greg Tucker, November 1997
 **
-**  $Id: tInputFile.h,v 1.6 2002-07-08 17:21:50 arnaud Exp $
+**  $Id: tInputFile.h,v 1.7 2002-09-23 12:11:49 arnaud Exp $
 \****************************************************************************/
 
 #ifndef TINPUTFILE_H
 #define TINPUTFILE_H
 
-#include <iostream.h>
-#include <fstream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <fstream>
+using namespace std;
+#else
+# include <fstream.h>
+#endif
 
 #define kMaxNameLength 80
 #define kCommentMark '#'

@@ -3,11 +3,16 @@
 **  globalFns.cpp: Global functions used by tGrid and other modules of
 **                 CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.6 2002-08-13 12:31:49 arnaud Exp $
+**  $Id: globalFns.cpp,v 1.7 2002-09-23 12:11:46 arnaud Exp $
 \**************************************************************************/
 
 #include "globalFns.h"
-
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 
 /**************************************************************************\
 **

@@ -14,13 +14,11 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.12 2002-07-12 10:04:59 arnaud Exp $
+**  $Id: tArray.h,v 1.13 2002-09-23 12:11:49 arnaud Exp $
 \***************************************************************************/
 
 #ifndef TARRAY_H
 #define TARRAY_H
-
-#include <iostream.h>
 
 
 /***************************************************************************\

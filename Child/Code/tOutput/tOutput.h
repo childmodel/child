@@ -28,13 +28,18 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.30 2002-07-08 17:21:51 arnaud Exp $
+**  $Id: tOutput.h,v 1.31 2002-09-23 12:11:50 arnaud Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
 #define TOUTPUT_H
 
-#include <iostream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 #include <string.h>
 #include "../tAssert.h"
 #include "../errors/errors.h"

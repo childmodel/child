@@ -8,8 +8,14 @@
 /** INCLUDED LIBRARY HEADER FILES **/
 //#include <stdlib.h>
 #include <math.h>
-#include <iostream.h>
-#include <fstream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+# include <fstream>
+using namespace std;
+#else
+# include <iostream.h>
+# include <fstream.h>
+#endif
 #include <string.h>
 #include "tAssert.h"
 

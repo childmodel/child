@@ -37,15 +37,21 @@
 **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
 **      9/02: (AD)merge in main Child version
 **
-**  $Id: tPtrList.h,v 1.24 2002-09-06 16:42:52 arnaud Exp $
+**  $Id: tPtrList.h,v 1.25 2002-09-23 12:11:50 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
 #define TPTRLIST_H
 
 #include <stdlib.h>
-#include <iostream.h>
-#include <fstream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+# include <fstream>
+using namespace std;
+#else
+# include <iostream.h>
+# include <fstream.h>
+#endif
 #include "../tAssert.h"
 //#include "../Classes.h" // TODO: include only needed stuff
 

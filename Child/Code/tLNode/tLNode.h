@@ -27,14 +27,20 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.54 2002-08-13 14:16:59 gtucker Exp $
+**  $Id: tLNode.h,v 1.55 2002-09-23 12:11:49 arnaud Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
 #define TLNODE_H
 
-#include <iostream.h>
-#include <fstream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+# include <fstream>
+using namespace std;
+#else
+# include <iostream.h>
+# include <fstream.h>
+#endif
 #include <string.h>
 
 #include "../tArray/tArray.h"

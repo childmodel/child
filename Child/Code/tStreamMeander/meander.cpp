@@ -5,7 +5,12 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <iostream.h>
+#if !defined(HAVE_NO_NAMESPACE)
+# include <iostream>
+using namespace std;
+#else
+# include <iostream.h>
+#endif
 
 #include "meander.h"
 
@@ -92,7 +97,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.3 2002-09-11 10:06:36 arnaud Exp $ */
+/*     $Id: meander.cpp,v 1.4 2002-09-23 12:11:52 arnaud Exp $ */
 
 void meander_(integer *stations, integer *stnserod, 
 	doublereal *x, doublereal *y, doublereal *xs, doublereal *dels, 
