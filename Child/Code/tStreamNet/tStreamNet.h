@@ -5,7 +5,7 @@
 **  tStreamNet objects contain data and functions related to flow routing
 **  and sediment transport across the landscape surface.
 **
-**  $Id: tStreamNet.h,v 1.9 1998-02-27 22:57:35 stlancas Exp $
+**  $Id: tStreamNet.h,v 1.10 1998-03-03 22:31:26 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -81,8 +81,6 @@ public:
    void FillLakes();
    int FindLakeNodeOutlet( tLNode * );
    void SortNodesByNetOrder();
-   void ErodeDetachLim( double dtg );
-   void ErodeDetachLim( double dtg, tUplift * );
    
 protected:
    tGrid< tLNode > * gridPtr;
@@ -92,9 +90,8 @@ protected:
    double rainrate;
    double trans;
    double infilt;
-      //double inDrArea;
-   tBedErodePwrLaw bedErode;
-    tInlet inlet;
+   //double inDrArea;
+   tInlet inlet;
 };
 
 #endif
