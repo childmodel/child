@@ -7,8 +7,9 @@ WARNINGFLAGS = -pedantic -Wall -W \
 	-Wwrite-strings \
 	-Wpointer-arith -Wcast-qual -Wcast-align
 
-CFLAGS = $(WARNINGFLAGS) -g -O2 -c
-LDFLAGS = $(WARNINGFLAGS) -g -O2
+# -march=i686: generates code from pentiumpro and later
+CFLAGS = $(WARNINGFLAGS) -g -O2 -march=i686 -c
+LDFLAGS = $(WARNINGFLAGS) -g -O2 -march=i686
 LIBS = -lm
 EXENAME = toddler
 
