@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.56 2003-05-23 11:57:56 childcvs Exp $
+**  $Id: tMesh.h,v 1.57 2003-05-29 16:04:11 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -97,7 +97,7 @@ public:
    void setVoronoiVertices();
    void CalcVoronoiEdgeLengths();
    void CalcVAreas();
-   tTriangle *LocateTriangle( double, double );
+   tTriangle *LocateTriangle( double, double, bool useFuturePosn=false );
    tTriangle *LocateNewTriangle( double, double );
    /*returns ptr to triangle which points to edge, or zero if none:*/
    tTriangle *TriWithEdgePtr( tEdge * ) const;

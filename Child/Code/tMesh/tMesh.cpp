@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.159 2003-05-28 16:03:48 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.160 2003-05-29 16:04:10 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2989,7 +2989,7 @@ ClearEdge( tEdge* ce ) const
 \***************************************************************************/
 template< class tSubNode >
 tTriangle * tMesh< tSubNode >::
-LocateTriangle( double x, double y )
+LocateTriangle( double x, double y, bool useFuturePosn)
 {
    if (0) //DEBUG
      cout << "\nLocateTriangle (" << x << "," << y << ")\n";
@@ -3003,12 +3003,17 @@ LocateTriangle( double x, double y )
    // the same side of all the edges of a triangle.
    // "lt" is the current triangle and "lv" is the edge number.
    int n, lv=0;
-   for (n=0 ;(lv!=3)&&(lt); n++)
+   for (n=0 ;lv!=3 && lt; n++)
    {
-      const tArray< double > xy1 = lt->pPtr(lv)->get2DCoords();
-      const tArray< double > xy2 = lt->pPtr( (lv+1)%3 )->get2DCoords();
+      const tArray< double > xy1 = useFuturePosn ?
+	lt->pPtr(lv)->FuturePosn():
+	lt->pPtr(lv)->get2DCoords();
+      const tArray< double > xy2 = useFuturePosn ?
+	lt->pPtr( (lv+1)%3 )->FuturePosn():
+	lt->pPtr( (lv+1)%3 )->get2DCoords();
       const double XY[] = {x, y};
-      double c = predicate.orient2d(xy1.getArrayPtr(), xy2.getArrayPtr(), XY);
+      const double c =
+	predicate.orient2d(xy1.getArrayPtr(), xy2.getArrayPtr(), XY);
 
       if ( c < 0.0 )
       {
@@ -3019,7 +3024,7 @@ LocateTriangle( double x, double y )
       else
       {
          if( c == 0.0 ) online = lv;
-         lv++;
+         ++lv;
       }
 
       assert( n < 3*ntri );
@@ -3028,7 +3033,7 @@ LocateTriangle( double x, double y )
        if( lt->pPtr(online)->getBoundaryFlag() != kNonBoundary &&
            lt->pPtr( (online+1)%3 )->getBoundaryFlag() != kNonBoundary ) //point on bndy
            return 0;
-   return(lt);
+   return lt;
 }
 
 
@@ -3046,32 +3051,9 @@ tTriangle * tMesh< tSubNode >::
 LocateNewTriangle( double x, double y )
 {
    if (0) //DEBUG
-     cout << "LocateTriangle" << endl;
-   tListIter< tTriangle > triIter( triList );
-   tTriangle *lt = triIter.FirstP();
-
-   /* it starts from the first triangle,
-      searches through the triangles until the point is on
-      the same side of all the edges of a triangle.
-      "lt" is the current triangle and "lv" is the edge number.
-   */
-   int n, lv=0;
-   for (n=0; lv!=3 && lt; n++)
-   {
-      tSubNode *p1, *p2;
-      p1 = static_cast<tSubNode *>(lt->pPtr(lv));
-      const tArray< double > xy1 = p1->FuturePosn();
-      p2 = static_cast<tSubNode *>(lt->pPtr( (lv+1)%3 ));
-      const tArray< double > xy2 = p2->FuturePosn();
-      if ( ( (xy1[1] - y) * (xy2[0] - x) ) > ( (xy1[0] - x) * (xy2[1] - y)) )
-      {
-         lt=lt->tPtr( (lv+2)%3 );
-         lv=0;
-      }
-      else ++lv;
-      assert( n < 3*ntri );
-   }
-   return lt;
+     cout << "LocateNewTriangle" << endl;
+   return
+     LocateTriangle( x, y, true );
 }
 
 
@@ -3265,7 +3247,7 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    int ret =    MakeTriangle( nbrList, nbrIter );             //make final triangle
    assert( ret );
 
-   if (1) //DEBUG
+   if (0) //DEBUG
      cout << "done" << endl;
    return 1;
 }
@@ -4553,7 +4535,8 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 MoveNodes( double time, bool interpFlag )
 {
-   cout << "MoveNodes()... time " << time <<flush << endl;
+   if (1) //DEBUG
+     cout << "MoveNodes()... time " << time <<flush << endl;
 
    //Before any edges and triangles are changed, layer interpolation
    //must be performed.
@@ -4581,7 +4564,8 @@ MoveNodes( double time, bool interpFlag )
    CheckLocallyDelaunay();
    UpdateMesh();
    CheckMeshConsistency();  // TODO: remove this debugging call for release
-   //cout << "MoveNodes() finished" << endl;
+   if (0) //DEBUG
+     cout << "MoveNodes() finished" << endl;
 }
 
 
