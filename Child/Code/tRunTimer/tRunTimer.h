@@ -10,7 +10,7 @@
 **  time to write output, printing the current time to standard output if
 **  desired, and writing the current time to a file every so often.
 **
-**  $Id: tRunTimer.h,v 1.9 2003-01-17 17:30:43 childcvs Exp $
+**  $Id: tRunTimer.h,v 1.10 2003-05-16 14:01:28 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -24,10 +24,10 @@ public:
 	tRunTimer( double duration, double opint, int optprint=1 );
 	tRunTimer( tInputFile &infile, int optprint=1 );
 	tRunTimer();
-	double getCurrentTime();           // Report the current time
+	double getCurrentTime() const;     // Report the current time
 	int Advance( double );             // Advance time by given amount
-	int IsFinished();                  // Are we done yet?
-	double RemainingTime();            // How much time is left
+	int IsFinished() const;            // Are we done yet?
+	double RemainingTime() const;      // How much time is left
 	void Start( double, double=0.0 );  // Set current and (optionally) end times
 	int CheckOutputTime();             // Is it time to write output yet?
 	void ReportTimeStatus();           // Report time to file and (opt) screen

@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.48 2003-05-16 13:05:30 childcvs Exp $
+**  $Id: meshElements.h,v 1.49 2003-05-16 14:04:23 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -138,7 +138,7 @@ public:
   void setBoundaryFlag( int );    // sets boundary status flag
   void setEdg( tEdge * );         // sets ptr to one spoke
 
-  double Dist( tNode *, tNode * ); // distance from node to line (node1,node2)
+  double Dist( tNode *, tNode * ) const; // distance from node to line (node1,node2)
   tEdge *EdgToNod( tNode * );      // finds spoke connected to given node
   double ComputeVoronoiArea();     // calculates node's Voronoi area
   void ConvertToClosedBoundary();  // makes node a closed bdy & updates edges
@@ -313,7 +313,7 @@ public:
   void setTPtr( int, tTriangle * );  // sets ptr to given neighboring tri
   int nVOp( const tTriangle * ) const;// returns side # (0,1 or 2) of nbr triangle
   int nVtx( const tNode * ) const;  // returns vertex # (0,1 or 2) of given node
-  tArray<double> FindCircumcenter(); // computes & returns tri's circumcenter
+  tArray<double> FindCircumcenter() const; // computes & returns tri's circumcenter
 
 #ifndef NDEBUG
   void TellAll();  // debugging routine

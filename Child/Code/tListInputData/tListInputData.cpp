@@ -12,7 +12,7 @@
 **   - Bug fix in constructor: nnodes was being read from edge and
 **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
 **
-**  $Id: tListInputData.cpp,v 1.11 2003-05-16 13:02:10 childcvs Exp $
+**  $Id: tListInputData.cpp,v 1.12 2003-05-16 14:01:06 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -27,7 +27,7 @@ using namespace std;
 template< class tSubNode >
 void tListInputData< tSubNode >::
 ReportIOError(IOErrorType t, const char *filename,
-	      const char *suffix, int n){
+	      const char *suffix, int n) const{
   cerr << "\nFile: '" << filename << suffix << "' "
        << "- Can't read ";
   switch (t){

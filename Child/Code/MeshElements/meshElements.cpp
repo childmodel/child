@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.52 2003-05-16 13:05:42 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.53 2003-05-16 14:04:22 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -106,7 +106,7 @@ tArray< double > FindIntersectionCoords( tArray< double > const &xy1,
 **      Calls: (none)
 **
 \*****************************************************************************/
-double tNode::Dist( tNode * p0, tNode * p1 )
+double tNode::Dist( tNode * p0, tNode * p1 ) const
 {
   double a,b,c,res;
 
@@ -823,7 +823,7 @@ tTriangle::~tTriangle()
 **
 \*****************************************************************************/
 tArray< double >
-tTriangle::FindCircumcenter()
+tTriangle::FindCircumcenter() const
 {
    double x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
    tArray< double > xyo, xyd1, xyd2, xy(2);

@@ -14,7 +14,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.20 2003-01-17 17:30:43 childcvs Exp $
+**  $Id: tRunTimer.cpp,v 1.21 2003-05-16 14:01:27 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -139,7 +139,7 @@ void tRunTimer::Start( double start, double end )
 //
 // Returns the current time.
 //****************************************************
-double tRunTimer::getCurrentTime()
+double tRunTimer::getCurrentTime() const
 {
 	return currentTime;
 }
@@ -149,7 +149,7 @@ double tRunTimer::getCurrentTime()
 //
 // Returns the remaining time.
 //****************************************************
-double tRunTimer::RemainingTime()
+double tRunTimer::RemainingTime() const
 {
 	return endTime - currentTime;
 }
@@ -231,7 +231,7 @@ int tRunTimer::CheckTSOutputTime()
 //
 // Checks to see whether the run is finished.
 //*************************************************
-int tRunTimer::IsFinished()
+int tRunTimer::IsFinished() const
 {
 	return( currentTime >= endTime );
 }

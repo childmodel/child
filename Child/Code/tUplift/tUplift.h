@@ -25,7 +25,7 @@
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **    - added FaultBendFold function (srm, August 2002)
 **
-**  $Id: tUplift.h,v 1.15 2003-05-02 07:39:36 childcvs Exp $
+**  $Id: tUplift.h,v 1.16 2003-05-16 14:02:16 childcvs Exp $
 */
 /************************************************************************/
 
@@ -47,7 +47,7 @@ class tUplift
 public:
     tUplift( tInputFile &infile );
     void DoUplift( tMesh<tLNode> *mp, double delt );
-    double getDuration();
+    double getDuration() const;
     double getRate() const;
 private:
     void UpliftUniform( tMesh<tLNode> *mp, double delt );

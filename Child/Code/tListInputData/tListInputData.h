@@ -16,7 +16,7 @@
 **     to avoid multiple definition errors resulting from mixing
 **     template & non-template classes (1/99)
 **
-**  $Id: tListInputData.h,v 1.15 2003-01-17 17:30:33 childcvs Exp $
+**  $Id: tListInputData.h,v 1.16 2003-05-16 14:01:07 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -161,7 +161,7 @@ private:
     IORecord
   } IOErrorType;
   void ReportIOError(IOErrorType t, const char *filename,
-		     const char *suffix, int n=-1);
+		     const char *suffix, int n=-1) const;
 };
 
 

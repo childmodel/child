@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.15 2003-05-16 12:56:21 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.16 2003-05-16 14:02:15 childcvs Exp $
 */
 /************************************************************************/
 
@@ -657,7 +657,7 @@ void tUplift::FaultBendFold2( tMesh<tLNode> *mp, double delt )
 **
 \************************************************************************/
 
-double tUplift::getDuration() 
+double tUplift::getDuration() const
 {
    return duration;
 }
