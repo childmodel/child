@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.58 2003-08-04 14:43:10 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.59 2003-08-07 14:35:50 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -909,22 +909,6 @@ void tTriangle::SetIndexIDOrdered()
   index_[1] = (index_[0]+1)%3;
   index_[2] = (index_[1]+1)%3;
 }
-
-/*****************************************************************************\
-**
-**  tTriangle::isIndexIDOrdered
-**
-**  Tell whether index_ has been ID ordered
-**
-\*****************************************************************************/
-bool tTriangle::isIndexIDOrdered() const {
-  return
-    ( index_[1] == (index_[0]+1)%3 ) &&
-    ( index_[2] == (index_[1]+1)%3 ) &&
-    ( pPtr(index_[0])->getID() < pPtr(index_[1])->getID() ) &&
-    ( pPtr(index_[0])->getID() < pPtr(index_[2])->getID() );
-}
-
 
 /* TellAll: debugging output routine */
 #ifndef NDEBUG

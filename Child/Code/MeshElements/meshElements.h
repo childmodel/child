@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.56 2003-08-06 15:10:09 childcvs Exp $
+**  $Id: meshElements.h,v 1.57 2003-08-07 14:35:51 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -293,6 +293,7 @@ private:
 **
 **  Modifications:
 **   - added function FindCircumcenter(), 1/11/98 gt
+**   - added index_ and associated functions 08/2003
 **
 */
 /**************************************************************************/
@@ -311,19 +312,19 @@ public:
   const tTriangle &operator=( const tTriangle & ); // assignment operator
   void InitializeTriangle( tNode*, tNode*, tNode* );
   inline int getID() const;          // returns ID number
-  tNode *pPtr( int ) const;          // returns ptr to given vertex (0,1, or 2)
-  tEdge *ePtr( int ) const;          // returns ptr to given clockwise edge
-  tTriangle *tPtr( int ) const;      // returns ptr to given neighboring tri
-  void setID( int );                 // sets ID number
-  void setPPtr( int, tNode * );      // sets ptr to given vertex
+  inline tNode *pPtr( int ) const;          // returns ptr to given vertex (0,1, or 2)
+  inline tEdge *ePtr( int ) const;          // returns ptr to given clockwise edge
+  inline tTriangle *tPtr( int ) const;      // returns ptr to given neighboring tri
+  inline void setID( int );                 // sets ID number
+  inline void setPPtr( int, tNode * );      // sets ptr to given vertex
   inline void setEPtr( int, tEdge * );      // sets ptr to given clockwise edge
-  void setTPtr( int, tTriangle * );  // sets ptr to given neighboring tri
-  int nVOp( const tTriangle * ) const;// returns side # (0,1 or 2) of nbr triangle
+  inline void setTPtr( int, tTriangle * );  // sets ptr to given neighboring tri
+  inline int nVOp( const tTriangle * ) const;// returns side # (0,1 or 2) of nbr triangle
   int nVtx( const tNode * ) const;  // returns vertex # (0,1 or 2) of given node
   tArray<double> FindCircumcenter() const; // computes & returns tri's circumcenter
   const unsigned char *index() const { return index_; }
   void SetIndexIDOrdered(); // build the ordering index array
-  bool isIndexIDOrdered() const;
+  inline bool isIndexIDOrdered() const;
 
 #ifndef NDEBUG
   void TellAll();  // debugging routine
@@ -1237,6 +1238,21 @@ inline int tTriangle::nVtx( const tNode *cn ) const
     if( p[i] == cn ) return i;
   assert( 0 ); /*NOTREACHED*/
   abort();
+}
+
+/*****************************************************************************\
+**
+**  tTriangle::isIndexIDOrdered
+**
+**  Tell whether index_ has been ID ordered
+**
+\*****************************************************************************/
+inline bool tTriangle::isIndexIDOrdered() const {
+  return
+    ( index_[1] == (index_[0]+1)%3 ) &&
+    ( index_[2] == (index_[1]+1)%3 ) &&
+    ( pPtr(index_[0])->getID() < pPtr(index_[1])->getID() ) &&
+    ( pPtr(index_[0])->getID() < pPtr(index_[2])->getID() );
 }
 
 /**************************************************************************\
