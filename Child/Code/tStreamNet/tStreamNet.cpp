@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.62 2003-10-15 09:20:41 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.63 2003-10-22 13:04:29 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1256,16 +1256,21 @@ void tStreamNet::FlowSaturated1()
    tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
    tLNode *curnode;
    tEdge *fedg;
-   double discharge;
+   double total_discharge, surface_discharge, subsurf_discharge;
 
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
    {
       fedg = curnode->getFlowEdg();
-      discharge = curnode->getDrArea() * rainrate -
-          fedg->getSlope() * fedg->getVEdgLen() * trans;
-      discharge *= ( discharge > 0 );
-      curnode->setDischarge( discharge );
+      total_discharge = curnode->getDrArea() * rainrate;
+      subsurf_discharge = fedg->getSlope() * fedg->getVEdgLen() * trans;
+      surface_discharge = total_discharge - subsurf_discharge;
+      if( surface_discharge < 0. ) {
+	surface_discharge = 0.;
+	subsurf_discharge = total_discharge;
+      }
+      curnode->setDischarge( surface_discharge );
+      curnode->setSubSurfaceDischarge( subsurf_discharge );
    }
    if (0) //DEBUG
      cout << "finished" << endl;

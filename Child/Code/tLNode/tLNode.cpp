@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.124 2003-10-15 09:28:34 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.125 2003-10-22 13:04:27 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -307,6 +307,7 @@ qsm(),
 qsin(0.),
 qsinm(),
 uplift(0.),
+qsubsurf(0.),
 layerlist(),
 public1(-1)
 {
@@ -323,6 +324,7 @@ qsm(),
 qsin(0.),
 qsinm(),
 uplift(0.),
+qsubsurf(0.),
 layerlist(),
 public1(-1)
 {
@@ -496,6 +498,7 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
     qsin(orig.qsin),
     qsinm(orig.qsinm ),
     uplift(orig.uplift),
+    qsubsurf(orig.qsubsurf),
     layerlist(),
     public1(orig.public1)
 {
@@ -543,6 +546,7 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
       uplift = right.uplift;
       qsm = right.qsm;
       qsinm = right.qsinm;
+      qsubsurf = right.qsubsurf;
       layerlist = right.layerlist;
       public1 = right.public1;
     }

@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.82 2003-10-15 09:28:35 childcvs Exp $
+ **  $Id: tLNode.h,v 1.83 2003-10-22 13:04:28 childcvs Exp $
  */
 /************************************************************************/
 
@@ -449,7 +449,9 @@ public:
   inline void setVegCover( const tLNode * );
   inline void setReg( const tRegolith & );
   inline void setChan( const tChannel & );
+  inline double getSubSurfaceDischarge() const;
   inline void setDischarge( double );
+  inline void setSubSurfaceDischarge( double );
   inline void setZOld( double, double );
   inline void RevertToOldCoords();
   virtual inline void UpdateCoords();
@@ -601,6 +603,7 @@ protected:
   // want to put this somewhere else
   static double maxregdep;
   static double KRnew;
+  double qsubsurf;   // Subsurface discharge
 public:
   int public1; // a "public" member that can be used for various purpose
 };
@@ -696,6 +699,7 @@ inline double tLNode::getHydrRough() const {return chan.hydrnrough;}
 inline double tLNode::getChanRough() const {return chan.channrough;}
 inline double tLNode::getHydrSlope() const {return chan.hydrslope;}
 inline double tLNode::getChanSlope() const {return chan.chanslope;}
+inline double tLNode::getSubSurfaceDischarge() const {return qsubsurf;}
 
 inline double tLNode::getBankRough() const {return chan.migration.bankrough;}
 
@@ -710,6 +714,7 @@ inline void tLNode::setHydrSlope( double val )  {chan.hydrslope = ( val > 0 ) ? 
 inline void tLNode::setChanSlope( double val )  {chan.chanslope = ( val > 0 ) ? val : 0;}
 inline void tLNode::setBankRough( double val )
 {chan.migration.bankrough = ( val > 0 ) ? val : 0;}
+inline void tLNode::setSubSurfaceDischarge( double val ) {qsubsurf = val;}
 
 inline double tLNode::getDrArea() const {return chan.drarea;}
 

@@ -13,7 +13,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.cpp,v 1.11 2003-10-15 09:25:20 childcvs Exp $
+**  $Id: tVegetation.cpp,v 1.12 2003-10-22 13:04:30 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -101,20 +101,25 @@ tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, const tInputFile &infil
 \**************************************************************************/
 
 void tVegetation::UpdateVegetation( tMesh<class tLNode> *meshPtr,
-				    double stormdur,
+				    double dt,
                                     double interstormdur ) const
+{
+  ErodeVegetation( meshPtr, dt );
+  GrowVegetation( meshPtr, interstormdur );
+
+}
+
+
+void tVegetation::ErodeVegetation(  tMesh<class tLNode> *meshPtr,
+				    double dt ) const
 {
    tMeshListIter< tLNode > niter( meshPtr->getNodeList() ); // Node iterator
    tLNode * cn;   // Ptr to current node
    double tauex,  // Excess shear stress
        veg;       // Fractional vegetation cover
    
-   // Loop on active nodes, computing erosion from the previous storm
-   // and regrowth during the subsequent interstorm period.
-   // Key assumptions: we "cheat" by changing the critical shear stress only
-   // "after" the storm, using the initial value to calculate the
-   // subsequent, eroded value, rather than solving the full quadratic
-   // equation for vegetation destruction.
+   // Loop on active nodes, computing erosion during the time step of
+   // duration dt.
    //   For both erosion and regrowth, we use an analytical solution for
    // veg cover given its initial value and duration of erosion/regrowth.
    for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
@@ -124,16 +129,41 @@ void tVegetation::UpdateVegetation( tMesh<class tLNode> *meshPtr,
       veg = cn->getVegCover().getVeg();
       if( tauex>0.0 )
       {
-          veg = veg * exp( -mdKvd * tauex * stormdur );
+          veg = veg * exp( -mdKvd * tauex * dt );
           cn->getVegCover().mdVeg = veg;
+	  assert( veg >= 0.0 );
+	  assert( veg <= 1.0 );
           //cout << "veg after erosion: " << veg << endl;
       }
-      
+
+      // Update critical shear stress
+      cn->setTauCrit( mdTauCritBare + veg*mdTauCritVeg );
+      //cout << "tau crit: " << mdTauCritBare + veg*mdTauCritVeg << endl;
+   }
+   
+}
+
+
+void tVegetation::GrowVegetation(  tMesh<class tLNode> *meshPtr,
+				    double interstormdur ) const
+{
+   tMeshListIter< tLNode > niter( meshPtr->getNodeList() ); // Node iterator
+   tLNode * cn;   // Ptr to current node
+   double veg;       // Fractional vegetation cover
+   
+   // Loop on active nodes, computing regrowth during the interstorm period.
+   //   For both erosion and regrowth, we use an analytical solution for
+   // veg cover given its initial value and duration of erosion/regrowth.
+   for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
+   {
       // Regrowth following storm
       //cout << "veg before regrowth: " << veg << endl;
+      veg = cn->getVegCover().getVeg();
       veg = 1.0 - (1.0 - veg) * exp( -interstormdur / mdTVeg );
       cn->getVegCover().mdVeg = veg;
       //cout << "veg after regrowth: " << veg << endl;
+      assert( veg >= 0.0 );
+      assert( veg <= 1.0 );
 
       // Update critical shear stress
       cn->setTauCrit( mdTauCritBare + veg*mdTauCritVeg );

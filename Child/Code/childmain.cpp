@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.11 2003-10-02 14:42:29 childcvs Exp $
+**  $Id: childmain.cpp,v 1.12 2003-10-22 13:04:27 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -40,6 +40,7 @@
 #include "Inclusions.h"
 #include "tFloodplain/tFloodplain.h"
 #include "tEolian/tEolian.h"
+
 
 Predicates predicate;
 
@@ -50,7 +51,7 @@ int main( int argc, char **argv )
    int optDetachLim,      // Option for detachment-limited erosion only
        optFloodplainDep,  // Option for floodplain (overbank) deposition
        optLoessDep,       // Option for eolian deposition
-       optVegetation,     // Option for dynamic vegetation cover
+       optVegetation=0,     // Option for dynamic vegetation cover
        optMeander,        // Option for stream meandering
        optDiffuseDepo;    // Option for deposition / no deposition by diff'n
    tVegetation *vegetation(0);  // -> vegetation object
@@ -181,10 +182,10 @@ OptTSOutput." );
       // Do storm...
       storm.GenerateStorm( time.getCurrentTime(),
                            strmNet.getInfilt(), strmNet.getSoilStore() );
-      cout
+      /*cout
 	<< "Storm: "
 	<< storm.getRainrate() << " " << storm.getStormDuration() << " "
-	<< storm.interstormDur() << endl;
+	<< storm.interstormDur() << endl;*/
 
       strmNet.UpdateNet( time.getCurrentTime(), storm );
       
@@ -208,9 +209,15 @@ OptTSOutput." );
                                        time.getCurrentTime() );
 	}
 
-      if( optVegetation )
+#define NEWVEG 0
+      if( optVegetation ) {
+	if( NEWVEG )
+	  vegetation->GrowVegetation( &mesh, storm.interstormDur() );
+	else
 	  vegetation->UpdateVegetation( &mesh, storm.getStormDuration(),
-					storm.interstormDur() );
+				storm.interstormDur() );
+      }
+#undef NEWVEG
 
       // Do interstorm...
       erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
