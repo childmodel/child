@@ -15,15 +15,15 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.3 1999-03-13 22:21:00 gtucker Exp $
+**  $Id: tFloodplain.h,v 1.4 1999-04-05 14:54:38 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TFLOODPLAIN_H
 #define TFLOODPLAIN_H
 
 #include <assert.h>
-#include "../tGrid/tGrid.h"
-#include "../tGridList/tGridList.h"
+#include "../tMesh/tMesh.h"
+#include "../tMeshList/tMeshList.h"
 #include "../tLNode/tLNode.h"
 #include "../tInputFile/tInputFile.h"
 
@@ -48,7 +48,7 @@ class tFloodplain
 {
 
 public:
-    tFloodplain( tInputFile &infile, tGrid<tLNode> *gp );
+    tFloodplain( tInputFile &infile, tMesh<tLNode> *mp );
     void DepositOverbank( double precip, double delt, double ctime );
     
 private:
@@ -60,7 +60,7 @@ private:
     double mqs;             // depth-disch at-a-station exponent
     double mqbmqs;          // bankfull minus at-a-station exponents
     tArray<double> deparr;  // depth deposited (# grn size; all but 1st=0)
-    tGrid<tLNode> *gridPtr; // ptr to mesh
+    tMesh<tLNode> *meshPtr; // ptr to mesh
 };
 
 

@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.4 1999-04-02 23:02:51 gtucker Exp $
+**  $Id: tFloodplain.cpp,v 1.5 1999-04-05 14:54:15 gtucker Exp $
 \**************************************************************************/
 
 #include "tFloodplain.h"
@@ -76,13 +76,13 @@
 **  and kdb = Kdb * Pe^(mqb-mqs).
 **
 \**************************************************************************/
-tFloodplain::tFloodplain( tInputFile &infile, tGrid<tLNode> *gp )
+tFloodplain::tFloodplain( tInputFile &infile, tMesh<tLNode> *mp )
 {
    int numg;
    
    // Keep a pointer to the mesh in order to access list of nodes
-   gridPtr = gp;
-   assert( gridPtr!=0 );
+   meshPtr = mp;
+   assert( meshPtr!=0 );
 
    // Read in parameters
    drarea_min = infile.ReadItem( drarea_min, "FP_DRAREAMIN" );
@@ -141,7 +141,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 {
    if( precip < event_min ) return;
    
-   tGridListIter<tLNode> ni( gridPtr->getNodeList() ); // iterator for nodes
+   tMeshListIter<tLNode> ni( meshPtr->getNodeList() ); // iterator for nodes
    tList<tFloodNode> floodList;    // list of "flood nodes"
    tFloodNode floodNode,           // flood node to be added to list
        *fn;                        // ptr to current flood node
