@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.60 1999-04-05 22:59:40 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.61 1999-04-08 20:03:36 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -199,11 +199,13 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
    kb = infile.ReadItem( kb, "KB" );
    mb = infile.ReadItem( mb, "MB" );
    nb = infile.ReadItem( nb, "NB" );
+   pb = infile.ReadItem( pb, "PB" );
+   taucd = infile.ReadItem( taucd, "TAUCD" );
 }
 
 
 /***************************************************************************\
-**  tBedErode::DetachCapacity
+**  tBedErode::DetachCapacity (1 of 3)
 **
 **  Computes the depth of erosion over a time interval dt assuming the
 **  erosion rate = kb Q^mb S^nb
@@ -217,17 +219,23 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 **  Modifications:
 **   - replaced uniform erodibility coefficient kb with erodibility of
 **     topmost layer at node n (GT 8/98)
+**   - added threshold term and third exponent pb (GT 4/99)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
-   double slp = n->getSlope();
+   double slp = n->getSlope(),
+       tauex;
+
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
-   return( n->getLayerErody(0)*pow( n->getQ(), mb )*pow( slp, nb )*dt );
+   tauex = n->getLayerErody(0)*pow( n->getQ(), mb )*pow( slp, nb ) - taucd;
+   tauex = (tauex>0.0) ? tauex : 0.0;
+   return( pow(tauex,pb)*dt );
 }
 
+
 /***************************************************************************\
-**  tBedErode::DetachCapacity (1 of 2)
+**  tBedErode::DetachCapacity (2 of 3)
 **
 **  Computes the rate of erosion  = kb Q^mb S^nb
 **
@@ -240,6 +248,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 **  Modifications:
 **   - replaced uniform erodibility coefficient kb with erodibility of
 **     topmost layer at node n (GT 8/98)
+**   - added threshold term and third exponent pb (GT 4/99)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
@@ -247,19 +256,23 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
 
-   double erorate =  n->getLayerErody(0)*pow( n->getQ(), mb )*pow( slp, nb );
+   double erorate =  n->getLayerErody(0)*pow( n->getQ(), mb )*pow( slp, nb )
+       - taucd;
+   erorate = (erorate>0.0) ? erorate : 0.0;
+   erorate = pow( erorate, pb );
    n->setDrDt( -erorate );
    return erorate;
 }
 
 
 /***************************************************************************\
-**  tBedErode::DetachCapacity (2 of 2)
+**  tBedErode::DetachCapacity (3 of 3)
 **
 **  Computes the rate of erosion  = e* Q^mb S^nb
 **  Here erodibility of layer is used as the coefficient for detach capacity
 **
 **  TODO: have this just call the other DetachCapacity and multiply by dt!
+**  Also: consolidate w/ 2 of 3 by using default 0 parameter for layer #.
 **
 **  Input: n -- node at which to compute detachment capacity
 **         i -- layer which you are computing detachment of
@@ -275,7 +288,10 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   double erorate =n->getLayerErody(i)*pow( n->getQ(), mb )*pow( slp, nb );
+   double erorate =n->getLayerErody(i)*pow( n->getQ(), mb )*pow( slp, nb )
+       - taucd;
+   erorate = (erorate>0.0) ? erorate : 0.0;
+   erorate = pow( erorate, pb );
    n->setDrDt( -erorate );
 //    if(n->getID() == 11 ){
 //       cout<<"node 11 is in detach capacity"<<endl;
@@ -305,6 +321,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
 **  Returns: the estimated maximum time step size
 **  Assumptions: getSlope() returns a value >=0, edge length>0.
 **
+**  TODO: update this to handle threshold term taucd and pb
 \***************************************************************************/
 double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 {
