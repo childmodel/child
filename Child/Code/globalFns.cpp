@@ -4,7 +4,7 @@
 **  @brief Global functions used by tGrid and other modules of
 **         CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.17 2003-09-18 15:22:50 childcvs Exp $
+**  $Id: globalFns.cpp,v 1.18 2004-02-18 15:16:56 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -36,6 +36,12 @@ tArray< double > UnitVector( tEdge const * ePtr )
    const double mag = sqrt( dx * dx + dy * dy );
    return
      tArray< double >( dx/mag, dy/mag );
+}
+
+tArray< double > UnitVector( double dx, double dy )
+{
+   const double mag = sqrt( dx * dx + dy * dy );
+   return tArray< double >( dx/mag, dy/mag );
 }
 
 /**************************************************************************/
