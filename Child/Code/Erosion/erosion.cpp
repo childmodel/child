@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.13 1998-03-23 23:16:00 gtucker Exp $
+**  $Id: erosion.cpp,v 1.14 1998-03-24 21:04:43 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -305,8 +305,6 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
    // is used up
    do
    {
-      cout << "Remaing time: " << dtg << endl;
-      
       // Zero out sed influx
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
           cn->setQsin( 0.0 );
@@ -434,8 +432,43 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 }
 
 
-#define VERYSMALL 1e-6
-#define EPSOVER2 0.1
+/*****************************************************************************\
+**
+**  tErosion::Diffuse
+**
+**  Computes slope-dependent mass transfer by hillslope creep-related
+**  processes (hillslope diffusion). Volumetric flux of sediment occurs
+**  across each Voronoi cell face; the volume rate of sediment transfer
+**  between two nodes that share a Voronoi face of length Lv is
+**    Fv = Kd * S * Lv,
+**  with transfer being in the downhill (positive S) direction. The total
+**  transfer during a time step dt is Fv*dt.
+**    Because transfer occurs along edges (across Voronoi faces), we can
+**  compute the solution most efficiently by calculating the exchange along
+**  each edge pair, accumulating the net influx/outflux at each node, and
+**  then summing the influx/outflux for each node and dividing by the node's
+**  Voronoi area to get the change in elevation.
+**    To ensure numerical stability, the routine begins by estimating a
+**  maximum stable time-step size for each pair of nodes (ie, each edge)
+**  using the Courant condition Dt <= (Le^2)/(2KdLv). The minimum of these
+**  is used as the maximum step size. If the estimated maximum is smaller
+**  than the "global" time size size (storm+interstorm duration) rt, the
+**  solution is computed in a series of sub-steps until all of rt has been
+**  used up.
+**    The routine includes an option to "turn off" deposition in areas of
+**  concave topography (= net deposition), on the assumption that stream
+**  erosion would quickly remove such material.
+**
+**  Parameters:  rt -- time duration over which to compute diffusion
+**               noDepoFlag -- if true, material is only eroded, never
+**                             deposited
+**  Modifies:  node elevations (z); node Qsin (sed influx) is reset and
+**             used in the computations
+**  Notes:  as of 3/98, does not differentiate between rock and sediment
+**
+\*****************************************************************************/
+#define kVerySmall 1e-6
+#define kEpsOver2 0.1
 void tErosion::Diffuse( double rt, int noDepoFlag )
 {
    tLNode * cn;
@@ -447,9 +480,9 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
    tGridListIter<tLNode> nodIter( gridPtr->GetNodeList() );
    tGridListIter<tEdge> edgIter( gridPtr->GetEdgeList() );
 
-//#if TRACKFNS
-   cout << "**Diffuse" << endl << flush;
-//#endif
+#if TRACKFNS
+   cout << "tErosion::Diffuse()" << endl << flush;
+#endif
    
    // Compute maximum stable time-step size based on Courant condition
    // (Note: for a fixed mesh, this calculation only needs to be done once;
@@ -457,9 +490,9 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
    // mesh has changed since last time through)
    dtmax = rt;  // Initialize dtmax to total time rt
    for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
-       if( (denom=kd*ce->getVEdgLen() ) > VERYSMALL )
+       if( (denom=kd*ce->getVEdgLen() ) > kVerySmall )
        {
-          delt = EPSOVER2*(ce->getLength()/denom);
+          delt = kEpsOver2*(ce->getLength()/denom);
           if( delt < dtmax )
           {
              dtmax = delt;
@@ -485,21 +518,22 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
          // Record incoming flux to dest'n
          cn = (tLNode *)ce->getDestinationPtrNC();
          cn->AddQsin( volout );
-         /*if( ce->org->id==700 || ce->dest->id==700 ) {*/
          /*cout << volout << " mass exch. from " << ce->getOriginPtr()->getID()
               << " to "
               << ce->getDestinationPtr()->getID()
               << " on slp " << ce->getSlope() << " ve " << ce->getVEdgLen()
               << "\nvp " << ce->getRVtx()[0] << " " << ce->getRVtx()[1] << endl;
          ((tLNode*)ce->getOriginPtr())->TellAll();
-         ((tLNode*)ce->getDestinationPtr())->TellAll();*/
+         ((tLNode*)ce->getDestinationPtr())->TellAll();
+         cout << endl;*/
+         
          ce = edgIter.NextP();  // Skip complementary edge
       }
    
       // Compute erosion/deposition for each node
       for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
       {
-         //cout << "Node " << cn->id << " " << cn->z << " --> ";
+             /*cout << "Node " << cn->getID() << " Qsin: " << cn->getQsin() << " dz: " << cn->getQsin() / cn->getVArea() << endl;*/
          if( noDepoFlag )
              if( cn->getQsin() > 0.0 )
                  cn->setQsin( 0.0 );
