@@ -345,7 +345,7 @@ BuildDelaunayMeshTipper()
    }
    // deallocation of some Tipper triangulator data structures
    delete [] edges; edges = 0;
-   delete [] p; p = 0;
+   delete [] p;
    {
      const tIdArray< tTriangle > TriTable(triList); // for fast lookup per ID
      int ielem;

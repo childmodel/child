@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.76 2003-07-14 15:49:45 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.77 2003-07-19 13:19:27 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -470,20 +470,20 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
    CreateAndOpenFile( &tauofs, ".tau" );
 
    // Vegetation cover: if dynamic vegetation option selected
-   if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
+   if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) != 0)
        CreateAndOpenFile( &vegofs, ".veg" );
 
    // Flow depth: if kinematic wave option used OR if channel geometry
    // model other than "regime" used
-   if( (opOpt = infile.ReadItem( opOpt, "FLOWGEN" ) == k2DKinematicWave )
+   if( ((opOpt = infile.ReadItem( opOpt, "FLOWGEN" )) == k2DKinematicWave )
        || (opOpt = infile.ReadItem( opOpt, "CHAN_GEOM_MODEL"))>1 )
        CreateAndOpenFile( &flowdepofs, ".dep" );
 
    // Time-series output: if requested
-   if( (optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) ) {
+   if( (optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) != 0) {
        CreateAndOpenFile( &this->volsofs, ".vols" );
        CreateAndOpenFile( &this->dvolsofs, ".dvols" );
-       if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) )
+       if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) != 0)
 	 CreateAndOpenFile( &vegcovofs, ".vcov" );
        CreateAndOpenFile( &this->tareaofs, ".tarea" );
    }
@@ -495,11 +495,11 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile ) :
 
    // Flow path length output: if using hydrograph peak method for
    // computing discharge
-   if( (opOpt = infile.ReadItem( opOpt, "FLOWGEN" ) == kHydrographPeakMethod ) )
+   if( (opOpt = infile.ReadItem( opOpt, "FLOWGEN" )) == kHydrographPeakMethod )
      CreateAndOpenFile( &flowpathlenofs, ".fplen" );
 
    // Sediment flux: if not using detachment-limited option
-   if( !(opOpt = infile.ReadItem( opOpt, "OPTDETACHLIM" ) ) )
+   if( (opOpt = infile.ReadItem( opOpt, "OPTDETACHLIM" ) ) == 0)
      CreateAndOpenFile( &qsofs, ".qs" );
 
    this->mdLastVolume = 0.0;

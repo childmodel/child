@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.170 2003-07-16 12:24:14 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.171 2003-07-19 13:19:24 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1828,7 +1828,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    for( cn = dI.FirstP(); !( dI.AtEnd() ); cn = dI.FirstP() )
    {
       DeleteNode( cn, kNoRepair );
-      cn  = deletelist.removeFromFront();
+      /* cn =*/ deletelist.removeFromFront();
    }
    cout << "deleted superfluous boundary nodes\n";
    cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: "
@@ -2041,7 +2041,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    for( cn = dI.FirstP(); !( dI.AtEnd() ); cn = dI.FirstP() )
    {
       DeleteNode( cn, kNoRepair );
-      cn = deletelist.removeFromFront();
+      /*cn =*/ deletelist.removeFromFront();
    }
    cout << "deleted superfluous boundary nodes\n";
    cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: "
@@ -2154,19 +2154,19 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
    // Edges: check for valid origin, destination, and ccwedg
    for( ce=edgIter.FirstP(); !(edgIter.AtEnd()); ce=edgIter.NextP() )
    {
-      if( !(org=ce->getOriginPtrNC() ) )
+      if( (org=ce->getOriginPtrNC() ) == NULL)
       {
          cerr << "EDGE #" << ce->getID()
               << " does not have a valid origin point\n";
          goto error;
       }
-      if( !(dest=ce->getDestinationPtrNC() ) )
+      if( (dest=ce->getDestinationPtrNC() ) == NULL)
       {
          cerr << "EDGE #" << ce->getID()
               << " does not have a valid destination point\n";
          goto error;
       }
-      if( !(ccwedg=ce->getCCWEdg() ) )
+      if( (ccwedg=ce->getCCWEdg() ) == NULL)
       {
          cerr << "EDGE #" << ce->getID()
               << " does not point to a valid counter-clockwise edge\n";
@@ -2185,7 +2185,7 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
          goto error;
       }
       tEdge *cwedg;
-      if( !(cwedg=ce->getCWEdg() ) )
+      if( (cwedg=ce->getCWEdg() ) == NULL)
       {
          cerr << "EDGE #" << ce->getID()
               << " does not point to a valid clockwise edge\n";
@@ -2230,7 +2230,7 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
    for( cn=nodIter.FirstP(); !(nodIter.AtEnd()); cn=nodIter.NextP() )
    {
       // edg pointer
-      if( !(ce = cn->getEdg()) )
+      if( (ce = cn->getEdg()) == NULL)
       {
          cerr << "NODE #" << cn->getID()
               << " does not point to a valid edge\n";
@@ -2322,14 +2322,14 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
       for( i=0; i<=2; i++ )
       {
          // Valid point i?
-         if( !(cn=ct->pPtr(i)) )
+         if( (cn=ct->pPtr(i)) == NULL)
          {
             cerr << "TRIANGLE #" << ct->getID()
                  << " has an invalid point " << i << endl;
             goto error;
          }
          // Valid edge i?
-         if( !(ce=ct->ePtr(i)) )
+         if( (ce=ct->ePtr(i)) == NULL)
          {
             cerr << "TRIANGLE #" << ct->getID()
                  << " has an invalid edge " << i << endl;
@@ -4019,11 +4019,10 @@ UpdateMesh()
    //tListIter<tTriangle> tlist( triList );
    tMeshListIter<tEdge> elist( edgeList );
    //tMeshListIter<tSubNode> nlist( nodeList );
-   tEdge * curedg = 0;
    double len;
 
    // Edge lengths
-   curedg = elist.FirstP();
+   tEdge *curedg = elist.FirstP();
    do
    {
       len = curedg->CalcLength();
@@ -4035,7 +4034,7 @@ UpdateMesh()
       curedg = elist.NextP();
       assert( curedg != 0 ); // failure = complementary edges not consecutive
       curedg->setLength( len );
-   } while( (curedg=elist.NextP()) );
+   } while( (curedg=elist.NextP()) != NULL);
 
    setVoronoiVertices();
    CalcVoronoiEdgeLengths();
