@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.58 1999-03-19 22:31:56 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.59 1999-03-26 20:43:10 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -1558,7 +1558,7 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
 **                              of each bank
 **				based on a reach node's neighbor's erodibility 
 **        and relative height above the channel.
-**        Check all nbrs; find distances to perp. lines. Find 2 pairs of
+**        Check all nbrs; find distances to perp. line. Find 2 pairs of
 **        consecutive nbrs which fall on either side of line (going ccw from
 **        flowedge, 1st pair is on left bank, 2nd pair is on right). For each
 **        pair, find each pt's erod'y w.r.t. the channel pt (e.g. elev.
@@ -1613,6 +1613,7 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
       xy = cn->get2DCoords();
       d = a * xy[0] + b * xy[1] + c;
       spD[i] = spD[n + i] = d;
+      //if d=0 then point is on line 
       spR[i] = spR[n + i] = DistanceToLine( xy[0], xy[1], a, b, c );
       ce = ce->getCCWEdg();
       i++;
@@ -1628,7 +1629,18 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
       if( spD[i] != 0.0 ) s1 = spD[i] / fabs( spD[i] );
       else s1 = 0.0;
       if( spD[i + 1] != 0.0 ) s2 = spD[i + 1] / fabs( spD[i + 1] );
-      else s2 = 0.0;
+      else 
+      {
+         s2 = 0.0;
+         spD[i + 1] = spD[i+2];
+         //NG added in the above line. If spD=0, the below if will be
+         //entered twice with the same node. This new line should 
+         //prevent that from happening.
+         //Problem is that one of the surrounding nodes lies 
+         //exactly on perpendicular line.
+      }
+      
+      
       if( s1 != s2 ) //points are on opposite sides of the perp.
       {
          assert( j<2 );
