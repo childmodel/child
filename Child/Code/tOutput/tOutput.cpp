@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.26 2000-04-04 20:52:43 nmgaspar Exp $
+**  $Id: tOutput.cpp,v 1.27 2000-06-05 19:53:18 daniel Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -197,6 +197,8 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
        CreateAndOpenFile( &vegofs, ".veg" );
    if( (opOpt = infile.ReadItem( opOpt, "OPTKINWAVE" ) ) )
        CreateAndOpenFile( &flowdepofs, ".dep" );
+   if( (optTSOutput = infile.ReadItem( optTSOutput, "OPTTSOUTPUT" ) ) )
+       CreateAndOpenFile( &vols, ".vols" );
    
    
 }
@@ -272,6 +274,36 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       }
       
    }
+   
+}
+
+
+
+
+/*************************************************************************\
+**
+**  tOutput::WriteTSOutput
+**  This function writes the total volume of the DEM above the datum to
+**  a file called name.vols, where "name" is a name that the user has 
+**  specified in the input file and which is stored in the data member
+**  baseName.
+**
+\*************************************************************************/
+template< class tSubNode >
+void tOutput<tSubNode>::WriteOutput( double time )
+{
+   tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
+
+   tNode * cn;       // current node
+
+   double volume = 0;
+
+   cout << "tOutput::WriteTSOutput()\n" << flush;
+   
+   for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
+       volume += cn.getZ()*cn.getVArea();
+   
+   vols << volume << endl;
    
 }
 
