@@ -15,7 +15,7 @@
 **  Class tInlet is used to model the entry of a river at an edge of the
 **  model mesh.
 **
-**  $Id: tStreamNet.h,v 1.22 1998-06-04 21:28:10 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.23 1998-07-15 15:46:02 nmgaspar Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -37,6 +37,8 @@
 #define kConstSoilStore 3  // Option for "bucket"-type flow generation
 #define kSecperyear 31536000  // No. of seconds in one year
 
+double DistanceToLine( double x2, double y2, double a, double b, double c );
+double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 );
 
 /** class tInlet *************************************************************/
 class tInlet
@@ -121,12 +123,23 @@ public:
    int FindLakeNodeOutlet( tLNode * );
    void SortNodesByNetOrder();
    int DamBypass( tLNode * );
+   //find hydraulic and channel geometries, respectively;
+   //FindHydrGeom is contingent upon current storm conditions
+   //and storm variability;
+   //FindChanGeom is based on the 1.5-yr storm event,
+   //or the mean rainrate if no variability:   
+   void FindChanGeom();
+   void FindHydrGeom();
    
 protected:
    tGrid< tLNode > * gridPtr;
    tStorm *stormPtr;
    int flowgen;
    int filllakes;
+   int optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
+   double kwds, ewds, ewstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width
+   double knds, ends, enstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. roughness
+   double klambda, elambda; //coeff & exp for downstrm bank roughness length
    double rainrate;
    double trans;
    double infilt;
@@ -137,3 +150,9 @@ protected:
 };
 
 #endif
+
+
+
+
+
+
