@@ -4,7 +4,7 @@
 **  @brief Error-handling routines.
 **
 **  Created Dec. 97 from earlier routine embedded in child.cpp
-**  $Id: errors.cpp,v 1.6 2003-02-10 12:21:02 childcvs Exp $
+**  $Id: errors.cpp,v 1.7 2004-01-07 10:53:24 childcvs Exp $
 */
 /******************************************************************/
 
@@ -19,6 +19,7 @@ using namespace std;
 #endif
 
 #define CHILD_ABORT_ON_ERROR "CHILD_ABORT_ON_ERROR"
+#define CHILD_ABORT_ON_WARNING "CHILD_ABORT_ON_WARNING"
 
 /*****************************************************************************\
 **
@@ -41,4 +42,23 @@ void ReportFatalError( const char *errMsg )
 }
 
 
+
+/*****************************************************************************\
+**
+**  ReportWarning:  This is an error-handling routine that prints the
+**                     message errMsg but does not halt the program unless
+**                     the environment variable CHILD_ABORT_ON_WARNING is set.
+**
+**      Parameters:     errMsg -- error message
+**      Called by:
+**      Created: 9/03 SL
+**
+\*****************************************************************************/
+void ReportWarning( const char *errMsg )
+{
+  cout << "WARNING: " << errMsg <<endl;
+  if (getenv(CHILD_ABORT_ON_WARNING) != NULL)
+    abort();
+  cout << "(Set \"" CHILD_ABORT_ON_WARNING "\" to generate a crash.)" <<endl;
+}
 
