@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.201 2004-03-24 17:05:43 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.202 2004-03-25 16:03:09 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -4274,7 +4274,7 @@ getEdgeComplement( tEdge *edge ) const
 \**************************************************************************/
 template <class tSubNode>
 void tMesh<tSubNode>::
-UpdateMesh()
+UpdateMesh( bool checkMeshConsistency )
 {
    if (0) //DEBUG
      cout << "UpdateMesh()" << endl;
@@ -4300,7 +4300,8 @@ UpdateMesh()
    setVoronoiVertices();
    CalcVoronoiEdgeLengths();
    CalcVAreas();
-   CheckMeshConsistency( false );  // debug only -- remove for release
+   if (checkMeshConsistency)
+     CheckMeshConsistency( false );  // debug only -- remove for release
 }
 
 
@@ -4887,7 +4888,7 @@ MoveNodes( double time, bool interpFlag )
    CheckTriEdgeIntersect(); //calls tLNode::UpdateCoords() for each node
    //resolve any remaining problems after points moved
    CheckLocallyDelaunay( time );
-   UpdateMesh();
+   UpdateMesh(false);
    CheckMeshConsistency();  // TODO: remove this debugging call for release
    if (0) //DEBUG
      cout << "MoveNodes() finished" << endl;

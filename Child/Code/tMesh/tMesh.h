@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.75 2004-03-24 17:05:45 childcvs Exp $
+**  $Id: tMesh.h,v 1.76 2004-03-25 16:03:11 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -206,7 +206,7 @@ public:
    /* Tests consistency of a user-defined mesh */
    void CheckMeshConsistency( bool boundaryCheckFlag=true );
    /* Updates mesh by comp'ing edg lengths & slopes & node Voronoi areas */
-   void UpdateMesh();
+   void UpdateMesh( bool checkMeshConsistency = true );
    /* computes edge slopes as (Zorg-Zdest)/Length */
    //void CalcSlopes(); /* WHY is this commented out? */
    /*routines used to move points; MoveNodes is "master" function*/
