@@ -33,7 +33,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.35 2003-01-17 17:30:31 childcvs Exp $
+**  $Id: tList.h,v 1.36 2003-05-15 16:09:42 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -74,7 +74,7 @@ public:
     int operator==( const tListNode< NodeType > & ) const; // equality
     int operator!=( const tListNode< NodeType > & ) const; // inequality
      /*set*/
-    NodeType getDataNC();                     // returns copy of data item
+    NodeType getDataNC() const;               // returns copy of data item
     NodeType &getDataRefNC();                 // returns modifiable ref to data
     NodeType *getDataPtrNC();                 // returns modifiable ptr to data
     tListNode< NodeType > * getNextNC() const;// returns ptr to next list node
@@ -208,7 +208,7 @@ operator!=( const tListNode< NodeType > &right ) const
 //set data by returning non-const
 template< class NodeType >                     //tListNode
 inline NodeType tListNode< NodeType >::
-getDataNC() {return data;}
+getDataNC() const {return data;}
 
 template< class NodeType >                     //tListNode
 inline NodeType &tListNode< NodeType >::
@@ -298,11 +298,11 @@ public:
     NodeType getIthDataNC( int ) const;     // rtns modifiable copy of item #
     NodeType *getIthDataPtrNC( int ) const; // rtns modifiable ptr to item #
     NodeType &getIthDataRefNC( int ) const; // rtns modifiable ref to item #
-    tListNode< NodeType > * getListNode( NodeType * ); // rtns ptr to node #
+    tListNode< NodeType > * getListNode( const NodeType * ); // rtns ptr to node #
     tListNode< NodeType > * getIthListNode( int ) const; 
 
 #ifndef NDEBUG
-    void DebugTellPtrs();
+    void DebugTellPtrs() const;
 #endif
     
 protected:
@@ -836,7 +836,7 @@ getIthDataPtrNC( int num ) const
 \**************************************************************************/
 template< class NodeType >
 inline tListNode< NodeType > * tList< NodeType >::
-getListNode( NodeType * desiredDatPtr )
+getListNode( const NodeType * desiredDatPtr )
 {
    tListNode< NodeType > * listnode = first;
 
@@ -966,7 +966,7 @@ makeCircular()
 
 template< class NodeType >
 inline void tList< NodeType >::
-DebugTellPtrs()
+DebugTellPtrs() const
 {
    cout << "first: " << first << endl;
    cout << "last: " << last << endl << flush;

@@ -38,7 +38,7 @@
 **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
 **      9/02: (AD)merge in main Child version
 **
-**  $Id: tPtrList.h,v 1.29 2003-05-06 12:22:10 childcvs Exp $
+**  $Id: tPtrList.h,v 1.30 2003-05-15 16:09:43 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -240,22 +240,22 @@ class tPtrListIter
    int First();
    int Last();
    int Get( int );
-   int Get( NodeType * );
-   int Where();
-   NodeType *DatPtr();
+   int Get( const NodeType * );
+   int Where() const;
+   NodeType *DatPtr() const;
    tPtrListNode< NodeType > *NodePtr();
    int Next();
    int Prev();
-   int NextIsNotFirst();
+   int NextIsNotFirst() const;
    void Reset( tPtrList< NodeType > & );
    NodeType *NextP();
    NodeType *GetP( int ); //use only if NodeType has member getID()!!
    NodeType *FirstP();
    NodeType *LastP();
    NodeType *PrevP();
-   NodeType *ReportNextP();
-   NodeType *ReportPrevP();
-   int AtEnd();
+   NodeType *ReportNextP() const;
+   NodeType *ReportPrevP() const;
+   int AtEnd() const;
    int AtFirst();
   private:
    tPtrList< NodeType > * ptrlistPtr;
@@ -1185,7 +1185,7 @@ Get( int num )
 
 template< class NodeType >
 inline int tPtrListIter< NodeType >::
-Get( NodeType *desiredItemPtr )
+Get( const NodeType *desiredItemPtr )
 {
    assert( ptrlistPtr != 0 );
    tPtrListNode<NodeType> *tempnodeptr;
@@ -1261,7 +1261,7 @@ Prev()
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
-Where()
+Where() const
 {
    if( curptrnode == 0 ) return -1;
    return curptrnode->getPtr()->getID();
@@ -1277,7 +1277,7 @@ Where()
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
 inline NodeType *tPtrListIter< NodeType >::
-DatPtr()
+DatPtr() const
 {
    if( curptrnode == 0 ) return 0;
    return curptrnode->Ptr;
@@ -1310,7 +1310,7 @@ NodePtr()
 \**************************************************************************/
 template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
-NextIsNotFirst()
+NextIsNotFirst() const
 {
    assert( curptrnode != 0 );
    assert( ptrlistPtr != 0 );
@@ -1401,7 +1401,7 @@ GetP( int num )
 \**************************************************************************/
 template< class NodeType >        //tListIter
 inline NodeType * tPtrListIter< NodeType >::
-ReportNextP()
+ReportNextP() const
 {
    assert( ptrlistPtr != 0 );
    if( curptrnode == 0 ) return 0;
@@ -1411,7 +1411,7 @@ ReportNextP()
 
 template< class NodeType >        //tListIter
 inline NodeType * tPtrListIter< NodeType >::
-ReportPrevP()
+ReportPrevP() const
 {
    assert( ptrlistPtr != 0 );
    if( curptrnode == 0 ) return 0;
@@ -1434,7 +1434,7 @@ ReportPrevP()
 \**************************************************************************/
 template< class NodeType >       //tListIter
 inline int tPtrListIter< NodeType >::
-AtEnd()
+AtEnd() const
 {
    if( ptrlistPtr->last == 0 ) return 1;
    if( ptrlistPtr->last->next == 0 ) return ( curptrnode==0 );
