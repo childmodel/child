@@ -46,7 +46,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.105 2002-09-12 13:23:40 arnaud Exp $
+**  $Id: erosion.cpp,v 1.106 2002-09-16 13:57:43 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1550,9 +1550,9 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile ) :
 					"DETACHMENT_LAW" );
    switch(optProcessLaw){
 #define X(a,b) case a: \
-               sedTrans = new b(infile); \
+               bedErode = new b(infile); \
                break;
-        TRANSPORT_LAW_TABLE2
+        DETACHMENT_LAW_TABLE2
 #undef X
    default:
      {
@@ -1574,9 +1574,9 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile ) :
 				    "TRANSPORT_LAW" );
    switch(optProcessLaw){
 #define X(a,b) case a: \
-               bedErode = new b(infile); \
+               sedTrans = new b(infile); \
                break;
-        DETACHMENT_LAW_TABLE2
+        TRANSPORT_LAW_TABLE2
 #undef X
    default:
      {
