@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.41 2004-01-07 14:03:33 childcvs Exp $
+**   $Id: Definitions.h,v 1.42 2004-03-17 12:55:40 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -22,12 +22,13 @@ typedef enum {      // method of grid construction
   kPerturbedMesh = 1,
   kRandomMesh = 2
 } tMeshType_t;
-typedef enum { // type of open boundary
-  kCornerOutlet = 0,
-  kOpenSide = 1,
-  kOppositeSidesOpen = 2,
-  kAllSidesOpen = 3,
-  kSpecifyOutlet = 4
+typedef enum { // type of open boundary (used in MakeMeshFromScratch)
+  kCornerOutlet = 0,       // corner outlet (lower left)
+  kOpenSide = 1,           // one open side (lower)
+  kOppositeSidesOpen = 2,  // two opposite sides (upper and lower)
+  kAllSidesOpen = 3,       // all sides
+  kSpecifyOutlet = 4 ,     // specify outlet coordinates
+  kAllSideClosed = -1      // all sides closed
 } tOpenBoundary_t;
 typedef enum { // type of boundary condition
   kClosedBoundary = 1,
