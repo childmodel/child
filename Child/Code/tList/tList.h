@@ -30,7 +30,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.20 2001-06-19 15:47:47 gtucker Exp $
+**  $Id: tList.h,v 1.21 2002-04-22 18:14:29 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -254,6 +254,7 @@ class tList
 {
     friend class tListIter< NodeType >;
     friend class tMeshListIter< NodeType >;
+    tList(const tList&);
 public:
     tList();                            // default constructor
     tList( const tList< NodeType > * ); // copy constructor
@@ -1012,6 +1013,8 @@ DebugTellPtrs()
 template< class NodeType >
 class tListIter
 {
+  tListIter(const tListIter&);
+  tListIter& operator=(const tListIter&);
 public:
     tListIter();                      // default constructor
     tListIter( tList< NodeType > & ); // constructor: reference to list

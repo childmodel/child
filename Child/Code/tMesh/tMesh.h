@@ -19,7 +19,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.30 2002-04-22 17:56:03 arnaud Exp $
+**  $Id: tMesh.h,v 1.31 2002-04-22 18:14:30 arnaud Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -63,6 +63,8 @@ template< class tSubNode >
 class tMesh
 {
    friend class tListOutputData< tSubNode >;
+   tMesh(const tMesh&);
+   tMesh& operator=(const tMesh&);
 public:
    tMesh();
    tMesh( tInputFile & );

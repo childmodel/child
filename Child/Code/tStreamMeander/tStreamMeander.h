@@ -17,7 +17,7 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.23 1999-06-10 18:44:58 gtucker Exp $
+**  $Id: tStreamMeander.h,v 1.24 2002-04-22 18:14:32 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMMEANDER_H
@@ -45,6 +45,8 @@
 /**Class tStreamMeander****/
 class tStreamMeander
 {
+  tStreamMeander(const tStreamMeander&);
+  tStreamMeander& operator=(const tStreamMeander&);
 public:
    //sets everything to zero:
    tStreamMeander();

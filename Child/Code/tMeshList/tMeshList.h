@@ -29,7 +29,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.h,v 1.8 2000-12-07 12:08:21 gtucker Exp $
+**  $Id: tMeshList.h,v 1.9 2002-04-22 18:14:31 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TMESHLIST_H
@@ -52,6 +52,7 @@ class tMeshList : public tList< NodeType >
 {
    friend class tListIter< NodeType  >;
    friend class tMeshListIter< NodeType  >;
+   tMeshList(const tMeshList&);
   public:
    tMeshList();
    tMeshList( const tMeshList< NodeType > * );

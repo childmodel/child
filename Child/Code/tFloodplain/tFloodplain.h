@@ -15,7 +15,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.4 1999-04-05 14:54:38 gtucker Exp $
+**  $Id: tFloodplain.h,v 1.5 2002-04-22 18:14:29 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TFLOODPLAIN_H
@@ -46,11 +46,12 @@
 \**************************************************************************/
 class tFloodplain
 {
-
+  tFloodplain(const tFloodplain&);
+  
 public:
     tFloodplain( tInputFile &infile, tMesh<tLNode> *mp );
     void DepositOverbank( double precip, double delt, double ctime );
-    
+    tFloodplain& operator=(const tFloodplain&);
 private:
     double fpmu;            // "mu" parameter of Howard model
     double fplamda;         // "lamda" (distance-decay) parameter

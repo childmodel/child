@@ -31,7 +31,7 @@
 **    - 3/31/00 bug fix to tPtrList copy constructors (GT)
 **    - 5/10/00 typo fix in DataCopy (GT)
 **
-**  $Id: tPtrList.h,v 1.13 2002-04-11 11:56:49 arnaud Exp $
+**  $Id: tPtrList.h,v 1.14 2002-04-22 18:14:32 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
@@ -192,6 +192,8 @@ private:
 template< class NodeType >
 class tPtrListIter
 {
+  tPtrListIter& operator=( const tPtrListIter& );
+  tPtrListIter( const tPtrListIter& );
   public:
    tPtrListIter();
    tPtrListIter( tPtrList< NodeType > & );

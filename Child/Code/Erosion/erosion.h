@@ -51,7 +51,7 @@
 **       transport in power-law (excess-shear stress) formulation
 **       (GT)
 **
-**  $Id: erosion.h,v 1.33 2002-03-29 09:32:04 gtucker Exp $
+**  $Id: erosion.h,v 1.34 2002-04-22 18:14:29 arnaud Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -87,6 +87,8 @@
 \***************************************************************************/
 class tEquilibCheck
 {
+  tEquilibCheck(const tEquilibCheck&);
+  tEquilibCheck& operator=(const tEquilibCheck&);
 public:
     tEquilibCheck();
     tEquilibCheck( tMesh< tLNode > &, tRunTimer & );
@@ -282,6 +284,8 @@ class tBedErodePwrLaw
 \***************************************************************************/
 class tErosion
 {
+  tErosion(const tErosion&);
+  tErosion& operator=(const tErosion&);
 public:
     tErosion( tMesh< tLNode > *, tInputFile & );
     void ErodeDetachLim( double dtg, tStreamNet * );

@@ -24,7 +24,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.34 2002-04-10 16:13:31 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.35 2002-04-22 18:14:33 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -78,6 +78,8 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 );
 class tInlet
 {
     friend class tStreamNet;
+    tInlet(const tInlet&);
+    tInlet& operator=(const tInlet&);
 public:
     tInlet();
     tInlet( tMesh< tLNode > *, tInputFile & );
@@ -191,6 +193,8 @@ class tStreamNet
 {
     //Xfriend class tStreamTransport;
     friend class tStreamMeander; //necessary?
+    tStreamNet(const tStreamNet&);
+    tStreamNet& operator=(const tStreamNet&);
 public:
     tStreamNet();
     tStreamNet( tMesh< tLNode > &, tStorm &, tInputFile & );
