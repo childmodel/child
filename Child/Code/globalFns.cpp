@@ -4,7 +4,7 @@
 **  @brief Global functions used by tGrid and other modules of
 **         CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.16 2003-05-16 15:12:45 childcvs Exp $
+**  $Id: globalFns.cpp,v 1.17 2003-09-18 15:22:50 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -34,12 +34,33 @@ tArray< double > UnitVector( tEdge const * ePtr )
    const double dx = dxy[0] - oxy[0];
    const double dy = dxy[1] - oxy[1];
    const double mag = sqrt( dx * dx + dy * dy );
-   tArray< double > uvect(2);
-   uvect[0] = dx / mag;
-   uvect[1] = dy / mag;
-   return uvect;
+   return
+     tArray< double >( dx/mag, dy/mag );
 }
 
+/**************************************************************************/
+/**
+**  NewUnitVector
+**
+**  global function to return an array with the magnitudes of the x and y
+**  components of the unit vector parallel to the pointed-to edge (with
+**  endpoints at "new" coordinates).
+**  Modified from UnitVector.
+**  Created: SL 8/2003
+**
+*/
+/**************************************************************************/
+tArray< double > NewUnitVector( tEdge * ePtr )
+{
+   assert( ePtr != 0 );
+   tArray< double > oxy( ePtr->getOriginPtrNC()->FuturePosn() );
+   tArray< double > dxy( ePtr->getDestinationPtrNC()->FuturePosn() );
+   const double dx = dxy[0] - oxy[0];
+   const double dy = dxy[1] - oxy[1];
+   const double mag = sqrt( dx * dx + dy * dy );
+   return
+     tArray< double >( dx/mag, dy/mag );
+}
 
 /**************************************************************************/
 /**

@@ -12,7 +12,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.15 2003-05-23 11:52:05 childcvs Exp $
+**  $Id: globalFns.h,v 1.16 2003-09-18 15:22:51 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -38,6 +38,8 @@ extern Predicates predicate; // object should be declared elsewhere, e.g. main
 
 /******** Global Function Declarations **************************************/
 tArray< double > UnitVector( tEdge const * );
+
+tArray< double > NewUnitVector( tEdge * );
 
 double FindCosineAngle0_2_1( tArray< double > const &, tArray< double > const &,
                              tArray< double > const & );
