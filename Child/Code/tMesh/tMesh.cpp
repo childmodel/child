@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.42 1998-07-15 22:24:39 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.43 1998-07-25 01:17:09 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -442,8 +442,12 @@ tGrid( tInputFile &infile )
       ReportFatalError( "Invalid mesh input option requested." );
    }
    
-   if( read==1 )
-       MakeGridFromInputData( infile ); //create grid by reading data files
+   if( read==1 ){
+      MakeGridFromInputData( infile ); //create grid by reading data files
+      int lay = infile.ReadItem( lay, "OPTREADLAYER" );
+      if( lay == 1 )
+          MakeLayersFromInputData( infile );
+   }
    else if( read==2 )
        MakeGridFromPoints( infile );  //create new mesh from list of points
    else
@@ -454,7 +458,124 @@ tGrid( tInputFile &infile )
 template< class tSubNode >
 tGrid< tSubNode >::
 ~tGrid() {cout << "    ~tGrid()" << endl;}                    //tGrid
- 
+
+
+/************************************************************************\
+  MakeLayersFromInputData( infile ):
+
+  This function reads in layer information from a CHILD output file and
+  copies it to the nodes which have already been created.
+
+\************************************************************************/
+
+template< class tSubNode >
+void tGrid< tSubNode >::
+MakeLayersFromInputData( tInputFile &infile )
+{
+   int i, item, numl;
+   int righttime;
+   double time, intime;
+   double ditem;
+   char thestring[80], inname[80];
+   char headerLine[kMaxNameLength];
+   ifstream layerinfile;
+   infile.ReadItem( thestring, "INPUTDATAFILE" );
+
+   cout<<"in MakeLayersFromInputData..."<<endl;
+   
+   strcpy( inname, thestring );
+   strcat( inname, ".lay" );
+   layerinfile.open(inname); /* Layer input file pointer */
+   assert( layerinfile.good() );
+
+   intime = infile.ReadItem( intime, "INPUTTIME" );
+   //find specified input times in input data files and read no. items.
+   //nodes:
+   righttime = 0;
+   while( !( layerinfile.eof() ) && !righttime )
+   {
+      layerinfile.getline( headerLine, kMaxNameLength );
+      if( headerLine[0] == kTimeLineMark )
+      {
+         layerinfile.seekg( -layerinfile.gcount(), ios::cur );
+         layerinfile >> time;
+         cout << "from file, time = " << time << endl;
+         if( time == intime ) righttime = 1;
+      }
+   }
+   if( !( layerinfile.eof() ) ) layerinfile >> nnodes;
+   else
+   {
+      cerr << "Couldn't find specified input time in layer file" << endl;
+      ReportFatalError( "Input error" );
+   }
+
+   tLayer layhelp;
+   int numg = infile.ReadItem( numg, "NUMGRNSIZE" );
+   layhelp.setDgradesize(numg);
+
+   int g;
+   tLNode * cn;
+   int nActNodes = getNodeList()->getActiveSize();
+   //int NNodes = getNodeList()->get
+   tGridListIter<tLNode> ni( getNodeList() );
+
+   for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+   {
+      cout<<"elevation of node is "<<cn->getZ()<<endl;
+      
+      layerinfile >> numl;
+      for(i = 1; i<=numl; i++){
+         layerinfile >> ditem;
+         layhelp.setCtime(ditem);
+         layerinfile >> ditem;
+         layhelp.setRtime(ditem);
+         layerinfile >> item;
+         layhelp.setFlag(item);
+         layerinfile >> ditem;
+         layhelp.setDepth(ditem);
+         layerinfile >> ditem;
+         layhelp.setErody(ditem);
+         layerinfile >> item;
+         layhelp.setSed(item);
+         for(g=0; g<numg; g++){
+            layerinfile >> ditem;
+            layhelp.setDgrade(g, ditem);
+         }
+         cn->InsertLayerBack( layhelp );
+      }
+      cout<<"current node id is "<<cn->getID()<<endl;
+      if(cn->getID()==189){
+          cout<<"nic node 189, surface layer depth is "<<cn->getLayerDepth(0)<<endl;
+          cout<<"recent time is "<<cn->getLayerRtime(0)<<endl;
+          cout<<"num lay is "<<numl<<endl;
+      }
+      
+          
+   }
+
+   layhelp.setCtime(0);
+   layhelp.setRtime(0);
+   layhelp.setFlag(0);
+   layhelp.setErody(0);
+   layhelp.setSed(0);
+   layhelp.setSed(0);
+
+   double weight = 1/numg;
+   ditem=5000;
+   
+   for( cn = cn; !(ni.AtEnd()); cn=ni.NextP() ){
+      layhelp.setDepth(ditem);
+      for(g=0; g<numg; g++){
+         layhelp.setDgrade(g, ditem*weight);
+      }
+      cn->InsertLayerBack( layhelp );
+   }
+   
+   
+}
+
+
 
 /**************************************************************************\
 **
