@@ -1,9 +1,11 @@
 #if !defined(MEANDER_H_INCLUDED)
 #define MEANDER_H_INCLUDED
 
-void meander_( int *, int *, double *, double *, double *, double *, 
-	       double *, double *, double *, double *, double *, 
-	       double *, double *, double *, double *, double *, double *,
-	       double * ); 
+void meander_( const int *, const int *, const double *, const double *,
+	       const double *, const double *, 
+	       const double *, const double *, const double *,
+	       const double *, double *, 
+	       double *, const double *, double *, double *, double *,
+	       double *, double * ); 
 
 #endif

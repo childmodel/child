@@ -17,31 +17,52 @@ using namespace std;
 #define integer int
 #define doublereal double
 
-    static void forcelag_(integer *, integer *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *);
-    static void forcedist_(integer *, integer *, doublereal *,
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *);
-    static void initialize_(integer *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *);
-    static void changeposition_(integer *, integer *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *);
-    static void channel_(integer *, integer *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *);
-    static doublereal angle_(const doublereal *, const doublereal *);
-    static void getcurv_(integer *, integer *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *);
+static
+void forcelag_(const integer *stnserod, const integer *stations, 
+	       const doublereal *rho, const doublereal *vel,
+	       const doublereal *depth, const doublereal *width,
+	       doublereal *latforce, doublereal *lag,
+	       const doublereal *curvature, const doublereal *acs,
+	       const doublereal *dels, const doublereal *deln);
+static
+void forcedist_(const integer *stnserod, const integer *stations, 
+		const doublereal *lambda, const doublereal *width,
+		const doublereal *lag, const doublereal *latforce,
+		const doublereal *dels, const doublereal *phi,
+		const doublereal *curvature, const doublereal *depth,
+		doublereal *spreaddelta_x__, doublereal *spreaddelta_y__,
+		const doublereal *rightdepth, const doublereal *leftdepth, 
+		const doublereal *xs, doublereal *tauwall);
+static
+void initialize_(const integer *stnserod, doublereal *phi, 
+		 const doublereal *x, const doublereal *y,
+		 doublereal *delx, doublereal *dely, 
+		 doublereal *rho, doublereal *grav,
+		 doublereal *width, doublereal *lambda);
+static
+void changeposition_(const integer *stnserod, const integer * /*stations*/, 
+		     const doublereal *lerody, const doublereal *rerody,
+		     const doublereal *spreaddelta_x__,
+		     const doublereal *spreaddelta_y__,
+		     const doublereal *delx, const doublereal *dely,
+		     const doublereal *depth,
+		     doublereal *delta_x__, doublereal *delta_y__);
+static
+void channel_(const integer *stnserod, const integer *stations, 
+	      const doublereal *flow, const doublereal *slope,
+	      const doublereal *diam, const doublereal *width,
+	      const doublereal * /*rho*/, const doublereal * /*grav*/,
+	      const doublereal *phi, doublereal *curvature,
+	      const doublereal *dels, 
+	      doublereal *acs, doublereal *deln, doublereal *rightdepth,
+	      doublereal *leftdepth, doublereal *depth, 
+	      doublereal *vel, const doublereal *delx, const doublereal *dely,
+	      doublereal *transfactor, doublereal *transslope);
+static
+doublereal angle_(const doublereal *, const doublereal *);
+static
+void getcurv_(const integer *, const integer *, const doublereal *, 
+	      const doublereal *, const doublereal *, doublereal *);
 
 
 static
@@ -97,14 +118,17 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.4 2002-09-23 12:11:52 arnaud Exp $ */
+/*     $Id: meander.cpp,v 1.5 2002-11-04 17:36:52 childcvs Exp $ */
 
-void meander_(integer *stations, integer *stnserod, 
-	doublereal *x, doublereal *y, doublereal *xs, doublereal *dels, 
-	doublereal *flow, doublereal *rerody, doublereal *lerody, doublereal *
-	slope, doublereal *width, doublereal *depth, doublereal *diam, 
-	doublereal *delta_x__, doublereal *delta_y__, doublereal *rightdepth, 
-	doublereal *leftdepth, doublereal *lambda)
+void meander_(const integer *stations, const integer *stnserod, 
+	      const doublereal *x, const doublereal *y,
+	      const doublereal *xs, const doublereal *dels, 
+	      const doublereal *flow, const doublereal *rerody,
+	      const doublereal *lerody, const doublereal *slope,
+	      doublereal *width, doublereal *depth, const doublereal *diam, 
+	      doublereal *delta_x__, doublereal *delta_y__,
+	      doublereal *rightdepth, doublereal *leftdepth,
+	      doublereal *lambda)
 {
     doublereal latforce[6000];
     doublereal curvature[6000];
@@ -171,10 +195,11 @@ void meander_(integer *stations, integer *stnserod,
 
 
 
-void initialize_(integer *stnserod, doublereal *phi, 
-	doublereal *x, doublereal *y, doublereal *delx, doublereal *dely, 
-	doublereal *rho, doublereal *grav, doublereal *width, doublereal *
-	lambda)
+void initialize_(const integer *stnserod, doublereal *phi, 
+		 const doublereal *x, const doublereal *y,
+		 doublereal *delx, doublereal *dely, 
+		 doublereal *rho, doublereal *grav,
+		 doublereal *width, doublereal *lambda)
 {
     /* System generated locals */
     integer i__1;
@@ -217,13 +242,15 @@ void initialize_(integer *stnserod, doublereal *phi,
 
 
 
-void channel_(integer *stnserod, integer *stations, 
-	      doublereal *flow, doublereal *slope, doublereal *diam,
-	      doublereal *width, doublereal * /*rho*/, doublereal * /*grav*/,
-	      doublereal *phi, doublereal *curvature, doublereal *dels, 
+void channel_(const integer *stnserod, const integer *stations, 
+	      const doublereal *flow, const doublereal *slope,
+	      const doublereal *diam, const doublereal *width,
+	      const doublereal * /*rho*/, const doublereal * /*grav*/,
+	      const doublereal *phi, doublereal *curvature,
+	      const doublereal *dels, 
 	      doublereal *acs, doublereal *deln, doublereal *rightdepth,
 	      doublereal *leftdepth, doublereal *depth, 
-	      doublereal *vel, doublereal *delx, doublereal *dely,
+	      doublereal *vel, const doublereal *delx, const doublereal *dely,
 	      doublereal *transfactor, doublereal *transslope)
 {
     /* System generated locals */
@@ -380,9 +407,9 @@ void channel_(integer *stnserod, integer *stations,
 
 
 
-void getcurv_(integer *stnserod, integer * /*stations*/, 
-	      doublereal *delx, doublereal *dely,
-	      doublereal *dels, doublereal *curvature)
+void getcurv_(const integer *stnserod, const integer * /*stations*/, 
+	      const doublereal *delx, const doublereal *dely,
+	      const doublereal *dels, doublereal *curvature)
 {
     /* System generated locals */
     integer i__1;
@@ -452,10 +479,12 @@ void getcurv_(integer *stnserod, integer * /*stations*/,
 
 
 
-void forcelag_(integer *stnserod, integer *stations, 
-	doublereal *rho, doublereal *vel, doublereal *depth, doublereal *
-	width, doublereal *latforce, doublereal *lag, doublereal *curvature, 
-	doublereal *acs, doublereal *dels, doublereal *deln)
+void forcelag_(const integer *stnserod, const integer *stations, 
+	       const doublereal *rho, const doublereal *vel,
+	       const doublereal *depth, const doublereal *width,
+	       doublereal *latforce, doublereal *lag,
+	       const doublereal *curvature, const doublereal *acs,
+	       const doublereal *dels, const doublereal *deln)
 {
     /* System generated locals */
     integer i__1;
@@ -562,12 +591,14 @@ void forcelag_(integer *stnserod, integer *stations,
 
 
 
-void forcedist_(integer *stnserod, integer *stations, 
-	doublereal *lambda, doublereal *width, doublereal *lag, doublereal *
-	latforce, doublereal *dels, doublereal *phi, doublereal *curvature, 
-	doublereal *depth, doublereal *spreaddelta_x__, doublereal *
-	spreaddelta_y__, doublereal *rightdepth, doublereal *leftdepth, 
-	doublereal *xs, doublereal *tauwall)
+void forcedist_(const integer *stnserod, const integer *stations, 
+		const doublereal *lambda, const doublereal *width,
+		const doublereal *lag, const doublereal *latforce,
+		const doublereal *dels, const doublereal *phi,
+		const doublereal *curvature, const doublereal *depth,
+		doublereal *spreaddelta_x__, doublereal *spreaddelta_y__,
+		const doublereal *rightdepth, const doublereal *leftdepth, 
+		const doublereal *xs, doublereal *tauwall)
 {
     /* System generated locals */
     integer i__1;
@@ -677,10 +708,12 @@ void forcedist_(integer *stnserod, integer *stations,
 /*  bank erosion (perpendicular to the flow direction); the sign tells */
 /*  you whether to use right or left bank erodibility. */
 
-void changeposition_(integer *stnserod, integer * /*stations*/, 
-		     doublereal *lerody, doublereal *rerody,
-		     doublereal *spreaddelta_x__, doublereal *spreaddelta_y__,
-		     doublereal *delx, doublereal *dely, doublereal *depth,
+void changeposition_(const integer *stnserod, const integer * /*stations*/, 
+		     const doublereal *lerody, const doublereal *rerody,
+		     const doublereal *spreaddelta_x__,
+		     const doublereal *spreaddelta_y__,
+		     const doublereal *delx, const doublereal *dely,
+		     const doublereal *depth,
 		     doublereal *delta_x__, doublereal *delta_y__)
 {
     /* System generated locals */

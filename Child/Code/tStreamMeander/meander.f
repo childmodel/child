@@ -42,7 +42,7 @@ c     version 1.6: eliminated erroneous division by dels in shear
 c     stress calculation
 c                 1.7  8/11: debugged version SL
 c
-c     $Id: meander.f,v 1.5 2002-08-14 11:34:18 arnaud Exp $
+c     $Id: meander.f,v 1.6 2002-11-04 17:36:52 childcvs Exp $
 c
       subroutine meander (stations, stnserod, x, y, xs, dels, flow,  
      +                    rerody, lerody, slope, width, depth, 
@@ -64,6 +64,8 @@ c
      +       xs(*), transfactor, transslope(dmnsn),
      +       rerody(*), lerody(*),
      +       delta_x(*), delta_y(*), lambda(*)
+c-int intent(in) :: stations, stnserod, x, y, xs, dels, flow,  
+c-int+     rerody, lerody, slope, diam
 C
       continue
 c     print *, 'stnserod in meander:', stnserod
@@ -113,6 +115,7 @@ c      print *, 'last reach node K = ', transfactor
      +       rho, grav, width(*), lambda(*)
       real*8 angle
       external angle
+c-int intent(in) :: stnserod, x, y
 c
       continue
 c     print *, 'stnserod in initialize:', stnserod
@@ -159,13 +162,18 @@ C
      +       dely(*), transfactor, rectchan, radh, 
      +       xmagtransslope
       intrinsic abs, log10, log
+c-int intent(in) :: stnserod, stations, flow, slope, diam, 
+c-int+     width, rho, grav, phi, 
+c-int+     dels,
+c-int+     depth,
+c-int+     delx, dely
       continue
 C
       call getcurv (stnserod, stations, delx, dely, dels, curvature)
 c     print *, 'stnserod in channel:', stnserod
       do s = 1, stnserod - 1
-         if (slope(s) .le. 0.d0) 
-     +        continue
+         if (slope(s) .le. 0.d0)
+c     +        continue
      +       print *, 'neg. or zero slope:', slope(s), s, flow(s)
          if (width(s) .ne. 0.d0 .and. width(s) .ne. -2.d0*depth(s)) 
      +        then
@@ -271,6 +279,7 @@ c
       integer stnserod, stations, s
       real*8 delx(*), dely(*), dels(*), curvature(*), mag, sn, a, b, c,
      +       carg
+c-int intent(in) :: stnserod, stations, delx, dely, dels
       intrinsic acos
       continue
 c
@@ -333,6 +342,8 @@ c
      +       forcefactor, xmagcurvep1, xmagcurve, latvel,
      +       delAcs
       intrinsic abs, cos
+c-int intent(in) :: stnserod, stations, rho, vel, depth, width, 
+c-int+     curvature, Acs, dels, deln
       continue
 c
       if (stations .ne. stnserod) then
@@ -431,6 +442,10 @@ C
      +       tauwall(*), gaussfactor, xstrt,
      +       xdel, xdepth, gaussian, xdest, tenlambda, xtrmnt
       intrinsic abs, cos, sin, exp
+c-int intent(in) :: stnserod, stations, lambda, width, 
+c-int+     lag, latforce, dels, phi, curvature, 
+c-int+     depth,
+c-int+     rightdepth, leftdepth, xs
       continue
 c
       do s = 1, stnserod
@@ -509,6 +524,8 @@ c
       real*8 lerody(*), rerody(*), spreaddelta_x(*), 
      +       spreaddelta_y(*), delx(*), dely(*), 
      +       depth(*), delta_x(*), delta_y(*), xcp
+c-int intent(in) :: stnserod, stations, lerody, rerody,  
+c-int+     spreaddelta_x, spreaddelta_y, delx, dely, depth
 c
       continue
 c      print *,'CHANGE CHANNEL POSITION:'
@@ -535,6 +552,7 @@ c         print *,s,delta_x(s),delta_y(s)
       implicit none
       real*8 y, x
       intrinsic atan2
+c-int intent(in) :: y, x
       continue
       if (x .ne. 0.0d0 .or. y .ne. 0.0d0) then
          angle = atan2(y, x)
