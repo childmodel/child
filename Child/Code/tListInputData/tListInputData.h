@@ -16,7 +16,7 @@
 **     to avoid multiple definition errors resulting from mixing
 **     template & non-template classes (1/99)
 **
-**  $Id: tListInputData.h,v 1.18 2003-07-18 17:48:46 childcvs Exp $
+**  $Id: tListInputData.h,v 1.19 2003-07-31 16:40:01 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -171,30 +171,6 @@ private:
 		     const char *suffix, int n=-1) const;
 };
 
-
-/** class tListIFStreams OBSOLETE ****************************/
-/*class tListIFStreams
-{
-  public:
-  //tListIFStreams();
-  tListIFStreams( const char * );//take file name from tInputFile::ReadItem
-   tListIFStreams( tInputFile & );
-   ~tListIFStreams();
-   int getNNodes() const;
-   int getNEdges() const;
-   int getNTri() const;
-   ifstream &getNodeInFile();
-   ifstream &getEdgeInFile();
-   ifstream &getTriInFile();
-   ifstream &getZInFile();
-  private:
-   int nnodes, nedges, ntri;
-   double time, intime;
-   ifstream nodeinfile;
-   ifstream edgeinfile;
-   ifstream triinfile;
-   ifstream zinfile;
-};*/
 
 /*
 ** The following is designed to allow for compiling under the Borland-style
