@@ -4,7 +4,7 @@
 **
 **  Functions for class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.1 1998-01-14 20:14:35 gtucker Exp $
+**  $Id: tArray.cpp,v 1.2 1998-01-20 14:23:57 stlancas Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -172,3 +172,6 @@ template< class T >                                               //tArray
 int tArray< T >::
 getSize() {return npts;}
 
+template< class T >
+T *tArray< T >::
+getArrayPtr() {return avalue;}
