@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.82 2004-06-16 13:37:46 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.83 2005-02-20 20:24:07 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -139,7 +139,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
   optSinVarInfilt(false),
   mpParkerChannels(0)
 {
-   if (1) //DEBUG
+   if (0) //DEBUG
      std::cout << "tStreamNet(...)...";
    assert( meshPtr != 0 );
    assert( stormPtr != 0 );
@@ -253,7 +253,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    FlowDirs();
    CheckNetConsistency();
    MakeFlow( 0.0 );
-   if (1) //DEBUG
+   if (0) //DEBUG
      std::cout << "finished" << std::endl;
 }
 
@@ -263,7 +263,7 @@ tStreamNet::~tStreamNet()
    meshPtr = 0;
    stormPtr = 0;
    delete mpParkerChannels;
-   if (1) //DEBUG
+   if (0) //DEBUG
      std::cout << "~tStreamNet()" << std::endl;
 }
 
@@ -384,8 +384,61 @@ void tStreamNet::UpdateNet( double time )
      std::cout << "UpdateNet()...";
    CalcSlopes();          // TODO: should be in tMesh
    FlowDirs();
+   
+  if(0) //DEBUG
+  {
+         tMesh< tLNode >::nodeListIter_t mli( meshPtr->getNodeList() );  // gets nodes from the list
+		 tLNode * cn;
+		 for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+		 {
+		    if( cn->getID()==8121 ) 
+			{
+		       tEdge * debugedg = cn->getFlowEdg();
+		       tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+		       std::cout<<"UpdateNet 1: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+		       std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ() << " mdr "<<cn->Meanders()<<" nbr mdr "<<nbr->Meanders()<<std::endl;
+            }
+		}
+   }
+
    MakeFlow( time );
+   
+  if(0) //DEBUG
+  {
+         tMesh< tLNode >::nodeListIter_t mli( meshPtr->getNodeList() );  // gets nodes from the list
+		 tLNode * cn;
+		 for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+		 {
+		    if( cn->getID()==8121 ) 
+			{
+		       tEdge * debugedg = cn->getFlowEdg();
+		       tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+		       std::cout<<"UpdateNet 2: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+		       std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ() << " mdr "<<cn->Meanders()<<" nbr mdr "<<nbr->Meanders()<<std::endl;
+            }
+		}
+
+   }
+
    CheckNetConsistency();
+   
+  if(0) //DEBUG
+  {
+         tMesh< tLNode >::nodeListIter_t mli( meshPtr->getNodeList() );  // gets nodes from the list
+		 tLNode * cn;
+		 for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+		 {
+		    if( cn->getID()==8121 ) 
+			{
+		       tEdge * debugedg = cn->getFlowEdg();
+		       tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+		       std::cout<<"UpdateNet 3: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+		       std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ() << " mdr "<<cn->Meanders()<<" nbr mdr "<<nbr->Meanders()<<std::endl;
+            }
+		}
+
+   }
+
    if (0) //DEBUG
      std::cout << "UpdateNet() finished" << std::endl;
 }
@@ -884,7 +937,7 @@ void tStreamNet::InitFlowDirs()
    tEdge * flowedg;
    int ctr;
 
-   if (1) //DEBUG
+   if (0) //DEBUG
      std::cout << "InitFlowDirs()...\n";
 
    // For every active (non-boundary) node, initialize it to flow to a
@@ -918,7 +971,7 @@ void tStreamNet::InitFlowDirs()
       curnode = i.NextP();
    }
 
-   if (1) //DEBUG
+   if (0) //DEBUG
      std::cout << "finished\n";
 
 }
@@ -942,7 +995,7 @@ void tStreamNet::InitFlowDirs()
 #define kMaxSpokes 100
 void tStreamNet::ReInitFlowDirs()
 {
-   if (1) //DEBUG
+   if (0) //DEBUG
      std::cout << "ReInitFlowDirs()...\n";
    // For every active (non-boundary) node, initialize it to flow to a
    // non-boundary node (ie, along a "flowAllowed" edge)
@@ -980,7 +1033,7 @@ void tStreamNet::ReInitFlowDirs()
       curnode = i.NextP();
    }
 
-   if (1) //DEBUG
+   if (0) //DEBUG
      std::cout << "finished\n";
 
 }
@@ -1088,19 +1141,18 @@ void tStreamNet::ReInitFlowDirs()
 void tStreamNet::FlowDirs()
 {
    tMesh< tLNode >::nodeListIter_t i( meshPtr->getNodeList() );  // gets nodes from the list
-   double slp;                          // steepest slope found so far
+   double slp=0;                          // steepest slope found so far
    double meanderslp = 0;		// steepest meander slope found so far
    double selectslope;			// value of the selected slope
    tLNode *curnode;                     // ptr to the current node
    //XtLNode *newnode;  // ptr to new downstream node
    //XtLNode * nbr;
-   tEdge * firstedg;   // ptr to first edg
+   tEdge * firstedg(0);   // ptr to first edg
    tEdge * curedg;     // pointer to current edge
-   tEdge * nbredg;     // steepest neighbouring edge so far
+   tEdge * nbredg(0);     // steepest neighbouring edge so far
    tEdge * meanderedg = NULL;  // steepest meander edge so far
 
    int ctr;
-
 
    // Find the connected edge with the steepest slope
    curnode = i.FirstP();
@@ -1115,12 +1167,15 @@ void tStreamNet::FlowDirs()
       }
       slp = firstedg->getSlope();
       nbredg = firstedg;
-//        if(curnode->getID()==240 || curnode->getID()==213) {
-//           nbr = (tLNode *)firstedg->getDestinationPtrNC();
-//           std::cout<<"node "<<curnode->getID()<<" edge "<<nbredg->getID()<<" slp "<<slp<<" downstream nbr "<<nbr->getID()<<std::endl;
-//           std::cout<<"z "<<curnode->getZ()<<" dsn z "<<nbr->getZ();
-//           std::cout<<" meander "<<curnode->Meanders()<<std::endl;
-//        }
+	  if(0) //DEBUG
+	  {
+        if(curnode->getID()==8121 /*|| curnode->getID()==213*/) {
+           tLNode * nbr = static_cast<tLNode *>(firstedg->getDestinationPtrNC());
+           std::cout<<"FlowDirs 1: node "<<curnode->getID()<<" edge "<<nbredg->getID()<<" slp "<<slp<<" downstream nbr "<<nbr->getID()<<std::endl;
+           std::cout<<"z "<<curnode->getZ()<<" dsn z "<<nbr->getZ();
+           std::cout<<" meander "<<curnode->Meanders()<<" nbr mndr "<<nbr->Meanders()<<std::endl;
+        }
+	  }
       curedg = firstedg->getCCWEdg();			// Go to the next counter clockwise edge
       ctr = 0;
 
@@ -1130,19 +1185,41 @@ void tStreamNet::FlowDirs()
       ** to another downstream meander node. If yes, get the  connecting
       ** spoke and its downstream slope
       \*******************************************************************/
+#define FIXINLETMEANDERBUG 1
+#if FIXINLETMEANDERBUG
+      if( curnode->Meanders() || curnode==inlet.innode ){
+#else
       if( curnode->Meanders() ){
-
+#endif
       	// if the current node meeanders, check whether its current downstream neighbor also meanders
       	// (should be..)
       	tLNode *NodeAlongEdge =
-		static_cast<tLNode *>(firstedg->getDestinationPtrNC());
-	meanderslp = 0.0;
-	meanderedg = NULL;
-      	if( NodeAlongEdge->Meanders()){
-	  meanderslp = firstedg->getSlope();
-	  meanderedg = firstedg;
+		   static_cast<tLNode *>(firstedg->getDestinationPtrNC());
+	    meanderslp = 0.0;
+	    meanderedg = NULL;
+      	if( NodeAlongEdge->Meanders()) {
+	       meanderslp = firstedg->getSlope();
+	       meanderedg = firstedg;
+		   if(0) //DEBUG
+	       {
+              if(curnode->getID()==8121 /*|| curnode->getID()==213*/)
+                 std::cout<<"FlowDirs: just set meanderslp+edg = "
+			       <<" meanderslp "<<meanderslp<<" meanderedg "<<meanderedg->getID()<<std::endl;
+           }
       	}
       }
+	  if(0) //DEBUG
+	  {
+        if(curnode->getID()==8121 /*|| curnode==inlet.innode*/ ) {
+           tLNode * nbr = static_cast<tLNode *>(firstedg->getDestinationPtrNC());
+           std::cout<<"FlowDirs 2: node "<<curnode->getID()<<" edge "<<nbredg->getID()<<" slp "<<slp<<" downstream nbr "<<nbr->getID()<<std::endl;
+           std::cout<<"z "<<curnode->getZ()<<" dsn z "<<nbr->getZ();
+           std::cout<<" meander "<<curnode->Meanders()<<" nbr mndr "<<nbr->Meanders()
+			<<" meanderslp "<<meanderslp<<" meanderedg ";
+		   if( meanderedg!=NULL ) std::cout<<meanderedg->getID()<<std::endl;
+		   else std::cout<<"NULL\n";
+        }
+	  }
 
      /*************************************************************\
      ** Standard: Check all existing spokes for the steepest
@@ -1161,7 +1238,7 @@ void tStreamNet::FlowDirs()
          }
          curedg = curedg->getCCWEdg();
          ctr++;
-         if( unlikely(ctr>kMaxSpokes) ) // Make sure to prevent std::endless loops
+         if( unlikely(ctr>kMaxSpokes) ) // Make sure to prevent endless loops
          {
             std::cerr << "Mesh error: node " << curnode->getID()
                  << " going round and round"
@@ -1176,44 +1253,101 @@ void tStreamNet::FlowDirs()
       ** if both go to meandering nodes, select the one with the steepest spoke
       ** if not, give preference to the meandering one, also if the normal spoke is steeper
       \***************************************************************************************/
+#if FIXINLETMEANDERBUG
+	  if( ( curnode->Meanders() || curnode==inlet.innode ) && meanderedg != NULL ){
+#else
       if(curnode->Meanders() && meanderedg != NULL ){
-      	tLNode *SteepestDescentNode =
-	       static_cast<tLNode *>(nbredg->getDestinationPtrNC());
+#endif
+      	 tLNode *SteepestDescentNode =
+	        static_cast<tLNode *>(nbredg->getDestinationPtrNC());
 
-	// the steepest descent one is meandering
-	if( SteepestDescentNode->Meanders() ){
-	   if(slp > meanderslp){
-	     curnode->setFlowEdg( nbredg);
-	     selectslope = slp;
-	   }
-	   else if(slp <= meanderslp){
-	     curnode->setFlowEdg( meanderedg);
-	     selectslope = meanderslp;
-	   }
-	}
-	// the steepest descent one is not meandering
-	else if ( !SteepestDescentNode->Meanders() ){
-	  // pick the meander edge if it is positive and the steeper choice
-	  // does not lead to an open boundary
-	  if(meanderslp > 0.0 && 
-	     nbredg->getDestinationPtr()->getBoundaryFlag() != kOpenBoundary){
-	    curnode->setFlowEdg( meanderedg);
-	    selectslope = meanderslp;
-	  }
-	  else{
-	    curnode->setFlowEdg( nbredg);
-	    selectslope = slp;
-	  }
-	}
-
-      }
+	     // the steepest descent one is meandering
+	     if( SteepestDescentNode->Meanders() ){
+	        if(slp > meanderslp){
+	           if(0) //DEBUG
+		          if( curnode->getID()==8121 || curnode->getID()==8122 ) std::cout << "FlowDirs: steepest desc mnds, change dir\n";
+	           curnode->setFlowEdg( nbredg);
+	           selectslope = slp;
+			 }
+			 else if(slp <= meanderslp){
+				 if(0) //DEBUG
+					 if( curnode->getID()==8121 || curnode->getID()==8122 ) std::cout << "FlowDirs: cur mndr IS steepest\n";
+				 curnode->setFlowEdg( meanderedg);
+				 selectslope = meanderslp;
+			 }
+		 } // end i
+		 // the steepest descent one is not meandering
+		 else if ( !SteepestDescentNode->Meanders() ){
+			 // pick the meander edge if it is positive and the steeper choice
+			 // does not lead to an open boundary
+#define TESTFIX 0
+			 if( TESTFIX )
+			 {
+				 if( nbredg->getDestinationPtr()->getBoundaryFlag() != kOpenBoundary )
+				 {
+					 curnode->setFlowEdg( meanderedg);
+					 selectslope = meanderslp;
+				 }
+				 else{
+					 curnode->setFlowEdg( nbredg);
+					 selectslope = slp;
+					 if(0) //debug
+					 {
+						 std::cout << "Case meand->nonmeand invoked at node " << curnode->getX() << " " << curnode->getY() << std::endl;
+						 std::cout << "meanderslp = " << meanderslp << std::endl;
+					 }
+				 }
+			 }
+			 else // NOT TESTFIX
+			 {
+				 if(meanderslp > 0.0 && 
+					nbredg->getDestinationPtr()->getBoundaryFlag() != kOpenBoundary)
+				 {
+					 if(0) //DEBUG
+						 if( curnode->getID()==8121 || curnode->getID()==8122 ) std::cout << "FlowDirs: steepest doesn't mdr, staying w/ current dir\n";
+					 curnode->setFlowEdg( meanderedg);
+					 selectslope = meanderslp;
+					 if(0) //DEBUG
+					 {
+						 if(curnode->getID()==8121 || curnode->getID()==8122 ) {
+							 tLNode * nbr = static_cast<tLNode *>(meanderedg->getDestinationPtrNC());
+							 std::cout<<"FlowDirs 2A: node "<<curnode->getID()<<" edge "<<meanderedg->getID()<<" slp "<<meanderslp<<" downstream nbr "<<nbr->getID()<<std::endl;
+							 std::cout<<"z "<<curnode->getZ()<<" dsn z "<<nbr->getZ();
+							 std::cout<<" meander "<<curnode->Meanders()<<" nbr mndr "<<nbr->Meanders()<<std::endl;
+						 }
+					 }
+				 }
+				 else
+				 {
+					 curnode->setFlowEdg( nbredg);
+					 selectslope = slp;
+					 if(0) //debug
+					 {
+						 std::cout << "FlowDirs: Case meand->nonmeand invoked at node " << curnode->getX() << " " << curnode->getY() << " ";
+						 std::cout << "meanderslp = " << meanderslp << std::endl;
+					 } // end if
+				 } // end else
+			 } // end else
+		 } // end else if
+		 
+	  } // end if
       else{ // all other cases, no menadering nodes involved
-        curnode->setFlowEdg( nbredg );
-        selectslope = slp;
+		  curnode->setFlowEdg( nbredg );
+		  selectslope = slp;
       }
-
-
-
+	  
+	  if(0) //DEBUG
+	  {
+		  if(curnode->getID()==8121 || curnode->getID()==8122 ) {
+		      tEdge * debugedg = curnode->getFlowEdg();
+			  tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+			  std::cout<<"FlowDirs 3: node "<<curnode->getID()<<" edge "<<debugedg->getID()<<" slp "<<selectslope<<" downstream nbr "<<nbr->getID()<<std::endl;
+			  std::cout<<"z "<<curnode->getZ()<<" dsn z "<<nbr->getZ();
+			  std::cout<<" meander "<<curnode->Meanders()<<" nbr mndr "<<nbr->Meanders()<<std::endl;
+		  }
+	  }
+	  
+	  
 #if 1
       // ocasionally there are bumps in the meandering channel.
       // Even when all normal erosion and deposition functions
@@ -1294,13 +1428,27 @@ void tStreamNet::FlowDirs()
          }
 
       }
+	  
+      if(0) //DEBUG
+      {
+	     if(curnode->getID()==8121 || curnode->getID()==8122 ) {
+		   tEdge * debugedg = curnode->getFlowEdg();
+		   tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+		   std::cout<<"FlowDirs 4: node "<<curnode->getID()<<" edge "<<debugedg->getID()<<" slp "<<selectslope<<" downstream nbr "<<nbr->getID()<<std::endl;
+		   std::cout<<"z "<<curnode->getZ()<<" dsn z "<<nbr->getZ();
+		   std::cout<<" meander "<<curnode->Meanders()<<" nbr mndr "<<nbr->Meanders()<<std::endl;
+	     }
+      }
+	  
       curnode = i.NextP();                // Continue with the next node on the active list
-   }
+	  
+   } // end of node loop
 
    if (0) //DEBUG
      std::cout << "FlowDirs() finished" << std::endl;
 }
 #undef kMaxSpokes
+#undef FIXINLETMEANDERBUG
 
 
 /*****************************************************************************\
@@ -1571,6 +1719,23 @@ void tStreamNet::MakeFlow( double tm )
      std::cout << "MakeFlow()..."<<std::flush;
 
    if( filllakes ) FillLakes();
+   
+   if(0) //DEBUG
+   {
+         tMesh< tLNode >::nodeListIter_t mli( meshPtr->getNodeList() );  // gets nodes from the list
+		 tLNode * cn;
+		 for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+		 {
+		    if( cn->getID()==8121 ) 
+			{
+		       tEdge * debugedg = cn->getFlowEdg();
+		       tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+		       std::cout<<"MakeFlow 1: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+		       std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ() << " mdr "<<cn->Meanders()<<" nbr mdr "<<nbr->Meanders()<<std::endl;
+            }
+		}
+   }
+
    DrainAreaVoronoi();
 
    // If a hydrologic parameter varies through time, update it here
@@ -1883,7 +2048,10 @@ void tStreamNet::FlowBucket()
 void tStreamNet::FillLakes()
 {
    if (0) //DEBUG
+   {
      std::cout << "FillLakes()..." << std::endl;
+   }
+   int debugcount=0; //DEBUG
 
    tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() ); // node iterator
 
@@ -1892,21 +2060,46 @@ void tStreamNet::FillLakes()
    {
       if( cn->getFloodStatus() == tLNode::kSink )
       {
-	// Create a new lake-list, initially containing just the sink node.
-	tPtrList< tLNode > lakeList;
+	     // Create a new lake-list, initially containing just the sink node.
+	     tPtrList< tLNode > lakeList;
 
-	// Build lakeList and iteratively search for an outlet along the
-	// perimeter of the lake
-	tLNode *lowestNode = BuildLakeList( lakeList, cn );
+	     // Build lakeList and iteratively search for an outlet along the
+	     // perimeter of the lake
+	     tLNode *lowestNode = BuildLakeList( lakeList, cn );
 
-	// Assign a flow path
-	tPtrListIter< tLNode > lakeIter( lakeList ); // Iterator for lake list
-	FillLakesFlowDirs(lakeIter, lowestNode);
+   
+         if(0) //DEBUG
+         {
+		    debugcount++;
+            tMesh< tLNode >::nodeListIter_t mli( meshPtr->getNodeList() );  // gets nodes from the list
+		    tLNode * cn;
+		    for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+		    {
+		       if( cn->getID()==8121 ) break;
+		    }
+		    tEdge * debugedg = cn->getFlowEdg();
+		    tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+		    std::cout<<"FillLakes 1 iter " << debugcount << ": node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+			std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ() << " mdr "<<cn->Meanders()<<" nbr mdr "<<nbr->Meanders()<<std::endl;
+         }
 
-	// Finally, flag all of the nodes in it as "kFlooded"
-	for( tLNode *cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
-	     cln = lakeIter.NextP() )
-	  cln->setFloodStatus( tLNode::kFlooded );
+	     // Assign a flow path
+	     tPtrListIter< tLNode > lakeIter( lakeList ); // Iterator for lake list
+	     FillLakesFlowDirs(lakeIter, lowestNode);
+
+	     // Finally, flag all of the nodes in it as "kFlooded"
+		 if(0) //DEBUG
+		    std::cout<<"FillLakes: " << lakeList.getSize() << " flooded nodes:" <<std::endl;
+	     for( tLNode *cln = lakeIter.FirstP(); !( lakeIter.AtEnd() ); cln = lakeIter.NextP() )
+		 {
+	        cln->setFloodStatus( tLNode::kFlooded );
+			if(0) //DEBUG
+			{
+			   std::cout<<cln->getID();
+			   if( cln->Meanders() ) std::cout<<"*";
+			   std::cout<<std::endl;
+			}
+		 }
       } /* END if Sink */
    } /* END Active Nodes */
 
@@ -2147,9 +2340,17 @@ bool tStreamNet::FindLakeNodeOutlet( tLNode *node ) const
           ce->FlowAllowed() &&
           ( dn->getBoundaryFlag()==kOpenBoundary ||
             dn->getDownstrmNbr()->getZ() < node->getZ() ) )*/
+#define NEWFIX 1
+#if NEWFIX
+      if( ce->getSlope() > maxslp &&
+          dn->getFloodStatus() != tLNode::kCurrentLake &&
+          ce->FlowAllowed() && !FlowDirBreaksMeanderChannel( node, ce ) )
+#else
       if( ce->getSlope() > maxslp &&
           dn->getFloodStatus() != tLNode::kCurrentLake &&
           ce->FlowAllowed() )
+#endif
+#undef NEWFIX
       {
          // Handle a very special and rare case: if the "target" node dn is
          // part of a previous lake, it's still a valid exit as long as its
@@ -2179,6 +2380,32 @@ bool tStreamNet::FindLakeNodeOutlet( tLNode *node ) const
    } while( ( ce=ce->getCCWEdg() ) != node->getEdg() );
 
    return BOOL( maxslp > 0 );
+}
+
+
+/*****************************************************************************\
+**
+**  FlowDirBreaksMeander()
+**
+**  Tests whether a potential change in flow direction would break an existing
+**  path from one meander node to another. (Note: it returns FALSE even if
+**  the potential new path would also connect to a meandering node)
+**
+**  Returns: TRUE if the new direction breaks an existing meander path,
+**           FALSE otherwise.
+**  Calls: (none)
+**  Called by: FindLakeNodeOutlet
+**  Created: 12/04
+**  Updated: 
+**
+\*****************************************************************************/
+bool tStreamNet::FlowDirBreaksMeanderChannel( tLNode * theNode, tEdge * potentialFlowEdg ) const
+{
+   if( !theNode->Meanders() && theNode!=inlet.innode ) return false;   // no problem unless it's a meander node or the inlet
+   if( potentialFlowEdg==theNode->getFlowEdg() ) return false; // no prob if no change in dir
+   tLNode * nbr = theNode->getDownstrmNbr();
+   if( !nbr->Meanders() ) return false;   // no prob if neighbor doesn't meander
+   else return true;
 }
 
 
@@ -2549,6 +2776,12 @@ void tStreamNet::FindChanGeom()
       cn->setBankRough( lambda );
       slope = cn->calcSlope();
       cn->setChanSlope( slope );
+	  
+	  if(0) //DEBUG
+	  {
+	     if( cn->getID()==8121 ) std::cout << "FindChanGeom 1: new slope at " << cn->getID() << " is " << slope << std::endl;
+	  }
+ 
       //std::cout<<"FCG node "<<cn->getID()<<" new dep "<<depth;
 
       //Nic changed below, thinks it was causing problems
@@ -2569,8 +2802,11 @@ void tStreamNet::FindChanGeom()
       //}
 //         else cn->setMeanderStatus( kNonMeanderNode );
       //nmg
-      if( slope <= 0.00000001 ){
-         cn->setMeanderStatus( kNonMeanderNode );
+#define TESTFIX 0
+      if( cn->Meanders() && slope <= 0.00000001 ){ // added "meanders" clause Gt 12/04
+		 if(0) //debug
+			std::cout << "Meander node de-activation in FindChanGeom, at node " << cn->getID() << " " << cn->getX() << " " << cn->getY() << std::endl;
+         if( !TESTFIX ) cn->setMeanderStatus( kNonMeanderNode );
       }
       if( unlikely(slope < 0.0) )
       {
@@ -2649,7 +2885,7 @@ void tStreamNet::RouteFlowKinWave( double rainrate_ )
    double sum;                         // Sum used in to apportion flow
    double runoff = rainrate_ - infilt;  // Local runoff rate at node
 
-   if (1) //DEBUG
+   if (0) //DEBUG
      std::cout << "RouteFlowKinWave\n";
 
    if( runoff <= 0.0 ) return;
@@ -2852,7 +3088,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
             help = infile.ReadItem( help, tagline );
             inSedLoadm[i] = help;
             inSedLoad += help;
-	    if (1) //DEBUG
+	    if (0) //DEBUG
 	      std::cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i]<<std::endl;
             //i++;
             //end++;
@@ -3213,12 +3449,12 @@ tParkerChannels::tParkerChannels( const tInputFile &infile )
      {
        d50 = infile.ReadItem( d50, "GRAINDIAM0" );
        taucrit = thetac*(sigma-rho)*grav*d50;
-       if (1) //DEBUG
+       if (0) //DEBUG
 	 std::cout << "Tau crit = " << taucrit << std::endl;
        mdPPfac = ( 1.0 / secPerYear )
 	 * pow( kt / ( taucrit*shearRatio ), 1.0 / alpha );
        mdPPexp2 = 0.0; // Not used in this case
-       if (1) //DEBUG
+       if (0) //DEBUG
 	 std::cout << "mdPPfac=" << mdPPfac << "  mdPPexp1=" << mdPPexp1 << std::endl;
      }
 
@@ -3339,7 +3575,7 @@ void tStreamNet::DebugShowNbrs( tLNode *theNode ) const
 	std::cout<<"has nbrs itself: "<<std::endl;
 	tEdge *cee;
 	tSpkIter spokIter2(surnode);
-	if(1){
+	if(0){
 	  for( cee = spokIter2.FirstP(); !( spokIter2.AtEnd() ); cee = spokIter2.NextP() ){
 	    tLNode* morenode = static_cast<tLNode *>( cee->getDestinationPtrNC() );
 	    std::cout<<morenode->getID()<<" "
