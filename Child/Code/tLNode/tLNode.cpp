@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.54 1998-07-23 17:44:49 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.55 1998-07-23 23:36:31 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -574,50 +574,31 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
    tArray<double> dgradehelp;
    tArray<double> dgradebrhelp;
    
-   cout << "entered tlnode " << endl;
-   
    //cout << "=>tLNode( infile )" << endl;
    flood = 0;
    flowedge = 0;
    tracer = 0;
    dzdt = drdt = qs = qsin = uplift = 0.0;
    numg = infile.ReadItem( numg, "NUMGRNSIZE" );
-   cout << "value of numg is " << numg << endl;
+   //cout << "value of numg is " << numg << endl;
    grade.setSize( numg );
    maxregdep = infile.ReadItem( maxregdep, "MAXREGDEPTH" );
-   cout << "maximum regolith depth is " << maxregdep << endl;
+   //cout << "maximum regolith depth is " << maxregdep << endl;
    
-   dgradehelp.setSize( numg );
-   dgradebrhelp.setSize( numg );   
-   sum = 0;
    i=0;
    add='1';
    
    while ( i<numg ){
-      // Reading in grain size info and proportions for intital regolith
+      // Reading in grain size diameter info 
       strcpy( name, "GRAINDIAM");
       strcat( name, &add ); 
       help = infile.ReadItem( help, name);
       grade[i] = help;
-      strcpy( name, "REGPROPORTION");
-      strcat( name, &add ); 
-      help = infile.ReadItem( help, name);
-      dgradehelp[i]=help;
-      sum += help;
-      strcpy( name, "BRPROPORTION");
-      strcat( name, &add ); 
-      help = infile.ReadItem( help, name);
-      dgradebrhelp[i]=help;
-      sumbr += help;
       i++;
       add++;
    }
 
-   if(fabs(sum-1.0)>0.001)
-         ReportFatalError("Problem with the regolith proportion of grain sizes in input file");
-   if(fabs(sumbr-1.0)>0.001)
-         ReportFatalError("Problem with the bedrock proportion of grain sizes in input file");
-//   cout << "nic, you got past fatal errors" << endl;
+
    
    if( numg > 1 ){
       qsm.setSize( numg );
@@ -625,105 +606,139 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
       
    }
 
-   help = infile.ReadItem( help, "REGINIT" );
-//    cout << "regolith depth is " << help << endl;
+   i = infile.ReadItem( i, "OPTREADLAYER" );
 
+   if(i!=1){
+      
+      help = infile.ReadItem( help, "REGINIT" );
+//    cout << "regolith depth is " << help << endl;
+      
 //    cout << "1 grain size is "<<grade[0]<<" 2 grain size is "<<grade[1] << endl;
-   
-   if( help > 0){
-      // Make a bedrock and regolith layer, possibly two depending
-      // on the depth of the regolith layer.  The code will decide
-      // the total number of layers needed.  By default the regolith
-      // layer(s) is/are put on top of the bedrock.
-      layhelp.setCtime( 0.0 );
-      //nic - need to put real time here (for above and below)-check into this
-      layhelp.setRtime( 0.0 );
-      // Bedrock layer items read in and set
-      help = infile.ReadItem( help, "KB");
-      layhelp.setErody(help);
-      layhelp.setSed(0);
-      
-      // in the regolith layer dgrade is saving
-      // the proportion of grain size available from the bedrock
-      
-      layhelp.setDgradesize(numg);
+
+      dgradehelp.setSize( numg );
+      dgradebrhelp.setSize( numg );   
+      sum = 0;
+      sumbr = 0;
       i=0;
-      help = infile.ReadItem( help, "BEDROCKDEPTH");
-      while(i<numg){
-         layhelp.setDgrade(i, help*dgradebrhelp[i]);
+      add='1';
+      
+      while ( i<numg ){
+         // Reading in proportions for intital regolith and bedrock
+         strcpy( name, "REGPROPORTION");
+         strcat( name, &add ); 
+         help = infile.ReadItem( help, name);
+         dgradehelp[i]=help;
+         sum += help;
+         strcpy( name, "BRPROPORTION");
+         strcat( name, &add ); 
+         help = infile.ReadItem( help, name);
+         dgradebrhelp[i]=help;
+         sumbr += help;
          i++;
+         add++;
       }
 
-      layerlist.insertAtBack( layhelp );
+      if(fabs(sum-1.0)>0.001)
+          ReportFatalError("Problem with the regolith proportion of grain sizes in input file");
+      if(fabs(sumbr-1.0)>0.001)
+          ReportFatalError("Problem with the bedrock proportion of grain sizes in input file");
+//   cout << "nic, you got past fatal errors" << endl;
       
-      // Regolith layer items read in and set
-      layhelp.setSed(1);
-      help = infile.ReadItem( help, "KR" );
-      layhelp.setErody(help);
-      help = infile.ReadItem( help, "REGINIT");
-      extra = 0;
-      if(help > maxregdep){
-         // too much regolith, create two layers the bottom layer is made here
-         extra = help - maxregdep;
-         //layhelp.setDepth(extra);
-         //layhelp.setDgradesize(numg);
+      if( help > 0){
+         // Make a bedrock and regolith layer, possibly two depending
+         // on the depth of the regolith layer.  The code will decide
+         // the total number of layers needed.  By default the regolith
+         // layer(s) is/are put on top of the bedrock.
+         layhelp.setCtime( 0.0 );
+         //nic - need to put real time here (for above and below)-check into this
+         layhelp.setRtime( 0.0 );
+         // Bedrock layer items read in and set
+         help = infile.ReadItem( help, "KB");
+         layhelp.setErody(help);
+         layhelp.setSed(0);
+         
+         // in the regolith layer dgrade is saving
+         // the proportion of grain size available from the bedrock
+         
+         layhelp.setDgradesize(numg);
          i=0;
+         help = infile.ReadItem( help, "BEDROCKDEPTH");
          while(i<numg){
-            layhelp.setDgrade(i, extra*dgradehelp[i]);
+            layhelp.setDgrade(i, help*dgradebrhelp[i]);
             i++;
          }
-         layerlist.insertAtFront( layhelp );
-
-         // the top regolith layer is now made
-         i=0;
-         while(i<numg){
-            layhelp.setDgrade(i, maxregdep*dgradehelp[i]);
-            i++;
+         
+         layerlist.insertAtBack( layhelp );
+         
+         // Regolith layer items read in and set
+         layhelp.setSed(1);
+         help = infile.ReadItem( help, "KR" );
+         layhelp.setErody(help);
+         help = infile.ReadItem( help, "REGINIT");
+         extra = 0;
+         if(help > maxregdep){
+            // too much regolith, create two layers the bottom layer is made here
+            extra = help - maxregdep;
+            //layhelp.setDepth(extra);
+            //layhelp.setDgradesize(numg);
+            i=0;
+            while(i<numg){
+               layhelp.setDgrade(i, extra*dgradehelp[i]);
+               i++;
+            }
+            layerlist.insertAtFront( layhelp );
+            
+            // the top regolith layer is now made
+            i=0;
+            while(i<numg){
+               layhelp.setDgrade(i, maxregdep*dgradehelp[i]);
+               i++;
+            }
+            layerlist.insertAtFront( layhelp );
          }
-         layerlist.insertAtFront( layhelp );
+         else{
+            // create only one regolith layer
+            i=0;
+            while(i<numg){
+               layhelp.setDgrade(i, help*dgradehelp[i]);
+               i++;
+            }
+            
+            layerlist.insertAtFront( layhelp );
+         }
       }
       else{
-         // create only one regolith layer
+         // no regolith, so by default everything is bedrock
+         layhelp.setCtime(0.0);
+         //since time isn't global time is just set to zero.
+         //assume you are always starting from zero, if not then
+         //you use a restart file and layer info will be read from there.
+         layhelp.setRtime(0.0);
+         // Bedrock layer items set
+         help = infile.ReadItem( help, "KB");
+         layhelp.setErody(help);
+         layhelp.setSed(0);
+         layhelp.setDgradesize(numg);
          i=0;
+         help = infile.ReadItem( help, "BEDROCKDEPTH");
          while(i<numg){
-            layhelp.setDgrade(i, help*dgradehelp[i]);
+            layhelp.setDgrade(i, help*dgradebrhelp[i]);
             i++;
          }
-      
-         layerlist.insertAtFront( layhelp );
-      }
-   }
-   else{
-      // no regolith, so by default everything is bedrock
-      layhelp.setCtime(0.0);
-      //since time isn't global time is just set to zero.
-      //assume you are always starting from zero, if not then
-      //you use a restart file and layer info will be read from there.
-      layhelp.setRtime(0.0);
-      // Bedrock layer items set
-      help = infile.ReadItem( help, "KB");
-      layhelp.setErody(help);
-      layhelp.setSed(0);
-      layhelp.setDgradesize(numg);
-      i=0;
-      help = infile.ReadItem( help, "BEDROCKDEPTH");
-      while(i<numg){
-         layhelp.setDgrade(i, help*dgradebrhelp[i]);
-         i++;
+         
+         layerlist.insertAtBack( layhelp );
+         
       }
       
-      layerlist.insertAtBack( layhelp );
-      
+      cout << layerlist.getSize() << " layers created " << endl;
    }
+   
+   cout << "nic, what is size of grade array ? " << grade.getSize() << endl;
+   cout << "1 is size " << grade[0] << " 2 is size " << grade[1] << endl;   
 
-   cout << layerlist.getSize() << " layers created " << endl;
-
-   //cout << "nic, what is size of grade array ? " << grade.getSize() << endl;
-   //cout << "1 is size " << grade[0] << " 2 is size " << grade[1] << endl;   
-
-   i=0;
-   while(i<layerlist.getSize()){
-      cout << "layer " << i+1 << endl;
+//   i=0;
+//   while(i<layerlist.getSize()){
+//       cout << "layer " << i+1 << endl;
 //       niclay = layerlist.getIthData(i);
 //       cout << "layer creation time is " << niclay.getCtime() << endl;
 //       cout << "layer recent time is " << niclay.getRtime() << endl;
@@ -732,17 +747,16 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
 //       cout << "is layer sediment? " << niclay.getSed() << endl;
 //       cout << "dgrade 1 is " << niclay.getDgrade(0) << endl;
 //       cout << "dgrade 2 is " << niclay.getDgrade(1) << endl;
-//       cout << "layer " << i+1 << " now from the getlayer func" << endl;
-      cout << "layer creation time is " << getLayerCtime(i) << endl;
-      cout << "layer recent time is " << getLayerRtime(i) << endl;
-      cout << "layer depth is " << getLayerDepth(i) << endl;
-      cout << "layer erodibility is " << getLayerErody(i) << endl;
-      cout << "is layer sediment? " << getLayerSed(i) << endl;
-      cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
-      if( numg>1 ) cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
-      i++;
-      
-   }
+//        cout << "layer " << i+1 << " now from the getlayer func" << endl;
+//        cout << "layer creation time is " << getLayerCtime(i) << endl;
+//        cout << "layer recent time is " << getLayerRtime(i) << endl;
+//        cout << "layer depth is " << getLayerDepth(i) << endl;
+//        cout << "layer erodibility is " << getLayerErody(i) << endl;
+//        cout << "is layer sediment? " << getLayerSed(i) << endl;
+//        cout << "dgrade 1 is " << getLayerDgrade(i,0) << endl;
+//        if( numg>1 ) cout << "dgrade 2 is " << getLayerDgrade(i,1) << endl;
+//        i++;
+//     }
    
 //    cout << "nic is trying to erode from first layer" << endl;
 //    dgradehelp[0]=-1.0;
