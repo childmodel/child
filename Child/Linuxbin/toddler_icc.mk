@@ -2,7 +2,12 @@ PT = ../Code
 CXX = icpc
 #
 # Intel compiler is picky !
-WARNINGFLAGS = -Wall -wd279,981,810 -wd444
+# 279: controlling expression is constant
+# 981: operands are evaluated in unspecified order
+# 810: conversion may loose significant bits
+# 444: destructor for base class is not virtual
+# 383: value copied to temporary, reference to temporary used
+WARNINGFLAGS = -Wall -wd279,981,810 -wd444 -wd383
 #WARNINGFLAGS =
 
 # gcc 3.1 and later implements standard C++ headers.
