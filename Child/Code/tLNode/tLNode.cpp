@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.103 2003-05-19 14:54:00 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.104 2003-05-23 11:51:13 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -21,7 +21,7 @@
 #include <math.h>
 #include "../errors/errors.h"
 #include "tLNode.h"
-#define kBugTime 5000000
+//#define kBugTime 5000000
 
 //Sets the total layer depth.  While updating depth, dgrade info is
 //automatically updated to keep the same texture.  
@@ -239,9 +239,6 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
 {
    if( &right != this )
    {
-      //erosion = right.erosion;
-     // TODO ??
-       //migration = right.migration;
       drarea = right.drarea;
       q = right.q;
       chanwidth = right.chanwidth;
@@ -254,6 +251,7 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
       hydrslope = right.hydrslope;
       mdFlowPathLength = right.mdFlowPathLength;
       diam = right.diam;
+      migration = right.migration;
    }
    return *this;
 }
@@ -433,10 +431,10 @@ uplift(0.),
                i++;
             }
             if(extra>10000) //TODO, bettter criteria for setting deep sed. flag
-                layhelp.setRtime(-1);
+                layhelp.setRtime(-1.);
             layerlist.insertAtFront( layhelp );
             // the top regolith layer is now made
-            layhelp.setRtime(0);
+            layhelp.setRtime(0.);
             i=0;
             while(i<numg){
                layhelp.setDgrade(i, maxregdep*dgradehelp[i]);
@@ -505,7 +503,8 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
 
 tLNode::~tLNode()                                                  //tLNode
 {
-     //cout << "    ~tLNode()" << endl;
+  //cout << "    ~tLNode()" << endl;
+  flowedge = 0;
 }
 
 //assignment
@@ -1515,8 +1514,8 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
              layhelp.setDgrade(1,(1-newtex)*newdep);
          layhelp.setSed(1); 
          layhelp.setErody(newerody/sum);
-         layhelp.setRtime(-1);
-         layhelp.setEtime(0);
+         layhelp.setRtime(-1.);
+         layhelp.setEtime(0.);
          helplist.insertAtBack( layhelp );
       }
 
@@ -1556,7 +1555,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
           layhelp.setDgrade(1,(1-newtex)*newdep);
       layhelp.setSed(0);
       layhelp.setErody(newerody/sum);
-      layhelp.setRtime(0);
+      layhelp.setRtime(0.);
       layhelp.setEtime(newetime/sum);
 
       helplist.insertAtBack( layhelp );
@@ -1707,8 +1706,8 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
              layhelp.setDgrade(1,(1-newtex)*newdep);
          layhelp.setSed(1); 
          layhelp.setErody(newerody/sum);
-         layhelp.setRtime(-1);
-         layhelp.setEtime(0);
+         layhelp.setRtime(-1.);
+         layhelp.setEtime(0.);
          helplist.insertAtBack( layhelp );
       }
 
@@ -1733,7 +1732,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
           layhelp.setDgrade(1,(1-newtex)*newdep);
       layhelp.setSed(1); 
       layhelp.setErody(newerody/sum);
-      layhelp.setRtime(0);
+      layhelp.setRtime(0.);
       layhelp.setEtime(newetime/sum);
       helplist.insertAtBack( layhelp );
    
@@ -1742,7 +1741,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
       //truncated according to the new elevation and the elevation
       //around the node
       double theoryz;
-      theoryz=LineFit(0, lnds[0]->getZ(), dist[0]+dist[1],
+      theoryz=LineFit(0., lnds[0]->getZ(), dist[0]+dist[1],
                       lnds[1]->getZ(), dist[0]);
       double diff=theoryz-getZ();
       while(diff>0){
@@ -1847,9 +1846,9 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
       //the bottom layer.
       tLayer layhelp;
       layhelp.setSed(1);
-      layhelp.setEtime(0);
+      layhelp.setEtime(0.);
       layhelp.setCtime(time);
-      layhelp.setRtime(0);
+      layhelp.setRtime(0.);
       layhelp.setDgrade(0,maxregdep*helplist.FirstP()->getDgrade(0)/helplist.FirstP()->getDepth());
       if(numg>1)
           layhelp.setDgrade(1,maxregdep*helplist.FirstP()->getDgrade(1)/helplist.FirstP()->getDepth());
@@ -2041,7 +2040,6 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    
    //NIC these are for testing
    //Xbefore=getLayerDepth(i);
-   tArray<double> helper=valgrd;
    // int numlay=getNumLayer();
    //Xint h;
    //int nh = 0;
@@ -2113,8 +2111,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
          }
          g=0;
          while(g<numg){
-            addtoLayer(i, g, valgrd[g], -1); // Erosion 
-            addtoLayer(i,g,-1*update[g],-1);//Updating with material from below
+            addtoLayer(i, g, valgrd[g], -1.); // Erosion 
+            addtoLayer(i,g,-1*update[g],-1.);//Updating with material from below
             g++;
          }
          setLayerEtime(i, sume/getLayerDepth(i));
@@ -2126,7 +2124,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
          //from is >maxregdepth-val (could be if lots of deposition)
          g=0;
          while(g<numg){
-            addtoLayer(i, g, valgrd[g], -1); // Erosion done on this line
+            addtoLayer(i, g, valgrd[g], -1.); // Erosion done on this line
             g++;
          }
       }
@@ -2163,7 +2161,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                olddep = getLayerDepth(i);
                g=0;
                while(g<numg){
-                  addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, -1);
+                  addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, -1.);
                   // putting material from top layer to layer below
                   // nic, at this point you have decided not to change
                   // the recent time on the lower layer when you move
@@ -2298,7 +2296,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
             for(g=0; g<numg; g++){
                update[g]=valgrd[g];//update stores the composition of new layer
                if(valgrd[g]<0){
-                  addtoLayer(i, g, valgrd[g], -1);
+                  addtoLayer(i, g, valgrd[g], -1.);
                   update[g]=0.0;
                }
             }
@@ -2326,7 +2324,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                //Not necessarily used unles on bedrock, but I threw it
                //here anyway since you one should rarely enter this
                //neck of the woods.
-               addtoLayer(i, g, valgrd[g], -1);
+               addtoLayer(i, g, valgrd[g], -1.);
             }
             else {
                // Size fraction g is going to be deposited, so add it to the
@@ -2360,7 +2358,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
                                 (amt*olde+getLayerDepth(i+1)*getLayerEtime(i+1)));//now exposure time of lower layer is set
                   g=0;
                   while(g<numg){
-                     addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, -1);
+                     addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, -1.);
                      // putting material from top layer to layer below
                      // nic, at this point you have decided not to change
                      // the recent time on the lower layer when you move
@@ -2435,7 +2433,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 	  assert( hupdate[g]>=0.0 ); //GT
       }
       makeNewLayerBelow(-1,1,getLayerErody(i),hupdate, tt);
-      setLayerRtime(i,0);
+      setLayerRtime(i,0.);
    }
    
    //   if(getLayerDepth(0)>1.1*maxregdep){
@@ -2637,7 +2635,7 @@ void tLNode::makeNewLayerBelow(int i, int sd, double erd, tArray<double> sz, dou
 
    hlp.setCtime(tt);
    hlp.setRtime(tt);
-   hlp.setEtime(0);
+   hlp.setEtime(0.);
    n=0;
    hlp.setDgradesize(numg);
    while(n<numg){
@@ -2733,7 +2731,7 @@ int tLNode::OnBedrock() const
 void tLNode::setUplift( double val ) {uplift = val;}
 
 double tLNode::getUplift() const {return uplift;}
-#undef kBugTime
+//#undef kBugTime
 
 
 /******************************************************************
