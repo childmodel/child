@@ -755,13 +755,17 @@ void moved_duplicated_points(int npoints, point *p, int &npoints_unique){
       if (ip_unique[first_move] != first_move)
 	break;
     }
-    for(int i=first_move;i<npoints_unique;++i){
-      assert(ip_unique[i] != i);
-      p[i] = p[ip_unique[i]];
+    {
+      for(int i=first_move;i<npoints_unique;++i){
+	assert(ip_unique[i] != i);
+	p[i] = p[ip_unique[i]];
+      }
     }
     // copy duplicates
-    for(int i=0;i<npoints_dup;++i){
-      p[i+npoints_unique] = dups[i];
+    {
+      for(int i=0;i<npoints_dup;++i){
+	p[i+npoints_unique] = dups[i];
+      }
     }
   }
 

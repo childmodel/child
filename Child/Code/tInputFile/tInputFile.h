@@ -38,7 +38,7 @@
 **  Created by Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.h,v 1.16 2003-07-21 09:58:24 childcvs Exp $
+**  $Id: tInputFile.h,v 1.17 2003-07-25 12:01:34 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -49,6 +49,7 @@
 
 #define kMaxNameLength 120
 #include "../Definitions.h"
+#include <stddef.h>
 
 /** @class tKeyPair
 **

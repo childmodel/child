@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.25 2003-07-21 09:58:23 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.26 2003-07-25 12:01:33 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -134,7 +134,7 @@ void readLine(char *headerLine, ifstream& infile){
 
 inline bool isComment(const char *headerLine){
   assert(headerLine != NULL);
-  return headerLine[0]==kCommentMark;
+  return BOOL(headerLine[0]==kCommentMark);
 }
 
 static
