@@ -5,7 +5,7 @@
 **  tStreamNet objects contain data and functions related to flow routing
 **  and sediment transport across the landscape surface.
 **
-**  $Id: tStreamNet.h,v 1.7 1998-02-13 22:49:25 stlancas Exp $
+**  $Id: tStreamNet.h,v 1.8 1998-02-24 01:42:20 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -13,12 +13,30 @@
 
 #include "../Definitions.h"
 #include "../Classes.h"
+#include "../tUplift/tUplift.h"
 #include "../Erosion/erosion.h"
+#include "../GridElements/gridElements.h"
 #include "../tGrid/tGrid.h"
 #include "../tLNode/tLNode.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tStorm/tStorm.h"
- 
+
+/** class tInlet *************************************************************/
+class tInlet
+{
+    friend class tStreamNet;
+public:
+    tInlet();
+    tInlet( tGrid< tLNode > *, tInputFile & );
+    ~tInlet();
+private:
+    tLNode *innode;
+    double inDrArea;
+    tGrid< tLNode > *gridPtr;
+};
+
+
+
 /** class tStreamNet *********************************************************/
 class tStreamNet
 {
@@ -62,9 +80,9 @@ public:
    int FindLakeNodeOutlet( tLNode * );
    void SortNodesByNetOrder();
    void ErodeDetachLim( double dtg );
+   void ErodeDetachLim( double dtg, tUplift * );
    
 protected:
-   
    tGrid< tLNode > * gridPtr;
    tStorm *stormPtr;
    int flowgen;
@@ -72,8 +90,9 @@ protected:
    double rainrate;
    double trans;
    double infilt;
-   double inDrArea;
+      //double inDrArea;
    tBedErodePwrLaw bedErode;
+    tInlet inlet;
 };
 
 #endif

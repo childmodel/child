@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.8 1998-02-12 23:23:09 stlancas Exp $
+**  $Id: meshElements.cpp,v 1.9 1998-02-24 01:40:46 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -403,29 +403,43 @@ double tNode::ComputeVoronoiArea()
                   }
                   else
                   {
-                     m1 = dy1/dx1;
-                     m2 = dy2/dx2;
-                     vy=(m1*y1+x1-m2*y2-x2)/(m1-m2);
-                     vx= -vy*m1+m1*y1+x1;
+                     if( fabs(dx1) > 0 && fabs(dx2) > 0 )
+                     {
+                        m1 = dy1/dx1;
+                        m2 = dy2/dx2;
+                        vy=(m1*y1+x1-m2*y2-x2)/(m1-m2);
+                        vx= -vy*m1+m1*y1+x1;
+                     }
+                     //otherwise one vert., one horiz. line:
+                     else if( fabs(dx1) > 0 )
+                     {
+                        vx = x2;
+                        vy = y1;
+                     }
+                     else
+                     {
+                        vx = x1;
+                        vy = y2;
+                     }
                   }
                   edgptr = vtxIter.PrevP();
                   xyn[0] = vx;
                   xyn[1] = vy;
                   dx = xy[0] - vx;
                   dy = xy[1] - vy;
-                  cout << "reset vedglen and rvtx for edge "
-                       << edgptr->getID() << " to len "
-                       << sqrt( dx*dx + dy*dy )
-                       << ", x, y, " << xyn[0] << ", " << xyn[1] << endl << flush;
+                  //cout << "reset vedglen and rvtx for edge "
+                  //     << edgptr->getID() << " to len "
+                  //     << sqrt( dx*dx + dy*dy )
+                  //     << ", x, y, " << xyn[0] << ", " << xyn[1] << endl << flush;
                     //reset 'next' edge's vertex to newly found intersection,
                     //length adjusted accordingly
                   edgptr->setVEdgLen( sqrt( dx*dx + dy*dy ) );
                   edgptr->setRVtx( xyn );
                   edgptr = vtxIter.ReportNextP();
-                  cout << "reset vedglen and rvtx for edge "
-                       << edgptr->getID()
-                       << " to len 0.0, x, y, " << xynnn[0] << ", "
-                       << xynnn[1] << endl << flush;
+                  //cout << "reset vedglen and rvtx for edge "
+                  //     << edgptr->getID()
+                  //     << " to len 0.0, x, y, " << xynnn[0] << ", "
+                  //     << xynnn[1] << endl << flush;
                     //reset 'next-next' edge's vertex to the coordinates
                     //of the 'next-next-next' edge's vertex; length to zero
                   edgptr->setVEdgLen(0.0);

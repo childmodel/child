@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.16 1998-02-18 01:13:13 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.17 1998-02-24 01:40:20 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1322,7 +1322,7 @@ template< class tSubNode >
 int tGrid< tSubNode >::
 DeleteNode( tListNode< tSubNode > *nodPtr )
 {
-   //cout << "DeleteNode: " << nodPtr->getDataPtr()->getID() << endl;
+   cout << "DeleteNode: " << nodPtr->getDataPtr()->getID() << endl;
    int i;
    tPtrList< tSubNode > nbrList;
      //tGridListIter< tSubNode > nodIter( nodeList );
@@ -1375,7 +1375,8 @@ template< class tSubNode >
 int tGrid< tSubNode >::
 DeleteNode( tSubNode *node )
 {
-   //cout << "DeleteNode: " << node->getID() << endl;
+   cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
+        << node->getY() << " " << node->getZ() << endl;
    int i;
    tPtrList< tSubNode > nbrList;
      //tGridListIter< tSubNode > nodIter( nodeList );
@@ -2114,7 +2115,7 @@ AddNode( tSubNode &nodeRef )
    tArray< double > xyz( nodeRef.get3DCoords() );
    cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
    tTriangle *tri;
-   cout << "locate tri" << endl << flush;
+   //cout << "locate tri" << endl << flush;
    tri = LocateTriangle( xyz[0], xyz[1] );
    assert( tri != 0 );  //if( tri == 0 ) return 0;
    int i, j, k;
@@ -2192,7 +2193,7 @@ AddNode( tSubNode &nodeRef )
    //put 3 resulting triangles in ptr list
    if( xyz.getSize() == 3 )
    {
-      cout << "flip checking" << endl;
+      //cout << "flip checking" << endl;
       tPtrList< tTriangle > triptrList;
       tListIter< tTriangle > triIter( triList );
       tPtrListIter< tTriangle > triptrIter( triptrList );
@@ -2227,7 +2228,7 @@ AddNode( tSubNode &nodeRef )
    }
    //node2->makeCCWEdges();
    UpdateMesh();
-   cout << "AddNode finished" << endl;
+   //cout << "AddNode finished" << endl;
    return 1;
 }
 
@@ -2319,7 +2320,7 @@ AddNodeAt( tArray< double > &xyz )
    //put 3 resulting triangles in ptr list
    if( xyz.getSize() == 3 )
    {
-      cout << "flip checking" << endl;
+      //cout << "flip checking" << endl;
       tPtrList< tTriangle > triptrList;
       tListIter< tTriangle > triIter( triList );
       tPtrListIter< tTriangle > triptrIter( triptrList );
@@ -2354,7 +2355,7 @@ AddNodeAt( tArray< double > &xyz )
    }
    //node2->makeCCWEdges();
    UpdateMesh();
-   cout << "AddNodeAt finished, " << nnodes << endl;
+   //cout << "AddNodeAt finished, " << nnodes << endl;
    return node2;
 }
 
@@ -2386,7 +2387,7 @@ template <class tSubNode>
 void tGrid<tSubNode>::
 UpdateMesh()
 {
-   cout << "UpdateMesh()" << endl;
+   //cout << "UpdateMesh()" << endl;
    
    //tListIter<tTriangle> tlist( triList );
    tGridListIter<tEdge> elist( edgeList );
@@ -2531,7 +2532,7 @@ template< class tSubNode >
 void tGrid< tSubNode >::
 CheckLocallyDelaunay()
 {
-   cout << "CheckLocallyDelaunay()" << endl;
+   //cout << "CheckLocallyDelaunay()" << endl;
    tTriangle *at, * trop[3];
    tPtrList< tTriangle > triPtrList;
    tPtrListIter< tTriangle > triPtrIter( triPtrList );
@@ -2650,7 +2651,7 @@ CheckLocallyDelaunay()
          }
       }
    } while( flipped );*/
-   cout << "finished" << endl;
+   //cout << "finished" << endl;
 }
 
 /*****************************************************************************\
@@ -2714,7 +2715,7 @@ template< class tSubNode >
 void tGrid< tSubNode >::
 CheckTriEdgeIntersect()
 {
-   cout << "CheckTriEdgeIntersect()..." << flush << endl;
+   //cout << "CheckTriEdgeIntersect()..." << flush << endl;
      //DumpNodes();
    int i, j, nv, nvopp, id0, id1, id2;
    int flipped = TRUE;
@@ -2812,9 +2813,9 @@ CheckTriEdgeIntersect()
                                  }                           
                                  nv = ct->nVOp( ctop );
                                  nvopp = ctop->nVOp( ct );
-                                 cout << "call FlipEdge from CTEI for edge between nodes "
-                                      << ct->pPtr( (nv+1)%3 )->getID() << " and "
-                                      << ct->pPtr( (nv+2)%3 )->getID() << endl;
+                                 //cout << "call FlipEdge from CTEI for edge between nodes "
+                                 //     << ct->pPtr( (nv+1)%3 )->getID() << " and "
+                                 //     << ct->pPtr( (nv+2)%3 )->getID() << endl;
                                  FlipEdge( ct, ctop, nv, nvopp );
                                  rmtri = triIter.LastP();
                                  triptrList.insertAtBack( rmtri );
@@ -2847,8 +2848,8 @@ CheckTriEdgeIntersect()
                                     }
                                       //delete the node;
                                     xyz = cn->getNew3DCoords();
-                                    cout << "delete node at " << xyz[0] << ", " << xyz[1]
-                                         << ", " << xyz[2] << endl << flush;
+                                    //cout << "delete node at " << xyz[0] << ", " << xyz[1]
+                                    //     << ", " << xyz[2] << endl << flush;
                                     tmpNodeList.insertAtBack( *cn );
                                     DeleteNode( cn );
                                  }
@@ -2875,8 +2876,8 @@ CheckTriEdgeIntersect()
    for( cn = tmpIter.FirstP(); !(tmpIter.AtEnd()); cn = tmpIter.NextP() )
    {
       if ( cn->Meanders() ) cn->UpdateCoords();
-      cout << "add node at " << cn->getX() << ", " << cn->getY() << ", "
-           << cn->getZ() << endl << flush;
+      //cout << "add node at " << cn->getX() << ", " << cn->getY() << ", "
+      //     << cn->getZ() << endl << flush;
       cn->getSpokeListNC().Flush();
       i = AddNode( *cn );
       assert( i == 1 );
@@ -2893,7 +2894,7 @@ CheckTriEdgeIntersect()
       cout << "end of CTEI tri " << ct->getID() << " with nbrs "
            << id0 << ", " << id1 << ", and " << id2 << endl;
    }*/
-   cout << "finished, " << nnodes << endl;
+   //cout << "finished, " << nnodes << endl;
 }
 
                
@@ -2916,7 +2917,7 @@ template< class tSubNode >
 void tGrid< tSubNode >::
 MoveNodes()
 {
-   cout << "MoveNodes()..." << flush << endl;
+   //cout << "MoveNodes()..." << flush << endl;
    tSubNode * cn;  
    tGridListIter< tSubNode > nodIter( nodeList );
    //check for triangles with edges which intersect (an)other edge(s)
@@ -2927,7 +2928,7 @@ MoveNodes()
    //resolve any remaining problems after points moved
    CheckLocallyDelaunay();
    UpdateMesh();
-   cout << "MoveNodes() finished" << endl;
+   //cout << "MoveNodes() finished" << endl;
 }
 
 

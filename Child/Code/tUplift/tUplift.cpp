@@ -2,7 +2,7 @@
 **
 **  tUplift.cpp: Functions for class tUplift.
 **
-**  $Id: tUplift.cpp,v 1.1 1998-02-02 20:40:35 gtucker Exp $
+**  $Id: tUplift.cpp,v 1.2 1998-02-24 01:42:11 stlancas Exp $
 \************************************************************************/
 
 #include "tUplift.h"
@@ -66,5 +66,10 @@ void tUplift::UpliftUniform( tGrid<tLNode> *gp, double delt )
 double tUplift::GetDuration() 
 {
    return duration;
+}
+
+double tUplift::GetRate() const 
+{
+   return rate;
 }
 
