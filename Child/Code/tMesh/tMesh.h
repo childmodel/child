@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.14 1998-10-01 18:46:27 nmgaspar Exp $
+**  $Id: tMesh.h,v 1.15 1999-01-05 17:09:32 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -13,6 +13,7 @@
 #include "../Classes.h"
 #include "../Definitions.h"
 #include "../tArray/tArray.h"
+#include "../tMatrix/tMatrix.h"
 #include "../Mathutil/mathutil.h"
 #include "../errors/errors.h"
 #include "../tPtrList/tPtrList.h"
