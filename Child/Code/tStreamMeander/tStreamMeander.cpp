@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.66 2000-01-13 23:55:07 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.67 2001-06-19 16:04:24 gtucker Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -1478,7 +1478,8 @@ void tStreamMeander::AddChanBorder(double time)
                         for( i=0; i<3; i++ ) xyz[i] = oldpos[i];
                         channodePtr = meshPtr->AddNodeAt( xyz, time );
                         channodePtr->setRock( cn->getRock() );
-                        channodePtr->setSurf( cn->getSurf() );
+                        //XchannodePtr->setSurf( cn->getSurf() );
+                        channodePtr->setVegCover( cn );  // GT 1/2000
                         channodePtr->setReg( cn->getReg() );
                         //TODO: NG Need to take care of deposit depth here
                         //I was thinking to leave a deposit of depth

@@ -21,7 +21,7 @@
 **  Major modifications:
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **
-**  $Id: tUplift.h,v 1.9 2000-06-19 17:39:54 gtucker Exp $
+**  $Id: tUplift.h,v 1.10 2001-06-19 16:07:22 gtucker Exp $
 \************************************************************************/
 
 #ifndef TUPLIFT_H
@@ -45,11 +45,13 @@ private:
     void StrikeSlip( tMesh<tLNode> *mp, double delt );
     void FoldPropErf( tMesh<tLNode> *mp, double delt );
     void CosineWarp2D( tMesh<tLNode> *mp, double delt );
+    void PropagatingFold( tMesh<tLNode> *mp, double delt );
 
 private:
     int typeCode;          // Code for the type of uplift desired
     double duration;       // Duration of uplift
     double rate;           // Rate of uplift
+    double rate2;          // Second rate (e.g., second structure)
     double faultPosition;  // Position of fault (y-location)
     double positionParam1; // Another position parameter
     double slipRate;       // Slip rate for strike-slip motion and fault prop
