@@ -4,7 +4,7 @@
 **
 **  Functions for class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.3 1998-02-12 23:24:08 stlancas Exp $
+**  $Id: tArray.cpp,v 1.4 1998-02-18 22:33:58 gtucker Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -109,6 +109,20 @@ const tArray< T > &tArray< T >::operator=( const tArray< T > &right )
    }
    return *this;
 }
+
+//setSize: reinitializes and sets size of array
+template< class T >
+void tArray<T>::setSize( int size )
+{
+   int i;
+   
+   delete [] avalue;
+   npts = size;
+   avalue = new T [npts];
+   assert( avalue!=0 && npts>=0 );
+   for( i=0; i<npts; i++ ) avalue[i] = 0;
+}
+
 
 //overloaded equality operator:
 template< class T >                                               //tArray
