@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.153 2003-05-19 15:33:16 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.154 2003-05-20 11:14:40 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2120,7 +2120,9 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
    // endpoints but the opposite orientation)
    for( ce=edgIter.FirstP(); !(edgIter.AtEnd()); ce=edgIter.NextP() )
    {
+      assert( ce != NULL);
       cne = edgIter.NextP();
+      assert( cne != NULL);
       if( ce->getOriginPtrNC() != cne->getDestinationPtrNC()
           || ce->getDestinationPtrNC() != cne->getOriginPtrNC() )
       {
@@ -3733,20 +3735,12 @@ InsertNode( tSubNode* newNodePtr, double time )
    if( layerflag && time > 0 )
        newNodePtr->LayerInterpolation( tri, newNodePtr->getX(), newNodePtr->getY(), time );
 
-   AddToList(*newNodePtr);
-   // Retrieve a pointer to the new node
-   tMeshListIter< tSubNode > nodIter( nodeList );
-   tSubNode *cn;
-   if( newNodePtr->getBoundaryFlag() == kNonBoundary )
-       cn = nodIter.LastActiveP();
-   else if( newNodePtr->getBoundaryFlag() == kOpenBoundary )
-       cn = nodIter.FirstBoundaryP();
-   else
-       cn = nodIter.LastP();
+   // Insert and retrieve a pointer to the new node
+   tSubNode *cn = AddToList(*newNodePtr);
 
-   newNodePtr = AttachNode( cn, tri);
+   tSubNode *newNodePtr2 = AttachNode( cn, tri);
 
-   return newNodePtr;
+   return newNodePtr2;
 }
 
 /**************************************************************************\
@@ -3756,20 +3750,27 @@ InsertNode( tSubNode* newNodePtr, double time )
 ** AD 4/2003
 \**************************************************************************/
 template< class tSubNode >
-void tMesh< tSubNode >::
+tSubNode * tMesh< tSubNode >::
 AddToList( tSubNode& newNode )
 {
   // insert node at the back of either the
   // active portion of the node list (if it's not a boundary) or the
   // boundary portion (if it is)
-  if( newNode.getBoundaryFlag()==kNonBoundary )
+  tMeshListIter< tSubNode > nodIter( nodeList );
+  tSubNode *cn;
+  if( newNode.getBoundaryFlag()==kNonBoundary ) {
     nodeList.insertAtActiveBack( newNode );
-  else if( newNode.getBoundaryFlag() == kOpenBoundary )
+    cn = nodIter.LastActiveP();
+  } else if( newNode.getBoundaryFlag() == kOpenBoundary ) {
     nodeList.insertAtBoundFront( newNode );
-  else
+    cn = nodIter.FirstBoundaryP();
+  } else {
     nodeList.insertAtBack( newNode );
+    cn = nodIter.LastP();
+  }
   assert( nodeList.getSize() == nnodes + 1 );
   ++nnodes;
+  return cn;
 }
 
 /**************************************************************************\
@@ -3911,7 +3912,8 @@ AddNodeAt( tArray< double > &xyz, double time )
    //cout << "locate tri" << endl;
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
    else tri = LocateNewTriangle( xyz[0], xyz[1] );
-   if( tri == 0 )      return 0;
+   if( tri == 0 )
+     return 0;
 
    int i;
    tMeshListIter< tSubNode > nodIter( nodeList );
@@ -3919,14 +3921,14 @@ AddNodeAt( tArray< double > &xyz, double time )
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );
    if( layerflag && time > 0.0) tempNode.LayerInterpolation( tri, xyz[0], xyz[1], time );
    if( xyz.getSize() != 3 ) tempNode.setNew2DCoords( xyz[0], xyz[1] );
-   tempNode.setBoundaryFlag( 0 );
+   tempNode.setBoundaryFlag( kNonBoundary );
 
    // Assign ID to the new node and insert it at the back of the active
    // portion of the node list (NOTE: node is assumed NOT to be a boundary)
-   //Xint newid = nodIter.LastP()->getID() + 1;
    tempNode.setID( miNextNodeID );
    miNextNodeID++;
-   cout << miNextNodeID << endl;
+   if (0)//DEBUG
+     cout << miNextNodeID << endl;
    nodeList.insertAtActiveBack( tempNode );
    assert( nodeList.getSize() == nnodes + 1 );
    nnodes++;
