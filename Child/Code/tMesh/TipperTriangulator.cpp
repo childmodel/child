@@ -116,7 +116,8 @@ int tt_swap(int tint, edge e[], const point p[]){
   // the current edge, or not
   //this routine takes the lions share of the CPU - hull construction by comparison
   //takes much less (by about a factor of ten!)
-  if (ref==-1 || lef==-1 || let==-1 || ret==-1)return 0;
+  if (ref==edge::none || lef==edge::none ||
+      let==edge::none || ret==edge::none) return 0;
   //test orientation of left and right edges - store the indices of
   //points that are not part of the current edge
   const int leftp  = (e[lef].from==from) ? e[lef].to : e[lef].from;
@@ -631,7 +632,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
   // results
   { 
     int i=0;
-    while(edges[i].from != -1 ) i++;
+    while(edges[i].from != edge::end ) i++;
     *pnedges = i;
   }
   *edges_ret = edges;
@@ -694,11 +695,13 @@ void tt_sort_triangulate(int npoints, point *p,
 // Auxilary class used when building the element to node connectivity
 // table
 class edge_auxi_t {
+  const edge_auxi_t& operator=(const edge_auxi_t&);
+  edge_auxi_t(const edge_auxi_t&);
 public:
   edge_auxi_t()
     :
-    left_visited_(false), right_visited_(false),
-    ie_left(-2), ie_right(-2)
+    ie_left(-2), ie_right(-2),
+    left_visited_(false), right_visited_(false)
   {}
   bool left_visited() const { return left_visited_; }
   bool right_visited() const { return right_visited_; }
@@ -707,9 +710,9 @@ public:
   void mark_left(int ielem);
   void mark_right(int ielem);
 private:
-  bool left_visited_, right_visited_;
   // element on the right and left side
   int ie_left, ie_right;
+  bool left_visited_, right_visited_;
 };
 
 void edge_auxi_t::mark_left(int ielem) { 
@@ -732,14 +735,10 @@ const oriented_edge& oriented_edge::operator=( const oriented_edge &_e ){
 }
 
 oriented_edge oriented_edge::next_ccw_around_from(const edge* edges) const {
-  int ires;
+
+  const int ires = o() ? edges[e()].lef : edges[e()].ret;
   bool bres = true;
-  if (o()){
-    ires = edges[e()].lef;
-  } else {
-    ires = edges[e()].ret;
-  }
-  if (ires != -1){
+  if (ires != edge::none){
     bres = (edges[ires].ref == e() ? true:false);
     if (!bres)
       assert( edges[ires].let == e());
@@ -748,14 +747,10 @@ oriented_edge oriented_edge::next_ccw_around_from(const edge* edges) const {
 }
 
 oriented_edge oriented_edge::next_cw_around_from(const edge* edges) const {
-  int ires;
+
+  const int ires = o() ? edges[e()].ref : edges[e()].let;
   bool bres = true;
-  if (o()){
-    ires = edges[e()].ref;
-  } else {
-    ires = edges[e()].let;
-  }
-  if (ires != -1){
+  if (ires != edge::none){
     bres = (edges[ires].lef == e() ? true:false);
     if (!bres)
       assert( edges[ires].ret == e());
@@ -849,8 +844,8 @@ void tt_build_elem_table(int npoints, const point *p,
       // left
       if (! edges_visit[iedge].left_visited()) {
 	int ielem_current = -1;
-	if (edges[iedge].lef == -1) {
-	  assert(edges[iedge].let == -1);
+	if (edges[iedge].lef == edge::none) {
+	  assert(edges[iedge].let == edge::none);
 	} else {
 	  // don't bother with orientation at the moment
 	  ielem_current = ielem;
@@ -866,8 +861,8 @@ void tt_build_elem_table(int npoints, const point *p,
       // right
       if (! edges_visit[iedge].right_visited()) {
 	int ielem_current = -1;
-	if (edges[iedge].ref == -1) {
-	  assert(edges[iedge].ref == -1);
+	if (edges[iedge].ref == edge::none) {
+	  assert(edges[iedge].ref == edge::none);
 	} else {
 	  // don't bother with orientation at the moment
 	  ielem_current = ielem;

@@ -42,16 +42,16 @@ static
 void sanity_check_edge(const edge *edges){
   // some sanity checks
   int i=0;
-  while(edges[i].from != -1 ) {
+  while(edges[i].from != edge::end ) {
     int leftp = -1,rightp = -1;
     {
       const int& from = edges[i].from;
       const int& lef = edges[i].lef;
       const int& ref = edges[i].ref;
-      if (lef != -1) {
+      if (lef != edge::none) {
 	leftp = (edges[lef].from==from) ? edges[lef].to : edges[lef].from;
       }
-      if (ref != -1) {
+      if (ref != edge::none) {
 	rightp = (edges[ref].from==from) ? rightp=edges[ref].to : edges[ref].from;
       }
     }
@@ -60,10 +60,10 @@ void sanity_check_edge(const edge *edges){
       const int& to = edges[i].to;
       const int& let = edges[i].let;
       const int& ret = edges[i].ret;
-      if (let != -1) {
+      if (let != edge::none) {
 	leftp2 = (edges[let].to==to) ? edges[let].from : edges[let].to;
       }
-      if (ret != -1) {
+      if (ret != edge::none) {
 	rightp2 = (edges[ret].to==to) ? edges[ret].from : edges[ret].to;
       }
     }
@@ -97,7 +97,7 @@ void write_edge(const edge *edges, const point* p)
   ofstream file("triggy");
   file.precision(10);
   int i=0;
-  while(edges[i].from != -1 ){
+  while(edges[i].from != edge::end ){
     edges[i].write(file,p);
     file << "edge=" << i 
 	 << " pfrom=" << edges[i].from << " pto=" << edges[i].to

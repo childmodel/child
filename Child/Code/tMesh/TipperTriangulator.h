@@ -49,13 +49,16 @@ class edge{
   const edge &operator=( const edge & );
   edge(const edge&);
 public:
-  edge(): from(-1),to(-1),lef(-1),let(-1),ref(-1),ret(-1) {}
+  edge(): 
+    from(end),to(end),
+    lef(none),let(none),ref(none),ret(none) {}
 #if defined(DEBUG_PRINT)
   void print(const point p[]) const;
 #endif
   void write(ofstream& f,const point p[]) const;
   bool visible(const point p[],int i) const;
 public:
+  enum { none = -1, end = -2 }; // must be negative
   int from,to;
   int lef,let,ref,ret;
   //                       .
@@ -74,7 +77,7 @@ class oriented_edge {
   bool _orientation;
 public:
   oriented_edge():
-    _edge(-1),
+    _edge(edge::none),
     _orientation(true) {}
   oriented_edge(int e, bool o):
     _edge(e),
@@ -85,7 +88,7 @@ public:
   const oriented_edge &operator=( const oriented_edge &);
   int e() const { return _edge; }
   bool o() const { return _orientation; }
-  bool nonvalid() const { return (e() == -1 ? true:false); }
+  bool nonvalid() const { return (e() == edge::none ? true:false); }
   void set(int e1, bool o1) { _edge = e1; _orientation = o1; }
   oriented_edge next_ccw_around_from(const edge* edges) const;
   oriented_edge next_cw_around_from(const edge* edges) const ;
@@ -100,12 +103,13 @@ public:
   elem() :
     p1(-1), p2(-1), p3(-1),
     e1(-1), e2(-1), e3(-1),
-    eo1(false), eo2(false), eo3(false),
-    t1(-1), t2(-1), t3(-1) {}
+    t1(-1), t2(-1), t3(-1),
+    eo1(false), eo2(false), eo3(false)
+  {}
   int p1, p2, p3;  // nodes
   int e1, e2, e3;  // edges 
-  bool eo1, eo2, eo3; // orientation of edges
   int t1, t2, t3;  // triangles (or elements)
+  bool eo1, eo2, eo3; // orientation of edges
   //
   //         P1       .
   //        -/\       .
