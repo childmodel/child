@@ -12,7 +12,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.cpp,v 1.2 2000-06-11 20:45:38 daniel Exp $
+**  $Id: tVegetation.cpp,v 1.3 2000-06-13 03:33:23 daniel Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -55,7 +55,7 @@ tVegetation::tVegetation( tMesh<tLNode> * meshPtr, tInputFile &infile )
 
    for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
    {
-       cn->getVegCover().mdVeg = intlVegCover;
+       cn->getVegCover().mdVeg = 1.0;
        cn->setTauCrit( mdTauCritBare + mdTauCritVeg );
    }
    
