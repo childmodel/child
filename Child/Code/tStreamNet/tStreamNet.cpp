@@ -146,14 +146,23 @@ void tInlet::FindNewInlet()
 
 double tInlet::getInSedLoad() const {return inSedLoad;}
 
+double tInlet::getInSedLoad( int i )  
+{
+   if(i>inSedLoadm.getSize()-1)
+        ReportFatalError( "Trying to set size in sediment load that doesn't exist");
+   return inSedLoadm[i];
+}
+
+
 tArray< double >
 tInlet::getInSedLoadm( ) const
 {
    return inSedLoadm;
 }
 
+
 void tInlet::setInSedLoad( double val ) {inSedLoad = ( val > 0.0 ) ? val : 0.0;}
-void tInlet::setInSedLoadm( int i, double val )
+void tInlet::setInSedLoad( int i, double val )
 {
    if(i>inSedLoadm.getSize()-1)
         ReportFatalError( "Trying to set size in sediment load that doesn't exist");
@@ -172,7 +181,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.31 1998-04-23 15:36:14 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.32 1998-04-28 16:19:14 nmgaspar Exp $
 \**************************************************************************/
 
 
