@@ -3,7 +3,7 @@
 **  @file tArray.cpp
 **  @brief Functions for template class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.19 2003-06-23 10:36:20 childcvs Exp $
+**  $Id: tArray.cpp,v 1.20 2003-08-06 16:13:51 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -15,6 +15,7 @@ using namespace std;
 #endif
 #include <assert.h>
 #include "tArray.h"
+#include "../compiler.h"
 
 /**************************************************************************\
 **
@@ -37,7 +38,7 @@ tArray() :
    avalue = new T [1];
    assert( avalue != 0 );
    avalue[0] = 0;
-     //cout<<"tArray(): one member array"<<npts<<endl<<flush;
+     //cout<<"tArray(): one member array"<<npts<<endl;
 }
 
 //constructor that initializes array size
@@ -53,7 +54,7 @@ tArray( int number ) :
    assert( avalue != 0 );
    for( i=0; i<npts; i++ )
        avalue[i] = 0;
-     //cout<<"tArray(npts): no. in array "<<npts<<endl<<flush;
+     //cout<<"tArray(npts): no. in array "<<npts<<endl;
 }
 
 //copy constructor
@@ -70,20 +71,20 @@ tArray( const tArray< T > &original ) :
          cout << original.avalue[i] << " ";
       }
       cout << endl << flush;*/
-      
+
       assert( npts > 0 );
       avalue = new T[npts];
       assert( avalue != 0 );
       for( i = 0; i < npts; i++ )
           avalue[i] = original.avalue[i];
-     //cout<<"tArray(original): no. in array "<<npts<<endl<<flush;
+     //cout<<"tArray(original): no. in array "<<npts<<endl;
 }
 
 template< class T >                                               //tArray
-tArray< T >::
+inline tArray< T >::
 ~tArray()
 {
-     //cout<<"~tArray: no. in array "<<npts<<endl<<flush;
+     //cout<<"~tArray: no. in array "<<npts<<endl;
    delete [] avalue;
 }
 
@@ -147,29 +148,28 @@ int tArray< T >::operator!=( const tArray< T > &right ) const
   return !operator==(right);
 }
 
-//overloaded subscript operator:
+// error handler (do not make it inline)
 template< class T >                                               //tArray
-void tArray< T >::checkSubscript( int subscript ) const
+void tArray< T >::fatalReport( int subscript ) const
 {
-   if( 0 > subscript || subscript >= npts ){
-      cout<<"subscript is "<<subscript<<" npts is "<<npts<<endl<<flush;
-      cout<<"bailing out of tArray[]"<<endl<<flush;
-   }
-   assert( 0 <= subscript && subscript < npts );
+  cout<<"subscript is "<<subscript<<" npts is "<<npts<<endl;
+  ReportFatalError( "Subscript out of range." );
 }
 
 //overloaded subscript operator:
 template< class T >                                               //tArray
-T &tArray< T >::operator[]( int subscript )
+inline T &tArray< T >::operator[]( int subscript )
 {
-  checkSubscript(subscript);
+  if ( unlikely(0 > subscript || subscript >= npts) )
+    fatalReport( subscript );
   return avalue[subscript];
 }
 
 template< class T >                                               //tArray
-const T &tArray< T >::operator[]( int subscript ) const
+inline const T &tArray< T >::operator[]( int subscript ) const
 {
-  checkSubscript(subscript);
+  if ( unlikely(0 > subscript || subscript >= npts) )
+    fatalReport( subscript );
   return avalue[subscript];
 }
 
@@ -215,11 +215,11 @@ ofstream &operator<<( ofstream &output, const tArray< T > &a )
 **               passing arrays to Fortran routines)
 \**************************************************************************/
 template< class T >
-T *tArray< T >::
+inline T *tArray< T >::
 getArrayPtr() {return avalue;}
 
 template< class T >
-const T *tArray< T >::
+inline const T *tArray< T >::
 getArrayPtr() const {return avalue;}
 
 /**************************************************************************\
@@ -229,7 +229,7 @@ template< class T >
 void tArray<T>::setSize( int size )
 {
    int i;
-   
+
    delete [] avalue;
    npts = size;
    avalue = new T [npts];
