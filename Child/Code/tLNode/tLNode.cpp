@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.68 1999-02-22 23:02:30 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.69 1999-02-23 17:24:09 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1054,16 +1054,17 @@ double tLNode::getSlope()
          on = on->getDownstrmNbr();
       }
       if( z - on->z < 0.0 ) slp = 0.0;
-      //cout<<"tLNode::getSlope() nd "<<getID()<<" slp "<<slp;
-      //cout<<" other slope "<<(z - getDownstrmNbr()->z ) / flowedge->getLength()<<endl;
-      //cout<<" downstream neighbor is "<<getDownstrmNbr()->getID()<<endl;
-      //cout<<"node z "<<z<<" DS z "<<getDownstrmNbr()->z<<" edge "<<flowedge->getLength()<<endl;
-      
    }
    else{
       slp = (z - getDownstrmNbr()->z ) / flowedge->getLength();
-      //cout<<"nonmeandering node "<<getID()<<" slp "<<slp;
-      //cout<<"node z "<<z<<" DS z "<<getDownstrmNbr()->z<<" edge "<<flowedge->getLength()<<endl;
+//        if(getID() == 240 ){
+//           cout<<"nonmeandering node "<<getID();
+//           cout<<"z "<<z<<endl<<flush;
+//           cout<<"z dwnstrm "<<getDownstrmNbr()->z<<endl<<flush;
+//           cout<<"flowedgeLength "<<flowedge->getLength()<<endl<<flush;
+//           cout<<"node z "<<z<<" DS z "<<getDownstrmNbr()->z<<" edge "<<flowedge->getLength()<<endl;
+//        }
+      
    }
    
    if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
@@ -1183,10 +1184,10 @@ void tLNode::TellAll()
          cout<<endl;
          //for(i=0; i<numg; i++)
          //cout<<"  qsini "<<i<<" "<<qsinm[i];
-         cout<<endl;         
+         //cout<<endl;         
          for(i=0; i<numg; i++)
              cout<<"  dgrade "<<i<<" "<<getLayerDgrade(0,i);         
-         cout<<" creation time top "<<getLayerCtime(0)<<endl;
+         cout<<" creation time top "<<getLayerCtime(0);
          cout<<"numlayers is "<<getNumLayer()<<endl;
          cout << "  dzdt: " << dzdt << "  drdt: " << drdt << endl;
       }
@@ -2037,21 +2038,32 @@ void tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
    //cout<<"tLNode::WarnSpokeLeaving..... node #"<<id<<endl;
    //Make sure that edg pointer in tNode won't be affected
    tNode::WarnSpokeLeaving( edglvingptr );
+//     if((getX()<=129.126 && getX()>=129.124) || (getX()<=115.54 && getX()>=115.53)){
+//        cout<<endl<<"starting tLNode::WarnSpokeLeaving() spk "<<edglvingptr->getID()<<endl;
+//        TellAll();
+//     }
    if( edglvingptr == flowedge ){
       do{
          flowedge = flowedge->getCCWEdg();
       }while( (flowedge->getBoundaryFlag()==kClosedBoundary) && (flowedge != edglvingptr) );
 
-      if( flowedge->getOriginPtr() != this ){
+      //There has been a problem with some flowedges not have a correct CCWedg
+      //NG added this stupid fix - problem originates elsewhere
+      if ( flowedge->getOriginPtr() != this ){
          flowedge = edg;
-      }      
-
+      }
+      assert( flowedge->getOriginPtr() == this );
+      
       //After looping around edges, if flow is along a non-flow edge,
       //make this a closedboundary node.
       if(flowedge->getBoundaryFlag()==kClosedBoundary){
          boundary = kClosedBoundary;
       }
    }
+//     if((getX()<=129.126 && getX()>=129.124) || (getX()<=115.54 && getX()>=115.53)){
+//        cout<<endl<<"ending tLNode::WarnSpokeLeaving()"<<endl;
+//        cout<<"new flowedge id is "<<flowedge->getID()<<endl;
+//     }
 }
 
 /**********************************************************************\
@@ -2071,7 +2083,7 @@ void tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
 void tLNode::InitializeNode()
 {
    int debugcount=0;
-   
+
    // If we're not a boundary node, make sure we have a valid flowedge
    if( boundary==kNonBoundary )
    {
@@ -2089,7 +2101,7 @@ void tLNode::InitializeNode()
       qsm.setSize( numg );
       qsinm.setSize( numg );
    }
-   
+
    // cout<<"tLNode::InitializeNode node "<<id<<" flow edge "<<flowedge->getID()<<endl;
 }
 
