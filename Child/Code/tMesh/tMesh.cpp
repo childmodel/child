@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.44 1998-07-25 20:00:12 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.45 1998-07-31 23:09:10 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -426,6 +426,8 @@ tGrid() {nnodes = nedges = ntri = seed = 0;cout<<"tGrid()"<<endl;}     //tGrid
 **                         if needed, these are in separate files
 **   Notes: needs to find 0, 1 or 2 under the heading of "OPTREADINPUT"
 **               in infile.
+**   Added 7/98 - will read in layering information from a Child output file
+**         if OPTREADLAYER is set to 1.  
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -452,6 +454,9 @@ tGrid( tInputFile &infile )
        MakeGridFromPoints( infile );  //create new mesh from list of points
    else
        MakeGridFromScratch( infile ); //create new grid with parameters
+
+   layerflag=infile.ReadItem( layerflag, "OPTINTERPLAYER");
+   
 }
 
 //destructor
@@ -3214,6 +3219,8 @@ AddNodeAt( tArray< double > &xyz )
    tGridListIter< tSubNode > nodIter( nodeList );
    tSubNode tempNode, *cn;
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );
+//    if( layerflag )
+//        cn->LayerInterpolation( tri );
    if( xyz.getSize() != 3 ) tempNode.setNew2DCoords( xyz[0], xyz[1] );
    tempNode.setBoundaryFlag( 0 );
 
