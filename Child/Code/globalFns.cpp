@@ -4,7 +4,7 @@
 **  @brief Global functions used by tGrid and other modules of
 **         CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.11 2003-02-12 12:00:12 childcvs Exp $
+**  $Id: globalFns.cpp,v 1.12 2003-03-07 15:45:50 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -81,6 +81,11 @@ int TriPasses( tArray< double > const &ptest,
 {
    if (0) //DEBUG
      cout << "TriPasses? ";
+#if 1
+   double ans = predicate.incircle( p0.getArrayPtr(), p1.getArrayPtr(),
+				    p2.getArrayPtr(), ptest.getArrayPtr() );
+   return ans > 0. ? 0 : 1;
+#else
    double dx0, dx1, dy0, dy1;
    double crossp,      // cross-product
        dotp,           // dot-product
@@ -95,7 +100,7 @@ int TriPasses( tArray< double > const &ptest,
    crossp = dx0 * dy1 - dx1 * dy0;
    dotp = dx0 * dx1 + dy0 * dy1;
    angle0_2_1 = atan2( crossp, dotp );
-   
+
    // Find angle p0-ptest-p1
    dx0 = p0[0] - ptest[0];
    dx1 = p1[0] - ptest[0];
@@ -116,6 +121,7 @@ int TriPasses( tArray< double > const &ptest,
         //cout << "No" << endl;
       return 1;
    }
+#endif
 }
 
 
