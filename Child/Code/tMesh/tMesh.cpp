@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.41 1998-06-04 21:26:22 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.42 1998-07-15 22:24:39 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2901,11 +2901,13 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
 **   Assumes:
 **   Modifications:
 **        - 4/98: node is no longer assumed to be a non-boundary (GT)
+**        - 7/98: changed return type from int (0 or 1) to ptr to
+**                the new node (GT)
 **
 \**************************************************************************/
 #define kLargeNumber 1000000000
 template< class tSubNode >
-int tGrid< tSubNode >::
+tSubNode * tGrid< tSubNode >::
 AddNode( tSubNode &nodeRef )
 {
    int i, j, k, ctr;
@@ -3063,8 +3065,9 @@ AddNode( tSubNode &nodeRef )
    //node2->makeCCWEdges();
    UpdateMesh();
    //cout << "AddNode finished" << endl;
-   return 1;
+   return node2;  // Return ptr to new node
 }
+
 
 /*   AddNodeAt: add a node with referenced coordinates to mesh   */
 //TODO: this fn duplicates functionality of AddNode; just assign coords
@@ -3568,6 +3571,10 @@ IntersectsAnyEdge( tEdge * edge )
 **        flip operation. In the other case, the remedial action is much more
 **        complicated, so we just delete the point and add it again.
 **
+**  Modifications:
+**   - minor change from i = AddNode to cn = AddNode to handle changed
+**     return type (GT 7/98)
+**
 \*****************************************************************************/
 template< class tSubNode >
 void tGrid< tSubNode >::
@@ -3737,8 +3744,8 @@ CheckTriEdgeIntersect()
       //cout << "add node at " << cn->getX() << ", " << cn->getY() << ", "
       //     << cn->getZ() << endl << flush;
       cn->getSpokeListNC().Flush();
-      i = AddNode( *cn );
-      assert( i == 1 );
+      cn = AddNode( *cn );
+      assert( cn!=0 );
    }
    
 /*   for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
