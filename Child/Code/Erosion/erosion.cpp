@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.129 2004-03-24 14:54:32 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.130 2004-04-14 12:06:44 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -2823,7 +2823,8 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
 		 << " to "
 		 << ce->getDestinationPtr()->getID()
 		 << " on slp " << ce->getSlope() << " ve " << ce->getVEdgLen()
-		 << "\nvp " << ce->getRVtx()[0] << " " << ce->getRVtx()[1] << endl;
+		 << "\nvp " << ce->getRVtx().at(0)
+		 << " " << ce->getRVtx().at(1) << endl;
 	    static_cast<tLNode *>(ce->getOriginPtrNC())->TellAll();
 	    static_cast<tLNode *>(ce->getDestinationPtrNC())->TellAll();
 	    cout << endl;
