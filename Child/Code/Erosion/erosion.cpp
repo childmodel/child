@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.33 1998-07-17 23:08:21 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.34 1998-07-22 21:30:06 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -959,7 +959,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 
    // Compute erosion and/or deposition until all of the elapsed time (dtg)
    // is used up
-   timegb=0;
+   timegb+=time;
    do
    {
       //cout<<"AT BEGINNING!"<<endl;
@@ -1172,7 +1172,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
             }
             
             if(dzrt<0)
-                retbr=cn->EroDep(0,dzr,time+timegb);
+                retbr=cn->EroDep(0,dzr,timegb);
             //if(cn->getID()==93){
             // cout<<"done with erosion nic"<< endl;
             //}
@@ -1200,7 +1200,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 //             }
             
             if(dzrt<0)
-                retbr=cn->EroDep(1,dzr,time+timegb);
+                retbr=cn->EroDep(1,dzr,timegb);
          }
                   
          //cout << "** THIS node has dzs " << dzs << " & dzr " << dzr
@@ -1217,7 +1217,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 //             }
             
             //cout << "dzt is " << dzt << endl;
-            retsed=cn->EroDep(0, dz, time+timegb );
+            retsed=cn->EroDep(0, dz, timegb );
          }
          
          dn = cn->getDownstrmNbr();
@@ -1273,10 +1273,12 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
    strmNet->SortNodesByNetOrder();
    strmNet->FindChanGeom();
    strmNet->FindHydrGeom();
+
+   //cout<<"starting detach erode"<<endl;
    
    // Compute erosion and/or deposition until all of the elapsed time (dtg)
    // is used up
-   timegb=0;
+
    do
    {   
       // Zero out sed influx of all sizes
@@ -1303,7 +1305,13 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          i=0;
          drdt=0;
          qs=0;
+
+//         cout<<"finding appropriate dzdt for node "<<cn->getID()<<endl;
+         
          //cout<<"channel depth is "<<cn->getChanDepth()<<endl;
+         //cout<<"channel width is "<<cn->getChanWidth()<<endl;
+         //cout<<"hydraulic width is "<<cn->getHydrWidth()<<endl;
+         //cout<<"channel rough is "<<cn->getChanRough()<<endl;         
          while((cn->getChanDepth()-depck)>0.0001)
          {
             //cout<<"in while"<<endl;
@@ -1369,6 +1377,8 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          
          cn->getDownstrmNbr()->addQsin(cn->getQsin()-cn->getDzDt()*cn->getVArea());
       }//ends for( cn = ni.FirstP...
+
+      //cout<<"found dzdts"<<endl;
       
       //Find local time-step based on dzdt
       dtmax = dtg/frac;
@@ -1382,20 +1392,19 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          
          dn = cn->getDownstrmNbr();
          ratediff = dn->getDzDt() - cn->getDzDt(); //Are the pts converging?
-         if( ratediff > 0 && cn->getZ() > dn->getZ() )  // if yes, get time
+         if( ratediff > 0 && (cn->getSlope()) > 1e-7 )  // if yes, get time
          {                                              //  to zero slope
             dt = ( cn->getZ() - dn->getZ() ) / ratediff;
             if( dt < dtmax ) dtmax = dt;
-            if( dt < 1e-6 )
+            if( dt < 1e-3 )
             {
-               
                cout << "Very small dt " << dt <<  endl;
-               //cout << "rate dif is " << ratediff << endl;
-               //cout << "elev dif is " << cn->getZ() - dn->getZ() << endl;
-               //cout << "dzdt upstream is " << cn->getDzDt() << endl;
-               //cout << "dzdt downstream is " << dn->getDzDt() << endl;
-               // cn->TellAll();
-               //dn->TellAll();
+               cout << "rate dif is " << ratediff << endl;
+               cout << "elev dif is " << cn->getZ() - dn->getZ() << endl;
+               cout << "dzdt upstream is " << cn->getDzDt() << endl;
+               cout << "dzdt downstream is " << dn->getDzDt() << endl;
+               cn->TellAll();
+               dn->TellAll();
                //cout << "arbitrarily set dt to 0.0015" << endl;
                dtmax=0.005; //GREG I added this just because things
                // were taking forever.  I kept it for now just for
@@ -1405,7 +1414,9 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       }// End for( cn = ni.FirstP()..
       dtmax *= frac;  // Take a fraction of time-to-flattening
       timegb+=dtmax;
-      //cout<<"dtmax is set at "<<dtmax<<endl;
+//       cout<<"dtmax is  "<<dtmax<<endl;
+//       cout<<"timegb is "<<timegb<<endl;
+      
       //At this point: we have drdt and qs for each node, plus dtmax
       
       // Do erosion/deposition
@@ -1414,6 +1425,16 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          //need to recalculate cause qsin may change due to time step calc
          //cout<<"Qs is "<<cn->getQs()<<" Qsin is "<<cn->getQsin()<<" Area is "<<cn->getVArea()<<endl;
          excap=(cn->getQs() - cn->getQsin())/cn->getVArea();
+//          if(cn->getDownstrmNbr()->getZ()==0){
+//             cout<<"draining to outlet"<<endl;
+//          if(cn->getID()==79 && timegb >= 1756){
+//             cn->TellAll();
+//             cn->getDownstrmNbr()->TellAll();
+//          }
+         
+//         cout<<"current node is "<<cn->getID()<<endl;
+//             cn->getDownstrmNbr()->TellAll();
+//          }
          //cout<<"actual erosion excap = "<<excap<<endl;
          //cout<<"drdt is "<<cn->getDrDt()<<endl;
          //again, excap pos if eroding, neg if depositing
@@ -1432,15 +1453,29 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             dz = -excap*dtmax; // trans-lim
             flag = 1;
          }
-
+         
+//          if(cn->getID()==79 && timegb >= 1756){
+//             cout<<"dz is "<<dz<<endl;
+//          }
+         
          if( dz<0 ) //erosion
          {
+//             if(cn->getID()==79 && timegb >= 1756){
+//                cout<<"in erosion with node 79"<<endl;
+//             }
             if(flag==0){ // detach-lim
+//                if(cn->getID()==79 && timegb >= 1756){
+//                   cout<<"in detach lim erosion"<<endl;
+//                }
+               
                i=0;
                depck=0;
-               while(dz<-0.000000001&depck<cn->getChanDepth()){
+               while(dz<-0.000000001&depck<cn->getChanDepth()){   
                   depck+=cn->getLayerDepth(i);
                   if(-dz<=cn->getLayerDepth(i)){//top layer can supply total depth
+//                      if(cn->getID()==79 && timegb >= 1756){
+//                         cout<<"got enough in surface to erode 79"<<endl;
+//                      }
                      for(j=0;j<cn->getNumg();j++){
                         erolist[j]=dz*cn->getLayerDgrade(i,j)/cn->getLayerDepth(i);
                         if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
@@ -1458,6 +1493,12 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                      dz=0;
                   }
                   else{//top layer is not deep enough, need to erode more layers
+//                      if(cn->getID()==79 && timegb >= 1756){
+//                         cout<<"surface can't supply"<<endl;
+//                         cout<<"i is "<<i<<" flag is "<<flag<<endl;
+//                         cout<<"depth of layer is "<<cn->getLayerDepth(i)<<endl;
+//                         cout<<"dz is "<<dz<<" qs1 is "<<cn->getQs(0)<<" qs2 is "<<cn->getQs(1)<<endl;                        
+//                     } 
                      sum=0;
                      flag=0;
                      for(j=0;j<cn->getNumg();j++){
@@ -1487,9 +1528,14 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                }
             }
             else{//trans-lim
+//                if(cn->getID()==79 && timegb >= 1756){
+//                   cout<<"in trans-lim erosion"<<endl;
+//                }
+               
                for(j=0;j<cn->getNumg();j++){
                   erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
                }
+               
                i=0;
                depck=0;
                while(depck<cn->getChanDepth()){
@@ -1515,6 +1561,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                
             }//end if( dz<0 )
          }
+         
          else if(dz>0) //deposition -> need if cause erodep chokes with 0
          {
             //Get texture of stuff to be deposited
@@ -1523,10 +1570,16 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             ret=cn->EroDep(0,erolist,timegb);
          }
       } // Ends for( cn = ni.FirstP()...
-      // Update time remaining
+      // Update time remainig   
       dtg -= dtmax;
+//       if(cn->getID()==79 && timegb >= 1756){
+//          cout<<"made it through erosion with node 79"<<endl;
+//       }
+      
    } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
 
+   //cout<<"ending detach erode"<<endl;
+   
 }// End erosion algorithm
 
 
