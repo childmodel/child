@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.172 2003-07-21 09:58:25 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.173 2003-07-31 10:23:54 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -504,12 +504,17 @@ MakeMeshFromInputData( tInputFile &infile )
       bound = input.boundflag[i];
       assert( bound >= 0 && bound <= 2 );
       tempnode.setBoundaryFlag( bound );
-      if( bound == kNonBoundary )
+      switch (bound){
+      case kNonBoundary:
           nodeList.insertAtActiveBack( tempnode );
-      else if( bound == kOpenBoundary )
+	  break;
+      case kOpenBoundary:
           nodeList.insertAtBoundFront( tempnode );
-      else
-          nodeList.insertAtBack( tempnode );       //kClosedBoundary
+	  break;
+      default: //kClosedBoundary
+          nodeList.insertAtBack( tempnode );
+	  break;
+      }
       if (0) { // DEBUG
 	cout << input.x[i] << input.y[i] << input.z[i]
 	     << input.boundflag[i] << endl;
@@ -3756,15 +3761,19 @@ AddToList( tSubNode const & newNode )
   // boundary portion (if it is)
   tMeshListIter< tSubNode > nodIter( nodeList );
   tSubNode *cn;
-  if( newNode.getBoundaryFlag()==kNonBoundary ) {
+  switch (newNode.getBoundaryFlag()){
+  case kNonBoundary:
     nodeList.insertAtActiveBack( newNode );
     cn = nodIter.LastActiveP();
-  } else if( newNode.getBoundaryFlag() == kOpenBoundary ) {
+    break;
+  case kOpenBoundary:
     nodeList.insertAtBoundFront( newNode );
     cn = nodIter.FirstBoundaryP();
-  } else {
+    break;
+  default:
     nodeList.insertAtBack( newNode );
     cn = nodIter.LastP();
+    break;
   }
   assert( nodeList.getSize() == nnodes + 1 );
   ++nnodes;
