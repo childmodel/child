@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.12 1998-03-21 21:54:35 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.13 1998-03-23 20:03:37 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1038,7 +1038,8 @@ void tTriangle::TellAll()
    for( i=0; i<3; i++ )
    {
       cout << "  P" << i << " ";
-      if( p[i]!=0 ) cout << p[i]->getID();
+      if( p[i]!=0 ) cout << p[i]->getID() << " (" << p[i]->getX() << ","
+                         << p[i]->getY() << ")";
       else cout << "(ndef)";
       cout << "  E" << i << " ";
       if( e[i]!=0 ) cout << e[i]->getID();
