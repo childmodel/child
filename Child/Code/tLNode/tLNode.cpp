@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.74 1999-04-06 18:28:49 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.75 1999-04-07 19:13:13 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1754,7 +1754,7 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
          layhelp.setDgrade(0,newtex*newdep);
          if(numg>1)
              layhelp.setDgrade(1,(1-newtex)*newdep);
-         layhelp.setSed(0); 
+         layhelp.setSed(1); 
          layhelp.setErody(newerody/sum);
          layhelp.setRtime(-1);
          layhelp.setEtime(0);
@@ -2037,7 +2037,7 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
       }  
    }
 
-   if(maxregdep-helplist.FirstP()->getDepth()>0.001){
+   if(maxregdep-helplist.FirstP()->getDepth()>0.001 && helplist.getIthData(1).getSed()>0){
       //top layer is too small, want to maintain maxregdep for erosion reasons
       //Because NG doesn't really know how to manipulate lists,
       //this is probably done in a cockeyed way.  First remove
@@ -2274,7 +2274,10 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
    int numlay=getNumLayer();
    int h;
 
-   //cout<<"ERODEP x "<<x<<" y "<<y<<endl;
+   //if(x<560.418 && x>560.416){
+   // cout<<"ERODEP x "<<x<<" y "<<y<<" numlayers "<<getNumLayer();
+   //   cout<<" to erode b4 "<<valgrd[0]<<endl;
+   //}
    
    g=0;
    val=0;
@@ -2290,6 +2293,14 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       val+=valgrd[g];
       g++;
    }
+
+//     if(x<560.418 && x>560.416){
+//         cout<<"amt to ero/dep "<<val<<endl;
+//         for(g=0; g<getNumLayer(); g++){
+//            cout<<getLayerCtime(g)<<" "<<getLayerRtime(g)<<" "<<getLayerEtime(g)<<" "<<getLayerSed(g)<<" "<<getLayerDepth(g)<<" "<<getLayerErody<<endl;
+//         }
+//     }
+   
 
    // val is now set to the total amount of erosion or deposition
    z += val;
@@ -2596,6 +2607,10 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
          }
       }
    }
+
+//   if(getNumLayer()<=2)
+//       cout<<"erodep 2 or less layers x "<<getX()<<" y "<<getY()<<endl;
+   
 
    return valgrd;
 }
