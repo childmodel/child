@@ -5,12 +5,17 @@
 **  tStreamNet objects contain data and functions related to flow routing
 **  and sediment transport across the landscape surface.
 **
-**  $Id: tStreamNet.h,v 1.3 1998-01-21 20:03:43 stlancas Exp $
+**  $Id: tStreamNet.h,v 1.4 1998-01-29 18:49:34 gtucker Exp $
 \**************************************************************************/
+
 #ifndef TSTREAMNET_H
 #define TSTREAMNET_H
 
 #include "../Erosion/erosion.h"
+#include "../tGrid/tGrid.h"
+#include "../tLNode/tLNode.h"
+#include "../tInputFile/tInputFile.h"
+#include "../tStorm/tStorm.h"
  
 /** class tStreamNet *********************************************************/
 class tStreamNet
