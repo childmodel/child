@@ -3,7 +3,7 @@
 **  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
 **                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.5 1998-02-03 00:48:21 stlancas Exp $
+**  $Id: tPtrList.cpp,v 1.6 1998-02-12 23:22:45 stlancas Exp $
 \**************************************************************************/
 
 #include "tPtrList.h"
@@ -145,7 +145,26 @@ template< class NodeType >                      //tPtrList
 tPtrList< NodeType >::
 ~tPtrList()
 {
-   first = last = 0;
+   if( !isEmpty() )
+   {
+        //cout<<"Destroying nodes ... "<<endl;
+      tPtrListNode<NodeType > * current = first, * temp;
+      first = 0;
+      while( last != 0 )
+      {
+         temp = current;
+         //cout<<temp->data<<endl;
+         if( current != last ) current = current->next;
+         else
+         {
+            current = 0;
+            last = 0;
+         }
+         delete temp;
+      }
+   }
+     //cout<<"All nodes destroyed"<<endl<<endl;
+   //first = last = 0;
      //cout << "    ~tPtrList()" << endl;
 }
 
@@ -357,8 +376,22 @@ template< class NodeType >                      //tPtrList
 void tPtrList< NodeType >::
 Flush()
 {
-   NodeType *data;
-   while( removeFromBack( data ) );
+   if( !isEmpty() )
+   {
+        //cout<<"Destroying nodes ... "<<endl;
+      tPtrListNode<NodeType > * current = first, * temp;
+      while( current != 0 )
+      {
+         temp = current;
+         //cout<<temp->data<<endl;
+         current = current->next;
+         delete temp;
+      }
+   }
+   first = last = 0;
+     //cout<<"All nodes destroyed"<<endl<<endl;
+//   NodeType *data;
+//   while( removeFromBack( data ) );
    assert( isEmpty() );
    nNodes = 0;
 }
