@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.5 1998-02-02 19:18:03 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.6 1998-02-03 00:48:01 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -304,7 +304,7 @@ double tNode::ComputeVoronoiArea()
      //polygon into triangles, and calc'ing the area of each triangle, sum of
      //tri areas is v. area.
 //#if DEBUG
-   //cout<<"VoronoiArea(...)...";
+   cout<<"VoronoiArea(...)...";
 //#endif
    int cw;
    double area = 0;
@@ -312,12 +312,12 @@ double tNode::ComputeVoronoiArea()
    double vx, vy, x0, y0, x1, y1, x2, y2, m1, m2;
    tEdge * ce, *edgptr;
    tPtrList< tEdge > vedgList/*( centre->getSpokeListNC() )*/;
-   tPtrListIter< tEdge > //XspokIter( centre->getSpokeListNC() ),
+   tPtrListIter< tEdge > //spokIter( spokeList ),
        vtxIter( vedgList );
    tArray< double > xy, xyn, xynn, xynnn, xy1, xy2;
    int i;
 
-/*X   for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
+   /*for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
    {
       cout << "INSerting edg " << ce->getID() << endl;
       vedgList.insertAtBack( ce );
@@ -462,6 +462,20 @@ double tNode::ComputeVoronoiArea()
    return area;
 }
 
+void tNode::makeCCWEdges()
+{
+   tEdge *ce, *ccwe;
+   tPtrListIter< tEdge > spokIter( spokeList );
+   ce = spokIter.FirstP();
+   assert( ce != 0 );
+   SetEdg( ce );
+   for( ; !(spokIter.AtEnd()); ce = spokIter.NextP() )
+   {
+      ccwe = spokIter.ReportNextP();
+      assert( ccwe != 0 );
+      ce->SetCCWEdg( ccwe );
+   }
+}
 
 
 

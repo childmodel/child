@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.10 1998-02-02 18:15:55 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.11 1998-02-03 00:48:39 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1315,21 +1315,10 @@ void tGrid< tSubNode >::
 MakeCCWEdges()
 {
    tGridListIter< tSubNode > nodIter( nodeList );
-   tPtrListIter< tEdge > spokIter;
    tSubNode *cn;
-   tEdge *ce, *ccwe;
    for( cn = nodIter.FirstP(); !( nodIter.AtEnd() ); cn = nodIter.NextP() )
    {
-      spokIter.Reset( cn->getSpokeListNC() );
-      ce = spokIter.FirstP();
-      assert( ce != 0 );
-      cn->SetEdg( ce );
-      for( ; !(spokIter.AtEnd()); ce = spokIter.NextP() )
-      {
-         ccwe = spokIter.ReportNextP();
-         assert( ccwe != 0 );
-         ce->SetCCWEdg( ccwe );
-      }
+      cn->makeCCWEdges();
    }
 }
 
@@ -2134,6 +2123,9 @@ AddNode( tSubNode &nodeRef )
    nodeList.insertAtActiveBack( nodeRef );
    assert( nodeList.getSize() == nnodes + 1 );
    nnodes++;
+   //flush the spoke list:
+   cn = nodIter.LastActiveP();
+   cn->getSpokeListNC().Flush();
      //make ptr list of triangle's vertices:
    tPtrList< tSubNode > bndyList;
    tSubNode *tmpPtr;
@@ -2231,6 +2223,8 @@ AddNode( tSubNode &nodeRef )
    {
       cn->setID( i );
    }
+   //node2->makeCCWEdges();
+   UpdateMesh();
    cout << "AddNode finished" << endl;
    return 1;
 }
@@ -2356,6 +2350,8 @@ AddNodeAt( tArray< double > &xyz )
    {
       cn->setID( i );
    }
+   //node2->makeCCWEdges();
+   UpdateMesh();
    cout << "AddNodeAt finished" << endl;
    return node2;
 }
@@ -2407,6 +2403,8 @@ UpdateMesh()
       assert( curedg > 0 ); // failure = complementary edges not consecutive
       curedg->setLength( len );
    } while( curedg=elist.NextP() );
+   MakeCCWEdges();
+   
    
 
 

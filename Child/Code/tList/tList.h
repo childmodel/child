@@ -23,7 +23,7 @@
 **  descendants). Its services include fetching data from the current entry
 **  on the list, advancing to the next or previous item on the list, etc.
 **
-**  $Id: tList.h,v 1.7 1998-01-30 19:13:01 stlancas Exp $
+**  $Id: tList.h,v 1.8 1998-02-03 00:49:00 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -146,7 +146,8 @@ class tListIter
    
   protected:
    tListNode< NodeType > * curnode;
-   tList< NodeType > *listPtr;   
+   tList< NodeType > *listPtr;
+   int counter;
 };
 
 #endif

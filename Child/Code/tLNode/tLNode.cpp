@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.7 1998-01-29 19:56:38 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.8 1998-02-03 00:47:11 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -406,6 +406,7 @@ void tLNode::AddDrArea( double val ) {chan.drarea += ( val >= 0 ) ? val : 0;}
 
 tLNode * tLNode::GetDownstrmNbr()
 {
+   if( flowedge == 0 ) return 0;
    return (tLNode *)flowedge->getDestinationPtrNC();     
 }
 
@@ -522,6 +523,7 @@ double tLNode::GetQ()
 \************************************************************************/
 double tLNode::GetSlope()
 {
+   assert( GetFlowEdg() != 0 );
    assert( GetFlowEdg()->getLength()>0 ); // failure means lengths not init'd
    double slp = (z - GetDownstrmNbr()->getZ() ) / GetFlowEdg()->getLength();
    if( slp>=0.0 ) return slp;
@@ -655,7 +657,7 @@ int tLNode::NoMoreTracers()
 void tLNode::EroDep( double dz )
 {
    z += dz;
-   cout << "  eroding " << id << " by " << dz << endl;
+   //cout << "  eroding " << id << " by " << dz << endl;
    
    //sed += dz;
    //if( sed<0 ) sed=0;

@@ -3,7 +3,7 @@
 **  tPtrList.h: Header file for tPtrList, tPtrListNode, and tPtrListIter
 **              objects.
 **
-**  $Id: tPtrList.h,v 1.4 1998-02-01 00:54:47 stlancas Exp $
+**  $Id: tPtrList.h,v 1.5 1998-02-03 00:48:30 stlancas Exp $
 \**************************************************************************/
 
 
@@ -101,6 +101,7 @@ class tPtrListIter
    NodeType *GetP( int );
    NodeType *FirstP();
    NodeType *LastP();
+   NodeType *PrevP();
    NodeType *ReportNextP();
    NodeType *ReportPrevP();
    int AtEnd();
