@@ -140,7 +140,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.26 1998-04-09 22:39:40 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.27 1998-04-16 15:39:46 gtucker Exp $
 \**************************************************************************/
 
 
@@ -715,10 +715,10 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
 //#if DEBUG
       niterations++;
       if( niterations>9990 )
-          cout << "Node " << curnode->getID()
-               <<" boundary status "<< curnode->getBoundaryFlag()
-               << " flood status " << curnode->GetFloodStatus() 
-               << endl << flush;
+      {
+         curnode->TellAll();
+         cout  << flush;
+      }
       assert( niterations < 10000 );
 //#endif
    }
