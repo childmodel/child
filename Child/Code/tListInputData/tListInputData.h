@@ -11,7 +11,7 @@
 **   - changed .tri file format from points-edges-triangles to
 **     points-triangles-edges, compatible with earlier format (gt 1/98)
 **
-**  $Id: tListInputData.h,v 1.4 1998-02-01 00:57:00 stlancas Exp $
+**  $Id: tListInputData.h,v 1.5 1998-02-12 01:45:55 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TLISTINPUTDATA_H
@@ -20,6 +20,8 @@
 #include <assert.h>
 #include <iostream.h>
 #include <string.h>
+#include "../Definitions.h"
+#include "../errors/errors.h"
 #include "../tArray/tArray.h"
 #include "../tInputFile/tInputFile.h"
 
@@ -37,11 +39,14 @@ class tListIFStreams
    ifstream &getNodeInFile();
    ifstream &getEdgeInFile();
    ifstream &getTriInFile();
+   ifstream &getZInFile();
   private:
    int nnodes, nedges, ntri;
+   double time, intime;
    ifstream nodeinfile;
    ifstream edgeinfile;
    ifstream triinfile;
+   ifstream zinfile;
 };
 
 /** class tListInputData ************************************************************/
@@ -51,11 +56,13 @@ class tListInputData
    friend class tGrid< tSubNode >;
   public:
    tListInputData();
-   tListInputData( tListIFStreams & );
+   //tListInputData( tListIFStreams & );
+   tListInputData( tInputFile & );
    ~tListInputData();
-   void GetKeyEntry( tListIFStreams &  );
-   void GetFileEntry( tListIFStreams &  );
+   void GetKeyEntry();
+   void GetFileEntry();
   private:
+   tListIFStreams inchan;
    tArray< double > x;
    tArray< double > y;
    tArray< double > z;
@@ -76,3 +83,4 @@ class tListInputData
 };
 
 #endif
+

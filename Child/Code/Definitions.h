@@ -1,6 +1,6 @@
 /****************************************************************************\
 **   Header file for defining global constants
-**   $Id: Definitions.h,v 1.3 1998-01-30 16:06:22 stlancas Exp $
+**   $Id: Definitions.h,v 1.4 1998-02-12 01:47:01 stlancas Exp $
 \****************************************************************************/
 
 #ifndef DEFINITIONS_H
@@ -11,6 +11,7 @@
 #define FALSE 0
 #define kMaxNameLength 80
 #define kCommentMark '#'
+#define kTimeLineMark ' '
 #define kUniformGrid 0     /*method of grid construction*/
 #define kPerturbedGrid 1
 #define kRandomGrid 2

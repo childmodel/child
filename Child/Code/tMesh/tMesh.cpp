@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.12 1998-02-04 00:35:09 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.13 1998-02-12 01:45:07 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -341,155 +341,56 @@ template< class tSubNode >
 tGrid< tSubNode >::
 tGrid() {nnodes = nedges = ntri = seed = 0;cout<<"tGrid()"<<endl;}     //tGrid
 
+/**************************************************************************\
+**
+**   tGrid( infile ): Reads from infile whether it is to reconstruct a grid
+**                    from input or construct a grid from scratch, given
+**                    parameters in infile.
+**
+**   Created: 2/11/98, SL
+**   Calls: tInputFile::ReadItem,
+**        MakeGridFromInputData( infile ) or MakeGridFromScratch( infile )
+**   Parameters: needs to find 0 or 1 under the heading of "OPTREADINPUT"
+**               in infile.
+**
+\**************************************************************************/
 template< class tSubNode >
 tGrid< tSubNode >::
-tGrid( tListInputData< tSubNode > &input )                           //tGrid
+tGrid( tInputFile &infile )
 {
-   int i;
-   seed = 0;
-   // Assign number of nodes, edges, and triangles
-   nnodes = input.x.getSize();
-   nedges = input.orgid.getSize();
-   ntri = input.p0.getSize();
-   assert( nnodes > 0 );
-   assert( nedges > 0 );
-   assert( ntri > 0 );
-
-   // Create the node list by creating a temporary node and then iteratively
-   // (1) assigning it values from the input data and (2) inserting it onto
-   // the back of the node list.
-   // TODO: insertion position should depend on boundary flag
-   tSubNode tempnode;
-   for( i = 0; i< nnodes; i++ )
-   {
-      tempnode.set3DCoords( input.x[i], input.y[i], input.z[i] );
-      tempnode.setID( i );
-      tempnode.setBoundaryFlag( input.boundflag[i] );
-      nodeList.insertAtBack( tempnode );
-   }
-
-   // Create and initialize the edge list by creating two temporary edges
-   // (which are complementary, ie share the same endpoints) and then
-   // iteratively assigning values to the pair and inserting them onto the
-   // back of the edgeList
-   tGridListIter< tSubNode > nodIter( nodeList );
-   tEdge tempedge1, tempedge2;
-   for( i = 0; i< nedges-1; i+=2 )
-   {
-      tempedge1.setID( i );
-      tempedge2.setID( i );
-      if( nodIter.Get( input.orgid[i] ) )
-      {
-         tempedge1.setOriginPtr( &(nodIter.DatRef()) );
-         tempedge2.setOriginPtr( &(nodIter.DatRef()) );
-      }
-      if( nodIter.Get( input.destid[i] ) )
-      {
-         tempedge1.setDestinationPtr( &(nodIter.DatRef()) );
-         tempedge2.setDestinationPtr( &(nodIter.DatRef()) );
-      }
-      edgeList.insertAtBack( tempedge1 );
-      edgeList.insertAtBack( tempedge2 );
-   }
-
-   // Set up the lists of edges (spokes) connected to each node
-   // (GT added code to also assign the 1st edge to "edg" as an alternative
-   // to spokelist implementation)
-   int e1;
-   int ne;
-   tSubNode * curnode;
-   tGridListIter< tEdge > edgIter( edgeList );
-   i = 0;
-   do                                        //for( i=0; i<nnodes; i++ )
-   {
-      e1 = input.edgid[i]; //THIS REF TO "i" IS UNDEFINED! fixed
-      curnode = nodIter.DatPtr();
-      if( edgIter.Get( e1 ) ) // TODO: report error if fails
-      {
-          curnode->insertBackSpokeList( &(edgIter.DatRef()) );
-          //nodIter.DatRef().insertBackSpokeList( &(edgIter.DatRef()) );
-          curnode->SetEdg( edgIter.DatPtr() );
-      }
-      for( ne = input.nextid[e1]; ne != e1; ne = input.nextid[ne] )
-          if( edgIter.Get( ne ) ) // TODO: report error if fails
-              //nodIter.DatRef().insertBackSpokeList( &(edgIter.DatRef()) );
-              curnode->insertBackSpokeList( &(edgIter.DatRef()) );
-      i++;
-      
-   } while( nodIter.Next() );
-
-   // Assign ccwedg connectivity (that is, tell each edge about its neighbor
-   // immediately counterclockwise) (added by gt Dec 97 to re-implement
-   // previous data structure)
-   tEdge * curedg, * ccwedg;
-   int ccwedgid;
-   for( i=0; i<nedges; i++ )
-   {
-      curedg = edgIter.GetP( i );
-      ccwedgid = input.nextid[i];
-      ccwedg = edgIter.GetP( ccwedgid );
-      curedg->SetCCWEdg( ccwedg );
-      /*cout << "Edg " << ccwedgid << " (" << ccwedg->getOriginPtr()->getID()
-           << " " << ccwedg->getDestinationPtr()->getID() << ") is ccw from "
-           << curedg->getID() << " ("
-           << curedg->getOriginPtr()->getID()
-           << " " << curedg->getDestinationPtr()->getID() << ") " << endl;*/
-      
-   }
-   
-   tTriangle temptri;
-   for ( i=0; i<ntri; i++ )
-   {
-      temptri.setID( i );
-      if( nodIter.Get( input.p0[i] ) )
-          temptri.setPPtr( 0, &(nodIter.DatRef()) );
-      if( nodIter.Get( input.p1[i] ) )
-          temptri.setPPtr( 1, &(nodIter.DatRef()) );
-      if( nodIter.Get( input.p2[i] ) )
-          temptri.setPPtr( 2, &(nodIter.DatRef()) );
-      if( edgIter.Get( input.e0[i] ) )
-          temptri.setEPtr( 0, &(edgIter.DatRef()) );
-      if( edgIter.Get( input.e1[i] ) )
-          temptri.setEPtr( 1, &(edgIter.DatRef()) );
-      if( edgIter.Get( input.e2[i] ) )
-          temptri.setEPtr( 2, &(edgIter.DatRef()) );
-      triList.insertAtBack( temptri );
-   }
-   
-   tListIter< tTriangle > trIter1( triList );
-   tListIter< tTriangle > trIter2( triList );
-   //cout << "tGrid: set tri ptrs" << endl;
-   i = 0;
-   do                                                //for ( i=0; i<ntri; i++ )
-   {
-      //cout << "tGrid: Tri loop, i: " << i << endl;
-      if( trIter2.Get( input.t0[i] ) )
-          trIter1.DatRef().setTPtr( 0, &(trIter2.DatRef()) );
-      else trIter1.DatRef().setTPtr( 0, 0 );
-      if( trIter2.Get( input.t1[i] ) )
-          trIter1.DatRef().setTPtr( 1, &(trIter2.DatRef()) );
-      else trIter1.DatRef().setTPtr( 1, 0 );
-      if( trIter2.Get( input.t2[i] ) )
-          trIter1.DatRef().setTPtr( 2, &(trIter2.DatRef()) );
-      else trIter1.DatRef().setTPtr( 2, 0 );
-      i++;
-   }
-   while( trIter1.Next() );
-   //cout<<"set list data values"<<endl;
-
-   UpdateMesh();
-   CheckMeshConsistency();
-   
+   int read = infile.ReadItem( read, "OPTREADINPUT" );
+   assert( read == 0 || read == 1 );
+   if( read ) MakeGridFromInputData( infile ); //create grid by reading data files
+   else MakeGridFromScratch( infile ); //create new grid with parameters
 }
 
-//constructor specifically for tLNodes
-tGrid< tLNode >::
-tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                                         //tGrid
+//destructor
+template< class tSubNode >
+tGrid< tSubNode >::
+~tGrid() {cout << "    ~tGrid()" << endl;}                    //tGrid
+ 
+
+/**************************************************************************\
+**
+**   MakeGridFromInputData( infile ):
+**          formerly tGrid( tListInputData &, tlnodflag ). Constructs
+**          tListInputData obj., makes grid from data in that object.
+**                    
+**
+**   Created: 2/11/98, SL
+**   Calls: tListInputData( infile ), UpdateMesh(), CheckMeshConsistency()
+**   Parameters: 
+**
+\**************************************************************************/
+template< class tSubNode >
+void tGrid< tSubNode >::
+MakeGridFromInputData( tInputFile &infile )
 {
    int i;
+   tListInputData< tSubNode > input( infile );
    seed = 0;
    // Set the number of nodes, edges, and triangles in the grid mesh
-   assert( lnodflag );
+   //assert( lnodflag );
    nnodes = input.x.getSize();
    nedges = input.orgid.getSize();
    ntri = input.p0.getSize();
@@ -501,7 +402,7 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
    // Create the node list by creating a temporary node and then iteratively
    // (1) assigning it values from the input data and (2) inserting it onto
    // the back of the node list.
-   tLNode tempnode;
+   tSubNode tempnode;
    int bound;
    for( i = 0; i< nnodes; i++ )
    {
@@ -526,7 +427,7 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
    // (which are complementary, ie share the same endpoints) and then
    // iteratively assigning values to the pair and inserting them onto the
    // back of the edgeList
-   tGridListIter< tLNode > nodIter( nodeList );
+   tGridListIter< tSubNode > nodIter( nodeList );
    tEdge tempedge1, tempedge2;
    int obnd, dbnd;
    for( i = 0; i< nedges-1; i+=2 )
@@ -584,7 +485,7 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
    int ne;
    tGridListIter< tEdge >
        edgIter( edgeList );
-   tLNode * curnode;
+   tSubNode * curnode;
    assert( nodIter.First() );
    i = 0;
    do                                        //for( i=0; i<nnodes; i++ )
@@ -701,14 +602,40 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
 
    CheckMeshConsistency();
 }
-/*
-**   tGrid constructor to make grid from scratch; reads parameters
+
+/**************************************************************************\
+**
+**   MakeGridFromScratch( infile ):formerly tGrid( infile ). Makes
+**       grid from scratch; reads parameters
 **        from input file to get grid size, spacing, method of point
-**        placement
-*/
+**        placement.
+**       Could probably be done more gracefully, but here's how it does it:
+**        1) makes boundary nodes and edges between them;
+**        2) makes triangulation with only boundary nodes;
+**        3) adds the rest of the nodes one at a time, i.e., triangulation
+**           redone for each node added.
+**
+**       A nicer way (who wants to code it?):
+**        1) make boundary nodes and edges between them;
+**        2) add all other nodes at once;
+**        3) do triangulation once by making a temporary list of boundary
+**           edges and, for each edge, finding the node which would make
+**           the biggest angle with the endpoints of the edge; remove edge(s)
+**           from temp. list, make new edge(s) and triangle; add new edge(s)
+**           to temp. list. (from Du)
+**                    
+**
+**   Created: 2/11/98, SL
+**   Calls: tInputFile::ReadItem, MakeCCWEdges(),
+**          UpdateMesh(), CheckMeshConsistency()
+**   Parameters: xGrid, yGrid, boundType, mElev, ptPlace, delGrid, numPts,
+**               upperZ, xout, yout
+**               
+**
+\**************************************************************************/
 template< class tSubNode >
-tGrid< tSubNode >::
-tGrid( tInputFile &infile )
+void tGrid< tSubNode >::
+MakeGridFromScratch( tInputFile &infile )
 {
    int i, j, id, n, nx, ny;
    int numPts;
@@ -720,7 +647,7 @@ tGrid( tInputFile &infile )
    tGridListIter< tEdge > edgIter( edgeList );
    tGridListIter< tSubNode > nodIter( nodeList );
    tPtrList< tSubNode > bndList;
-   cout << "THIS IS TEST CONTRUCTOR FOR tGrid\n";
+   //cout << "THIS IS TEST CONTRUCTOR FOR tGrid\n";
    seed = infile.ReadItem( seed, "SEED" );
      //reads in size of grid (meters)
    double xGrid = infile.ReadItem( xGrid, "X_GRID_SIZE" );
@@ -1066,10 +993,6 @@ tGrid( tInputFile &infile )
    CheckMeshConsistency();
 }
 
-template< class tSubNode >
-tGrid< tSubNode >::
-~tGrid() {cout << "    ~tGrid()" << endl;}                    //tGrid
- 
 
 
 /*****************************************************************************\

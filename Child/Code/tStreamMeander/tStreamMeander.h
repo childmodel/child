@@ -12,7 +12,7 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.9 1998-01-30 19:13:25 stlancas Exp $
+**  $Id: tStreamMeander.h,v 1.10 1998-02-12 01:46:28 stlancas Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
@@ -43,9 +43,9 @@ public:
    //sets everything to zero:
    tStreamMeander();
    //what should be called, after tStreamNet obj. is done
-   //(will crash if ptr to tStreamNet obj. is zero):
+   //(will crash if ptr to tStreamNet obj. is zero);
+   //does not call MakeReaches():
    tStreamMeander( tStreamNet &, tGrid< tLNode > &, tInputFile & );
-   //tStreamMeander( tStreamNet &, tInputFile & );
    ~tStreamMeander();
    //"get" ready, "set"...go!
    const tList< tPtrList< tLNode > > &getReachList();

@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.5 1998-01-31 19:12:40 stlancas Exp $
+**  $Id: tMesh.h,v 1.6 1998-02-12 01:46:11 stlancas Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -29,10 +29,12 @@ class tGrid
    friend class tListOutputData< tSubNode >;
   public:
    tGrid();
-   tGrid( tListInputData< tSubNode > & );
-   tGrid( tListInputData< tSubNode > &, int );
+   //tGrid( tListInputData< tSubNode > & );
+   //tGrid( tListInputData< tSubNode > &, int );
    tGrid( tInputFile & );
    ~tGrid();
+   void MakeGridFromScratch( tInputFile & );
+   void MakeGridFromInputData( tInputFile & );
    void Print();
      /*makes edg, ccwedg structure from spokelists*/
    void MakeCCWEdges();

@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.13 1998-02-11 00:01:30 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.14 1998-02-12 01:45:32 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -82,7 +82,7 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
    assert( leavefrac > 0 );
    vegerod = infile.ReadItem( vegerod, "VEG_ERODY" );
    rockerod = infile.ReadItem( rockerod, "KB" );
-   MakeReaches();
+   //MakeReaches();
    assert( &reachList != 0 );
 }
 
@@ -524,7 +524,7 @@ void tStreamMeander::FindReaches()
         plPtr = rlIter.NextP(), i++ )
    {
       assert( reachList.getSize() > 0 );
-      cout << " on reach " << i << endl << flush;
+      //cout << " on reach " << i << endl << flush;
       assert( i<reachList.getSize() );
       //go downstream from reach head
       //and add nodes to the reach
@@ -541,13 +541,28 @@ void tStreamMeander::FindReaches()
          cn = cn->GetDownstrmNbr();
       }
       while (!cn->getReachMember() && cn->getBoundaryFlag() == kNonBoundary);
-      //make sure reach has "positive" slope:
-      lrn = rnIter.LastP();
-      frn = rnIter.FirstP();
-      rdrop = frn->getZ() - lrn->getZ();
-      if( rdrop <= 0 )
+      //make sure reach has more than 4 members:
+      if( plPtr->getSize() > 4 )
       {
-         //remove reach if it has non-positive slope:
+         //make sure reach has "positive" slope:
+         lrn = rnIter.LastP();
+         frn = rnIter.FirstP();
+         rdrop = frn->getZ() - lrn->getZ();
+         if( rdrop <= 0 )
+         {
+            //remove reach if it has non-positive slope:
+            tempnode = rlIter.NodePtr();
+            rlIter.Prev();
+            reachList.moveToFront( tempnode );
+            reachList.removeFromFront( listtodelete );
+            reachlen[i] = 0;
+            nrnodes[i] = 0;
+            i--;
+         }
+      }
+      else
+      {
+         //remove reach if it has 4 or fewer members:
          tempnode = rlIter.NodePtr();
          rlIter.Prev();
          reachList.moveToFront( tempnode );
@@ -557,6 +572,7 @@ void tStreamMeander::FindReaches()
          i--;
       }
    }
+   cout << "Final no. reaches: " << reachList.getSize() << endl << flush;
    
       //now we'll need to know the
       //channel and hydraulic geometry:
@@ -944,7 +960,7 @@ tArray< double > tStreamMeander::FindBankErody( tLNode *nPtr )
 {
    double x1, y1, x2, y2, dx, dy, dx1, dy1, a, b, c, d, dmin, dlast,
        dzleft, dzright, depth, dfactor, dtotal, erody, sed;
-   tArray< double > xy, xyz1, xy2, dxy, rlerody(2);
+   tArray< double > xy, xyz1, xy2, dxy(2), rlerody(2);
    tEdge * curedg, * ledg, * redg, *ce;
    tLNode *cn, *dn, *rn, *ln;
    tPtrListIter< tEdge > spokIter( nPtr->getSpokeListNC() );
