@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.50 2003-08-13 16:11:09 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.51 2003-09-02 11:57:55 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -258,6 +258,7 @@ public:
     void DensifyMeshDrArea( double time=0.0 );  // Densifies mesh locally
 
 protected:
+    tLNode *SearchLakeOutlet( tPtrList< tLNode > &);
     void FillLakesFlowDirs(tPtrListIter< tLNode > &, tLNode *);
     inline static void RouteFlowArea( tLNode *, double );
     inline static void RouteRunoff( tLNode *, double, double );

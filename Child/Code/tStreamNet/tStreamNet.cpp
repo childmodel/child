@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.55 2003-09-01 13:07:59 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.56 2003-09-02 11:57:54 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1456,104 +1456,30 @@ void tStreamNet::FillLakes()
    if (0) //DEBUG
      cout << "FillLakes()..." << endl;
 
-   tLNode *cn,             // Node on list: if a sink, then process
-       *thenode,           // Node on lake perimeter
-       *lowestNode,        // Lowest node on perimeter found so far
-       *cln;               // current lake node
    tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() ); // node iterator
-   tEdge *ce;              // Pointer to an edge
-   double lowestElev;      // Lowest elevation found so far on lake perimeter
-   bool done;               // Flag indicating whether outlet has been found
 
    // Check each active node to see whether it is a sink
-   for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
+   for( tLNode *cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
    {
       if( cn->getFloodStatus() == kSink )
       {
          // Create a new lake-list, initially containing just the sink node.
  	 tPtrList< tLNode > lakeList;                 // List of flooded nodes
-	 tPtrListIter< tLNode > lakeIter( lakeList ); // Iterator for lake list
 
          lakeList.insertAtBack( cn );
          cn->setFloodStatus( kCurrentLake );
 
          // Iteratively search for an outlet along the perimeter of the lake
-         done = false;
-         do
-         {
-            lowestNode = lakeIter.FirstP();
-            lowestElev = kVeryHigh; // Initialize lowest elev to very high val.
+	 tLNode *lowestNode = SearchLakeOutlet( lakeList );
 
-            // Check the neighbors of every node on the lake-list
-            for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
-                 cln = lakeIter.NextP() )
-            {
-               // Check all the neighbors of the node
-               ce = cln->getEdg();
-               do
-               {
-                  thenode = static_cast<tLNode *>(ce->getDestinationPtrNC());
-                  // Is it a potential outlet (ie, not flooded and not
-                  // a boundary)?
-                  if( thenode->getFloodStatus() == kNotFlooded
-                      && ce->FlowAllowed() )
-                  {
-                     // Is it lower than the lowest found so far?
-                     if( thenode->getZ() < lowestElev )
-                     {
-                        lowestNode = thenode;
-                        lowestElev = thenode->getZ();
-                     }
-                  }
-                  // If it's a previous lake node or a sink, add it to the list
-                  else if( thenode->getFloodStatus() == kFlooded ||
-                           thenode->getFloodStatus() == kSink )
-                  {
-                     lakeList.insertAtBack( thenode );
-                     thenode->setFloodStatus( kCurrentLake );
-                  }
-               } while( ( ce=ce->getCCWEdg() ) != cln->getEdg() );// END spokes
-
-            } /* END lakeList */
-
-            // Now we've found the lowest point on the perimeter. Now test
-            // to see whether it's an outlet. If it's an open boundary, it's
-            // an outlet...
-            if( lowestNode->getBoundaryFlag() == kOpenBoundary ) done = true;
-            else // ...it's also an outlet if it can drain to a "dry" location.
-            {
-               // Can lowestNode drain to a non-flooded location?
-               if( FindLakeNodeOutlet( lowestNode ) ) done = true;
-               // no, it can't, so add it to the list and continue:
-               else
-               {
-                  lakeList.insertAtBack( lowestNode );
-                  lowestNode->setFloodStatus( kCurrentLake );
-               }
-            }
-            if( lakeList.getSize() > meshPtr->getNodeList()->getActiveSize() )
-            {
-	      cout << "LAKE LIST SIZE=" << lakeList.getSize() << "\n"
-		"active node size=" << meshPtr->getNodeList()->getActiveSize()
-		   << endl;
-	      cerr <<
-		"Error in Lake Filling algorithm: "
-		"Unable to find a drainage outlet.\n"
-		"This error can occur when open boundary node(s) "
-		"are isolated from the interior of the mesh.\n"
-		 "This is especially common when a single outlet point "
-		"(open boundary) is used.\n"
-		"Re-check mesh configuration or try changing SEED.\n";
-	      ReportFatalError( "No drainage outlet found for one or more interior nodes." );
-            }
-         } while( !done );
-
+	 // Assign a flow path
+	 tPtrListIter< tLNode > lakeIter( lakeList ); // Iterator for lake list
 	 FillLakesFlowDirs(lakeIter, lowestNode);
 
          // Finally, flag all of the
          // nodes in it as "kFlooded" and clear the list so we can move on to
          // the next sink. (Fixed mem leak here 8/5/97 GT).
-         for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
+         for( tLNode *cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
               cln = lakeIter.NextP() )
              cln->setFloodStatus( kFlooded );
       } /* END if Sink */
@@ -1562,6 +1488,99 @@ void tStreamNet::FillLakes()
      cout << "FillLakes() finished" << endl;
 
 } // end of tStreamNet::FillLakes
+
+
+
+/*****************************************************************************\
+**
+**  tStreamNet::SearchLakeOutlet
+**
+**  Iteratively search for an outlet along the perimeter of the lake
+**
+**  Moved from FillLakes (AD 09/2003)
+**
+\*****************************************************************************/
+tLNode *tStreamNet::SearchLakeOutlet( tPtrList< tLNode > &lakeList )
+{
+  bool done;               // Flag indicating whether outlet has been found
+  tLNode
+    *cln,                  // current lake node
+    *lowestNode;           // Lowest node on perimeter found so far
+  double lowestElev;       // Lowest elevation found so far on lake perimeter
+  tPtrListIter< tLNode > lakeIter( lakeList ); // Iterator for lake list
+
+  done = false;
+  do
+    {
+      lowestNode = lakeIter.FirstP();
+      lowestElev = kVeryHigh; // Initialize lowest elev to very high val.
+
+      // Check the neighbors of every node on the lake-list
+      for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
+	   cln = lakeIter.NextP() )
+	{
+	  // Check all the neighbors of the node
+	  tEdge *ce = cln->getEdg();
+	  do
+	    {
+	      tLNode *thenode =
+		static_cast<tLNode *>(ce->getDestinationPtrNC());
+	      // Is it a potential outlet (ie, not flooded and not
+	      // a boundary)?
+	      if( thenode->getFloodStatus() == kNotFlooded
+		  && ce->FlowAllowed() )
+		{
+		  // Is it lower than the lowest found so far?
+		  if( thenode->getZ() < lowestElev )
+		    {
+		      lowestNode = thenode;
+		      lowestElev = thenode->getZ();
+		    }
+		}
+	      // If it's a previous lake node or a sink, add it to the list
+	      else if( thenode->getFloodStatus() == kFlooded ||
+		       thenode->getFloodStatus() == kSink )
+		{
+		  lakeList.insertAtBack( thenode );
+		  thenode->setFloodStatus( kCurrentLake );
+		}
+	    } while( ( ce=ce->getCCWEdg() ) != cln->getEdg() );// END spokes
+
+	} /* END lakeList */
+
+      // Now we've found the lowest point on the perimeter. Now test
+      // to see whether it's an outlet. If it's an open boundary, it's
+      // an outlet...
+      if( lowestNode->getBoundaryFlag() == kOpenBoundary ) done = true;
+      else // ...it's also an outlet if it can drain to a "dry" location.
+	{
+	  // Can lowestNode drain to a non-flooded location?
+	  if( FindLakeNodeOutlet( lowestNode ) ) done = true;
+	  // no, it can't, so add it to the list and continue:
+	  else
+	    {
+	      lakeList.insertAtBack( lowestNode );
+	      lowestNode->setFloodStatus( kCurrentLake );
+	    }
+	}
+      if( lakeList.getSize() > meshPtr->getNodeList()->getActiveSize() )
+	{
+	  cout << "LAKE LIST SIZE=" << lakeList.getSize() << "\n"
+	    "active node size=" << meshPtr->getNodeList()->getActiveSize()
+	       << endl;
+	  cerr <<
+	    "Error in Lake Filling algorithm: "
+	    "Unable to find a drainage outlet.\n"
+	    "This error can occur when open boundary node(s) "
+	    "are isolated from the interior of the mesh.\n"
+	    "This is especially common when a single outlet point "
+	    "(open boundary) is used.\n"
+	    "Re-check mesh configuration or try changing SEED.\n";
+	  ReportFatalError( "No drainage outlet found for one or more interior nodes." );
+	}
+    } while( !done );
+  return lowestNode;
+}
 
 
 /*****************************************************************************\
@@ -2344,7 +2363,6 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
        zin = 0,       // Elevation of inlet
        suminvdist = 0,// Sum of 1/dist for all nearby non-boundary nodes
        minDistFound;  // Smallest distance to nearby node found so far
-   tArray< double > xyz(3);
    tTriangle *intri, *ntri;
    tLNode *cn,
        *closestNode(0);  // -> to closest nearby node found so far
@@ -2463,6 +2481,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
          newnode.setX( xin );
          newnode.setY( yin );
          //zin = zin / suminvdist;
+	 //tArray< double > xyz(3);
          //xyz[0] = xin;
          //xyz[1] = yin;
          //xyz[2] = zin;
@@ -2502,7 +2521,7 @@ void tInlet::FindNewInlet()
    int n;
      //tPtrList< tLNode > bList;
      //tPtrListIter< tLNode > bI( bList );
-   tArray< double > xyz = innode->get3DCoords();
+   const tArray< double > xyz( innode->get3DCoords() );
    yin = xyz[1];
    zmin = xyz[2];
    newinnode = innode;
