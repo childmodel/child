@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.43 2003-05-23 15:04:37 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.44 2003-07-25 13:16:11 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -162,9 +162,12 @@ class tParkerChannels
 
  private:
   double mdPPfac;    // Multiplicative factor for chan. width
-  double mdPPexp;    // Exponent on slope in width equation
+  double mdPPexp1;   // Exponent on slope in width equation
+  double mdPPexp2;   // Exponent on D50 in width equation (used if multi)
   double mdRough;    // Roughness (eg, Manning's n), used for depth
   double mdDepthexp; // Exponent used in computing depth via Manning/Chezy
+  int miNumGrainSizeClasses;  // Number of grain size classes
+  tArray<double> mD50BySizeClass; // Array recording D50 of each size class
 };
 						      
 

@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.41 2003-07-21 10:05:31 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.42 2003-07-25 13:16:09 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1797,97 +1797,106 @@ void tStreamNet::SortNodesByNetOrder( int optMultiFlow )
 **         GT 6/99
 **       - GT 6/01 -- added statement to call alternative ParkerChannels
 **         model instead of "regime" hydraulic geometry.
+**       - 7/03: Parker geometry function now called from FindChanGeom().
+**               This allows us to retain the power-law regime functions for
+**               at-a-station values while using Parker for bankfull
+**               conditions. Also moved the if-else out of the node loop. (GT)
 **
 \*****************************************************************************/
 void tStreamNet::FindHydrGeom()
 {
-   if( miChannelType==kParkerChannels )
-     {
-       assert( mpParkerChannels != 0 );
-       mpParkerChannels->CalcChanGeom( meshPtr );
-       return;
-     }
 
-   //Xint i, j, num;
    double kwdspow, kndspow, kddspow,
        widpow, deppow, npow, qpsec;
-   double width, depth, rough, slope;
-   tLNode *cn;
-
-   // TODO: could be made more efficient!
-
-   // Calculate these just once and store--TODO
-   if( edds>0.0 )
-   {
-      kddspow = pow(kdds, edstn / edds);
-      deppow = 1.0 - edstn / edds;
-   }
-   else
-   {
-      kddspow = kdds;
-      deppow = 0.0;
-   }
-   if( ewds>0.0 )
-   {
-      kwdspow = pow(kwds, ewstn / ewds);
-      widpow = 1.0 - ewstn / ewds;
-   }
-   else
-   {
-      kwdspow = kwds;
-      widpow = 0.0;
-   }
-   if( ends!=0.0 )
-   {
-      kndspow = pow(knds, enstn / ends);
-      npow = 1.0 - enstn / ends;
-   }
-   else
-   {
-      kndspow = knds;
-      npow = 0.0;
-   }
-
+   double width, depth, rough=0.0, slope;
+   tLNode *cn;   
    tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
-   for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
-   {
-      //cout<<"FHG node "<<cn->getID()<<" meanders "<<cn->Meanders()<<endl;
-      //removed an if cn->Meanders(), so stuff calculated everywhere
-      //if rainfall varies, find hydraulic width "at-a-station"
-      //based on the channel width "downstream":
-      if( optrainvar && cn->getQ()>0.0 ) // TODO: IF should be outside loop
-      {
-         qpsec = cn->getQ()/SECPERYEAR;
-         width = pow(cn->getChanWidth(), widpow) * kwdspow * pow(qpsec, ewstn);
-         cn->setHydrWidth( width );
-         depth = pow(cn->getChanDepth(), deppow) * kddspow * pow(qpsec, edstn);
-         cn->setHydrDepth( depth );
-        rough = pow(cn->getChanRough(), npow) * kndspow * pow(qpsec, enstn);
-         cn->setHydrRough( rough );
-         slope = cn->getChanSlope();
-         assert( slope >= 0 ); // slope can be zero -- changed assert 3/99
-         //Depth now calculated as above - done to be consistent
-         //with changes made in FindChanGeom
-         //radfactor = qpsec * rough / width / sqrt(slope);
-         //hradius = pow(radfactor, 0.6);
-         //depth = hradius;
-//depth = width / ( width / hradius - 2.0 );
-         //cn->setHydrDepth( depth );
-         cn->setHydrSlope( slope );
-      }
-      //if rainfall does not vary, set hydraulic geom. = channel geom.
-      else
-      {
-         width = cn->getChanWidth();
-         rough = cn->getChanRough();
-         depth = cn->getChanDepth();
-         slope = cn->getChanSlope();
-         cn->setHydrWidth( width );
-         cn->setHydrRough( rough );
-         cn->setHydrSlope( slope );
-         cn->setHydrDepth( depth );
-      }
-   }
+
+   // If rainfall and hence discharge varies in time, set flow width, depth
+   // and roughness using power law functions of their bankfull values
+   if( optrainvar )
+     {
+       // Set up exponents and coefficients
+       // NB: Calculate these just once and store--TODO
+       if( edds>0.0 )
+	 {
+	   kddspow = pow(kdds, edstn / edds);
+	   deppow = 1.0 - edstn / edds;
+	 }
+       else
+	 {
+	   kddspow = kdds;
+	   deppow = 0.0;
+	 }
+       if( ewds>0.0 )
+	 {
+	   kwdspow = pow(kwds, ewstn / ewds);
+	   widpow = 1.0 - ewstn / ewds;
+	 }
+       else
+	 {
+	   kwdspow = kwds;
+	   widpow = 0.0;
+	 }
+       if( ends!=0.0 )
+	 {
+	   kndspow = pow(knds, enstn / ends);
+	   npow = 1.0 - enstn / ends;
+	 }
+       else
+	 {
+	   kndspow = knds;
+	   npow = 0.0;
+	 }
+
+       // Now loop over nodes, using at-a-station power law to set
+       // width, depth & roughness
+       for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
+	 {
+	   //removed an if cn->Meanders(), so stuff calculated everywhere
+	   //if rainfall varies, find hydraulic width "at-a-station"
+	   //based on the channel width "downstream":
+	   if( cn->getQ()>0.0 )
+	     {
+	       qpsec = cn->getQ()/SECPERYEAR;
+	       width = pow(cn->getChanWidth(), widpow) * kwdspow 
+		 * pow(qpsec, ewstn);
+	       cn->setHydrWidth( width );
+	       depth = pow(cn->getChanDepth(), deppow) * kddspow 
+		 * pow(qpsec, edstn);
+	       cn->setHydrDepth( depth );
+	       rough = pow(cn->getChanRough(), npow) * kndspow 
+		 * pow(qpsec, enstn);
+	       cn->setHydrRough( rough );
+	       slope = cn->getChanSlope();
+	       assert( slope >= 0. ); // slope can be 0 -- changed assert 3/99
+	       //Depth now calculated as above - done to be consistent
+	       //with changes made in FindChanGeom
+	       //radfactor = qpsec * rough / width / sqrt(slope);
+	       //hradius = pow(radfactor, 0.6);
+	       //depth = hradius;
+	       //depth = width / ( width / hradius - 2.0 );
+	       //cn->setHydrDepth( depth );
+	       cn->setHydrSlope( slope );
+	     }
+	 }
+     }
+   //if rainfall does not vary, set hydraulic geom. = channel geom.
+   else 
+     {
+       for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
+	 {
+	   width = cn->getChanWidth();
+	   rough = cn->getChanRough();
+	   depth = cn->getChanDepth();
+	   slope = cn->getChanSlope();
+	   cn->setHydrWidth( width );
+	   cn->setHydrRough( rough );
+	   cn->setHydrSlope( slope );
+	   cn->setHydrDepth( depth );
+	 }
+     }
+
    if (0) //DEBUG
      cout << "done tStreamNet::FindHydrGeom" << endl << flush;
 }
@@ -1918,13 +1927,19 @@ void tStreamNet::FindHydrGeom()
 **               produce a bankfull event. GT
 **       - 6/01 GT: added statement at beginning to ignore this fn if
 **               alternative Parker-Paola models is used.
+**       - 7/03: Parker-Paola model now called directly from here to set
+**               bankfull geometry (GT)
 **
 \*****************************************************************************/
 void tStreamNet::FindChanGeom()
 {
-   if( miChannelType==kParkerChannels ) return;
+   if( miChannelType==kParkerChannels )
+     {
+       assert( mpParkerChannels != 0 );
+       mpParkerChannels->CalcChanGeom( meshPtr );
+       return;
+     }
 
-   //Xint i, j, num;
    double qbf,      // Bankfull discharge in m3/s
        width,       // Channel width, m
        depth,       // Channel depth, m
@@ -1933,9 +1948,6 @@ void tStreamNet::FindChanGeom()
    double lambda;
    tLNode *cn;
    tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
-   //X tStorm *sPtr = getStormPtrNC();
-   // double isdmn = sPtr->getMeanInterstormDur();
-   // double pmn = sPtr->getMeanPrecip();
 
    // the following modification made by gt, 3/99, to avoid hydraulic geom
    // errors during runs w/ long storms:
@@ -1949,12 +1961,11 @@ void tStreamNet::FindChanGeom()
       // etc. Note that if the user enters 0 for BANKFULLEVENT, the actual
       // current discharge will be used instead.
       qbf = cn->getDrArea()*bankfullevent;
-      if( !qbf ) qbf = cn->getQ()/SECPERYEAR;  // q is now in m^3/s
+      if( !qbf ) qbf = cn->getQ()/SECPERYEAR;  // q is in m^3/s
       width = kwds * pow(qbf, ewds);
       depth = kdds * pow(qbf, edds);
       rough = knds * pow(qbf, ends);
       lambda = klambda * pow(qbf, elambda);
-      //Xcout << "FindChanGeom: w="<<width<<" d="<<depth<<" r="<<rough<<" lambda="<<lambda<<endl;
       cn->setChanWidth( width );
       cn->setChanDepth( depth );
       cn->setChanRough( rough );
@@ -2539,50 +2550,67 @@ tParkerChannels::tParkerChannels( tInputFile &infile )
 {
   double kt,              // Shear-stress coefficient (SI units)
     taucrit,              // Critical shear stress for d50 (Pa)
+    thetac,               // Critical shields stress
+    shearRatio,           // Parker-Paola constant (tau/taucrit ratio)
     d50,                  // Median grain diameter (m)
     alpha,                // Specific-discharge exponent in shear stress eqn
     beta;                 // Slope exponent in shear stress eqn
-  int numg,               // Number of grain-size classes
-    i;                    // Counter
-  const double thetac = 0.045,  // Critical shields stress
+  int i;                    // Counter
+  const double
     sigma = RHOSED,       // Sediment density
     rho = RHO,            // Water density
     grav = GRAV,          // Gravitational acceleration
-    P = 1.4,              // Parker-Paola constant (tau/taucrit ratio)
     secPerYear=SECPERYEAR;  // # of seconds in one year
   char astring[12];   // string var used in reading grain-size classes
 
    if (0) //DEBUG
      cout << "tParkerChannels::tParkerChannels\n";
 
-  //First, average over size-classes to estimate d50 (works only for numg<10 )
-  numg = infile.ReadItem( numg, "NUMGRNSIZE" );
-  d50 = 0.0;
-  strcpy( astring, "GRAINDIAM0" );
-  for( i=1; i<=numg; i++ )
-    {
-      astring[9]++;  // Next number (1, 2, etc.)
-      //strcpy( astring, "GRAINDIAM" );
-      //strcat( astring, nstr );
-      d50 += infile.ReadItem( d50, astring );
-      if (1) //DEBUG
-	cout << "Reading " << astring << "; cum value = " << d50 << endl;
-    }
-  d50 /= numg;
+   // Calculate coefficient and slope exponent for width equation (see above)
+   // If more than one grain size is used, then grain sizes can vary
+   // dynamically and we need to read and store the median diameter of each
+   // size-class.
+   kt = infile.ReadItem( kt, "KT" );
+   alpha = infile.ReadItem( alpha, "MF" );
+   beta = infile.ReadItem( beta, "NF" );
+   thetac = infile.ReadItem( thetac, "THETAC" );
+   shearRatio = infile.ReadItem( shearRatio, "SHEAR_RATIO" );
+   miNumGrainSizeClasses = infile.ReadItem( miNumGrainSizeClasses, 
+					    "NUMGRNSIZE" );
+   if(  miNumGrainSizeClasses < 1 ||  miNumGrainSizeClasses>=10 )
+     ReportFatalError( "Number of grain-size classes must be between 1 and 9 inclusive." );
 
-  // Calculate coefficient and slope exponent for width equation (see above)
-  taucrit = thetac*(sigma-rho)*grav*d50;
-  if (1) //DEBUG
-    cout << "Tau crit = " << taucrit << endl;
-  kt = infile.ReadItem( kt, "KT" );
-  alpha = infile.ReadItem( alpha, "MF" );
-  beta = infile.ReadItem( beta, "NF" );
-  mdPPfac = ( 1.0 / secPerYear ) * pow( kt / ( taucrit * P ), 1.0 / alpha );
-  mdPPexp = beta / alpha;
-  if (1) //DEBUG
-    cout << "mdPPfac=" << mdPPfac << "  mdPPexp=" << mdPPexp << endl;
+   mdPPexp1 = beta / alpha;
+   if( miNumGrainSizeClasses>1 ) // In this case we will calc D50 on the fly
+     {
+       mdPPfac = ( 1.0 / secPerYear )
+	 * pow( kt / (  thetac*(sigma-rho)*grav*shearRatio ), 1.0 / alpha );
+       mdPPexp2 = -1.0 / alpha;
+       mD50BySizeClass.setSize( miNumGrainSizeClasses );
+       strcpy( astring, "GRAINDIAM0" );
+       for( i=0; i<miNumGrainSizeClasses; i++ )
+	 {
+	   astring[9]++;  // Next number (1, 2, etc.)
+	   //strcpy( astring, "GRAINDIAM" );
+	   //strcat( astring, nstr );
+	   mD50BySizeClass[i] = infile.ReadItem( d50, astring );
+	 }
+     }
+   else // In this case we incorporate constant d50 into the parameters
+     {
+       d50 = infile.ReadItem( d50, "GRAINDIAM0" );
+       taucrit = thetac*(sigma-rho)*grav*d50;
+       if (1) //DEBUG
+	 cout << "Tau crit = " << taucrit << endl;
+       mdPPfac = ( 1.0 / secPerYear ) 
+	 * pow( kt / ( taucrit*shearRatio ), 1.0 / alpha );
+       mdPPexp2 = 0.0; // Not used in this case
+       if (1) //DEBUG
+	 cout << "mdPPfac=" << mdPPfac << "  mdPPexp1=" << mdPPexp1 << endl;
+     }
 
-  // Depth is calculated from width plus Manning equation
+  // Depth could be calculated from width plus Manning equation
+   // (however, at the moment this is disabled)
   mdRough = infile.ReadItem( mdRough, "HYDR_ROUGH_COEFF_DS" ); // Manning's n
   mdRough = mdRough / secPerYear;
   mdDepthexp = 0.6;  // From Manning eqn; for Chezy / Darcy would be 2/3
@@ -2617,16 +2645,40 @@ void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
   if (0) //DEBUG
     cout << "tParkerChannels::CalcChanGeom\n";
 
-  for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
-    {
-      cn->setHydrWidth( mdPPfac * cn->getQ() * pow(cn->getSlope(),mdPPexp ) );
-      /* double denom;
-        if( ( denom = cn->getHydrWidth() * sqrt( cn->getSlope() ) ) > 0.0 )
-	cn->setHydrDepth( pow( ( cn->getQ() * mdRough ) / denom,
-			  mdDepthexp ) );
-      else
-	cn->setHydrDepth( 0.0 );*/
-      cn->setHydrDepth( 1. );
-      cn->setChanDepth( cn->getHydrDepth() );
-    }
+  if( miNumGrainSizeClasses==1 )
+    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+      {
+	cn->setChanWidth( mdPPfac * cn->getQ() * pow(cn->getSlope(),mdPPexp1 ) );
+	/* double denom;
+	   if( ( denom = cn->getHydrWidth() * sqrt( cn->getSlope() ) ) > 0.0 )
+	   cn->setHydrDepth( pow( ( cn->getQ() * mdRough ) / denom,
+	   mdDepthexp ) );
+	   else
+	   cn->setHydrDepth( 0.0 );*/
+	cn->setHydrDepth( 1. );
+	cn->setChanDepth( cn->getHydrDepth() );
+      }
+  else
+    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+      {
+	// Calc mean (NOT median) grain size
+	double d50 = 0.0;
+	for( int i=0; i<miNumGrainSizeClasses; i++ )
+	  {
+	    d50 += cn->getLayerDgrade(0,i) * mD50BySizeClass[i];
+	  }
+	assert( cn->getLayerDepth(0)>0. );
+	d50 = d50 / cn->getLayerDepth(0);
+	assert( d50>0. );
+	cn->setChanWidth( mdPPfac * cn->getQ() * pow(cn->getSlope(),mdPPexp1 )
+			  * pow( d50, mdPPexp2 ) );
+	if(0) { // debug
+	  cout << mdPPfac << " " << cn->getQ() << " " << cn->getSlope()
+	     << " " << mdPPexp1 << " " << d50 << " " << mdPPexp2 << endl;
+	}
+	cn->setHydrDepth( 1. );
+	cn->setChanDepth( cn->getHydrDepth() );
+	if( cn->getChanWidth()==0. && cn->getFloodStatus()==0 ) cn->TellAll();
+      }
+
 }
