@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.92 2004-04-27 13:44:48 childcvs Exp $
+ **  $Id: tLNode.h,v 1.93 2004-05-10 10:52:49 childcvs Exp $
  */
 /************************************************************************/
 
@@ -96,12 +96,12 @@ public:
   inline double getErody() const;
   inline void setSed( tSed_t );
   inline tSed_t getSed() const;
-  inline void setDgradesize( int );
-  inline int getDgradesize() const;
-  void setDgrade( int, double );
-  inline double getDgrade( int ) const;
+  inline void setDgradesize( size_t );
+  inline size_t getDgradesize() const;
+  void setDgrade( size_t, double );
+  inline double getDgrade( size_t ) const;
   inline tArray< double > const & getDgrade() const;
-  inline void addDgrade(int, double);
+  inline void addDgrade(size_t, double);
   inline void addPaleoCurrent(double, double);
   inline void setPaleoCurrent( double );
   inline double getPaleoCurrent() const;
@@ -237,17 +237,17 @@ inline tLayer::tSed_t tLayer::getSed() const
   return sed;
 }
 
-inline void tLayer::setDgradesize( int i )
+inline void tLayer::setDgradesize( size_t i )
 {
   dgrade.setSize(i);
 }
 
-inline int tLayer::getDgradesize( ) const
+inline size_t tLayer::getDgradesize( ) const
 {
   return dgrade.getSize();
 }
 
-inline void tLayer::addDgrade( int i, double size )
+inline void tLayer::addDgrade( size_t i, double size )
 {
    assert(i<dgrade.getSize());
 
@@ -292,7 +292,7 @@ inline double tLayer::getPaleoCurrent() const
  return paleocurrent;
 }
 
-inline double tLayer::getDgrade( int i) const
+inline double tLayer::getDgrade( size_t i) const
 {
   assert( i<dgrade.getSize() );
   return dgrade[i];
@@ -448,6 +448,7 @@ public:
     case kOutletFlag:   return "4-OutletFlag";
     case kOutletPreFlag:return "5-OutletPreFlag";
     }
+    ::abort();
   }
 
   tLNode();
@@ -537,25 +538,25 @@ public:
   // NOTE - For the get and set functions which involve arrays of size numg,
   // the arrays go from 0 to (numg-1) and must be indexed in this manner
   inline void setQs( double );
-  inline void setQs( int, double );
+  inline void setQs( size_t, double );
   inline double getQs() const;
-  inline double getQs( int );
+  inline double getQs( size_t );
   inline tArray< double > const & getQsm( ) const;
   inline void setQsin( double );
-  inline void setQsin( int, double );
+  inline void setQsin( size_t, double );
   inline void setQsin( tArray< double > const & );
-  void setQsinErrorHandler( int ) const ATTRIBUTE_NORETURN;
+  void setQsinErrorHandler( size_t ) const ATTRIBUTE_NORETURN;
   void addQs( double );
-  void addQs( int, double );
+  void addQs( size_t, double );
   void addQs( tArray< double > const &);
   inline void addQsin( double );
-  inline void addQsin( int, double );
+  inline void addQsin( size_t, double );
   void addQsin( tArray< double > const &);
   inline double getQsin() const;
-  inline double getQsin( int );
+  inline double getQsin( size_t );
   inline tArray< double > const & getQsinm( ) const;
-  inline void setGrade( int, double ) const;
-  inline double getGrade( int ) const;
+  inline void setGrade( size_t, double ) const;
+  inline double getGrade( size_t ) const;
   inline tArray< double > const & getGrade( ) const;
   inline void setXYZD( tArray< double > const &);
   inline tArray< double > const & getXYZD() const;
@@ -572,8 +573,8 @@ public:
   inline void setTauCrit( double );
   inline void setUplift( double );
   inline double getUplift() const;
-  inline int getNumg() const;
-  inline void setNumg( int ) const;
+  inline size_t getNumg() const;
+  inline void setNumg( size_t ) const;
   inline double getMaxregdep() const;
   // NOTE for the get and set functions which involve the layerlist
   // the top layer is layer 0 and indexes go from 0 to (getNumLayer-1)
@@ -681,7 +682,7 @@ protected:
   tList< tLayer > layerlist;        /* list of the different layers */
   tStratNode *stratNode;            /* Pointer to rectangular grid node. */
   tArray< double > accumdh;         /* temp inremental record of dh-fine and dh-coarse, used for projection on the tStratGrid */
-  static int numg;
+  static size_t numg;
   // number of grain sizes recognized NIC should be the same for all
   // nodes, maybe put this somewhere else when you figure out what is going on
   static tArray< double > grade;
@@ -917,7 +918,7 @@ inline bool tLNode::getReachMember() const {return chan.migration.reachmember;}
 
 inline void tLNode::setQs( double val ) {qs = val;}
 
-inline void tLNode::setQs( int i, double val )
+inline void tLNode::setQs( size_t i, double val )
 {
   if(unlikely(i>=numg))
     ReportFatalError( "Trying to index sediment sizes that don't exist ");
@@ -927,7 +928,7 @@ inline void tLNode::setQs( int i, double val )
 
 inline double tLNode::getQs() const {return qs;}
 
-inline double tLNode::getQs( int i)
+inline double tLNode::getQs( size_t i )
 {
   if(unlikely(i>=numg))
     ReportFatalError( "Trying to index sediment sizes that don't exist ");
@@ -942,14 +943,14 @@ tLNode::getQsm( ) const
 
 inline void tLNode::setQsin( double val ) {qsin = val;}
 
-inline void tLNode::setQsin( int i, double val )
+inline void tLNode::setQsin( size_t i, double val )
 {
   if(unlikely( (i>=numg) || (i>=qsinm.getSize()) )) {
     setQsinErrorHandler( i );
   }
   qsinm[i]=val;
   double tot=0.;
-  for(int j=0; j<numg; j++)
+  for(size_t j=0; j<numg; j++)
     tot+=qsinm[j];
   qsin=tot;
 }
@@ -959,7 +960,7 @@ inline void tLNode::setQsin( tArray< double > const & q_ )
   assert( qsinm.getSize() == q_.getSize() );
 
   double tot = 0.;
-  for(int j=0; j<numg; j++) {
+  for(size_t j=0; j<numg; j++) {
     qsinm[j] = q_[j];
     tot += q_[j];
   }
@@ -971,7 +972,7 @@ inline void tLNode::addQsin( double val )
   qsin += val;
 }
 
-inline void tLNode::addQsin( int i, double val )
+inline void tLNode::addQsin( size_t i, double val )
 {
   if(unlikely(i>=numg))
     ReportFatalError( "Trying to index sediment sizes that don't exist ");
@@ -985,7 +986,7 @@ inline void tLNode::addQs( double val )
   qs += val;
 }
 
-inline void tLNode::addQs( int i, double val )
+inline void tLNode::addQs( size_t i, double val )
 {
   if(unlikely(i>=numg))
     ReportFatalError( "Trying to index sediment sizes that don't exist ");
@@ -996,7 +997,7 @@ inline void tLNode::addQs( int i, double val )
 
 inline double tLNode::getQsin() const {return qsin;}
 
-inline double tLNode::getQsin( int i )
+inline double tLNode::getQsin( size_t i )
 {
   if(unlikely(i>=numg))
     ReportFatalError( "Trying to index sediment sizes that don't exist ");
@@ -1009,14 +1010,14 @@ tLNode::getQsinm( ) const
   return qsinm;
 }
 
-inline void tLNode::setGrade( int i, double size ) const
+inline void tLNode::setGrade( size_t i, double size ) const
 {
   if(unlikely(i>=numg))
     ReportFatalError("Trying to set a grain size for an index which is too large");
   grade[i] = size;
 }
 
-double tLNode::getGrade( int i ) const
+double tLNode::getGrade( size_t i ) const
 {
   return grade[i];
 }
@@ -1074,12 +1075,12 @@ void tLNode::setUplift( double val ) {uplift = val;}
 
 double tLNode::getUplift() const {return uplift;}
 
-inline int tLNode::getNumg() const
+inline size_t tLNode::getNumg() const
 {
   return numg;
 }
 
-inline void tLNode::setNumg( int size ) const
+inline void tLNode::setNumg( size_t size ) const
 {
   numg = size;
 }

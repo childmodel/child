@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.78 2004-04-27 13:44:48 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.79 2004-05-10 10:52:50 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -345,10 +345,10 @@ void tStreamNet::setInDrArea( double val )
 void tStreamNet::setInSedLoad( double val )
 {inlet.inSedLoad = ( val >= 0 ) ? val : 0;}
 
-void tStreamNet::setInSedLoadm( int i, double val )
+void tStreamNet::setInSedLoadm( size_t i, double val )
 {
    //shouldn't this be an assert?
-   if( i > inlet.inSedLoadm.getSize()-1 )
+   if( i >= inlet.inSedLoadm.getSize() )
        ReportFatalError("Tried to index a size that doesn't exist in tstreamnet");
    inlet.inSedLoadm[i]=val;
 }
@@ -3093,7 +3093,7 @@ void tInlet::FindNewInlet()
 \**************************************************************************/
 double tInlet::getInSedLoad() const {return inSedLoad;}
 
-double tInlet::getInSedLoad( int i )
+double tInlet::getInSedLoad( size_t i )
 {
    if(i>=inSedLoadm.getSize())
         ReportFatalError( "Trying to set size in sediment load that doesn't exist");
@@ -3109,7 +3109,7 @@ tInlet::getInSedLoadm( ) const
 void tInlet::setInSedLoad( double val )
 {inSedLoad = ( val > 0.0 ) ? val : 0.0;}
 
-void tInlet::setInSedLoad( int i, double val )
+void tInlet::setInSedLoad( size_t i, double val )
 {
    if(i>=inSedLoadm.getSize())
         ReportFatalError( "Trying to set size in sediment load that doesn't exist");

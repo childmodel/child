@@ -13,7 +13,7 @@
  **  argument passed to the constructor or by assignment of one array
  **  to another.
  **
- **  $Id: tArray.h,v 1.27 2004-04-22 17:21:41 childcvs Exp $
+ **  $Id: tArray.h,v 1.28 2004-05-10 10:52:47 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -40,11 +40,11 @@ using namespace std;
 template< class T >
 class tArray
 {
-  void fatalReport( int ) const ATTRIBUTE_NORETURN; // bail out
+  void fatalReport( size_t ) const ATTRIBUTE_NORETURN; // bail out
 public:
-  inline tArray();                      // default constructor
-  tArray( int );                 // constructor that initializes array size
-  tArray( int, const T& );
+  inline tArray();               // default constructor
+  tArray( size_t );              // constructor that initializes array size
+  tArray( size_t, const T& );
   tArray( const tArray< T > & ); // copy constructor
 
   inline tArray( const T&, const T& );  // Array of size 2 with 2 elements
@@ -54,20 +54,20 @@ public:
   const tArray< T > &operator=( const tArray< T > & ); // memberwise assignmt
   bool operator==( const tArray< T > & ) const;    // memberwise comparison
   bool operator!=( const tArray< T > & ) const;    // memberwise comparison
-  inline T &operator[]( int );   // overloaded array index operator
-  inline const T &operator[]( int ) const;
-  inline T & at( int );
-  inline const T & at( int ) const;
-  int getSize() const {       // returns the number of elements in the array
+  inline T &operator[]( size_t );   // overloaded array index operator
+  inline const T &operator[]( size_t ) const;
+  inline T & at( size_t );
+  inline const T & at( size_t ) const;
+  size_t getSize() const {       // returns the number of elements in the array
     return npts;
   }
-  void setSize( int );       // reinitializes and sets array size
+  void setSize( size_t );       // reinitializes and sets array size
   inline T *getArrayPtr();   // returns the actual array; needed for passing
   // to fortran.
   inline const T *getArrayPtr() const; // returns the actual array
 private:
   T * avalue; // the array itself
-  int npts;   // size of array
+  size_t npts;   // size of array
 };
 
 template< class T >
@@ -133,30 +133,30 @@ inline tArray< T >::
 \**************************************************************************/
 //overloaded subscript operator:
 template< class T >
-inline T &tArray< T >::operator[]( int subscript )
+inline T &tArray< T >::operator[]( size_t subscript )
 {
-  if ( unlikely(0 > subscript || subscript >= npts) )
+  if ( unlikely(subscript >= npts) )
     fatalReport( subscript );
   return avalue[subscript];
 }
 
 template< class T >
-inline const T &tArray< T >::operator[]( int subscript ) const
+inline const T &tArray< T >::operator[]( size_t subscript ) const
 {
-  if ( unlikely(0 > subscript || subscript >= npts) )
+  if ( unlikely(subscript >= npts) )
     fatalReport( subscript );
   return avalue[subscript];
 }
 
 // likewise with no check
 template< class T >
-inline T &tArray< T >::at( int subscript )
+inline T &tArray< T >::at( size_t subscript )
 {
   return avalue[subscript];
 }
 
 template< class T >
-inline const T &tArray< T >::at( int subscript ) const
+inline const T &tArray< T >::at( size_t subscript ) const
 {
   return avalue[subscript];
 }

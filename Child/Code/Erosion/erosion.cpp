@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.135 2004-04-27 13:44:46 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.136 2004-05-10 10:52:45 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -803,8 +803,7 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
       tauex = (tauex>0.0) ? tauex : 0.0;
       cap = weight * kf * node->getHydrWidth() * pow( tauex, pf );
     }
-  int i;
-  for(i=0; i<node->getNumg(); i++)
+  for(size_t i=0; i<node->getNumg(); i++)
     node->addQs(i, cap*node->getLayerDgrade(lyr,i)/node->getLayerDepth(lyr));
 
   node->setQs( cap );
@@ -899,8 +898,7 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node, int lyr, double weight )
       tauexpf = (tauexpf>0.0) ? tauexpf : 0.0;
       cap = weight * kf * node->getHydrWidth() * tauexpf;
     }
-  int i;
-  for(i=0; i<node->getNumg(); i++)
+  for(size_t i=0; i<node->getNumg(); i++)
     node->addQs(i, cap*node->getLayerDgrade(lyr,i)/node->getLayerDepth(lyr));
 
   node->setQs( cap );
@@ -997,8 +995,7 @@ double tSedTransBridgeDom::TransCapacity( tLNode *node, int lyr, double weight )
 {
   const double cap = weight * TransCapacity( node );
 
-  int i;
-  for(i=0; i<node->getNumg(); i++)
+  for(size_t i=0; i<node->getNumg(); i++)
     node->addQs(i, cap*node->getLayerDgrade(lyr,i)/node->getLayerDepth(lyr));
 
   //node->setQs( cap ); // <- this sets it to the weighted version ... correct?
@@ -2073,7 +2070,6 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
     dtmax;         // time increment: initialize to arbitrary large val
   double frac = 0.3; //fraction of time to zero slope
   double timegb; //time gone by - for layering time purposes
-  int i;
   tLNode * cn, *dn;
   // int nActNodes = meshPtr->getNodeList()->getActiveSize();
   tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() );
@@ -2112,7 +2108,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 	cn->setQsin(0.0); //totals are for ts calculation
 	cn->setQs(0.0);
 	cn->setQsin( sedzero );
-	for( i=0; i<cn->getNumg(); i++ ){
+	for( size_t i=0; i<cn->getNumg(); i++ ){
 	  cn->setQs(i,0.0);
 	}
 	//if(cn->getID()==93)
@@ -2289,7 +2285,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 	  // Depth of potential erosion due to excess transport capacity
 	  dzt=0;
 	  //cn->TellAll();
-	  for( i=0; i<cn->getNumg(); i++ ){
+	  for( size_t i=0; i<cn->getNumg(); i++ ){
             dz[i] = ( (cn->getQsin(i)-cn->getQs(i)) / cn->getVArea() ) * dtmax;
             dzt += dz[i];
             retbr[i]=0;
@@ -2306,7 +2302,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 	  dzrt = 0;
 	  if(cn->getLayerSed(0)<1){
             // Bedrock at surface
-            for( i=0; i<cn->getNumg(); i++ ){
+            for( size_t i=0; i<cn->getNumg(); i++ ){
 	      dzr[i] = cn->getDrDt()*cn->getLayerDgrade(0,i)/cn->getLayerDepth(0)*dtmax;
 	      dzrt += dzr[i];
 	      // if(cn->getX()==2.75 && cn->getY()==1){
@@ -2327,7 +2323,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 	      // Bedrock not at surface, but not enough sediment either
 	      // nic this should work if only regolith and bedrock
 	      // and also IF layering is working correctly
-	      for( i=0; i<cn->getNumg(); i++ ){
+	      for( size_t i=0; i<cn->getNumg(); i++ ){
 		dzr[i] = cn->getDrDt()*cn->getLayerDgrade(1,i)/cn->getLayerDepth(1)*dtmax*((cn->getMaxregdep()-cn->getLayerDepth(0))/cn->getMaxregdep());
 		dzrt += dzr[i];
 		// potential bedrock erosion depth
@@ -2368,7 +2364,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 
 	  // Send sediment downstream: sediment flux is equal to the flux in
 	  // plus/minus rate of erosion/deposition times node area
-	  for(i=0; i<cn->getNumg(); i++){
+	  for(size_t i=0; i<cn->getNumg(); i++){
             dn->addQsin( i, cn->getQsin(i) - (retbr[i]+retsed[i])*cn->getVArea()/dtmax );
 	  }
 	  //cn->TellAll();
@@ -2403,7 +2399,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
     double dtmax;       // time increment: initialize to arbitrary large val
     double frac = 0.3;  //fraction of time to zero slope
     double timegb=time; //time gone by - for layering time purposes
-    int i,j, flag;
+    int flag;
     tLNode * cn, *dn;
     // int nActNodes = meshPtr->getNodeList()->getActiveSize();
     tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() );
@@ -2441,7 +2437,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 	      {
 		cn->setQsin(0.0); //totals are for ts calculation
 		cn->setQsin( sedzero );
-		for( i=0; i<cn->getNumg(); i++ ){
+		for( size_t i=0; i<cn->getNumg(); i++ ){
                   cn->setQs(i,0.0);
 		}
 	      }
@@ -2449,7 +2445,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 	      {
 		cn->setQsin(insedloadtotal); //totals are for ts calculation
 		cn->setQsin( insed );
-		for( i=0; i<cn->getNumg(); i++ ){
+		for( size_t i=0; i<cn->getNumg(); i++ ){
                   cn->setQs(i,0.0);
 		  //cout << "inlet qsin size " << i << "=" << insed[i] << endl;
 		}
@@ -2463,7 +2459,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 	for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
 	  {
             depck=0;
-            i=0;
+            int i=0;
             qs=0;
 
             assert(cn->getChanDepth()<1000);
@@ -2595,7 +2591,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 	      flag = 1;
             }
 
-            for(i=0; i<cn->getNumg(); i++)
+            for(size_t i=0; i<cn->getNumg(); i++)
 	      cn->getDownstrmNbr()->addQsin(i,cn->getQsin(i));
             //What goes downstream will be what comes in + what gets ero'd/dep'd
             //This should always be negative or zero since max amt
@@ -2616,12 +2612,12 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
             if( dz<0 ) //total erosion
 	      {
 		if(flag==0){ // detach-lim
-                  i=0;
+                  int i=0;
                   depck=0;
                   while(dz<-0.000000001&&depck<cn->getChanDepth()&&i<cn->getNumLayer()){
 		    depck+=cn->getLayerDepth(i);
 		    if(-dz<=cn->getLayerDepth(i)){//top layer can supply total depth
-		      for(j=0;j<cn->getNumg();j++){
+		      for(size_t j=0;j<cn->getNumg();j++){
 			erolist[j]=dz*cn->getLayerDgrade(i,j)/cn->getLayerDepth(i);
 			if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
 			  //decrease total dz because of capacity limitations
@@ -2631,14 +2627,14 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 			}
 		      }
 		      ret=cn->EroDep(i,erolist,timegb);
-		      for(j=0;j<cn->getNumg();j++){
+		      for(size_t j=0;j<cn->getNumg();j++){
 			cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
 		      }
 		      dz=0;
 		    }
 		    else{//top layer is not deep enough, need to erode more layers
 		      flag=0;
-		      for(j=0;j<cn->getNumg();j++){
+		      for(size_t j=0;j<cn->getNumg();j++){
 			erolist[j]=-cn->getLayerDgrade(i,j);
 			if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
 			  //decrease total dz because of capacity limitations
@@ -2654,7 +2650,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 			dz-=erolist[j];
 		      }
 		      ret=cn->EroDep(i,erolist,timegb);
-		      for(j=0;j<cn->getNumg();j++){
+		      for(size_t j=0;j<cn->getNumg();j++){
 			//if * operator was overloaded for arrays, no loop necessary
 			cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
 		      }
@@ -2666,20 +2662,20 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 		}
 		else{//trans-lim
                   //cout<<"X "<<cn->getX()<<" Y "<<cn->getY();
-                  for(j=0;j<cn->getNumg();j++){
+                  for(size_t j=0;j<cn->getNumg();j++){
 		    erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
 		    // cout<<" j "<<j<<" "<<erolist[j];
                   }
                   //cout<<endl;
 
-                  i=0;
+                  int i=0;
                   depck=0;
                   while(depck<cn->getChanDepth()){
 		    depck+=cn->getLayerDepth(i);
 		    flag=cn->getNumLayer();
 		    ret=cn->EroDep(i,erolist,timegb);
 		    double sum=0;
-		    for(j=0;j<cn->getNumg();j++){
+		    for(size_t j=0;j<cn->getNumg();j++){
 		      cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
 		      erolist[j]-=ret[j];
 		      sum+=erolist[j];
@@ -2694,10 +2690,10 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
             else if(dz>0) //total deposition -> need if cause erodep chokes with 0
 	      {
 		//Get texture of stuff to be deposited
-		for(j=0;j<cn->getNumg();j++)
+		for(size_t j=0;j<cn->getNumg();j++)
 		  erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
 		ret=cn->EroDep(0,erolist,timegb);
-		for(j=0;j<cn->getNumg();j++){
+		for(size_t j=0;j<cn->getNumg();j++){
                   cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
 		}
 

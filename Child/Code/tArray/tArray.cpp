@@ -3,7 +3,7 @@
  **  @file tArray.cpp
  **  @brief Functions for template class tArray< T >
  **
- **  $Id: tArray.cpp,v 1.26 2004-04-22 17:21:41 childcvs Exp $
+ **  $Id: tArray.cpp,v 1.27 2004-05-10 10:52:47 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -32,25 +32,26 @@ using namespace std;
 //constructor that initializes array size
 template< class T >
 tArray< T >::
-tArray( int number ) :
+tArray( size_t number ) :
   avalue(0), npts(number)
 {
   assert( number > 0 );
   avalue = new T [npts];
-  for( int i=0; i<npts; i++ )
+  for( size_t i=0; i<npts; i++ )
     avalue[i] = 0;
 }
 
 template< class T >
 tArray< T >::
-tArray( int number, const T &init) :
+tArray( size_t number, const T &init) :
   avalue(0), npts(number)
 {
   assert( number > 0 );
   avalue = new T [npts];
-  for( int i=0; i<npts; i++ )
+  for( size_t i=0; i<npts; i++ )
     avalue[i] = init;
 }
+
 //copy constructor
 template< class T >
 tArray< T >::
@@ -60,7 +61,7 @@ tArray( const tArray< T > &original ) :
   assert( npts > 0 );
 
   avalue = new T[npts];
-  for( int i = 0; i < npts; i++ )
+  for( size_t i = 0; i < npts; i++ )
     avalue[i] = original.avalue[i];
 }
 
@@ -98,7 +99,7 @@ const tArray< T > &tArray< T >::operator=( const tArray< T > &right )
       }
       if( npts>0 )
 	{
-	  for( int i = 0; i < npts; i++ )
+	  for( size_t i = 0; i < npts; i++ )
 	    avalue[i] = right.avalue[i];
 	}
     }
@@ -110,8 +111,7 @@ template< class T >
 bool tArray< T >::operator==( const tArray< T > &right ) const
 {
   if( npts != right.npts ) return 0;
-  int i;
-  for( i = 0; i < npts; i++ )
+  for( size_t i = 0; i < npts; i++ )
     if( avalue[i] != right.avalue[i] )
       return false;
   return true;
@@ -126,7 +126,7 @@ bool tArray< T >::operator!=( const tArray< T > &right ) const
 
 // error handler (do not make it inline)
 template< class T >
-void tArray< T >::fatalReport( int subscript ) const
+void tArray< T >::fatalReport( size_t subscript ) const
 {
   cout<<"subscript is "<<subscript<<" npts is "<<npts<<endl;
   ReportFatalError( "Subscript out of range." );
@@ -137,7 +137,7 @@ void tArray< T >::fatalReport( int subscript ) const
 template< class T >
 ostream &operator<<( ostream &output, const tArray< T > &a )
 {
-  int i;
+  size_t i;
 
   for( i = 0; i < a.npts; i++ )
     {
@@ -152,11 +152,10 @@ ostream &operator<<( ostream &output, const tArray< T > &a )
  **  setSize: reinitializes and resizes the array
 \**************************************************************************/
 template< class T >
-void tArray<T>::setSize( int size )
+void tArray<T>::setSize( size_t size )
 {
-  assert( size>=0 );
   delete [] avalue;
   npts = size;
   avalue = new T [npts];
-  for( int i=0; i<npts; i++ ) avalue[i] = 0;
+  for( size_t i=0; i<npts; i++ ) avalue[i] = 0;
 }

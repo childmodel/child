@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.53 2004-04-19 16:23:49 childcvs Exp $
+ **  $Id: tOutput.h,v 1.54 2004-05-10 10:52:49 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -247,7 +247,7 @@ inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
 	   << cn->getLayerEtime(i) << '\n'
 	   << cn->getLayerDepth(i) << ' ' << cn->getLayerErody(i) << ' '
 	   << cn->getLayerSed(i) << '\n';
-    int j=0;
+    size_t j=0;
     while(j<cn->getNumg()){
       layofs << cn->getLayerDgrade(i,j) << ' ';
       j++;

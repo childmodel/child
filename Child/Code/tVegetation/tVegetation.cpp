@@ -14,7 +14,7 @@
 **  Created January, 2000, GT
 **  State read back from file if needed - November 2003, AD
 **
-**  $Id: tVegetation.cpp,v 1.15 2004-03-24 17:05:46 childcvs Exp $
+**  $Id: tVegetation.cpp,v 1.16 2004-05-10 10:52:52 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -67,7 +67,7 @@ tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, const tInputFile &infil
      // Start from a previous computation
      tListInputDataVegetation inputVegData( infile );
      const int nnodes = meshPtr->getNodeList()->getSize();
-     if (inputVegData.vegCov.getSize() != nnodes)
+     if (inputVegData.vegCov.getSize() != static_cast<size_t>(nnodes))
        ReportFatalError( "tVegetation(): invalid number of records"
 			 " in input file." );
      // Rely on the fact that the IDs have not been re-numbered.
