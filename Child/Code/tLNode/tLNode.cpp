@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.15 1998-02-27 22:57:03 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.16 1998-03-03 22:26:19 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -304,7 +304,7 @@ tChannel::tChannel()                                             //tChannel
 }
 
 tChannel::tChannel( const tChannel &orig )                       //tChannel
-        : erosion( orig.erosion ), migration( orig.migration )
+        : /*erosion( orig.erosion ),*/ migration( orig.migration )
 {
    if( &orig != 0 )
    {
@@ -333,7 +333,7 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
 {
    if( &right != this )
    {
-      erosion = right.erosion;
+      //erosion = right.erosion;
       migration = right.migration;
       drarea = right.drarea;
       q = right.q;
@@ -731,7 +731,12 @@ void tLNode::EroDep( double dz )
 }
 
 void tLNode::setAlluvThickness( double val )
-{reg.thickness = ( val >= 0.0 ) ? val : 0.0;}
+{
+   //reg.thickness = ( val >= 0.0 ) ? val : 0.0;
+   // gt changed for performance speedup (if stmt shouldn't ever be needed)
+   assert( val>=0 );
+   reg.thickness = val;
+}
 
 double tLNode::getAlluvThickness() const {return reg.thickness;}
 
@@ -751,9 +756,26 @@ void tLNode::setReachMember( int val )
 
 int tLNode::getReachMember() const {return chan.migration.reachmember;}
 
-void tLNode::setQs( double val ) {chan.erosion.qs = val;}
+void tLNode::SetQs( double val ) {qs = val;}
 
-double tLNode::getQs() const {return chan.erosion.qs;}
+double tLNode::GetQs() const {return qs;}
+
+void tLNode::SetQsin( double val ) {qsin = val;}
+
+void tLNode::AddQsin( double val ) 
+{
+   qsin += val;
+}
+
+double tLNode::GetQsin() const {return qsin;}
+
+void tLNode::SetDzDt( double val ) {dzdt = val;}
+
+double tLNode::GetDzDt() {return dzdt;}
+
+void tLNode::SetDrDt( double val ) {drdt = val;}
+
+double tLNode::GetDrDt() {return drdt;}
 
 void tLNode::setXYZD( tArray< double > arr )
 {
@@ -776,4 +798,13 @@ double tLNode::DistFromOldXY() const
    yo = oldpos[1];
    
    return sqrt( (x-xo) * (x-xo) + (y-yo) * (y-yo) );
+}
+
+
+// Tests whether bedrock is exposed at a node
+int tLNode::OnBedrock()
+{
+   // For multi-size model, criterion might be active layer thickness less
+   // than a nominal thickness; here, it's just an arbitrary alluvial depth
+   return ( reg.thickness<0.1 );
 }
