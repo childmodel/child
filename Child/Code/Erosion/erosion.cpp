@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.49 1999-01-08 22:29:23 gtucker Exp $
+**  $Id: erosion.cpp,v 1.50 1999-01-21 19:46:58 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -992,7 +992,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 
    // Compute erosion and/or deposition until all of the elapsed time (dtg)
    // is used up
-   timegb+=time;
+   timegb=time;
    do
    {
       //cout<<"AT BEGINNING!"<<endl;
@@ -1301,11 +1301,16 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
        excap,
        sum,
        addon;
+   tLNode * inletNode = strmNet->getInletNodePtr();
+   double insedloadtotal = strmNet->getInSedLoad();
    
    cn = ni.FirstP();
    
    tArray <double> ret( cn->getNumg() ); //amt actually ero'd/dep'd
    tArray <double> erolist( cn->getNumg() );
+   tArray <double> insed = strmNet->getInSedLoadm();
+
+   cout<<"sorting in DetachErode\n";
 
    // Sort so that we always work in upstream to downstream order
    strmNet->SortNodesByNetOrder();
@@ -1323,15 +1328,27 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
          //if(cn->getID()==93)
          //  cout<<"93 is active"<<endl;
-         cn->setQsin(0.0); //totals are for ts calculation
          cn->setQs(0.0);
-         for( i=0; i<cn->getNumg(); i++ ){
-            cn->setQsin( i, 0.0 );
-            cn->setQs(i,0.0);
+         if( cn!=inletNode )
+         {
+            cn->setQsin(0.0); //totals are for ts calculation
+            for( i=0; i<cn->getNumg(); i++ ){
+               cn->setQsin( i, 0.0 );
+               cn->setQs(i,0.0);
+            }
+         }
+         else
+         {
+            cn->setQsin(insedloadtotal); //totals are for ts calculation
+            for( i=0; i<cn->getNumg(); i++ ){
+               cn->setQs(i,0.0);
+               cn->setQsin( i, insed[i] );
+            }
          }
       }
 
       //cout << "size of erolay is " << erolay.getSize() << endl;
+      //cout << "zero out loop done\n";
 
       // Estimate erosion rates and time-step size
       // NOTE - in this first loop we are only dealing with
@@ -1425,10 +1442,20 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
          //Not for time step calculations, just utilizing loop
-         cn->setQsin(0.0);
-         // NIC, part below may be redundant, Check this
-         for( i=0; i<cn->getNumg(); i++ )
-             cn->setQsin( i, 0.0 );
+         if( cn!=inletNode )
+         {
+            cn->setQsin(0.0);
+            // NIC, part below may be redundant, Check this
+            for( i=0; i<cn->getNumg(); i++ )
+                cn->setQsin( i, 0.0 );
+         }
+         else
+         {
+            cn->setQsin( insedloadtotal );
+            // NIC, part below may be redundant, Check this
+            for( i=0; i<cn->getNumg(); i++ )
+                cn->setQsin( i, insed[i] );
+         }
          
          dn = cn->getDownstrmNbr();
          ratediff = dn->getDzDt() - cn->getDzDt(); //Are the pts converging?
@@ -1436,7 +1463,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
          {                                              //  to zero slope
             dt = ( cn->getZ() - dn->getZ() ) / ratediff;
             if( dt < dtmax ) dtmax = dt;
-            if( dt < 1e-4 )
+            if( dt < 0.005 )
             {
                cout << "Very small dt " << dt <<  endl;
                cout << "rate dif is " << ratediff << endl;
@@ -1455,7 +1482,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       dtmax *= frac;  // Take a fraction of time-to-flattening
       timegb+=dtmax;
 
-//       cout<<"timegb is "<<timegb<<endl;
+      //cout<<"timegb is "<<timegb<<endl;
       
       //At this point: we have drdt and qs for each node, plus dtmax
       
@@ -1612,6 +1639,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       } // Ends for( cn = ni.FirstP()...
       // Update time remainig   
       dtg -= dtmax;
+      //cout<<"Time remaining now "<<dtg<<endl;
    } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
 
    //cout<<"ending detach erode"<<endl;
