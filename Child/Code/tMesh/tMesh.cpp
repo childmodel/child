@@ -3,7 +3,7 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.76 1999-09-20 14:28:19 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.77 1999-11-30 21:26:22 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -153,6 +153,24 @@ tMesh()
    cout<<"tMesh()"<<endl;
    layerflag=FALSE;
 }
+
+//copy constructor (created 11/99, GT)
+//WARNING: this constructor relies on the behavior of assignment operations
+//in tMeshList, tList, and tPtrList, which may or not give the desired
+//results! Caveat emptor! -GT
+template< class tSubNode >
+tMesh<tSubNode>::tMesh( tMesh *originalMesh )
+{
+   nnodes = originalMesh->nnodes;
+   nedges = originalMesh->nedges;
+   ntri = originalMesh->ntri;
+   nodeList = originalMesh->nodeList;
+   edgeList = originalMesh->edgeList;
+   triList = originalMesh->triList;
+   seed = originalMesh->seed;
+   layerflag = originalMesh->layerflag;
+}
+
 
 /**************************************************************************\
 **
