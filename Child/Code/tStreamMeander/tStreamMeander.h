@@ -12,22 +12,28 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.7 1998-01-29 19:49:23 stlancas Exp $
+**  $Id: tStreamMeander.h,v 1.8 1998-01-30 01:48:00 stlancas Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
 
+#include <math.h>
+#include <assert.h>
 #include "../Classes.h"
 #include "../Definitions.h"
+#include "../Mathutil/mathutil.h"
 #include "../tArray/tArray.h"
 #include "../tPtrList/tPtrList.h"
+#include "../tGridList/tGridList.h"
 #include "../tList/tList.h"
+#include "../tStorm/tStorm.h"
 #include "../tStreamNet/tStreamNet.h"
 #include "../tLNode/tLNode.h"
 #include "../GridElements/gridElements.h"
 #include "../tGrid/tGrid.h"
 #include "../tInputFile/tInputFile.h"
 #include "../GlobalFns.h"
+/*#include "../Inclusions.h"*/
 
 /**Class tStreamMeander****/
 class tStreamMeander
@@ -63,8 +69,10 @@ public:
    int InterpChannel();
    //routines that add nodes on the floodplain;
    //Make... called before nodes are actually moved; Add... called after:
-   void MakeChanBorder( tList< tArray< double > > & );
-   void AddChanBorder( tList< tArray< double > > & );
+    void MakeChanBorder( tList<double> &, tList<double> &, tList<double> & );
+      //tList< tArray< double > > & );
+    void AddChanBorder( tList<double> &, tList<double> &, tList<double> & );
+      //tList< tArray< double > > & );
    //finds the erodibility of each bank, returns an array [right, left]:
    tArray< double > FindBankErody( tLNode * );
    //CheckBanksTooClose, CheckFlowedgCross, and CheckBrokenFlowedg are to check
@@ -77,31 +85,33 @@ public:
    //calls CalcMigration, routines to keep the mesh and net happy,
    //routines to add nodes;
    //only routine you need to make meandering happen for you:
-   void Migrate();
-
+    void Migrate();
+    
 protected:
-   //ptrs and list stuff:
-   tGrid< tLNode > *gridPtr;//ptr to tGrid obj. containing meandering reaches
-   tStreamNet *netPtr;      //ptr to tStreamNet obj., just to make sure it exists
-   tInputFile *infilePtr;   //ptr to tInputFile obj. containing parameters
-   tList< tPtrList< tLNode > > reachList; //list of tPtrLists of reach node ptrs
-   tListIter< tPtrList< tLNode > > rlIter;//iterator for reachList
-   //data items/parameters
-   double critflow;  //minimum discharge for meandering
-   int optdiamvar;  //flag w/ 1=>multiple grain sizes
-   int optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
-   double meddiam;   //median grain diameter, if optdiamvar = 0
-   double kwds, ewds, ewstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width
-   double knds, ends, enstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. roughness
-   double dscrtwids; //nominal channel discretization in channel widths
-   double allowfrac; //maximum channel point mvmt. in channel widths
-   double leavefrac; //distance in widths to add new node
-   double vegerod;  //erodibility of vegetated surface or bank
-   double rockerod; //erodibility of bedrock
-   tArray< int > nrnodes; //array w/ #elements=#reaches, # "active" reach nodes
-   tArray< double > reachlen; // " , length of active reach in reach list
-   tArray< double > taillen;  // " , length of inactive "tail" in reach list
-   long seed;
+      //ptrs and list stuff:
+    tGrid< tLNode > *gridPtr;//ptr to tGrid obj. containing meandering reaches
+    tStreamNet *netPtr;      //ptr to tStreamNet obj., just to make sure it exists
+    tInputFile *infilePtr;   //ptr to tInputFile obj. containing parameters
+    tList< tPtrList< tLNode > > reachList; //list of tPtrLists of reach node ptrs
+    tListIter< tPtrList< tLNode > > rlIter;//iterator for reachList
+      //tList< tArray< double > > bList;  //list of channel border coords
+      //tListIter< tArray< double > > blIter; //iter. for bList
+      //data items/parameters
+    double critflow;  //minimum discharge for meandering
+    int optdiamvar;  //flag w/ 1=>multiple grain sizes
+    int optrainvar;  //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
+    double meddiam;   //median grain diameter, if optdiamvar = 0
+    double kwds, ewds, ewstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width
+    double knds, ends, enstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. roughness
+    double dscrtwids; //nominal channel discretization in channel widths
+    double allowfrac; //maximum channel point mvmt. in channel widths
+    double leavefrac; //distance in widths to add new node
+    double vegerod;  //erodibility of vegetated surface or bank
+    double rockerod; //erodibility of bedrock
+    tArray< int > nrnodes; //array w/ #elements=#reaches, # "active" reach nodes
+    tArray< double > reachlen; // " , length of active reach in reach list
+    tArray< double > taillen;  // " , length of inactive "tail" in reach list
+    long seed;
 };
 
 #endif

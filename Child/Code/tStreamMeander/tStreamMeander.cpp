@@ -4,11 +4,9 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.8 1998-01-29 19:49:29 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.9 1998-01-30 01:47:50 stlancas Exp $
 \**************************************************************************/
 
-#include <math.h>
-#include <assert.h>
 #include "tStreamMeander.h"
 
 extern "C" 
@@ -33,7 +31,7 @@ extern "C"
 **
 \**************************************************************************/
 tStreamMeander::tStreamMeander()
-        : reachList(), rlIter( reachList )
+        : reachList(), rlIter( reachList )//, bList(), blIter( bList )
 {
    gridPtr = 0;
    netPtr = 0;
@@ -45,7 +43,7 @@ tStreamMeander::tStreamMeander()
 
 tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
                                 tInputFile &infile )
-        : reachList(), rlIter( reachList )
+        : reachList(), rlIter( reachList )//, bList(), blIter( bList )
 {
    //if( netPtr != 0 ) netPtr = new tStreamNet( gRef );
    netPtr = &netRef;
@@ -689,7 +687,10 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
 \***************************************************************/
 void tStreamMeander::Migrate()
 {
-   tList< tArray< double > > bList;
+     //tList< tArray< double > > bList;
+   tList< double > xList;
+   tList< double > yList;
+   tList< double > zList;
    double duration = netPtr->getStormPtrNC()->GetStormDuration();
    double time = 0.0;
    double cummvmt = 0.0;
@@ -697,12 +698,12 @@ void tStreamMeander::Migrate()
    while( time < duration)
    {
       CalcMigration( time, duration, cummvmt ); //incremented time
-      MakeChanBorder( bList ); //bList of coordinate arrays made
+      MakeChanBorder( xList, yList, zList /*bList*/ ); //bList of coordinate arrays made
       CheckBanksTooClose();
       CheckFlowedgCross();
       //CheckBrokenFlowedg();
       gridPtr->MoveNodes();
-      AddChanBorder( bList );
+      AddChanBorder( xList, yList, zList /*bList*/ );
       //after the channel migrates a certain amount
       //(here, maximum migration distances, in units of hydr. width,
       //at each iteration are summed and compared to 1.0)
@@ -731,7 +732,9 @@ void tStreamMeander::Migrate()
 **
 \*****************************************************************************/
 
-void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
+void tStreamMeander::MakeChanBorder( tList<double> &xList, tList<double> &yList,
+                                     tList<double> &zList )
+//tList< tArray< double > > &bList )
 {
    int i, j, num;
    double x0, y0, x1, y1, x, y, z, delx, dely, phi, width, xdisp, ydisp;
@@ -762,11 +765,18 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
          xyz[0] = x0 + xdisp;
          xyz[1] = y0 - ydisp;
          xyz[2] = rl[0];
-         bList.insertAtBack( xyz );
+         xList.insertAtBack( xyz[0] );
+         yList.insertAtBack( xyz[1] );
+         zList.insertAtBack( xyz[2] );
+//         bList.insertAtBack( xyz );
          xyz[0] = x0 - xdisp;
          xyz[1] = y0 + ydisp;
          xyz[2] = rl[1];
-         bList.insertAtBack( xyz );
+         xList.insertAtBack( xyz[0] );
+         yList.insertAtBack( xyz[1] );
+         zList.insertAtBack( xyz[2] );
+         
+           //bList.insertAtBack( xyz );
       }
    }
 }
@@ -784,15 +794,19 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
 **              Updated:        1/98 SL
 **
 \*****************************************************************************/
-void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
+void tStreamMeander::AddChanBorder( tList<double> &xList, tList<double> &yList,
+                                    tList<double> &zList )
+//tList< tArray< double > > &bList )
 {
    int i;
-   double x, y, halfwid, dist, mindist = 10000000.;
+   double x, y, z, halfwid, dist, mindist = 10000000.;
    tArray< double > cp, xy;
    tTriangle *ct;
    tLNode *cn, *channodePtr, channode;
    //go through list of coordinates made by MakeChanBorder:
-   while( bList.removeFromFront( cp ) ) //copies the tArray in the list to cp
+   while( xList.removeFromFront( x ) && yList.removeFromFront( y ) &&
+          zList.removeFromFront( z ) )
+ //bList.removeFromFront( cp ) ) //copies the tArray in the list to cp
    {
       //find triangle in which coords lie:
       ct = gridPtr->LocateTriangle( cp[0], cp[1] );
@@ -804,8 +818,10 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
          {
             cn = (tLNode *) ct->pPtr(i);
             xy = cn->get2DCoords();
-            dist = sqrt( (cp[0]-xy[0])*(cp[0]-xy[0]) +
-                         (cp[1]-xy[1])*(cp[1]-xy[1]) );
+//            dist = sqrt( (cp[0]-xy[0])*(cp[0]-xy[0]) +
+//                         (cp[1]-xy[1])*(cp[1]-xy[1]) );
+            dist = sqrt( (x-xy[0])*(x-xy[0]) +
+                         (y-xy[1])*(y-xy[1]) );
             if( dist < mindist ) mindist = dist;
             if( cn->Meanders() )
             {
@@ -821,12 +837,13 @@ void tStreamMeander::AddChanBorder( tList< tArray< double > > &bList )
          if( halfwid > 0 && mindist > halfwid )
          {
             channode = *channodePtr;
-            channode.set3DCoords( cp[0], cp[1], cp[2] );
+//            channode.set3DCoords( cp[0], cp[1], cp[2] );
+            channode.set3DCoords( x, y, z );
             gridPtr->AddNode( channode );
          }
       }
    }
-   assert( bList.isEmpty() ); //prob. don't need this check, but...
+   assert( xList.isEmpty() && yList.isEmpty() && zList.isEmpty() ); //prob. don't need this check, but...
 }
 
 /******************************************************************************\

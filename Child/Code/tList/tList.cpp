@@ -3,7 +3,7 @@
 **  tList.cpp:  Functions for class tList and related classes tListNode
 **              and tListIter.
 **
-**  $Id: tList.cpp,v 1.2 1998-01-21 19:31:53 gtucker Exp $
+**  $Id: tList.cpp,v 1.3 1998-01-30 01:47:19 stlancas Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -11,6 +11,15 @@
 /**************************************************************************\
 **
 **         Utilities for class tListNode< NodeType >
+**
+**         tListNodes contain a data item and a pointer to the next
+**         tListNode in the tList (or tGridList). The data item may
+**         be of any type, specified in the template brackets.
+**
+**         Some of the functions for retrieving the data are made
+**         obsolete by tListIter.
+**
+**         Created: fall, 97, SL
 **
 \**************************************************************************/
 //default constructor
@@ -121,6 +130,13 @@ getNext() const {return next;}
 **
 **  Functions for class tList< NodeType >
 **
+**   tList is a linked list of tListNodes. Functions to add and remove
+**   items from list, etc.
+**
+**   Again, some functions are made obsolete by tListIter.
+**
+**   Created: fall, 97, SL
+**
 \**************************************************************************/
 
 //default constructor
@@ -135,10 +151,11 @@ template< class NodeType >                         //tList
 tList< NodeType >::
 tList( const tList< NodeType > *original )
 {
+   int i;
    assert( original != 0 );
      //nNodes = original->nNodes;
    tListNode< NodeType > * current = original->first;
-   for( int i=0; i<nNodes; i++ )
+   for( i=0; i<nNodes; i++ )
    {
       insertAtBack( current->getDataRef() );
       current = current->next;
@@ -484,14 +501,13 @@ template< class NodeType >                         //tList
 void tList< NodeType >::
 moveToBack( tListNode< NodeType > * mvnode ) 
 {
+   tListNode< NodeType > * prev;
    if( mvnode != last )
    {  
       if( mvnode == first ) first = first->next;
       else
       {
-         for( tListNode< NodeType > * prev = first;
-              prev->next != mvnode;
-              prev = prev->next );
+         for( prev = first; prev->next != mvnode; prev = prev->next );
          prev->next = mvnode->next;
       }
       mvnode->next = last->next;
@@ -505,11 +521,10 @@ template< class NodeType >                         //tList
 void tList< NodeType >::
 moveToFront( tListNode< NodeType > * mvnode ) 
 {
+   tListNode< NodeType > * prev;
    if( mvnode != first )
    {
-      for( tListNode< NodeType > * prev = first;
-           prev->next != mvnode;
-           prev = prev->next );
+      for( prev = first; prev->next != mvnode; prev = prev->next );
       prev->next = mvnode->next;
       mvnode->next = first;
       first = mvnode;
@@ -619,6 +634,7 @@ getIthDataPtrNC( int num ) const
 **
 **  See also tGridList.
 **
+**  Created: fall, 97, SL.
 **  Modifications:  added an "AtEnd" function that signals whether the
 **  the iterator has fallen off the end of the list, 11/17/97 gt.
 */
