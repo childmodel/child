@@ -9,7 +9,7 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.3 1999-05-04 17:16:49 gtucker Exp $
+**  $Id: globalFns.h,v 1.4 1999-05-11 15:26:39 gtucker Exp $
 \**************************************************************************/
 
 #ifndef GLOBALFNS_H
@@ -70,7 +70,7 @@ tArray< double > FindIntersectionCoords( tArray< double >,
 template< class T > 
 ostream &operator<<( ostream &, const tArray< T > & );
 
-double timetrack;
+//double timetrack;
 
 //Returns z value at location x,y on the plane defined by the
 //x-y coordinates in p0, p1, and p2, and their zvals in the zs array
