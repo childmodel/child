@@ -20,7 +20,11 @@
 **  with a tLNode; it could be recoded to operate with a "hydrologic"
 **  node or any descendents.
 **
-**  $Id: tStreamNet.h,v 1.32 2000-03-09 20:07:05 gtucker Exp $
+**  Modifications:
+**   - added new class tParkerChannels to implement Parker-Paola
+**     channel geometry model (GT 6/01)
+**
+**  $Id: tStreamNet.h,v 1.33 2001-06-21 13:55:02 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -50,6 +54,10 @@
 #define kOutletFlag  4  // Used as temporary flag in FillLakes.
 #define kOutletPreFlag 5 // ditto
 #define kVeryHigh 100000  // Used in FillLakes
+
+#define kNumChanGeomModels 2
+#define kRegimeChannels 1
+#define kParkerChannels 2
 
 
 double DistanceToLine( double x2, double y2, double a, double b, double c );
@@ -93,6 +101,64 @@ private:
 
 
 /**************************************************************************\
+**  Class tParkerChannels  *************************************************
+**
+**  A "Parker Channel" is one that obeys the Parker-Paola self-formed
+**  channel hypothesis for gravel-bed streams. The hypothesis states
+**  that a gravel channel with mobile bed and banks will tend to adjust
+**  its width such that the ratio of bankfull bed shear stress to critical 
+**  shear stress for mobilizing mean-size bed sediment (D50) is equal to
+**  a constant with a value between 1.2 - 1.4.
+**
+**  The tParkerChannels class implements this concept, and provides an
+**  alternative to empirical "regime" channel geometry.
+**
+**  The class provides a constructor function that reads the necessary
+**  parameters from the input file and sets up initial values. The
+**  calculation of channel width and depth is performed in the
+**  CalcChanGeom() member function.
+**
+**  In the present implementation, width is computed individually for
+**  every storm. This approximation is convenient, but leaves something
+**  to be desired -- it implies that channel form adjusts immediately
+**  to each discharge event. An alternative would be to set bankfull
+**  width according to the Parker-Paola hypothesis, and actual width
+**  according to an empirical width-discharge function.
+**
+**  Created: June, 2001, GT
+**
+**  References:
+**     Paola, C., Heller, P.L., and Angevine, C.L., 1992, The large-scale
+**       dynamics of grain-size variation in alluvial basins, 1: theory: 
+**       Basin Research, v. 4, p. 73-90.
+**    Parker, 1978a, Self-formed straight rivers with equilibrium banks 
+**      and mobile bed. Part 1. The sand-silt river: J. Fluid Mech, v. 89, 
+**      p.109-125
+**    Parker, 1978b, Self-formed straight rivers with equilibrium banks and
+**      mobile bed. Part 2. The gravel river: J. Fluid Mech, v. 89, p.127-148.
+**    Parker, G., 1979, Hydraulic geometry of active gravel rivers: Journal 
+**      of Hydraulics Division, American Society of Civil Engineering, 
+**      v. 105, p. 1185-1201.
+**
+**  Modifications:
+**  
+**
+\**************************************************************************/
+class tParkerChannels
+{
+ public:
+  tParkerChannels( tInputFile &infile );
+  void CalcChanGeom( tMesh<tLNode> *meshPtr );
+
+ private:
+  double mdPPfac;    // Multiplicative factor for chan. width
+  double mdPPexp;    // Exponent on slope in width equation
+  double mdRough;    // Roughness (eg, Manning's n), used for depth
+  double mdDepthexp; // Exponent used in computing depth via Manning/Chezy
+};
+						      
+
+/**************************************************************************\
 **  Class tStreamNet  ******************************************************
 **
 **  The tStreamNet class handles routing of water across a landscape
@@ -114,6 +180,9 @@ private:
 **     mdKinWaveExp and mdKinWaveRough
 **   - 2/00 GT added DensifyMeshDrArea plus two data members to support
 **     dynamic node addition in areas of high drainage area
+**   - 6/01 GT added miChannelType and mpParkerChannels parameters to 
+**     implement alternative "Parker Channels" 
+**     (see new class tParkerChannels)
 **
 \**************************************************************************/
 class tStreamNet
@@ -195,6 +264,8 @@ protected:
     tInlet inlet;         // inlet
     //Xdouble mndrDirChngProb; // probability of mnd chan changing direction
     int optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
+    int miChannelType;    // code for type of channels: "regime", "parker"
+    tParkerChannels *mpParkerChannels;  // -> tParkerChannels object
     double infilt_dev;    // max +/- variation from mean infilt cap
     double infilt0;    // mean infilt cap
     double twoPiLam;   // Parameter for sinusoidal variation: 2pi / period
