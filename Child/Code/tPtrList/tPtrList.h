@@ -33,12 +33,13 @@
 **    - 3/31/00 bug fix to tPtrList copy constructors (GT)
 **    - 5/10/00 typo fix in DataCopy (GT)
 **
-**  $Id: tPtrList.h,v 1.19 2002-08-12 14:24:34 arnaud Exp $
+**  $Id: tPtrList.h,v 1.20 2002-08-12 15:41:33 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
 #define TPTRLIST_H
 
+#include <stdlib.h>
 #include <iostream.h>
 #include <fstream.h>
 #include "../tAssert.h"
@@ -313,9 +314,7 @@ template< class NodeType >                  //tPtrListNode
 inline int tPtrListNode< NodeType >::
 operator!=( const tPtrListNode< NodeType > &right ) const
 {
-   if( next != right.next ) return 1;
-   if( Ptr != right.Ptr ) return 1;
-   return 0;
+   return ! operator==(right);
 }
 
 

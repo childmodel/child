@@ -32,7 +32,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.28 2002-08-12 14:24:12 arnaud Exp $
+**  $Id: tList.h,v 1.29 2002-08-12 15:41:16 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -178,9 +178,7 @@ template< class NodeType >                     //tListNode
 inline int tListNode< NodeType >::
 operator!=( const tListNode< NodeType > &right ) const
 {
-   if( next != right.next ) return 1;
-   if( &data != &(right.data) ) return 1;
-   return 0;
+   return ! operator==(right);
 }
 
 
