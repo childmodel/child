@@ -1,15 +1,83 @@
+#include <assert.h>
+#include "../errors/errors.h"
+#include "tStreamNet.h"
+
+/**************************************************************************\
+**
+**  tStreamNet.cpp
+**
+**  Functions for class tInlet.
+**
+\**************************************************************************/
+tInlet::tInlet()
+{
+   innode = 0;
+   inDrArea = 0;
+   gridPtr = 0;
+}
+
+tInlet::tInlet( tGrid< tLNode > *Ptr, tInputFile &infile )
+{
+   int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" );
+   double xin, yin, mindist, dist, x, y;
+   tTriangle *intri, *ntri;
+   tLNode *cn;
+   tPtrList< tLNode > nPL;
+   tPtrListIter< tLNode > itr( nPL );
+   gridPtr = Ptr;
+   assert( gridPtr != 0 );
+   if( inletbc )
+   {
+      inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
+      xin = infile.ReadItem( xin, "INLET_X" );
+      yin = infile.ReadItem( yin, "INLET_Y" );
+      intri = gridPtr->LocateTriangle( xin, yin );
+      mindist = 1000000000;
+      for( i=0; i<3; i++ )
+      {
+         cn = (tLNode *) intri->pPtr(i);
+         if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
+         ntri = intri->tPtr(i);
+         if( ntri != 0 )
+         {
+            cn = (tLNode *) ntri->tPtr( ntri->nVOp( intri ) );
+            if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
+         }
+      }
+      for( cn = itr.FirstP(); !(itr.AtEnd()); cn = itr.NextP() )
+      {   
+         x = cn->getX();
+         y = cn->getY();
+         dist = sqrt( (xin - x) * (xin - x) + (yin - y) * (yin - y) );
+         if( dist < mindist )
+         {
+            dist = mindist;
+            innode = cn;
+         }
+      }
+   }
+   else
+   {
+      inDrArea = 0;
+      innode = 0;
+   }
+}
+
+tInlet::~tInlet()
+{
+   innode = 0;
+   gridPtr = 0;
+}
+
+   
 /**************************************************************************\
 **
 **  tStreamNet.cpp
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.11 1998-02-15 01:35:18 stlancas Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.12 1998-02-18 01:14:33 stlancas Exp $
 \**************************************************************************/
-
-#include <assert.h>
-#include "../errors/errors.h"
-#include "tStreamNet.h"
 
 
 /**************************************************************************\
@@ -40,7 +108,7 @@
 
 tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
                         tInputFile &infile )
-        : bedErode( infile )
+    : bedErode( infile ), inlet( &gridRef, infile )
 {
    cout << "tStreamNet(...)...";
    assert( &gridRef != 0 );
@@ -60,11 +128,6 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
       trans = 0;
       infilt = infile.ReadItem( infilt, "INFILTRATION" );
    }
-   int typbnd = infile.ReadItem( typbnd, "TYP_BOUND" );
-   if( typbnd == kOppositeSidesOpen )
-       inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
-   else
-       inDrArea = 0;
    rainrate = stormPtr->GetRainrate();
    CalcSlopes();  // TODO: should be in tGrid
    InitFlowDirs(); // TODO: should all be done in call to updatenet
@@ -115,7 +178,7 @@ double tStreamNet::getTransmissivity() const {return trans;}
 
 double tStreamNet::getInfilt() const {return infilt;}
 
-double tStreamNet::getInDrArea() const {return inDrArea;}
+double tStreamNet::getInDrArea() const {return inlet.inDrArea;}
 
 // TODO: the value checks are nice, but will hurt performance. Should
 // probably be removed.
@@ -134,7 +197,7 @@ void tStreamNet::setInfilt( double val )
 {infilt = ( val >= 0 ) ? val : 0;}
 
 void tStreamNet::setInDrArea( double val )
-{inDrArea = ( val >= 0 ) ? val : 0;}
+{inlet.inDrArea = ( val >= 0 ) ? val : 0;}
 
 
 
@@ -155,6 +218,7 @@ void tStreamNet::UpdateNet()
    CalcSlopes();          // TODO: should be in tGrid
    SetVoronoiVertices();  // TODO: should be in tGrid
    CalcVAreas();          // TODO: should be in tgrid
+   InitFlowDirs();
    FlowDirs();
    MakeFlow();
    cout << "UpdateNet() finished" << endl;	
@@ -169,6 +233,7 @@ void tStreamNet::UpdateNet( tStorm &storm )
    CalcSlopes();   // TODO: as above
    SetVoronoiVertices();
    CalcVAreas();
+   InitFlowDirs();
    FlowDirs();
    MakeFlow();
    cout << "UpdatNet(...) finished" << endl;	
@@ -320,34 +385,6 @@ void tStreamNet::InitFlowDirs()
       assert( curnode->GetFlowEdg() > 0 );
       curnode = i.NextP();
    }
-   if( inDrArea > 0 )
-   {
-      while( curnode->getBoundaryFlag() == kOpenBoundary )
-      {
-        if( curnode->getZ() > 0 )
-        {
-           flowedg = curnode->GetEdg();
-           assert( flowedg>0 );
-           ctr = 0;
-           while( !flowedg->FlowAllowed() )
-           {
-              flowedg = flowedg->GetCCWEdg();
-              assert( flowedg>0 );
-              ctr++;
-              if( ctr>kMaxSpokes ) // Make sure to prevent endless loops
-              {
-                 cerr << "Mesh error: node " << curnode->getID()
-                      << " appears to be surrounded by closed boundary nodes"
-                      << endl;
-                 ReportFatalError( "Bailing out of InitFlowDirs()" );
-              }
-           }
-           curnode->SetFlowEdg( flowedg );
-           assert( curnode->GetFlowEdg() > 0 );
-        }
-        curnode = i.NextP();
-      }
-   }
 }
 #undef kMaxSpokes
 
@@ -414,34 +451,6 @@ void tStreamNet::FlowDirs()
       curnode = i.NextP();
 
   }
-  if( inDrArea > 0 )
-  {
-     while( curnode->getBoundaryFlag() == kOpenBoundary )
-     {
-        if( curnode->getZ() > 0 )
-        {
-           firstedg =  curnode->GetFlowEdg();
-           slp = firstedg->getSlope();
-           nbredg = firstedg;
-           curedg = firstedg->GetCCWEdg();
-           
-             // Check each of the various "spokes", stopping when we've gotten
-             // back to the beginning
-           while( curedg!=firstedg )
-           {
-              assert( curedg > 0 );
-              if ( curedg->getSlope() > slp && curedg->FlowAllowed() )
-              {
-                 slp = curedg->getSlope();
-                 nbredg = curedg;
-              }
-              curedg = curedg->GetCCWEdg();
-           }
-           curnode->SetFlowEdg( nbredg );
-        }
-        curnode = i.NextP();
-     }
-  }
   cout << "FlowDirs() finished" << endl << flush;
   
 }
@@ -507,34 +516,13 @@ void tStreamNet::DrainAreaVoronoi()
 //#if TRACKFNS
    cout << "DrainAreaVoronoi()..." << endl << flush;
 //#endif
-   double slope, maxslope;
-   tLNode * curnode, *innode;
+   tLNode * curnode;
    tGridListIter<tLNode> nodIter( gridPtr->GetNodeList() );
    
    // Reset drainage areas to zero
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
        curnode->SetDrArea( 0 );
-   if( inDrArea > 0 )
-   {
-      maxslope = -10000;
-      for( ; curnode->getBoundaryFlag() == kOpenBoundary;
-           curnode = nodIter.NextP() )
-      {
-         if( curnode->getZ() > 0 )
-         {
-            slope = curnode->GetSlope();
-            if( slope > maxslope )
-            {
-               maxslope = slope;
-               innode = curnode;
-            }
-         }
-      }
-      assert( innode != 0 );
-      innode->GetDownstrmNbr()->SetDrArea( inDrArea );
-   }
-   
    // send voronoi area for each node to the node at the other end of the 
    // flowedge and downstream 
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
@@ -542,6 +530,7 @@ void tStreamNet::DrainAreaVoronoi()
    {
       RouteFlowArea( curnode, curnode->getVArea() );
    }
+   if( inlet.innode != 0 ) RouteFlowArea( inlet.innode, inlet.inDrArea );
    
    cout << "DrainAreaVoronoi() finished" << endl << flush;
 }
