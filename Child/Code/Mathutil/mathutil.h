@@ -7,7 +7,7 @@
 **         All or most routines from Numerical Recipes in C by
 **         Press et al.
 **
-**  $Id: mathutil.h,v 1.8 2003-08-01 17:14:54 childcvs Exp $
+**  $Id: mathutil.h,v 1.9 2003-09-02 11:55:40 childcvs Exp $
 */
 /*********************************************************************/
 
@@ -15,6 +15,7 @@
 #define MATHUTIL_H
 
 #define PI 3.14159265358979323846
+#define TWOPI (2*PI)
 
 void init_genrand(unsigned long s);
 void init_by_array(unsigned long init_key[], int key_length);
