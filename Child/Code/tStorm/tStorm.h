@@ -17,7 +17,7 @@
 **  for other random processes such as river flows, etc.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.h,v 1.3 1998-01-27 23:30:46 stlancas Exp $
+**  $Id: tStorm.h,v 1.4 1998-01-27 23:34:12 stlancas Exp $
 */
 
 #ifndef TSTORM_H
@@ -39,6 +39,7 @@ class tStorm
    float GetRainrate();
    float getMeanStormDur() const;
    float getMeanInterstormDur() const;
+   float getMeanPrecip() const;
    
   private:
    float ExpDev( long * );
