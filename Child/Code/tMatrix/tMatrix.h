@@ -8,12 +8,12 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.h,v 1.1 1998-02-18 22:37:40 gtucker Exp $
+**  $Id: tMatrix.h,v 1.2 1998-10-02 21:58:16 stlancas Exp $
 \*************************************************************************/
 #ifndef TMATRIX_H
 #define TMATRIX_H
 
-#include "tArray/tArray.h"
+#include "../tArray/tArray.h"
 
 
 template < class T >
