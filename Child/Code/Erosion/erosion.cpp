@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.9 1998-03-10 23:30:31 stlancas Exp $
+**  $Id: erosion.cpp,v 1.10 1998-03-13 22:23:46 stlancas Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -223,6 +223,7 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
        dzdt( nActNodes ); //Erosion rate @ ea. node
    double ratediff;
    double slp, dslpdt;
+   double dtmin = dtg * 0.0001;
 
    // Iterate until total time dtg has been consumed
    do
@@ -234,7 +235,7 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
       //find max. time step s.t. slope does not reverse:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
-         slp = cn->GetSlope();
+         /*slp = cn->GetSlope();
          dslpdt = cn->GetDSlopeDt();
          if( slp > 0.0 )
          {
@@ -243,9 +244,9 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
                dt = slp / (-dslpdt - UPtr->GetRate() ) * frac;
                if( dt > 0 && dt < dtmax ) dtmax = dt;
             }
-         }
+         }*/
          
-         /*dn = cn->GetDownstrmNbr();
+         dn = cn->GetDownstrmNbr();
          if( dn->getBoundaryFlag() == kNonBoundary )
              ratediff = dn->GetDzDt() - cn->GetDzDt();
          else
@@ -253,8 +254,18 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
          if( ratediff > 0 && cn->getZ() > dn->getZ() )
          {
             dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
-            if( dt > 0 && dt < dtmax ) dtmax = dt;
-         }*/
+            if( dt > dtmin && dt < dtmax )
+            {
+               dtmax = dt;
+            }
+            else
+            {
+               dtmax = dtmin;
+               //cout << "time step too small because of node at x,y,z "
+               //     << cn->getX() << " " << cn->getY() << " " << cn->getZ()
+               //     << endl;
+            }
+         }
       }
       //assert( dtmax > 0 );
       //apply erosion:
