@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.1 1998-01-16 00:12:55 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.2 1998-01-16 14:52:57 gtucker Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -622,7 +622,7 @@ float tStreamNet::VoronoiArea( tLNode * centre )
 \*****************************************************************************/
 void tStreamNet::RouteFlowArea( tLNode *curnode, float addedArea )
 {
-   cout << "RouteFlowArea()...";
+   //cout << "RouteFlowArea()...";
 #if DEBUG
    int niterations=0;  // Safety feature: prevents endless loops
 #endif
@@ -644,7 +644,7 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, float addedArea )
       assert( niterations < 10000 );
 #endif
    }
-   cout << "finished" << endl;
+   //cout << "finished" << endl;
 }
 
 
