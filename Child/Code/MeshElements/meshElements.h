@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.36 2003-04-09 18:12:47 childcvs Exp $
+**  $Id: meshElements.h,v 1.37 2003-04-29 09:33:49 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -125,22 +125,14 @@ public:
   tEdge * getEdg();                          // returns ptr to one spoke
   void getVoronoiVertexList( tList<Point2D> * );  // Returns list of V vertices
   void getVoronoiVertexXYZList( tList<Point3D> * ); // As above plus interp z
-  
-  const tPtrList< tEdge > &getSpokeList() const;  // returns ref to spokelist
-  tPtrList< tEdge > &getSpokeListNC();            // returns non-const ref "
-  const tPtrListNode< tEdge > *getFirstSpokeNode() const; // returns 1st spoke
-  tPtrListNode< tEdge > *getFirstSpokeNodeNC();   // returns non-const "
-  void insertFrontSpokeList( tEdge * ); // adds edge ptr to front of spokelist
-  void insertBackSpokeList( tEdge * );  // adds edge ptr to back of spokelist
-  void makeWheel();                // makes spokelist circular
-  void makeCCWEdges();             // sets up CCWEdg connectivity from spokelst
-  
+
   // returns next spokelist element (as const and non-const, respectively)
   const tPtrListNode< tEdge > *
       getNextSpokeNode( const tPtrListNode< tEdge > * ) const;
   tPtrListNode< tEdge > *
       getNextSpokeNodeNC( tPtrListNode< tEdge > * ) const;
-  
+#endif
+
   void setID( int );              // sets ID number
   void setX( double );            // sets x coord
   void setY( double );            // sets y coord
@@ -157,15 +149,14 @@ public:
   tEdge *EdgToNod( tNode * );      // finds spoke connected to given node
   double ComputeVoronoiArea();     // calculates node's Voronoi area
   void ConvertToClosedBoundary();  // makes node a closed bdy & updates edges
-  void AttachFirstSpoke( tEdge * ); // welcomes first spoke (sets edg)
   virtual void WarnSpokeLeaving( tEdge *); // signals node that spoke is being deleted
    virtual void InitializeNode();  // used when new nodes are created, for now only has a purpose in inherited classes
-   
+
 #ifndef NDEBUG
    void TellAll();  // Debugging routine that outputs node data
 #endif
 
-   
+
 protected:
   int id;           // ID number
   double x;         // x coordinate
@@ -175,10 +166,6 @@ protected:
   double varea_rcp; // Reciprocal of Voronoi area = 1/varea (for speed)
   int boundary;     // Boundary status code
   tEdge * edg;      // Ptr to one edge
-  tPtrList< tEdge > spokeList; // list of connected edges (spokes)
-
-  const tEdge *NextSpoke( tPtrListNode< tEdge > * );  // returns -> next spoke
-  const tEdge *NextSpokeNC( tPtrListNode< tEdge > * );// returns non-const "
 };
 
 
@@ -260,12 +247,11 @@ public:
   tEdge * FindComplement();  // returns ptr to edge's complement
   tTriangle* TriWithEdgePtr();
   void setTri( tTriangle* );
-  void WelcomeCCWNeighbor( tEdge * );  // Adds another edge ccw from this edge
-  
+
 #ifndef NDEBUG
   void TellCoords();  // debug routine that reports edge coordinates
 #endif
-  
+
 private:
   int id;          // ID number
   int flowAllowed; // boundary flag, usu. false when org & dest = closed bds 
@@ -316,6 +302,7 @@ public:
   ~tTriangle();                   // destructor
 
   const tTriangle &operator=( const tTriangle & ); // assignment operator
+  void InitializeTriangle( tNode*, tNode*, tNode* );
   inline int getID() const;                 // returns ID number
   tNode *pPtr( int );                // returns ptr to given vertex (0,1, or 2)
   tEdge *ePtr( int );                // returns ptr to given clockwise edge
@@ -340,6 +327,60 @@ private:
 };
 
 
+/**************************************************************************/
+/**
+**  @class tSpkIter
+**
+*/
+/**************************************************************************/
+class tSpkIter
+{
+public:
+   tSpkIter();
+   tSpkIter( tNode* );
+   ~tSpkIter();
+
+   void Reset( tNode* );
+
+   tNode* CurNode();
+   tEdge* CurSpoke();
+   int getNumSpokes();
+
+   int First();
+   int Last();
+   int Next();
+   int Prev();
+   int Get( int );
+   int Get( tEdge* );
+   int Where();
+
+   tEdge* FirstP();
+   tEdge* LastP();
+   tEdge* NextP();
+   tEdge* PrevP();
+   tEdge* GetP( int );
+   tEdge* GetP( tEdge* );
+   tEdge* ReportNextP();
+   tEdge* ReportPrevP();
+
+   int AtEnd();
+   int isEmpty();
+
+   int insertAtPrev( tEdge* );
+   int insertAtNext( tEdge* );
+   int insertAtFront( tEdge* );
+   int insertAtBack( tEdge* );
+   tEdge* removePrev();
+   tEdge* removeNext();
+   tEdge* removeFromFront();
+   tEdge* removeFromBack();
+
+private:
+   tNode* curnode;
+   tEdge* curedg;
+   int counter;
+};
+
 /***************************************************************************\
 \**  Inlined Functions for class tNode  ************************************/
 
@@ -358,8 +399,7 @@ inline tNode::tNode() :
   id(0),
   x(0.), y(0.), z(0.),
   varea(0.), varea_rcp(0.),
-  boundary(0), edg(0), 
-  spokeList()
+  boundary(0), edg(0)
 {}
 
 //copy constructor
@@ -367,22 +407,11 @@ inline tNode::tNode( const tNode &original ) :
   id(original.id),
   x(original.x), y(original.y), z(original.z),
   varea(original.varea), varea_rcp(original.varea_rcp),
-  boundary(original.boundary), edg(original.edg),
-  spokeList()
-{
-      if( &(original.spokeList) != 0 )
-      {
-         for( int i=0; i<original.spokeList.getSize(); i++ )
-         {
-            insertBackSpokeList( original.spokeList.getIthPtrNC( i ) );
-         }
-      }
-        //else spokeList = 0;
-}
+  boundary(original.boundary), edg(original.edg)
+{}
 
 /*X tNode::~tNode()                                                      //tNode
 {
-     //if( spokeList != 0 ) delete spokeList;
      //cout << "    ~tNode()" << endl;
 }*/
 
@@ -414,7 +443,6 @@ inline const tNode &tNode::operator=( const tNode &right )
       varea = right.varea;
       varea_rcp = right.varea_rcp;
       edg = right.edg;
-      spokeList = right.spokeList;
    }
    return *this;
 }
@@ -433,12 +461,8 @@ inline ostream &operator<<( ostream &output, tNode &node )
    //tPtrListIter< tEdge > spokeIter( node.getSpokeListNC() );
    
    output << node.id << ": " << node.x << " " << node.y << " "
-          << node.z << ";";
-   output <<
-       node.spokeList.getFirstNC()->getPtrNC()->getDestinationPtrNC()->getID()
-   //output << spokeIter.DatPtr()->getDestinationPtrNC()->getID()
-          << " ";
-   output << endl;
+          << node.z
+	  << endl;
    return output;
 }
 
@@ -495,27 +519,6 @@ inline double tNode::getVArea() const {return varea;}             //tNode
 inline double tNode::getVArea_Rcp() const {return varea_rcp;}     //tNode
 inline int tNode::getBoundaryFlag() const {return boundary;}      //tNode
 inline tEdge * tNode::getEdg() {return edg;}
-
-inline const tPtrList< tEdge > &                                     //tNode
-tNode::getSpokeList() const {assert( &spokeList != 0 ); return spokeList;}
-
-inline tPtrList< tEdge > &                                           //tNode
-tNode::getSpokeListNC() {assert( &spokeList != 0 ); return spokeList;}
-
-inline const tPtrListNode< tEdge > *                                 //tNode
-tNode::getFirstSpokeNode() const {return spokeList.getFirst();}
-
-inline tPtrListNode< tEdge > *                                       //tNode
-tNode::getFirstSpokeNodeNC() {return spokeList.getFirstNC();}
-
-inline const tPtrListNode< tEdge > *tNode::                          //tNode
-getNextSpokeNode( const tPtrListNode< tEdge > *prevedg ) const
-{return prevedg->getNext();}
-
-inline tPtrListNode< tEdge > *tNode::                                //tNode
-getNextSpokeNodeNC( tPtrListNode< tEdge > *prevedg ) const
-{return prevedg->getNextNC();}
-
 
 /***********************************************************************\
 **
@@ -589,13 +592,6 @@ inline void tNode::setEdg( tEdge * theEdg )
 **
 \***********************************************************************/
 inline void tNode::ChangeZ( double delz ) { z += delz; }      //tNode
-
-/***********************************************************************\
-**
-**  tNode::makeWheel:  makes the spoke list circular
-**
-\***********************************************************************/
-inline void tNode::makeWheel() {spokeList.makeCircular();}
 
 /*******************************************************************\
 **
@@ -944,29 +940,6 @@ inline double tEdge::CalcVEdgLen()
 	return( vedglen );
 }
 
-
-/**************************************************************************\
-**
-**  tEdge::WelcomeCCWNeighbor
-**
-**  Welcomes a new spoke to the neighborhood! neighbor is a new edge to
-**  be inserted counter-clockwise from this one. We point neighbor at
-**  the edge we're currently pointing to, and then point ourself to
-**  neighbor, thus maintaining the edge connectivity.
-**
-**  Data mbrs modified:  ccwedg, neighbor->ccwedg
-**  Created: 2/4/99 GT
-**
-\**************************************************************************/
-inline void tEdge::WelcomeCCWNeighbor( tEdge * neighbor )
-{
-   assert( neighbor!=0 );
-   assert( neighbor->org == org );
-   neighbor->ccwedg = ccwedg;
-   ccwedg = neighbor;
-}
-
-
 /**************************************************************************\
 **  Functions for class tTriangle.
 \**************************************************************************/
@@ -1210,6 +1183,291 @@ inline int tTriangle::nVtx( tNode *cn )
       if( p[i] == cn ) return i;
    }
    return i;
+}
+
+/**************************************************************************\
+**
+**  tSpkIter
+**
+\**************************************************************************/
+inline tSpkIter::tSpkIter() :
+  curnode(0),
+  curedg(0),
+  counter(0)
+{}
+
+inline tSpkIter::tSpkIter( tNode* nPtr ) :
+  curnode(0),
+  curedg(0),
+  counter(0)
+{
+   assert( nPtr != 0 );
+   curnode = nPtr;
+   curedg = curnode->getEdg();
+}
+
+inline tSpkIter::~tSpkIter()
+{
+   curnode = 0;
+   curedg = 0;
+}
+
+inline tNode* tSpkIter::CurNode() {return curnode;}
+
+inline tEdge* tSpkIter::CurSpoke() {return curedg;}
+
+inline int tSpkIter::getNumSpokes()
+{
+   tEdge* fe = curnode->getEdg();
+   tEdge* ce = fe;
+   int ctr = 1;
+   while( ( ce = ce->getCCWEdg() ) != fe )
+       ++ctr;
+   return ctr;
+}
+
+inline void tSpkIter::Reset( tNode* nPtr )
+{
+   assert( nPtr != 0 );
+   curnode = nPtr;
+   curedg = curnode->getEdg();
+   counter = 0;
+}
+
+inline int tSpkIter::First()
+{
+   curedg = curnode->getEdg();
+   counter = 0;
+   if( curedg != 0 ) return 1;
+   return 0;
+}
+
+inline tEdge* tSpkIter::FirstP()
+{
+   if( First() ) return curedg;
+   return 0;
+}
+
+
+inline int tSpkIter::Last()
+{
+   curedg = curnode->getEdg()->getCWEdg();
+   counter = -1;
+   if( curedg != 0 ) return 1;
+   return 0;
+}
+
+inline tEdge* tSpkIter::LastP()
+{
+   if( Last() ) return curedg;
+   return 0;
+}
+
+
+inline int tSpkIter::Next()
+{
+   curedg = curedg->getCCWEdg();
+   ++counter;
+   if( curedg != 0 ) return 1;
+   return 0;
+}
+
+inline tEdge* tSpkIter::NextP()
+{
+   if( Next() ) return curedg;
+   return 0;
+}
+
+inline int tSpkIter::Prev()
+{
+   curedg = curedg->getCWEdg();
+   --counter;
+   if( curedg != 0 ) return 1;
+   return 0;
+}
+
+inline tEdge* tSpkIter::PrevP()
+{
+   if( Prev() ) return curedg;
+   return 0;
+}
+
+inline int tSpkIter::Get( int num )
+{
+   if( !First() ) return 0;
+   while( curedg->getID() != num && !AtEnd() )
+       curedg = curedg->getCCWEdg();
+   if( !AtEnd() ) return 1;
+   return 0;
+}
+
+inline tEdge* tSpkIter::GetP( int num )
+{
+   if( Get( num ) ) return curedg;
+   return 0;
+}
+
+inline int tSpkIter::Get( tEdge* ePtr )
+{
+   if( ePtr == 0 ) return 0;
+   if( !First() ) return 0;
+   while( curedg != ePtr && !AtEnd() )
+       curedg = curedg->getCCWEdg();
+   if( !AtEnd() ) return 1;
+   return 0;
+}
+
+inline tEdge* tSpkIter::GetP( tEdge* ePtr )
+{
+   if( Get( ePtr ) ) return curedg;
+   return 0;
+}
+
+inline int tSpkIter::Where()
+{
+   if( curedg == 0 ) return -1;
+   return curedg->getID();
+}
+
+inline tEdge* tSpkIter::ReportNextP()
+{
+   return curedg->getCCWEdg();
+}
+
+inline tEdge* tSpkIter::ReportPrevP()
+{
+   return curedg->getCWEdg();
+}
+
+inline int tSpkIter::AtEnd()
+{
+   if( isEmpty() ) return 1;
+   return ( curedg == curnode->getEdg() && counter != 0 );
+}
+
+inline int tSpkIter::isEmpty()
+{
+   return( curnode->getEdg() == 0 );
+}
+
+inline int tSpkIter::insertAtPrev( tEdge* ePtr )
+{
+   if( ePtr == 0 ) return 0;
+   if( isEmpty() ) return insertAtFront( ePtr );
+   assert( ePtr->getOriginPtr() == curnode );
+   ePtr->setCCWEdg( curedg );
+   ePtr->setCWEdg( curedg->getCWEdg() );
+   curedg->getCWEdg()->setCCWEdg( ePtr );
+   curedg->setCWEdg( ePtr );
+   return 1;
+}
+
+inline int tSpkIter::insertAtNext( tEdge* ePtr )
+{
+   if( ePtr == 0 ) return 0;
+   if( isEmpty() ) return insertAtFront( ePtr );
+   assert( ePtr->getOriginPtr() == curnode );
+   ePtr->setCWEdg( curedg );
+   ePtr->setCCWEdg( curedg->getCCWEdg() );
+   curedg->getCCWEdg()->setCWEdg( ePtr );
+   curedg->setCCWEdg( ePtr );
+   return 1;
+}
+
+inline int tSpkIter::insertAtFront( tEdge* ePtr )
+{
+   if( ePtr == 0 ) return 0;
+   assert( ePtr->getOriginPtr() == curnode );
+   if( isEmpty() )
+   {
+      curnode->setEdg( ePtr );
+      ePtr->setCCWEdg( ePtr );
+      ePtr->setCWEdg( ePtr );
+      return 1;
+   }
+   tEdge* ofe = curnode->getEdg();
+   ePtr->setCCWEdg( ofe );
+   ePtr->setCWEdg( ofe->getCWEdg() );
+   ofe->getCWEdg()->setCCWEdg( ePtr );
+   ofe->setCWEdg( ePtr );
+   curnode->setEdg( ePtr );
+   return 1;
+}
+
+inline int tSpkIter::insertAtBack( tEdge* ePtr )
+{
+   if( ePtr == 0 ) return 0;
+   if( isEmpty() ) return insertAtFront( ePtr );
+   assert( ePtr->getOriginPtr() == curnode );
+   tEdge* ofe = curnode->getEdg();
+   ePtr->setCCWEdg( ofe );
+   ePtr->setCWEdg( ofe->getCWEdg() );
+   ofe->getCWEdg()->setCCWEdg( ePtr );
+   ofe->setCWEdg( ePtr );
+   return 1;
+}
+
+inline tEdge* tSpkIter::removePrev()
+{
+   if( isEmpty() ) return 0;
+   if( curedg->getCWEdg() == curedg )
+   {
+      tEdge* nulledg = 0;
+      curnode->setEdg( nulledg );
+      return curedg;
+   }
+   tEdge* re = curedg->getCWEdg();
+   re->getCWEdg()->setCCWEdg( re->getCCWEdg() );
+   re->getCCWEdg()->setCWEdg( re->getCWEdg() );
+   return re;
+}
+
+inline tEdge* tSpkIter::removeNext()
+{
+   if( isEmpty() ) return 0;
+   if( curedg->getCCWEdg() == curedg )
+   {
+      tEdge* nulledg = 0;
+      curnode->setEdg( nulledg );
+      return curedg;
+   }
+   tEdge* re = curedg->getCCWEdg();
+   re->getCWEdg()->setCCWEdg( re->getCCWEdg() );
+   re->getCCWEdg()->setCWEdg( re->getCWEdg() );
+   return re;
+}
+
+inline tEdge* tSpkIter::removeFromFront()
+{
+   if( isEmpty() ) return 0;
+   tEdge* re = curnode->getEdg();
+   if( re->getCCWEdg() == re )
+   {
+      tEdge* nulledg = 0;
+      curnode->setEdg( nulledg );
+      return re;
+   }
+   curnode->setEdg( re->getCCWEdg() );
+   re->getCWEdg()->setCCWEdg( re->getCCWEdg() );
+   re->getCCWEdg()->setCWEdg( re->getCWEdg() );
+   if( curedg == re ) curedg = curnode->getEdg();
+   return re;
+}
+
+inline tEdge* tSpkIter::removeFromBack()
+{
+   if( isEmpty() ) return 0;
+   tEdge* re = curnode->getEdg()->getCWEdg();
+   if( re->getCCWEdg() == re )
+   {
+      tEdge* nulledg = 0;
+      curnode->setEdg( nulledg );
+      return re;
+   }
+   re->getCWEdg()->setCCWEdg( re->getCCWEdg() );
+   re->getCCWEdg()->setCWEdg( re->getCWEdg() );
+   if( curedg == re ) curedg = curnode->getEdg()->getCWEdg();
+   return re;
 }
 
 #endif

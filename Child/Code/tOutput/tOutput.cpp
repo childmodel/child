@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.64 2003-04-28 17:13:29 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.65 2003-04-29 09:33:52 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -274,7 +274,7 @@ void tOutput<tSubNode>::RenumberIDCanonically()
      // lowest ID
      tNode *cn;
      for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
-       tPtrListIter< tEdge > sI( cn->getSpokeListNC() );
+       tSpkIter sI( cn );
        tEdge *thece = cn->getEdg();
        tEdge *ce;
        for( ce = sI.FirstP(); !( sI.AtEnd() ); ce = sI.NextP() ) {

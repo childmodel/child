@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.47 2003-03-31 17:41:20 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.48 2003-04-29 09:33:48 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -45,7 +45,6 @@ tArray< double > FindIntersectionCoords( tArray< double > const &xy1,
                                          tArray< double > const &xy4 )
 {
    double dxa, dxb, dya, dyb, a, b, c, f, g, h;
-   //Xx, y;
    tArray< double > intxy(2);
 
    dxa = xy2[0] - xy1[0];
@@ -95,67 +94,6 @@ tArray< double > FindIntersectionCoords( tArray< double > const &xy1,
 }
 
 
-
-/***************************************************************************\
-\**  Functions for class tNode  ********************************************/
-
-/***********************************************************************\
-**
-**  tNode::insertFrontSpokeList
-**  tNode::insertBackSpokeList
-**
-**  Places eptr at the front or back of the spoke list (respectively)
-**  and makes the list circular (is the latter step necessary? TODO).
-**
-\***********************************************************************/
-void tNode::insertFrontSpokeList( tEdge *eptr )                      //tNode
-{
-   spokeList.insertAtFront( eptr );
-   assert( spokeList.getFirst() != 0 );
-   makeWheel();
-}
-
-void tNode::insertBackSpokeList( tEdge *eptr )                       //tNode
-{
-   spokeList.insertAtBack( eptr );
-   assert( spokeList.getFirst() != 0 );
-   makeWheel();
-}
-
-
-const tEdge *tNode::NextSpoke( tPtrListNode< tEdge > * current )//tNode
-{
-   if( current == 0 || current == spokeList.getLast() )
-       current = spokeList.getFirstNC();
-   else current = current->getNextNC();
-   return current->getPtr();
-}
-
-
-/*****************************************************************************\
-**
-**  tNode::AttachFirstSpoke
-**
-**  Attaches the first spoke to the node by pointing edg to that spoke,
-**  and then telling the spoke to point to itself. thespoke is the edge
-**  being added.
-**
-**      Data members updated: edg, thespoke's ccw edge
-**      Called by: tMesh::AddEdge
-**      Calls: (none)
-**      Created: 2/4/99 GT
-**
-\*****************************************************************************/
-void tNode::AttachFirstSpoke( tEdge *thespoke )
-{
-   assert( thespoke!=0 );
-   assert( thespoke->getOriginPtr()==this );
-   //assert( edg==0 );
-   edg = thespoke;
-   thespoke->setCCWEdg( thespoke );
-}
-
-
 /*****************************************************************************\
 **
 **  tNode::Dist
@@ -191,7 +129,7 @@ double tNode::Dist( tNode * p0, tNode * p1 )
 \*****************************************************************************/
 tEdge *tNode::EdgToNod( tNode * nod )
 {
-   tPtrListIter< tEdge > spokIter( this->spokeList );
+   tSpkIter spokIter( this );
    tEdge * ce;
 
    for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
@@ -275,7 +213,7 @@ double tNode::ComputeVoronoiArea()
    ce = edg;
    do
    {
-      assert( ce>0 );
+      assert( ce!=0 );
       vedgList.insertAtBack( ce );
       //xy = ce->getRVtx();
       //cout << xy[0] << " " << xy[1] << "; " << flush;
@@ -614,46 +552,6 @@ void tNode::getVoronoiVertexXYZList( tList<Point3D> * vertexList )
    assert( vertexList->getSize()!=0 );
 }
 
-
-/*******************************************************************\
-**
-**  tNode::makeCCWEdges
-**
-**  This function provides for compatibility between the CCW Edge
-**  data structure and the Spoke List data structure. It sets up
-**  CCW edge connectivity from the spoke list data (which is 
-**  assumed to be up to date) by: (1) setting the node's edg 
-**  pointer to the first spoke on the list, and (2) setting the
-**  ccwedg pointer for each spoke.
-**
-\*******************************************************************/
-void tNode::makeCCWEdges()
-{
-   tEdge *ce, *ccwe;
-   tPtrListIter< tEdge > spokIter( spokeList );
-   
-   ce = spokIter.FirstP();
-   assert( ce != 0 );
-   setEdg( ce );
-
-//     if(id==793){
-//        tNode * nbr = ce->getDestinationPtrNC();
-//        cout<<"makeCCWEdges() node "<<id<<endl;
-//        cout<<"edge "<<ce->getID()<<" dstn "<<nbr->getID()<<endl;
-//     }
-   for( ; !(spokIter.AtEnd()); ce = spokIter.NextP() )
-   {
-      ccwe = spokIter.ReportNextP();
-      assert( ccwe != 0 );
-      ce->setCCWEdg( ccwe );
-//        if(id==793){
-//           tNode * nbr = ccwe->getDestinationPtrNC();
-//           cout<<"edge "<<ccwe->getID()<<" dstn "<<nbr->getID()<<endl;
-//        }
-   }
-}
-
-
 /*******************************************************************\
 **
 **  tNode::ConvertToClosedBoundary
@@ -801,6 +699,60 @@ tEdge * tEdge::FindComplement()
 **
 \**************************************************************************/
 
+//***************************************************************************
+// InitializeTriangle: Function to initialize triangle by setting node ptrs to
+//   n0, n1, n2; edge ptrs to appropriate edges; and nbr triangles. Also
+//   resets edges' tri ptrs. Nodes in argument are given in ccw order.
+// 3/99 SL
+//***************************************************************************
+void tTriangle::InitializeTriangle( tNode* n0, tNode* n1, tNode* n2 )
+{
+   assert( n0 > 0 && n1 > 0 && n2 > 0 );
+   p[0] = n0;
+   p[1] = n1;
+   p[2] = n2;
+   // setEPtr also sets tri ptr of edge:
+   setEPtr( 0, n0->EdgToNod( n2 ) );
+   setEPtr( 1, n1->EdgToNod( n0 ) );
+   setEPtr( 2, n2->EdgToNod( n1 ) );
+   // Now we assign the neighbor triangle pointers. The loop successively
+   // gets the spokelist for (p0,p1,p2) and sets cn to the next ccw point
+   // (p1,p2,p0). It then finds the edge (spoke) that joins the two points
+   // (p0->p1, p1->p2, p2->p0). These are the edges that are shared with
+   // neighboring triangles (t2,t0,t1) and are pointed to by the neighboring
+   // triangles. This means that in order to find neighboring triangle t2,
+   // we need to find the triangle that points to edge (p0->p1), and so on.
+   // In general, t((j+2)%3) is the triangle that points to edge
+   // p(j)->p((j+1)%3).
+   tTriangle* nbrtriPtr = 0;
+   tEdge* ce;
+   int i,j;
+   for( j=0; j<3; j++ )
+   {
+      // Find edge ce that connects p(j)->p(j+1)
+      ce = p[j]->EdgToNod( p[(j+1)%3] );
+      // Find the triangle, if any, that shares (points to) this edge
+      // and assign it as the neighbor triangle t((j+2)%3).
+      nbrtriPtr = ce->TriWithEdgePtr();
+      t[(j+2)%3] = nbrtriPtr;  //set tri TRI ptr (j+2)%3
+      // If a neighboring triangle was found, tell it that the current
+      // new triangle is its neighbor too. We need to tell it which
+      // neighbor we are (0, 1, or 2), and the mapping is like this:
+      // if the nbr tri calls the shared edge (0,1,2) then we are its
+      // nbr (1,2,0). (ie, tri_number = (edg_number+1)%3 )
+      if( nbrtriPtr > 0 )
+      {
+         for( i=0; i<3; ++i )
+         {
+            assert( nbrtriPtr->e[i] > 0 );
+            assert( ce > 0 );
+            if( nbrtriPtr->e[i] == ce ) break;
+         }
+         assert( i < 3 );
+         nbrtriPtr->t[(i+1)%3] = this;  //set NBR TRI ptr to tri
+      }
+   }
+}
 
 //destructor
 tTriangle::~tTriangle()

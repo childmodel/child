@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.134 2003-04-25 12:23:49 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.135 2003-04-29 09:33:49 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -616,93 +616,36 @@ MakeMeshFromInputData( tInputFile &infile )
    // set up the lists of edges (spokes) connected to each node
    // (GT added code to also assign the 1st edge to "edg" as an alternative
    // to spokelist implementation)
-   cout << "setting up spoke lists..." << flush;
+   cout << "setting edg pointers and spoke configs..." << flush;
+   // (no real lists: "insert" functions simply set appropriate ccwedg's and
+   // cwedg's)
    {
      tMeshListIter< tSubNode > nodIter( nodeList );
-     assert( nodIter.First() );
+     int ret = nodIter.First();
+     assert( ret != 0 );
+     tSubNode * curnode;
      do
        {
-	 tSubNode * curnode;
 	 curnode = nodIter.DatPtr();
-	 const int e1 = input.edgid[curnode->getID()];  //fix of above error
-	 if (0) //DEBUG
-	   cout << "spokes for Node " << curnode->getID() << endl;
-	 tEdge *edgPtr = EdgeTable[e1];
-	 curnode->insertBackSpokeList( edgPtr );
-	 curnode->setEdg( edgPtr );
-	 if (0) //DEBUG
-	   cout << "Node " << curnode->getID() << " has edg "
-		<< (curnode->getEdg())->getID() << endl;
+	 tSpkIter spkI( curnode );
+	 const int edgid1 = input.edgid[curnode->getID()];  //fix of above error
+	 spkI.insertAtBack(  EdgeTable[edgid1] );
 	 int ne;
-	 for( ne = input.nextid[e1]; ne != e1; ne = input.nextid[ne] )
+	 for( ne = input.nextid[edgid1]; ne != edgid1; ne = input.nextid[ne] )
 	   {
 	     if( ne>=nedges )
 	       {
-		 cerr << "Warning: edge " << e1
-		      << " has non-existant ccw edge "
+		 cerr << "Warning: edge " << edgid1 << " has non-existant ccw edge "
 		      << ne << endl;
 		 cerr << "This is likely to be a problem in the edge input file"
 		      << endl;
 	       }
-	     tEdge *edgPtr = EdgeTable[ne];
-	     curnode->insertBackSpokeList( edgPtr );
+	     spkI.insertAtBack( EdgeTable[ne] );
 	   }
        }
-     while( nodIter.Next() );
+     while( (curnode = nodIter.NextP()) != 0 );
    }
    cout << "done.\n";
-
-   // Assign ccwedg connectivity (that is, tell each edge about its neighbor
-   // immediately counterclockwise) (added by gt Dec 97 to re-implement
-   // previous data structure) TODO: can this be done using makeCCWEdges?
-   cout << "Setting up CCW edges..." << flush;
-   {
-     tMeshListIter< tEdge > edgIter( edgeList );
-     tMeshListIter< tSubNode > nodIter( nodeList );
-     tEdge * curedg, * ccwedg;
-     int ccwedgid;
-     tMeshListIter<tEdge> ccwIter( edgeList ); // 2nd iter for performance
-     for( i=0, curedg=edgIter.FirstP(); i<nedges; i++, curedg=edgIter.NextP() )
-       {
-	 ccwedgid = input.nextid[i];
-	 ccwedg = EdgeTable[ccwedgid]; //test
-	 curedg->setCCWEdg( ccwedg );
-	 if (0) // DEBUG
-	   cout << "Edg " << ccwedgid
-		<< " (" << ccwedg->getOriginPtr()->getID()
-		<< " " << ccwedg->getDestinationPtr()->getID()
-		<< ") is ccw from "
-		<< curedg->getID() << " ("
-		<< curedg->getOriginPtr()->getID()
-		<< " " << curedg->getDestinationPtr()->getID() << ") " << endl;
-       }
-   }
-   cout << "done.\n";
-
-   if (0) { //DEBUG DEADCODE
-     cout << "doing something else w/ spokes\n" << flush;
-     tPtrListIter< tEdge > spokIter;
-     tMeshListIter< tSubNode > nodIter( nodeList );
-     assert( nodIter.First() );
-     do
-       {
-	 spokIter.Reset( nodIter.DatRef().getSpokeListNC() );
-	 if (0) //DEBUG
-	   cout << " node " << nodIter.DatRef().getID() << " with spoke edges";
-	 i = 0;
-	 do
-	   {
-	     if( i > 0 ) spokIter.Next();
-	     if (0) //DEBUG
-	       cout << " " << spokIter.DatPtr()->getID();
-	     i++;
-	   }
-	 while( spokIter.NextIsNotFirst() );
-	 if (0) //DEBUG
-	   cout << endl;
-       }
-     while( nodIter.Next() );
-   }
 
    cout << "setting up triangle connectivity..." << flush;
    {
@@ -1527,7 +1470,6 @@ MakeMeshFromScratch( tInputFile &infile )
    MakePointInterior(Param, infile, true);
 
    // Now finalize the initialization by updating mesh properties
-   MakeCCWEdges();
    UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
    CheckMeshConsistency();                     //remove CMC call from UM
 }
@@ -1767,8 +1709,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    tMeshListIter< tSubNode > nI( nodeList );
    tPtrList<tSubNode> supertriptlist, deletelist;
    tPtrListIter<tSubNode> stpIter( supertriptlist ), dI( deletelist );
-   tPtrListIter< tEdge > sI;
-
+   
    // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
    infile.ReadItem( arcgridFilenm, "ARCGRIDFILENAME" );
@@ -1908,8 +1849,8 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    for( cn = nI.FirstBoundaryP(); !( nI.AtEnd() ); cn = nI.NextP() )
    {
       numActNbrs = 0;
-      sI.Reset( cn->getSpokeListNC() );
-      for( ce = sI.FirstP(); !( sI.AtEnd() ); ce = sI.NextP() )
+      tSpkIter sI( cn );
+      for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
           if( ce->getDestinationPtr()->getBoundaryFlag() == kNonBoundary )
               ++numActNbrs;
       if( numActNbrs ) cn->setZ( minz );
@@ -1986,7 +1927,6 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    tMeshListIter< tSubNode > nI( nodeList );
    tPtrList<tSubNode> supertriptlist, deletelist;
    tPtrListIter<tSubNode> stpIter( supertriptlist ), dI( deletelist );
-   tPtrListIter< tEdge > sI;
 
    // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
@@ -2122,7 +2062,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    for( cn = nI.FirstBoundaryP(); !( nI.AtEnd() ); cn = nI.NextP() )
    {
       numActNbrs = 0;
-      sI.Reset( cn->getSpokeListNC() );
+      tSpkIter sI( cn );
       for( ce = sI.FirstP(); !( sI.AtEnd() ); ce = sI.NextP() )
           if( ce->getDestinationPtr()->getBoundaryFlag() == kNonBoundary )
               ++numActNbrs;
@@ -2204,7 +2144,6 @@ CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
    tMeshListIter<tSubNode> nodIter( nodeList );
    tMeshListIter<tEdge> edgIter( edgeList );
    tListIter<tTriangle> triIter( triList );
-   tPtrListIter< tEdge > sIter;
    tNode * cn, * org, * dest;
    tEdge * ce, * cne, * ccwedg;
    tTriangle * ct, * optr;
@@ -2260,13 +2199,40 @@ CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
               << " points to a CCW edge with the same destination\n";
          goto error;
       }
+      tEdge *cwedg;
+      if( !(cwedg=ce->getCWEdg() ) )
+      {
+         cerr << "EDGE #" << ce->getID()
+              << " does not point to a valid clockwise edge\n";
+         goto error;
+      }
+      if( cwedg->getOriginPtrNC()!=org )
+      {
+         cerr << "EDGE #" << ce->getID()
+              << " points to a CW edge with a different origin\n";
+         goto error;
+      }
+      if( cwedg->getDestinationPtrNC()==dest )
+      {
+         cerr << "EDGE #" << ce->getID()
+              << " points to a CCW edge with the same destination\n";
+         goto error;
+      }
+      if ( ce->getCCWEdg()->getCWEdg() != ce ||
+	   ce->getCWEdg()->getCCWEdg() != ce)
+      {
+	cerr << "EDGE #" << ce->getID()
+	     << ": inconsistency related to pointers to CW and CCW edges\n";
+	goto error;
+      }
+
       if( org==dest )
       {
          cerr << "EDGE #" << ce->getID()
               << " has the same origin and destination nodes\n";
          goto error;
       }
-   
+
    }
    //cout << "EDGES PASSED\n";
 
@@ -2303,7 +2269,7 @@ CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
       // Loop around the spokes until we're back at the beginning
       do
       {
-      
+ 
          if( ce->getDestinationPtrNC()->getBoundaryFlag()!=kClosedBoundary )
              boundary_check_ok = true;  // OK, there's at least one open nbr
          i++;
@@ -2332,7 +2298,7 @@ CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
                  << " but has the node as its destination\n";
             goto error;
          }
-      
+
       } while( (ce=ce->getCCWEdg())!=cn->getEdg() );
       if( !boundary_check_ok )
       {
@@ -2340,9 +2306,9 @@ CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
               << " is surrounded by closed boundary nodes\n";
          goto error;
       }
-   
+
       //make sure node coords are consistent with edge endpoint coords:
-      sIter.Reset( cn->getSpokeListNC() );
+      tSpkIter sIter( cn );
       for( ce = sIter.FirstP(); !(sIter.AtEnd()); ce = sIter.NextP() )
       {
          if( ce->getOriginPtrNC()->getX() != cn->getX() ||
@@ -2459,19 +2425,6 @@ Print()                                                  //tMesh
    nodeList.print();
    edgeList.print();
 }
-
-template< class tSubNode >
-void tMesh< tSubNode >::
-MakeCCWEdges()
-{
-   tMeshListIter< tSubNode > nodIter( nodeList );
-   tSubNode *cn;
-   for( cn = nodIter.FirstP(); !( nodIter.AtEnd() ); cn = nodIter.NextP() )
-   {
-      cn->makeCCWEdges();
-   }
-}
-
 
 /*****************************************************************************\
 **
@@ -2774,7 +2727,7 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
 {
    if (0) //DEBUG
      cout << "ExtricateNode: " << node->getID() << endl;
-   tPtrListIter< tEdge > spokIter( node->getSpokeListNC() );
+   tSpkIter spokIter( node );
    tEdge edgeVal1, edgeVal2, *ce;
    tSubNode *nbrPtr;
 
@@ -2794,7 +2747,7 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
    }
 
    //cout<<"nnodes decremented now "<<nnodes<<endl;
-   if( node->getSpokeList().isEmpty() ) return 1;
+   if( tSpkIter(node).isEmpty() ) return 1;
    return 0;
 }
 
@@ -2876,44 +2829,50 @@ ExtricateEdge( tEdge * edgePtr )
    //edgePtr->TellCoords();
    assert( edgePtr != 0 );
    //temporary objects:
-   tEdge *tempedgePtr=0, *ce, *cce, *spk;
-   tEdge *ceccw, *cceccw;
+   tEdge *tempedgePtr=0, *ce, *cce;
    tMeshListIter< tEdge > edgIter( edgeList );
-   tPtrListIter< tEdge > spokIter;
-   tPtrList< tEdge > *spkLPtr;
-   tListNode< tEdge > *listnodePtr;
-   tArray< tTriangle * > triPtrArr(2);
+   tSpkIter spokIter;
+   tListNode< tEdge > *listnodePtr1, *listnodePtr2;
+   tTriangle* triPtr0, * triPtr1;
 
    //cout << "find edge in list; " << flush;
    ce = edgIter.GetP( edgePtr->getID() );  //NB: why necessary? isn't ce the
    // same as edgePtr??  Yes, why???
    // Puts edgIter at edgePtr's node!
-   // Remove the edge from it's origin's spokelist
-   //cout << "update origin's spokelist if not done already; " << flush;
-   spkLPtr = &( ce->getOriginPtrNC()->getSpokeListNC() );
-   spokIter.Reset( *spkLPtr );
-   for( spk = spokIter.FirstP(); spk != ce && !( spokIter.AtEnd() ); spk = spokIter.NextP() );
-   if( spk == ce )
-   {
-      spk = spokIter.NextP();
-      spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
-   }
+
+   // WarnSpokeLeaving is virtual:
+    ce->getOriginPtrNC()->WarnSpokeLeaving( ce );
+   // Remove the edge from it's origin's spokelist:
+   spokIter.Reset( ce->getOriginPtrNC() );
+   if( spokIter.Get( ce ) )
+       if( spokIter.Next() )
+           tempedgePtr = spokIter.removePrev();
 
    // Find the triangle that points to the edge
    //cout << "find triangle; " << flush;
-   triPtrArr[0] = TriWithEdgePtr( edgePtr );
+   triPtr0 = TriWithEdgePtr( edgePtr );
    // Find the edge's complement
-   listnodePtr = edgIter.NodePtr();
-   assert( listnodePtr != 0 );
+   listnodePtr1 = edgIter.NodePtr();
+   assert( listnodePtr1 != 0 );
 
    //cout << "find complement; " << flush;
-   if( edgePtr->getID()%2 == 0 ) cce = edgIter.NextP();
-   else if( edgePtr->getID()%2 == 1 ) cce = edgIter.PrevP();
-   else return 0; //NB: why whould this ever occur??
+   if( edgePtr->getID()%2 == 0 ) {
+     cce = edgIter.NextP();
+   } else if( edgePtr->getID()%2 == 1 ) {
+     cce = edgIter.PrevP();
+   } else
+     return 0; //NB: why whould this ever occur??
+   listnodePtr2 = edgIter.NodePtr();
+
+   //Need to make sure that "edg" member of node was not pointing
+   //to one of the edges that will be removed.  Also, may be implications
+   //for some types of subnodes, so take care of that also.
+   // WarnSpokeLeaving is virtual:
+    cce->getOriginPtrNC()->WarnSpokeLeaving( cce );
 
    // Find the triangle that points to the edges complement
    //cout << "find other triangle; " << flush;
-   triPtrArr[1] = TriWithEdgePtr( cce );
+   triPtr1 = TriWithEdgePtr( cce );
 
    // set edges' tri ptrs to zero:
    ce->setTri( 0 );
@@ -2921,45 +2880,15 @@ ExtricateEdge( tEdge * edgePtr )
 
    //if triangles exist, delete them
    //cout << "conditionally calling deletetri from extricateedge\n";
-   if( triPtrArr[0] != 0 )
-       if( !DeleteTriangle( triPtrArr[0] ) ) return 0;
-   if( triPtrArr[1] != 0 )
-       if( !DeleteTriangle( triPtrArr[1] ) ) return 0;
+   if( triPtr0 != 0 )
+       if( !DeleteTriangle( triPtr0 ) ) return 0;
+   if( triPtr1 != 0 )
+       if( !DeleteTriangle( triPtr1 ) ) return 0;
    //update complement's origin's spokelist
-   spkLPtr = &(cce->getOriginPtrNC()->getSpokeListNC());
-   spokIter.Reset( *spkLPtr );
-   for( spk = spokIter.FirstP(); spk != cce && !( spokIter.AtEnd() );
-        spk = spokIter.NextP() );
-   if( spk == cce )
-   {
-      spk = spokIter.NextP();
-      spkLPtr->removePrev( tempedgePtr, spokIter.NodePtr() );
-   }
-
-   //Need to make sure that edg member of node was not pointing
-   //to one of the edges that will be removed.  Also, may be implications
-   //for some types of subnodes, so take care of that also.
-   tSubNode * nodece = static_cast<tSubNode *>(ce->getOriginPtrNC());
-   nodece->WarnSpokeLeaving( ce );
-   tSubNode * nodecce = static_cast<tSubNode *>(cce->getOriginPtrNC());
-   nodecce->WarnSpokeLeaving( cce );
-
-   //now, take care of the edges who had as thier ccwedge ce or cce
-   ceccw=ce->getCCWEdg();
-   tempedgePtr=ceccw;
-   do{
-      tempedgePtr=tempedgePtr->getCCWEdg();
-   }while(tempedgePtr->getCCWEdg() != ce);
-   //set tempedgeptrs ccwedge to ceccw
-   tempedgePtr->setCCWEdg( ceccw);
-
-   cceccw=cce->getCCWEdg();
-   tempedgePtr=cceccw;
-   do{
-      tempedgePtr=tempedgePtr->getCCWEdg();
-   }while(tempedgePtr->getCCWEdg() != cce);
-   //set tempedgeptrs ccwedge to cceccw
-   tempedgePtr->setCCWEdg(cceccw);
+   spokIter.Reset( cce->getOriginPtrNC() );
+   if( spokIter.Get( cce ) )
+       if( spokIter.Next() )
+           tempedgePtr = spokIter.removePrev();
 
    //Since WarnSpokeLeaving can set a node to a boundary node if
    //There is no longer a legit place to flow, we need to check
@@ -2968,14 +2897,14 @@ ExtricateEdge( tEdge * edgePtr )
    if( ce->getBoundaryFlag() )
    {
       //move edges to back of list
-      edgeList.moveToBack( listnodePtr );
-      edgeList.moveToBack( edgIter.NodePtr() );
+      edgeList.moveToBack( listnodePtr1 );
+      edgeList.moveToBack( listnodePtr2 );
    }
    else
    {
       //move edges to front of list
-      edgeList.moveToFront( edgIter.NodePtr() );
-      edgeList.moveToFront( listnodePtr );
+      edgeList.moveToFront( listnodePtr2 );
+      edgeList.moveToFront( listnodePtr1 );
    }
    nedges-=2;
    return 1;
@@ -3308,167 +3237,119 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
 	  << "between nodes " << node1->getID()
 	  << " and " << node2->getID() << " w/ ref to node "
 	  << node3->getID() << endl;
-   int flowflag = 1;  // Boundary code for new edges
-   tEdge tempEdge1, tempEdge2;  // The new edges
-   tEdge *ce, *le;
-   tMeshListIter< tEdge > edgIter( edgeList );
-   tMeshListIter< tSubNode > nodIter( nodeList );
-   tPtrListIter< tEdge > spokIter;
-   //XtPtrListNode< tEdge >* spokeNodePtr;
+   tEdge *ce, *nle, *le;
+   tPtrListIter< tEdge > spokIterOld;
+   tSpkIter spokIter;
 
-   // Set origin and destination nodes and find boundary status
-   tempEdge1.setOriginPtr( node1 );   //set edge1 ORG
-   tempEdge2.setDestinationPtr( node1 );//set edge2 DEST
-   if( node1->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
-   tempEdge2.setOriginPtr( node2 );   //set edge2 ORG
-   tempEdge1.setDestinationPtr( node2 );//set edge1 DEST
-   if( node2->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
-   if( node1->getBoundaryFlag()==kOpenBoundary     // Also no-flow if both
-       && node2->getBoundaryFlag()==kOpenBoundary ) //  nodes are open bnds
+   {
+     int flowflag = 1;  // Boundary code for new edges
+     tEdge tempEdge1, tempEdge2;  // The new edges
+     // Set origin and destination nodes and find boundary status
+     tempEdge1.setOriginPtr( node1 );   //set edge1 ORG
+     tempEdge2.setDestinationPtr( node1 );//set edge2 DEST
+     if( node1->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
+     tempEdge2.setOriginPtr( node2 );   //set edge2 ORG
+     tempEdge1.setDestinationPtr( node2 );//set edge1 DEST
+     if( node2->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
+     if( node1->getBoundaryFlag()==kOpenBoundary     // Also no-flow if both
+	 && node2->getBoundaryFlag()==kOpenBoundary ) //  nodes are open bnds
        flowflag = 0;
 
-   // Set boundary status and ID
-   /*Xif( !( edgeList.isEmpty() ) )
-       newid = edgIter.LastP()->getID() + 1;
-       else newid = 0;*/
-   tempEdge1.setID( miNextEdgID );                     //set edge1 ID
-   miNextEdgID++;
-   tempEdge2.setID( miNextEdgID );                     //set edge2 ID
-   miNextEdgID++;
-   tempEdge1.setFlowAllowed( flowflag );         //set edge1 FLOWALLOWED
-   tempEdge2.setFlowAllowed( flowflag );         //set edge2 FLOWALLOWED
+     // Set boundary status and ID
+     tempEdge1.setID( miNextEdgID );                     //set edge1 ID
+     miNextEdgID++;
+     tempEdge2.setID( miNextEdgID );                     //set edge2 ID
+     miNextEdgID++;
+     tempEdge1.setFlowAllowed( flowflag );         //set edge1 FLOWALLOWED
+     tempEdge2.setFlowAllowed( flowflag );         //set edge2 FLOWALLOWED
 
-   // Place new edge pair on the list: active back if not a boundary
-   // edge, back otherwise
-   if( flowflag == 1 )
-   {
-      edgeList.insertAtActiveBack( tempEdge1 );  //put edge1 active in list
-      tEdge *e1 = edgeList.getLastActive()->getDataPtrNC();
-      edgeList.insertAtActiveBack( tempEdge2 );  //put edge2 active in list
-      tEdge *e2 = edgeList.getLastActive()->getDataPtrNC();
-      e1->setComplementEdge(e2);
-      e2->setComplementEdge(e1);
-      le = edgIter.LastActiveP();                      //set edgIter to lastactive
+     // Place new edge pair on the list: active back if not a boundary
+     // edge, back otherwise
+     if( flowflag == 1 )
+       {
+	 edgeList.insertAtActiveBack( tempEdge1 );  //put edge1 active in list
+	 tEdge *e1 = edgeList.getLastActive()->getDataPtrNC();
+	 edgeList.insertAtActiveBack( tempEdge2 );  //put edge2 active in list
+	 tEdge *e2 = edgeList.getLastActive()->getDataPtrNC();
+	 e1->setComplementEdge(e2);
+	 e2->setComplementEdge(e1);
+	 nle = e1;
+	 le = e2;
+       }
+     else
+       {
+	 edgeList.insertAtBack( tempEdge1 );        //put edge1 in list
+	 tEdge *e1 = edgeList.getLast()->getDataPtrNC();
+	 edgeList.insertAtBack( tempEdge2 );        //put edge2 in list
+	 tEdge *e2 = edgeList.getLast()->getDataPtrNC();
+	 e1->setComplementEdge(e2);
+	 e2->setComplementEdge(e1);
+	 nle = e1;
+	 le = e2;
+       }
    }
+
+   //add pointers to the new edges to nodes' spokeLists:
+   spokIter.Reset( node2 );
+   if( spokIter.isEmpty() )
+      spokIter.insertAtFront( le );
+   else if( spokIter.ReportNextP() == spokIter.CurSpoke() )
+       spokIter.insertAtFront( le );
    else
    {
-      edgeList.insertAtBack( tempEdge1 );        //put edge1 in list
-      tEdge *e1 = edgeList.getLast()->getDataPtrNC();
-      edgeList.insertAtBack( tempEdge2 );        //put edge2 in list
-      tEdge *e2 = edgeList.getLast()->getDataPtrNC();
-      e1->setComplementEdge(e2);
-      e2->setComplementEdge(e1);
-      le = edgIter.LastP();                            //set edgIter to last
-   }
-
-   // Add pointers to the new edges to nodes' spokeLists
-   // Three possible cases: (1) there aren't any spokes currently attached,
-   // so just put the new one at the front of the list and make it circ'r;
-   // (2) there is only one spoke, so it doesn't matter where we attach
-   // (3) there is already >1 spoke (the general case)
-   spokIter.Reset( node2->getSpokeListNC() );
-     //cout << "node " << node2->getID() << ": ";
-   if( node2->getSpokeListNC().isEmpty() )
-   {
-        //cout << "place spoke " << edgIter.DatRef().getID()
-        //   << " in otherwise empty list" << endl;
-      node2->insertFrontSpokeList( le);
-      node2->getSpokeListNC().makeCircular();
-      node2->AttachFirstSpoke( le ); // gt added to update ccwedg 2/99
-   }
-   else if( spokIter.ReportNextP() == spokIter.DatPtr() )
-   {
-      node2->insertFrontSpokeList( le);
-      ce = node2->getEdg();  // these 2 lines added by gt 2/99
-      assert( ce!=0 );
-      ce->WelcomeCCWNeighbor( le );
-        //node2->getSpokeListNC().makeCircular();
-   }
-   else // general case: figure out where to attach spoke
-   {
-      //NB: I (GT) wonder whether we could speed this up. If you knew what
-      // triangle you were falling in, wouldn't you be easily able to find
-      // the right spoke? TODO -- investigate
-        //cout << "place spoke " << edgIter.DatRef().getID()
-        //   << " w/ reference to node " << node3->getID() << endl;
       for( ce = spokIter.FirstP();
            ce->getDestinationPtr() != node3 && !( spokIter.AtEnd() );
            ce = spokIter.NextP() );
-      //assert( !( spokIter.AtEnd() ) );  //make sure we found the right spoke
+      //make sure we found the right spoke; if not:
       if( spokIter.AtEnd() )
-      {
-         //cout << "AddEdge: using new algorithm\n";
-         for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
-         {
-	   if( PointsCCW( UnitVector( ce ),
-			  UnitVector( le ),
-			  UnitVector( spokIter.ReportNextP() ) ) )
-	     break;
-         }
-      }
-      node2->getSpokeListNC().insertAtNext( le,
-                                            spokIter.NodePtr() ); //put edge2 in SPOKELIST
-      assert( ce!=0 );
-      ce->WelcomeCCWNeighbor( le );
+          for( ce = spokIter.FirstP();
+               !( spokIter.AtEnd() );
+               ce = spokIter.NextP() )
+              if( PointsCCW( UnitVector( ce ),
+                             UnitVector( le ),
+                             UnitVector( spokIter.ReportNextP() ) ) )
+                  break;
+      //put edge2 in SPOKELIST:
+      spokIter.insertAtNext( le );
    }
-   spokIter.Reset( node1->getSpokeListNC() );
-   le = edgIter.PrevP();                     //step backward once in edgeList
-     //cout << "node " << node1->getID() << ": ";
-   if( node1->getSpokeListNC().isEmpty() )
-   {
-        //cout << "place spoke " << edgIter.DatRef().getID()
-        //   << " in otherwise empty list" << endl;
-      node1->insertFrontSpokeList( le );
-      node1->getSpokeListNC().makeCircular();
-      node1->AttachFirstSpoke( le ); // Tell node it's getting a spoke
-   }
-   else if( spokIter.ReportNextP() == spokIter.DatPtr() )
-   {
-      node1->insertFrontSpokeList( le );
-        //node2->getSpokeListNC().makeCircular();
-      ce = node1->getEdg();  // these 2 lines added by gt 2/99
-      assert( ce!=0 );
-      ce->WelcomeCCWNeighbor( le ); // Tell node it has a new neighbor!
-   }
+   spokIter.Reset( node1 );
+   if( spokIter.isEmpty() )
+       spokIter.insertAtFront( nle );
+   else if( spokIter.ReportNextP() == spokIter.CurSpoke() )
+       spokIter.insertAtFront( nle );
    else
    {
-        //cout << "place spoke " << edgIter.DatRef().getID()
-        //   << " w/ reference to node " << node3->getID() << endl;
       for( ce = spokIter.FirstP();
            ce->getDestinationPtr() != node3 && !( spokIter.AtEnd() );
            ce = spokIter.NextP() );
-      //assert( !( spokIter.AtEnd() ) );  //make sure we found the right spoke
+      //make sure we found the right spoke; if not:
       if( spokIter.AtEnd() )
-      {
-         //cout << "AddEdge: using new algorithm\n";
-         for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
-         {
-	   if( PointsCCW( UnitVector( ce ),
-			  UnitVector( le ),
-			  UnitVector( spokIter.ReportNextP() ) ) )
-	     {
-               spokIter.Next();
-               break;
-	     }
-         }
-      }
-      node1->getSpokeListNC().insertAtPrev( le,
-                                            spokIter.NodePtr() );//put edge1 in SPOKELIST
-      assert( ce!=0 );
-      ce->WelcomeCCWNeighbor( le );  // Tell node it has a new neighbor!
+          for( ce = spokIter.FirstP();
+               !( spokIter.AtEnd() );
+               ce = spokIter.NextP() )
+              if( PointsCCW( UnitVector( ce ),
+                             UnitVector( nle ),
+                             UnitVector( spokIter.ReportNextP() ) ) )
+              {
+                 spokIter.Next();
+                 break;
+              }
+      //put edge1 in SPOKELIST:
+      spokIter.insertAtPrev( nle );
    }
 
    nedges+=2;
 
    // Reset edge id's
+   tMeshListIter< tEdge > edgIter( edgeList );
    for( ce = edgIter.FirstP(), miNextEdgID = 0; !( edgIter.AtEnd() );
         ce = edgIter.NextP(), miNextEdgID++ )
    {
       ce->setID( miNextEdgID );
-      /*cout << "    Edg " << i << " (" << ce->getOriginPtr()->getID() << "->"
-           << ce->getDestinationPtr()->getID() << ")\n";*/
    }
-   //cout << "AddEdge() done\n" << flush;
+
+   if (0) //DEBUG
+     cout << "AddEdge() done\n" << flush;
    return 1;
 }
 
@@ -3577,7 +3458,6 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    tTriangle *ct;
    tListIter< tTriangle > triIter( triList );
    tMeshListIter< tEdge > edgIter( edgeList );
-   tPtrListIter< tEdge > spokIter;
    assert( nbrList.getSize() == 3 );
 
    //Xcn = nbrIter.DatPtr(); Below is bug fix:
@@ -3641,7 +3521,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    for( j=0; j<3; j++ )
    {
       // get spokelist for p(j) and advance to p(j+1)
-      spokIter.Reset( cn->getSpokeListNC() );
+      tSpkIter spokIter( cn );
       cn = nbrIter.NextP();               //step forward once in nbrList
       //Xif( j>0 ) dce = ce;
 
@@ -3758,9 +3638,13 @@ AddNode( tSubNode &nodeRef, bool updatemesh, double time )
    nodeRef.setID( miNextNodeID );
    miNextNodeID++;
 
+   if (0) //DEBUG Arnaud
+     cout << "call InsertNode" << endl;
    tSubNode* newNodePtr = InsertNode(&nodeRef, time);
    if(newNodePtr == 0)
      return 0;
+   if (0) //DEBUG Arnaud
+     cout << "call CheckTrianglesAt" << endl;
    if( xyz.getSize() == 3 )
      CheckTrianglesAt( newNodePtr );
 
@@ -3774,7 +3658,6 @@ AddNode( tSubNode &nodeRef, bool updatemesh, double time )
 	 cn->setID( miNextNodeID );
        }
    }
-   newNodePtr->makeCCWEdges();
    newNodePtr->InitializeNode();
 
    if( updatemesh ) UpdateMesh();
@@ -3790,48 +3673,48 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 CheckTrianglesAt( tSubNode* nPtr )
 {
-  // put 3 last (new) triangles in ptr list and
-  // re-triangulate to fix mesh (make it Delaunay)
+   // put 3 last (new) triangles in ptr list and
+   // re-triangulate to fix mesh (make it Delaunay)
+   int i, ctr;
+   tTriangle *ct;
 
-  int i;
-  tPtrList< tTriangle > triptrList;
-  tListIter< tTriangle > triIter( triList );
-  tPtrListIter< tTriangle > triptrIter( triptrList );
-  tTriangle *ct;
-  triptrList.insertAtBack( triIter.LastP() );
-  triptrList.insertAtBack( triIter.PrevP() );
-  triptrList.insertAtBack( triIter.PrevP() );
+   tPtrList< tTriangle > triptrList;
+   tListIter< tTriangle > triIter( triList );
+   triptrList.insertAtBack( triIter.LastP() );
+   triptrList.insertAtBack( triIter.PrevP() );
+   triptrList.insertAtBack( triIter.PrevP() );
 
-  //check list for flips; if flip, put new triangles at end of list
-  const bool flip = true;
-  int ctr = 0;
-  while( !( triptrList.isEmpty() ) )
-    {
-      ctr++;
-      if( ctr > kLargeNumber ) // Make sure to prevent endless loops
-	{                        // TODO: remove for release ver
-	  cerr << "Mesh error: adding node " << nPtr->getID()
-	       << " flip checking forever"
-	       << endl;
-	  ReportFatalError( "Bailing out of AddNode()" );
-	}
-      ct = triptrIter.FirstP();
+   tPtrListIter< tTriangle > triptrIter( triptrList );
+   //check list for flips; if flip, put new triangles at end of list
+   const bool flip = true;
+   ctr = 0;
+   while( !( triptrList.isEmpty() ) )
+     {
+       ctr++;
+       if( ctr > kLargeNumber ) // Make sure to prevent endless loops
+         {                        // TODO: remove for release ver
+	   cerr << "Mesh error: adding node " << nPtr->getID()
+		<< " flip checking forever"
+		<< endl;
+	   ReportFatalError( "Bailing out of CheckTrianglesAt()" );
+         }
+       ct = triptrIter.FirstP();
 
-      for( i=0; i<3; i++ )
-	{
-	  if( ct->tPtr(i) != 0 )
-            {
-	      if( CheckForFlip( ct, i, flip ) )
-		{
-                  triptrList.insertAtBack( triIter.LastP() );
-                  triptrList.insertAtBack( triIter.PrevP() );
-                  break;
-		}
-            }
-	}
+       for( i=0; i<3; i++ )
+         {
+	   if( ct->tPtr(i) != 0 )
+	     {
+               if( CheckForFlip( ct, i, flip ) )
+		 {
+		   triptrList.insertAtBack( triIter.LastP() );
+		   triptrList.insertAtBack( triIter.PrevP() );
+		   break;
+		 }
+	     }
+         }
 
-      triptrList.removeFromFront( ct );
-    }
+       triptrList.removeFromFront( ct );
+     }
 }
 
 /**************************************************************************\
@@ -3916,7 +3799,8 @@ AttachNode( tSubNode* cn, tTriangle* tri )
   tArray< double > xyz( cn->get3DCoords() );
 
   // flush its spoke list
-  cn->getSpokeListNC().Flush();
+  tEdge* ce = 0;
+  cn->setEdg( ce );
 
   //make ptr list of triangle's vertices:
   tPtrList< tSubNode > bndyList;
@@ -3927,10 +3811,6 @@ AttachNode( tSubNode* cn, tTriangle* tri )
       bndyList.insertAtBack( tmpPtr );
     }
   bndyList.makeCircular();
-
-  // Delete the triangle in which the node falls
-  i = DeleteTriangle( tri );
-  assert( i != 0 );  //if ( !DeleteTriangle( tri ) ) return 0;
 
   //make 3 new triangles
   //cout << "creating new triangles\n" << flush;
@@ -3976,6 +3856,10 @@ AttachNode( tSubNode* cn, tTriangle* tri )
     }
 
    if( colinearedg < 0 ) {
+
+     // Delete the triangle in which the node falls
+     i = DeleteTriangle( tri );
+     assert( i != 0 );  //if ( !DeleteTriangle( tri ) ) return 0;
 
      // Here's how the following works. Let the old triangle vertices be A,B,C
      // and the new node N. The task is to create 3 new triangles ABN, NBC, and
@@ -4132,7 +4016,6 @@ AddNodeAt( tArray< double > &xyz, double time )
       cn->setID( miNextNodeID );
    }
    //nmg uncommented line below and added initialize line
-   node2->makeCCWEdges();
    node2->InitializeNode();
 
    UpdateMesh();
@@ -4146,9 +4029,6 @@ AddNodeAt( tArray< double > &xyz, double time )
       ce=ce->getCCWEdg();
       hlp++;
    }while(ce != fe );
-   //  if(hlp !=  node2->getSpokeListNC().getSize() ){
-//        cout<<"AddNodeAt  number of spokes "<<node2->getSpokeListNC().getSize()<<" number of ccwedges "<<hlp<<endl<<flush;
-//     }
 
    //cout << "AddNodeAt finished, " << nnodes << endl;
    return node2;
@@ -4243,8 +4123,6 @@ UpdateMesh()
       assert( curedg > 0 ); // failure = complementary edges not consecutive
       curedg->setLength( len );
    } while( curedg=elist.NextP() );
-
-   MakeCCWEdges();
 
    setVoronoiVertices();
    CalcVoronoiEdgeLengths();
@@ -4642,7 +4520,6 @@ CheckTriEdgeIntersect()
    tMeshListIter< tEdge > edgIter( edgeList );
    tMeshListIter< tSubNode > nodIter( nodeList );
    tMeshListIter< tEdge > xedgIter( edgeList );
-   tPtrListIter< tEdge > spokIter;
    tMeshList< tSubNode > tmpNodeList;
    tMeshListIter< tSubNode > tmpIter( tmpNodeList );
    tArray< double > p0, p1, p2, xy, xyz, xy1, xy2;
@@ -4697,7 +4574,7 @@ CheckTriEdgeIntersect()
                   if( cn->Meanders() )
                   {
                      cedg = ct->ePtr( (i+2)%3 );
-                     spokIter.Reset( cn->getSpokeListNC() );
+		     tSpkIter spokIter( cn );
                      for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
                           ce = spokIter.NextP() )
                      {
@@ -4797,7 +4674,6 @@ CheckTriEdgeIntersect()
       if ( cn->Meanders() ) cn->UpdateCoords();//Nic, here is where x&y change
       //cout << "add node at " << cn->getX() << ", " << cn->getY() << ", "
       //     << cn->getZ() << endl << flush;
-      cn->getSpokeListNC().Flush();
       cn = AddNode( *cn );
       assert( cn!=0 );
    }
@@ -4971,7 +4847,7 @@ void tMesh<tSubNode>::
 DumpSpokes( tSubNode *cn )
 {
    tEdge *ce;
-   tPtrListIter< tEdge > spokIter( cn->getSpokeListNC() );
+   tSpkIter spokIter( cn );
    cout << "node " << cn->getID() << " with spoke edges " << endl;
    for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
    {

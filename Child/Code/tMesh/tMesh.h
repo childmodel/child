@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.46 2003-04-25 12:23:50 childcvs Exp $
+**  $Id: tMesh.h,v 1.47 2003-04-29 09:33:51 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -93,8 +93,6 @@ public:
    void MakeHexMeshFromArcGrid( tInputFile &infile );// mesh from arc (hex)
    void MakeLayersFromInputData( tInputFile & );
    void Print();
-   /*makes edg, ccwedg structure from spokelists*/
-   void MakeCCWEdges();
    void setVoronoiVertices();
    void CalcVoronoiEdgeLengths();
    void CalcVAreas();

@@ -272,7 +272,7 @@ BuildDelaunayMeshTipper()
    }
 
    // set up the lists of edges (spokes) connected to each node
-   cout << "Setting up spoke lists..." << flush;
+   cout << "Setting up edg pointer..." << flush;
    {
      // connectivity point - sorted point
      tArray< int > p2sp(nnodes);
@@ -280,41 +280,23 @@ BuildDelaunayMeshTipper()
        p2sp[p[inodes].id()] = inodes;
      }
 
-     tMeshListIter< tSubNode > nodIter(nodeList);
      oriented_edge *oedge;
      tt_build_spoke(nnodes, nedgesl, edges, &oedge);
 
-     tSubNode * curnode;
-     assert( nodIter.First() );
-     do
-       {
-	 // first spoke
-	 curnode = nodIter.DatPtr();
-	 {
-	   const int e1 = e_t2c(oedge[p2sp[curnode->getID()]]);
-	   tEdge *edgPtr = EdgeTable[e1];
-	   curnode->insertBackSpokeList( edgPtr );
-	   curnode->setEdg( edgPtr );
-	 }
-	 // build rest of spoke list
-	 const oriented_edge& oe_ref = oedge[p2sp[curnode->getID()]];
-	 oriented_edge ccw_from = oe_ref.ccw_edge_around_from(edges);
-	 while( ccw_from.e() != oe_ref.e()) {
-	   assert(ccw_from.e() < nedgesl);
-	   const int ne = e_t2c(ccw_from);
-	   tEdge *edgPtr = EdgeTable[ne];
-	   curnode->insertBackSpokeList( edgPtr );
-	   ccw_from = ccw_from.ccw_edge_around_from(edges);
-	 }
-       }
-     while( nodIter.Next() );
+     tMeshListIter< tSubNode > nodIter(nodeList);
+     tSubNode * cn;
+     for( cn=nodIter.FirstP(); !(nodIter.AtEnd()); cn=nodIter.NextP()){
+       const int e1 = e_t2c(oedge[p2sp[cn->getID()]]);
+       tEdge *edgPtr = EdgeTable[e1];
+       cn->setEdg( edgPtr );
+     }
      delete [] oedge;
    }
    cout << "done.\n";
 
    // Assign ccwedg connectivity (that is, tell each edge about its neighbor
-   // immediately counterclockwise)
-   cout << "Setting up CCW edges..." << flush;
+   // immediately counterclockwise). Likewise for cwedg connectivity.
+   cout << "Setting up CCW and CW edges..." << flush;
    {
      for( int iedge=0; iedge<nedgesl; ++iedge)
        {
@@ -324,6 +306,7 @@ BuildDelaunayMeshTipper()
 	   const oriented_edge ccw_from = e1.ccw_edge_around_from(edges);
 	   tEdge *ccwedg = EdgeTable[ e_t2c(ccw_from) ];
 	   curedg->setCCWEdg( ccwedg );
+	   ccwedg->setCWEdg( curedg );
 	 }
 	 {
 	   const oriented_edge e2(iedge,false);
@@ -331,6 +314,7 @@ BuildDelaunayMeshTipper()
 	   const oriented_edge ccw_to = e2.ccw_edge_around_from(edges);
 	   tEdge *ccwedg = EdgeTable[ e_t2c(ccw_to) ];
 	   curedg->setCCWEdg( ccwedg );
+	   ccwedg->setCWEdg( curedg );
 	 }
        }
    }

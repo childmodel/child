@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.77 2003-04-24 13:58:07 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.78 2003-04-29 09:33:52 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -707,7 +707,6 @@ void tStreamMeander::FindReaches()
   tLNode *cn, *lnPtr, *frn, *lrn, *nxn, *ln;
   tEdge *ce;
   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
-  tPtrListIter< tEdge > spokIter;
   tPtrListIter< tLNode > rnIter;
   tPtrList< tLNode > rnodList, *plPtr, listtodelete;
   tListNode< tPtrList< tLNode > > *tempnode;
@@ -726,7 +725,7 @@ void tStreamMeander::FindReaches()
 
 	  if (0) //DEBUG
 	    cout<<"FR node "<<cn->getID()<<" meanders"<<endl<<flush;
-	  spokIter.Reset( cn->getSpokeListNC() );
+	  tSpkIter spokIter( cn );
 	  //loop through spokes to find upstream meandering nbr
 	  for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); 
 	       ce = spokIter.NextP() )
@@ -1669,8 +1668,9 @@ void tStreamMeander::AddChanBorder(double time)
 tArray< double >
 tStreamMeander::FindBankErody( tLNode *nPtr )
 {
-  tArray< double > spD( nPtr->getSpokeListNC().getSize() * 2 ),
-    spR( nPtr->getSpokeListNC().getSize() * 2 );
+  tSpkIter sI(nPtr);
+  tArray< double > spD( sI.getNumSpokes() * 2 ),
+    spR( sI.getNumSpokes() * 2 );
   int i, j, n;
   tLNode *nNPtr, *cn, *node1, *node2;
   tEdge *ce, *fe, *ne;
@@ -1689,7 +1689,7 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
   a = dxy[0];
   b = dxy[1];
   c = -dxy[1] * xyz1[1] - dxy[0] * xyz1[0];
-  n = nPtr->getSpokeListNC().getSize();
+  n = sI.getNumSpokes();
   //find distance and remainders of pts wrt line perpendicular to downstream direction
   fe = nPtr->getFlowEdg();
   ce = fe;
@@ -1797,7 +1797,6 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
 void tStreamMeander::CheckBndyTooClose()
 {
   tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
-  tPtrListIter< tEdge > sI;
   tLNode *cn, *mn;
   tNode *nn, *bn0(0), *bn1(0);
   tEdge *ce;
@@ -1812,7 +1811,7 @@ void tStreamMeander::CheckBndyTooClose()
   //go through boundary nodes
   for( cn = nI.NextP(); !(nI.AtEnd()); cn = nI.NextP() )
     {
-      sI.Reset( cn->getSpokeListNC() );
+      tSpkIter sI( cn );
       n = 0;
       //count number of meandering nbrs:
       for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
@@ -1891,7 +1890,6 @@ void tStreamMeander::CheckBanksTooClose()
     cout << "CheckBanksTooClose()..." << flush << endl;
   int i, j, num, onlist;
   tPtrList< tLNode > delPtrList;
-  tPtrListIter< tEdge > spokIter;
   tPtrListIter< tLNode > dIter( delPtrList );
   tLNode * cn, *pointtodelete, *dn, *sn;
   tEdge *ce;
@@ -1911,7 +1909,7 @@ void tStreamMeander::CheckBanksTooClose()
 	{
 	  // Check neighboring nodes
 	  pointtodelete = 0;
-	  spokIter.Reset( cn->getSpokeListNC() );
+	  tSpkIter spokIter( cn );
 	  for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
 	       ce = spokIter.NextP() )
 	    {
@@ -1999,7 +1997,6 @@ void tStreamMeander::CheckFlowedgCross()
   tEdge * fedg, *ce;
   tTriangle * ct, *nt;
   tListIter< tTriangle > triIter( meshPtr->getTriList() );
-  tPtrListIter< tEdge > spokIter;
   //delete node crossed by flowedg:
   //if a new triangle is !CCW and two vtcs. are connected by a flowedg AND
   //  a spoke of the third vtx. intersects the flowedg OR
@@ -2055,7 +2052,7 @@ void tStreamMeander::CheckFlowedgCross()
 		    }
 		  else
 		    {
-		      spokIter.Reset( nod->getSpokeListNC() );
+		      tSpkIter spokIter( nod );
 		      fedg = cn->getFlowEdg();
 		      for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
 			   ce = spokIter.NextP() )

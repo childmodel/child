@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.26 2003-02-11 12:08:57 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.27 2003-04-29 09:33:53 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -629,7 +629,7 @@ void tStreamNet::InitFlowDirs()
    tLNode *othernbr;
    tLNode *pointtodelete;
    tArray< double > cxy, nxy, nnxy;
-   tPtrListIter< tEdge > sI( snknod->getSpokeListNC() );
+   tSpkIter sI( snknod );
    cxy = snknod->get2DCoords();
 
    cz = snknod->getZ();
@@ -1546,7 +1546,6 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node )
 {
    double maxslp = 0;  // Maximum slope found so far
    tEdge * ce;        // Current edge
-   //XtPtrListIter< tEdge > spokIter( node->getSpokeListNC() );
    tLNode *dn,        // Potential outlet
        *an;           // Node ptr used to find outlet of a previously
                       // identified lake
@@ -2362,7 +2361,6 @@ void tInlet::FindNewInlet()
    tNode *bn0(0), *bn1(0), *mnn;
    tEdge *ce, *me;
    tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
-   tPtrListIter< tEdge > sI, msI;
    int n;
      //tPtrList< tLNode > bList;
      //tPtrListIter< tLNode > bI( bList );
@@ -2379,7 +2377,7 @@ void tInlet::FindNewInlet()
       if( cn->getY() > yin ) //(cn was originally any active node)
       {
            //go through bndy node's nbrs...
-         sI.Reset( cn->getSpokeListNC() );
+    	 tSpkIter sI( cn );
          for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
          {
             mn = static_cast<tLNode *>(ce->getDestinationPtrNC());
@@ -2394,7 +2392,7 @@ void tInlet::FindNewInlet()
             assert( zmin<10000.0 );*/
             if( mn->getBoundaryFlag() == kNonBoundary && mn->getZ() < zmin )
             {
-               msI.Reset( mn->getSpokeListNC() );
+	       tSpkIter msI( mn );
                n = 0;
                  //go through the active node's nbrs to find and count
                  //'northern' bndy nodes:
