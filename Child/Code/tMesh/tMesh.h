@@ -19,7 +19,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.32 2002-05-01 14:48:30 arnaud Exp $
+**  $Id: tMesh.h,v 1.33 2002-06-18 16:29:50 arnaud Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -58,6 +58,8 @@
 /**** Class Declarations ****/
 /****************************/
 
+class ParamMMFS_t;
+
 /** class tMesh ************************************************************/
 template< class tSubNode >
 class tMesh
@@ -65,6 +67,9 @@ class tMesh
    friend class tListOutputData< tSubNode >;
    tMesh(const tMesh&);
    tMesh& operator=(const tMesh&);
+
+   void MakePointBoundary( const ParamMMFS_t &, tInputFile &, tPtrList< tSubNode > & );
+   void MakePointInterior( const ParamMMFS_t &, tInputFile & );
 public:
    tMesh();
    tMesh( tInputFile & );

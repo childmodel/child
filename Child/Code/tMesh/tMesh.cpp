@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.104 2002-05-28 17:05:04 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.105 2002-06-18 16:29:47 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -18,6 +18,8 @@
 #endif
 
 #include <stdlib.h>
+
+#include "ParamMesh_t.h"
 
 /***************************************************************************\
 **  Templated global functions used by tMesh here
@@ -1107,258 +1109,198 @@ BatchAddNodes()
 \**************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MakeMeshFromScratch( tInputFile &infile )
+MakePointBoundary( const ParamMMFS_t &Param, tInputFile &infile,
+		   tPtrList< tSubNode > &bndList)
 {
-   int i, j,                     // counters 
-       n, nx, ny;                // no. of nodes along a side
-   int numPts;                   // total no. of interior pts (if random)
+   int i,                        // counters 
+       n;                        // no. of nodes along a side
    double dist;                  // current distance along boundary
-   double delGrid,               // average spacing between nodes
-       slope;
-   double upperZ;
-   double xout=0, yout=0;        // coordinates of user-specified outlet
-   tArray< double > xyz(3);
-   //cout << "In MGFS, calling node constr w/ infile\n";
-   tSubNode tempnode( infile ),  // temporary node used to create node list
-       *node0, *node1, *node2;
-   //XtSubNode *cn, *node3;
-   //XtEdge *ce;
-   tMeshListIter< tEdge > edgIter( edgeList );
+   tSubNode tempnode( infile );  // temporary node used to create node list
    tMeshListIter< tSubNode > nodIter( nodeList );
-   tPtrList< tSubNode > bndList;
-   seed = infile.ReadItem( seed, "SEED" );
-     //reads in size of mesh (meters)
-   double xGrid, yGrid;
-   xGrid = infile.ReadItem( xGrid, "X_GRID_SIZE" );
-   yGrid = infile.ReadItem( yGrid, "Y_GRID_SIZE" );
-     //read type of open boundary:
-     //  0 = corner outlet (lower left)
-     //  1 = one open side (lower)
-     //  2 = two opposite sides (upper and lower)
-     //  3 = all sides
-     //  4 = specify outlet coordinates
-   int boundType;
-   boundType = infile.ReadItem( boundType, "TYP_BOUND" );
-      
-   int kSloped = 0;
-   //ng 12/99 added so that the initial surface could be sloped
-   //with one side open bndry cndtn if kSloped = 1.
-   if(boundType == kOpenSide){
-      kSloped = infile.ReadItem( kSloped, "SLOPED_SURF" );
-      if(kSloped)
-          upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
-   }
-     //read mean elevation (also determines elev variation)
-   double mElev;
-   mElev = infile.ReadItem( mElev, "MEAN_ELEV" );
-     //reads method of point placement:
-     //  0 = uniform grid;
-     //  1 = perturbed grid;
-     //  2 = random scatter;
-   int ptPlace;
-   ptPlace = infile.ReadItem( ptPlace, "OPT_PT_PLACE" );
-     //read point spacing or number of points (excluding four boundary points)
-   if( ptPlace == kUniformMesh || ptPlace == kPerturbedMesh )
-   {
-      delGrid = infile.ReadItem( delGrid, "GRID_SPACING" );
-      if( delGrid >= xGrid || delGrid >= yGrid )
-          ReportFatalError( 
-              "Mesh point spacing must be smaller than total mesh width." );
-   }
-   else
-   {
-      numPts = infile.ReadItem( numPts, "NUM_PTS" );
-      delGrid = sqrt( xGrid * yGrid / numPts );
-   }
 
    //MAKE BOUNDARY
-   if( boundType == kCornerOutlet )
+   if( Param.boundType == kCornerOutlet )
    {
       miNextNodeID = 0;
       tempnode.setBoundaryFlag( kOpenBoundary );
       tempnode.set3DCoords( 0, 0, 0 );
       tempnode.setID( miNextNodeID );
-      n = ROUND( xGrid / delGrid );
+      n = ROUND( Param.xGrid / Param.delGrid );
       tempnode.setBoundaryFlag( kOpenBoundary );
       nodeList.insertAtBack( tempnode );
       bndList.insertAtBack( nodIter.LastP() );
       tempnode.setBoundaryFlag( kClosedBoundary );
       for( i=1, miNextNodeID++; i<n; i++, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = ROUND( yGrid / delGrid );
+      n = ROUND( Param.yGrid / Param.delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( xGrid, dist, 0 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         tempnode.set3DCoords( Param.xGrid, dist, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = ROUND( xGrid / delGrid );
+      n = ROUND( Param.xGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, yGrid, 0 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         tempnode.set3DCoords( dist, Param.yGrid, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = ROUND( yGrid / delGrid );
+      n = ROUND( Param.yGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( 0, dist, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
    }
-   else if( boundType == kOpenSide )
+   else if( Param.boundType == kOpenSide )
    {
       cout << "OPEN SIDE boundary\n";
-      n = ROUND( xGrid / delGrid );
+      n = ROUND( Param.xGrid / Param.delGrid );
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       tempnode.setBoundaryFlag( kClosedBoundary );
-      n = ROUND( yGrid / delGrid );
+      n = ROUND( Param.yGrid / Param.delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( xGrid, dist, 0 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         tempnode.set3DCoords( Param.xGrid, dist, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = ROUND( xGrid / delGrid );
+      n = ROUND( Param.xGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, yGrid, 0 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         tempnode.set3DCoords( dist, Param.yGrid, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = ROUND( yGrid / delGrid );
+      n = ROUND( Param.yGrid / Param.delGrid );
       for( i=n; i>=0; i--, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( 0, dist, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
    }
-   if( boundType == kOppositeSidesOpen )
+   if( Param.boundType == kOppositeSidesOpen )
    {
-      upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
-      n = ROUND( xGrid / delGrid );
+      n = ROUND( Param.xGrid / Param.delGrid );
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       tempnode.setBoundaryFlag( kClosedBoundary );
-      n = ROUND( yGrid / delGrid );
+      n = ROUND( Param.yGrid / Param.delGrid );
       for( i=0; i<=n; i++, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( xGrid, dist, 0 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         tempnode.set3DCoords( Param.xGrid, dist, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
       tempnode.setBoundaryFlag( kOpenBoundary );
-      n = ROUND( xGrid / delGrid );
+      n = ROUND( Param.xGrid / Param.delGrid );
       for( i=n-1; i>0; i--, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, yGrid, upperZ );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         tempnode.set3DCoords( dist, Param.yGrid, Param.upperZ );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBoundFront( tempnode );
          bndList.insertAtBack( nodIter.FirstBoundaryP() );
       }
       tempnode.setBoundaryFlag( kClosedBoundary );
-      n = ROUND( yGrid / delGrid );
+      n = ROUND( Param.yGrid / Param.delGrid );
       for( i=n; i>=0; i--, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( 0, dist, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
    }
-   else if( boundType == kAllSidesOpen )
+   else if( Param.boundType == kAllSidesOpen )
    {
       miNextNodeID = 0;
-      n = ROUND( xGrid / delGrid );
+      n = ROUND( Param.xGrid / Param.delGrid );
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = ROUND( yGrid / delGrid );
+      n = ROUND( Param.yGrid / Param.delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( xGrid, dist, 0 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         tempnode.set3DCoords( Param.xGrid, dist, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = ROUND( xGrid / delGrid );
+      n = ROUND( Param.xGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, yGrid, 0 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         tempnode.set3DCoords( dist, Param.yGrid, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
-      n = ROUND( yGrid / delGrid );
+      n = ROUND( Param.yGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( 0, dist, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
       }
    }
-   else if( boundType == kSpecifyOutlet )
+   else if( Param.boundType == kSpecifyOutlet )
    {
-      // Read outlet coordinates from input file
-      xout = infile.ReadItem( xout, "OUTLET_X_COORD" );
-      yout = infile.ReadItem( yout, "OUTLET_Y_COORD" );
-
       // Create nodes for bottom (Y=0) boundary and place them on list
-      n = ROUND( xGrid / delGrid );
+      n = ROUND( Param.xGrid / Param.delGrid );
       tempnode.setBoundaryFlag( kClosedBoundary );
       for( i=0, miNextNodeID=0; i<n; i++, miNextNodeID++ )
       {
          // Assign node coords to tempnode and add tempnode to list
-         dist = i * delGrid + 0.01 * delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.01 * Param.delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
@@ -1366,9 +1308,9 @@ MakeMeshFromScratch( tInputFile &infile )
 
          // If user wants outlet on this side between this and the next pt,
          // create the outlet now
-         if( yout == 0 && xout > dist && xout < dist + delGrid )
+         if( Param.yout == 0 && Param.xout > dist && Param.xout < dist + Param.delGrid )
          {
-            tempnode.set3DCoords( xout, yout, 0 );
+            tempnode.set3DCoords( Param.xout, Param.yout, 0 );
             tempnode.setBoundaryFlag( kOpenBoundary );
             miNextNodeID++;
             tempnode.setID( miNextNodeID );
@@ -1378,18 +1320,18 @@ MakeMeshFromScratch( tInputFile &infile )
          }
       }
 
-      // Create nodes for right (X=xGrid) boundary and place them on list
-      n = ROUND( yGrid / delGrid );
+      // Create nodes for right (X=Param.xGrid) boundary and place them on list
+      n = ROUND( Param.yGrid / Param.delGrid );
       for( i=0; i<n; i++, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( xGrid, dist, 0 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         tempnode.set3DCoords( Param.xGrid, dist, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
-         if( xout == xGrid && yout > dist && yout < dist + delGrid )
+         if( Param.xout == Param.xGrid && Param.yout > dist && Param.yout < dist + Param.delGrid )
          {
-            tempnode.set3DCoords( xout, yout, 0 );
+            tempnode.set3DCoords( Param.xout, Param.yout, 0 );
             tempnode.setBoundaryFlag( kOpenBoundary );
             miNextNodeID++;
             tempnode.setID( miNextNodeID );
@@ -1399,18 +1341,18 @@ MakeMeshFromScratch( tInputFile &infile )
          }
       }
 
-      // Create nodes for top (Y=yGrid) boundary and place them on list
-      n = ROUND( xGrid / delGrid );
+      // Create nodes for top (Y=Param.yGrid) boundary and place them on list
+      n = ROUND( Param.xGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
-         tempnode.set3DCoords( dist, yGrid, 0 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+         tempnode.set3DCoords( dist, Param.yGrid, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
-         if( yout == yGrid && xout < dist && xout > dist - delGrid )
+         if( Param.yout == Param.yGrid && Param.xout < dist && Param.xout > dist - Param.delGrid )
          {
-            tempnode.set3DCoords( xout, yout, 0 );
+            tempnode.set3DCoords( Param.xout, Param.yout, 0 );
             tempnode.setBoundaryFlag( kOpenBoundary );
             miNextNodeID++;
             tempnode.setID( miNextNodeID );
@@ -1421,17 +1363,17 @@ MakeMeshFromScratch( tInputFile &infile )
       }
 
       // Create nodes for left (X=0) boundary and place them on list
-      n = ROUND( yGrid / delGrid );
+      n = ROUND( Param.yGrid / Param.delGrid );
       for( i=n; i>0; i--, miNextNodeID++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( 0, dist, 0 );
          tempnode.setID( miNextNodeID );
          nodeList.insertAtBack( tempnode );
          bndList.insertAtBack( nodIter.LastP() );
-         if( xout == 0 && yout < dist && yout > dist - delGrid )
+         if( Param.xout == 0 && Param.yout < dist && Param.yout > dist - Param.delGrid )
          {
-            tempnode.set3DCoords( xout, yout, 0 );
+            tempnode.set3DCoords( Param.xout, Param.yout, 0 );
             tempnode.setBoundaryFlag( kOpenBoundary );
             miNextNodeID++;
             tempnode.setID( miNextNodeID );
@@ -1441,47 +1383,33 @@ MakeMeshFromScratch( tInputFile &infile )
          }
       }
    }
-   bndList.makeCircular();
-   cout << "made points; now adding edges\n";
-   
-   // Add edges
-   tPtrListIter< tSubNode > bndIter( bndList );
-   for( node0 = bndIter.FirstP(); !( bndIter.AtEnd() ); node0 = bndIter.NextP() )
-   {
-      node1 = bndIter.ReportNextP();
-      node2 = bndIter.ReportPrevP();
-      AddEdge( node0, node1, node2 );
-   }
-   nnodes = nodeList.getSize();
-   nedges = edgeList.getSize();
-   ntri = 0;
-     //DumpEdges:
-   /*cout << "edges:" << endl;
-   for( ce = edgIter.FirstP(); !( edgIter.AtEnd() ); ce = edgIter.NextP() )
-   {
-      cout << ce->getID() << " from " << ce->getOriginPtrNC()->getID()
-           << " to " << ce->getDestinationPtrNC()->getID() << endl;
-           }*/
-   cout << "calling repair mesh for initial boundary\n";
-   int meshok = RepairMesh( bndList );
-   assert( meshok );
-   cout << "filling in points\n";
+}
+
+template< class tSubNode >
+void tMesh< tSubNode >::
+MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile )
+{
+   int i, j,                     // counters 
+       nx, ny;                   // no. of nodes along a side
+   double slope;
+   tArray< double > xyz(3);
+   tSubNode tempnode( infile );  // temporary node used to create node list
 
    // Add the interior points. 
    // Variations on the theme are these:
    // 1 - If points are uniform, set up a staggered mesh (alternate rows
-   //     are offset by + or - 25% of delGrid, respectively)
+   //     are offset by + or - 25% of Param.delGrid, respectively)
    // 2 - If points are "perturbed", do the same but add an extra random offset
-   //     of +/- 25% of delGrid
+   //     of +/- 25% of Param.delGrid
    // 3 - If top and bottom sides (but not left & right) are open boundaries,
    //     modify elevations to set up a slope from top to bottom
-   // 4 - If points are "random", simply pick numPts random locations within
+   // 4 - If points are "random", simply pick Param.numPts random locations within
    //     the interior
    tempnode.setBoundaryFlag( kNonBoundary );
-   if( ptPlace == kUniformMesh || ptPlace == kPerturbedMesh )
+   if( Param.ptPlace == kUniformMesh || Param.ptPlace == kPerturbedMesh )
    {
-      nx = ROUND( xGrid / delGrid );  // no. points in x direction
-      ny = ROUND( yGrid / delGrid );  // no. points in y direction
+      nx = ROUND( Param.xGrid / Param.delGrid );  // no. points in x direction
+      ny = ROUND( Param.yGrid / Param.delGrid );  // no. points in y direction
       for( i=1; i<nx; i++ )
       {
          for( j=1; j<ny; j++, miNextNodeID++ )
@@ -1490,19 +1418,19 @@ MakeMeshFromScratch( tInputFile &infile )
             //edge leading to a corner outlet -- NB: no longer true!
             // Random offset amplified to 25%!
             // TODO: ensure integrity of corner outlet!
-            xyz[0] = i * delGrid - 0.25 * delGrid * (j%2)
-                + 0.25 * delGrid * ((j+1)%2);
-            xyz[1] = j * delGrid;
-            if( ptPlace == kPerturbedMesh )
+            xyz[0] = i * Param.delGrid - 0.25 * Param.delGrid * (j%2)
+                + 0.25 * Param.delGrid * ((j+1)%2);
+            xyz[1] = j * Param.delGrid;
+            if( Param.ptPlace == kPerturbedMesh )
             {
-               xyz[0] += 0.5 * delGrid * ( ran3( &seed ) - 0.5 );
-               xyz[1] += 0.5 * delGrid * ( ran3( &seed ) - 0.5 );
+               xyz[0] += 0.5 * Param.delGrid * ( ran3( &seed ) - 0.5 );
+               xyz[1] += 0.5 * Param.delGrid * ( ran3( &seed ) - 0.5 );
             }
-            xyz[2] = mElev + mElev * ( ran3( &seed ) - 0.5 );
-            if( boundType == kOppositeSidesOpen || kSloped)
+            xyz[2] = Param.mElev + Param.mElev * ( ran3( &seed ) - 0.5 );
+            if( Param.boundType == kOppositeSidesOpen || Param.kSloped)
             {
-               slope = upperZ / yGrid;
-               xyz[2] += slope * xyz[1] - mElev;
+               slope = Param.upperZ / Param.yGrid;
+               xyz[2] += slope * xyz[1] - Param.mElev;
             }
             tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
             tempnode.setID( miNextNodeID );
@@ -1510,15 +1438,15 @@ MakeMeshFromScratch( tInputFile &infile )
          }
       }
    }
-   else if( ptPlace == kRandomMesh )
+   else if( Param.ptPlace == kRandomMesh )
    {
-      for( i=0; i<numPts; i++ )
+      for( i=0; i<Param.numPts; i++ )
       {
          // Randomize x,y, and z coordinates
-         xyz[0] = ran3(&seed) * xGrid;
-         xyz[1] = ran3(&seed) * yGrid;
-         xyz[2] = mElev + mElev * ( ran3( &seed ) - 0.5 );
-         if( xyz[0] != 0 && xyz[0] != xGrid && xyz[1] != 0 && xyz[1] != yGrid )
+         xyz[0] = ran3(&seed) * Param.xGrid;
+         xyz[1] = ran3(&seed) * Param.yGrid;
+         xyz[2] = Param.mElev + Param.mElev * ( ran3( &seed ) - 0.5 );
+         if( xyz[0] != 0 && xyz[0] != Param.xGrid && xyz[1] != 0 && xyz[1] != Param.yGrid )
          {
             tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );
             tempnode.setID( miNextNodeID );
@@ -1534,21 +1462,69 @@ MakeMeshFromScratch( tInputFile &infile )
    // Added by GT, 5/14/99
    // Note: potential gotcha is that we don't check to see if there's 
    // already another point at the same location. TODO (see tInlet)
-   if( boundType==kSpecifyOutlet && xout!=0 && yout!=0 )
+   if( Param.boundType==kSpecifyOutlet && Param.xout!=0 && Param.yout!=0 )
    {
       tempnode.setBoundaryFlag( kOpenBoundary );
-      tempnode.set3DCoords( xout, yout, 0 );
+      tempnode.set3DCoords( Param.xout, Param.yout, 0 );
       tempnode.setID( miNextNodeID );
       miNextNodeID++;
       AddNode( tempnode );
    }
+}
+
+template< class tSubNode >
+void tMesh< tSubNode >::
+MakeMeshFromScratch( tInputFile &infile )
+{
+   //cout << "In MGFS, calling node constr w/ infile\n";
+
+   tSubNode *node0, *node1, *node2;
+   tPtrList< tSubNode > bndList;
+
+   seed = infile.ReadItem( seed, "SEED" );
+
+   // Parameters defined in Input File
+   ParamMMFS_t Param(infile);
+
+   // Make Boundary
+   MakePointBoundary(Param, infile, bndList);
+   bndList.makeCircular();
+   cout << "made points; now adding edges\n";
+   
+   // Add edges
+   tPtrListIter< tSubNode > bndIter( bndList );
+   for( node0 = bndIter.FirstP(); !( bndIter.AtEnd() ); node0 = bndIter.NextP() )
+   {
+      node1 = bndIter.ReportNextP();
+      node2 = bndIter.ReportPrevP();
+      AddEdge( node0, node1, node2 );
+   }
+   nnodes = nodeList.getSize();
+   nedges = edgeList.getSize();
+   ntri = 0;
+
+   //DumpEdges:
+   /*cout << "edges:" << endl;
+   tMeshListIter< tEdge > edgIter( edgeList );
+   for( ce = edgIter.FirstP(); !( edgIter.AtEnd() ); ce = edgIter.NextP() )
+   {
+      cout << ce->getID() << " from " << ce->getOriginPtrNC()->getID()
+           << " to " << ce->getDestinationPtrNC()->getID() << endl;
+           }*/
+
+   cout << "calling repair mesh for initial boundary\n";
+   int meshok = RepairMesh( bndList );
+   assert( meshok );
+
+   // Add the interior points.
+   cout << "filling in points\n";
+   MakePointInterior(Param, infile);
 
    // Now finalize the initialization by updating mesh properties
    MakeCCWEdges();
    UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
    CheckMeshConsistency();                     //remove CMC call from UM
 }
-
 
 /**************************************************************************\
 **
