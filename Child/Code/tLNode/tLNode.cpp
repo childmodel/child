@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.82 1999-12-02 22:18:02 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.83 1999-12-04 01:00:14 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -197,9 +197,10 @@ void tLayer::addDgrade( int i, double size )
 
 double tLayer::getDgrade( int i)
 {
-  assert( i<dgrade.getSize() );
-   if(i>=dgrade.getSize())
-      ReportFatalError( "Trying to get sediment sizes in dgrade of layer that don't exist");
+   assert( i<dgrade.getSize() );
+   //if(i>=dgrade.getSize())
+   //ReportFatalError( "Trying to get sediment sizes in dgrade of layer that don't exist");
+
    return dgrade[i];
 }
 tArray< double >
@@ -2753,18 +2754,18 @@ void tLNode::removeLayer(int i)
     n=layerlist.removeNext((*hlp), layerlist.getListNode(hlp) );
     if(n==0){
        n=0;
-       while(n<layerlist.getSize()){
-          cout << "layer " << n+1 << " node ID "<< getID()<< endl;
-          niclay = layerlist.getIthData(n);
-          cout << "layer creation time is " << getLayerCtime(n) << endl;
-          cout << "layer recent time is " << getLayerRtime(n) << endl;
-          cout << "layer depth is " << getLayerDepth(n) << endl;
-          cout << "layer erodibility is " << getLayerErody(n) << endl;
-          cout << "is layer sediment? " << getLayerSed(n) << endl;
-          cout << "dgrade 1 is " << getLayerDgrade(n,0) << endl;
-          cout << "dgrade 2 is " << getLayerDgrade(n,1) << endl;
-          n++;  
-       }
+//         while(n<layerlist.getSize()){
+//            cout << "layer " << n+1 << " node ID "<< getID()<< endl;
+//            niclay = layerlist.getIthData(n);
+//            cout << "layer creation time is " << getLayerCtime(n) << endl;
+//            cout << "layer recent time is " << getLayerRtime(n) << endl;
+//            cout << "layer depth is " << getLayerDepth(n) << endl;
+//            cout << "layer erodibility is " << getLayerErody(n) << endl;
+//            cout << "is layer sediment? " << getLayerSed(n) << endl;
+//            cout << "dgrade 1 is " << getLayerDgrade(n,0) << endl;
+//            cout << "dgrade 2 is " << getLayerDgrade(n,1) << endl;
+//            n++;  
+//         }
        
        ReportFatalError("couldn't remove next layer");
     }

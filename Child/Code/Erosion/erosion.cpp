@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.70 1999-12-02 18:08:06 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.71 1999-12-04 01:00:06 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -279,18 +279,21 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
+   //cout<<"in detach capacity "<<endl<<flush;
+   
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
    double erorate = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
        *pow( slp, nb ) - taucd;
+   //cout << "1erorate: " << erorate << endl;
    //if( n->getDrArea()>1e7 )
    //    cout << "slp: " << slp << " Q: " << n->getQ() << " tauex: " << erorate;
    erorate = (erorate>0.0) ? erorate : 0.0;
    erorate = n->getLayerErody(0)*pow( erorate, pb );
    //if( n->getDrArea()>1e7 ) cout << " erorate: " << erorate << endl;
    n->setDrDt( -erorate );
-   //cout << "erorate: " << erorate << endl;
+   //cout << "2erorate: " << erorate << endl;
    return erorate;
 }
 
