@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.19 1998-03-10 23:31:57 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.20 1998-03-13 22:31:19 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -697,6 +697,8 @@ MakeGridFromInputData( tInputFile &infile )
 **          UpdateMesh(), CheckMeshConsistency()
 **   Parameters: xGrid, yGrid, boundType, mElev, ptPlace, delGrid, numPts,
 **               upperZ, xout, yout
+**   Modified: 3/13/98--now makes rows offset so pattern is "hexagonal"
+**      rather than square
 **               
 **
 \**************************************************************************/
@@ -1033,7 +1035,10 @@ MakeGridFromScratch( tInputFile &infile )
       {
          for( j=1; j<ny; j++, id++ )
          {
-            xyz[0] = i * delGrid;
+            //rows are offset such that there should be an
+            //edge leading to a corner outlet
+            xyz[0] = i * delGrid - 0.25 * delGrid * (j%2)
+                + 0.25 * delGrid * ((j+1)%2);
             xyz[1] = j * delGrid;
             if( ptPlace == kPerturbedGrid )
             {
