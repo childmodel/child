@@ -13,7 +13,7 @@
 # with a couple of other general settings.
 # 
 OUTFILENAME: name of the run
-aa1
+d0
 RUNTIME: Duration of run (years)
 #100000
 0
@@ -48,7 +48,11 @@ INPUTDATAFILE: name of file to read input data from (only if reading mesh)
 #testrunt2
 example
 POINTFILENAME
-dense4.xyzb
+dense0.xyzb
+OPTTSOUTPUT
+1
+TSOPINTRVL
+1
 INPUTTIME: the time which you want data from (needed only if reading mesh)
 0
 OPTINITMESHDENS
