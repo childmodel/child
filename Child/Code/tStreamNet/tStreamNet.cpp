@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.38 2003-07-11 08:56:22 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.39 2003-07-15 15:55:29 childcvs Exp $
 */
 /**************************************************************************/
 
