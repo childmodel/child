@@ -4,7 +4,7 @@
 **
 **  NB: inherit from this basic class to do output for tLNode objects.
 **
-**  $Id: tOutput.h,v 1.4 1998-02-02 17:53:07 gtucker Exp $
+**  $Id: tOutput.h,v 1.5 1998-02-02 20:37:00 gtucker Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -50,7 +50,8 @@ private:
     ofstream drareaofs;  // Drainage areas
     ofstream netofs;     // Downstream neighbor IDs
     ofstream slpofs;     // Slopes in the direction of flow
-    
+    ofstream qofs;       // Discharge
+                                
 };
 
 #endif
