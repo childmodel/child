@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.45 2003-08-04 14:47:36 childcvs Exp $
+ **  $Id: tOutput.h,v 1.46 2003-09-01 13:08:29 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -125,6 +125,40 @@ private:
 };
 
 
+template< class tSubNode >
+inline void tOutput<tSubNode>::WriteNodeRecord( tNode *cn )
+{
+  nodeofs << cn->getX() << ' ' << cn->getY() << ' '
+	  << cn->getEdg()->getID() << ' '
+	  << cn->getBoundaryFlag() << '\n';
+  zofs << cn->getZ() << '\n';
+  vaofs << cn->getVArea() << '\n';
+}
+
+template< class tSubNode >
+inline void tOutput<tSubNode>::WriteEdgeRecord( tEdge *ce )
+{
+  edgofs << ce->getOriginPtrNC()->getID() << ' '
+	 << ce->getDestinationPtrNC()->getID() << ' '
+	 << ce->getCCWEdg()->getID() << '\n';
+}
+
+template< class tSubNode >
+inline void tOutput<tSubNode>::WriteTriangleRecord( tTriangle const *ct)
+{
+  const size_t index[] = {ct->index()[0], ct->index()[1], ct->index()[2]};
+  triofs
+    << ct->pPtr(index[0])->getID() << ' '
+    << ct->pPtr(index[1])->getID() << ' '
+    << ct->pPtr(index[2])->getID() << ' '
+    << (ct->tPtr(index[0]) ? ct->tPtr(index[0])->getID() : -1) << ' '
+    << (ct->tPtr(index[1]) ? ct->tPtr(index[1])->getID() : -1) << ' '
+    << (ct->tPtr(index[2]) ? ct->tPtr(index[2])->getID() : -1) << ' '
+    << ct->ePtr(index[0])->getID() << ' '
+    << ct->ePtr(index[1])->getID() << ' '
+    << ct->ePtr(index[2])->getID() << '\n';
+}
+
 /**************************************************************************/
 /**
  ** @class tLOutput
@@ -179,6 +213,53 @@ private:
   inline void WriteActiveNodeData( tSubNode * );
   inline void WriteAllNodeData( tSubNode * );
 };
+
+// Write data, including layer info
+template< class tSubNode >
+inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
+{
+  assert( cn!=0 );
+  drareaofs << cn->getDrArea() << '\n';
+  if( cn->getDownstrmNbr() )
+    netofs << cn->getDownstrmNbr()->getID() << '\n';
+  layofs << ' ' << cn->getNumLayer() << '\n';
+  int i=0;
+  while(i<cn->getNumLayer()){
+    layofs << cn->getLayerCtime(i) << ' ' << cn->getLayerRtime(i) << ' '
+	   << cn->getLayerEtime(i) << '\n'
+	   << cn->getLayerDepth(i) << ' ' << cn->getLayerErody(i) << ' '
+	   << cn->getLayerSed(i) << '\n';
+    int j=0;
+    while(j<cn->getNumg()){
+      layofs << cn->getLayerDgrade(i,j) << ' ';
+      j++;
+    }
+    layofs << '\n';
+    i++;
+  }
+}
+
+// Write discharge, vegetation, & texture data, etc.
+template< class tSubNode >
+inline void tLOutput<tSubNode>::WriteAllNodeData( tSubNode *cn )
+{
+  slpofs << (cn->getBoundaryFlag() == kNonBoundary ? cn->getSlope():0.) << '\n';
+  qofs << cn->getQ() << '\n';
+  if( vegofs.good() ) vegofs << cn->getVegCover().getVeg() << '\n';
+  if( flowdepofs.good() )
+    flowdepofs << cn->getHydrDepth() << '\n';
+  if( chanwidthofs.good() )
+    chanwidthofs << cn->getHydrWidth() << '\n';
+  if( cn->getNumg()>1 ) // temporary hack TODO
+    {
+      texofs << cn->getLayerDgrade(0,0)/cn->getLayerDepth(0) << '\n';
+    }
+  if( flowpathlenofs.good() )
+    flowpathlenofs << cn->getFlowPathLength() << '\n';
+  tauofs << cn->getTau() << '\n';
+  if( qsofs.good() ) qsofs << cn->getQs() << '\n';
+}
+
 
 /*
 ** The following is designed to allow for compiling under the Borland-style
