@@ -8,7 +8,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.cpp,v 1.2 1998-01-21 20:16:12 gtucker Exp $
+**  $Id: tMeshList.cpp,v 1.3 1998-01-31 19:19:43 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -274,13 +274,12 @@ template< class NodeType >                         //tList
 void tGridList< NodeType >::
 moveToBack( tListNode< NodeType > * mvnode ) 
 {
+   tListNode< NodeType > * prev;
    if( mvnode != last )
    {
       if( mvnode == lastactive )
       {
-         for( tListNode< NodeType > * prev = first;
-              prev->next != mvnode;
-              prev = prev->next );
+         for( prev = first; prev->next != mvnode; prev = prev->next );
          lastactive = prev;
       }
       tList< NodeType >::moveToBack( mvnode );
@@ -291,13 +290,12 @@ template< class NodeType >                         //tList
 void tGridList< NodeType >::
 moveToFront( tListNode< NodeType > * mvnode ) 
 {
+   tListNode< NodeType > *prev;
    if( mvnode != first )
    {
       if( mvnode == lastactive )
       {
-         for( tListNode< NodeType > * prev = first;
-              prev->next != mvnode;
-              prev = prev->next );
+         for( prev = first; prev->next != mvnode; prev = prev->next );
          lastactive = prev;
       }
       tList< NodeType >::moveToFront( mvnode );
@@ -308,13 +306,14 @@ template< class NodeType >                         //tList
 void tGridList< NodeType >::
 moveToActiveBack( tListNode< NodeType > * mvnode ) 
 {
+   tListNode< NodeType > * prev;
    if( mvnode != lastactive )
    {
       // Detach mvnode from its position on the list
       if( mvnode == first ) first = first->next;
       else
       {
-         tListNode< NodeType > * prev = first;
+         prev = first;
          while( prev->next != mvnode ) prev = prev->next;
          prev->next = mvnode->next;
       }
