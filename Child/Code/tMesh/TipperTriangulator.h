@@ -5,14 +5,16 @@ class point;
 class edge;
 class elem;
 class oriented_edge;
-void sort_triangulate(int npoints, point *p, int *pnedges, edge** edges_ret);
-void sort_triangulate(int npoints, point *p,
-		      int *pnedges, edge** edges_ret,
-		      int *pnelem, elem** pelems_ret);
-void build_elem_table(int npoints, const point *p, int nedges, const edge* edges,
-		      int *pnelem, elem** pelems_ret);
-void build_spoke(int npoints, int nedges, const edge* edges,
-		 oriented_edge** poedge);
+void tt_sort_triangulate(int npoints, point *p,
+			 int *pnedges, edge** edges_ret);
+void tt_sort_triangulate(int npoints, point *p,
+			 int *pnedges, edge** edges_ret,
+			 int *pnelem, elem** pelems_ret);
+void tt_build_elem_table(int npoints, const point *p,
+			 int nedges, const edge* edges,
+			 int *pnelem, elem** pelems_ret);
+void tt_build_spoke(int npoints, int nedges, const edge* edges,
+		    oriented_edge** poedge);
 
 class point{
 public:

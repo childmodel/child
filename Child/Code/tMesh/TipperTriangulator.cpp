@@ -622,7 +622,8 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
  
 #include "heapsort.h"
 
-void sort_triangulate(int npoints, point *p, int *pnedges, edge** edges_ret){
+void tt_sort_triangulate(int npoints, point *p,
+			 int *pnedges, edge** edges_ret){
 
   //sort the points - note that the point class defines the
   // < operator so that the sort is on the x co-ordinate
@@ -793,8 +794,9 @@ void sanity_check_elems(const edge* edges, const elem *elems,
 
 // build connectivity table element to node and edges
 // build pelem, pelems_ret
-void build_elem_table(int npoints, const point *p, int nedges, const edge* edges,
-		      int *pnelem, elem** pelems_ret){
+void tt_build_elem_table(int npoints, const point *p,
+			 int nedges, const edge* edges,
+			 int *pnelem, elem** pelems_ret){
   // Euler invariant for a triangulation:
   const int nelem = 1 + nedges - npoints;
   elem *elems = new elem[nelem]; 
@@ -933,8 +935,8 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
   *pelems_ret = elems;
 }
 
-void build_spoke(int npoints, int nedges, const edge* edges,
-		 oriented_edge** poedge){
+void tt_build_spoke(int npoints, int nedges, const edge* edges,
+		    oriented_edge** poedge){
   *poedge = new oriented_edge[npoints];
   for(int iedge=0;iedge!=nedges;++iedge){
     const int from=edges[iedge].from;
@@ -949,9 +951,9 @@ void build_spoke(int npoints, int nedges, const edge* edges,
   }
 }
 
-void sort_triangulate(int npoints, point *p,
-		      int *pnedges, edge** edges_ret,
-		      int *pnelem, elem** pelems_ret){
-  sort_triangulate(npoints,p,pnedges, edges_ret);
-  build_elem_table(npoints, p, *pnedges, *edges_ret, pnelem, pelems_ret);
+void tt_sort_triangulate(int npoints, point *p,
+			 int *pnedges, edge** edges_ret,
+			 int *pnelem, elem** pelems_ret){
+  tt_sort_triangulate(npoints,p,pnedges, edges_ret);
+  tt_build_elem_table(npoints, p, *pnedges, *edges_ret, pnelem, pelems_ret);
 }

@@ -14,6 +14,10 @@
 #include "hulltr_e.h"
 #include "hulltr_test.h"
 
+// generate output files
+//#define WRITE_FILES
+
+static
 void sanity_check_ccwedge(int nedges, const edge* edges){
   // test ccw edge code
   for(int iedge=0; iedge<nedges; iedge++){
@@ -42,6 +46,7 @@ void sanity_check_ccwedge(int nedges, const edge* edges){
   }
 }
 
+static
 void sanity_check_edge(edge *edges){
   // some sanity check
   int i=0;
@@ -95,6 +100,8 @@ void sanity_check_edge(edge *edges){
   }
 }
 
+#if defined(WRITE_FILES)
+static
 void write_point(int npoints, point* p)
 {
   ofstream file("points_sorted");
@@ -103,6 +110,7 @@ void write_point(int npoints, point* p)
     p[i].write(file);
   }
 }
+static
 void write_edge(edge *edges, point* p)
 {
   ofstream file("triggy");
@@ -117,15 +125,14 @@ void write_edge(edge *edges, point* p)
     i++;
   }
 }
+#endif
 
-
-//#define WRITE_FILES
-
+static
 void test_sort_triangulate(int npoints, point *p){
   int nedges;
   edge* edges = NULL;
 
-  sort_triangulate(npoints,p,&nedges,&edges);
+  tt_sort_triangulate(npoints,p,&nedges,&edges);
 
 #if defined(WRITE_FILES)
   write_point(npoints, p);
@@ -140,7 +147,7 @@ void test_sort_triangulate(int npoints, point *p){
   int nelem;
   elem* elems = NULL;
 
-  build_elem_table(npoints, p, nedges, edges, &nelem, &elems);
+  tt_build_elem_table(npoints, p, nedges, edges, &nelem, &elems);
   cout << "nelem=" << nelem << endl;
 
   delete [] elems;
@@ -169,6 +176,7 @@ void generate_dataset(int n,point* p){
 #endif
 }
 
+static
 void test_triangulate_random(int n){
   const long npoints=n*n;
   //set up the point array
@@ -195,22 +203,30 @@ void test_triangulate_from_file(){
   delete [] p;
 }
 
-#if defined(USE_MAIN)
+#if !defined(DONT_USE_MAIN)
 int main(void){
-# if 1
-#   if 0
-  int n=3;
-  cout << "n= " << n << endl;
-  test_triangulate_random(n);
-  
-#   else
-  for(int n=2; n!=100; n++){
-    cout << "n= " << n << endl;
-    test_triangulate_random(n);
+
+  switch(2){
+  case 0:
+    {
+      int n=3;
+      cout << "n= " << n << endl;
+      test_triangulate_random(n);
+    }
+    break;
+  case 1:
+    {
+      for(int n=2; n!=100; n++){
+	cout << "n= " << n << endl;
+	test_triangulate_random(n);
+      }
+    }
+    break;
+  default:
+    {
+      test_triangulate_from_file();
+    }
+    break;
   }
-#   endif
-# else
-  test_triangulate_from_file();
-# endif
 }
 #endif
