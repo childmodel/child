@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.4 2004-03-25 11:44:48 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.5 2004-03-26 17:32:44 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -196,6 +196,53 @@ void tStratGrid::setSectionBase()
 
 /**************************************************************************\
  **
+ **  @class
+ **  @brief Find a rectangular box in the stratigraphy grid contained within
+ **  a given triangle.
+ **
+ ** AD - 26 March 2004
+\**************************************************************************/
+class TriBox{
+public:
+  int imin;
+  int imax;
+  int jmin;
+  int jmax;
+  TriBox(tTriangle const *, double, double, double);
+  bool containsNone() const {
+    return (imin > imax) || (jmin > jmax);
+  }
+};
+
+TriBox::TriBox(tTriangle const *ct,
+	       double xcorner, double ycorner, double griddx){
+  double
+    maxx = ct->pPtr(0)->getX(),
+    maxy = ct->pPtr(0)->getY();
+  double
+    minx = maxx,
+    miny = maxy;
+#define COMPUTE_MINMAX(NODEID) \
+    do { \
+      const double xx = ct->pPtr(NODEID)->getX(); \
+      const double yy = ct->pPtr(NODEID)->getY(); \
+      maxx = max( maxx, xx ); \
+      maxy = max( maxy, yy ); \
+      minx = min( minx, xx ); \
+      miny = min( miny, yy ); \
+    } while(0)
+
+  COMPUTE_MINMAX(1);
+  COMPUTE_MINMAX(2);
+#undef COMPUTE_MINMAX
+  imin = int( ceil((minx-xcorner)/griddx));
+  imax = int(floor((maxx-xcorner)/griddx));
+  jmin = int( ceil((miny-ycorner)/griddx));
+  jmax = int(floor((maxy-ycorner)/griddx));
+}
+
+/**************************************************************************\
+ **
  **  tStratGrid::updateConnect
  **  @brief update connectivity table StratConnect
  **
@@ -213,39 +260,17 @@ void tStratGrid::updateConnect()
   tMesh< tLNode >::triListIter_t triIter( mp->getTriList() );
   for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() ) {
     // Find box containing the current triangle
-    double
-      maxx = ct->pPtr(0)->getX(),
-      maxy = ct->pPtr(0)->getY();
-    double
-      minx = maxx,
-      miny = maxy;
-#define COMPUTE_MINMAX(NODEID) \
-    do { \
-      const double xx = ct->pPtr(NODEID)->getX(); \
-      const double yy = ct->pPtr(NODEID)->getY(); \
-      maxx = max( maxx, xx ); \
-      maxy = max( maxy, yy ); \
-      minx = min( minx, xx ); \
-      miny = min( miny, yy ); \
-    } while(0)
-
-    COMPUTE_MINMAX(1);
-    COMPUTE_MINMAX(2);
-#undef COMPUTE_MINMAX
-    const int boximin = int( ceil((minx-xcorner)/griddx));
-    const int boximax = int(floor((maxx-xcorner)/griddx));
-    const int boxjmin = int( ceil((miny-ycorner)/griddx));
-    const int boxjmax = int(floor((maxy-ycorner)/griddx));
+    const TriBox thisBox( ct, xcorner, ycorner, griddx );
     // triangle does not contain any stratNode
-    if ((boximin > boximax) || (boxjmin > boxjmax))
+    if (thisBox.containsNone())
       continue;
     // Set StratConnect for the stratNode within the current triangle
     {
       // clip bounds within the actual bounds of the StratGrid
-      const int bimin = max(0,boximin);
-      const int bimax = min(getImax()-1,boximax);
-      const int bjmin = max(0,boxjmin);
-      const int bjmax = min(getJmax()-1,boxjmax);
+      const int bimin = max(0,thisBox.imin);
+      const int bimax = min(getImax()-1,thisBox.imax);
+      const int bjmin = max(0,thisBox.jmin);
+      const int bjmax = min(getJmax()-1,thisBox.jmax);
       // Find which StratNode is contained within the current triangle.
       for(int i=bimin; i<=bimax; ++i) {
 	for(int j=bjmin; j<=bjmax; ++j) {
