@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.44 2003-05-01 12:26:05 childcvs Exp $
+**  $Id: meshElements.h,v 1.45 2003-05-06 12:14:43 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -209,7 +209,7 @@ public:
   //~tEdge();               // destructor
 
   const tEdge &operator=( const tEdge & );  // assignment operator
-  int getID() const;            // returns ID number
+  inline int getID() const;            // returns ID number
   int getBoundaryFlag() const;  // returns boundary status (flow or no flow)
   double getLength() const;     // returns edge's length (projected)
   double getSlope() const;      // slope = "z" gradient from org to dest nodes
@@ -230,11 +230,11 @@ public:
   void setID( int );                 // sets ID number
   void setLength( double );          // sets edge length
   void setSlope( double );           // sets slope
-  void setOriginPtr( tNode * );      // sets origin ptr
-  void setDestinationPtr( tNode * ); // sets destination ptr
+  inline void setOriginPtr( tNode * );      // sets origin ptr
+  inline void setDestinationPtr( tNode * ); // sets destination ptr
   static int isFlowAllowed( const tNode*, const tNode* );
   void setFlowAllowed( int );        // sets boundary code
-  void setFlowAllowed( const tNode*, const tNode* ); // sets boundary code
+  inline void setFlowAllowed( const tNode*, const tNode* ); // sets boundary code
   double CalcLength();               // computes & sets length
   double CalcSlope();                // computes & sets slope
   void setCCWEdg( tEdge * edg );     // sets ptr to counter-clockwise neighbor
@@ -362,12 +362,12 @@ public:
    tEdge* ReportNextP();
    tEdge* ReportPrevP();
 
-   int AtEnd();
-   int isEmpty();
+   inline int AtEnd();
+   inline int isEmpty();
 
    int insertAtPrev( tEdge* );
    int insertAtNext( tEdge* );
-   int insertAtFront( tEdge* );
+   inline int insertAtFront( tEdge* );
    int insertAtBack( tEdge* );
    tEdge* removePrev();
    tEdge* removeNext();
