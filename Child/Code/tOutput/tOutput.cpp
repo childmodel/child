@@ -4,7 +4,7 @@
 **
 **  
 **
-**  $Id: tOutput.cpp,v 1.6 1998-05-04 17:48:40 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.7 1998-06-04 17:57:10 gtucker Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -188,10 +188,10 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    {
       assert( cn>0 );
       drareaofs << cn->getDrArea() << endl;
-      if( cn->GetDownstrmNbr() )
-          netofs << cn->GetDownstrmNbr()->getID() << endl;
-      slpofs << cn->GetSlope() << endl;
-      qofs << cn->GetQ() << endl;
+      if( cn->getDownstrmNbr() )
+          netofs << cn->getDownstrmNbr()->getID() << endl;
+      slpofs << cn->getSlope() << endl;
+      qofs << cn->getQ() << endl;
    }
    
 }
