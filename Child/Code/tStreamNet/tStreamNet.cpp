@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.4 1998-01-21 22:10:45 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.5 1998-01-29 20:06:57 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -104,11 +104,11 @@ int tStreamNet::getFlowGenOpt() const {return flowgen;}
 
 int tStreamNet::getFillLakesOpt() const {return filllakes;}
 
-float tStreamNet::getRainRate() const {return rainrate;}
+double tStreamNet::getRainRate() const {return rainrate;}
 
-float tStreamNet::getTransmissivity() const {return trans;}
+double tStreamNet::getTransmissivity() const {return trans;}
 
-float tStreamNet::getInfilt() const {return infilt;}
+double tStreamNet::getInfilt() const {return infilt;}
 
 // TODO: the value checks are nice, but will hurt performance. Should
 // probably be removed.
@@ -118,12 +118,12 @@ void tStreamNet::setFlowGenOpt( int val )
 void tStreamNet::setFillLakesOpt( int val )
 {filllakes = ( val == 0 || val == 1 ) ? val : 0;}
 
-void tStreamNet::setRainRate( float val ) {rainrate = ( val >= 0 ) ? val : 0;}
+void tStreamNet::setRainRate( double val ) {rainrate = ( val >= 0 ) ? val : 0;}
 
-void tStreamNet::setTransmissivity( float val )
+void tStreamNet::setTransmissivity( double val )
 {trans = ( val >= 0 ) ? val : 0;}
 
-void tStreamNet::setInfilt( float val )
+void tStreamNet::setInfilt( double val )
 {infilt = ( val >= 0 ) ? val : 0;}
 
 
@@ -188,7 +188,7 @@ void tStreamNet::CalcSlopes()
 	assert( gridPtr != 0 );
 	tEdge *curedg;
 	tGridListIter<tEdge> i( gridPtr->GetEdgeList() );
-  float slp;
+  double slp;
 
   cout << "CalcSlopes()...";
 
@@ -221,7 +221,7 @@ void tStreamNet::CalcSlopes()
 void tStreamNet::CalcVAreas()
 {
    cout << "CalcVAreas()...";
-   float area;
+   double area;
    tLNode * curnode;
    tGridListIter<tLNode> nodIter( gridPtr->GetNodeList() );
    
@@ -316,7 +316,7 @@ void tStreamNet::InitFlowDirs()
 void tStreamNet::FlowDirs()
 {
    tGridListIter<tLNode> i( gridPtr->GetNodeList() );  // Gets nodes from the list
-   float slp;        // steepest slope found so far
+   double slp;        // steepest slope found so far
    tLNode *curnode;  // ptr to the current node
    tEdge * firstedg; // ptr to first edg
    tEdge * curedg;   // pointer to current edge
@@ -372,7 +372,7 @@ void tStreamNet::FlowDirs()
 //#endif
    tGridListIter<tLNode> i( gridPtr->GetNodeList() );  // Gets nodes from the list
    tPtrListIter< tEdge > spokIter;
-   float slp;        // steepest slope found so far
+   double slp;        // steepest slope found so far
    tLNode *curnode;  // ptr to the current node
    tEdge * curedg;   // pointer to current edge
    tEdge * nbredg;   // steepest neighbouring edge so far
@@ -455,20 +455,20 @@ void tStreamNet::DrainAreaVoronoi()
 **         TODO: make member of tNode              
 \******************************************************************************/
 /*
-float tStreamNet::VoronoiArea( tLNode * centre )
+double tStreamNet::VoronoiArea( tLNode * centre )
 {
 //#if DEBUG
    //cout<<"VoronoiArea(...)...";
 //#endif
    int cw;
-   float area = 0;
-   float a, b, c, dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
-   float x, y, x0, y0, x1, y1, x2, y2, m1, m2;
+   double area = 0;
+   double a, b, c, dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
+   double x, y, x0, y0, x1, y1, x2, y2, m1, m2;
    tEdge * ce, *edgptr;
    tPtrList< tEdge > vedgList;
    tPtrListIter< tEdge > //XspokIter( centre->getSpokeListNC() ),
        vtxIter( vedgList );
-   tArray< float > xy, xyn, xynn, xynnn, xy1, xy2;
+   tArray< double > xy, xyn, xynn, xynnn, xy1, xy2;
 
 
    // Create a duplicate list of edges.... why?
@@ -605,7 +605,7 @@ float tStreamNet::VoronoiArea( tLNode * centre )
 **  (GT 2/97) 
 **
 \*****************************************************************************/
-void tStreamNet::RouteFlowArea( tLNode *curnode, float addedArea )
+void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
 {
    //cout << "RouteFlowArea()...";
 #if DEBUG
@@ -671,9 +671,9 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, float addedArea )
 \*****************************************************************************/
 void tStreamNet::SetVoronoiVertices()
 {
-   //float x, y, x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
-   //tArray< float > xyo, xyd1, xyd2, xy(2);
-   tArray< float > xy;
+   //double x, y, x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
+   //tArray< double > xyo, xyd1, xyd2, xy(2);
+   tArray< double > xy;
    tListIter< tTriangle > triIter( gridPtr->GetTriList() );
    tTriangle * ct;
 
@@ -735,8 +735,8 @@ void tStreamNet::FlowUniform()
    cout << "FlowUniform...";
    tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
    tLNode *curnode;
-   float runoff = rainrate - infilt;
-   float discharge;
+   double runoff = rainrate - infilt;
+   double discharge;
    
    if( runoff<0 ) runoff = 0;  // Make sure runoff isn't negative
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
@@ -770,7 +770,7 @@ void tStreamNet::FlowSaturated()
    cout << "FlowSaturated...";
    tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
    tLNode *curnode;
-   float discharge;
+   double discharge;
    
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
@@ -832,7 +832,7 @@ void tStreamNet::FillLakes()
    tPtrListIter< tLNode > lakeIter( lakeList );
    //tPtrListIter< tEdge > spokIter;
    tEdge *ce;           // Pointer to an edge
-   float lowestElev;    // Lowest elevation found so far on lake perimeter
+   double lowestElev;    // Lowest elevation found so far on lake perimeter
    int done;          // Flag indicating whether outlet has been found
    
    // Check each active node to see whether it is a sink
@@ -999,7 +999,7 @@ void tStreamNet::FillLakes()
 \*****************************************************************************/
 int tStreamNet::FindLakeNodeOutlet( tLNode *node )
 {
-   float maxslp = 0;  // Maximum slope found so far
+   double maxslp = 0;  // Maximum slope found so far
    tEdge * ce;        // Current edge
    //XtPtrListIter< tEdge > spokIter( node->getSpokeListNC() );
    tLNode *dn;        // Potential outlet
@@ -1145,15 +1145,15 @@ cur = firstnode;
 **  iteratively in increments of dt until the total time dtg has been used.
 **
 \*****************************************************************************/
-void tStreamNet::ErodeDetachLim( float dtg )
+void tStreamNet::ErodeDetachLim( double dtg )
 {
-   float dt,
+   double dt,
        dtmax = 1000000.0; // time increment: initialize to arbitrary large val
    int i;
    tLNode * cn;
    int nActNodes = gridPtr->GetNodeList()->getActiveSize();
    tGridListIter<tLNode> ni( gridPtr->GetNodeList() );
-   tArray<float> dz( nActNodes ); // Erosion depth @ each node
+   tArray<double> dz( nActNodes ); // Erosion depth @ each node
 
    // First, estimate maximum stable/accurate time step size
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
