@@ -17,15 +17,15 @@
 **
 **  (Created 2/99 by GT)
 **
-**  $Id: tEolian.h,v 1.2 1999-02-05 14:58:31 gtucker Exp $
+**  $Id: tEolian.h,v 1.3 1999-04-05 13:29:45 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TEOLIAN_H
 #define TEOLIAN_H
 
 #include <assert.h>
-#include "../tGrid/tGrid.h"
-#include "../tGridList/tGridList.h"
+#include "../tMesh/tMesh.h"
+#include "../tMeshList/tMeshList.h"
 #include "../tLNode/tLNode.h"
 #include "../tInputFile/tInputFile.h"
 
@@ -43,7 +43,7 @@ class tEolian
 {
 public:
     tEolian( tInputFile &infile );
-    void DepositLoess( tGrid<tLNode> *gp, double delt, double ctime );
+    void DepositLoess( tMesh<tLNode> *mp, double delt, double ctime );
     
 private:
     double loessDepRate;

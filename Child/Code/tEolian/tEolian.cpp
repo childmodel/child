@@ -4,7 +4,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tEolian.cpp,v 1.2 1999-02-05 14:58:25 gtucker Exp $
+**  $Id: tEolian.cpp,v 1.3 1999-04-05 13:29:33 gtucker Exp $
 \**************************************************************************/
 
 #include "tEolian.h"
@@ -49,12 +49,13 @@ tEolian::tEolian( tInputFile &infile )
 **      - could be done as a polynomial surface
 **
 \**************************************************************************/
-void tEolian::DepositLoess( tGrid<tLNode> *gp, double delt, double ctime )
+void tEolian::DepositLoess( tMesh<tLNode> *mp, double delt, double ctime )
 {
-   tGridListIter<tLNode> ni( gp->getNodeList() ); // iterator for nodes
+   tMeshListIter<tLNode> ni( mp->getNodeList() ); // iterator for nodes
    tLNode *cn;
    
    depositDepth[0] = loessDepRate*delt;
+   cout << "Depositing " << depositDepth[0] << " meters of loess...\n";
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
        cn->EroDep( 0, depositDepth, ctime );
 }
