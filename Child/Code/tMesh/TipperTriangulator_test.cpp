@@ -6,7 +6,6 @@
 #include <assert.h>
 
 #include "TipperTriangulator.h"
-#include "TipperTriangulator_test.h"
 
 // generate output files
 const bool WRITE_FILES = false;
@@ -41,7 +40,7 @@ void sanity_check_ccwedge(int nedges, const edge* edges){
 
 static
 void sanity_check_edge(edge *edges){
-  // some sanity check
+  // some sanity checks
   int i=0;
   while(edges[i].from != -1 ) {
     int leftp = -1,rightp = -1;
@@ -68,9 +67,6 @@ void sanity_check_edge(edge *edges){
 	if (edges[ret].to==to) rightp2=edges[ret].from; else rightp2=edges[ret].to;
       }
     }
-    //cout << i
-    //   << " " << leftp << " " << leftp2 << " " << rightp << " " << rightp2
-    //   << endl;
     assert(leftp==leftp2);
     if (rightp!=rightp2) {
       cout << "ERR edge=" << i
@@ -78,14 +74,6 @@ void sanity_check_edge(edge *edges){
 	   << " left(from)=" << leftp << " left(to)=" << leftp2
 	   << " righp(from)=" << rightp << " rightp(to)=" << rightp2
 	   << endl;
-    } else {
-#if 0
-      cout << "edge=" << i
-	   << " pto=" << edges[i].to << " pfrom=" << edges[i].from
-	   << " left(from)=" << leftp << " left(to)=" << leftp2
-	   << " righp(from)=" << rightp << " rightp(to)=" << rightp2
-	   << endl;
-#endif
     }
     assert(rightp==rightp2);
 
@@ -144,6 +132,7 @@ void test_sort_triangulate(int npoints, point *p){
   delete [] edges;
 }
 
+static
 void generate_dataset(int n,point* p){
   //make a set of points perturbed from a uniform grid
   srand(0);
