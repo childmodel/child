@@ -712,12 +712,12 @@ oriented_edge oriented_edge::next_cw_around_from(const edge* edges) const {
 // give counter clockwise edge
 oriented_edge oriented_edge::ccw_edge_around_from(const edge* edges) const {
   oriented_edge ccw = next_ccw_around_from(edges);
-  if (ccw.e() == -1) {
+  if (ccw.nonvalid()) {
     // iterated on clockwise edges
     oriented_edge e1(*this);
     for(;;){
       const oriented_edge enext = e1.next_cw_around_from(edges);
-      if (enext.e() == -1) 
+      if (enext.nonvalid()) 
 	break;
       e1 = enext;
     }
@@ -923,11 +923,11 @@ void tt_build_spoke(int npoints, int nedges, const edge* edges,
   *poedge = new oriented_edge[npoints];
   for(int iedge=0;iedge!=nedges;++iedge){
     const int from=edges[iedge].from;
-    if ((*poedge)[from].e() == -1) {
+    if ((*poedge)[from].nonvalid()) {
       (*poedge)[from].set(iedge, true);
     } else {
       const int to=edges[iedge].to;
-      if ((*poedge)[to].e() == -1) {
+      if ((*poedge)[to].nonvalid()) {
 	(*poedge)[to].set(iedge, false);
       }
     }

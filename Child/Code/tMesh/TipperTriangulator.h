@@ -46,7 +46,8 @@ public:
 };
 
 class edge{
-  const edge &operator=( const edge & );  // assignment operator
+  const edge &operator=( const edge & );
+  edge(const edge&);
 public:
   edge(): from(-1),to(-1),lef(-1),let(-1),ref(-1),ret(-1) {}
 #if defined(DEBUG_PRINT)
@@ -82,8 +83,12 @@ public:
   oriented_edge(const oriented_edge & _e):
     _edge(_e.e()),
     _orientation(_e.o()) {}
+  const oriented_edge &operator=( const oriented_edge &_e ){
+    _edge = _e.e(); _orientation = _e.o();
+  }
   int e() const { return _edge; }
   bool o() const { return _orientation; }
+  bool nonvalid() const { return (e() == -1 ? true:false); }
   void set(int e1, bool o1) { _edge = e1; _orientation = o1; }
   oriented_edge next_ccw_around_from(const edge* edges) const;
   oriented_edge next_cw_around_from(const edge* edges) const ;
@@ -92,6 +97,8 @@ public:
 
 // connectivity table element to node and edge
 class elem {
+  const elem &operator=( const elem & );
+  elem(const elem&);
 public:
   elem() :
     p1(-1), p2(-1), p3(-1),
