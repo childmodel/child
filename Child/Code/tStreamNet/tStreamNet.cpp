@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.67 2004-03-01 12:01:12 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.68 2004-03-17 14:54:07 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -122,6 +122,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
   stormPtr(&storm),
   trans(0), infilt(0),
   inlet( &meshRef, infile ),
+  optSinVarInfilt(0),
   mpParkerChannels(0)
 {
    if (1) //DEBUG
