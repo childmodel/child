@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.76 2004-04-27 10:50:44 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.77 2004-04-27 11:09:05 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1968,7 +1968,7 @@ tLNode *tStreamNet::BuildLakeList( tPtrList< tLNode > &lakeList, tLNode *cn )
 		// Is it a potential outlet (ie, not flooded and not
 		// a boundary)?
 	      case kNotFlooded:
-		if( ce->FlowAllowed() )
+		if( ce->FlowAllowed() != tEdge::kFlowNotAllowed)
 		  {
 		    // Is it lower than the lowest found so far?
 		    if( thenode->getZ() < lowestElev )

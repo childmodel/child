@@ -5,7 +5,7 @@
 **   @file Definitions.h
 **   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.45 2004-04-19 16:23:41 childcvs Exp $
+**   $Id: Definitions.h,v 1.46 2004-04-27 11:09:02 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -48,19 +48,6 @@ inline tBoundary_t IntToBound( int b_ ){
 }
 inline int BoundToInt( tBoundary_t b ){
   return static_cast<int>(b);
-}
-
-typedef enum {
-  kFlowAllowed = 1,
-  kFlowNotAllowed = 0
-} tEdgeBoundary_t;
-inline const char* EdgeBoundName( tEdgeBoundary_t b ){
-  switch(b){
-  case kFlowAllowed:
-    return "1-Allowed";
-  case kFlowNotAllowed:
-    return "0-NonAllowed";
-  }
 }
 
 #define kMeanderNode true

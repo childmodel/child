@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.212 2004-04-22 17:29:47 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.213 2004-04-27 11:09:03 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -581,7 +581,7 @@ MakeMeshFromInputData( const tInputFile &infile )
        for( tEdge *ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
 	 {
 	   ce->TellCoords();
-	   cout << EdgeBoundName(ce->FlowAllowed()) << endl;
+	   cout << tEdge::EdgeBoundName(ce->FlowAllowed()) << endl;
 	 }
      }
 

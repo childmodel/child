@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.78 2004-04-16 18:35:24 childcvs Exp $
+**  $Id: meshElements.h,v 1.79 2004-04-27 11:09:02 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -218,6 +218,19 @@ public:
 class tEdge
 {
 public:
+  typedef enum {
+    kFlowAllowed = 1,
+    kFlowNotAllowed = 0
+  } tEdgeBoundary_t;
+  inline static
+  const char* EdgeBoundName( tEdgeBoundary_t b ){
+    switch(b){
+    case kFlowAllowed:
+      return "1-Allowed";
+    case kFlowNotAllowed:
+      return "0-NonAllowed";
+    }
+  }
 
   tEdge();                // default constructor
   tEdge( const tEdge & ); // copy constructor
@@ -878,7 +891,7 @@ inline void tEdge::setComplementEdge( tEdge* edg )
   compedg = edg;
 }
 
-inline tEdgeBoundary_t tEdge::FlowAllowed() const
+inline tEdge::tEdgeBoundary_t tEdge::FlowAllowed() const
 {
    return flowAllowed;
 }
@@ -946,7 +959,7 @@ inline void tEdge::setFlowAllowed( tEdgeBoundary_t val )
    flowAllowed = val;
 }
 
-inline tEdgeBoundary_t tEdge::isFlowAllowed( const tNode* n1, const tNode* n2 )
+inline tEdge::tEdgeBoundary_t tEdge::isFlowAllowed( const tNode* n1, const tNode* n2 )
 {
    assert( n1 && n2 );
    return ( n1->getBoundaryFlag() != kClosedBoundary

@@ -255,7 +255,7 @@ BuildDelaunayMeshTipper()
        edgeListIter_t ei( edgeList );
        for( tEdge *ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() ){
 	 ce->TellCoords();
-	 cout << EdgeBoundName(ce->FlowAllowed()) << endl;
+	 cout << tEdge::EdgeBoundName(ce->FlowAllowed()) << endl;
        }
      }
 
