@@ -18,7 +18,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.15 2003-10-15 09:21:32 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.16 2004-01-29 17:09:22 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -30,6 +30,8 @@
 #include "../tMeshList/tMeshList.h"
 #include "../tLNode/tLNode.h"
 #include "../tInputFile/tInputFile.h"
+
+#include "../tTimeSeries/tTimeSeries.h"
 
 #define kVeryFar 1.0e12
 
@@ -62,13 +64,8 @@ public:
   void UpdateMainChannelElevation( double tm, tLNode * inletNode );
 
 private:
-  enum { SINEWAVE,
-	 STEPWAVE,
-	 USERDEFINED };
-  int optChanAltitudeVariation; // Form of variation (see enum above)
+  tTimeSeries InletElevationVariation; // Elev oscillation [L]
   double drop;      // Channel elevation drop from top to bottom of valley [L]
-  double period;    // Period of elev oscillation [T], if oscillating
-  double amplitude; // Amplitude of elev oscillation [L], if osc'ing
   int num_grnsize_fractions;  // No. of grain size fractions
 };
 

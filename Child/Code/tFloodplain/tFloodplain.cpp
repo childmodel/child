@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.21 2003-10-15 09:21:32 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.22 2004-01-29 17:09:22 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -297,25 +297,17 @@ void tFloodplain::UpdateMainChannelHeight( double tm, tLNode * inletNode )
 \**************************************************************************/
 tMainChannelDriver::tMainChannelDriver( const tInputFile &infile )
 {
-  optChanAltitudeVariation = infile.ReadItem( optChanAltitudeVariation,
-					      "FP_OPTCHANALITUDEVARIATION" );
   drop = infile.ReadItem( drop, "FP_VALDROP" );
   num_grnsize_fractions = infile.ReadItem( num_grnsize_fractions,
 					   "NUMGRNSIZE" );
   if( num_grnsize_fractions <= 0 )
     ReportFatalError( "NUMGRNSIZE must be >= 1" );
 
-  switch( optChanAltitudeVariation )
-    {
-    case SINEWAVE:
-      period = infile.ReadItem( period, "FP_PERIOD" );
-      period = 2.0*PI/period;
-      amplitude = infile.ReadItem( amplitude, "FP_AMPLITUDE" );
-      break;
-    default:
-      ReportFatalError( "FP_OPTCHANALTITUDEVARIATION: Unrecognized option." );
-    }
+  infile.WarnObsoleteKeyword("FP_OPTCHANALITUDEVARIATION", "FP_INLET_ELEVATION");
+  infile.WarnObsoleteKeyword("FP_PERIOD", "FP_INLET_ELEVATION");
+  infile.WarnObsoleteKeyword("FP_AMPLITUDE", "FP_INLET_ELEVATION");
 
+  infile.ReadItem( InletElevationVariation, "FP_INLET_ELEVATION");
 }
 
 
@@ -350,15 +342,7 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
   assert( inletNode != 0 );
 
   // Update elevation at head of channel reach (inlet)
-  switch( optChanAltitudeVariation )
-    {
-    case SINEWAVE:
-      newInletElevation = drop + amplitude*sin( period*tm );
-      break;
-    default:
-      assert(0);  /*NOTREACHED*/
-      abort();
-    }
+  newInletElevation = drop + InletElevationVariation.calc( tm );
 
   // Compute length and slope of channel
   cn = inletNode;
