@@ -7,8 +7,8 @@ WARNINGFLAGS = -pedantic -Wall -W \
 	-Wwrite-strings \
 	-Wpointer-arith -Wcast-qual -Wcast-align
 
-CFLAGS = $(WARNINGFLAGS) -O -c -g
-LDFLAGS = $(WARNINGFLAGS) -O -g
+CFLAGS = $(WARNINGFLAGS) -g -O2 -c
+LDFLAGS = $(WARNINGFLAGS) -g -O2
 LIBS = -lm
 EXENAME = toddler
 
