@@ -16,7 +16,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.37 2000-03-24 17:01:28 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.38 2000-03-24 18:06:18 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -579,7 +579,7 @@ void tNode::getVoronoiVertexXYZList( tList<Point3D> * vertexList )
       zvals[1] = n1->getZ();
       zvals[2] = n2->getZ();
       vtx.z = PlaneFit( vtx.x, vtx.y, this->get2DCoords(), n1->get2DCoords(), n2->get2DCoords(), zvals );
-      cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << " z " << vtx.z << endl;
+      //Xcout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << " z " << vtx.z << endl;
       vertexList->insertAtBack( vtx );
       prevedg = ce;
    }
