@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.48 2003-10-15 09:19:28 childcvs Exp $
+ **  $Id: tOutput.h,v 1.49 2004-03-05 17:07:43 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -47,6 +47,9 @@ using namespace std;
 #include "../MeshElements/meshElements.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tMesh/tMesh.h"
+class tStratGrid;
+class tFloodplain;
+class tStreamNet;
 
 
 /**************************************************************************/
@@ -172,10 +175,12 @@ inline void tOutput<tSubNode>::WriteTriangleRecord( tTriangle const *ct)
  **  - 2/02 added output streams tauofs and qsofs for shear stress and
  **    sed flux, resp. (GT)
  **  - 7/03 added tTSOutputImp to separate time series output (AD)
- **
+ **  - 7/03 call tOutputStrat (QC)
+**
  */
 /**************************************************************************/
 template< class tSubNode > class tTSOutputImp;
+template< class tSubNode > class tStratOutputImp;
 
 template< class tSubNode >
 class tLOutput : public tOutput<tSubNode>
@@ -187,6 +192,8 @@ public:
   virtual ~tLOutput();
   void WriteTSOutput();
   bool OptTSOutput() const;
+  void SetStratGrid(tStratGrid *, tStreamNet *);
+  void SetFloodplain(tFloodplain *);
 
 protected:
   virtual void WriteNodeData( double time );
@@ -197,6 +204,7 @@ private:
   ofstream slpofs;     // Slopes in the direction of flow
   ofstream qofs;       // Discharge
   ofstream layofs;     // Layer info
+  ofstream surfofs;    // Surfer style x,y,z file with top layer properties in columns of triangular nodes
   ofstream texofs;     // Texture info
   ofstream vegofs;     // Vegetation cover %
   ofstream flowdepofs; // Flow depth
@@ -206,9 +214,11 @@ private:
   ofstream qsofs;      // Sed flux
 
   tTSOutputImp<tSubNode> *TSOutput;  // Time Series output
+  tStratOutputImp<tSubNode> *stratOutput;
   tRand *rand;
 
   int counter;
+  bool Surfer; // Output for Surfer Graphic Package
 
   inline void WriteActiveNodeData( tSubNode * );
   inline void WriteAllNodeData( tSubNode * );
@@ -219,6 +229,16 @@ template< class tSubNode >
 inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
 {
   assert( cn!=0 );
+  // Write X,Y,Z,surface properties file, for Surfer visualisation
+  // devide drainage area by 10000., easier in visualisation script of surfer.
+  {
+    const int i=0;
+    if( surfofs.good() )
+      surfofs << cn->getX() <<' ' <<cn->getY() << ' ' << cn->getZ() <<' '
+	      << cn->getDrArea()/10000. <<' ' << cn->getLayerDepth(i) << ' '
+	      << cn->getLayerCtime(i) << ' ' << cn->getLayerRtime(i) << '\n';
+  }
+
   drareaofs << cn->getDrArea() << '\n';
   if( cn->getDownstrmNbr() )
     netofs << cn->getDownstrmNbr()->getID() << '\n';
