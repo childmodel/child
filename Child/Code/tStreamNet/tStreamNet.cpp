@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.58 1999-03-21 19:27:36 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.59 1999-04-01 18:06:34 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -13,14 +13,13 @@
 
 /*****************************************************************************\
 **
-**
 **      DistanceToLine: given x,y coords, finds distance to the line 
 **              defined by given a, b, and c (ax + by + c = 0)
 **      Global function.
+**
 **      Data members updated: 
 **      Called by: 
-**      Calls:  
-**        
+**      Calls:        
 **
 \*****************************************************************************/
 double DistanceToLine( double x2, double y2, double a, double b, double c )
@@ -52,16 +51,16 @@ double DistanceToLine( double x2, double y2, double a, double b, double c )
    return d;
 }
 
+
 /*****************************************************************************\
-**
 **
 **      DistanceToLine: given x,y coords, finds distance to the line 
 **              formed by points  p0->(x, y) and p1->(x, y)
 **      Global function.
+**
 **      Data members updated: 
 **      Called by: 
-**      Calls:  
-**        
+**      Calls:          
 **
 \*****************************************************************************/
 double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
@@ -87,13 +86,9 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 
 /**************************************************************************\
 **
-**  Constructors
+**  Constructor
 **
-**  1) The default constructor sets parameters to zero, including the
-**     grid and storm pointers (the default constructor has no grid nor
-**     storm associated with it)
-**
-**  2) The second constructor asks for references to a grid (i.e., _the_
+**     The constructor asks for references to a grid (i.e., _the_
 **     grid), a storm, and an input file). It sets the _gridPtr_ and
 **     _stormPtr_, initializes the rainfall rate, and reads in various
 **     hydrologic options and parameters from the input file.
@@ -109,16 +104,6 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 **       - GT added input of parameters for sinusoidal variation in
 **         infiltration capacity, 7/20/98.
 \**************************************************************************/
-/*tStreamNet::tStreamNet()
-        : bedErode()
-{
-   cout << "tStreamNet()...";
-   gridPtr = 0;
-   stormPtr = 0;
-   flowgen = filllakes = 0;
-   rainrate = trans = infilt = 0;
-   cout << "finished" << endl;	
-}*/
 
 #define kYearpersec 3.171e-8 // 1/SecondsPerYear
 tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
@@ -208,7 +193,7 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    cout << "finished" << endl;
 }
 
-
+//necessary?
 tStreamNet::~tStreamNet()
 {
    gridPtr = 0;
@@ -219,7 +204,7 @@ tStreamNet::~tStreamNet()
 
 /**************************************************************************\
 **
-**  get/set functions
+**  tStreamNet get/set functions
 **
 \**************************************************************************/
 void tStreamNet::ResetGrid( tGrid< tLNode > &gridRef )
@@ -265,12 +250,15 @@ double tStreamNet::getMndrDirChngProb() const {return mndrDirChngProb;}
 // TODO: the value checks are nice, but will hurt performance. Should
 // probably be removed.
 void tStreamNet::setFlowGenOpt( int val )
-{flowgen = ( val == 0 || val == 1 ) ? val : 0;}
+{flowgen=val; 
+/*flowgen = ( val == 0 || val == 1 ) ? val : 0;*/}
 
 void tStreamNet::setFillLakesOpt( int val )
-{filllakes = ( val == 0 || val == 1 ) ? val : 0;}
+{filllakes = val;
+/*filllakes = ( val == 0 || val == 1 ) ? val : 0;*/}
 
-void tStreamNet::setRainRate( double val ) {rainrate = ( val >= 0 ) ? val : 0;}
+void tStreamNet::setRainRate( double val ) {rainrate = val;
+/*( val >= 0 ) ? val : 0;*/}
 
 void tStreamNet::setTransmissivity( double val )
 {trans = ( val >= 0 ) ? val : 0;}
@@ -286,6 +274,7 @@ void tStreamNet::setInSedLoad( double val )
 
 void tStreamNet::setInSedLoadm( int i, double val )
 {
+   //shouldn't this be an assert?
    if( i > inlet.inSedLoadm.getSize()-1 )
        ReportFatalError("Tried to index a size that doesn't exist in tstreamnet");
    inlet.inSedLoadm[i]=val;
@@ -301,7 +290,7 @@ void tStreamNet::setMndrDirChngProb( double val )
 
 /**************************************************************************\
 **
-**  UpdateNet
+**  tStreamNet::UpdateNet
 **
 **  This function updates the network and flow field by calling various
 **  helper functions. There are two versions; the second takes a reference
@@ -328,9 +317,6 @@ void tStreamNet::UpdateNet( double time )
 {
    //cout << "UpdateNet()...";
    CalcSlopes();          // TODO: should be in tGrid
-   //XsetVoronoiVertices();  // TODO: should be in tGrid
-   //XCalcVAreas();          // TODO: should be in tgrid
-   //InitFlowDirs();
    FlowDirs();
    MakeFlow( time );
    CheckNetConsistency();
@@ -503,7 +489,6 @@ void tStreamNet::CalcSlopes()
 }
 
 
-
 /****************************************************************************\
 **
 **  tStreamNet::InitFlowDirs
@@ -579,7 +564,7 @@ void tStreamNet::InitFlowDirs()
 **      Created: SL
 **
 \****************************************************************************/
-int tStreamNet::DamBypass( tLNode *snknod )
+/*Xint tStreamNet::DamBypass( tLNode *snknod )
 {
    cout << "DamBypass" << endl;
    int nv, nvopp, nvother, maxcnt = 10, cntr = 0;
@@ -639,7 +624,7 @@ int tStreamNet::DamBypass( tLNode *snknod )
       //}
       cout << "DamBypass: deleted " << cntr << " nodes" << endl << flush;
    return 1;
-}
+}*/
 
 
 /****************************************************************************\
@@ -681,10 +666,6 @@ void tStreamNet::FlowDirs()
      double chngnum;*/
    int ctr;
    
-//#if TRACKFNS
-   //cout << "FlowDirs()..." << endl;
-//#endif
-   
    //int redo = 1;
    //while( redo )
    //{
@@ -694,10 +675,6 @@ void tStreamNet::FlowDirs()
    curnode = i.FirstP();
    while( i.IsActive() )  // DO for each non-boundary (active) node
    {
-//        if(curnode->getID()==240 || curnode->getID()==213 ){
-//           cout<<"in flowdirs with node "<<curnode->getID()<<endl;
-//        }
-      
       curnode->setFloodStatus( kNotFlooded );  // Init flood status flag
       firstedg =  curnode->getFlowEdg();
       if( firstedg <= 0 )
@@ -718,10 +695,6 @@ void tStreamNet::FlowDirs()
       // back to the beginning
       while( curedg!=firstedg )
       {
-//           if(curnode->getID()==240 || curnode->getID()==213 ){
-//              nbr = (tLNode *)curedg->getDestinationPtrNC();
-//              cout<<"node "<<curnode->getID()<<" edge "<<curedg->getID()<<" slp "<<curedg->getSlope()<<" downstream nbr "<<nbr->getID()<<" nbr bndry "<<nbr->getBoundaryFlag()<<endl<<flush;
-//           }
          assert( curedg > 0 );
          if ( curedg->getSlope() > slp && curedg->FlowAllowed())
 //&& ((tLNode *)(curedg->getDestinationPtrNC()))->getDownstrmNbr() != curnode )
@@ -838,8 +811,6 @@ void tStreamNet::DrainAreaVoronoi()
    }
    //cout << "DrainAreaVoronoi() finished" << endl << flush;
 }
-
-
 
 
 /*****************************************************************************\
@@ -971,12 +942,10 @@ void tStreamNet::MakeFlow( double tm )
 
 /*****************************************************************************\
 **
-**  FlowUniform
+**  tStreamNet::FlowUniform
 **
-**  Computes discharge as the product of precip and 
-**                       drainage area. 3/97 GT
+**  Computes discharge as the product of precip and drainage area. 3/97 GT
 **
-**  Parameters:  precip -- precipitation rate
 **  Called by:  main
 **  Modifications:
 **    - added infiltration parameter (default zero) (8/97 GT)
@@ -1741,13 +1710,27 @@ void tStreamNet::FindChanGeom()
 }
 #undef kSmallNum
 
+
+/**************************************************************************\
+**  FUNCTIONS FOR CLASS tInlet.
+\**************************************************************************/
+
 /**************************************************************************\
 **
-**  tStreamNet.cpp
+**  tInlet Constructors
 **
-**  Functions for class tInlet.
+**  (1) default sets all values to zero
+**  (2) reads location and other variables from input file and
+**      initializes (if applicable; the user may not want an inlet)
+**
+**  Modifications:
+**    - Bug: if a new inlet node is added, using AddNodeAt won't assign
+**  correct variables for layers, regolith, etc. Fix: new node is assigned
+**  properties of the nearest neighbor (not elevation; that's done by
+**  interpolation). GT 7/98
 **
 \**************************************************************************/
+
 tInlet::tInlet()
         :inSedLoadm()
 {
@@ -1756,18 +1739,6 @@ tInlet::tInlet()
    gridPtr = 0;
 }
 
-/**************************************************************************\
-**
-**  tInlet Constructor #2
-**
-**  ...
-**
-**  Bug: if a new inlet node is added, using AddNodeAt won't assign
-**  correct variables for layers, regolith, etc. Fix: new node is assigned
-**  properties of the nearest neighbor (not elevation; that's done by
-**  interpolation). GT 7/98
-**
-\**************************************************************************/
 #define LARGE_DISTANCE 1e9
 tInlet::tInlet( tGrid< tLNode > *gPtr, tInputFile &infile )
 {
@@ -1913,13 +1884,15 @@ tInlet::~tInlet()
 
 /**************************************************************************\
 **
-**  tInlet::FindNewInlet: search for points 'up-valley' of present inlet;
-**     of those points and the present inlet, set new inlet to one with the
-**     lowest elevation.
+**  tInlet::FindNewInlet
+**
+**  Search for points 'up-valley' of present inlet;
+**  of those points and the present inlet, set new inlet to one with the
+**  lowest elevation.
+**
 **  5/18/98 SL: Try something less arbitrary. Find active nodes
 **
 \**************************************************************************/
-
 void tInlet::FindNewInlet()
 {
    double xin, yin, zin, x, y, z, zmin, dmn, dmnn, dmin;
@@ -2012,6 +1985,12 @@ void tInlet::FindNewInlet()
    innode = newinnode;
 }
 
+
+/**************************************************************************\
+**
+**  tInlet "get" and "set" functions
+**
+\**************************************************************************/
 double tInlet::getInSedLoad() const {return inSedLoad;}
 
 double tInlet::getInSedLoad( int i )  
@@ -2021,21 +2000,22 @@ double tInlet::getInSedLoad( int i )
    return inSedLoadm[i];
 }
 
-
 tArray< double >
 tInlet::getInSedLoadm( ) const
 {
    return inSedLoadm;
 }
 
+void tInlet::setInSedLoad( double val ) 
+{inSedLoad = ( val > 0.0 ) ? val : 0.0;}
 
-void tInlet::setInSedLoad( double val ) {inSedLoad = ( val > 0.0 ) ? val : 0.0;}
 void tInlet::setInSedLoad( int i, double val )
 {
    if(i>=inSedLoadm.getSize())
         ReportFatalError( "Trying to set size in sediment load that doesn't exist");
    inSedLoadm[i]=val;
 }
+
 double tInlet::getInDrArea() const {return inDrArea;}
 void tInlet::setInDrArea( double val ) {inDrArea = ( val > 0.0 ) ? val : 0.0;}
 tLNode *tInlet::getInNodePtr() {return innode;}
