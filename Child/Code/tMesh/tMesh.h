@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.68 2004-02-18 15:59:23 childcvs Exp $
+**  $Id: tMesh.h,v 1.69 2004-03-01 13:20:13 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -184,6 +184,10 @@ public:
 
    void AddNodesAround( tSubNode *, double time=0.0 );  // Local mesh densify
 
+   static bool IDTooLarge(int, int);
+   void ResetNodeIDIfNecessary();
+   void ResetEdgeIDIfNecessary();
+   void ResetTriangleIDIfNecessary();
    void ResetNodeID(); // reset node IDs in list order
    void ResetEdgeID(); // reset edge IDs in list order
    void ResetTriangleID(); // reset triangle IDs in list order

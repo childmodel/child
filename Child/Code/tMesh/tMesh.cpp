@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.194 2004-02-18 16:11:25 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.195 2004-03-01 13:20:12 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2709,7 +2709,7 @@ DeleteNode( tListNode< tSubNode >* nodPtr, kRepairMesh_t repairFlag,
    }
 
    //reset node id's
-   ResetNodeID();
+   ResetNodeIDIfNecessary();
 
    if (0) { //DEBUG
      cout << "Mesh repaired" << endl;
@@ -3447,7 +3447,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode const *node3 )
    nedges+=2;
 
    // Reset edge id's
-   ResetEdgeID();
+   ResetEdgeIDIfNecessary();
 
    if (0) //DEBUG
      cout << "AddEdge() done\n" << flush;
@@ -3628,7 +3628,7 @@ MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
    //may not be strictly necessary for triangles (it is for nodes and edges where
    //we have active and inactive members), but I'm sure it doesn't hurt; better safe
    //than sorry...
-   ResetTriangleID();
+   ResetTriangleIDIfNecessary();
    return 1;
 }
 
@@ -3688,7 +3688,7 @@ AddNode( tSubNode &nodeRef, kUpdateMesh_t updatemesh, double time,
      CheckTrianglesAt( newNodePtr, time );
 
    //reset node id's
-   ResetNodeID();
+   ResetNodeIDIfNecessary();
    newNodePtr->InitializeNode();
 
    if( updatemesh ==kUpdateMesh ) UpdateMesh();
@@ -4162,7 +4162,7 @@ AddNodeAt( tArray< double > &xyz, double time )
      CheckTrianglesAt( newNodePtr2, time );
    }
    //reset node id's
-   ResetNodeID();
+   ResetNodeIDIfNecessary();
    //nmg uncommented line below and added initialize line
    newNodePtr2->InitializeNode();
 
@@ -5006,6 +5006,61 @@ DumpNodes()
    }
 }
 #endif
+
+/*****************************************************************************\
+**
+**      IDTooLarge(): is maxID too large with respect to maxN ?
+**      Created: AD 3/2004
+**
+\*****************************************************************************/
+template<class tSubNode>
+bool tMesh<tSubNode>::
+IDTooLarge(int maxID, int maxN)
+{
+  return (maxID == INT_MAX || maxID > 2*maxN);
+}
+
+/*****************************************************************************\
+**
+**      ResetNodeIDIfNecessary(): reset node ID in list order
+**      Created: AD 3/2004
+**
+\*****************************************************************************/
+template<class tSubNode>
+void tMesh<tSubNode>::
+ResetNodeIDIfNecessary()
+{
+  if (IDTooLarge(miNextNodeID, nnodes))
+    ResetNodeID();
+}
+
+/*****************************************************************************\
+**
+**      ResetEdgeIDIfNecessary(): reset edge ID in list order
+**      Created: AD 3/2004
+**
+\*****************************************************************************/
+template<class tSubNode>
+void tMesh<tSubNode>::
+ResetEdgeIDIfNecessary()
+{
+  if (IDTooLarge(miNextEdgID, nedges))
+    ResetEdgeID();
+}
+
+/*****************************************************************************\
+**
+**      ResetTriangleIDIfNecessary(): reset triangle ID in list order
+**      Created: AD 3/2004
+**
+\*****************************************************************************/
+template<class tSubNode>
+void tMesh<tSubNode>::
+ResetTriangleIDIfNecessary()
+{
+  if (IDTooLarge(miNextTriID, ntri))
+    ResetTriangleID();
+}
 
 /*****************************************************************************\
 **
