@@ -30,7 +30,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.17 2000-01-20 17:15:22 gtucker Exp $
+**  $Id: tList.h,v 1.18 2000-02-02 22:33:47 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -38,6 +38,8 @@
 
 template< class NodeType > class tList;
 template< class NodeType > class tListIter;
+template< class NodeType > class tMeshList;
+template< class NodeType > class tMeshListIter;
 
 /**************************************************************************\
 ** class tListNode ********************************************************
