@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.13 1998-03-23 20:03:37 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.14 1998-03-23 21:17:45 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -240,6 +240,7 @@ double tNode::Dist( tNode * p0, tNode * p1 )
   return(res);
 }
 
+/*X REPLACED BY tEdge::CalcVEdgLength
 void tNode::CalcSpokeVEdgLengths()
 {
    tEdge *curedg, *nextedg;
@@ -260,7 +261,8 @@ void tNode::CalcSpokeVEdgLengths()
            << nextedg->getDestinationPtr()->getID() << ") = "
            << nextedg->getVEdgLen() << endl;
    }
-}
+}*/
+
 
 tEdge *tNode::EdgToNod( tNode * nod )
 {
