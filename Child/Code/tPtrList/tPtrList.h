@@ -38,7 +38,7 @@
 **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
 **      9/02: (AD)merge in main Child version
 **
-**  $Id: tPtrList.h,v 1.30 2003-05-15 16:09:43 childcvs Exp $
+**  $Id: tPtrList.h,v 1.31 2003-05-22 09:16:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -196,7 +196,6 @@ public:
     NodeType *getIthPtrNC( int ) const;
     const tPtrListNode< NodeType >* getIth( int ) const;
     tPtrListNode< NodeType >* getIthNC( int ) const;
-    tPtrList<NodeType> *DataCopy();   // copies AND CONTENTS POINTED TO (gt)
 
 private:
     int nNodes;
@@ -987,35 +986,6 @@ makeCircular()
    first->prev = last;
 }
 
-
-/**************************************************************************\
-**
-**  tPtrList::DataCopy
-**
-**  Creates and returns a complete copy of the list, including copies of
-**  the items that are pointed to.
-**
-**  Created 12/7/99, GT
-**  Assumes: NodeType has a copy constructor defined
-**  Modifications:
-**   - corrected typo (apparently this fn never compiled before?), GT 5/00
-**
-\**************************************************************************/
-template< class NodeType >                      //tPtrList
-inline tPtrList< NodeType > * tPtrList< NodeType >::
-DataCopy()
-{
-   tPtrListIter<NodeType> iter( this );
-   NodeType * curr, * newitem;
-   tPtrList * newlist = new tPtrList();
-
-   for( curr=iter.FirstP(); !(iter.AtEnd()); curr=iter.NextP() )
-   {
-      newitem = new NodeType( *curr );
-      newlist.insertAtBack( newitem );
-   }
-   return newlist;
-}
 
 //display list contents
 template< class NodeType >                      //tPtrList
