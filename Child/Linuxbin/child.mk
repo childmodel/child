@@ -13,7 +13,7 @@ LIBS = -lm
 EXENAME = child
 
 OBJECTS = toddlermain.o erosion.o meshElements.o mathutil.o \
- tInputFile.o tLNode.o tRunTimer.o tStreamMeander.o \
+ tInputFile.o tLNode.o tRunTimer.o tStreamMeander.o meander.o \
 tPtrList.o tStorm.o tStreamNet.o tUplift.o errors.o tFloodplain.o \
 tEolian.o globalFns.o predicates.o tVegetation.o \
 ParamMesh_t.o TipperTriangulator.o TipperTriangulatorError.o
@@ -81,6 +81,9 @@ tVegetation.o: $(PT)/tVegetation/tVegetation.cpp
 tStreamMeander.o: $(PT)/tStreamMeander/tStreamMeander.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/tStreamMeander.cpp
 
+meander.o: $(PT)/tStreamMeander/meander.cpp
+	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/meander.cpp
+
 toddlermain.o: $(PT)/toddlermain.cpp
 	$(CXX) $(CFLAGS) $(PT)/toddlermain.cpp
 
@@ -127,6 +130,7 @@ HFILES = \
 	$(PT)/tRunTimer/tRunTimer.h \
 	$(PT)/tStorm/tStorm.h \
 	$(PT)/tStreamMeander/tStreamMeander.h \
+	$(PT)/tStreamMeander/meander.h \
 	$(PT)/tStreamNet/tStreamNet.h \
 	$(PT)/tUplift/tUplift.h \
 	$(PT)/tVegetation/tVegetation.h \
@@ -153,6 +157,7 @@ tStreamNet.o: $(HFILES)
 tUplift.o: $(HFILES)
 tVegetation.o: $(HFILES)
 tStreamMeander.o: $(HFILES)
+meander.o: $(HFILES)
 toddlermain.o : $(HFILES)
 
 
