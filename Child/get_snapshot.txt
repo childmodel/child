@@ -112,4 +112,4 @@ If things go horribly wrong, it's likely that you're using an antiquated
 version of ssh, so try updating this. Or if in total desperation, email
 
 Arnaud Desitter - arnaud.desitter@geog.ox.ac.uk
-me - greg.tucker@geog.ox.ac.uk
+me - gtucker@cires.colorado.edu
