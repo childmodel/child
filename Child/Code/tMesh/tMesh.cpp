@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.33 1998-05-04 17:40:57 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.34 1998-05-04 18:12:35 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -2084,9 +2084,9 @@ LocateTriangle( double x, double y )
                                     //if lt == 0, i.e., point is out of bounds,
                                     //and we don't want that;
                                     //calling code is built to deal with lt == 0.
-   if( online != -1 && pPtr(online)->getBoundaryFlag() != kNonBoundary &&
-       pPtr( (online+1)%3 )->getBoundaryFlag() != kNonBoundary ) //point on bndy
-       return 0;
+   //if( online != -1 && pPtr(online)->getBoundaryFlag() != kNonBoundary &&
+   //    pPtr( (online+1)%3 )->getBoundaryFlag() != kNonBoundary ) //point on bndy
+   //    return 0;
    //else cout << "location out of bounds\n";
    return(lt);
 }
@@ -2962,8 +2962,8 @@ AddNode( tSubNode &nodeRef )
    if( xyz.getSize() == 3) //why would this ever not be the case? If we need to access new coords:
                            //size of xyz is basically the flag; the 4th element is never used o.w.
    {
-      cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
+      //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+      //     << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
       if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
           cout << "new tri not CCW" << endl;
    }
