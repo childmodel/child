@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.84 1999-12-06 16:34:51 quint Exp $
+**  $Id: tLNode.cpp,v 1.85 2000-01-24 22:22:34 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -12,103 +12,6 @@
 #include "../errors/errors.h"
 #include "tLNode.h"
 #define kBugTime 5000000
-
-/*************************************************************************
-**  tLayer::tLayer : Constructor function for tLayer
-*************************************************************************/
-tLayer::tLayer ()
-        : dgrade()
-{
-   ctime=0;
-   rtime=0;
-   etime=0;
-   depth=0;
-   erody=0;
-   sed=0;
-   //cout << "tLayer( num )" << endl;
-}
-
-tLayer::tLayer ( int num )
-        : dgrade( num )
-{
-   ctime=0;
-   rtime=0;
-   etime=0;
-   depth=0;
-   erody=0;
-   sed=0;
-   //cout << "tLayer( num )" << endl;
- }
-
-//copy constructor
-tLayer::tLayer( const tLayer &orig )                         //tLayer
-        :dgrade( orig.dgrade )
-{
-   ctime=orig.ctime;
-   rtime=orig.rtime;
-   etime=orig.etime;
-   depth=orig.depth;
-   erody=orig.erody;
-   sed=orig.sed;
-   
-}
-
-tLayer::~tLayer()
-{
-     //cout << "    ~tLayer()" << endl;
-}
-
-const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
-{
-   if( &right != this )
-   {
-      dgrade = right.dgrade;
-      ctime=right.ctime;
-      rtime=right.rtime;
-      etime=right.etime;
-      depth=right.depth;
-      erody=right.erody;
-      sed=right.sed;
-   
-   }
-   return *this;
-}
-
-
-void tLayer::setCtime( double tt )
-{
-   ctime = tt;
-}
-
-double tLayer::getCtime() const 
-{
-   return ctime;
-}
-
-void tLayer::setRtime( double tt )
-{
-   rtime = tt;
-}
-
-double tLayer::getRtime() const 
-{
-   return rtime;
-}
-
-void tLayer::setEtime( double tt )
-{
-   etime = tt;
-}
-
-void tLayer::addEtime( double tt )
-{
-   etime += tt;
-}
-
-double tLayer::getEtime() const 
-{
-   return etime;
-}
 
 //Sets the total layer depth.  While updating depth, dgrade info is
 //automatically updated to keep the same texture.  
@@ -137,76 +40,18 @@ void tLayer::setDepth( double dep)
        depth=dep;
 }
 
-double tLayer::getDepth() const 
-{
-   return depth;
-}
-
-void tLayer::setErody( double ero)
-{
-   erody = ero;
-}
-
-double tLayer::getErody() const 
-{
-   return erody;
-}
-
-void tLayer::setSed( int rg)
-{
-   sed = rg;
-}
-
-int tLayer::getSed() const 
-{
-   return sed;
-}
-
-void tLayer::setDgradesize( int i )
-{
-   dgrade.setSize(i);
-}
-
-int tLayer::getDgradesize( )
-{
-   return dgrade.getSize();
-}
-
 void tLayer::setDgrade( int i, double size )
 {
-   if(i>=dgrade.getSize())
-      ReportFatalError( "Trying to set sediment sizes in dgrade of layer that don't exist");
-  dgrade[i]=size;
-  // Automatically update depth when dgrade is changed
-  int j=0;
+   assert( i<dgrade.getSize() );
+   dgrade[i]=size;
+   // Automatically update depth when dgrade is changed
+   int j=0;
    double sum=0;
    while(j<dgrade.getSize()){
       sum += dgrade[j];
       j++;
    }
    depth=sum;
-}
-
-void tLayer::addDgrade( int i, double size )
-{
-   if(i>=dgrade.getSize())
-     ReportFatalError( "Trying to add sediment sizes in dgrade of layer that don't exist");
-   dgrade[i]+=size;
-   depth+=size;
-}
-
-double tLayer::getDgrade( int i)
-{
-   assert( i<dgrade.getSize() );
-   //if(i>=dgrade.getSize())
-   //ReportFatalError( "Trying to get sediment sizes in dgrade of layer that don't exist");
-
-   return dgrade[i];
-}
-tArray< double >
-tLayer::getDgrade( ) const
-{
-   return dgrade;
 }
    
 /*
