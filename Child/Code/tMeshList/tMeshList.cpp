@@ -8,7 +8,7 @@
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.cpp,v 1.4 1998-03-16 18:54:38 gtucker Exp $
+**  $Id: tMeshList.cpp,v 1.5 1998-04-29 21:35:00 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -269,24 +269,34 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
    return 0;
 }
 
+
 //'move' utilities
+
 /*
-**  moveToBack
+**  tGridList::moveToBack ( tListNode * )
 **
+**  Moves mvnode to the back of the list (the boundary portion).
 **  Handles case of moved node being the last active node, in which case
-**  _lastactive_ needs to be updated. However, this routine does NOT
-**  update nActiveNodes, so be careful: you can move an active node to the back
-**  of the list, effectively making it inactive w/o updating nActiveNodes.
-**  (TODO)
+**  _lastactive_ needs to be updated.
+**
+**  Modifications:
+**    - if moved node is active, nActiveNodes is now decremented 4/98 GT
+**        (note: does not properly handle the case of list w/ only one node
+**      that's active -- in this case, node is not moved (it's already last)
+**      and nActiveNodes isn't updated. TODO) 
 */
 template< class NodeType >                         //tList
 void tGridList< NodeType >::
 moveToBack( tListNode< NodeType > * mvnode ) 
 {
+   //cout << "moveToBack( tListNode )\n";
+   
    assert( mvnode>0 );
    tListNode< NodeType > * prev;
    if( mvnode != last )
    {
+      if( InActiveList( mvnode ) )
+         nActiveNodes--;
       if( mvnode == lastactive )
       {
          if( mvnode != first )
@@ -300,6 +310,25 @@ moveToBack( tListNode< NodeType > * mvnode )
       tList< NodeType >::moveToBack( mvnode );
    }
 }
+
+
+/*
+**  tGridList::moveToBack ( NodeType * )
+**
+**  Finds the ListNode whose data are identical to mvnodedata and calls
+**  moveToBack( tListNode ) to move it to the back of the list.
+**
+**  Parameters: mvnodedata -- ptr to data in node to be moved
+**  Assumes: mvnodedata valid and contained in the list
+*/
+template< class NodeType >                         //tList
+void tGridList< NodeType >::
+moveToBack( NodeType * mvnodedata ) 
+{
+   assert( getListNode( mvnodedata )!=0 );  // failure: null or not on list
+   moveToBack( getListNode( mvnodedata ) );
+}
+
 
 template< class NodeType >                         //tList
 void tGridList< NodeType >::
@@ -376,6 +405,33 @@ Flush()
    nActiveNodes = 0;
 }
 
+
+/*
+**  tGridList::InActiveList
+**
+**  Reports whether a given list node is in the active portion of the list.
+**
+**  Parameters:  theNode -- list node to test
+**  Returns:  1 if theNode is present in the active portion of the list,
+**            0 otherwise.
+**  Created:  4/29/98 GT
+*/
+template< class NodeType >                         //tList
+int tGridList< NodeType >::
+InActiveList( tListNode< NodeType > * theNode )
+{
+   tListNode< NodeType > * listnode = first;
+
+   if( nActiveNodes==0 ) return 0;
+   while( listnode!=lastactive && listnode!=theNode )
+       listnode = listnode->next;
+   if( listnode==theNode ) return 1;
+   else return 0;
+   
+}
+
+
+
 /**************************************************************************\
 **
 **         Utilities for derived class tGridListIter
@@ -449,9 +505,13 @@ int tGridListIter< NodeType >::
 IsActive()
 {
    int act;
-   act = curnode->getDataRef().getBoundaryFlag();
-   if( act == kNonBoundary ) return 1;
-   else return 0;
+   if( curnode!=0 )
+   {
+      assert( curnode->getDataPtr()!=0 );
+      act = curnode->getDataRef().getBoundaryFlag();
+      if( act == kNonBoundary ) return 1;
+   }
+   return 0;
 }
 
 template< class NodeType >   //tGridListIter
