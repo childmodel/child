@@ -319,19 +319,17 @@ BuildDelaunayMeshTipper()
      for( int iedge=0; iedge<nedgesl; ++iedge)
        {
 	 {
-	   tEdge *curedg = EdgeTable[ e_t2c(iedge, true) ];
 	   const oriented_edge e1(iedge,true);
+	   tEdge *curedg = EdgeTable[ e_t2c(e1) ];
 	   const oriented_edge ccw_from = e1.ccw_edge_around_from(edges);
-	   const int ccwedgid = e_t2c(ccw_from);
-	   tEdge *ccwedg = EdgeTable[ccwedgid];
+	   tEdge *ccwedg = EdgeTable[ e_t2c(ccw_from) ];
 	   curedg->setCCWEdg( ccwedg );
 	 }
 	 {
-	   tEdge *curedg = EdgeTable[ e_t2c(iedge, false) ];
 	   const oriented_edge e2(iedge,false);
+	   tEdge *curedg = EdgeTable[ e_t2c(e2) ];
 	   const oriented_edge ccw_to = e2.ccw_edge_around_from(edges);
-	   const int ccwedgid = e_t2c(ccw_to);
-	   tEdge *ccwedg = EdgeTable[ccwedgid];
+	   tEdge *ccwedg = EdgeTable[ e_t2c(ccw_to) ];
 	   curedg->setCCWEdg( ccwedg );
 	 }
        }
