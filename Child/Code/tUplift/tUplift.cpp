@@ -3,20 +3,25 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.26 2004-04-27 10:00:18 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.27 2004-06-03 15:29:28 childcvs Exp $
 */
 /************************************************************************/
 
 #if !defined(HAVE_NO_NAMESPACE)
 # include <iostream>
+# include <sstream>
+# include <string>
 using namespace std;
 #else
 # include <iostream.h>
+# include <sstream.h>
+# include <string.h>
 #endif
 
 #include "tUplift.h"
 #include "../errors/errors.h"
 #include "../Mathutil/mathutil.h"
+
 
 /************************************************************************\
 **
@@ -32,7 +37,7 @@ using namespace std;
 **
 \************************************************************************/
 tUplift::tUplift_t tUplift::DecodeType(int type){
-  if( type < 0 || type > 8 )
+  if( type < 0 || type > 9 )
     {
       cerr << "I don't recognize the uplift type you asked for ("
            << type << ")\n"
@@ -45,7 +50,8 @@ tUplift::tUplift_t tUplift::DecodeType(int type){
 	" 5 - 2D cosine-based uplift-subsidence pattern\n"
 	" 6 - Block, fault, and foreland sinusoidal fold\n"
 	" 7 - Two-sided differential uplift\n"
-	" 8 - Fault bend fold\n";
+	" 8 - Fault bend fold\n"
+	" 9 - Back-tilting normal fault block\n";
       ReportFatalError( "Please specify a valid uplift type and try again." );
     }
   return static_cast<tUplift_t>(type);
@@ -71,7 +77,7 @@ tUplift::tUplift( const tInputFile &infile ) :
           break;
       case k2:
           faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
-	  rate2 = infile.ReadItem( rate2, "SUBSRATE" );
+	      rate2 = infile.ReadItem( rate2, "SUBSRATE" );
           break;
       case k3:
           faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
@@ -91,18 +97,18 @@ tUplift::tUplift( const tInputFile &infile ) :
           deformStartTime1 =
               infile.ReadItem( deformStartTime1, "YFOLDINGSTART" );
           foldParam2 = infile.ReadItem( foldParam2, "UPSUBRATIO" );
-	  break;
+	      break;
      case k6:
           foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
           slipRate = infile.ReadItem( slipRate, "FOLDLATRATE" );
           faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
-	  rate2 = infile.ReadItem( rate2, "FOLDUPRATE" );
-	  foldParam2 = infile.ReadItem( foldParam2, "FOLDPOSITION" );
+		  rate2 = infile.ReadItem( rate2, "FOLDUPRATE" );
+	      foldParam2 = infile.ReadItem( foldParam2, "FOLDPOSITION" );
           break;
      case k7:
           rate2 = infile.ReadItem( rate2, "BLFALL_UPPER" );
-	  positionParam1 = infile.ReadItem( positionParam1, "BLDIVIDINGLINE" );
-	  break;
+	      positionParam1 = infile.ReadItem( positionParam1, "BLDIVIDINGLINE" );
+	      break;
      case k8:
      	  slipRate = infile.ReadItem( slipRate, "SLIPRATE" );
      	  faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
@@ -112,6 +118,17 @@ tUplift::tUplift( const tInputFile &infile ) :
      	  upperKinkDip = infile.ReadItem( upperKinkDip, "UPPERKINKDIP" );
      	  meanElevation = infile.ReadItem( meanElevation, "MEAN_ELEV" );
      	  break;
+	 case k9:
+		  stringstream myStringStream;
+		  double accelTime = infile.ReadDouble( "ACCEL_UPTIME" );
+		  rate2 = infile.ReadDouble( "ACCEL_UPRATE" );
+		  positionParam1 = infile.ReadDouble( "FAULT_PIVOT_DISTANCE" );
+		  if( positionParam1 <=0.0 )
+			ReportFatalError( "Parameter FAULT_PIVOT_DISTANCE must be > 0." );
+		  myStringStream << "@inline " << 0.0 << ":" << rate << " " << accelTime << ":" << rate2 << endl;
+		  cout << myStringStream.str() << endl;
+		  rate_ts.configure( (myStringStream.str()).c_str() );
+		  break;
    }
 
 }
@@ -128,7 +145,7 @@ tUplift::tUplift( const tInputFile &infile ) :
 **           delt -- duration of uplift
 **
 \************************************************************************/
-void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
+void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
 {
    switch( typeCode )
    {
@@ -151,16 +168,19 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
           CosineWarp2D( mp, delt );
           break;
       case k6:
-	  BlockUplift( mp, delt );
-	  PropagatingFold( mp, delt );
-	  break;
+	      BlockUplift( mp, delt );
+	      PropagatingFold( mp, delt );
+	      break;
       case k7:
-	  TwoSideDifferential( mp, delt );
-	  break;
+	      TwoSideDifferential( mp, delt );
+	      break;
       case k8:
           FaultBendFold( mp, delt );
           FaultBendFold2( mp, delt );
           break;
+	  case k9:
+	      NormalFaultTiltAccel( mp, delt, currentTime );
+		  break;
    }
 
 }
@@ -673,6 +693,56 @@ void tUplift::FaultBendFold2( tMesh<tLNode> *mp, double delt ) const
    }
 
    elapsedTime += delt;
+}
+
+
+/************************************************************************\
+**
+**  tUplift::NormalFaultTiltAccel
+**
+**  This simulates a back-tilting normal fault block, but does not 
+**  include horizontal motion. Uplift rate is maximum at y=0.
+**
+**  Let F be the pivot length of the fault, and U0 the effective
+**  vertical slip rate at the fault ( i.e., U0 = U(0) ). 'Effective'
+**  means vertical component of slip relative to the baselevel in the
+**  hangingwall. Then the relative uplift rate is
+**
+**    U(y) = U0 (F-y) / F
+**
+**  For computational efficiency, U0 / F is pre-calculated before the
+**  loop and stored in rateOverPivot (F is stored in positionParam1, 
+**  and U0 in rate_ts).
+**
+**  Created June 2004, GT
+**
+**  Inputs:  mp -- pointer to the mesh
+**           delt -- duration of uplift
+**           currentTime -- current time in simulation
+**
+\************************************************************************/
+void tUplift::NormalFaultTiltAccel( tMesh<tLNode> *mp, double delt, double currentTime ) const
+{
+   assert( mp != 0 );
+   double rateOverPivot;   // Uplift rate at fault divided by pivot length
+   tLNode *cn;
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+	
+   rateOverPivot = rate_ts.calc( currentTime ) / positionParam1;
+   cout << "time " << currentTime << " rateOverPivot " << rateOverPivot << endl;
+	
+   assert( mp!=0 );
+
+   if (1) //DEBUG
+     cout << "****UPLIFTNORMALFAULTTILTACCEL: " << rateOverPivot << endl;
+
+   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+   {
+      double localRate = rateOverPivot * ( positionParam1 - cn->getY() );
+      cn->ChangeZ( localRate * delt );
+      cn->setUplift( localRate );
+   }
+	
 }
 
 

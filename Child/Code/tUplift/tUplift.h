@@ -25,7 +25,7 @@
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **    - added FaultBendFold function (srm, August 2002)
 **
-**  $Id: tUplift.h,v 1.21 2004-04-27 10:00:18 childcvs Exp $
+**  $Id: tUplift.h,v 1.22 2004-06-03 15:29:29 childcvs Exp $
 */
 /************************************************************************/
 
@@ -34,12 +34,13 @@
 
 #include "../tInputFile/tInputFile.h"
 #include "../tMesh/tMesh.h"
+#include "../tTimeSeries/tTimeSeries.h"
 
 class tUplift
 {
 public:
     tUplift( const tInputFile &infile );
-    void DoUplift( tMesh<tLNode> *mp, double delt );
+    void DoUplift( tMesh<tLNode> *mp, double delt, double current_time );
     double getDuration() const;
     double getRate() const;
 private:
@@ -52,6 +53,7 @@ private:
     void TwoSideDifferential( tMesh<tLNode> *mp, double delt ) const;
     void FaultBendFold( tMesh<tLNode> *mp, double delt ) const;
     void FaultBendFold2( tMesh<tLNode> *mp, double delt ) const;
+	void NormalFaultTiltAccel( tMesh<tLNode> *mp, double delt, double currentTime ) const;
 
 private:
     typedef enum {
@@ -63,7 +65,8 @@ private:
       k5,
       k6,
       k7,
-      k8
+      k8,
+	  k9
     } tUplift_t;
 
     static tUplift_t DecodeType(int);
@@ -72,6 +75,7 @@ private:
     double duration;       // Duration of uplift
     double rate;           // Rate of uplift
     double rate2;          // Second rate (e.g., second structure)
+	tTimeSeries rate_ts;   // Rate of uplift as a time series
     double faultPosition;  // Position of fault (y-location)
     double positionParam1; // Another position parameter
     double slipRate;       // Slip rate for strike-slip motion and fault prop
@@ -85,6 +89,7 @@ private:
     double upperKinkDip;   // Dip of axial surface that initiates at upper
     			   //	end of ramp.
     double meanElevation;  // Mean elevation of surface at t0.
+	double timeParam1;     // Timing parameter
 
 private:
     tUplift();
