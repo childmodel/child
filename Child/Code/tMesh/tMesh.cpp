@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.94 2002-03-06 09:29:44 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.95 2002-04-11 11:10:08 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -1752,7 +1752,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
        *stp1, *stp2, *stp3;         // supertriangle vertices
    //Xdouble dumval;
    char dumhead[3];
-   tSubNode *cn, *minzPtr;
+   tSubNode *cn, *minzPtr(0);
    tEdge* ce;
    tMeshListIter< tSubNode > nI( nodeList );
    tPtrList<tSubNode> supertriptlist, deletelist;
@@ -1886,6 +1886,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
         << nedges << " NT: " << ntri << endl;
 
    // make lowest node outlet (open boundary)
+   assert( minzPtr != 0 );
    minzPtr->setBoundaryFlag( kOpenBoundary );
    nI.Get( minzPtr->getID() );
    nodeList.moveToBoundFront( nI.NodePtr() );   
@@ -1970,7 +1971,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
        *stp1, *stp2, *stp3;         // supertriangle vertices
    //Xdouble dumval;
    char dumhead[3];
-   tSubNode *cn, *minzPtr;
+   tSubNode *cn, *minzPtr(0);
    tEdge* ce;
    tMeshListIter< tSubNode > nI( nodeList );
    tPtrList<tSubNode> supertriptlist, deletelist;
@@ -2099,6 +2100,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
         << nedges << " NT: " << ntri << endl;
 
    // make lowest node outlet (open boundary)
+   assert( minzPtr != 0 );
    minzPtr->setBoundaryFlag( kOpenBoundary );
    nI.Get( minzPtr->getID() );
    nodeList.moveToBoundFront( nI.NodePtr() );   
