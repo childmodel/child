@@ -3,7 +3,7 @@
 **  tList.cpp:  Functions for class tList and related classes tListNode
 **              and tListIter.
 **
-**  $Id: tList.cpp,v 1.4 1998-02-03 00:47:29 stlancas Exp $
+**  $Id: tList.cpp,v 1.5 1998-02-11 00:02:06 stlancas Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -811,9 +811,9 @@ Prev()
       }
    }
    tListNode< NodeType > *tempnode;
-   int id = curnode->data.getID();
+   //int id = curnode->data.getID();
    for( tempnode = listPtr->first;
-        tempnode->next->data.getID() != id;
+        tempnode->next != curnode; //tempnode->next->data.getID() != id;
         tempnode = tempnode->next );
    curnode = tempnode;
    counter--;
@@ -885,9 +885,9 @@ PrevP()
       }
    }
    tListNode< NodeType > *tempnode;
-   int id = curnode->data.getID();
+   //int id = curnode->data.getID();
    for( tempnode = listPtr->first;
-        tempnode->next->data.getID() != id;
+        tempnode->next != curnode;  //tempnode->next->data.getID() != id;
         tempnode = tempnode->next );
    curnode = tempnode;
    assert( curnode != 0 );
@@ -932,6 +932,7 @@ template< class NodeType >       //tListIter
 int tListIter< NodeType >::
 AtEnd()
 {
+   if( listPtr->isEmpty() ) return 1;
    if( listPtr->last->next == 0 ) return ( curnode==0 );
    else return ( curnode == listPtr->first && counter != 0 );
    //return curnode==0;

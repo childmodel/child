@@ -23,7 +23,7 @@
 **  descendants). Its services include fetching data from the current entry
 **  on the list, advancing to the next or previous item on the list, etc.
 **
-**  $Id: tList.h,v 1.8 1998-02-03 00:49:00 stlancas Exp $
+**  $Id: tList.h,v 1.9 1998-02-11 00:02:15 stlancas Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -119,6 +119,7 @@ class tList
 
 
 /** class tListIter ********************************************************/
+//TO DO: make Get, Where, GetP, refer to place in list rather than use getID()
 template< class NodeType >
 class tListIter
 {
@@ -129,10 +130,10 @@ class tListIter
    ~tListIter();
    int First();
    int Last();
-   int Get( int );
+   int Get( int ); //use only if NodeType has member getID()!!
    int Next();
    int Prev();
-   int Where();
+   int Where(); //use only if NodeType has member getID()!!
    int AtEnd();
    NodeType &DatRef();
    NodeType *DatPtr();
@@ -142,7 +143,7 @@ class tListIter
    NodeType * LastP();
    NodeType * NextP();
    NodeType * PrevP();
-   NodeType * GetP( int num );
+   NodeType * GetP( int num ); //use only if NodeType has member getID()!!
    
   protected:
    tListNode< NodeType > * curnode;

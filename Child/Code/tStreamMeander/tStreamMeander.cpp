@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.12 1998-02-04 00:33:48 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.13 1998-02-11 00:01:30 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -187,6 +187,7 @@ void tStreamMeander::FindHydrGeom()
          }
       }
    }
+   cout << "done FindHydrGeom" << endl << flush;
 }
 
    
@@ -211,7 +212,8 @@ void tStreamMeander::FindChanGeom()
 {
    int i, j, num;
    double qbf, hradius, qbffactor=0, radfactor, width, depth, rough, slope;
-   tLNode *cn, *usn;
+   double rlen, cz, nz;
+   tLNode *cn, *dsn;
    tPtrListIter< tLNode > nIter/*, usnIter*/;
    tPtrList< tLNode > *plPtr;
    //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
@@ -243,13 +245,22 @@ void tStreamMeander::FindChanGeom()
             {
                slope = usn->GetSlope();
             }*/
-            for( usn = cn; slope <= kSmallNum; usn = usn->GetDownstrmNbr() )
+            rlen = cn->GetFlowEdg()->getLength();
+            cz = cn->getZ();
+            dsn = cn->GetDownstrmNbr();
+            while( slope <= 0 && dsn->getBoundaryFlag() == kNonBoundary )
             {
-               slope = usn->GetSlope();
+               rlen += dsn->GetFlowEdg()->getLength();
+               dsn = dsn->GetDownstrmNbr();
+               nz = dsn->getZ();
+               slope = ( cz - nz ) / rlen;
+               cout << "doing slope averaging in FindChanGeom" << endl;
             }
+            if( slope <= 0 ) cout << "help! slope still non-positive!"
+                                  << endl << flush;
          }
-         assert( slope > kSmallNum );
-         cout << "in FindChanGeom, slope = " << slope << endl << flush;
+         assert( slope > 0 );
+         //cout << "in FindChanGeom, slope = " << slope << endl << flush;
          cn->setChanWidth( width );
          cn->setChanRough( rough );
          radfactor = qbf * rough / width / sqrt(slope);
@@ -258,6 +269,7 @@ void tStreamMeander::FindChanGeom()
          cn->setChanDepth( depth );
       }
    }
+   cout << "done FindChanGeom" << endl;
 }
 #undef kSmallNum
 
@@ -413,6 +425,7 @@ void tStreamMeander::MakeReaches()
       FindReaches();
    }
    while( InterpChannel() );
+   cout << "done MakeReaches" << endl;
 }
 
 
@@ -456,12 +469,14 @@ void tStreamMeander::FindReaches()
 {
    double curwidth, ctaillen;
    int i, j, nmndrnbrs;
-   tLNode *cn, *lnPtr;
+   double rdrop;
+   tLNode *cn, *lnPtr, *frn, *lrn;
    tEdge *ce;
    tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
    tPtrListIter< tEdge > spokIter;
    tPtrListIter< tLNode > rnIter;
-   tPtrList< tLNode > rnodList, *plPtr;
+   tPtrList< tLNode > rnodList, *plPtr, listtodelete;
+   tListNode< tPtrList< tLNode > > *tempnode;
    tArray< int > *iArrPtr;
    tArray< double > *fArrPtr;
    if( !(reachList.isEmpty()) ) reachList.Flush();
@@ -503,13 +518,13 @@ void tStreamMeander::FindReaches()
    reachlen = *fArrPtr;
    taillen = *fArrPtr;
    delete fArrPtr;
-   cout << "No. reaches: " << reachList.getSize() << endl;
+   cout << "No. reaches: " << reachList.getSize() << endl << flush;
    //loop through reaches
    for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
         plPtr = rlIter.NextP(), i++ )
    {
       assert( reachList.getSize() > 0 );
-      //cout << " on reach " << i << endl << flush;
+      cout << " on reach " << i << endl << flush;
       assert( i<reachList.getSize() );
       //go downstream from reach head
       //and add nodes to the reach
@@ -526,6 +541,21 @@ void tStreamMeander::FindReaches()
          cn = cn->GetDownstrmNbr();
       }
       while (!cn->getReachMember() && cn->getBoundaryFlag() == kNonBoundary);
+      //make sure reach has "positive" slope:
+      lrn = rnIter.LastP();
+      frn = rnIter.FirstP();
+      rdrop = frn->getZ() - lrn->getZ();
+      if( rdrop <= 0 )
+      {
+         //remove reach if it has non-positive slope:
+         tempnode = rlIter.NodePtr();
+         rlIter.Prev();
+         reachList.moveToFront( tempnode );
+         reachList.removeFromFront( listtodelete );
+         reachlen[i] = 0;
+         nrnodes[i] = 0;
+         i--;
+      }
    }
    
       //now we'll need to know the
@@ -539,6 +569,7 @@ void tStreamMeander::FindReaches()
    {
       //cout << " on reach " << i << endl << flush;
       assert( i<reachList.getSize() );
+      rnIter.Reset( *plPtr );
       curwidth = rnIter.LastP()->getHydrWidth();
       taillen[i] = 10.0*curwidth;
       ctaillen = 0.0;
@@ -551,6 +582,7 @@ void tStreamMeander::FindReaches()
       }
       taillen[i] = ctaillen;
    }
+   cout << "done FindReaches" << endl;
 }
 
 
@@ -744,7 +776,7 @@ void tStreamMeander::Migrate()
    double time = 0.0;
    double cummvmt = 0.0;
    //timeadjust = 86400. * pr->days;
-   while( time < duration)
+   while( time < duration && !(reachList.isEmpty()) )
    {
       CalcMigration( time, duration, cummvmt ); //incremented time
       MakeChanBorder( xList, yList, zList /*bList*/ ); //bList of coordinate arrays made
@@ -1007,41 +1039,57 @@ tArray< double > tStreamMeander::FindBankErody( tLNode *nPtr )
 void tStreamMeander::CheckBanksTooClose()
 {
    cout << "CheckBanksTooClose()..." << flush << endl;
-   int tooclose;
-   tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
+   int tooclose, i, j, num;
+   //tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
    tPtrListIter< tEdge > spokIter;
+   tPtrList< tLNode > delPtrList;
    tLNode * cn, *pointtodelete;
    tEdge *ce;
-     //check for proximity to channel:
-   tooclose = 1;
-   do
+   tPtrList< tLNode > *cr;
+   tPtrListIter< tLNode > rnIter;
+   tArray< double > xyz(3), rl;     //check for proximity to channel:
+   //tooclose = 1;
+   //do
+   //{
+   //tooclose = 0;
+   //nodIter.First();
+   for( cr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
+        cr = rlIter.NextP(), i++ )
    {
-      tooclose = 0;
-        //nodIter.First();
-      for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
+      rnIter.Reset( *cr );
+      num = nrnodes[i];
+      for( cn = rnIter.FirstP(), j=0; j<num;
+           cn = rnIter.NextP(), j++ )
       {
+//for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
+         //    {
          pointtodelete = 0;
-         if( cn->Meanders() )
+         //if( cn->Meanders() )
+         //{
+         spokIter.Reset( cn->getSpokeListNC() );
+         for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
+              ce = spokIter.NextP() )
          {
-            spokIter.Reset( cn->getSpokeListNC() );
-            for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
-                 ce = spokIter.NextP() )
+            if( ce->getLength() < cn->getHydrWidth()/2.0 )
             {
-               if( ce->getLength() < cn->getHydrWidth()/2.0 )
-               {
-                  cout<<"too close: cn, cn->hydrwidth "<<cn->getID()<<" "
-                      <<cn->getHydrWidth()<<endl<<flush;
-                  tooclose = 1;
-                  pointtodelete = (tLNode *) ce->getDestinationPtrNC();
-                  if( pointtodelete->getDrArea() > cn->getDrArea() )
-                      pointtodelete = cn;
-                  break;
-               }
+               cout<<"too close: cn, cn->hydrwidth "<<cn->getID()<<" "
+                   <<cn->getHydrWidth()<<endl<<flush;
+               //tooclose = 1;
+               pointtodelete = (tLNode *) ce->getDestinationPtrNC();
+               if( pointtodelete->getDrArea() < cn->getDrArea() )
+                   delPtrList.insertAtBack( pointtodelete );
             }
          }
-         if( pointtodelete != 0 ) gridPtr->DeleteNode( pointtodelete );
+         //}
+         //if( pointtodelete != 0 ) gridPtr->DeleteNode( pointtodelete );
       }
-   } while( tooclose );
+   } //while( tooclose );
+   while( !( delPtrList.isEmpty() ) )
+   {
+      delPtrList.removeFromFront( pointtodelete );
+      gridPtr->DeleteNode( pointtodelete );
+   }
+   
    cout << "finished" << endl;
 }
 
