@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.64 1999-09-09 21:15:43 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.65 1999-09-09 21:31:25 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1949,10 +1949,10 @@ void tInlet::FindNewInlet()
               //so, find an active neighbor with elevation lower than
               //present inlet:
             // DEBUG: try to catch floating excep in if below:
-            assert( mn->getZ()>0.0 );
+            /*assert( mn->getZ()>0.0 );
             assert( mn->getZ()<10000.0 );
             assert( zmin>0.0 );
-            assert( zmin<10000.0 );
+            assert( zmin<10000.0 );*/
             if( mn->getBoundaryFlag() == kNonBoundary && mn->getZ() < zmin )
             {
                msI.Reset( mn->getSpokeListNC() );
