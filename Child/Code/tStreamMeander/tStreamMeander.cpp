@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.40 1998-05-19 22:44:05 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.41 1998-07-17 00:50:13 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -105,7 +105,7 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
    x0 = p0->getX();
    y0 = p0->getY();
    x1 = p1->getX();
-   y1 = p0->getY();
+   y1 = p1->getY();
    a = y1 - y0; 
    b = x0 - x1; 
    c = -( a * x0 + b * y0 );
@@ -1639,7 +1639,7 @@ void tStreamMeander::CheckBndyTooClose()
    tNode *nn, *bn0, *bn1;
    tEdge *ce;
    int n; 
-   double width, mindist, d0, d1, d2, d3;
+   double width, mindist, d0, d1, d2, d3, xp, yp;
    tArray< double > xy, xyn;
    
    cn = nI.LastActiveP();
@@ -1683,14 +1683,18 @@ void tStreamMeander::CheckBndyTooClose()
                mindist = width / 2.0;
                  //find distances to boundary edges:
                xyn = mn->getNew2DCoords();
-               d0 = DistanceToLine( xyn[0], xyn[1], cn, bn0 );
-               d1 = DistanceToLine( xyn[0], xyn[1], cn, bn1 );
+               xp = xyn[0];
+               yp = xyn[1];
+               d0 = DistanceToLine( xp, yp, cn, bn0 );
+               d1 = DistanceToLine( xp, yp, cn, bn1 );
                  //if too close, RevertToOldCoords() on the meandering node:
                if( d0 < mindist || d1 < mindist )
                {
                   xy = mn->get2DCoords();
-                  d2 = DistanceToLine( xy[0], xy[1], cn, bn0 );
-                  d3 = DistanceToLine( xy[0], xy[1], cn, bn1 );
+                  xp = xy[0];
+                  yp = xy[1];
+                  d2 = DistanceToLine( xp, yp, cn, bn0 );
+                  d3 = DistanceToLine( xp, yp, cn, bn1 );
                   if( d0 < d2 || d1 < d3 ) mn->RevertToOldCoords();
                }
             }
