@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.119 2003-02-11 12:01:55 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.120 2003-02-12 12:00:37 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -73,11 +73,6 @@ int Next3Delaunay( tPtrList< tSubNode > &nbrList,
 
    nbrnd = nbrIter.DatPtr();
      //cout << "Next3Delaunay? no calls =  " << ncalls << endl;
-     //global function prototypes
-     //int PointsCCW( tArray< double > &, tArray< double > &,
-     //           tArray< double > & );
-     //int TriPasses( tArray< double > &, tArray< double > &,
-     //           tArray< double > &, tArray< double > & );
      //cout << "N3D: pt a\n";
    tPtrListIter< tSubNode > nbrIterCopy( nbrIter );
      //cout << "N3D: point d\n";
@@ -134,11 +129,6 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
 {
    assert( (&nbrList != 0) && (&nbrIter != 0) && (&testNode != 0) );
    //cout << "PointAndNext2Delaunay?" << endl;
-     //global function prototypes
-     //int PointsCCW( tArray< double > &, tArray< double > &,
-     //           tArray< double > & );
-     //int TriPasses( tArray< double > &, tArray< double > &,
-     //           tArray< double > &, tArray< double > & );
    tPtrListIter< tSubNode > nbrIterCopy( nbrIter );
      //assert( nbrIterCopy.Get( i ) );
    assert( nbrIterCopy.DatPtr() == nbrIter.DatPtr() );
