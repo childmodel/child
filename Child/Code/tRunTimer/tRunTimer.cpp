@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.5 1998-08-04 20:49:45 nmgaspar Exp $
+**  $Id: tRunTimer.cpp,v 1.6 1998-08-04 20:51:57 nmgaspar Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -40,7 +40,8 @@
 //   info is read in, the start time is set to the
 //   time which layers are read in.  Must have this
 //   for the layering to make sense, but might also
-//   want this if reading in any type of input.
+//   want this if reading in any type of input other
+//   than the standard parameters.  (OPTREADINPUT>0)
 //   Wasn't changed because I don't know how other
 //   people want this handled.  Bad practice to have
 //   something about layering in here though.
