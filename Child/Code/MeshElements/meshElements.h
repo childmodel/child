@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.74 2004-04-02 11:22:47 childcvs Exp $
+**  $Id: meshElements.h,v 1.75 2004-04-05 10:04:34 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -117,9 +117,9 @@ public:
   void get3DCoords( tArray< double >& ) const;
   void get2DCoords( tArray< double >& ) const;
   inline int getID() const;                         // returns ID number
-  double getX() const;                       // returns x coord
-  double getY() const;                       // returns y coord
-  double getZ() const;                       // returns z value
+  inline double getX() const;                       // returns x coord
+  inline double getY() const;                       // returns y coord
+  inline double getZ() const;                       // returns z value
   double getVArea() const;                   // returns Voronoi area
   double getVArea_Rcp() const;               // returns 1/Voronoi area
   tBoundary_t getBoundaryFlag() const;               // returns boundary code
@@ -129,9 +129,9 @@ public:
   void getVoronoiVertexXYZList( tList<Point3D> * ); // As above plus interp z
 
   void setID( int );              // sets ID number
-  void setX( double );            // sets x coord
-  void setY( double );            // sets y coord
-  void setZ( double );            // sets z value
+  inline void setX( double );            // sets x coord
+  inline void setY( double );            // sets y coord
+  inline void setZ( double );            // sets z value
   virtual void ChangeZ( double );         // adds or subtracts from the current z value
   void setVArea( double );        // sets Voronoi area
   void setVArea_Rcp( double );    // sets 1 / Voronoi area
@@ -228,13 +228,13 @@ public:
   void InitializeEdge( tNode*, tNode*, tNode const *, bool useFuturePosn = false );
   inline int getID() const;            // returns ID number
   tBoundary_t getBoundaryFlag() const; // returns boundary status (flow or no flow)
-  double getLength() const;     // returns edge's length (projected)
-  double getSlope() const;      // slope = "z" gradient from org to dest nodes
+  inline double getLength() const;     // returns edge's length (projected)
+  inline double getSlope() const;      // slope = "z" gradient from org to dest nodes
   double getOrgZ() const;       // returns origin's z value
   double getDestZ() const;      // returns destination's z value
-  const tNode *getOriginPtr() const;      // returns ptr to origin node (const)
-  const tNode *getDestinationPtr() const; // returns ptr to dest node (const)
-  tNode *getOriginPtrNC();      // returns ptr to origin node (non-const)
+  inline const tNode *getOriginPtr() const;      // returns ptr to origin node (const)
+  inline const tNode *getDestinationPtr() const; // returns ptr to dest node (const)
+  inline tNode *getOriginPtrNC();      // returns ptr to origin node (non-const)
   inline tNode *getDestinationPtrNC(); // returns ptr to destination node (non-const)
   inline tEdge * getCCWEdg();          // returns ptr to counter-clockwise neighbor
   inline tEdge * getCWEdg();
