@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.45 2003-01-17 17:30:22 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.46 2003-03-06 17:43:51 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -246,7 +246,7 @@ double tNode::ComputeVoronoiArea()
 {
    int cw;
    double area = 0;
-   double a, b, c, dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
+   double dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
    double vx, vy, x0, y0, x1, y1, x2, y2, m1, m2;
    tEdge * ce, *edgptr;
    tPtrList< tEdge > vedgList /*= spokeList*/;
@@ -444,35 +444,47 @@ double tNode::ComputeVoronoiArea()
       //cout << "find polygon area" << endl << flush;
       // coords of first vertex:
       xy = *(vcI.FirstP()); //ce = vtxIter.FirstP();
-      //if( id==83 ) cout << "starting pt " << xy[0] << "," << xy[1] <<endl;
       //xy = ce->getRVtx(); 
       // Find out # of vertices in polygon:
       int nverts = vcL.getSize(); //vedgList.getSize(); 
       for( i=2; i<=nverts-1; i++ )
       {
+         double a, b, c;
+
          xyn = *(vcI.NextP()); //xyn = vtxIter.NextP()->getRVtx();// Vertex i
          xynn = *(vcI.NextP());//vtxIter.ReportNextP()->getRVtx(); // Vertex i+1
-         //if( id==83 ) cout << "other two: (" << xyn[0] << "," << xyn[1] << "), (" << 
-         //    xynn[0] << "," << xynn[1] << ")\n";
-         dx = xyn[0] - xy[0];
-         dy = xyn[1] - xy[1];
-         //if( id==83 ) cout << "dx: " << dx << " dy: " << dy << endl;
-         a = sqrt( dx*dx + dy*dy );
-         dx = xynn[0] - xyn[0];
-         dy = xynn[1] - xyn[1];
-         //if( id==83 ) cout << "dx: " << dx << " dy: " << dy << endl;
-         b = sqrt( dx*dx + dy*dy );
-         dx = xynn[0] - xy[0];
-         dy = xynn[1] - xy[1];
-         //if( id==83 ) cout << "dx: " << dx << " dy: " << dy << endl;
-         c = sqrt( dx*dx + dy*dy );
-         //TODO: check for sqrt neg # w/ assert
-         area += 0.25*sqrt( 4*a*a*b*b -
-                            (c*c - (b*b + a*a))*(c*c - (b*b + a*a)));
-         /*if( id==83 ) {
-            cout<<"ND "<<id<<" V_a 3: a "<<a<<", b "<<b<<", c "<<c<<endl<<flush;
-            cout<<" Acum (1,"<<i<<","<<i+1<<") = " <<area<<endl;
-            }*/
+	 {
+	   const double dx = xyn[0] - xy[0];
+	   const double dy = xyn[1] - xy[1];
+	   a = sqrt( dx*dx + dy*dy );
+	 }
+	 {
+	   const double dx = xynn[0] - xyn[0];
+	   const double dy = xynn[1] - xyn[1];
+	   b = sqrt( dx*dx + dy*dy );
+	 }
+	 {
+	   const double dx = xynn[0] - xy[0];
+	   const double dy = xynn[1] - xy[1];
+	   c = sqrt( dx*dx + dy*dy );
+	 }
+	 // Kahan, W. 1986. Calculating Area and Angle of a Needle-like
+	 // Triangle, unpublished manuscript
+	 // Goldberg, David, What Every Computer Scientist Should Know about
+	 // Floating-Point arithmetic, ACM Computing Surveys, Vol. 23, #1,
+	 // March 1991, pp. 5-48
+ 	 {
+	   // order a, b, c such as a >= b >= c
+#define ORDER(A,B) if (A<B) { const double t_ = A; A = B; B = t_; }
+ 	   ORDER(a,b)
+ 	   ORDER(b,c)
+ 	   ORDER(a,b)
+#undef ORDER
+	   assert(a>=b && b>=c);
+	   area += sqrt(
+ 			(a+(b+c))*(c-(a-b))*(c+(a-b))*(a+(b-c))
+			)/4;
+	 }
          vcI.Prev();
       }
    }
@@ -486,27 +498,28 @@ double tNode::ComputeVoronoiArea()
    varea_rcp = 1.0/varea;
 
    // debug
-   /*
-   if( id==83 ) {
-      cout << " reading list: ";
-      for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
-      {
-         xy = ce->getRVtx();
-         cout << xy[0] << " " << xy[1] << "; " << flush;
-      }
-      cout << endl << flush;
-      cout << "reading spokes: ";
-      ce = edg;
-      do
-      {
-         assert( ce>0 );
-         xy = ce->getRVtx();
-         cout << xy[0] << " " << xy[1] << "; " << flush;
-         ce = ce->getCCWEdg();
-      } while( ce != edg );
-      cout << endl << flush;
-      }*/
-   
+   if (0){ //DEBUG
+     if( id==83 ) {
+       cout << " reading list: ";
+       for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
+	 {
+	   xy = ce->getRVtx();
+	   cout << xy[0] << " " << xy[1] << "; " << flush;
+	 }
+       cout << endl << flush;
+       cout << "reading spokes: ";
+       ce = edg;
+       do
+	 {
+	   assert( ce>0 );
+	   xy = ce->getRVtx();
+	   cout << xy[0] << " " << xy[1] << "; " << flush;
+	   ce = ce->getCCWEdg();
+	 } while( ce != edg );
+       cout << endl << flush;
+     }
+   }
+
    return area;
 }
 
