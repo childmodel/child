@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.79 2004-04-27 11:09:02 childcvs Exp $
+**  $Id: meshElements.h,v 1.80 2004-04-27 13:19:29 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -125,6 +125,7 @@ public:
   double getVArea() const;                   // returns Voronoi area
   double getVArea_Rcp() const;               // returns 1/Voronoi area
   tBoundary_t getBoundaryFlag() const;               // returns boundary code
+  bool isNonBoundary() const;
   tEdge * getEdg();                          // returns ptr to one spoke
   tEdge const * getEdg() const;              // returns ptr to one spoke
   void getVoronoiVertexList( tList<Point2D> * );  // Returns list of V vertices
@@ -243,6 +244,7 @@ public:
   void InitializeEdge( tNode*, tNode*, tNode const *, bool useFuturePosn = false );
   inline int getID() const;            // returns ID number
   tBoundary_t getBoundaryFlag() const; // returns boundary status (flow or no flow)
+  bool isNonBoundary() const;
   inline double getLength() const;     // returns edge's length (projected)
   inline double getSlope() const;      // slope = "z" gradient from org to dest nodes
   double getOrgZ() const;       // returns origin's z value
@@ -582,6 +584,7 @@ inline double tNode::getZ() const {return z;}
 inline double tNode::getVArea() const {return varea;}
 inline double tNode::getVArea_Rcp() const {return varea_rcp;}
 inline tBoundary_t tNode::getBoundaryFlag() const {return boundary;}
+inline bool tNode::isNonBoundary() const {return getBoundaryFlag() == kNonBoundary;}
 inline tEdge * tNode::getEdg() {return edg;}
 inline tEdge const * tNode::getEdg() const {return edg;}
 
@@ -841,6 +844,7 @@ inline int tEdge::getID() const {return id;}
 //return 0 if flow allowed to match kNonBoundary:
 inline tBoundary_t tEdge::getBoundaryFlag() const
 {return ( flowAllowed == kFlowAllowed )?kNonBoundary:kClosedBoundary; }
+inline bool tEdge::isNonBoundary() const {return getBoundaryFlag() == kNonBoundary;}
 
 inline double tEdge::getLength() const {return len;}
 

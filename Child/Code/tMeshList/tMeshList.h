@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.28 2004-04-22 14:42:43 childcvs Exp $
+**  $Id: tMeshList.h,v 1.29 2004-04-27 13:19:30 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -243,7 +243,7 @@ void tMeshList< NodeType, ListNodeType >::
 insertAtFront( const NodeType &value )
 {
    tList< NodeType, ListNodeType >::insertAtFront( value );
-   if( value.getBoundaryFlag() == kNonBoundary )
+   if( value.isNonBoundary() )
    {
      if( isActiveEmpty() ) lastactive = this->first;
      ++nActiveNodes;
@@ -318,7 +318,7 @@ removeNext( NodeType &value, ListNodeType * ptr )
 {
    if( ptr == 0 ) return 0;
    if( ptr->next == 0 ) return 0;
-   if( value.getBoundaryFlag() == kNonBoundary )
+   if( value.isNonBoundary() )
    {
       --nActiveNodes;
       if( ptr->next == lastactive )
@@ -334,7 +334,7 @@ removePrev( NodeType &value, ListNodeType * ptr )
 {
    if( ptr == 0 ) return 0;
    if( ptr->prev == 0 ) return 0;
-   if( value.getBoundaryFlag() == kNonBoundary )
+   if( value.isNonBoundary() )
    {
       --nActiveNodes;
       if( ptr->prev == lastactive )
@@ -370,7 +370,7 @@ moveToBack( ListNodeType * mvnode )
    if( mvnode != this->last )
    {
       //if( InActiveList( mvnode ) ) nActiveNodes--;
-      if( mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
+      if( mvnode->getDataPtr()->isNonBoundary() )
           --nActiveNodes;
       if( mvnode == lastactive )
       {
@@ -447,7 +447,7 @@ moveToActiveBack( ListNodeType * mvnode )
    {
       moveToFront( mvnode );
       lastactive = mvnode;
-      if( mvnode->getDataPtr()->getBoundaryFlag() != kNonBoundary )
+      if( ! mvnode->getDataPtr()->isNonBoundary() )
 	nActiveNodes = 1;
       return;
    }
@@ -455,7 +455,7 @@ moveToActiveBack( ListNodeType * mvnode )
    if( mvnode != lastactive )
    {
       // if node was not in active part of list, increment nActiveNodes:
-      if( mvnode->getDataPtr()->getBoundaryFlag() != kNonBoundary )
+      if( ! mvnode->getDataPtr()->isNonBoundary() )
           ++nActiveNodes;
       // Detach mvnode from its position on the list:
       if( mvnode == this->first ) {
@@ -503,7 +503,7 @@ moveToBoundFront( ListNodeType * mvnode )
    {
       // if node was in active part of list, decrement nActiveNodes:
       //if( InActiveList( mvnode ) ) --nActiveNodes;
-      if( mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
+      if( mvnode->getDataPtr()->isNonBoundary() )
           --nActiveNodes;
       // Detach mvnode from its position on the list:
       if( mvnode == this->first ) {
@@ -533,7 +533,7 @@ moveToBefore( ListNodeType* mvnode,
 {
   tList< NodeType, ListNodeType >::moveToBefore( mvnode, plcnode );
   if( plcnode == lastactive->next
-      && mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
+      && mvnode->getDataPtr()->isNonBoundary() )
     lastactive = mvnode;
 }
 
@@ -544,7 +544,7 @@ moveToAfter( ListNodeType* mvnode,
 {
   tList< NodeType, ListNodeType >::moveToAfter( mvnode, plcnode );
   if( plcnode == lastactive
-      && mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
+      && mvnode->getDataPtr()->isNonBoundary() )
     lastactive = mvnode;
 }
 
@@ -659,7 +659,7 @@ class tMeshListIter
    ~tMeshListIter();
    int LastActive();
    int FirstBoundary();
-   inline int IsActive() const;
+   inline bool IsActive() const;
    NodeType * LastActiveP();
    NodeType * FirstBoundaryP();
 };
@@ -783,21 +783,21 @@ LastActiveP()
 **  tMeshListIter::IsActive
 **
 **  Indicates whether the current item is on the active portion of the
-**  list, returning 1 if so, 0 if not. Assumes NodeType has a member
-**  function getBoundaryFlag.
+**  list, returning true if so, false if not. Assumes NodeType has a member
+**  function isNonBoundary().
 **
 \**************************************************************************/
 template< class NodeType, class ListNodeType >
-inline int tMeshListIter< NodeType, ListNodeType >::
+inline bool tMeshListIter< NodeType, ListNodeType >::
 IsActive() const
 {
    if( this->curnode!=0 )
    {
       assert( this->curnode->getDataPtr()!=0 );
       return
-	this->curnode->getDataRef().getBoundaryFlag() == kNonBoundary;
+	this->curnode->getDataRef().isNonBoundary();
    }
-   return 0;
+   return false;
 }
 
 #endif
