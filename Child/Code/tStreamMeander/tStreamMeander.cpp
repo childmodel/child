@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.53 1999-02-22 21:36:16 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.54 1999-02-22 22:11:19 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -591,7 +591,7 @@ void tStreamMeander::MakeReaches( double ctime)
 {
       //NOTE****!!! the zero param below should be replaced with current time,
       // which needs to be passed to Migrate, etc....TODO --DONE!
-   //cout<<"tStreamMeander::MakeReaches"<<endl;
+   //cout<<"tStreamMeander::MakeReaches"<<endl<<flush;
    netPtr->UpdateNet( ctime ); //first update the net
    do
    {
