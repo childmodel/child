@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.47 2003-05-15 16:06:26 childcvs Exp $
+**  $Id: meshElements.h,v 1.48 2003-05-16 13:05:30 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -240,7 +240,7 @@ public:
   double CalcSlope();                // computes & sets slope
   void setCCWEdg( tEdge * edg );     // sets ptr to counter-clockwise neighbor
   void setCWEdg( tEdge * edg );
-  void setRVtx( tArray< double > );  // sets coords of Voronoi vertex RH tri
+  void setRVtx( tArray< double > const &);  // sets coords of Voronoi vertex RH tri
   void setVEdgLen( double ); // sets length of corresponding Voronoi edge
   double CalcVEdgLen();      // computes, sets & returns length of V cell edg
   tEdge * FindComplement();  // returns ptr to edge's complement
@@ -889,9 +889,8 @@ inline void tEdge::setCWEdg( tEdge * edg )
   cwedg = edg;
 }
 
-inline void tEdge::setRVtx( tArray< double > arr )
+inline void tEdge::setRVtx( tArray< double > const & arr )
 {
-   assert( &arr != 0 );
    assert( arr.getSize() == 2 );
    if (0)//DEBUG
      cout << "setRVtx for edge " << id
