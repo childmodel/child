@@ -26,6 +26,7 @@ class ReadChildData {
   void AllocateNodes();
   void AllocateTriangles();
   void AllocateData(bool inZ);
+  void CopyZinData();
 
   size_t nnodes_;
   size_t ntri_;

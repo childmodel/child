@@ -182,10 +182,14 @@ bool ReadChildData::LoadData(const char* basename, const int nStep,
   }
 
   // data
-  strcpy(filename.ptr(),basename);
-  strcat(filename.ptr(),SuffixVariable[TypeVariable]);
-  if (!ReadData(filename.c_str(), nStep, TypeVariable, false))
-    goto fail;
+  if (TypeVariable == v_z){
+    CopyZinData();
+  } else {
+    strcpy(filename.ptr(),basename);
+    strcat(filename.ptr(),SuffixVariable[TypeVariable]);
+    if (!ReadData(filename.c_str(), nStep, TypeVariable, false))
+      goto fail;
+  }
 
   return true;
  fail:
@@ -237,6 +241,14 @@ int skipRecords(ifstream& file, const int nStep, const char* filename){
   if (righttime) 
     return 0;
   return -1;
+}
+
+void ReadChildData::CopyZinData(){
+  AllocateData(false);
+  for(size_t i=0; i != nnodes_; ++i){
+    data[i] = z[i];
+  }
+
 }
 
 bool ReadChildData::ReadNodes(const char* filename, const int nStep){
