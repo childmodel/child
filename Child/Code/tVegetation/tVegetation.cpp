@@ -1,6 +1,7 @@
-/**************************************************************************\
-**
-**  tVegetation.cpp: Functions for tVegetation and tVegCover classes
+/**************************************************************************/
+/**
+**  @file tVegetation.cpp
+**  @brief Functions for tVegetation and tVegCover classes
 **
 **  Classes tVegetation and tVegCover represents the vegetation cover
 **  across a terrain. Class tVegCover represents the properties of
@@ -12,8 +13,9 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.cpp,v 1.7 2003-01-17 11:33:49 childcvs Exp $
-\**************************************************************************/
+**  $Id: tVegetation.cpp,v 1.8 2003-01-17 17:30:49 childcvs Exp $
+*/
+/**************************************************************************/
 
 #include "../tAssert.h"
 #include "tVegetation.h"

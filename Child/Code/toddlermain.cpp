@@ -1,5 +1,5 @@
-/**************************************************************************\
-**
+/**************************************************************************/
+/**
 **       TODDLER: Slimmed-down version of CHILD without Vegetation,
 **                Stream Meandering, or mesh densification.
 **
@@ -14,9 +14,10 @@
 **      and Environmental Engineering, Massachusetts Institute of
 **      Technology, Cambridge, MA, USA.
 **
-**  MAIN.CPP -- This file contains the main() routine that handles
-**              top-level initialization and implements the main
-**              time-loop.
+**  @file toddlermain.cpp
+**  @brief This file contains the main() routine that handles
+**         top-level initialization and implements the main
+**         time-loop.
 **
 **  NOTE: This source code is copyrighted material. It is distributed
 **        solely for noncommercial research and educational purposes
@@ -34,8 +35,9 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.8 2002-11-29 15:39:14 childcvs Exp $
-\**************************************************************************/
+**  $Id: toddlermain.cpp,v 1.9 2003-01-17 17:30:19 childcvs Exp $
+*/
+/**************************************************************************/
 
 /* set traps for some floating point exceptions on Linux */
 #include "trapfpe.h"

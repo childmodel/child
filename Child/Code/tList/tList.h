@@ -1,8 +1,9 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-**
-**  tList.h: Header file for classes tList, tListNode, and tListIter.
+/**************************************************************************/
+/**
+**  @file tList.h
+**  @brief Header file for classes tList, tListNode, and tListIter.
 **
 **  A tList is an object that implements a general linked list NodeType
 **  objects, where NodeType can be any type (double, int, other objects,
@@ -32,8 +33,9 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.34 2002-09-06 16:42:52 arnaud Exp $
-\**************************************************************************/
+**  $Id: tList.h,v 1.35 2003-01-17 17:30:31 childcvs Exp $
+*/
+/**************************************************************************/
 
 #ifndef TLIST_H
 #define TLIST_H
@@ -43,8 +45,9 @@ template< class NodeType > class tListIter;
 template< class NodeType > class tMeshList;
 template< class NodeType > class tMeshListIter;
 
-/**************************************************************************\
-** class tListNode ********************************************************
+/**************************************************************************/
+/**
+** @class tListNode
 **
 ** Class tListNode represents the items (or "nodes") on the list. Each
 ** tListNode object has two parts: the data (of type NodeType) and a
@@ -53,7 +56,8 @@ template< class NodeType > class tMeshListIter;
 ** returning a pointer or reference to either the data or the tListNode
 ** itself, and assignment and equality/inequality operations.
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 template< class NodeType >
 class tListNode
 {
@@ -244,13 +248,15 @@ inline const tListNode< NodeType > *tListNode< NodeType >::
 getPrev() const {return prev;}
 
 
-/**************************************************************************\
-** class tList ************************************************************
+/**************************************************************************/
+/**
+** @class tList
 **
 ** Class tList implements a linked list. The class includes pointers to
 ** the first, last, and current list nodes (see tListNode).
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 template< class NodeType >
 class tList
 {
@@ -968,8 +974,9 @@ DebugTellPtrs()
 
 
 
-/**************************************************************************\
-** class tListIter *********************************************************
+/**************************************************************************/
+/**
+** @class tListIter
 **
 ** Helper class for tList. tListIters are "iterators" that walk up and
 ** down a tList, fetching items. Their chief advantage is that you can
@@ -982,7 +989,8 @@ DebugTellPtrs()
 ** getID. This restricts the generality of tList, and should be moved
 ** to tMeshList. (TODO)
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 //TO DO: make Get, Where, GetP, refer to place in list rather than use getID()
 template< class NodeType >
 class tListIter

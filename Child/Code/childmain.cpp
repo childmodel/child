@@ -1,5 +1,5 @@
-/**************************************************************************\
-**
+/**************************************************************************/
+/**
 **                            C H I L D
 **
 **       CHANNEL-HILLSLOPE INTEGRATED LANDSCAPE DEVELOPMENT MODEL
@@ -10,9 +10,10 @@
 **      Nicole M. Gasparini, and Rafael L. Bras
 **
 **
-**  CHILDMAIN.CPP -- This file contains the main() routine that handles
-**              top-level initialization and implements the main
-**              time-loop.
+**  @file   childmain.cpp
+**  @brief  This file contains the main() routine that handles
+**          top-level initialization and implements the main
+**          time-loop.
 **
 **  NOTE: This source code is copyrighted material. It is distributed
 **        solely for noncommercial research and educational purposes
@@ -30,8 +31,9 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.3 2002-11-29 15:39:13 childcvs Exp $
-\**************************************************************************/
+**  $Id: childmain.cpp,v 1.4 2003-01-17 17:30:18 childcvs Exp $
+*/
+/**************************************************************************/
 
 /* set traps for some floating point exceptions on Linux */
 #include "trapfpe.h"

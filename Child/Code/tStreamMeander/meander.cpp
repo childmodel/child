@@ -1,6 +1,12 @@
-/* meander.c -- translated by f2c (version 20020621).
-   Arnaud Desitter -- massaged somewhat to removed f2c dependencies.
+/**************************************************************************/
+/**
+**  @file
+**  @brief definition of meander_
+**
+** translated by f2c (version 20020621).
+**   Arnaud Desitter -- massaged somewhat to removed f2c dependencies.
 */
+/**************************************************************************/
 
 #include <math.h>
 #include <stdlib.h>
@@ -118,7 +124,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.5 2002-11-04 17:36:52 childcvs Exp $ */
+/*     $Id: meander.cpp,v 1.6 2003-01-17 17:30:44 childcvs Exp $ */
 
 void meander_(const integer *stations, const integer *stnserod, 
 	      const doublereal *x, const doublereal *y,

@@ -1,6 +1,7 @@
-/*************************************************************************\
-**
-**  tMatrix.h:  Header file for class tMatrix.
+/*************************************************************************/
+/**
+**  @file tMatrix.cpp
+**  @brief Definition of class tMatrix.
 **
 **  Class tMatrix implements matrices (2D arrays) as 1D arrays of tArray
 **  objects. The () operator is overloaded so that you can access array
@@ -8,8 +9,9 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.cpp,v 1.2 2002-04-30 17:17:26 arnaud Exp $
-\*************************************************************************/
+**  $Id: tMatrix.cpp,v 1.3 2003-01-17 17:30:34 childcvs Exp $
+*/
+/*************************************************************************/
 
 #include "tMatrix.h"
 

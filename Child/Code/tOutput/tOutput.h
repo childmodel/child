@@ -1,8 +1,9 @@
 //-*-c++-*- 
 
-/*************************************************************************\
-**
-**  tOutput.h: Header file for classes tOutput and tLOutput
+/*************************************************************************/
+/**
+**  @file tOutput.h
+**  @brief Header file for classes tOutput and tLOutput
 **
 **  The tOutput class handles output of triangulated mesh data to
 **  files. The class handles only output of mesh data (nodes,
@@ -28,8 +29,9 @@
 **    - 6/01: GT added chanwidthofs for output of channel widths
 **      (only when non-regime hydraulic geometry model used)
 **
-**  $Id: tOutput.h,v 1.32 2002-12-12 13:50:26 childcvs Exp $
-\*************************************************************************/
+**  $Id: tOutput.h,v 1.33 2003-01-17 17:30:40 childcvs Exp $
+*/
+/*************************************************************************/
 
 #ifndef TOUTPUT_H
 #define TOUTPUT_H
@@ -50,8 +52,9 @@ using namespace std;
 
 #define kMaxNameSize 80
 
-/**************************************************************************\
-** class tOutput **********************************************************
+/**************************************************************************/
+/**
+** @class tOutput
 **
 ** Class tOutput handles output of mesh data (nodes, edges, and
 ** triangles). The constructor opens and initializes the files;
@@ -63,7 +66,8 @@ using namespace std;
 **  - WriteNodeData and CreateAndOpenFile could be protected rather
 **    than public.
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 template< class tSubNode >
 class tOutput
 {
@@ -93,8 +97,9 @@ protected:
 };
 
 
-/**************************************************************************\
-** class tLOutput *********************************************************
+/**************************************************************************/
+/**
+** @class tLOutput
 **
 ** Class tLOutput handles application-specific data for the CHILD model.
 ** The constructor creates additional output files, and the overloaded
@@ -105,7 +110,8 @@ protected:
 **  - 2/02 added output streams tauofs and qsofs for shear stress and
 **    sed flux, resp. (GT)
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 template< class tSubNode >
 class tLOutput : public tOutput<tSubNode>
 {

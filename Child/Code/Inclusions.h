@@ -1,6 +1,13 @@
 //-*-c++-*- 
 
-// Master list of included files for CHILD model
+/****************************************************************************/
+/**
+**   @file Inclusions.h
+**   @brief Master list of included files for CHILD model
+**
+**   $Id: Inclusions.h,v 1.6 2003-01-17 17:30:18 childcvs Exp $
+*/
+/****************************************************************************/
 
 #ifndef INCLUSIONS_H
 #define INCLUSIONS_H

@@ -1,8 +1,9 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-**
-**  tListInputData.h: header file for class tListInputData
+/**************************************************************************/
+/**
+**  @file tListInputData.h
+**  @brief header file for class tListInputData
 **
 **  This class is used to read in lists of Delaunay-triangulated
 **  mesh elements from three user-provided input files, which contain
@@ -15,8 +16,9 @@
 **     to avoid multiple definition errors resulting from mixing
 **     template & non-template classes (1/99)
 **
-**  $Id: tListInputData.h,v 1.14 2002-12-12 13:50:23 childcvs Exp $
-\**************************************************************************/
+**  $Id: tListInputData.h,v 1.15 2003-01-17 17:30:33 childcvs Exp $
+*/
+/**************************************************************************/
 
 #ifndef TLISTINPUTDATA_H
 #define TLISTINPUTDATA_H
@@ -32,8 +34,9 @@
 #define kTimeLineMark ' '
 
 
-/**************************************************************************\
-**** class tListInputData *************************************************
+/**************************************************************************/
+/**
+**  @class tListInputData
 **
 **  tListInputData reads an established triangulation from a set of four
 **  files, and stores the data in a series of arrays. The files are:
@@ -109,7 +112,8 @@
 **  Note that the class is templated only because of its friendship with 
 **  tMesh.
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 template< class tSubNode >
 class tListInputData
 {

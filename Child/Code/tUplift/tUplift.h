@@ -1,8 +1,9 @@
 //-*-c++-*- 
 
-/************************************************************************\
-**
-**  tUplift.h:  Header file for tUplift objects.
+/************************************************************************/
+/**
+**  @file tUplift.h
+**  @brief Header file for tUplift objects.
 **
 **  tUplift objects manage data and functions related to all types of
 **  deformation and baselevel (including sea level) change. Thus, the
@@ -23,8 +24,9 @@
 **  Major modifications:
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **
-**  $Id: tUplift.h,v 1.13 2002-09-23 12:10:44 arnaud Exp $
-\************************************************************************/
+**  $Id: tUplift.h,v 1.14 2003-01-17 17:30:49 childcvs Exp $
+*/
+/************************************************************************/
 
 #ifndef TUPLIFT_H
 #define TUPLIFT_H

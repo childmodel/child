@@ -1,9 +1,11 @@
-/************************************************************************\
+/************************************************************************/
+/**
+**  @file tUplift.cpp
+**  @brief Functions for class tUplift (see tUplift.h).
 **
-**  tUplift.cpp: Functions for class tUplift (see tUplift.h).
-**
-**  $Id: tUplift.cpp,v 1.11 2002-04-10 16:13:31 gtucker Exp $
-\************************************************************************/
+**  $Id: tUplift.cpp,v 1.12 2003-01-17 17:30:49 childcvs Exp $
+*/
+/************************************************************************/
 
 #include "tUplift.h"
 #include "../errors/errors.h"

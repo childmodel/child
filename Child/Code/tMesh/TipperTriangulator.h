@@ -1,5 +1,12 @@
 //-*-c++-*- 
 
+/***************************************************************************/
+/**
+**  @file
+**  @brief definitions for Tipper triangulation
+*/
+/***************************************************************************/
+
 #if !defined(HAVE_NO_NAMESPACE)
 # include <fstream>
 using namespace std;

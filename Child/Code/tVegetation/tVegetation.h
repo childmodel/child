@@ -1,8 +1,9 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-**
-**  tVegetation.h: Header file for the tVegetation and tVegCover classes
+/**************************************************************************/
+/**
+**  @file tVegetation.h
+**  @brief Header file for the tVegetation and tVegCover classes
 **
 **  Classes tVegetation and tVegCover represents the vegetation cover
 **  across a terrain. Class tVegCover represents the properties of
@@ -23,8 +24,9 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.h,v 1.8 2002-07-08 17:21:52 arnaud Exp $
-\**************************************************************************/
+**  $Id: tVegetation.h,v 1.9 2003-01-17 17:30:50 childcvs Exp $
+*/
+/**************************************************************************/
 
 #ifndef TVEGETATION_H
 #define TVEGETATION_H

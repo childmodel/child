@@ -1,7 +1,10 @@
 #ifndef TEMPLATE_MODEL_H
 #define TEMPLATE_MODEL_H
 
-// Model used for template organisation
+/**
+   @file
+   @brief Model used for template organisation
+*/
 
 // Either, we put all code in headers or we keep the code definition
 // in .cpp files with the same name as the corresponding .h file.

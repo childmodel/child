@@ -1,10 +1,13 @@
 //-*-c++-*- 
 
-/****************************************************************************\
-**   Definitions.h: Header file for defining global constants
+/****************************************************************************/
+/**
+**   @file Definitions.h
+**   @brief Header file for defining global constants
 **
-**   $Id: Definitions.h,v 1.31 2002-12-12 14:04:51 childcvs Exp $
-\****************************************************************************/
+**   $Id: Definitions.h,v 1.32 2003-01-17 17:30:17 childcvs Exp $
+*/
+/****************************************************************************/
 
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H

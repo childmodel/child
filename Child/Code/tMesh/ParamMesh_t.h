@@ -1,6 +1,16 @@
 //-*-c++-*- 
 
-// Parameters read in Input File
+/***************************************************************************/
+/**
+**  @file
+**  @brief declaration of ParamMMFS_t
+*/
+/***************************************************************************/
+
+/**
+   @class ParamMMFS_t
+   @brief Parameters read in Input File for MakeMeshFromScratch
+*/
 class ParamMMFS_t {
 public:
   double xGrid, yGrid;

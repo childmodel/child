@@ -1,11 +1,12 @@
-/******************************************************************\
-**  errors.cpp
-**
-**  Error-handling routines.
+/******************************************************************/
+/**
+**  @file errors.cpp
+**  @brief Error-handling routines.
 **
 **  Created Dec. 97 from earlier routine embedded in child.cpp
-**  $Id: errors.cpp,v 1.4 2002-09-23 12:11:48 arnaud Exp $
-\******************************************************************/
+**  $Id: errors.cpp,v 1.5 2003-01-17 17:30:25 childcvs Exp $
+*/
+/******************************************************************/
 
 #include "errors.h"
 

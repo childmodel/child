@@ -1,7 +1,8 @@
-/***************************************************************************\
-**
-**  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
-**             functions used by tMesh methods (formerly tGrid)
+/***************************************************************************/
+/**
+**  @file tMesh.cpp
+**  @brief Functions for class tMesh (see tMesh.h) plus global
+**         functions used by tMesh methods (formerly tGrid)
 **
 **  Summary of recent changes:
 **    - modified LocateTriangle to implement triangle search
@@ -10,8 +11,9 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.117 2002-12-12 15:54:43 childcvs Exp $
-\***************************************************************************/
+**  $Id: tMesh.cpp,v 1.118 2003-01-17 17:30:37 childcvs Exp $
+*/
+/***************************************************************************/
 
 #include "tMesh.h"
 

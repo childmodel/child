@@ -1,13 +1,15 @@
-/****************************************************************************\
-**
-**  tInputFile.cpp: Member functions for class tInputFile.
+/****************************************************************************/
+/**
+**  @file tInputFile.cpp
+**  @brief Member functions for class tInputFile.
 **
 **  (see tInputFile.h for a description of this class)
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.19 2002-12-12 10:13:34 childcvs Exp $
-\****************************************************************************/
+**  $Id: tInputFile.cpp,v 1.20 2003-01-17 17:30:28 childcvs Exp $
+*/
+/****************************************************************************/
 
 #if !defined(HAVE_NO_NAMESPACE)
 # include <iostream>

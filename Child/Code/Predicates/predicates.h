@@ -1,5 +1,11 @@
 //-*-c++-*- 
 
+/*****************************************************************************/
+/**
+**   @file predicates.h
+**   @brief Routines for Arbitrary Precision Floating-point Arithmetic
+**          and Fast Robust Geometric Predicates
+*/
 //  These functions are added as members of the class Predicates; should
 //  ideally be a namespace, but some compilers, including Sun's, do not
 //  support namespaces yet.
@@ -11,7 +17,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.h,v 1.5 2002-07-08 17:21:50 arnaud Exp $
+//  $Id: predicates.h,v 1.6 2003-01-17 17:30:25 childcvs Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 

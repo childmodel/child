@@ -1,8 +1,9 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-*
-**  tStorm.h: Header for class tStorm
+/**************************************************************************/
+/**
+**  @file tStorm.h
+**  @brief Header for class tStorm
 **
 **  A tStorm object generates random storms assuming an exponential
 **  distribution of rainfall intensity, storm duration, and time to the
@@ -27,8 +28,9 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.20 2002-07-08 17:21:51 arnaud Exp $
-\**************************************************************************/
+**  $Id: tStorm.h,v 1.21 2003-01-17 17:30:43 childcvs Exp $
+*/
+/**************************************************************************/
 
 #ifndef TSTORM_H
 #define TSTORM_H

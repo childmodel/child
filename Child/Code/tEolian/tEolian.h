@@ -1,8 +1,9 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-**
-**  tEolian.h: header file for class tEolian
+/**************************************************************************/
+/**
+**  @file tEolian.h
+**  @brief header file for class tEolian
 **
 **  Loess! Class tEolian is a simple little "process class" that simulates
 **  deposition of wind-borne sediment across the landscape.
@@ -19,8 +20,9 @@
 **
 **  (Created 2/99 by GT)
 **
-**  $Id: tEolian.h,v 1.5 2002-07-08 17:21:50 arnaud Exp $
-\**************************************************************************/
+**  $Id: tEolian.h,v 1.6 2003-01-17 17:30:27 childcvs Exp $
+*/
+/**************************************************************************/
 
 #ifndef TEOLIAN_H
 #define TEOLIAN_H
@@ -32,15 +34,17 @@
 #include "../tInputFile/tInputFile.h"
 
 
-/**************************************************************************\
-**** class tEolian ********************************************************
+/**************************************************************************/
+/**
+**  @class tEolian
 **
 **  Class tEolian contains two parameters: the loess deposition rate,
 **  and an array of deposition depths for each grain size fraction.
 **  All but the first (assumed to be the finest) size-fractions are
 **  initialized to zero and never changed.
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 class tEolian
 {
 public:

@@ -1,11 +1,11 @@
-/**************************************************************************\
+/**************************************************************************/
+/**
+**  @file tStreamMeander.cpp
+**  @brief Functions for class tStreamMeander.
 **
-**  tStreamMeander.cpp
-**
-**  Functions for class tStreamMeander.
-**
-**  $Id: tStreamMeander.cpp,v 1.73 2002-11-13 14:30:07 childcvs Exp $
-\**************************************************************************/
+**  $Id: tStreamMeander.cpp,v 1.74 2003-01-17 17:30:45 childcvs Exp $
+*/
+/**************************************************************************/
 
 #include "tStreamMeander.h"
 #define kBugTime 5000000

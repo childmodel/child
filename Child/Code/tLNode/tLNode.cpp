@@ -1,8 +1,7 @@
-/**************************************************************************\
-**
-**  tLNode.cpp
-**
-**  Functions for derived class tLNode and its member classes
+/**************************************************************************/
+/**
+**  @file tLNode.cpp
+**  @brief Functions for derived class tLNode and its member classes
 **
 **  Modifications:
 **    - changes related to addition of Vegetation module (GT 1/2000):
@@ -14,8 +13,9 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.98 2002-08-13 14:16:58 gtucker Exp $
-\**************************************************************************/
+**  $Id: tLNode.cpp,v 1.99 2003-01-17 17:30:28 childcvs Exp $
+*/
+/**************************************************************************/
 
 #include "../tAssert.h"
 #include <math.h>

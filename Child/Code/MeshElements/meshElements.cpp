@@ -1,7 +1,8 @@
-/**************************************************************************\
-**
-**  meshElements.cpp: Functions for mesh element classes tNode, tEdge, and
-**                    tTriangle. (formerly called gridElements.cpp)
+/**************************************************************************/
+/**
+**  @file meshElements.cpp
+**  @brief Functions for mesh element classes tNode, tEdge, and
+**         tTriangle. (formerly called gridElements.cpp)
 **
 **  For a description of these 3 classes, see meshElements.h.
 **
@@ -16,8 +17,9 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.44 2002-12-12 15:54:42 childcvs Exp $
-\**************************************************************************/
+**  $Id: meshElements.cpp,v 1.45 2003-01-17 17:30:22 childcvs Exp $
+*/
+/**************************************************************************/
 
 #include "../tAssert.h"
 #include "meshElements.h"

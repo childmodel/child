@@ -1,16 +1,18 @@
 //-*-c++-*- 
 
-/***************************************************************************\
-**
-**  tRunTimer.h: Header for tRunTimer objects.
+/***************************************************************************/
+/**
+**  @file tRunTimer.h
+**  @brief Header for tRunTimer objects.
 **
 **  tRunTimer objects are used to keep track of time in a time-evolving
 **  simulation model. Their services include keeping track of when it's
 **  time to write output, printing the current time to standard output if
 **  desired, and writing the current time to a file every so often.
 **
-**  $Id: tRunTimer.h,v 1.8 2002-07-08 17:21:51 arnaud Exp $
-\***************************************************************************/
+**  $Id: tRunTimer.h,v 1.9 2003-01-17 17:30:43 childcvs Exp $
+*/
+/***************************************************************************/
 
 #ifndef TRUNTIMER_H
 #define TRUNTIMER_H

@@ -1,10 +1,9 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-**
-**  tMeshList.h
-**
-**  Header file for derived classes tMeshList and tMeshListIter.
+/**************************************************************************/
+/**
+**  @file tMeshList.h
+**  @brief Header file for derived classes tMeshList and tMeshListIter.
 **
 **  A tMeshList is derived from the generic linked list class tList.
 **  It is used in CHILD to store lists of mesh elements (nodes and edges),
@@ -31,8 +30,9 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.14 2002-09-06 16:42:52 arnaud Exp $
-\**************************************************************************/
+**  $Id: tMeshList.h,v 1.15 2003-01-17 17:30:40 childcvs Exp $
+*/
+/**************************************************************************/
 
 #ifndef TMESHLIST_H
 #define TMESHLIST_H
@@ -41,14 +41,16 @@
 #include "../tList/tList.h"
 #include "../tAssert.h"
 
-/**************************************************************************\
-** class tMeshList ********************************************************
+/**************************************************************************/
+/**
+** @class tMeshList
 **
 ** Class tMeshList implements a linked list that is divided into two
 ** parts, an "active" (front) and "inactive" (back) part. It is derived
 ** from tList.
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 template< class NodeType >
 class tMeshList : public tList< NodeType >
 {
@@ -575,8 +577,9 @@ InActiveList( tListNode< NodeType > * theNode )
    
 }
 
-/**************************************************************************\
-** class tMeshListIter *****************************************************
+/**************************************************************************/
+/**
+** @class tMeshListIter
 **
 ** Helper class for tMeshList, derived from tListIter ("iterators" that
 ** walk up and down a tList, fetching items -- see tList.h/.cpp). 
@@ -585,7 +588,8 @@ InActiveList( tListNode< NodeType > * theNode )
 ** items, and to indicate whether it is on currently on the active portion
 ** of the list.
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 template< class NodeType >
 class tMeshListIter
                 : public tListIter< NodeType >

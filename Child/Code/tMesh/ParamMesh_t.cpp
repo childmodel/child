@@ -1,4 +1,11 @@
 
+/***************************************************************************/
+/**
+**  @file
+**  @brief definition of ParamMMFS_t
+*/
+/***************************************************************************/
+
 #include <math.h>
 #include "../tListInputData/tListInputData.h"
 #include "ParamMesh_t.h"

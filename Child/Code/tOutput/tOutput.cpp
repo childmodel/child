@@ -1,6 +1,7 @@
-/*************************************************************************\
-**
-**  tOutput.cpp: Functions for output classes tOutput and tLOutput
+/*************************************************************************/
+/**
+**  @file tOutput.cpp
+**  @brief Functions for output classes tOutput and tLOutput
 **
 **  (see tOutput.h for a description of these classes)
 **
@@ -9,8 +10,9 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.58 2002-09-16 13:13:52 arnaud Exp $
-\*************************************************************************/
+**  $Id: tOutput.cpp,v 1.59 2003-01-17 17:30:40 childcvs Exp $
+*/
+/*************************************************************************/
 
 #include <math.h>    // For fmod function
 #include "tOutput.h"

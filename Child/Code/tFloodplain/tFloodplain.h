@@ -1,9 +1,10 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-**
-**  tFloodplain.h: header file for class tFloodplain and its helper class
-**                 tFloodNode.
+/**************************************************************************/
+/**
+**  @file tFloodplain.h
+**  @brief header file for class tFloodplain and its helper class
+**         tFloodNode.
 **
 **  Class tFloodplain simulates overbank deposition in the CHILD model,
 **  using a modified version of Howard's (1996) diffusive overbank
@@ -17,8 +18,9 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.7 2002-07-08 17:21:50 arnaud Exp $
-\**************************************************************************/
+**  $Id: tFloodplain.h,v 1.8 2003-01-17 17:30:27 childcvs Exp $
+*/
+/**************************************************************************/
 
 #ifndef TFLOODPLAIN_H
 #define TFLOODPLAIN_H
@@ -32,8 +34,9 @@
 #define kVeryFar 1.0e12
 
 
-/**************************************************************************\
-**** class tFloodplain ****************************************************
+/**************************************************************************/
+/**
+**  @class tFloodplain
 **
 **  Class tFloodplain contains the parameters for the modified Howard
 **  floodplain deposition model, as well as a constructor to read in
@@ -45,7 +48,8 @@
 **              (could be a local var but this saves having to reinit
 **              it with every call to tFloodplain)
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 class tFloodplain
 {
   tFloodplain(const tFloodplain&);
@@ -67,13 +71,15 @@ private:
 };
 
 
-/**************************************************************************\
-**** class tFloodNode *****************************************************
+/**************************************************************************/
+/**
+**  @class tFloodNode
 **
 **  Basically just a data record used to construct a list of flood nodes.
 **  Contains a pointer to the node and the water surface height.
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 class tFloodNode
 {
     friend class tFloodplain;

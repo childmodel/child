@@ -1,10 +1,10 @@
 //-*-c++-*- 
 
-/***************************************************************************\
-**
-**  erosion.h
-**
-**  Header file for objects related to sediment transport and detachment.
+/***************************************************************************/
+/**
+**  @file erosion.h
+**  @brief Header file for objects related to sediment transport and
+**         detachment.
 **
 **  This file includes a group of sediment transport objects (tSedTransX)
 **  and bed material (bedrock, cohesive sediment, vegetation-covered
@@ -59,8 +59,9 @@
 **     - Added codes to go along with erosion & transport options, to
 **       enable checking against user-specified options (GT 7/02)
 **
-**  $Id: erosion.h,v 1.44 2002-09-12 13:23:41 arnaud Exp $
-\***************************************************************************/
+**  $Id: erosion.h,v 1.45 2003-01-17 17:30:21 childcvs Exp $
+*/
+/***************************************************************************/
 
 #ifndef EROSION_H
 #define EROSION_H
@@ -137,8 +138,9 @@ char const * const DetachmentLaw[] =
 const int NUMBER_OF_DETACHMENT_LAWS =
 sizeof(DetachmentLaw)/sizeof(DetachmentLaw[0]);
 
-/***************************************************************************\
-**  class tEquilibCheck
+/***************************************************************************/
+/*
+**  @class tEquilibCheck
 **
 **  Enables dynamic equilibrium checking, both short- and a specified long-
 **  term. The idea is to find the rate of total volume change over the mesh.
@@ -147,7 +149,8 @@ sizeof(DetachmentLaw)/sizeof(DetachmentLaw[0]);
 **
 **  Needs to look at the mesh; can either make it a template or just use
 **  the mesh of tLNodes. Do the latter...
-\***************************************************************************/
+*/
+/***************************************************************************/
 class tEquilibCheck
 {
   tEquilibCheck(const tEquilibCheck&);
@@ -182,11 +185,13 @@ private:
     double shortRate;
 };
 
-/***************************************************************************\
-**  class tSedTrans
+/***************************************************************************/
+/**
+**  @class tSedTrans
 **
 **  Abstract Base Class for transport law
-\***************************************************************************/
+*/
+/***************************************************************************/
 class tSedTrans
 {
   public:
@@ -195,14 +200,16 @@ class tSedTrans
    virtual double TransCapacity( tLNode *n, int i, double weight) = 0;
 };
 
-/***************************************************************************\
-**  class tSedTransPwrLaw
+/***************************************************************************/
+/**
+**  @class tSedTransPwrLaw
 **
 **  Manages data and routines to compute sediment transport capacity as a
 **  simple power function of slope and total discharge (channel width and
 **  flow depth are implicit in the power-law derivation):
 **    Qs = kf ( tau - tauc ) ^ pf,   tau = kt (Q/W)^mb S^nf
-\***************************************************************************/
+*/
+/***************************************************************************/
 class tSedTransPwrLaw : public tSedTrans
 {
   public:
@@ -219,14 +226,16 @@ class tSedTransPwrLaw : public tSedTrans
    double tauc; // Entrainment threshold
 };
 
-/***************************************************************************\
-**  class tSedTransPwrLaw2
+/***************************************************************************/
+/**
+**  @class tSedTransPwrLaw2
 **
 **  Manages data and routines to compute sediment transport capacity as a
 **  simple power function of slope and total discharge (channel width and
 **  flow depth are implicit in the power-law derivation):
 **    Qs = kf ( tau^pf - tauc^pf ),  tau = kt (Q/W)^mf S^nf
-\***************************************************************************/
+*/
+/***************************************************************************/
 class tSedTransPwrLaw2 : public tSedTrans
 {
   public:
@@ -244,14 +253,16 @@ class tSedTransPwrLaw2 : public tSedTrans
 };
 
 
-/***************************************************************************\
-**  class tSedTransBridgeDom
+/***************************************************************************/
+/**
+**  @class tSedTransBridgeDom
 **
 **  Manages data and routines to compute sediment transport capacity 
 **  using the Bridge and Dominic (1984) version of the Bagnold bedload
 **  transport formula.
 **
-\***************************************************************************/
+*/
+/***************************************************************************/
 class tSedTransBridgeDom : public tSedTrans
 {
   public:
@@ -269,15 +280,17 @@ class tSedTransBridgeDom : public tSedTrans
 };
 
 
-/***************************************************************************\
-**  class tSedTransPwrLawMulti
+/***************************************************************************/
+/**
+**  @class tSedTransPwrLawMulti
 **
 **  Manages data and routines to compute sediment transport capacity for
 **  multiple grain size fractions, using an excess shear stress formulation
 **  a la Meyer-Peter & Mueller. Uses Komar-style hiding & protrusion
 **  function.
 **
-\***************************************************************************/
+*/
+/***************************************************************************/
 class tSedTransPwrLawMulti : public tSedTrans
 {
   public:
@@ -298,13 +311,15 @@ class tSedTransPwrLawMulti : public tSedTrans
 };
 
 
-/**************************************************************************\
-**  class tSedTransWilcock
+/**************************************************************************/
+/**
+**  @class tSedTransWilcock
 **
 **  Manages data and routines to compute sediment transport capacity
 **  of a sand a gravel class (two grain sizes) using the sediment transport
 **  formula and critical shear stress rules developed by P. Wilcock (1997)
-\**************************************************************************/
+*/
+/**************************************************************************/
 class tSedTransWilcock : public tSedTrans
 {
 public:
@@ -329,17 +344,19 @@ private:
    
 };
 
-/************************************************************************\
- ** class tSedTransMineTailings
- **
- ** Manages data and routines to compute sediment transport capacity
- ** using the parameters and equation from Willgoose and Riley (1998).
- ** This study was performed on mine tailings in an Australian Uranium 
- ** mine.  Don't have a critical shear stress method, so just use that of
- ** of Wilcock for sand and gravel.
- **
- ** added 04/2000 ng
- \************************************************************************/
+/************************************************************************/
+/**
+** @class tSedTransMineTailings
+**
+** Manages data and routines to compute sediment transport capacity
+** using the parameters and equation from Willgoose and Riley (1998).
+** This study was performed on mine tailings in an Australian Uranium 
+** mine.  Don't have a critical shear stress method, so just use that of
+** of Wilcock for sand and gravel.
+**
+** added 04/2000 ng
+*/
+/************************************************************************/
 class tSedTransMineTailings : public tSedTrans
 {
 public:
@@ -365,11 +382,13 @@ private:
    
 };
 
-/***************************************************************************\
-**  clas tBedErode
+/***************************************************************************/
+/**
+**  @class tBedErode
 **
 **  Abstract Base Class for detachment law
-\***************************************************************************/
+*/
+/***************************************************************************/
 class tBedErode
 {
   public:
@@ -383,15 +402,18 @@ class tBedErode
      //Returns an estimate of maximum stable & accurate time step size
    virtual double SetTimeStep( tLNode * n ) = 0 ;
 };
-/***************************************************************************\
-**  class tBedErodePwrLaw
+
+/***************************************************************************/
+/**
+**  @class tBedErodePwrLaw
 **
 **  Assumes bedrock detachment proportional to a power function of slope
 **  and total discharge. Regolith is considered infinitely detachable, so
 **  that the total detachable depth of material over a duration dt is
 **  equal to the thickness of any regolith (alluvium) present plus
 **    Dc = kb Q^mb S^nb dt
-\***************************************************************************/
+*/
+/***************************************************************************/
 class tBedErodePwrLaw : public tBedErode
 {
   public:
@@ -416,8 +438,9 @@ class tBedErodePwrLaw : public tBedErode
 };
 
 
-/***************************************************************************\
-**  class tBedErodePwrLaw2
+/***************************************************************************/
+/**
+**  @class tBedErodePwrLaw2
 **
 **  This is a variation of tBedErodePwrLaw that differs in the following
 **  respect:
@@ -429,7 +452,8 @@ class tBedErodePwrLaw : public tBedErode
 **
 **  Created: April 2002 (GT)
 **
-\***************************************************************************/
+*/
+/***************************************************************************/
 class tBedErodePwrLaw2 : public tBedErode
 {
   public:
@@ -454,14 +478,16 @@ class tBedErodePwrLaw2 : public tBedErode
 };
 
 
-/***************************************************************************\
-**  class tErosion
+/***************************************************************************/
+/**
+**  @class tErosion
 **
 **  Manages data and routines related to various aspects of erosion.
 **
 **  (class added by gt 3/98; routines were previously collected under
 **  tStreamNet).
-\***************************************************************************/
+*/
+/***************************************************************************/
 class tErosion
 {
   tErosion(const tErosion&);

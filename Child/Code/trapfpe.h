@@ -1,7 +1,14 @@
-/* Enable traps on invalid, div/0 and overflow exception  *
- * This code is specific to glibc 2.2 and later.          *
- * Use before any other declaration otherwise _GNU_SOURCE *
- * will be overridden. Link with -lm.                     */
+/***************************************************************************/
+/**
+**  @file
+**  @brief Enable flaoting point traps on Linux
+**
+** Enable traps on invalid, div/0 and overflow exception
+** This code is specific to glibc 2.2 and later.
+** Use before any other declaration otherwise _GNU_SOURCE
+** will be overridden. Link with -lm.
+*/
+/***************************************************************************/
 
 #define _GNU_SOURCE 1
 /* to import __GLIBC__ */

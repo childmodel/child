@@ -1,6 +1,7 @@
-/***************************************************************************\
-**
-**  tRunTimer.cpp: functions for tRunTimer objects.
+/***************************************************************************/
+/**
+**  @file tRunTimer.cpp
+**  @brief functions for tRunTimer objects.
 **
 **  tRunTimer objects are used to keep track of time in a time-evolving
 **  simulation model. Their services include keeping track of when it's
@@ -13,8 +14,9 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.19 2002-09-23 12:11:51 arnaud Exp $
-\***************************************************************************/
+**  $Id: tRunTimer.cpp,v 1.20 2003-01-17 17:30:43 childcvs Exp $
+*/
+/***************************************************************************/
 
 #if !defined(HAVE_NO_NAMESPACE)
 # include <iostream>

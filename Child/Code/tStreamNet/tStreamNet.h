@@ -1,9 +1,9 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-**
-**  tStreamNet.h: Header file for class tStreamNet and related class
-**                tInlet.
+/**************************************************************************/
+/**
+**  @file tStreamNet.h
+**  @brief Header file for class tStreamNet and related class tInlet.
 **
 **  The tStreamNet class contains data and functions related to flow 
 **  routing across the landscape surface. Data include hydrologic
@@ -26,8 +26,9 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.37 2002-07-08 17:21:52 arnaud Exp $
-\**************************************************************************/
+**  $Id: tStreamNet.h,v 1.38 2003-01-17 17:30:48 childcvs Exp $
+*/
+/**************************************************************************/
 
 #ifndef TSTREAMNET_H
 #define TSTREAMNET_H
@@ -68,15 +69,17 @@ double DistanceToLine( double x2, double y2, double a, double b, double c );
 double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 );
 
 
-/**************************************************************************\
-** class tInlet ************************************************************
+/**************************************************************************/
+/**
+** @class tInlet
 **
 ** A tInlet represents a point source of water and sediment, normally at
 ** one side of a computational mesh. Each tInlet maintains a pointer to
 ** the inlet node, a pointer to the mesh object, and values of drainage
 ** area, total sediment load, and sediment load by grain size.
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 class tInlet
 {
     friend class tStreamNet;
@@ -106,8 +109,9 @@ private:
 };
 
 
-/**************************************************************************\
-**  Class tParkerChannels  *************************************************
+/**************************************************************************/
+/**
+**  @class tParkerChannels
 **
 **  A "Parker Channel" is one that obeys the Parker-Paola self-formed
 **  channel hypothesis for gravel-bed streams. The hypothesis states
@@ -148,8 +152,8 @@ private:
 **
 **  Modifications:
 **  
-**
-\**************************************************************************/
+*/
+/**************************************************************************/
 class tParkerChannels
 {
  public:
@@ -164,8 +168,9 @@ class tParkerChannels
 };
 						      
 
-/**************************************************************************\
-**  Class tStreamNet  ******************************************************
+/**************************************************************************/
+/**
+**  @class tStreamNet
 **
 **  The tStreamNet class handles routing of water across a landscape
 **  surface, including partitioning of flow into surface and subsurface
@@ -190,7 +195,8 @@ class tParkerChannels
 **     implement alternative "Parker Channels" 
 **     (see new class tParkerChannels)
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 class tStreamNet
 {
     //Xfriend class tStreamTransport;

@@ -1,9 +1,9 @@
-/***************************************************************************\
+/***************************************************************************/
+/**
+**  @file erosion.cpp
+**  @brief Functions for equilibrium checking, sediment transport and 
+**          bed erosion(detachment) objects.
 **
-**  erosion.cpp
-**
-**  Functions for equilibrium checking, sediment transport and bed erosion
-**    (detachment) objects.
 **  Equilibrium check objects:
 **    tEquilibCheck
 **  Transport objects:
@@ -46,8 +46,9 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.109 2002-12-12 14:14:26 childcvs Exp $
-\***************************************************************************/
+**  $Id: erosion.cpp,v 1.110 2003-01-17 17:30:19 childcvs Exp $
+*/
+/***************************************************************************/
 
 #include <math.h>
 #include "../tAssert.h"

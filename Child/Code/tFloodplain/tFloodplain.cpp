@@ -1,7 +1,7 @@
-/**************************************************************************\
-**
-**  tFloodplain.cpp: functions for class tFloodplain and its helper class
-**                   tFloodNode
+/**************************************************************************/
+/**
+**  @file tFloodplain.cpp
+**  @brief functions for class tFloodplain and its helper class tFloodNode
 **
 **  Class tFloodplain simulates overbank deposition in the CHILD model,
 **  using a modified version of Howard's (1996) diffusive overbank
@@ -62,8 +62,9 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.10 2002-04-24 16:48:40 arnaud Exp $
-\**************************************************************************/
+**  $Id: tFloodplain.cpp,v 1.11 2003-01-17 17:30:27 childcvs Exp $
+*/
+/**************************************************************************/
 
 #include "tFloodplain.h"
 

@@ -1,10 +1,9 @@
 //-*-c++-*- 
 
-/************************************************************************\
-**
-**  tLNode.h
-**
-**  Header file for derived class tLNode and its member classes
+/************************************************************************/
+/**
+**  @file tLNode.h
+**  @brief Header file for derived class tLNode and its member classes
 **
 **  A tLNode object encapsulates data and methods for a single landscape
 **  node. It inherits basic data and methods from the generic tNode
@@ -27,8 +26,9 @@
 **        - added embedded tVegCover object and retrieval fn
 **          (Jan 2000)
 **
-**  $Id: tLNode.h,v 1.56 2002-12-12 14:19:50 childcvs Exp $
-\************************************************************************/
+**  $Id: tLNode.h,v 1.57 2003-01-17 17:30:30 childcvs Exp $
+*/
+/************************************************************************/
 
 #ifndef TLNODE_H
 #define TLNODE_H
@@ -54,8 +54,8 @@ using namespace std;
 #define kVeryHigh 100000  // Used in FillLakes
 
 
-/** class tLayer *********************************************************/
-/* Layer records */
+/** @class tLayer
+   Layer records */
 class tLayer
 {
    friend class tListNode< tLayer >;
@@ -275,7 +275,8 @@ tLayer::getDgrade( ) const
 };*/
 
 
-/** class tMeander ***********************************************************/
+/** @class tMeander
+*/
 class tMeander
 {
    friend class tChannel;
@@ -298,7 +299,8 @@ class tMeander
    tArray< double > xyzd;
 };
 
-/** class tBedrock ***********************************************************/
+/** @class tBedrock
+*/
 class tBedrock
 {
    friend class tLNode;
@@ -326,7 +328,8 @@ class tBedrock
    double vegerody;     //erodibility of vegetated surface (or channel bank)
 };*/
 
-/** class tRegolith **********************************************************/
+/** @class tRegolith
+*/
 class tRegolith
 {
    friend class tLNode;
@@ -341,7 +344,8 @@ class tRegolith
    tArray< double > dgrade;/* depth of each sediment class in active layer [m] */
 };
 
-/** class tChannel ***********************************************************/
+/** @class tChannel
+*/
 class tChannel
 {
    friend class tLNode;
@@ -367,7 +371,8 @@ class tChannel
    tMeander migration;
 };
 
-/** class tLNode *************************************************************/
+/** @class tLNode
+*/
 class tLNode : public tNode
 {
 public:

@@ -1,5 +1,12 @@
 //-*-c++-*- 
 
+/***************************************************************************/
+/**
+**  @file
+**  @brief a simple heap sort
+*/
+/***************************************************************************/
+
 template<class TYPE>
 void shunt(int k,int m,TYPE temp,TYPE array[]){
   /*Heap building and re-ordering function for heapsort 

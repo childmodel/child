@@ -1,8 +1,7 @@
-/**************************************************************************\
-**
-**  tListInputData.cpp
-**
-**  Functions for class tListInputData.
+/**************************************************************************/
+/**
+**  @file tListInputData.cpp
+**  @brief Functions for class tListInputData.
 **
 **  Modifications:
 **   - changed .tri file format from points-edges-triangles to
@@ -13,8 +12,9 @@
 **   - Bug fix in constructor: nnodes was being read from edge and
 **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
 **
-**  $Id: tListInputData.cpp,v 1.9 2002-09-23 12:11:49 arnaud Exp $
-\**************************************************************************/
+**  $Id: tListInputData.cpp,v 1.10 2003-01-17 17:30:33 childcvs Exp $
+*/
+/**************************************************************************/
 
 #include "tListInputData.h"
 #if !defined(HAVE_NO_NAMESPACE)

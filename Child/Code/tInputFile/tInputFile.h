@@ -1,8 +1,9 @@
 //-*-c++-*- 
 
-/****************************************************************************\
-**
-**  tInputFile.h: Header file for class tInputFile.
+/****************************************************************************/
+/**
+**  @file tInputFile.h
+**  @brief Header file for class tInputFile.
 **
 **  The tInputFile class manages an input file for single-valued parameters
 **  (that is, physical constants and other parameters, but not large
@@ -36,8 +37,9 @@
 **
 **  Created by Greg Tucker, November 1997
 **
-**  $Id: tInputFile.h,v 1.11 2002-12-12 13:12:05 childcvs Exp $
-\****************************************************************************/
+**  $Id: tInputFile.h,v 1.12 2003-01-17 17:30:28 childcvs Exp $
+*/
+/****************************************************************************/
 
 #ifndef TINPUTFILE_H
 #define TINPUTFILE_H

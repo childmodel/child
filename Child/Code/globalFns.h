@@ -1,9 +1,10 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-**
-**  globalFns.h: Header file for global functions used by tGrid and other
-**               modules of CHILD.
+/**************************************************************************/
+/**
+**  @file globalFns.h
+**  @brief Header file for global functions used by tGrid and other
+**         modules of CHILD.
 **
 **  This file contains geometric functions used for computing and
 **  updating triangulations, a function for interpolating values on
@@ -11,8 +12,9 @@
 **  which can be used by interpolation procedures (such as the layer
 **  interpolation routines in CHILD).
 **
-**  $Id: globalFns.h,v 1.8 2002-09-23 12:11:46 arnaud Exp $
-\**************************************************************************/
+**  $Id: globalFns.h,v 1.9 2003-01-17 17:30:18 childcvs Exp $
+*/
+/**************************************************************************/
 
 #ifndef GLOBALFNS_H
 #define GLOBALFNS_H

@@ -1,8 +1,7 @@
-/**************************************************************************\
-**
-**  tStreamNet.cpp
-**
-**  Functions for class tStreamNet and related class tInlet.
+/**************************************************************************/
+/**
+**  @file tStreamNet.cpp
+**  @brief Functions for class tStreamNet and related class tInlet.
 **
 **    Modifications:
 **     - 2/00 added DensifyMeshDrArea plus modifications to tStreamNet
@@ -12,8 +11,9 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.22 2002-12-12 14:39:45 childcvs Exp $
-\**************************************************************************/
+**  $Id: tStreamNet.cpp,v 1.23 2003-01-17 17:30:47 childcvs Exp $
+*/
+/**************************************************************************/
 
 #include "../tAssert.h"
 //#include <string>

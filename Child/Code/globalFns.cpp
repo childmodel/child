@@ -1,10 +1,12 @@
-/**************************************************************************\
+/**************************************************************************/
+/**
+**  @file globalFns.cpp
+**  @brief Global functions used by tGrid and other modules of
+**         CHILD (see globalFns.h).
 **
-**  globalFns.cpp: Global functions used by tGrid and other modules of
-**                 CHILD (see globalFns.h).
-**
-**  $Id: globalFns.cpp,v 1.7 2002-09-23 12:11:46 arnaud Exp $
-\**************************************************************************/
+**  $Id: globalFns.cpp,v 1.8 2003-01-17 17:30:18 childcvs Exp $
+*/
+/**************************************************************************/
 
 #include "globalFns.h"
 #if !defined(HAVE_NO_NAMESPACE)
@@ -14,15 +16,16 @@ using namespace std;
 # include <iostream.h>
 #endif
 
-/**************************************************************************\
-**
+/**************************************************************************/
+/**
 **  UnitVector
 **
 **  global function to return an array with the magnitudes of the x and y
 **  components of the unit vector parallel to the pointed-to edge.
 **  Created: SL 10/98
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 tArray< double > UnitVector( tEdge* ePtr )
 {
    assert( ePtr != 0 );
@@ -38,11 +41,12 @@ tArray< double > UnitVector( tEdge* ePtr )
 }
 
 
-/**************************************************************************\
-**
+/**************************************************************************/
+/**
 **  FindCosineAngle0_2_1
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 double FindCosineAngle0_2_1( tArray< double > &p0,
                              tArray< double > &p1,
                              tArray< double > &p2 )
@@ -60,15 +64,16 @@ double FindCosineAngle0_2_1( tArray< double > &p0,
 }
 
 
-/***************************************************************************\
-**
+/***************************************************************************/
+/**
 **  TriPasses
 **
 **  Determines whether test point violates "Delaunay-ness"
 **  of other three; i.e., does the triangle 'pass the test' against the
 **  other?
 **
-\***************************************************************************/
+*/
+/***************************************************************************/
 int TriPasses( tArray< double > const &ptest,
                tArray< double > const &p0,
                tArray< double > const &p1,
@@ -114,8 +119,8 @@ int TriPasses( tArray< double > const &ptest,
 }
 
 
-/***************************************************************************\
-**
+/***************************************************************************/
+/**
 **  PointsCCW
 **
 **  Determines whether the points p0, p1, and p2 are in counter-clockwise
@@ -124,7 +129,8 @@ int TriPasses( tArray< double > const &ptest,
 **  Inputs: p0, p1, p2 -- 2-element arrays containing x and y coords
 **  Returns: 1 if CCW, 0 if not
 **
-\***************************************************************************/
+*/
+/***************************************************************************/
 int PointsCCW( tArray< double > &p0,
                tArray< double > &p1,
                tArray< double > &p2 )
@@ -157,8 +163,8 @@ int PointsCCW( tArray< double > &p0,
 }
 
 
-/***************************************************************************\
-**
+/***************************************************************************/
+/**
 **  NewTriCCW
 **
 **  Determines whether the "newx" and "newy" coordinates of the 3 points
@@ -168,7 +174,8 @@ int PointsCCW( tArray< double > &p0,
 **  Returns: 1 if CCW, 0 if not
 **
 **  TODO: use general "moving" indicator, or dispense w/ the mdr test
-\***************************************************************************/
+*/
+/***************************************************************************/
 int NewTriCCW( tTriangle *ct )
 {
    assert( ct != 0 );
@@ -189,8 +196,8 @@ int NewTriCCW( tTriangle *ct )
 }
 
 
-/***************************************************************************\
-**
+/***************************************************************************/
+/**
 **  InNewTri
 **
 **  Determines whether the point xy lies within the triangle formed by
@@ -202,7 +209,8 @@ int NewTriCCW( tTriangle *ct )
 **  Returns: 1 if point is in the "new" triangle, 0 if not
 **
 **  TODO: use general "moving" indicator, or dispense w/ the mdr test
-\***************************************************************************/
+*/
+/***************************************************************************/
 int InNewTri( tArray< double > &xy, tTriangle *ct )
 {
    int j;
@@ -225,8 +233,8 @@ int InNewTri( tArray< double > &xy, tTriangle *ct )
 }
 
 
-/*****************************************************************************\
-**
+/*****************************************************************************/
+/**
 **      Intersect
 **
 **      Tests for the intersection of two edges, using newx, newy rather than
@@ -237,7 +245,8 @@ int InNewTri( tArray< double > &xy, tTriangle *ct )
 **      Called by: 
 **      Calls:  
 **
-\*****************************************************************************/
+*/
+/*****************************************************************************/
 int Intersect( tEdge * ae, tEdge * be )
 {
    //cout << "Intersect(...)..." << endl;
@@ -412,8 +421,8 @@ int Intersect( tEdge * ae, tEdge * be )
 }
 
 
-/*****************************************************************************\
-**
+/*****************************************************************************/
+/**
 **      IntersectsAnyEdgeInList
 **
 **         Returns the first edge in the list (passed by
@@ -426,7 +435,8 @@ int Intersect( tEdge * ae, tEdge * be )
 **      Created: SL 10/98
 **      Based on tMesh::IntersectsAnyEdge()
 **
-\*****************************************************************************/
+*/
+/*****************************************************************************/
 tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
 {
    //cout << "IntersectsAnyEdge( tEdge * edge )..." << endl;
@@ -454,8 +464,8 @@ tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
 }
 
 
-/**************************************************************************\
-**
+/**************************************************************************/
+/**
 **  InterpSquareGrid
 **
 **   Was part of tMesh::MakeRandomPointsFromArcGrid();
@@ -470,7 +480,8 @@ tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
 **      j (pos. "down")
 **
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 double InterpSquareGrid( double xgen, double ygen, tMatrix< double >& elev,
                          int nodata )
 {
@@ -541,8 +552,8 @@ double InterpSquareGrid( double xgen, double ygen, tMatrix< double >& elev,
 }
 
 
-/**********************************************************************\
-** 
+/**********************************************************************/
+/** 
 **  PlaneFit 
 ** 
 **  A plane is fit given the x,y,z coordinates of three points.
@@ -555,7 +566,8 @@ double InterpSquareGrid( double xgen, double ygen, tMatrix< double >& elev,
 **
 **  Created 2/1999 ng
 **
-\**********************************************************************/
+*/
+/**********************************************************************/
 double PlaneFit(double x, double y, tArray<double> const &p0,
                 tArray<double> const &p1, tArray<double> const &p2, tArray<double> const &zs)
 {

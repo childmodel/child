@@ -1,11 +1,18 @@
-//A triangulation routine based on Tipper's convex hull algorithm
-//Computers and geoscience vol17 no 5 pp 597-632,1991
-//Scaling is nlogn for random datasets
-//Mike Bithell 31/08/01
-
-// Arnaud Desitter. Q2 2002. 
-// Debugging and extension of the algorithm.
-// Binding to CHILD data structures.
+/***************************************************************************/
+/**
+**  @file
+**  @brief Tipper triangulation algorithm
+**
+** A triangulation routine based on Tipper's convex hull algorithm
+** Computers and geoscience vol17 no 5 pp 597-632,1991
+** Scaling is nlogn for random datasets
+** Mike Bithell 31/08/01
+**
+** Arnaud Desitter. Q2 2002. 
+** Debugging and extension of the algorithm.
+** Binding to CHILD data structures.
+*/
+/***************************************************************************/
 
 #include <math.h>
 #if !defined(HAVE_NO_NAMESPACE)

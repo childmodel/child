@@ -1,10 +1,9 @@
 //-*-c++-*- 
 
-/***************************************************************************\
-**
-**  tArray.h
-**
-**  Header file for tArray objects.
+/***************************************************************************/
+/**
+**  @file tArray.h
+**  @brief Header file for tArray objects.
 **
 **  A tArray is an object implementation of a one-dimensional array.
 **  A template is used so that the array may be of any specified type.
@@ -14,8 +13,9 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.15 2002-12-12 14:47:14 childcvs Exp $
-\***************************************************************************/
+**  $Id: tArray.h,v 1.16 2003-01-17 17:30:26 childcvs Exp $
+*/
+/***************************************************************************/
 
 #ifndef TARRAY_H
 #define TARRAY_H
@@ -27,14 +27,15 @@ using namespace std;
 # include <iostream.h>
 #endif
 
-/***************************************************************************\
-**
-**  class tArray
+/***************************************************************************/
+/**
+**  @class tArray
 **
 **  The tArray template class implements 1D arrays (ie, vectors) of any
 **  data type.
 **
-\***************************************************************************/
+*/
+/***************************************************************************/
 template< class T >
 class tArray
 {

@@ -1,4 +1,9 @@
-// test code for Tipper triangulator
+/***************************************************************************/
+/**
+**  @file
+**  @brief unit test code for Tipper triangulator
+*/
+/***************************************************************************/
 
 #include <math.h>
 #if !defined(HAVE_NO_NAMESPACE)

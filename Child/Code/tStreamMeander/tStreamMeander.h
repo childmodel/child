@@ -1,8 +1,9 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-**
-**  tStreamMeander.h: Header file for class tStreamMeander.
+/**************************************************************************/
+/**
+**  @file tStreamMeander.h
+**  @brief Header file for class tStreamMeander.
 **
 **  tStreamMeander objects contain data and functions related to lateral
 **  erosion and channel migration across the landscape surface.
@@ -19,8 +20,9 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.26 2002-07-08 17:21:52 arnaud Exp $
-\**************************************************************************/
+**  $Id: tStreamMeander.h,v 1.27 2003-01-17 17:30:46 childcvs Exp $
+*/
+/**************************************************************************/
 
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
@@ -44,7 +46,8 @@
 #include "../globalFns.h"
 /*#include "../Inclusions.h"*/
 
-/**Class tStreamMeander****/
+/** @class tStreamMeander
+*/
 class tStreamMeander
 {
   tStreamMeander(const tStreamMeander&);

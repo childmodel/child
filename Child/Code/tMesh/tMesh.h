@@ -1,8 +1,9 @@
 //-*-c++-*- 
 
-/***************************************************************************\
-**
-**  tMesh.h: Header file for class tMesh (formerly tGrid)
+/***************************************************************************/
+/**
+**  @file tMesh.h
+**  @brief Header file for class tMesh (formerly tGrid)
 **
 **  tMesh is the master class that handles the implementation of the
 **  triangulated mesh. The class includes lists of the mesh elements
@@ -21,8 +22,9 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.38 2002-12-12 13:50:26 childcvs Exp $
-\***************************************************************************/
+**  $Id: tMesh.h,v 1.39 2003-01-17 17:30:39 childcvs Exp $
+*/
+/***************************************************************************/
 
 #ifndef TMESH_H
 #define TMESH_H
@@ -62,7 +64,8 @@
 
 class ParamMMFS_t;
 
-/** class tMesh ************************************************************/
+/** @class tMesh
+ */
 template< class tSubNode >
 class tMesh
 {

@@ -1,8 +1,9 @@
 //-*-c++-*- 
 
-/*************************************************************************\
-**
-**  tMatrix.h:  Header file for class tMatrix.
+/*************************************************************************/
+/**
+**  @file tMatrix.h
+**  @brief Header file for class tMatrix.
 **
 **  Class tMatrix implements matrices (2D arrays) as 1D arrays of tArray
 **  objects. The () operator is overloaded so that you can access array
@@ -10,8 +11,9 @@
 **  One of the constructors takes two integer arguments representing the
 **  size of the matrix.
 **
-**  $Id: tMatrix.h,v 1.9 2002-12-12 13:50:23 childcvs Exp $
-\*************************************************************************/
+**  $Id: tMatrix.h,v 1.10 2003-01-17 17:30:34 childcvs Exp $
+*/
+/*************************************************************************/
 #ifndef TMATRIX_H
 #define TMATRIX_H
 

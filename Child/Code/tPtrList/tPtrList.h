@@ -1,9 +1,10 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-**
-**  tPtrList.h: Header file for tPtrList, tPtrListNode, and tPtrListIter
-**              objects.
+/**************************************************************************/
+/**
+**  @file tPtrList.h
+**  @brief Header file for tPtrList, tPtrListNode, and tPtrListIter
+**         objects.
 **
 **  A tPtrList is an object that implements a general linked list of 
 **  pointers to NodeType objects, where NodeType can be any type (double, 
@@ -37,8 +38,9 @@
 **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
 **      9/02: (AD)merge in main Child version
 **
-**  $Id: tPtrList.h,v 1.25 2002-09-23 12:11:50 arnaud Exp $
-\**************************************************************************/
+**  $Id: tPtrList.h,v 1.26 2003-01-17 17:30:41 childcvs Exp $
+*/
+/**************************************************************************/
 
 #ifndef TPTRLIST_H
 #define TPTRLIST_H
@@ -96,8 +98,9 @@ void PtrListDebug::TellAll()
 
 
    
-/**************************************************************************\
-** class tPtrListNode *****************************************************
+/**************************************************************************/
+/**
+** @class tPtrListNode
 **
 ** Class tPtrListNode represents the items (or "nodes") on the list. Each
 ** tPtrListNode object has two parts: the data pointer (of type NodeType *)
@@ -106,7 +109,8 @@ void PtrListDebug::TellAll()
 ** returning a pointer or reference to either the data or the tPtrListNode
 ** itself, and assignment and equality/inequality operations.
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 template< class NodeType >
 class tPtrListNode
 {
@@ -134,15 +138,16 @@ private:
 };
 
 
-/**************************************************************************\
-** class tPtrList *********************************************************
+/**************************************************************************/
+/**
+** @class tPtrList
 **
 ** Class tPtrList implements a linked list of pointers. The class includes
 ** pointers to the first and last list nodes (see tPtrListNode) and the 
 ** number of items on the list.
 **
-\**************************************************************************/
-/** class tPtrList **********************************************************/
+*/
+/**************************************************************************/
 template< class NodeType >
 class tPtrList
 {
@@ -187,8 +192,9 @@ private:
 };
 
 
-/**************************************************************************\
-** class tPtrListIter ******************************************************
+/**************************************************************************/
+/**
+** @class tPtrListIter
 **
 ** Helper class for tPtrList. tPtrListIters are "iterators" that walk up &
 ** down a tPtrList, fetching items. Their chief advantage is that you can
@@ -204,7 +210,8 @@ private:
 ** Modifications:
 **  - added 2nd copy constructor, GT, 1/2000
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 //TO DO: make Get, Where, GetP, refer to place in list rather than use getID()
 template< class NodeType >
 class tPtrListIter

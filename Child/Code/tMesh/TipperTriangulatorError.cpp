@@ -1,3 +1,10 @@
+/***************************************************************************/
+/**
+**  @file
+**  @brief Error handler for Tipper triangulator
+*/
+/***************************************************************************/
+
 #include "TipperTriangulator.h"
 #include "../errors/errors.h"
 

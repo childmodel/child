@@ -1,11 +1,13 @@
-/**************************************************************************\
+/**************************************************************************/
+/**
+**  @file tPtrList.cpp
+**  @brief Functions for classes tPtrList, tPtrListNode, and
+**         tPtrListIter. (see tPtrList.h for a description of
+**         what these classes do)
 **
-**  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
-**                tPtrListIter. (see tPtrList.h for a description of
-**                what these classes do)
-**
-**  $Id: tPtrList.cpp,v 1.18 2001-06-19 15:57:55 gtucker Exp $
-\**************************************************************************/
+**  $Id: tPtrList.cpp,v 1.19 2003-01-17 17:30:41 childcvs Exp $
+*/
+/**************************************************************************/
 
 #include "tPtrList.h"
 

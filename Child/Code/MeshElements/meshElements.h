@@ -1,11 +1,12 @@
 //-*-c++-*- 
 
-/**************************************************************************\
-**
-**  meshElements.h: Header file for mesh elements tNode, tEdge,
-**                  and tTriangle. Each of these mesh elements is
-**                  implemented as an object, as described below.
-**                  (formerly called gridElements)
+/*************************************************************************/\
+/**
+**  @file meshElements.h
+**  @brief Header file for mesh elements tNode, tEdge,
+**         and tTriangle. Each of these mesh elements is
+**         implemented as an object, as described below.
+**         (formerly called gridElements)
 **
 **  This file contains declarations of the three classes that collectively
 **  make up the triangulated mesh. These classes are:
@@ -42,10 +43,11 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.33 2002-12-12 14:19:49 childcvs Exp $
+**  $Id: meshElements.h,v 1.34 2003-01-17 17:30:23 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
-\**************************************************************************/
+*/
+/**************************************************************************/
 
 #ifndef MESHELEMENTS_H
 #define MESHELEMENTS_H
@@ -65,8 +67,9 @@ using namespace std;
 
 class tEdge;
 
-/**************************************************************************\
-**  Class tNode  ***********************************************************
+/**************************************************************************/
+/**
+**  @class tNode
 **
 **  tNodes are the points in a Delaunay triangulation, and their data
 **  include x and y coordinates, a z value (which could be elevation or
@@ -96,7 +99,8 @@ class tEdge;
 **   - 2/00 GT added getVoronoiVertexList and getVoronoiVertexXYZList.
 **          These fns can be used in adding new nodes at V. Vertices.
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 class tNode
 {
   friend ostream &operator<<( ostream &, tNode & );
@@ -180,7 +184,7 @@ protected:
 
 
 /***************************************************************************\
-**  class tEdge  ************************************************************
+**  @class tEdge
 **
 **  tEdge objects represent the directed edges in a Delaunay triangulation
 **  of tNode objects. "Directed" means that the edge has directionality
@@ -265,8 +269,9 @@ private:
 };
 
 
-/**************************************************************************\
-**  class tTriangle  *******************************************************
+/**************************************************************************/
+/**
+**  @class tTriangle
 **
 **  tTriangles are the Delaunay triangles that form the triangulated mesh.
 **  Each tTriangle maintains pointers to its three nodes (vertices), three
@@ -284,7 +289,8 @@ private:
 **  Modifications:
 **   - added function FindCircumcenter(), 1/11/98 gt
 **
-\**************************************************************************/
+*/
+/**************************************************************************/
 class tTriangle
 {
   friend ostream &operator<<( ostream &, const tTriangle & );
