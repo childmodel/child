@@ -2,6 +2,10 @@
 #include "../errors/errors.h"
 #include "tStreamNet.h"
 
+double DistanceToLine( double, double, double, double, double );
+double DistanceToLine( double, double, tNode *, tNode * );
+
+
 /**************************************************************************\
 **
 **  tStreamNet.cpp
@@ -118,29 +122,94 @@ tInlet::~tInlet()
 **  tInlet::FindNewInlet: search for points 'up-valley' of present inlet;
 **     of those points and the present inlet, set new inlet to one with the
 **     lowest elevation.
+**  5/18/98 SL: Try something less arbitrary. Find active nodes
 **
 \**************************************************************************/
 
 void tInlet::FindNewInlet()
 {
-   double xin, yin, zin, x, y, z, zmin;
-   tLNode *cn, *newinnode;
+   double xin, yin, zin, x, y, z, zmin, dmn, dmnn, dmin;
+   tLNode *cn, *newinnode, *mn;
+   tNode *bn0, *bn1, *mnn;
+   tEdge *ce, *me;
    tGridListIter< tLNode > nI( gridPtr->GetNodeList() );
+   tPtrListIter< tEdge > sI, msI;
+   int n;
+     //tPtrList< tLNode > bList;
+     //tPtrListIter< tLNode > bI( bList );
    tArray< double > xyz = innode->get3DCoords();
    yin = xyz[1];
    zmin = xyz[2];
    newinnode = innode;
-   for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+     //for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+     //go through boundary nodes:
+   cn = nI.LastActiveP();
+   for( cn = nI.NextP(); !(nI.AtEnd()); cn = nI.NextP() )
    {
-      if( cn->getY() >= yin )
+        //select for 'northern' bndy nodes:
+      if( cn->getY() > yin ) //(cn was originally any active node)
       {
-         if( cn->getZ() < zmin )
+           //go through bndy node's nbrs...
+         sI.Reset( cn->getSpokeListNC() );
+         for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
+         {
+            mn = (tLNode *) ce->getDestinationPtrNC();
+              //easier to check node's elevation at this point to make
+              //sure it's worth going further with all this logic;
+              //so, find an active neighbor with elevation lower than
+              //present inlet:
+            if( mn->getBoundaryFlag() == kNonBoundary && mn->getZ() < zmin )
+            {
+               msI.Reset( mn->getSpokeListNC() );
+               n = 0;
+                 //go through the active node's nbrs to find and count
+                 //'northern' bndy nodes:
+               for(  me = msI.FirstP(); !(msI.AtEnd()); me = msI.NextP() )
+               {
+                  mnn = me->getDestinationPtrNC();
+                  if( mnn->getBoundaryFlag() != kNonBoundary && mnn->getY() > yin )
+                  {
+                     if( n == 0 ) bn0 = mnn;
+                     else if( n == 1 ) bn1 = mnn;
+                     n++;
+                  }
+               }
+                 //if active node has >1 northern bndy nbr...
+               if( n > 1 )
+               {
+                    //find node's distance to boundary:
+                  dmn = DistanceToLine( mn->getX(), mn->getY(), bn0, bn1 );
+                  dmin = dmn;
+                    //find it's active nbrs' distances:
+                  for(  me = msI.FirstP(); !(msI.AtEnd()); me = msI.NextP() )
+                  {
+                     mnn = (tLNode *) me->getDestinationPtrNC();
+                     if( mnn->getBoundaryFlag() == kNonBoundary )
+                     {
+                        dmnn = DistanceToLine( mnn->getX(), mnn->getY(),
+                                                    bn0, bn1 );
+                        if( dmnn < dmin ) dmin = dmnn;
+                     }
+                  }
+                    //if none of active nbrs' distances smaller,
+                    //node is the new inlet if no better candidates are found:
+                  if( dmin == dmn )
+                  {
+                     zmin = mn->getZ();
+                     newinnode = mn;
+                  }
+               }
+            }
+         }           
+           /*if( cn->getZ() < zmin )
          {
             zmin = cn->getZ();
             newinnode = cn;
-         }
+         }*/
       }
    }
+     //finally reset inlet node; if no new inlet was found, we're just
+     //setting it equal to itself:
    innode = newinnode;
 }
 
@@ -181,7 +250,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.36 1998-05-05 22:06:46 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.37 1998-05-19 22:45:11 stlancas Exp $
 \**************************************************************************/
 
 
