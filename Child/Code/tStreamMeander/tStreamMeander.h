@@ -12,7 +12,7 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.15 1998-02-27 17:33:34 stlancas Exp $
+**  $Id: tStreamMeander.h,v 1.16 1998-04-16 22:50:15 stlancas Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
@@ -108,6 +108,7 @@ protected:
     double vegerod;  //erodibility of vegetated surface or bank
     double rockerod; //erodibility of bedrock
    double latadjust; //ratio bank erody:bed erody; lets us speed up lat. erosion
+   double Pdz; //dependence of bank erody on bank height, 0=none, 1=all
     tArray< int > nrnodes; //array w/ #elements=#reaches, # "active" reach nodes
     tArray< double > reachlen; // " , length of active reach in reach list
     tArray< double > taillen;  // " , length of inactive "tail" in reach list
