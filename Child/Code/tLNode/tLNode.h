@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.36 1999-01-04 23:47:55 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.37 1999-01-05 21:22:41 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -16,7 +16,7 @@
 #include "../GridElements/gridElements.h"
 #include "../tList/tList.h"
 #include "../tInputFile/tInputFile.h"
-#include "../GlobalFns.h"
+#include "../globalFns.h"
 #include "../tRunTimer/tRunTimer.h"
 
 #define kSink        3  // ...or a dry sink (unfilled depression).

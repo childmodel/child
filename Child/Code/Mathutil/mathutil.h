@@ -3,8 +3,11 @@
 **               All or most routines from Numerical Recipes in C by
 **               Press et al.
 **
-**  $Id: mathutil.h,v 1.1 1998-07-15 14:39:03 gtucker Exp $
+**  $Id: mathutil.h,v 1.2 1999-01-05 21:21:14 gtucker Exp $
 */
+
+#ifndef MATHUTIL_H
+#define MATHUTIL_H
 
 #include <math.h>
 
@@ -12,3 +15,4 @@
 
 double ran3( long *idum );
 
+#endif

@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.15 1999-01-05 17:09:32 gtucker Exp $
+**  $Id: tMesh.h,v 1.16 1999-01-05 21:22:25 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -23,7 +23,7 @@
 #include "../tLNode/tLNode.h"
 #include "../tListInputData/tListInputData.h"
 #include "../tListOutputData/tListOutputData.h"
-#include "../GlobalFns.h"
+#include "../globalFns.h"
 
 
 /***************************/

@@ -12,7 +12,7 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.19 1999-01-04 23:47:25 nmgaspar Exp $
+**  $Id: tStreamMeander.h,v 1.20 1999-01-05 21:21:56 gtucker Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
@@ -33,7 +33,7 @@
 #include "../GridElements/gridElements.h"
 #include "../tGrid/tGrid.h"
 #include "../tInputFile/tInputFile.h"
-#include "../GlobalFns.h"
+#include "../globalFns.h"
 /*#include "../Inclusions.h"*/
 
 /**Class tStreamMeander****/

@@ -9,12 +9,15 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.22 1999-01-04 23:50:28 nmgaspar Exp $
+**  $Id: meshElements.cpp,v 1.23 1999-01-05 21:23:36 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
 #include <math.h>
 #include "gridElements.h"
+
+int PointsCCW( tArray< double > &, tArray< double > &, tArray< double > & );
+
 
 //global fns:
 //  FindIntersectionCoords: finds and returns intersection of line segments
