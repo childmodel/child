@@ -83,9 +83,7 @@ public:
   oriented_edge(const oriented_edge & _e):
     _edge(_e.e()),
     _orientation(_e.o()) {}
-  const oriented_edge &operator=( const oriented_edge &_e ){
-    _edge = _e.e(); _orientation = _e.o();
-  }
+  const oriented_edge &operator=( const oriented_edge &);
   int e() const { return _edge; }
   bool o() const { return _orientation; }
   bool nonvalid() const { return (e() == -1 ? true:false); }

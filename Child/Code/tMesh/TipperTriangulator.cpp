@@ -677,6 +677,13 @@ int edge_auxi_t::ielem_left() const { assert(left_visited_); return ie_left; }
 int edge_auxi_t::ielem_right() const { assert(right_visited_); return ie_right; }
 
 
+const oriented_edge& oriented_edge::operator=( const oriented_edge &_e ){
+  if (this != &_e) {
+    _edge = _e.e(); _orientation = _e.o();
+  }
+  return *this;
+}
+
 oriented_edge oriented_edge::next_ccw_around_from(const edge* edges) const {
   int ires;
   bool bres = true;
