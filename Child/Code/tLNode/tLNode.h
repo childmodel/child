@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.87 2004-03-22 15:56:22 childcvs Exp $
+ **  $Id: tLNode.h,v 1.88 2004-03-26 11:31:29 childcvs Exp $
  */
 /************************************************************************/
 
@@ -599,11 +599,11 @@ public:
   // Same material as that in the layer you are depositing into.
 
   // New functions below, added 28-10-2003, Quintijn
-  void ResetAccummulatedDh();				// set to 0.0
-  void IncrementAccummulatedDh(const tArray<double>&);  // increment dh's, called during tFloodplain functions
-  const tArray<double>& getAccummulatedDh() const;	// returns array with current values
-  double getAccCoarse() const;	              		// returns gravel thickness, accummulated during an other function
-  double getAccFine() const;                            // returns fines thickness, accummulated in a
+  inline void ResetAccummulatedDh();                           // set to 0.0
+  inline void IncrementAccummulatedDh(const tArray<double>&);  // increment dh's, called during tFloodplain functions
+  inline const tArray<double>& getAccummulatedDh() const;      // returns array with current values
+  inline double getAccCoarse() const;	             	       // returns gravel thickness, accummulated during an other function
+  inline double getAccFine() const;                            // returns fines thickness, accummulated in a
   // end new functions added 28-10-2003
 
   tArray<double> addtoLayer(int, double);
@@ -1174,6 +1174,35 @@ inline void tLNode::setRock( const tBedrock & val ) {rock = val;}
 //Xvoid tLNode::setSurf( const tSurface & val ) {surf = val;}
 inline void tLNode::setReg( const tRegolith & val ) {reg = val;}
 inline void tLNode::setChan( const tChannel & val ) {chan = val;}
+
+// Functions related to the conversion of dh from tLNode to tStratNode (e.g. on the tSTRATGRID)
+inline void tLNode::ResetAccummulatedDh()
+{
+  accumdh[0] = 0.;
+  accumdh[1] = 0.;
+}
+
+inline void tLNode::IncrementAccummulatedDh(const tArray<double> &dh)
+{
+  accumdh[0]+= dh[0];
+  accumdh[1]+= dh[1];
+}
+
+inline const tArray<double>& tLNode::getAccummulatedDh() const
+{
+  return accumdh;
+}
+
+inline double tLNode::getAccCoarse() const
+{
+  return accumdh[0];
+}
+
+inline double tLNode::getAccFine() const
+{
+  return accumdh[1];
+}
+// end of 5 functions related to the conversion of dh from tLNode to tStratNode
 
 /**************************************************************************\
  **

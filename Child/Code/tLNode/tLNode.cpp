@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.130 2004-03-04 12:27:09 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.131 2004-03-26 11:31:28 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -2293,35 +2293,6 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 
   return valgrd;
 }
-// Functions related to the conversion of dh from tLNode to tStratNode (e.g. on the tSTRATGRID)
-void tLNode::ResetAccummulatedDh()
-{
-  accumdh[0] = 0.;
-  accumdh[1] = 0.;
-}
-
-void tLNode::IncrementAccummulatedDh(const tArray<double> &dh)
-{
-  accumdh[0]+= dh[0];
-  accumdh[1]+= dh[1];
-}
-
-const tArray<double>& tLNode::getAccummulatedDh() const
-{
-  return accumdh;
-}
-
-double tLNode::getAccCoarse() const
-{
-  return accumdh[0];
-}
-
-double tLNode::getAccFine() const
-{
-  return accumdh[1];
-}
-// end of 5 functions related to the conversion of dh from tLNode to tStratNode
-
 
 /**************************************************************
  ** tLNode::addtoLayer(int i, int g, double val, double tt)
