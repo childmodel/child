@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.122 2003-02-12 18:45:20 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.123 2003-02-13 16:57:06 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -21,7 +21,9 @@
 
 #include "ParamMesh_t.h"
 
-// tIdArray: lookup table per Id for a tList
+/** @class tIdArray
+    @brief Lookup table per Id for a tList
+*/
 template< class T >
 class tIdArray
 {
@@ -3292,9 +3294,6 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
 **   where new spoke should be inserted: finds where the sequence of 3 spoke
 **   unit vectors, including the new one in the middle, are CCW; calls new
 **   global function, tArray< double > UnitVector( tEdge* ).
-**   - GT 1/99 -- to avoid compiler warning, now stores output of 
-**     UnitVector calls in arrays p1, p2, p3, which are then sent as
-**     arguments to PointsCCW.
 **   - GT 2/99 -- added calls to WelcomeCCWNeighbor and AttachNewSpoke
 **     to update CCW edge connectivity
 **
@@ -3393,11 +3392,9 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
          //cout << "AddEdge: using new algorithm\n";
          for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
          {
-	   tArray<double> p1, p2, p3;           // Used to store output of UnitVector
-	   p1 = UnitVector( ce );
-	   p2 = UnitVector( le );
-	   p3 = UnitVector( spokIter.ReportNextP() );
-	   if( PointsCCW( p1, p2, p3 ) )
+	   if( PointsCCW( UnitVector( ce ),
+			  UnitVector( le ),
+			  UnitVector( spokIter.ReportNextP() ) ) )
 	     break;
          }
       }
@@ -3438,11 +3435,9 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
          //cout << "AddEdge: using new algorithm\n";
          for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
          {
-	   tArray<double> p1, p2, p3;           // Used to store output of UnitVector
-	   p1 = UnitVector( ce );
-	   p2 = UnitVector( le );
-	   p3 = UnitVector( spokIter.ReportNextP() );
-	   if( PointsCCW( p1, p2, p3 ) )
+	   if( PointsCCW( UnitVector( ce ),
+			  UnitVector( le ),
+			  UnitVector( spokIter.ReportNextP() ) ) )
 	     {
                spokIter.Next();
                break;
