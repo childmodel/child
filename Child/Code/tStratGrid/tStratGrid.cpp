@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.11 2004-04-19 17:24:44 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.12 2004-04-22 14:42:09 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -126,8 +126,6 @@ tStratGrid::tStratGrid( tInputFile const &infile, tMesh<tLNode> *mp_)
       (*StratNodeMatrix)(i,j).setI(i);
       (*StratNodeMatrix)(i,j).setJ(j);
       (*StratNodeMatrix)(i,j).setZ(0.);
-
-
     }
   } // Loop over nodes....
 
@@ -150,22 +148,31 @@ tStratGrid::tStratGrid( tInputFile const &infile, tMesh<tLNode> *mp_)
 
 
   // Build StratConnect
-  cout<<"   "<<endl;
-  cout<<"Building the StratConnect table of traingles in constructor...."<<endl;
+  if (1) { //DEBUG
+    cout
+      <<"   \n"
+      <<"Building the StratConnect table of triangles in constructor...."
+      <<endl;
+  }
   updateConnect();
-  cout<<"Building the StratConnect table of traingles in constructor finished"<<endl;
-  cout<<"    "<<endl;
+  if (1) { //DEBUG
+    cout
+      <<"Building the StratConnect table of triangles in constructor finished"
+      <<"\n    "<<endl;
+  }
 
   // Initialize the elevations of the StratNodes by interpolating between the
   // Triangles of the tMesh
-  cout<<" Initializing tStratGrid elevations by interpolation, for the first Time "<<endl;
+  if (1) //DEBUG
+    cout<<" Initializing tStratGrid elevations by interpolation, for the first Time "<<endl;
   InterpolateElevations();
 
   setSectionBase();   // DEBUG FUNCTION, all stratnodes have to know their initial, stratigraphy basis
-  cout<<" Finished Initializing tStratGrid elevations by interpolation, for the first Time "
-      <<endl;
-  cout<<"    "<<endl;
-
+  if (1) {//DEBUG
+    cout
+      <<" Finished Initializing tStratGrid elevations by interpolation, for the first Time "
+      <<"\n    "<<endl;
+  }
 } // tStratGrid constructor
 
 /**************************************************************************\
