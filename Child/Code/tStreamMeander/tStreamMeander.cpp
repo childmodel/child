@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.70 2002-08-14 13:30:27 arnaud Exp $
+**  $Id: tStreamMeander.cpp,v 1.71 2002-09-11 13:25:57 arnaud Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -438,7 +438,7 @@ int tStreamMeander::InterpChannel( double time )
    int i, j, npts, num;
    double curwidth;
    double curseglen, defseglen, maxseglen, bigseglen;
-   double x, y, z, val, phi, x0, y0, z0, x1, y1, slope;
+   double x, y, z, val, phi, x0, y0, z0, x1, y1, slope=0.;
    tPtrListIter< tLNode > rnIter;
    tPtrList< tLNode > *creach;
    tArray< double > xp, yp, zp, *arrPtr, zeroArr(4);
@@ -1419,7 +1419,7 @@ void tStreamMeander::AddChanBorder(double time)
                //just make sure new node will be
                //(a) not in a channel and
                //(b) on the same side of the channel:
-               if( ct = meshPtr->LocateTriangle( oldpos[0], oldpos[1] ) )
+               if( (ct = meshPtr->LocateTriangle( oldpos[0], oldpos[1] )) )
                {
                   // WHY COMMENTED OUT??
                     //channodePtr = cn;
@@ -1437,7 +1437,7 @@ void tStreamMeander::AddChanBorder(double time)
                      if( tn->Meanders() )
                      {
                         // ! This passes uninitialized channode ptr ! TODO
-                        if( inchan = InChannel( tn, &channode ) )
+                        if( (inchan = InChannel( tn, &channode )) )
                         {
                            //cout << "old coord's in channel" << endl;
                            break;
@@ -1684,7 +1684,7 @@ void tStreamMeander::CheckBndyTooClose()
    tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
    tPtrListIter< tEdge > sI;
    tLNode *cn, *mn;
-   tNode *nn, *bn0, *bn1;
+   tNode *nn, *bn0(0), *bn1(0);
    tEdge *ce;
    int n; 
    double width, mindist, d0, d1, d2, d3, xp, yp;
@@ -1873,7 +1873,7 @@ void tStreamMeander::CheckFlowedgCross()
    //Xint flipped;
    int crossed;
    tArray< double > p0, p1, p2, xy0, xy1;
-   tLNode *pointtodelete, *nod, *cn, *dscn;  
+   tLNode *pointtodelete, *nod(0), *cn, *dscn(0);  
    tEdge * fedg, *ce;
    tTriangle * ct, *nt;
    tListIter< tTriangle > triIter( meshPtr->getTriList() );
