@@ -13,7 +13,7 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.18 2003-05-15 16:07:56 childcvs Exp $
+**  $Id: tArray.h,v 1.19 2003-05-23 11:42:38 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -50,11 +50,11 @@ public:
     tArray( const tArray< T > & ); // copy constructor
     ~tArray();                     // destructor
     const tArray< T > &operator=( const tArray< T > & ); // memberwise assignmt
-    int operator==( const tArray< T > & ) const;    // memberwise comparison
-    int operator!=( const tArray< T > & ) const;    // memberwise comparison
     T &operator[]( int );      // overloaded array index operator
     const T &operator[]( int ) const;
-    int getSize() const;       // returns the number of elements in the array
+    int getSize() const {       // returns the number of elements in the array
+      return npts;
+    }
     void setSize( int );       // reinitializes and sets array size
     T *getArrayPtr();          // returns the actual array; needed for passing
                                // to fortran.
@@ -64,7 +64,11 @@ private:
     T * avalue; // the array itself
 };
 
-template< class T >                                               //tArray
+template< class T >
+bool operator==( const tArray< T > &, const tArray< T > & ); // memberwise comparison
+template< class T >
+bool operator!=( const tArray< T > &, const tArray< T > & ); // memberwise comparison
+template< class T >
 ostream &operator<<( ostream &output, const tArray< T > &a );
 
 /*

@@ -3,16 +3,14 @@
 **  @file tArray.cpp
 **  @brief Functions for template class tArray< T >
 **
-**  $Id: tArray.cpp,v 1.16 2003-02-11 17:43:59 childcvs Exp $
+**  $Id: tArray.cpp,v 1.17 2003-05-23 11:42:36 childcvs Exp $
 */
 /**************************************************************************/
 
 #if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
 # include <fstream>
 using namespace std;
 #else
-# include <iostream.h>
 # include <fstream.h>
 #endif
 #include "../tAssert.h"
@@ -131,27 +129,22 @@ const tArray< T > &tArray< T >::operator=( const tArray< T > &right )
 }
 
 //overloaded equality operator:
-template< class T >                                               //tArray
-int tArray< T >::operator==( const tArray< T > &right ) const
+template< class T >
+bool operator==( const tArray< T > &left, const tArray< T > &right )
 {
-   if( npts != right.npts ) return 0;
+   if( left.getSize() != right.getSize() ) return false;
    int i;
-   for( i = 0; i < npts; i++ )
-       if( avalue[i] != right.avalue[i] )
-           return 0;
-   return 1;
+   for( i = 0; i <left.getSize(); i++ )
+       if( left[i] != right[i] )
+           return false;
+   return true;
 }
 
 //overloaded inequality operator:
-template< class T >                                               //tArray
-int tArray< T >::operator!=( const tArray< T > &right ) const
+template< class T >
+bool operator!=( const tArray< T > &left, const tArray< T > &right )
 {
-   if( npts != right.npts ) return 0;
-   int i;
-   for( i = 0; i < npts; i++ )
-       if( avalue[i] != right.avalue[i] )
-           return 1;
-   return 0;
+  return !operator==(left, right);
 }
 
 //overloaded subscript operator:
@@ -216,13 +209,6 @@ ofstream &operator<<( ofstream &output, const tArray< T > &a )
    return output;
 }*/
 
-
-/**************************************************************************\
-**  getSize: returns the number of elements in the array 
-\**************************************************************************/
-template< class T >                                               //tArray
-int tArray< T >::
-getSize() const {return npts;}
 
 /**************************************************************************\
 **  getArrayPtr: returns a pointer to the head of the array (needed for
