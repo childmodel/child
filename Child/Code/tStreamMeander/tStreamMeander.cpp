@@ -4,10 +4,13 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.6 1998-01-26 22:59:33 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.7 1998-01-27 23:59:22 stlancas Exp $
 \**************************************************************************/
 
-#include "Inclusions.h"
+#include <math.h>
+#include <assert.h>
+#include "tStreamMeander.h"
+#include "../GlobalFns.h"
 
 extern "C" 
 {
@@ -38,7 +41,7 @@ tStreamMeander::tStreamMeander()
    infilePtr = 0;
    optdiamvar = optrainvar = 0;
    critflow = meddiam = kwds = ewds = ewstn = knds = ends = enstn =
-       dscrtwids = leavefrac = 0;
+       dscrtwids = leavefrac = vegerod = rockerod = 0;
 }
 
 tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
@@ -74,6 +77,8 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
    assert( allowfrac > 0 );
    leavefrac = infilePtr->ReadItem( leavefrac, "FRAC_WID_ADD" );
    assert( leavefrac > 0 );
+   vegerod = infile.ReadItem( vegerod, "VEG_ERODY" );
+   rockerod = infile.ReadItem( rockerod, "KB" );
    MakeReaches();
    assert( &reachList != 0 );
 }
@@ -106,7 +111,7 @@ void tStreamMeander::FindMeander()
 {
    tLNode * cn;
    tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
-   for( cn = nodIter.FirstP(); cn->isActive(); cn = nodIter.NextP() )
+   for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
    {
       if( cn->GetQ() >= critflow )
           cn->SetMeanderStatus( kMeanderNode );
@@ -206,7 +211,10 @@ void tStreamMeander::FindChanGeom()
    tPtrListIter< tLNode > nIter;
    tPtrList< tLNode > *plPtr;
    //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
-   if (isdmn)  qbffactor = pmn * log(1.5 / isdmn);
+   tStorm *sPtr = netPtr->getStormPtrNC();
+   float isdmn = sPtr->getMeanInterstormDur();
+   float pmn = sPtr->getMeanPrecip();
+   if (isdmn > 0 )  qbffactor = pmn * log(1.5 / isdmn);
 // qbffactor is now in m^3/s
    for( plPtr = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
         plPtr = rlIter.NextP(), i++ )
@@ -216,7 +224,7 @@ void tStreamMeander::FindChanGeom()
       for( cn = nIter.FirstP(), j=0; j<num; cn = nIter.NextP(), j++ )
       {
          qbf = cn->getDrArea() * qbffactor;
-         if (! qbf) qbf=curnode->GetQ();  // q is now in m^3/s
+         if( !qbf ) qbf = cn->GetQ();  // q is now in m^3/s
          width = kwds * pow(qbf, ewds);
          rough = knds * pow(qbf, ends);
          slope = cn->GetSlope();
@@ -248,11 +256,12 @@ void tStreamMeander::FindChanGeom()
 
 int tStreamMeander::InterpChannel()
 {
-   int npts, num;
+   int i, j, npts, num;
    float curwidth;
    float curseglen, defseglen, maxseglen, bigseglen;
    float x, y, z, val, phi, x0, y0, z0, x1, y1, slope;
    tPtrListIter< tLNode > rnIter;
+   tPtrList< tLNode > *creach;
    tArray< float > xp, yp, zp, *arrPtr;
    tLNode *crn, nn, *nPtr;
    int change = 0; //haven't added any nodes yet
@@ -267,9 +276,9 @@ int tStreamMeander::InterpChannel()
            crn = rnIter.NextP(), j++ )
       {
          curwidth = crn->getHydrWidth();
-         nPtr = crn->GetDownstreamNbr();
+         nPtr = crn->GetDownstrmNbr();
          slope = crn->GetSlope();
-         curseglen = fedg->getLength();
+         curseglen = crn->GetFlowEdg()->getLength();
          defseglen = dscrtwids * curwidth;
          maxseglen = 2.0 * defseglen;
          //if current flowedg length is greater than
@@ -293,10 +302,10 @@ int tStreamMeander::InterpChannel()
             //(for Delaunay mesh, avoid precisely co-linear points):
             if( curseglen <= bigseglen )
             {
-               val = ran3(seed) - 0.5;
+               val = ran3(&seed) - 0.5;
                x = x0 + curseglen * cos(phi) /
                    2.0 + 0.01 * val * pow(defseglen, 2.0);
-               val = ran3(seed) - 0.5;
+               val = ran3(&seed) - 0.5;
                y = y0 + curseglen * sin(phi) /
                    2.0 + 0.01 * val * pow(defseglen, 3.0); 
                z = z0 - curseglen / 2.0 * slope;
@@ -310,13 +319,13 @@ int tStreamMeander::InterpChannel()
             //from being too much of a doozy):
             else
             {
-               npts = ROUND( curseglen / prefseglen );
+               npts = ROUND( curseglen / defseglen );
                arrPtr = new tArray< float >( npts );
                xp = yp = zp = *arrPtr;
                for(int i=1; i<npts; i++ )
                {
                   xp[i] = (float)i * defseglen;
-                  val = ran3(seed) - 0.5;
+                  val = ran3(&seed) - 0.5;
                   yp[i] = yp[i-1] + 0.01 * val * exp(-yp[i-1] * val) 
                       * pow(defseglen, 3.0);
                   zp[i] = xp[i] * slope; 
@@ -416,7 +425,7 @@ void tStreamMeander::FindReaches()
 {
    float curwidth, ctaillen;
    int i, j, nmndrnbrs;
-   tLNode *cn;
+   tLNode *cn, *lnPtr;
    tEdge *ce;
    tGridListIter< tLNode > nodIter( gridPtr->GetNodeList() );
    tPtrListIter< tEdge > spokIter;
@@ -426,7 +435,7 @@ void tStreamMeander::FindReaches()
    tArray< float > *fArrPtr;
    if( !(reachList.isEmpty()) ) reachList.Flush();
    //loop through active nodes
-   for( cn = nodIter.FirstP(); !(nodIter.isActive()); cn = nodIter.NextP() )
+   for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
    {
       //if node meanders
       if( cn->Meanders() )
@@ -436,8 +445,8 @@ void tStreamMeander::FindReaches()
          //loop through spokes to find upstream meandering nbr
          for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
          {
-            if( ce->getDestinationPtrNC()->GetDownstrmNbr() == cn 
-                && ce->getDestinationPtrNC()->Meanders() )
+            lnPtr = (tLNode *) ce->getDestinationPtrNC();
+            if( lnPtr->GetDownstrmNbr() == cn && lnPtr->Meanders() )
             {
                nmndrnbrs++;
                break;
@@ -478,7 +487,7 @@ void tStreamMeander::FindReaches()
          plPtr->insertAtBack( cn );
          cn = cn->GetDownstrmNbr();
       }
-      while (!cn->getReachMember() && cn->getBoundFlag() == kNonBoundary);
+      while (!cn->getReachMember() && cn->getBoundaryFlag() == kNonBoundary);
       //now we'll need to know the
       //channel and hydraulic geometry:
       FindChanGeom();
@@ -488,9 +497,9 @@ void tStreamMeander::FindReaches()
       curwidth = rnIter.LastP()->getHydrWidth();
       taillen[i] = 10.0*curwidth;
       ctaillen = 0.0;
-      while (ctaillen <= taillen[i] && cn->getBoundFlag() == kNonBoundary)
+      while (ctaillen <= taillen[i] && cn->getBoundaryFlag() == kNonBoundary)
       {
-         ctaillen+= cn->flowedg->len;
+         ctaillen+= cn->GetFlowEdg()->getLength();
          plPtr->insertAtBack( cn );
          cn = cn->GetDownstrmNbr();
       }
@@ -519,7 +528,8 @@ void tStreamMeander::FindReaches()
 **		Created: 5/1/97  SL
 **
 \***************************************************************/
-void tStreamMeander::CalcMigration( float &time, float &duration )
+void tStreamMeander::CalcMigration( float &time, float &duration,
+                                    float &cummvmt )
 {
    int i, j, *stations, *stnserod, nttlnodes;
    tArray< float > xa, ya, xsa, qa, rerodya, lerodya, delsa,
@@ -528,7 +538,6 @@ void tStreamMeander::CalcMigration( float &time, float &duration )
    tArray< float > *dumArrPtr, delta(2), newxy(2);
    float rerody, lerody, rz, lz, width;
    float maxfrac, displcmt, a, b, dtm, tmptim, frac, xs;
-   long seed;
    float num;
    tPtrList< tLNode > *creach;
    tPtrListIter< tLNode > rnIter;
@@ -583,21 +592,21 @@ void tStreamMeander::CalcMigration( float &time, float &duration )
       //itself, not the tArray object, which contains the array pointer.
       meander_( stations,
                 stnserod,
-                xa->getArrayPtr(),
-                ya->getArrayPtr(),
-                xsa->getArrayPtr(), 
-                delsa->getArrayPtr(),
-                qa->getArrayPtr(),
-                rerodya->getArrayPtr(),
-                lerodya->getArrayPtr(), 
-                slopea->getArrayPtr(),
-                widtha->getArrayPtr(),
-                deptha->getArrayPtr(),
-                diama->getArrayPtr(),
-                deltaxa->getArrayPtr(),
-                deltaya->getArrayPtr(),
-                rdeptha->getArrayPtr(),
-                ldeptha->getArrayPtr() );
+                xa.getArrayPtr(),
+                ya.getArrayPtr(),
+                xsa.getArrayPtr(), 
+                delsa.getArrayPtr(),
+                qa.getArrayPtr(),
+                rerodya.getArrayPtr(),
+                lerodya.getArrayPtr(), 
+                slopea.getArrayPtr(),
+                widtha.getArrayPtr(),
+                deptha.getArrayPtr(),
+                diama.getArrayPtr(),
+                deltaxa.getArrayPtr(),
+                deltaya.getArrayPtr(),
+                rdeptha.getArrayPtr(),
+                ldeptha.getArrayPtr() );
       //Now reset the node values according to the arrays:
       for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
            curnode = rnIter.NextP(), j++ )
@@ -688,11 +697,11 @@ void tStreamMeander::Migrate()
    //timeadjust = 86400. * pr->days;
    while( time < duration)
    {
-      CalcMigration( time, duration, cummvt ); //incremented time
+      CalcMigration( time, duration, cummvmt ); //incremented time
       MakeChanBorder( bList ); //bList of coordinate arrays made
       CheckBanksTooClose();
       CheckFlowedgCross();
-      CheckBrokenFlowedg();
+      //CheckBrokenFlowedg();
       gridPtr->MoveNodes();
       AddChanBorder( bList );
       //after the channel migrates a certain amount
@@ -741,11 +750,11 @@ void tStreamMeander::MakeChanBorder( tList< tArray< float > > &bList )
       {
          width = cn->getHydrWidth();
          rl = cn->getZOld();
-         cnbr = cn->GetDownstreamNbr();
+         cnbr = cn->GetDownstrmNbr();
          x0 = cn->getX();
          y0 = cn->getY();
          x1 = cnbr->getX();
-         y1 = cnbr->getY()
+         y1 = cnbr->getY();
          delx = x1 - x0;
          dely = y1 - y0;
          phi = atan2( dely, delx );
@@ -823,30 +832,27 @@ void tStreamMeander::AddChanBorder( tList< tArray< float > > &bList )
 
 /******************************************************************************\
 **
-**	GetErodibility:	This is the routine that finds the effective erodibility 
+**	FindBankErody :	This is the routine that finds the effective erodibility 
 **                              of each bank
 **				based on a reach node's neighbor's erodibility 
 **                    and relative height 
 **				above the channel.
 **
-**		Parameters:	erody -- copy of pr->kf, the fluvial erodibility
-**		Called by:	StreamMeander
+**		Parameters:	tSurface::vegerody; tBedrock::erodibility
+**		Called by: CalcMigration
 **		Created: 5/1/97 SL
 **
 \*****************************************************************************/
 tArray< float > tStreamMeander::FindBankErody( tLNode *nPtr )
 {
    float x1, y1, x2, y2, dx, dy, dx1, dy1, a, b, c, d, dmin, dlast,
-       dzleft, dzright, depth, dfactor, dtotal, erody;
+       dzleft, dzright, depth, dfactor, dtotal, erody, sed;
    tArray< float > xy, xyz1, xy2, dxy, rlerody(2);
    tEdge * curedg, * ledg, * redg, *ce;
    tLNode *cn, *dn, *rn, *ln;
    tPtrListIter< tEdge > spokIter( nPtr->getSpokeListNC() );
    tPtrList< tLNode > rList, lList;
    tPtrListIter< tLNode > rIter( rList ), lIter( lList );
-
-     //erody = nPtr->getErodibility();
-   
 //simplest thing: find points on right and left which have smallest distance 
 //to the perpendicular; those determine right and left erodibility, resp.
 //(another way: weighted average according to distance from perpendicular.)
@@ -855,7 +861,7 @@ tArray< float > tStreamMeander::FindBankErody( tLNode *nPtr )
    xy2 = dn->get2DCoords();
    for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
    {
-      cn = ce->getDestinationPtrNC();
+      cn = (tLNode *) ce->getDestinationPtrNC();
       if( cn != dn && cn->GetDownstrmNbr() != nPtr )
       {
          xy = cn->get2DCoords();
@@ -870,7 +876,7 @@ tArray< float > tStreamMeander::FindBankErody( tLNode *nPtr )
    dxy[1] = xy2[1] - xyz1[1];
    a = dxy[0];
    b = dxy[1];
-   c = -dxy[1] * xyz1[1] - cxy[0] * xyz1[0];
+   c = -dxy[1] * xyz1[1] - dxy[0] * xyz1[0];
    dmin = 100000.0;
    for( cn = rIter.FirstP(); !(rIter.AtEnd()); cn = rIter.NextP() )
    {
@@ -894,15 +900,31 @@ tArray< float > tStreamMeander::FindBankErody( tLNode *nPtr )
       }
    }
    dzright = rn->getZ() - xyz1[2];
-   dzleft = ln->getZ() = - xyz1[2];
-     //bank erodibility is the nominal erodibility X depth / dz
+   dzleft = ln->getZ() - xyz1[2];
+     //Xbank erodibility is the nominal erodibility X depth / dz
+   //make erodibility depend only on whether alluvium or bedrock:
    depth = nPtr->getHydrDepth();
+   if( dzright > 0.0 )
+   {
+      sed = rn->getAlluvThickness();
+      if( dzright > sed ) rlerody[0] = rockerod;
+      else rlerody[0] = vegerod;
+   }
+   if( dzleft > 0.0 )
+   {
+      sed = ln->getAlluvThickness();
+      if( dzleft > sed ) rlerody[1] = rockerod;
+      else rlerody[1] = vegerod;
+   }
+   
+   /*
    if( dzright <= 0.0 ) dfactor = 2.0;
    else dfactor = depth / dzright;
    rlerody[0] = dfactor * erody;
    if( dzleft <= 0.0 ) dfactor = 2.0;
    else dfactor = depth / dzleft;
    rlerody[1] = dfactor * erody;
+   */
    return rlerody;
 }
 
@@ -951,7 +973,7 @@ void tStreamMeander::CheckBanksTooClose()
                }
             }
          }
-         if( pointtodelete != 0 ) DeleteNode( pointtodelete );
+         if( pointtodelete != 0 ) gridPtr->DeleteNode( pointtodelete );
       }
    } while( tooclose );
    cout << "finished" << endl;
@@ -1068,18 +1090,18 @@ void tStreamMeander::CheckFlowedgCross()
                }
                if( pointtodelete != 0 )
                {
-                  DeleteNode( pointtodelete );
+                  gridPtr->DeleteNode( pointtodelete );
                }
                else
                {
                   xy0 = cn->getNew2DCoords();
-                  if( LocateTriangle( xy0[0], xy0[1] ) == 0 )
+                  if( gridPtr->LocateTriangle( xy0[0], xy0[1] ) == 0 )
                       cn->RevertToOldCoords();
                   xy1 = dscn->getNew2DCoords();
-                  if( LocateTriangle( xy1[0], xy1[1] ) == 0 )
+                  if( gridPtr->LocateTriangle( xy1[0], xy1[1] ) == 0 )
                       dscn->RevertToOldCoords();
-                  assert( LocateTriangle( xy0[0], xy0[1] ) == 0 ||
-                          LocateTriangle( xy1[0], xy1[1] ) == 0 );
+                  assert( gridPtr->LocateTriangle( xy0[0], xy0[1] ) == 0 ||
+                          gridPtr->LocateTriangle( xy1[0], xy1[1] ) == 0 );
                }
             }
          }
@@ -1088,6 +1110,114 @@ void tStreamMeander::CheckFlowedgCross()
    cout << "finished" << endl;
 }
       
+/*****************************************************************************\
+**
+**         CheckBrokenFlowedg()
+**
+\*****************************************************************************/
+void tStreamMeander::CheckBrokenFlowedg()
+{
+   cout << "CheckBrokenFlowedg()..." << flush << endl;
+   int i;
+   int breakedge;
+   int change = 0;
+   int flipped;
+   int flip = FALSE;
+   float dis0, dis1;
+   tArray< int > npop(3);
+   tLNode *pointtodelete, *lnodePtr, * pedg[2];  
+   tEdge * fedg, *tedg[2];
+   tTriangle * ct, * trop[3];
+   tListIter< tTriangle > triIter( gridPtr->GetTriList() );
+     //check for broken flow edges that we don't want broken
+   breakedge = TRUE;
+   tPtrList< tTriangle > triPtrList;
+   do
+   {
+      breakedge = FALSE;
+        //cout << "breaking edge loop: form tri stack" << endl << flush;
+      for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
+      {
+         change = FALSE;
+         for( i = 0; i < 3; i++ )
+         {
+            lnodePtr = (tLNode *) ct->pPtr(i);
+            if( lnodePtr->Meanders() )
+            {
+               change = TRUE;
+                 //cout << " add triangle " << ct->getID() << " to ptrlist" << endl;
+               break;
+            }
+         }
+         if( change ) triPtrList.insertAtBack( ct );
+      }
+        //for each triangle in the stack
+      tPtrListIter< tTriangle > triPtrIter( triPtrList );
+      for( ct = triPtrIter.FirstP(); !( triPtrIter.AtEnd() );
+           ct = triPtrIter.NextP() )
+      {
+         assert( ct != 0 );
+           //cout << " check triangle " << ct->getID() << endl;
+         for( i=0; i<3; i++ )
+         {
+            trop[i] = ct->tPtr(i);
+            if( trop[i] ) npop[i] = trop[i]->nVOp( ct );
+            else npop[i] = NULL;
+         }
+         for( i=0; i<3; i++ )
+         {
+            if( gridPtr->CheckForFlip( trop[i], npop[i], flip ) )
+            {
+               pedg[0] = (tLNode *) ct->pPtr( (i+1)%3 );
+               pedg[1] = (tLNode *) ct->pPtr( (i+2)%3 );
+               tedg[0] = ct->ePtr( (i+1)%3 );
+               tedg[1] = gridPtr->getEdgeCompliment( tedg[0] );
+               fedg = 0;
+               if( pedg[0]->GetFlowEdg() )
+                   if( tedg[0]->getID() == pedg[0]->GetFlowEdg()->getID() )
+                       fedg = tedg[0];
+               if( pedg[1]->GetFlowEdg() )
+                   if( tedg[1]->getID() == pedg[1]->GetFlowEdg()->getID() )
+                       fedg = tedg[1];
+               if( fedg )
+               {
+                  lnodePtr = (tLNode *) ct->pPtr(i);
+                  dis0 = lnodePtr->DistNew( pedg[0], pedg[1] );
+                  lnodePtr = (tLNode *) trop[i]->pPtr( npop[i] );
+                  dis1 = lnodePtr->DistNew( pedg[0], pedg[1] );
+                  if( dis0 < dis1 ) pointtodelete = (tLNode *) ct->pPtr(i);
+                  else pointtodelete = (tLNode *) trop[i]->pPtr( npop[i] );
+                  lnodePtr = (tLNode *) fedg->getOriginPtr();
+                  if( pointtodelete->getDrArea() > lnodePtr->getDrArea() )
+                      pointtodelete = NULL;
+                  else if( pointtodelete->getBoundaryFlag() )
+                  {
+                     for( i=0; i<2; i++ )
+                     {
+                        pedg[i]->RevertToOldCoords();
+                     }
+                  }
+                  else
+                  {
+                       //DumpTriangles();
+                       //DumpNodes();
+                       //DumpEdges();
+                     cout<<"delete flow edge breaker"<<endl<<flush;
+                     gridPtr->DeleteNode( pointtodelete );
+                     breakedge = TRUE;
+                     break;
+                  }
+               }  
+            }
+         }
+         if( breakedge ) break;
+      }
+      triPtrList.Flush();
+   } while( breakedge );
+   cout << "finished" << endl;
+}
+
+
 
 /****************************************************************\
 **	
