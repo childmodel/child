@@ -13,7 +13,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.26 1998-05-13 21:25:54 gtucker Exp $
+**  $Id: erosion.cpp,v 1.27 1998-05-13 22:21:11 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -523,7 +523,7 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
 }
 
 
-#define kSmallTimeStep 1e-3
+#define kSmallTimeStep 1e-5
 void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 {
    double dt,
@@ -595,12 +595,12 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          {                                              //  to zero slope
             dt = ( cn->getZ() - dn->getZ() ) / ratediff;
             if( dt < dtmax ) dtmax = dt;
-            if( dt < kSmallTimeStep )
+            /*if( dt < kSmallTimeStep )
             {
                cout << "Very small dt " << dt << " at:\n";
                 cn->TellAll();
                 dn->TellAll();
-            }
+            }*/
             
          }
       }
@@ -697,7 +697,6 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
                  << endl;
             cn->TellAll();
             dn->TellAll();
-            cin >> dt;
          }
       }
 
