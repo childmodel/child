@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.75 2004-04-19 17:30:09 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.76 2004-04-27 10:50:44 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -20,7 +20,7 @@
 #include "../errors/errors.h"
 #include "tStreamNet.h"
 
-kChannelType_t IntToChannelType( int c ){
+tStreamNet::kChannelType_t tStreamNet::IntToChannelType( int c ){
   switch(c){
   case 1: return kRegimeChannels;
   case 2: return kParkerChannels;
@@ -298,7 +298,7 @@ const tStorm *tStreamNet::getStormPtr() const {return stormPtr;}
 
 tStorm *tStreamNet::getStormPtrNC() {return stormPtr;}
 
-inline kFlowGen_t tStreamNet::getFlowGenOpt() const {return miOptFlowgen;}
+inline tStreamNet::kFlowGen_t tStreamNet::getFlowGenOpt() const {return miOptFlowgen;}
 
 bool tStreamNet::getFillLakesOpt() const {return filllakes;}
 

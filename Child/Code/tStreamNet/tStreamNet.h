@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.60 2004-04-19 16:32:52 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.61 2004-04-27 10:50:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -42,23 +42,6 @@
 #include "../tLNode/tLNode.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tStorm/tStorm.h"
-
-typedef enum {
-  kHortonian = 0,       // Option for uniform infilt-excess runoff
-  kSaturatedFlow1 = 1,  // Option for sat-excess runoff w/ return flow
-  kSaturatedFlow2 = 2,  // Option for sat-excess runoff w/o return flow
-  kConstSoilStore = 3,  // Option for "bucket"-type flow generation
-  k2DKinematicWave = 4, // Option for 2D steady kinematic wave multi-flow
-  kHydrographPeakMethod = 5  // Option for hydrograph peak method
-} kFlowGen_t;
-
-
-typedef enum {
-  kRegimeChannels = 1,
-  kParkerChannels = 2
-} kChannelType_t;
-
-kChannelType_t IntToChannelType( int );
 
 double DistanceToLine( double x2, double y2, double a, double b, double c );
 double DistanceToLine( double x2, double y2, tNode const *p0, tNode const *p1 );
@@ -205,6 +188,15 @@ class tStreamNet
     tStreamNet& operator=(const tStreamNet&);
     tStreamNet();
 public:
+    typedef enum {
+      kHortonian = 0,       // Option for uniform infilt-excess runoff
+      kSaturatedFlow1 = 1,  // Option for sat-excess runoff w/ return flow
+      kSaturatedFlow2 = 2,  // Option for sat-excess runoff w/o return flow
+      kConstSoilStore = 3,  // Option for "bucket"-type flow generation
+      k2DKinematicWave = 4, // Option for 2D steady kinematic wave multi-flow
+      kHydrographPeakMethod = 5  // Option for hydrograph peak method
+    } kFlowGen_t;
+
     tStreamNet( tMesh< tLNode > &, tStorm &, const tInputFile & );
     ~tStreamNet();
     void ResetMesh( tMesh< tLNode > & );
@@ -269,6 +261,12 @@ protected:
     inline static void RouteFlowArea( tLNode *, double );
     inline static void RouteRunoff( tLNode *, double, double );
     static void RouteError( tLNode * ) ATTRIBUTE_NORETURN;
+
+    typedef enum {
+      kRegimeChannels = 1,
+      kParkerChannels = 2
+    } kChannelType_t;
+    static kChannelType_t IntToChannelType( int );
 
     tMesh< tLNode > * meshPtr;  // ptr to mesh
     tStorm *stormPtr; // ptr to storm object (for getting precip)
