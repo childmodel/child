@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.79 2003-05-02 07:39:35 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.80 2003-05-08 10:59:05 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1819,7 +1819,7 @@ void tStreamMeander::CheckBanksTooClose()
       if (0) //DEBUG
 	cout << "CBTC: delete node " << dn->getID() << endl << flush;
       meshPtr->DeleteNode( dn );
-      delPtrList.removeFromFront( cn );
+      cn = delPtrList.removeFromFront();
     }
    
   if (0) //DEBUG
