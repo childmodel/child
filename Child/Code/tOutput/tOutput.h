@@ -1,10 +1,27 @@
 /*************************************************************************\
 **
-**  tOutput.h: Header file for output objects
+**  tOutput.h: Header file for classes tOutput and tLOutput
 **
-**  NB: inherit from this basic class to do output for tLNode objects.
+**  The tOutput class handles output of triangulated mesh data to
+**  files. The class handles only output of mesh data (nodes,
+**  edges, and triangles); output of additional data (e.g., water or
+**  sediment flow) can be handled by classes derived from tOutput.
 **
-**  $Id: tOutput.h,v 1.6 1998-06-17 23:37:02 nmgaspar Exp $
+**  tOutput provides functions to open and initialize output files and
+**  write output at a specified time in a simulation. The class is
+**  templated in order to allow for a pointer to a templated
+**  tGrid object.
+**
+**  To handle output of application-specific data, one can create a
+**  class inherited from tOutput and overload its virtual
+**  WriteNodeData function to output the additional data.
+**
+**  Note that in the present version, the files tOutput.h/.cpp
+**  contain the inherited class tLOutput which handles output for
+**  the CHILD model. In the future, such inherited classes will be
+**  kept in separate files to preserve the generality of tOutput.
+**
+**  $Id: tOutput.h,v 1.7 1999-03-31 23:08:58 gtucker Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -21,6 +38,20 @@
 
 #define kMaxNameSize 80
 
+/**************************************************************************\
+** class tOutput **********************************************************
+**
+** Class tOutput handles output of mesh data (nodes, edges, and
+** triangles). The constructor opens and initializes the files;
+** the WriteOutput function writes basic mesh data and calls the
+** virtual function WriteNodeData to write any application-specific
+** data.
+**
+** Notes:
+**  - WriteNodeData and CreateAndOpenFile could be protected rather
+**    than public.
+**
+\**************************************************************************/
 template< class tSubNode >
 class tOutput
 {
@@ -31,15 +62,24 @@ public:
     void CreateAndOpenFile( ofstream * theOFStream, char * extension );
 
 protected:
-    tGrid<tSubNode> * g;
-    char baseName[kMaxNameSize];
-    ofstream nodeofs;
-    ofstream edgofs;
-    ofstream triofs;
-    ofstream zofs;
+    tGrid<tSubNode> * g;          // ptr to grid (for access to nodes, etc)
+    char baseName[kMaxNameSize];  // name of output files
+    ofstream nodeofs;             // output file for node data
+    ofstream edgofs;              // output file for edge data
+    ofstream triofs;              // output file for triangle data
+    ofstream zofs;                // output file for node "z" data
 };
 
 
+/**************************************************************************\
+** class tLOutput *********************************************************
+**
+** Class tLOutput handles application-specific data for the CHILD model.
+** The constructor creates additional output files, and the overloaded
+** WriteNodeData function writes the data to files.
+** (TODO: move to separate file)
+**
+\**************************************************************************/
 template< class tSubNode >
 class tLOutput : public tOutput<tSubNode>
 {
@@ -51,8 +91,8 @@ private:
     ofstream netofs;     // Downstream neighbor IDs
     ofstream slpofs;     // Slopes in the direction of flow
     ofstream qofs;       // Discharge
-   ofstream layofs;      // Layer info
-   ofstream texofs;      // Texture info
+    ofstream layofs;     // Layer info
+    ofstream texofs;     // Texture info
                                 
 };
 
