@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.75 2003-06-04 13:46:33 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.76 2003-07-14 15:49:45 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -45,7 +45,6 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
 
    infile.ReadItem( baseName, "OUTFILENAME" );
    CreateAndOpenFile( &nodeofs, SNODES );
-   nodeofs.precision( 8 );
    CreateAndOpenFile( &edgofs, SEDGES );
    CreateAndOpenFile( &triofs, STRI );
    CreateAndOpenFile( &zofs, SZ );
@@ -87,6 +86,7 @@ void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
    if( !theOFStream->good() )
        ReportFatalError(
            "I can't create files for output. Storage space may be exhausted.");
+   theOFStream->precision( 12 );
 }
 
 
