@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.24 1998-03-31 22:34:51 stlancas Exp $
+**  $Id: tLNode.cpp,v 1.25 1998-04-03 15:25:26 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -271,9 +271,15 @@ tRegolith::tRegolith()                                          //tRegolith
 tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
         : dgrade( NUMG ), dpth( ACTDEPTH )
 {
+
    cout << "tRegolith(infile)\n";
    thickness = infile.ReadItem( thickness, "REGINIT" );
    numal = 0;
+   //numg = infile.ReadItem( numg, "NUMGRNSIZE");
+   //if( numg>1 )
+   //  {
+   //    dgrade.insertAtFront(thickness);
+   //  }
 }
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
