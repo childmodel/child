@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.60 2003-09-02 13:51:20 childcvs Exp $
+**  $Id: meshElements.h,v 1.61 2003-09-05 14:20:56 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -123,6 +123,7 @@ public:
   double getVArea_Rcp() const;               // returns 1/Voronoi area
   tBoundary_t getBoundaryFlag() const;               // returns boundary code
   tEdge * getEdg();                          // returns ptr to one spoke
+  tEdge const * getEdg() const;              // returns ptr to one spoke
   void getVoronoiVertexList( tList<Point2D> * );  // Returns list of V vertices
   void getVoronoiVertexXYZList( tList<Point3D> * ); // As above plus interp z
 
@@ -152,7 +153,7 @@ public:
   virtual void PrepForMovement( tTriangle const *, double ) {}
 
 #ifndef NDEBUG
-   void TellAll();  // Debugging routine that outputs node data
+   void TellAll() const;  // Debugging routine that outputs node data
 #endif
 
 
@@ -327,7 +328,7 @@ public:
   inline bool isIndexIDOrdered() const;
 
 #ifndef NDEBUG
-  void TellAll();  // debugging routine
+  void TellAll() const;  // debugging routine
 #endif
 
 private:
@@ -517,6 +518,7 @@ inline double tNode::getVArea() const {return varea;}
 inline double tNode::getVArea_Rcp() const {return varea_rcp;}
 inline tBoundary_t tNode::getBoundaryFlag() const {return boundary;}
 inline tEdge * tNode::getEdg() {return edg;}
+inline tEdge const * tNode::getEdg() const {return edg;}
 
 /***********************************************************************\
 **

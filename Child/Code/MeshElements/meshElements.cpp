@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.60 2003-08-11 15:45:43 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.61 2003-09-05 14:20:53 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -580,7 +580,7 @@ void tNode::ConvertToClosedBoundary()
 **
 \**************************************************************************/
 #ifndef NDEBUG
-void tNode::TellAll()
+void tNode::TellAll() const
 {
    cout << " NODE " << id << ":\n";
    cout << "  x=" << x << " y=" << y << " z=" << z;
@@ -900,7 +900,7 @@ void tTriangle::SetIndexIDOrdered()
 
 /* TellAll: debugging output routine */
 #ifndef NDEBUG
-void tTriangle::TellAll()
+void tTriangle::TellAll() const
 {
    int i;
 
