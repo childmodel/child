@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.90 2002-02-08 08:54:18 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.91 2002-02-08 14:54:02 gtucker Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -429,6 +429,8 @@ MakeLayersFromInputData( tInputFile &infile )
 **
 **   Modifications:
 **    - 2nd edge iterator used in CCW-setup loop to enhance speed. GT 8/98
+**    - 2/02 Fixed bug in which edges connecting 2 closed boundaries were
+**      not being correctly flagged as "no flux" edges (GT)
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -490,26 +492,29 @@ MakeMeshFromInputData( tInputFile &infile )
       //cout << input.orgid[i] << " " << input.destid[i] << endl;
       //cout << nodIter.Get( input.orgid[i] ) << " ";
       //cout << nodIter.Get( input.destid[i] ) << endl;
-      assert( nodIter.Get( input.orgid[miNextEdgID] ) );
+      nodIter.Get( input.orgid[miNextEdgID] );
           //{
-         tempedge1.setOriginPtr( &(nodIter.DatRef()) );
-         tempedge2.setDestinationPtr( &(nodIter.DatRef()) );
-         obnd = nodIter.DatRef().getBoundaryFlag();
+      tempedge1.setOriginPtr( &(nodIter.DatRef()) );
+      tempedge2.setDestinationPtr( &(nodIter.DatRef()) );
+      obnd = nodIter.DatRef().getBoundaryFlag();
          //cout << nodIter.DatRef().getID() << "->";
          //}
-         assert( nodIter.Get( input.destid[miNextEdgID] ) );
+      nodIter.Get( input.destid[miNextEdgID] );
           //{
-         tempedge1.setDestinationPtr( &(nodIter.DatRef()) );
-         tempedge2.setOriginPtr( &(nodIter.DatRef()) );
-         dbnd = nodIter.DatRef().getBoundaryFlag();
+      tempedge1.setDestinationPtr( &(nodIter.DatRef()) );
+      tempedge2.setOriginPtr( &(nodIter.DatRef()) );
+      dbnd = nodIter.DatRef().getBoundaryFlag();
          //cout << nodIter.DatRef().getID() << endl;
          //}
-      // set the "flowallowed" status (FALSE if either endpoint is a
-         // closed boundary) and insert edge pair onto the list --- active
+
+	 // set the "flowallowed" status (FALSE if either endpoint is a
+         // closed boundary, or both are open boundaries) 
+	 // and insert edge pair onto the list --- active
          // part of list if flow is allowed, inactive if not
          //cout << "BND: " << obnd << " " << dbnd << " " << kClosedBoundary
          //     << endl;
-      if( obnd == kClosedBoundary || dbnd == kClosedBoundary )
+      if( obnd == kClosedBoundary || dbnd == kClosedBoundary
+	  || (obnd==kOpenBoundary && dbnd==kOpenBoundary) )
       {
          /*cout << "setting edges " << tempedge1.getID() << " and "
               << tempedge2.getID() << " as no-flux" << endl;*/
@@ -530,6 +535,17 @@ MakeMeshFromInputData( tInputFile &infile )
       }
    }
    cout << "done.\n";
+
+   //DEBUG
+   cout << "JUST ADDED EDGES:\n";
+   tMeshListIter< tEdge > ei( edgeList );
+   tEdge * ce;
+
+   for( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
+     {
+       ce->TellCoords();
+       cout << ce->FlowAllowed() << endl;
+     }
 
    // set up the lists of edges (spokes) connected to each node
    // (GT added code to also assign the 1st edge to "edg" as an alternative
@@ -714,9 +730,9 @@ MakeMeshFromInputData( tInputFile &infile )
      }  // end of current densification level
    } // end of optional mesh densification  
 
-   tMeshListIter< tEdge > ei( edgeList );
-   tEdge * ce;
-
+   /*tMeshListIter< tEdge > ei( edgeList );
+   tEdge * ce;*/
+   cout << "JUST BEFORE UPDATEMESH\n";
    for( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
      {
        ce->TellCoords();
