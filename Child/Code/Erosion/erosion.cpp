@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.56 1999-03-18 23:39:49 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.57 1999-04-01 21:11:08 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -23,12 +23,13 @@
 #include "erosion.h"
 
 /***************************************************************************\
-**  tEquilibCheck
+**  FUNCTIONS FOR CLASS tEquilibCheck
 **
 **  Functions to find and report system mass change rate.
 **
 **  5/98 SL
 \***************************************************************************/
+
 /***************************************************************************\
 **  Constructors: default (no args) and given grid and timer as args
 \***************************************************************************/
@@ -66,6 +67,7 @@ tEquilibCheck::~tEquilibCheck()
    timePtr = 0;
 }
 
+
 /***************************************************************************\
 **  'get' and 'set' functions for tEquilibCheck:
 \***************************************************************************/
@@ -97,6 +99,7 @@ void tEquilibCheck::setTimePtr( tRunTimer *Ptr )
 double tEquilibCheck::getLongRate() const {return longRate;}
 
 double tEquilibCheck::getShortRate() const {return shortRate;}
+
 
 /***************************************************************************\
 **  tEquilibCheck::FindIterChngRate()
@@ -139,6 +142,7 @@ double tEquilibCheck::FindIterChngRate()
    return shortRate;
 }
 
+
 /***************************************************************************\
 **  tEquilibCheck::FindLongTermChngRate()
 **
@@ -171,6 +175,7 @@ double tEquilibCheck::FindLongTermChngRate()
    return longRate;
 }
 
+
 /***************************************************************************\
 **  tEquilibCheck::FindLongTermChngRate( double newtime )
 **
@@ -183,21 +188,12 @@ double tEquilibCheck::FindLongTermChngRate( double newtime )
 }
 
    
+
 /***************************************************************************\
-**  Constructors:
-**    Given a tInputFile as an argument, will read relevant parameters from
-**  the input file.
+**  FUNCTIONS FOR CLASS tBedErodePwrLaw
 \***************************************************************************/
-tSedTransPwrLaw::tSedTransPwrLaw( tInputFile &infile )
-{
-   kf = infile.ReadItem( kf, "KF" );
-   mf = infile.ReadItem( mf, "MF" );
-   nf = infile.ReadItem( nf, "NF" );
-}
 
-//tBedErodePwrLaw::tBedErodePwrLaw()
-//{ kb = 0; mb=0; nb=0; }
-
+//constructor: reads and sets the 3 parameters
 tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 {
    kb = infile.ReadItem( kb, "KB" );
@@ -205,11 +201,6 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
    nb = infile.ReadItem( nb, "NB" );
 }
 
-
-
-/***************************************************************************\
-**  tBedErodePwrLaw functions
-\***************************************************************************/
 
 /***************************************************************************\
 **  tBedErode::DetachCapacity
@@ -236,7 +227,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 }
 
 /***************************************************************************\
-**  tBedErode::DetachCapacity
+**  tBedErode::DetachCapacity (1 of 2)
 **
 **  Computes the rate of erosion  = kb Q^mb S^nb
 **
@@ -261,8 +252,9 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
    return erorate;
 }
 
+
 /***************************************************************************\
-**  tBedErode::DetachCapacity
+**  tBedErode::DetachCapacity (2 of 2)
 **
 **  Computes the rate of erosion  = e* Q^mb S^nb
 **  Here erodibility of layer is used as the coefficient for detach capacity
@@ -326,9 +318,24 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 
 }
 
+
+
 /***************************************************************************\
-**  tSedTransPwrLaw functions
+**  FUNCTIONS FOR CLASS tSedTransPwrLaw
 \***************************************************************************/
+
+/***************************************************************************\
+**  tSedTransPwrLaw Constructor:
+**    Given a tInputFile as an argument, will read relevant parameters from
+**  the input file.
+\***************************************************************************/
+tSedTransPwrLaw::tSedTransPwrLaw( tInputFile &infile )
+{
+   kf = infile.ReadItem( kf, "KF" );
+   mf = infile.ReadItem( mf, "MF" );
+   nf = infile.ReadItem( nf, "NF" );
+}
+
 
 /***************************************************************************\
 **  tSedTransPwrLaw::TransCapacity
@@ -354,10 +361,10 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node )
 **
 **  Computes sediment transport capacity using the simple power law
 **  Qs = kf Q^mf S^nf
-    This is a weighted version which is called from DetachErode.
-    Weight is a weighting by depth of layer.
-    Here, qsi is set by proportion in layer.
-    The value returned should be in units of m^3/yr
+**  This is a weighted version which is called from DetachErode.
+**  Weight is a weighting by depth of layer.
+**  Here, qsi is set by proportion in layer.
+**  The value returned should be in units of m^3/yr
 \***************************************************************************/
 double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
 {
@@ -377,9 +384,14 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
 
    
 /*************************************************************************\
-** tSedTransWilcock functions
+**  FUNCTIONS FOR CLASS tSedTransWilcock
 \**************************************************************************/
 
+/*************************************************************************\
+**  
+**  tSedTransWilcock constructor
+**
+\**************************************************************************/
 tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
         : grade()
 {
@@ -413,18 +425,19 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
    gravb = lowtaucg-(gravs*0.1);
 }
 
+
 /*********************************************************************\
-  tSedTransWilcock::TransCapacity
-
-  This function uses the sediment transport model developed by
-  P. Wilcock to calculate sediment transport rates of the sand and
-  gravel fraction individually.  This function should only be used with
-  two grain sizes and it is assumed that the grain size one is in the
-  sand range and grain size 2 is in the gravel range.  The sediment
-  transport rate of both grain sizes is calculated, and the sum of
-  these two rates is returned. (rate here is in m^3/yr)
+**
+**  tSedTransWilcock::TransCapacity
+**
+**  This function uses the sediment transport model developed by
+**  P. Wilcock to calculate sediment transport rates of the sand and
+**  gravel fraction individually.  This function should only be used with
+**  two grain sizes and it is assumed that the grain size one is in the
+**  sand range and grain size 2 is in the gravel range.  The sediment
+**  transport rate of both grain sizes is calculated, and the sum of
+**  these two rates is returned. (rate here is in m^3/yr)
 \***********************************************************************/
-
 double tSedTransWilcock::TransCapacity( tLNode *nd )
 {
    double tau, tauold;
@@ -495,27 +508,28 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
        
 }
 
+
 /*********************************************************************\
-  tSedTransWilcock::TransCapacity
-
-  *nd - pointer to the node which you are calculating tranport rates at.
-  i - the layer which you are basing the transport rate on (for texture)
-  weight - used in erosion algorithm, a weight based on layer depths.
-
-  This function uses the sediment transport model developed by
-  P. Wilcock to calculate sediment transport rates of the sand and
-  gravel fraction individually.  This function should only be used with
-  two grain sizes and it is assumed that grain size one is in the
-  sand range and grain size 2 is in the gravel range.  The sediment
-  transport rate of both grain sizes is calculated, and the sum of
-  these two rates is returned. (rate here is in m^3/yr)
-  Note that this function assumes that you are looping through layers,
-  (which is why you need the weight) and so qs total and for each size
-  was initialized to zero and you just add to it in this function.
-  It is VERY IMPORTANT that qs is reset to zero before you use this
-  funtion in a loop.
+**
+**  tSedTransWilcock::TransCapacity
+**
+**  *nd - pointer to the node which you are calculating tranport rates at.
+**  i - the layer which you are basing the transport rate on (for texture)
+**  weight - used in erosion algorithm, a weight based on layer depths.
+**
+**  This function uses the sediment transport model developed by
+**  P. Wilcock to calculate sediment transport rates of the sand and
+**  gravel fraction individually.  This function should only be used with
+**  two grain sizes and it is assumed that grain size one is in the
+**  sand range and grain size 2 is in the gravel range.  The sediment
+**  transport rate of both grain sizes is calculated, and the sum of
+**  these two rates is returned. (rate here is in m^3/yr)
+**  Note that this function assumes that you are looping through layers,
+**  (which is why you need the weight) and so qs total and for each size
+**  was initialized to zero and you just add to it in this function.
+**  It is VERY IMPORTANT that qs is reset to zero before you use this
+**  funtion in a loop.
 \***********************************************************************/
-
 double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 {
    double tau;
@@ -600,8 +614,10 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 
 
 /***************************************************************************\
-**  tErosion functions
+**  FUNCTIONS FOR CLASS tErosion
 \***************************************************************************/
+
+//constructor
 tErosion::tErosion( tGrid<tLNode> *gptr, tInputFile &infile )
         : bedErode( infile ), sedTrans( infile )
 {
@@ -616,7 +632,7 @@ tErosion::tErosion( tGrid<tLNode> *gptr, tInputFile &infile )
 
 /*****************************************************************************\
 **
-**  ErodeDetachLim
+**  tErosion::ErodeDetachLim
 **
 **  Solves for erosion and deposition during a time interval dtg, for the
 **  case in which any sediment detached from the landscape is assumed to
@@ -687,10 +703,18 @@ void tErosion::ErodeDetachLim( double dtg )
       dtg -= dtmax;
    } while( dtg>0.0000001 );
    
-}//end tErosion::ErodeDetachLim( double dtg )
+}//end tErosion::ErodeDetachLim( double dtg 
 
 
-   
+/*****************************************************************************\
+**
+**  tErosion::ErodeDetachLim (2 of 2)
+**
+**  This version adds the uplift rate source term to the time-step
+**  estimation. (This could be handled as a default argument, avoiding
+**  the need for two nearly identical versions -- TODO)
+**
+\*****************************************************************************/
 void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
 {
    double dt,
@@ -765,6 +789,14 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
 }//end tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
 
 
+/*****************************************************************************\
+**
+**  tErosion::StreamErode
+**
+**  Solution for general detachment- or transport-limited erosion. Now
+**  replaced by DetachErode.
+**
+\*****************************************************************************/
 #define kSmallTimeStep 1e-8
 void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 {
@@ -966,18 +998,18 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
    cout << "Leaving StreamErode()\n";
 }
 
+
 /***************************************************************************\
-  tErosion::StreamErodeMulti
-
-  Eventually there should only be one streamerode (not one for multi
-  and one for single size).  This work is still in progress so both
-  remain for the time being.  This function calculates the erosion and
-  deposition rate of each grain size assuming the system is transport
-  limited.  If there is less than a critical amount of sediment on the
-  bed, the bedrock is eroded and added to the load.
-
+**  tErosion::StreamErodeMulti
+**
+**  Eventually there should only be one streamerode (not one for multi
+**  and one for single size).  This work is still in progress so both
+**  remain for the time being.  This function calculates the erosion and
+**  deposition rate of each grain size assuming the system is transport
+**  limited.  If there is less than a critical amount of sediment on the
+**  bed, the bedrock is eroded and added to the load.
+**  ...NOW OBSOLETE?
 \***************************************************************************/
-
 void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 {
    double dt,
@@ -1293,19 +1325,22 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
    
 }
 
+
 /***********************************************************************\
-  tErosion::DetachErode
-
-  Algorithm for eroding sediment and bedrock.  Material is only detached
-  if the stream has the capacity to carry it.
-
+**
+**  tErosion::DetachErode
+**
+**  Algorithm for eroding sediment and bedrock.  Material is only detached
+**  if the stream has the capacity to carry it. Handles multiple grain
+**  sizes. Replaces StreamErode and StreamErodeMulti.
+**
 \************************************************************************/
 
 void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 {
    double dt,
-       dtmax;         // time increment: initialize to arbitrary large val
-   double frac = 0.3; //fraction of time to zero slope
+       dtmax;          // time increment: initialize to arbitrary large val
+   double frac = 0.3;  //fraction of time to zero slope
    double timegb=time; //time gone by - for layering time purposes
    int i,j, flag;
    tLNode * cn, *dn;
@@ -1667,7 +1702,6 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 }// End erosion algorithm
 
 
-
 /*****************************************************************************\
 **
 **  tErosion::Diffuse
@@ -1695,8 +1729,8 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 **  concave topography (= net deposition), on the assumption that stream
 **  erosion would quickly remove such material.
 **
-**  Parameters:  rt -- time duration over which to compute diffusion
-**               noDepoFlag -- if true, material is only eroded, never
+**  Inputs:  rt -- time duration over which to compute diffusion
+**           noDepoFlag -- if true, material is only eroded, never
 **                             deposited
 **  Modifies:  node elevations (z); node Qsin (sed influx) is reset and
 **             used in the computations
@@ -1788,6 +1822,7 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
    
 }
 
+
 /***********************************************************************\
  ** tErosion::UpdateExposureTime( double dtg)                         **
  **                                                                   **
@@ -1797,7 +1832,6 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
  **                                                                   **
  ** created 3/1999 ng                                                 **
  **********************************************************************/
-
 void tErosion::UpdateExposureTime( double dtg)
 {
    tLNode * cn;
