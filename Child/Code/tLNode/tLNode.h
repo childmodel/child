@@ -7,7 +7,7 @@
 **  Changes:
 **    - GT commented out inclusion of run timer, 1/99
 **
-**  $Id: tLNode.h,v 1.40 1999-02-04 19:27:10 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.41 1999-04-05 22:44:48 nmgaspar Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include "../tArray/tArray.h"
-#include "../GridElements/gridElements.h"
+#include "../MeshElements/meshElements.h"
 #include "../tList/tList.h"
 #include "../tInputFile/tInputFile.h"
 #include "../globalFns.h"
@@ -42,6 +42,9 @@ class tLayer
    double getCtime() const;
    void setRtime( double );
    double getRtime() const;
+   void setEtime( double );
+   void addEtime( double );
+   double getEtime() const;
    void setDepth( double );
    // NOTE setDepth will also update the depths in dgrade so that the
    // total depth is consistent and the original texture is kept.
@@ -52,8 +55,6 @@ class tLayer
    double getErody() const;
    void setSed( int );
    int getSed() const;
-   void setFlag( int );
-   int getFlag() const;   
    void setDgradesize( int );
    int getDgradesize();
    void setDgrade( int, double );
@@ -64,6 +65,7 @@ class tLayer
   protected:
    double ctime; // time of creation of layer
    double rtime; // most recent time (time steps) that there was erosion/depo.
+   double etime; // exposure time, i.e. time material spent at surface
    double depth; // total depth of the layer
    double erody; // erodibility of layer (varies with material)
    int sed;  // 0 = bedrock; 1 = some mixture of sediments so there
@@ -72,8 +74,6 @@ class tLayer
    // into, not what is there on the bed.
    // Later sed may be used as a flag for alluvium vs. regolith, etc.
    tArray< double > dgrade; // depth of each size if multi size
-   int flag; // put in to see if last change was erosion or deposition
-   // 1=erosion, 2=deposition - testing purposes only
 };
 
 /** class tErode ***********************************************************/
@@ -321,19 +321,20 @@ public:
    // The addtoLayer() function is a helper to addtoSurfaceDgrade()
    double getLayerCtime(int) const;
    double getLayerRtime(int) const;
+   double getLayerEtime(int) const;
    double getLayerDepth(int) const;
    double getLayerErody(int) const;
    int getLayerSed(int) const;
-   int getLayerFlag(int) const;   
    double getLayerDgrade(int, int) const;  // first int is layer index
    // second int is grade index - see note above for indexing directions
    int getNumLayer() const;
    void setLayerCtime(int, double);
    void setLayerRtime(int, double);
+   void setLayerEtime(int, double);
+   void addLayerEtime(int, double);
    void setLayerDepth(int, double);
    void setLayerErody(int, double);
    void setLayerSed(int, int);
-   void setLayerFlag(int, int);
    void setLayerDgrade(int, int, double); 
    tArray<double> EroDep(int, tArray<double>, double);
    // returns the depth of of each size that was actually deposited or
@@ -356,6 +357,7 @@ public:
    void LayerInterpolation( tTriangle *, double, double, double );
    virtual void WarnSpokeLeaving(tEdge *);
    virtual void InitializeNode();
+   
 
 #ifndef NDEBUG
    void TellAll();
