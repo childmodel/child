@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.1 1998-01-14 20:27:01 gtucker Exp $
+**  $Id: tLNode.cpp,v 1.2 1998-01-16 00:15:45 gtucker Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -400,7 +400,7 @@ tEdge * tLNode::GetFlowEdg()
 void tLNode::SetFlowEdg( tEdge * edg )
 {
    assert( edg > 0 );  // Fails when passed an invalid edge
-   cout << "Setting flow edge to edge # " << edg->getID() << endl;
+   //cout << "Setting flow edge to edge # " << edg->getID() << endl;
    
    flowedge = edg;
 }
@@ -462,6 +462,29 @@ void tLNode::UpdateCoords()
    y = chan.migration.newy;
 }
 
+// nb: if channel is integrated into node, change this
+float tLNode::GetQ()
+{
+   return chan.q;
+}
+
+/************************************************************************\
+**  GetSlope: Computes and returns the slope of the node's flowedg, or
+**  zero if the slope is less than zero.
+**
+**  Assumptions: edge lengths up to date and nonzero, flowedg's up to
+**    date.
+\************************************************************************/
+float tLNode::GetSlope()
+{
+   assert( GetFlowEdg()->getLength()>0 ); // failure means lengths not init'd
+   float slp = (z - GetDownstrmNbr()->getZ() ) / GetFlowEdg()->getLength();
+   if( slp>=0.0 ) return slp;
+   else return 0.0;
+}
+
+   
+
 
 //void tLNode::insertFrontSpokeList( tEdge *eptr )             //tNode
 //{spokeList.insertAtFront( eptr );}
@@ -505,8 +528,24 @@ float tLNode::DistNew(tLNode * p0,tLNode * p1 )
 #ifndef NDEBUG
 void tLNode::TellAll()
 {
-   cout << "  NODE " << id << ":\n";
-   if( edg ) cout << "  points to edg #" << edg->getID() << endl;
+   tLNode * nbr;
+   
+   cout << " NODE " << id << ":\n";
+   if( edg ) {
+      cout << "  x=" << x << " y=" << y << " z=" << z;
+      cout << "  points to edg #" << edg->getID() << endl;
+      cout << "  dr area: " << getDrArea() << "  discharge: " << GetQ()
+           << "  boundary status: " << boundary << "  flood status: "
+           << flood << endl;
+      
+      if( flowedge ) {
+         nbr = (tLNode *)flowedge->getDestinationPtrNC();
+         cout << "  Flows along edg " << flowedge->getID() << " to node "
+              << nbr->getID() << " at (" << nbr->getX() << ","
+              << nbr->getY() << "," << nbr->getZ() << ")\n";
+      }
+      else cout << "  Flowedg is undefined\n";
+   }
    else cout << "  edg is undefined!\n";
    
 }
@@ -554,4 +593,25 @@ int tLNode::NoMoreTracers()
 {
    assert( tracer>=0 );
    return( tracer==0 );
+}
+
+
+/**************************************************************************\
+**
+**  EroDep
+**
+**  Erodes or deposits material of depth dz.
+**
+**  Note: as of now, just changes elev. Should also change alluvial
+**  thickness and set to zero if negative (bedrock erosion).
+**
+**  1/15/98 gt
+\**************************************************************************/
+void tLNode::EroDep( float dz )
+{
+   z += dz;
+   cout << "  eroding " << id << " by " << dz << endl;
+   
+   //sed += dz;
+   //if( sed<0 ) sed=0;
 }
