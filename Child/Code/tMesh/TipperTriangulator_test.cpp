@@ -77,7 +77,7 @@ void sanity_check_edge(const edge *edges){
 	leftp = (edges[lef].from==from) ? edges[lef].to : edges[lef].from;
       }
       if (ref != edge::none) {
-	rightp = (edges[ref].from==from) ? rightp=edges[ref].to : edges[ref].from;
+	rightp = (edges[ref].from==from) ? edges[ref].to : edges[ref].from;
       }
     }
     int leftp2 = -1,rightp2 = -1;
@@ -236,5 +236,6 @@ int main(void){
     }
     break;
   }
+  return 0;
 }
 #endif
