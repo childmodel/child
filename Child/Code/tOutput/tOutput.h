@@ -24,7 +24,7 @@
 **  Recent modifications:
 **    - 1/00: GT added vegofs for output of vegetation cover
 **
-**  $Id: tOutput.h,v 1.11 2000-01-27 22:34:56 gtucker Exp $
+**  $Id: tOutput.h,v 1.12 2000-06-05 19:37:55 daniel Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -99,6 +99,7 @@ private:
     ofstream texofs;     // Texture info
     ofstream vegofs;     // Vegetation cover %
     ofstream flowdepofs; // Flow depth
+    ofstream volsofs;    // catchment volume
 };
 
 #endif
