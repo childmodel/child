@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.14 1998-03-16 18:50:36 gtucker Exp $
+**  $Id: tLNode.h,v 1.15 1998-03-20 15:38:04 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -181,7 +181,7 @@ public:
     tLNode * GetDownstrmNbr();
     double GetQ();        // Gets total discharge from embedded chan obj
     double GetSlope();    // Computes and returns slope in flow direction
-   double GetDSlopeDt();
+    double GetDSlopeDt();
     int Meanders() const;
     void SetMeanderStatus( int );
     void setHydrWidth( double );
@@ -234,39 +234,39 @@ public:
     double getBedErody() const;
     void setReachMember( int );
     int getReachMember() const;
-    void SetQs( double );
-    double GetQs() const;
-    void SetQsin( double );
+    void setQs( double );
+    double getQs() const;
+    void setQsin( double );
     void AddQsin( double );
-   double GetQsin() const;
-   void setXYZD( tArray< double > );
-   tArray< double > getXYZD() const;
-   double DistFromOldXY() const;
-   int OnBedrock();
-   double GetDzDt();
-   void SetDzDt( double );
-   double GetDrDt();
-   void SetDrDt( double );
-   void setUplift( double );
-   double getUplift() const;
-   
+    double getQsin() const;
+    void setXYZD( tArray< double > );
+    tArray< double > getXYZD() const;
+    double DistFromOldXY() const;
+    int OnBedrock();
+    double getDzDt();
+    void setDzDt( double );
+    double getDrDt();
+    void setDrDt( double );
+    void setUplift( double );
+    double getUplift() const;
+    
 #ifndef NDEBUG
-   void TellAll();
+    void TellAll();
 #endif
-   
+    
 protected:
-   tBedrock rock;
-   tSurface surf;
-   tRegolith reg;
-   tChannel chan;
-   int flood;        /* flag: is the node part of a lake?*/
-   tEdge *flowedge;
-   int tracer;       /* Used by network sorting algorithm*/
-   double dzdt;      /* Erosion rate */
-   double drdt;      /* Rock erosion rate */
-   double qs;           /* Sediment transport rate*/
-   double qsin;         /* Sediment influx rate*/
-   double uplift;  /*uplift rate*/
+    tBedrock rock;
+    tSurface surf;
+    tRegolith reg;
+    tChannel chan;
+    int flood;        /* flag: is the node part of a lake?*/
+    tEdge *flowedge;
+    int tracer;       /* Used by network sorting algorithm*/
+    double dzdt;      /* Erosion rate */
+    double drdt;      /* Rock erosion rate */
+    double qs;           /* Sediment transport rate*/
+    double qsin;         /* Sediment influx rate*/
+    double uplift;  /*uplift rate*/
 };
 
 #endif
