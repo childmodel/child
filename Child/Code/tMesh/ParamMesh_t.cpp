@@ -43,7 +43,7 @@ ParamMMFS_t::ParamMMFS_t(tInputFile &infile) :
      {
        delGrid = infile.ReadItem( delGrid, "GRID_SPACING" );
        if( delGrid >= xGrid || delGrid >= yGrid )
-	 ReportFatalError( 
+	 ReportFatalError(
 			  "Mesh point spacing must be smaller than total mesh width." );
      }
    else
@@ -54,7 +54,7 @@ ParamMMFS_t::ParamMMFS_t(tInputFile &infile) :
    if( boundType == kOppositeSidesOpen )
      {
        upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
-     } 
+     }
    else if( boundType == kSpecifyOutlet )
      {
        // Read outlet coordinates from input file

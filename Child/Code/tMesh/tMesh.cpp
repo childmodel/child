@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.137 2003-04-29 16:33:56 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.138 2003-04-30 15:03:04 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1682,7 +1682,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    tMeshListIter< tSubNode > nI( nodeList );
    tPtrList<tSubNode> supertriptlist, deletelist;
    tPtrListIter<tSubNode> stpIter( supertriptlist ), dI( deletelist );
-   
+
    // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
    infile.ReadItem( arcgridFilenm, "ARCGRIDFILENAME" );
@@ -1775,7 +1775,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
       ygen = drand48() * (dj - 1.0);
 
       zinterp = InterpSquareGrid( xgen, ygen, elev, nodata );
-   
+
       // reset to "real" coords and add node:
       if( zinterp != nodata )
           tempnode.setBoundaryFlag( kNonBoundary );
@@ -1804,7 +1804,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
          }
       }
       else --i; // otherwise, decrement i and try again
-   }   
+   }
    cout << "finished interpolation:";
    cout << "\n2 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: "
         << nedges << " NT: " << ntri << endl;
@@ -1987,7 +1987,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    while( keepgoing )
    {
       zinterp = InterpSquareGrid( xgen, ygen, elev, nodata );
-   
+
       // reset to "real" coords and add node:
       if( zinterp != nodata )
           tempnode.setBoundaryFlag( kNonBoundary );
@@ -2100,7 +2100,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
 **      Calls:
 **      Notes: does not check whether ID's are within the valid range;
 **             that's assumed to be taken care of by the input routines
-**     
+**
 **      Created: GT 1/98
 **      Modifications:
 **        - 4/98 GT added boundaryCheckFlag with default TRUE, so that
@@ -2136,7 +2136,7 @@ CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
                << " must be followed by its complement in the list\n";
           goto error;
       }
-   
+
    }
 
    // Edges: check for valid origin, destination, and ccwedg
@@ -2242,7 +2242,7 @@ CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
       // Loop around the spokes until we're back at the beginning
       do
       {
- 
+
          if( ce->getDestinationPtrNC()->getBoundaryFlag()!=kClosedBoundary )
              boundary_check_ok = true;  // OK, there's at least one open nbr
          i++;
@@ -2292,7 +2292,7 @@ CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
             goto error;
          }
       }
-   
+
    }
      //cout << "NODES PASSED\n";
 
@@ -2450,7 +2450,7 @@ void tMesh<tSubNode>::setVoronoiVertices()
    // Find the Voronoi vertex associated with each Delaunay triangle
    for( ct = triIter.FirstP(); !(triIter.AtEnd()); ct = triIter.NextP() )
    {
-      xy = ct->FindCircumcenter(); 
+      xy = ct->FindCircumcenter();
       //cout << "setVoronoiVertices(): " << xy[0] << " " << xy[1];
       // Assign the Voronoi point as the left-hand point of the three edges
       // associated with the current triangle
@@ -2530,7 +2530,7 @@ template <class tSubNode>
         curnode = nodIter.NextP() )
    {
       curnode->ComputeVoronoiArea();
-   
+
    }
    //cout << "CalcVAreas() finished" << endl;
 }
@@ -3163,7 +3163,7 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
          nbrList.removeNext( meshnodePtr, nbrIter.NodePtr() );
       }
         //else cout << "Not delaun\n";
-   
+
       nbrIter.Next();                    //step forward once in nbrList
    }
    assert( nbrList.getSize() == 3 );
@@ -3492,7 +3492,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
          p0 = cn->get2DCoords();
          p1 = cnn->get2DCoords();
          p2 = cnnn->get2DCoords();
-      
+
          if( PointsCCW( p0, p1, p2 ) )
              cerr << "something FUNNY going on";
          else cerr << "tri not CCW: " << nbrtriPtr->getID() << endl;
@@ -3506,11 +3506,11 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
       if( nbrtriPtr )
           nbrtriPtr->TellAll();
       else cout << "(none)\n";*/
-      
+
       ct->setTPtr( (j+2)%3, nbrtriPtr );      //set tri TRI ptr (j+2)%3
 
       //cout << "This is our nbr #" << (j+2)%3 << endl << endl;
-   
+
       // If a neighboring triangle was found, tell it that the current
       // new triangle is its neighbor too. We need to tell it which
       // neighbor we are (0, 1, or 2), and the mapping is like this:
@@ -4279,7 +4279,7 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
 **      Called by: MoveNodes
 **      Calls: CheckForFlip
 **      Created: SL fall, '97
-**     
+**
 \*****************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
@@ -4344,7 +4344,7 @@ CheckLocallyDelaunay()
                // acts as a flag here
                tn = duptriPtrIter.ReportNextP();
             }
-         
+
             /*if( at->tPtr(0) != 0 ) id0 = at->tPtr(0)->getID();
             else id0 = -1;
             if( at->tPtr(1) != 0 ) id1 = at->tPtr(1)->getID();
@@ -4645,7 +4645,7 @@ CheckTriEdgeIntersect()
 
 }//end CheckTriEdgeIntersect()
 
-            
+
 /*****************************************************************************\
 **
 **  tMesh::MoveNodes (formerly PreApply)
@@ -4670,7 +4670,7 @@ CheckTriEdgeIntersect()
 **      Created: SL
 **      Modifications:
 **       - added interpFlag parameter to make layer interpolation optional,
-**         so it needn't be called for tectonic motions (GT 4/00)  
+**         so it needn't be called for tectonic motions (GT 4/00)
 **
 \*****************************************************************************/
 template< class tSubNode >

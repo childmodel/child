@@ -1,4 +1,4 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /***************************************************************************/
 /**
@@ -9,7 +9,7 @@
 
 /**
    @class ParamMMFS_t
-   @brief Parameters read in Input File for MakeMeshFromScratch
+   @brief Parameters read in Input File for tMesh::MakeMeshFromScratch
 */
 class ParamMMFS_t {
 public:
