@@ -147,6 +147,9 @@ void ReadChild
   char *basename(0);
   {
     char const * const filename = GetFileName();
+    // early return if filename is not set. No message.
+    if (filename == NULL || 0 == strcmp(filename,""))
+      return;
 #ifdef DEBUG1
     cout << "FileName=" << filename << endl;
 #endif
