@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.25 2000-01-27 22:02:49 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.26 2000-04-04 20:52:43 nmgaspar Exp $
 \*************************************************************************/
 
 #include "tOutput.h"
@@ -106,7 +106,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
    int nedges = m->getEdgeList()->getSize();  // "    edges "
    int ntri = m->getTriList()->getSize();     // "    triangles "
 
-   cout << "tOutput::WriteOutput()\n";
+   cout << "tOutput::WriteOutput()\n" << flush;
    
    // Renumber IDs in order by position on list
    for( cn=niter.FirstP(), id=0; id<nnodes; cn=niter.NextP(), id++ )
