@@ -13,7 +13,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.24 1998-05-05 21:59:57 gtucker Exp $
+**  $Id: erosion.cpp,v 1.25 1998-05-12 22:08:04 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -523,6 +523,7 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
 }
 
 
+#define kSmallTimeStep 1e-3
 void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 {
    double dt,
@@ -594,17 +595,18 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          {                                              //  to zero slope
             dt = ( cn->getZ() - dn->getZ() ) / ratediff;
             if( dt < dtmax ) dtmax = dt;
-            if( dt < 1e-5 )
+            if( dt < kSmallTimeStep )
             {
-               dt = 1e-5;
-               /* cout << "Very small dt " << dt << " at:\n";
+               cout << "Very small dt " << dt << " at:\n";
                 cn->TellAll();
-                dn->TellAll();*/
+                dn->TellAll();
             }
             
          }
       }
       dtmax *= frac;  // Take a fraction of time-to-flattening
+      if( dtmax < kSmallTimeStep ) dtmax = kSmallTimeStep;
+      cout << "  dt " << dtmax << endl;
 
       // Zero out sed influx again, because depending on bedrock-alluvial
       // interaction it may be modified; if inlet, give it strmNet->inlet.inSedLoad
@@ -658,21 +660,45 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
             // If excess capacity depth-equivalent is greater than the depth
             // of sediment available on bed plus eroded from bedrock, limit
             // depth of erosion to alluvium plus bedrock erosion depth
-            if( -dz > -dzr+cn->getAlluvThickness() )
-               dz = dzr+cn->getAlluvThickness();
+            if( -dz > -dzr+cn->getAlluvThickness() ) {
+               dz = dzr-cn->getAlluvThickness(); 
+            }
          }
          
          //cout << "** THIS node has dz " << dz << endl << flush;
          //cn->TellAll();
 
          // Update alluvium thickness and node elevation
+         if( cn->getID()==3214 )
+         {
+             cn->TellAll();
+             cout << "Applying dz=" << dz << endl;
+         }
+         if( cn->getZ() < -1 ) {
+            cout << "The following node is going below baselevel:\n";
+            cn->TellAll();
+         }
          cn->EroDep( dz );
          dn = cn->GetDownstrmNbr();
+         if( dn->getID()==3214 )
+         {
+            cout << "SENDing to 3214: " << cn->getQsin() << " - " << dz*cn->getVArea()/dtmax << endl;
+            cn->TellAll();
+         }
 
          // Send sediment downstream: sediment flux is equal to the flux in
          // plus/minus rate of erosion/deposition times node area
          assert( dtmax>0 );
          dn->AddQsin( cn->getQsin() - dz*cn->getVArea()/dtmax );
+         if( (cn->getQsin() - dz*cn->getVArea()/dtmax) < -1e-10 )
+         {
+            cout << "NEG OUTFLUX! (dz=" << dz << ")\n";
+            cout << "outflux: " << cn->getQsin() - dz*cn->getVArea()/dtmax
+                 << endl;
+            cn->TellAll();
+            dn->TellAll();
+            cin >> dt;
+         }
       }
 
       // Update time remaining
