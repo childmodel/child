@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.19 2003-05-23 17:48:08 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.20 2003-07-15 16:04:59 childcvs Exp $
 */
 /************************************************************************/
 
@@ -60,6 +60,7 @@ tUplift::tUplift( tInputFile &infile )
           break;
       case 2:
           faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
+	  rate2 = infile.ReadItem( rate2, "SUBSRATE" );
           break;
       case 3:
           faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
@@ -198,20 +199,32 @@ void tUplift::UpliftUniform( tMesh<tLNode> *mp, double delt )
 **  Inputs:  mp -- pointer to the mesh
 **           delt -- duration of uplift
 **
+**  Modifications:
+**   - Added subsidence of area outside of block at rate given by
+**     parameter 'rate2' (GT, June 2003)
+**
 \************************************************************************/
 void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt )
 {
    assert( mp!=0 );
    tLNode *cn;
    tMeshListIter<tLNode> ni( mp->getNodeList() );
-   double rise = rate*delt;
+   double rise = rate*delt,
+     sink = rate2*delt;
 
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+   {
      if( cn->getY()>=faultPosition )
      {
         cn->ChangeZ( rise );
         cn->setUplift( rate );
      }
+     if( rate2!=0.0 && cn->getY()<faultPosition )
+     {
+	 cn->ChangeZ( -sink );
+	 cn->setUplift( -rate2 );
+     }
+   }
 }
 
 
