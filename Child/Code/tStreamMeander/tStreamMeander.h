@@ -12,10 +12,19 @@
 **
 **    * Kicks ass and takes names.
 **
-**  $Id: tStreamMeander.h,v 1.5 1998-01-21 23:24:53 stlancas Exp $
+**  $Id: tStreamMeander.h,v 1.6 1998-01-27 23:59:46 stlancas Exp $
 \**************************************************************************/
 #ifndef TSTREAMMEANDER_H
 #define TSTREAMMEANDER_H
+
+
+#include "../tArray/tArray.h"
+#include "../tStreamNet/tStreamNet.h"
+#include "../tLNode/tLNode.h"
+#include "../tGrid/tGrid.h"
+#include "../tInputFile/tInputFile.h"
+#include "../tPtrList/tPtrList.h"
+#include "../tList/tList.h"
 
 /**Class tStreamMeander****/
 class tStreamMeander
@@ -29,9 +38,9 @@ public:
    //tStreamMeander( tStreamNet &, tInputFile & );
    ~tStreamMeander();
    //"get" ready, "set"...go!
-   const tList< tReach > &getReachList();
-   tList< tReach > &getReachListNC();
-   void setReachList( const tList< tReach > & );
+   const tList< tPtrList< tLNode > > &getReachList();
+   tList< tPtrList< tLNode > > &getReachListNC();
+   void setReachList( const tList< tPtrList< tLNode > > & );
    //finds "meanderability" and calls tLNode::setMeanderStatus
    //for each active node:
    void FindMeander();
@@ -55,11 +64,11 @@ public:
    void AddChanBorder( tList< tArray< float > > & );
    //finds the erodibility of each bank, returns an array [right, left]:
    tArray< float > FindBankErody( tLNode * );
-     //CheckBanksTooClose, CheckFlowedgCross, and CheckBrokenFlowedg are to check
-     //for 'violations' peculiar to moving channels.
-   int CheckBanksTooClose();
-   int CheckFlowedgCross();
-   int CheckBrokenFlowedg();
+   //CheckBanksTooClose, CheckFlowedgCross, and CheckBrokenFlowedg are to check
+   //for 'violations' peculiar to moving channels.
+   void CheckBanksTooClose();
+   void CheckFlowedgCross();
+   void CheckBrokenFlowedg();
    //calls meander_; pass it the running time, storm duration, and cum. mvmt.:
    void CalcMigration( float &, float &, float & ); 
    //calls CalcMigration, routines to keep the mesh and net happy,
@@ -84,6 +93,8 @@ protected:
    float dscrtwids; //nominal channel discretization in channel widths
    float allowfrac; //maximum channel point mvmt. in channel widths
    float leavefrac; //distance in widths to add new node
+   float vegerod;  //erodibility of vegetated surface or bank
+   float rockerod; //erodibility of bedrock
    tArray< int > nrnodes; //array w/ #elements=#reaches, # "active" reach nodes
    tArray< float > reachlen; // " , length of active reach in reach list
    tArray< float > taillen;  // " , length of inactive "tail" in reach list
