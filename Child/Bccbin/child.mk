@@ -9,8 +9,8 @@ ARCH := -6
 CFLAGS = $(WARNINGFLAGS) $(ARCH) -c
 LDFLAGS = $(WARNINGFLAGS) $(ARCH)
 # no optimisation, build is faster
-#CFLAGS = $(WARNINGFLAGS) $(ARCH) -c
-#LDFLAGS = $(WARNINGFLAGS) $(ARCH)
+#CFLAGS = $(WARNINGFLAGS) -v $(ARCH) -c
+#LDFLAGS = $(WARNINGFLAGS) -v $(ARCH)
 LIBS =
 EXENAME = child.exe
 
