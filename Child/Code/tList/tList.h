@@ -33,7 +33,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.38 2003-05-19 13:26:57 childcvs Exp $
+**  $Id: tList.h,v 1.39 2003-05-22 09:18:13 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -375,8 +375,8 @@ tList< NodeType >::
 {
    if( !isEmpty() )
    {
-     if (0) //DEBUG
-       cout<<"Destroying nodes ... "<<endl;
+      if (0) //DEBUG
+	cout<<"Destroying nodes ... "<<endl;
       tListNode<NodeType > * current = first, * temp;
       while( current != 0 )
       {

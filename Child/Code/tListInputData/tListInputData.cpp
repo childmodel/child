@@ -12,7 +12,7 @@
 **   - Bug fix in constructor: nnodes was being read from edge and
 **     triangle files -- thus arrays dimensioned incorrectly! (GT 04/02)
 **
-**  $Id: tListInputData.cpp,v 1.12 2003-05-16 14:01:06 childcvs Exp $
+**  $Id: tListInputData.cpp,v 1.13 2003-05-22 09:19:11 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -149,7 +149,7 @@ tListInputData( tInputFile &infile )                   //tListInputData
 	 }
        }
      else righttime = 1;
-      cout << " NOW are we at eof? " << nodeinfile.eof() << endl;
+     cout << " NOW are we at eof? " << nodeinfile.eof() << endl;
    }
    if( !( nodeinfile.eof() ) ) {
      nodeinfile >> nnodes;
