@@ -9,7 +9,7 @@
 //  functions, DifferenceOfProductsOfDifferences(...) and
 //  AdaptDiffOfProdsOfDiffs(...) to do segment intersection detection.
 //  --Stephen Lancaster, 1/99
-//  $Id: predicates.h,v 1.2 1999-05-04 17:16:21 gtucker Exp $
+//  $Id: predicates.h,v 1.3 1999-05-11 19:10:54 gtucker Exp $
 /*****************************************************************************/
 /*                                                                           */ 
 /*  Routines for Arbitrary Precision Floating-point Arithmetic               */ 
@@ -129,15 +129,10 @@
 #define PREDICATES_H
 
 #include <stdio.h> 
-//#include <stdlib.h>
-#ifdef __DECCXX
-#include <macros.h>
-#else
-#define max(a,b) ( (a>b) ? a : b )
-#define min(a,b) ( (a<b) ? a : b )
-#endif
 #include <math.h> 
 #include <sys/time.h> 
+
+
 
 /* On some machines, the exact arithmetic routines might be defeated by the  */ 
 /*   use of internal extended precision floating-point registers.  Sometimes */ 
@@ -159,9 +154,9 @@
 /*   which is disastrously slow.  A faster way on IEEE machines might be to  */ 
 /*   mask the appropriate bit, but that's difficult to do in C.              */ 
  
-//#define Absolute(a)  ((a) >= 0.0 ? (a) : -(a)) 
+#define Absolute(a)  ((a) >= 0.0 ? (a) : -(a)) 
 /* #define Absolute(a)  fabs(a) */
-#define Absolute(a)  abs(a) // defined in <macros.h>
+//#define Absolute(a)  abs(a) // defined in <macros.h>
  
 /* Many of the operations are broken up into two pieces, a main part that    */ 
 /*   performs an approximate operation, and a "tail" that computes the       */ 
@@ -288,7 +283,5 @@ private:
    REAL iccerrboundA, iccerrboundB, iccerrboundC; 
    REAL isperrboundA, isperrboundB, isperrboundC; 
 };
-
-
 
 #endif
