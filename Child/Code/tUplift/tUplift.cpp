@@ -2,13 +2,13 @@
 **
 **  tUplift.cpp: Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.6 1999-04-05 15:22:14 gtucker Exp $
+**  $Id: tUplift.cpp,v 1.7 2000-06-05 12:55:22 gtucker Exp $
 \************************************************************************/
 
 #include "tUplift.h"
 #include "../errors/errors.h"
 
-#define kNumUpliftTypes 2
+#define kNumUpliftTypes 5
 #define kNoUplift 0
 
 
@@ -36,7 +36,10 @@ tUplift::tUplift( tInputFile &infile )
       cerr << "Valid uplift types are:\n";
       cerr << " 0 - none\n"
            << " 1 - Spatially and temporally uniform uplift\n"
-           << " 2 - Uniform uplift at Y >= fault location, zero elsewhere\n";
+           << " 2 - Uniform uplift at Y >= fault location, zero elsewhere\n"
+           << " 3 - Block uplift with strike-slip motion along given Y coord\n"
+           << " 4 - Propagating fold modeled w/ simple error function curve\n"
+           << " 5 - 2D cosine-based uplift-subsidence pattern\n";
       ReportFatalError( "Please specify a valid uplift type and try again." );
    }
 
@@ -47,9 +50,24 @@ tUplift::tUplift( tInputFile &infile )
    rate = infile.ReadItem( rate, "UPRATE" );
    switch( typeCode )
    {
-   case 2:
-     faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
-     break;
+      case 2:
+          faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
+          break;
+      case 3:
+          faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
+          slipRate = infile.ReadItem( slipRate, "SLIPRATE" );
+          break;
+      case 4:
+          faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
+          slipRate = infile.ReadItem( slipRate, "FOLDPROPRATE" );
+          foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
+          foldParam = 4.0/foldParam;
+          break;
+      case 5:
+          foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
+          slipRate = infile.ReadItem( slipRate, "TIGHTENINGRATE" );
+          faultPosition = infile.ReadItem( faultPosition, "ANTICLINEYCOORD" );
+          break;
    }
    
 }
@@ -76,6 +94,16 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt )
       case 2:
           BlockUplift( mp, delt );
           break;
+      case 3:
+          BlockUplift( mp, delt );
+          StrikeSlip( mp, delt );
+          break;
+      case 4:
+          FoldPropErf( mp, delt );
+          break;
+      case 5:
+          CosineWarp2D( mp, delt );
+          break;
    }
    
 }
@@ -99,6 +127,8 @@ void tUplift::UpliftUniform( tMesh<tLNode> *mp, double delt )
    tMeshListIter<tLNode> ni( mp->getNodeList() );
    double rise = rate*delt;
 
+   //cout << "****UPLIFTUNI: " << rise << endl;
+   
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
    {
       cn->ChangeZ( rise );
@@ -131,6 +161,125 @@ void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt )
         cn->ChangeZ( rise );
         cn->setUplift( rate );
      }
+}
+
+
+/************************************************************************\
+**
+**  tUplift::StrikeSlip
+**
+**  Mesh points at y<faultPosition move to the right relative to other
+**  points (ie, left-lateral displacement). Block uplift can also
+**  occur (see DoUplift). Note that boundary nodes also move.
+**
+**  Inputs:  mp -- pointer to the mesh
+**           delt -- duration of uplift
+**
+\************************************************************************/
+void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt )
+{
+   assert( mp>0 );
+   tLNode *cn;
+   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   double slip = slipRate*delt;
+
+   cout << "StrikeSlip by " << slip << endl;
+
+   for( cn=ni.FirstP(); !(ni.AtEnd()); cn=ni.NextP() )
+   {
+     if( cn->getY()<faultPosition )
+     {
+        cn->setMeanderStatus( TRUE );  // redundant: TODO
+        cn->setNew2DCoords( cn->getX()+slip, cn->getY() );
+     }
+   }
+   mp->MoveNodes( 0, 0 );
+   
+}
+
+/************************************************************************\
+**
+**  tUplift::FoldPropErf
+**
+**  This function provides a very simple vertical kinematic
+**  representation of fold propagation. Uplift rate is described by
+**  a symmetrical error function curve, with uplift on one side
+**  (Y>pivot point) and subsidence on the other (relative to fixed
+**  boundary elevation). The faultPosition variable is used to track
+**  the position of the pivot point, which migrates in the direction
+**  of "decreasing Y" at a rate that is stored in "slipRate".
+**  The variable foldParam encodes the fold wavelength, which is
+**  defined as the distance between the point where uplift comes close
+**  to its maximum value (where U = U0 erf(2)) and the point where
+**  uplift comes close to its minimum value (where U = U0 erf(-2)).
+**  More precisely, foldParam is defined as 4/wavelength.
+**
+**  Inputs:  mp -- pointer to the mesh
+**           delt -- duration of uplift
+**
+\************************************************************************/
+void tUplift::FoldPropErf( tMesh<tLNode> *mp, double delt )
+{
+   assert( mp>0 );
+   tLNode *cn;
+   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   double uprate;
+
+   // For each node, the uplift rate is the maximum rate ("rate") times
+   // the error function curve, which depends on the node's Y-coordinate
+   // relative to the pivot point, and on the fold wavelength (the
+   // reciprocal of which is embedded in "foldParam"). Note that
+   // uplift rate is negative (ie, subsidence occurs) where Y < pivot point.
+   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+   {
+      uprate = rate * erf( foldParam * ( cn->getY() - faultPosition ) );
+      cn->ChangeZ( uprate*delt );
+   }
+
+   // Now we "propagate" the fold by moving the pivot point forward
+   // (in the direction of decreasing Y coordinate)
+   faultPosition -= slipRate * delt;
+}
+
+/************************************************************************\
+**
+**  tUplift::CosineWarp2D
+**
+**
+**  Inputs:  mp -- pointer to the mesh
+**           delt -- duration of uplift
+**
+\************************************************************************/
+#define TWOPI 6.2832
+void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
+{
+   assert( mp>0 );
+   tLNode *cn;
+   tMeshListIter<tLNode> ni( mp->getNodeList() );
+   double uprate;
+
+   // For each node, the uplift rate is the uplift rate constant ("rate") times
+   // the cosine function in x and y. Note that the variable "faultPosition"
+   // is used to store the Y location of the anticline peak (normally, the
+   // upper boundary)
+   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+   {
+      uprate = rate * 
+          ( cos(PI*cn->getX()/foldParam) 
+            + cos(TWOPI*(faultPosition-cn->getY())/foldParam) );
+      cn->ChangeZ( uprate*delt );
+   }
+
+   // The "tightening" of the folds through time is simulated by
+   // progressively decreasing the fold wavelength. (Here the variable
+   // "slipRate" is used to store the tightening rate in m/yr, and 
+   // "foldParam" is used to store the fold wavelength in m).
+   // As the fold tightens, the anticline axis migrates in the direction
+   // of decreasing Y (assumed to be basinward; this means the folding
+   // propagates basinward as it tightens).
+   foldParam = foldParam - slipRate*delt;
+   faultPosition= faultPosition - slipRate*delt;
+
 }
 
 
