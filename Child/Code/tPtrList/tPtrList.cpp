@@ -3,7 +3,7 @@
 **  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
 **                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.7 1998-02-12 23:57:17 stlancas Exp $
+**  $Id: tPtrList.cpp,v 1.8 1998-02-17 01:18:13 stlancas Exp $
 \**************************************************************************/
 
 #include "tPtrList.h"
@@ -850,6 +850,7 @@ template< class NodeType >       //tListIter
 int tPtrListIter< NodeType >::
 AtEnd()
 {
+   if( ptrlistPtr->last == 0 ) return 1;
    if( ptrlistPtr->last->next == 0 ) return ( curptrnode==0 );
    else return ( curptrnode == ptrlistPtr->first && counter != 0 );
 }
