@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.46 2003-08-07 11:25:42 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.47 2003-08-07 12:48:37 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -135,7 +135,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    {
      int tmp_;
      tmp_ = infile.ReadItem( tmp_, "FLOWGEN" );
-     miOptFlowgen = static_cast<kFlowGen_t>( miOptFlowgen );
+     miOptFlowgen = static_cast<kFlowGen_t>(tmp_);
    }
    filllakes = infile.ReadItem( filllakes, "LAKEFILL" );
    if( miOptFlowgen == kSaturatedFlow1 || miOptFlowgen==kSaturatedFlow2 )
@@ -201,7 +201,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    {
      int tmp_;
      tmp_ = infile.ReadItem( tmp_, "CHAN_GEOM_MODEL" );
-     miChannelType = static_cast<kChannelType_t>(  miChannelType );
+     miChannelType = static_cast<kChannelType_t>(tmp_);
    }
    if( miChannelType < kChannelType_Begin ||
        miChannelType > kChannelType_End )
