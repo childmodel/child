@@ -2,11 +2,13 @@
 **
 **   Classes.h: Declarations of classes used in CHILD model
 **
-**   $Id: Classes.h,v 1.2 2000-03-24 16:53:13 gtucker Exp $
+**   $Id: Classes.h,v 1.3 2002-04-10 10:13:27 gtucker Exp $
 \****************************************************************************/
 
 #ifndef CLASSES_H
 #define CLASSES_H
+
+/* some change */
 
 /** CLASSES ********************************************************/
 class tTriangle;
