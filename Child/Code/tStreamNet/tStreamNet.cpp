@@ -10,11 +10,13 @@
 **       high drainage area (ie, main channels; see below) GT
 **     - 6/01 added functions to implement Parker-Paola self-formed
 **       channel model GT
+**     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.4 2001-06-21 13:56:35 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.5 2002-02-11 09:18:06 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
+#include <string>
 #include "../errors/errors.h"
 #include "tStreamNet.h"
 
@@ -125,14 +127,14 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    stormPtr = &storm;
    assert( stormPtr != 0 );
 
-   // Read option for runoff generation and get relevant parameters
-   flowgen = infile.ReadItem( flowgen, "FLOWGEN" );
+   // Read option for runoff generation/routing and get relevant parameters
+   miOptFlowgen = infile.ReadItem( miOptFlowgen, "FLOWGEN" );
    filllakes = infile.ReadItem( filllakes, "LAKEFILL" );
    infilt = trans = 0;
-   if( flowgen == kSaturatedFlow1 || flowgen==kSaturatedFlow2 )
+   if( miOptFlowgen == kSaturatedFlow1 || miOptFlowgen==kSaturatedFlow2 )
       trans = infile.ReadItem( trans, "TRANSMISSIVITY" );
-   if( flowgen==kSaturatedFlow2 || flowgen==kConstSoilStore
-       || flowgen==kHortonian )
+   if( miOptFlowgen==kSaturatedFlow2 || miOptFlowgen==kConstSoilStore
+       || miOptFlowgen==kHortonian )
    {
       infilt = infile.ReadItem( infilt, "INFILTRATION" );
       optSinVarInfilt = infile.ReadItem( optSinVarInfilt, "OPTSINVARINFILT" );
@@ -144,9 +146,22 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
       }
    }      
    else infilt = 0.0;
-   if( flowgen == kConstSoilStore )
+   if( miOptFlowgen == kConstSoilStore )
        soilStore = infile.ReadItem( soilStore, "SOILSTORE" );
    else soilStore = 0.0;
+   if( miOptFlowgen == k2DKinematicWave )
+   {
+       mdKinWaveExp = infile.ReadItem( mdKinWaveExp, "KINWAVE_HQEXP" );
+       mdKinWaveRough = knds * kYearpersec;
+       cout << "mdKinWaveRough " << mdKinWaveRough << endl;
+   }
+   else mdKinWaveExp = mdKinWaveRough = 0.0;
+   if( miOptFlowgen == kHydrographPeakMethod )
+     {
+       mdFlowVelocity = infile.ReadItem( mdFlowVelocity, "FLOWVELOCITY" );
+       mdHydrgrphShapeFac = infile.ReadItem( mdHydrgrphShapeFac, "HYDROSHAPEFAC" );
+     }
+
 
    // Get the initial rainfall rate from the storm object, and read in option
    // for stochastic variation in rainfall
@@ -201,16 +216,6 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    else // Parker Channels
      mpParkerChannels = new tParkerChannels( infile );
        
-   // Option for 2D kinematic-wave overland flow routing
-   int optKinWave = infile.ReadItem( optKinWave, "OPTKINWAVE" );
-   if( optKinWave )
-   {
-       mdKinWaveExp = infile.ReadItem( mdKinWaveExp, "KINWAVE_HQEXP" );
-       mdKinWaveRough = knds * kYearpersec;
-       cout << "mdKinWaveRough " << mdKinWaveRough << endl;
-   }
-   else mdKinWaveExp = mdKinWaveRough = 0.0;
-
    // Option for adaptive meshing related to drainage area
    int optMeshAdapt = infile.ReadItem( optMeshAdapt, "OPTMESHADAPTAREA" );
    if( optMeshAdapt )
@@ -262,7 +267,7 @@ const tStorm *tStreamNet::getStormPtr() const {return stormPtr;}
 
 tStorm *tStreamNet::getStormPtrNC() {return stormPtr;}
 
-inline int tStreamNet::getFlowGenOpt() const {return flowgen;}
+inline int tStreamNet::getFlowGenOpt() const {return miOptFlowgen;}
 
 int tStreamNet::getFillLakesOpt() const {return filllakes;}
 
@@ -288,8 +293,8 @@ tLNode *tStreamNet::getInletNodePtrNC() {   return inlet.innode;}
 // TODO: the value checks are nice, but will hurt performance. Should
 // probably be removed.
 void tStreamNet::setFlowGenOpt( int val )
-{flowgen=val; 
-/*flowgen = ( val == 0 || val == 1 ) ? val : 0;*/}
+{miOptFlowgen=val; 
+/*miOptFlowgen = ( val == 0 || val == 1 ) ? val : 0;*/}
 
 void tStreamNet::setFillLakesOpt( int val )
 {filllakes = val;
@@ -855,6 +860,90 @@ void tStreamNet::DrainAreaVoronoi()
 
 /*****************************************************************************\
 **
+**  tStreamNet::FlowPathLength
+**
+**  Computes the longest flow path length from divide to a node, for each
+**  node on the mesh. This is used to approximate peak discharge.
+**
+\*****************************************************************************/
+void tStreamNet::FlowPathLength()
+{
+  // Local variables
+  tLNode * curnode,    // Pointer to the current node
+    * downstreamNode;  // Pointer to current node's downstream neighbor
+  double localPathLength;  // Potential flow path length to downstream nbr
+
+  // Get list of nodes and node iterator
+  tMeshListIter<tLNode> nodeIter( meshPtr->getNodeList() );
+
+  // Sort nodes in upstream-to-downstream order
+  SortNodesByNetOrder( 0 );
+
+  // Reset all flow path lengths to zero
+  for( curnode = nodeIter.FirstP(); nodeIter.IsActive(); 
+       curnode = nodeIter.NextP() )
+    curnode->setFlowPathLength( 0.0 );
+
+  // Work through all active nodes, from upstream to downstream, setting
+  // the flow path length of each node's downstream neighbor to the 
+  // maximum of (a) the current node's flow path length plus the length of
+  // the flow edge, or (b) the downstream node's existing flow path length.
+  for( curnode = nodeIter.FirstP(); nodeIter.IsActive(); 
+       curnode = nodeIter.NextP() )
+    {
+      // Compute "local" flow path length to the downstream neighbor --
+      // equal to flow path length at the current node plus the length of
+      // the edge connecting current node to its downstream neighbor
+      localPathLength = curnode->getFlowPathLength()
+	+ ( curnode->getFlowEdg() )->getLength();
+
+      // Get a pointer to the downstream neighbor
+      downstreamNode = curnode->getDownstrmNbr();
+
+      // Compare the local flow path length to the downstream neighbor's
+      // current value of flow path length, which might have been set via
+      // another of its upstream nodes -- if the "local" route is longer,
+      // set downstream's flow path length to localPathLength.
+      if( localPathLength > downstreamNode->getFlowPathLength() )
+	downstreamNode->setFlowPathLength( localPathLength );
+    }
+
+}
+
+/*****************************************************************************\
+**
+**  tStreamNet::RouteFlowHydrographPeak
+**
+**  
+**
+\*****************************************************************************/
+void tStreamNet::RouteFlowHydrographPeak()
+{
+  // Local variables
+  tLNode * curnode;
+  double runoff = rainrate - infilt;
+  double stormdur = stormPtr->getStormDuration();
+  double travelTime,  // Travel time from divide to this point
+    Qp;               // Peak discharge
+
+  // Get iterator for list of nodes
+  tMeshListIter<tLNode> nodeIter( meshPtr->getNodeList() );
+
+  // Set peak discharge for each node
+  for( curnode=nodeIter.FirstP(); nodeIter.IsActive(); curnode=nodeIter.NextP() )
+    {
+      travelTime = curnode->getFlowPathLength() / mdFlowVelocity;
+      Qp = ( runoff * curnode->getDrArea() * stormdur ) /
+	( mdHydrgrphShapeFac * ( stormdur + travelTime ) );
+      curnode->setDischarge( Qp );
+    }
+
+}
+
+
+
+/*****************************************************************************\
+**
 **  tStreamNet::RouteFlowArea
 **
 **  Starting with the current node, this routine increments 
@@ -961,7 +1050,7 @@ void tStreamNet::MakeFlow( double tm )
        infilt = infilt0 + infilt_dev * sin( tm*twoPiLam );
    
    // Call appropriate function for runoff generation option
-   switch( flowgen )
+   switch( miOptFlowgen )
    {
       case kSaturatedFlow1:   // Topmodel-like runoff model with steady-state
           FlowSaturated1();   //   surface flow and possible return flow.
@@ -972,6 +1061,13 @@ void tStreamNet::MakeFlow( double tm )
       case kConstSoilStore:   // "Bucket" model: spatially uniform soil storage
           FlowBucket();       //   capacity; any excess contributes to runoff.
           break;
+      case kHydrographPeakMethod:
+	  FlowPathLength();
+	  RouteFlowHydrographPeak();
+	  break;
+      case k2DKinematicWave:
+	  RouteFlowKinWave( rainrate );
+	  break;
       default:
           FlowUniform();      // Spatially uniform infiltration-excess runoff
    }
@@ -1527,7 +1623,7 @@ void tStreamNet::SortNodesByNetOrder( int optMultiFlow )
    int nUnsortedNodes = nodeList->getActiveSize();  // Number not yet sorted
    tMeshListIter<tLNode> listIter( nodeList );
    
-   cout << "SortNodesByNetOrder, optMultiFlow=" << optMultiFlow << endl;
+   //cout << "SortNodesByNetOrder, optMultiFlow=" << optMultiFlow << endl;
 
    //test
    /*cout << "BEFORE: " << endl;
@@ -2049,6 +2145,10 @@ void tStreamNet::DensifyMeshDrArea( double time )
 **  correct variables for layers, regolith, etc. Fix: new node is assigned
 **  properties of the nearest neighbor (not elevation; that's done by
 **  interpolation). GT 7/98
+**    - 2/02 fixed bug: for single-size, inSedLoadm[0] wasn't being
+**      initialized, even though it's used in DetachErode; also,
+**      changed reading of inputs to use stl string class instead
+**      of C-style character manipulation (GT)
 **
 \**************************************************************************/
 
@@ -2089,23 +2189,32 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
       // Read drainage area and sediment load at inlet. If more than one
       // grain size is simulated, read in a sediment load for each size
       // individually
+     std::string taglinebase = "INSEDLOAD";
+     std::string digits = "123456789";
+     std::string tagline;
       inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
       if(numg <= 1)
+	{
           inSedLoad = infile.ReadItem( inSedLoad, "INSEDLOAD" );
+	  inSedLoadm[0] = inSedLoad;
+	}
       else{
          inSedLoadm.setSize(numg);
          inSedLoad=0.0;
-         i=1;
-         end='1';
-         while( i<=numg ){
-            strcpy( name, "INSEDLOAD");
+         //i=1;
+         //end='1';
+         for( i=0; i<numg; i++ ) {
+	   /*strcpy( name, "INSEDLOAD");
             strcat( name, &end ); 
-            help = infile.ReadItem( help, name);
-            inSedLoadm[i-1] = help;
+            help = infile.ReadItem( help, name);*/
+	    tagline = taglinebase + digits.substr( i, i );
+	    cout << tagline << endl;
+	    help = infile.ReadItem( help, tagline.c_str() );
+            inSedLoadm[i] = help;
             inSedLoad += help;
-            //cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i-1]<<endl;
-            i++;
-            end++;
+            cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i]<<endl;
+            //i++;
+            //end++;
          }
       }
 
@@ -2424,14 +2533,17 @@ tParkerChannels::tParkerChannels( tInputFile &infile )
 
   // Calculate coefficient and slope exponent for width equation (see above)
   taucrit = thetac*(sigma-rho)*grav*d50;
+  cout << "Tau crit = " << taucrit << endl;
   kt = infile.ReadItem( kt, "KT" );
   alpha = infile.ReadItem( alpha, "MF" );
   beta = infile.ReadItem( beta, "NF" );
   mdPPfac = ( 1.0 / secPerYear ) * pow( kt / ( taucrit * P ), 1.0 / alpha );
   mdPPexp = beta / alpha;
+  cout << "mdPPfac=" << mdPPfac << "  mdPPexp=" << mdPPexp << endl;
 
   // Depth is calculated from width plus Manning equation
   mdRough = infile.ReadItem( mdRough, "HYDR_ROUGH_COEFF_DS" ); // Manning's n
+  mdRough = mdRough / secPerYear;
   mdDepthexp = 0.6;  // From Manning eqn; for Chezy / Darcy would be 2/3
 
 }
@@ -2452,20 +2564,27 @@ tParkerChannels::tParkerChannels( tInputFile &infile )
 **      Created 6/01, GT
 **
 **      Modifications:
+**         - correct potential error in depth-setting via division by
+**           zero; set chan and hydr depth; 02/02 GT
 **
 \**************************************************************************/
 void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
 {
   tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
   tLNode *cn;
+  double denom;
 
   //cout << "tParkerChannels::CalcChanGeom\n";
 
   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
     {
       cn->setHydrWidth( mdPPfac * cn->getQ() * pow(cn->getSlope(),mdPPexp ) );
-      cn->setHydrDepth( pow( ( cn->getQ() * mdRough ) 
-			     / ( cn->getChanWidth() * sqrt( cn->getSlope() ) ),
-			     mdDepthexp ) );
+      /*if( ( denom = cn->getHydrWidth() * sqrt( cn->getSlope() ) ) > 0.0 )
+	cn->setHydrDepth( pow( ( cn->getQ() * mdRough ) / denom,
+			  mdDepthexp ) );
+      else
+	cn->setHydrDepth( 0.0 );*/
+      cn->setHydrDepth( 1 );
+      cn->setChanDepth( cn->getHydrDepth() );
     }
 }
