@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.175 2003-08-06 15:10:11 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.176 2003-08-12 10:10:44 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -409,7 +409,6 @@ MeshDensification( tInputFile &infile )
      int j;  // Level counter
      int nnewpoints;  // No. of new points added in a given pass
      tArray<double> newx, newy, newz;   // Lists of new coords
-     tArray<double> zvals(3);   // z values of a triangle's 3 nodes
      tempnode.setBoundaryFlag( kNonBoundary );  // assumed all interior points
      tListIter< tTriangle > triIter( triList );
      tTriangle * ct;
@@ -429,14 +428,16 @@ MeshDensification( tInputFile &infile )
 	 for( int i=0; i<ntri; i++ )    // loop through the triangles
 	   {
 	     assert( ct!=0 );
-	     tArray<double> xy = ct->ePtr(0)->getRVtx();  // get the coords
+	     tArray<double> const &xy = ct->ePtr(0)->getRVtx();  // get the coords
 	     newx[i] = xy[0];
 	     newy[i] = xy[1];
 
 	     // Now find the z coordinate using interpolation
-	     zvals[0] = ct->pPtr(0)->getZ();
-	     zvals[1] = ct->pPtr(1)->getZ();
-	     zvals[2] = ct->pPtr(2)->getZ();
+	     const tArray<double> zvals( // z values of a triangle's 3 nodes
+					ct->pPtr(0)->getZ(),
+					ct->pPtr(1)->getZ(),
+					ct->pPtr(2)->getZ()
+					);
 	     newz[i] = PlaneFit( xy[0], xy[1], ct->pPtr(0)->get2DCoords(),
 				 ct->pPtr(1)->get2DCoords(),
 				 ct->pPtr(2)->get2DCoords(), zvals );
@@ -2496,7 +2497,7 @@ void tMesh<tSubNode>::setVoronoiVertices()
                << ct->ePtr(i)->getOriginPtr()->getID() << ","
                << ct->ePtr(i)->getDestinationPtr()->getID() << ") ";
 	cout << ", v verts are:\n";
-	const tArray< double > xy_ = ct->ePtr(0)->getRVtx();
+	const tArray< double > & xy_ = ct->ePtr(0)->getRVtx();
 	cout << "  setVoronoiVertices(): " << xy_[0] << " " << xy_[1] << endl;
       }
    }
@@ -4747,11 +4748,11 @@ ResetNodeID()
 {
   tSubNode *cn;
   tMeshListIter< tSubNode > nodIter( nodeList );
-  for( cn = nodIter.FirstP(), miNextNodeID=0; !( nodIter.AtEnd() );
-       cn = nodIter.NextP(), miNextNodeID++ )
-    {
-      cn->setID( miNextNodeID );
-    }
+  int i;
+  for( cn = nodIter.FirstP(), i=0; !( nodIter.AtEnd() );
+       cn = nodIter.NextP(), ++i )
+    cn->setID( i );
+  SetmiNextNodeID( i );
 }
 
 /*****************************************************************************\
@@ -4766,11 +4767,12 @@ ResetEdgeID()
 {
   tEdge *ce;
   tMeshListIter< tEdge > edgIter( edgeList );
-  for( ce = edgIter.FirstP(), miNextEdgID = 0; !( edgIter.AtEnd() );
-       ce = edgIter.NextP(), miNextEdgID++ )
-    {
-      ce->setID( miNextEdgID );
-    }
+  int i;
+  for( ce = edgIter.FirstP(), i = 0; !( edgIter.AtEnd() );
+       ce = edgIter.NextP(), ++i )
+    if (ce->getID() != i)
+      ce->setID( i );
+  SetmiNextEdgID(i);
 }
 
 /*****************************************************************************\
@@ -4785,11 +4787,11 @@ ResetTriangleID()
 {
   tTriangle *ct;
   tListIter< tTriangle > triIter( triList );
-  for( ct = triIter.FirstP(), miNextTriID=0; !( triIter.AtEnd() );
-       ct = triIter.NextP(), miNextTriID++ )
-    {
-      ct->setID( miNextTriID );
-    }
+  int i;
+  for( ct = triIter.FirstP(), i=0; !( triIter.AtEnd() );
+       ct = triIter.NextP(), ++i )
+    ct->setID( i );
+  SetmiNextTriID(i);
 }
 
 /*****************************************************************************\
