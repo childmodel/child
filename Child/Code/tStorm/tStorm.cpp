@@ -9,11 +9,12 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.17 2000-03-14 16:54:42 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.18 2000-05-10 19:46:11 gtucker Exp $
 \**************************************************************************/
 
 
 #include <math.h>
+#include <string.h>
 #include "../Mathutil/mathutil.h"
 #include "tStorm.h"
 
@@ -38,7 +39,7 @@ tStorm::tStorm( int optvar )
    p = 1.0;
    stdur = 1.0;
    istdur = 1.0;
-   endtm = 999999999999999;
+   endtm = 1.0e9;
    //srand( 0 );
 }
 
