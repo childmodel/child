@@ -25,21 +25,20 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.17 2000-03-14 16:55:01 gtucker Exp $
+**  $Id: tStorm.h,v 1.18 2000-05-10 19:45:03 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTORM_H
 #define TSTORM_H
 
-//#include <stdlib.h>
 #include "../tInputFile/tInputFile.h"
 
 
 class tStorm
 {
 public:
-    tStorm( int optVariable=1 );
-    tStorm( double, double, double, unsigned, int optvar=1, double et=9999999999 );
+    tStorm( int optVariable = 1 );
+    tStorm( double, double, double, unsigned, int optvar=1, double et=1.0e9 );
     tStorm( tInputFile & );
     void  GenerateStorm( double tm, double minp=0.0, double mind=0.0);
     double getStormDuration();
