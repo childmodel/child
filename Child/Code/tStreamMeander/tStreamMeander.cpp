@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.62 1999-04-16 20:51:50 nmgaspar Exp $
+**  $Id: tStreamMeander.cpp,v 1.63 1999-05-04 17:14:58 gtucker Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -220,7 +220,7 @@ tStreamMeander::~tStreamMeander()
 \*****************************************************************************/
 void tStreamMeander::FindMeander()
 {
-   double slp;
+   //Xdouble slp;
    tLNode * cn;
    tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
 
@@ -266,9 +266,9 @@ void tStreamMeander::FindMeander()
 \*****************************************************************************/
 void tStreamMeander::FindHydrGeom()
 {
-   int i, j, num;
+   //Xint i, j, num;
    double hradius, kwdspow, kndspow, widpow, npow, radfactor, qpsec;
-   double deppow, kddspow;
+   //Xdouble deppow, kddspow;
    double width, depth, rough, slope;
    tLNode *cn;
 
@@ -278,7 +278,7 @@ void tStreamMeander::FindHydrGeom()
    kndspow = pow(knds, enstn / ends);
    widpow = 1.0 - ewstn / ewds;
    npow = 1.0 - enstn / ends;
-   //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
+
    tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
    for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
    {
@@ -339,14 +339,13 @@ void tStreamMeander::FindHydrGeom()
 #define kSmallNum 0.0000000001
 void tStreamMeander::FindChanGeom()
 {
-   int i, j, num;
+   //Xint i, j, num;
    double qbf, hradius, qbffactor=0, radfactor, width, depth, rough, slope;
    double lambda;
-   double rlen, cz, nz, critS;
-   tLNode *cn, *dsn;
+   double critS;
+   tLNode *cn;
    tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
-   tPtrList< tLNode > *plPtr;
-   //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
+   //XtPtrList< tLNode > *plPtr;
    tStorm *sPtr = netPtr->getStormPtrNC();
    double isdmn = sPtr->getMeanInterstormDur();
    double pmn = sPtr->getMeanPrecip();
@@ -888,10 +887,10 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
        slopea, widtha, deptha, diama, deltaxa, deltaya,
        rdeptha, ldeptha, lambdaa;
    tArray< double > *dumArrPtr, delta(2), newxy(2), oldpos;
-   double rerody, lerody, rz, lz, width;
-   double maxfrac, displcmt, a, b, dtm, tmptim, frac, xs;
+   double rz, lz, width;
+   double maxfrac, displcmt, dtm, tmptim, frac, xs;
    double num;
-   double dx, dy;
+   //Xdouble dx, dy;
    tPtrList< tLNode > *creach;
    tPtrListIter< tLNode > rnIter;
    tLNode *curnode, *nxtnode;
@@ -1213,9 +1212,9 @@ void tStreamMeander::MakeChanBorder( )
 {
    //cout << "MakeChanBorder()" << endl;
    int i, j, num, pccw;
-   double x0, y0, x1, y1, x, y, z, delx, dely, phi, width, xdisp, ydisp;
-   double val;
-   double lvdist;
+   double x0, y0, x1, y1, z, delx, dely, phi, width, xdisp, ydisp;
+   //Xdouble val;
+   //Xdouble lvdist;
    tPtrList< tLNode > *cr;
    tPtrListIter< tLNode > rnIter;
    tLNode *cn, *cnbr;
@@ -1377,7 +1376,7 @@ void tStreamMeander::AddChanBorder(double time)
    double lvdist, width;
    tArray< double > xy, xyd, oldpos, zeroArr(4), xyz(3);
    tTriangle *ct;
-   tLNode *cn, *tn, *dn, *channodePtr, channode;
+   tLNode *cn, *tn, *channodePtr, channode;
    tMeshListIter< tLNode > nIter( meshPtr->getNodeList() ),
        tI( meshPtr->getNodeList() );
 
@@ -1887,7 +1886,7 @@ void tStreamMeander::CheckBndyTooClose()
 void tStreamMeander::CheckBanksTooClose()
 {
    //cout << "CheckBanksTooClose()..." << flush << endl;
-   int tooclose, i, j, num, onlist;
+   int i, j, num, onlist;
    tPtrList< tLNode > delPtrList;
    tPtrListIter< tEdge > spokIter;
    tPtrListIter< tLNode > dIter( delPtrList );
@@ -1975,13 +1974,13 @@ void tStreamMeander::CheckBanksTooClose()
 void tStreamMeander::CheckFlowedgCross()
 {
    //cout << "CheckFlowedgCross()..." << flush << endl;
-   int i, j, nv, nvopp, id0, id1;
+   int i, j;
    int ft;
-   int flipped;
+   //Xint flipped;
    int crossed;
    tArray< double > p0, p1, p2, xy0, xy1;
-   tLNode *pointtodelete, *lnodePtr, *nod, *cn, *dscn;  
-   tEdge * fedg, * cedg, * ccedg, *ce;
+   tLNode *pointtodelete, *nod, *cn, *dscn;  
+   tEdge * fedg, *ce;
    tTriangle * ct, *nt;
    tListIter< tTriangle > triIter( meshPtr->getTriList() );
    tPtrListIter< tEdge > spokIter;
@@ -2136,8 +2135,8 @@ void tStreamMeander::CheckBrokenFlowedg()
    double area;
    int flip = 0;
    double dis0, dis1;
-   tLNode *cn, *dn, *rn, *ln, *on, *ccn;
-   tEdge *fedg, *cedg, *ce;
+   tLNode *cn, *dn, *rn, *ln;
+   tEdge *fedg, *cedg;
    tTriangle *rtri, *ltri;
    tMeshListIter< tLNode > nIter( meshPtr->getNodeList() ),
        dI( meshPtr->getNodeList() );

@@ -12,7 +12,7 @@
 **     "gridElements", 1/20/98 gt
 **   - added tNode::AttachNewSpoke and tEdge::WelcomeCCWNeighbor gt 2/99
 **
-**  $Id: meshElements.cpp,v 1.28 1999-04-04 21:32:54 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.29 1999-05-04 17:14:32 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -41,7 +41,8 @@ tArray< double > FindIntersectionCoords( tArray< double > xy1,
                                          tArray< double > xy3,
                                          tArray< double > xy4 )
 {
-   double dxa, dxb, dya, dyb, a, b, c, f, g, h, x, y;
+   double dxa, dxb, dya, dyb, a, b, c, f, g, h;
+   //Xx, y;
    tArray< double > intxy(2);
 
    dxa = xy2[0] - xy1[0];
@@ -165,7 +166,7 @@ const tNode &tNode::operator=( const tNode &right )                  //tNode
    if( &right != this )
    {
       tPtrListIter< tEdge > spokIter;
-      tEdge *ce;
+      //XtEdge *ce;
       id = right.id;
       x = right.x;
       y = right.y;
@@ -175,15 +176,6 @@ const tNode &tNode::operator=( const tNode &right )                  //tNode
       varea_rcp = right.varea_rcp;
       edg = right.edg;
       spokeList = right.spokeList;
-        /*spokeList.Flush();
-      if( &(right.spokeList) != 0 )
-      {
-         spokIter.Reset( right.getSpokeListNC() );
-         for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
-         {
-            insertBackSpokeList( ce );
-         }
-      }*/
    }
    return *this;
 }
@@ -795,7 +787,7 @@ void tNode::makeCCWEdges()
 \*******************************************************************/
 void tNode::ConvertToClosedBoundary()
 {
-   tEdge *ce, *cec;   // an edge and its complement
+   tEdge *ce;   // an edge and its complement
 
    // Reset boundary flag
    boundary = kClosedBoundary;
@@ -863,9 +855,6 @@ void tNode::InitializeNode()
 #ifndef NDEBUG
 void tNode::TellAll()
 {
-   tLNode * nbr;
-   int i;
-   
    cout << " NODE " << id << ":\n";
    cout << "  x=" << x << " y=" << y << " z=" << z;
    cout << "  boundary: " << boundary
@@ -1515,7 +1504,7 @@ int tTriangle::nVtx( tNode *cn )
 tArray< double >
 tTriangle::FindCircumcenter()
 {
-   double x, y, x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
+   double x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
    tArray< double > xyo, xyd1, xyd2, xy(2);
 
    assert( pPtr(0) && pPtr(1) && pPtr(2) );

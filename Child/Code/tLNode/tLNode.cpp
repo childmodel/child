@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.78 1999-04-16 20:51:40 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.79 1999-05-04 17:15:11 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -415,13 +415,14 @@ tRegolith::tRegolith()                                          //tRegolith
      //cout << "  tRegolith()" << endl;
 }
 
+/*
 tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
   : dgrade( )
 {
   int i;
   char add, name[20];
   double help, sum, numg;
-}
+}*/
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
         : dgrade( orig.dgrade )
@@ -541,7 +542,7 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
 {
    int i;
    char add, name[20];
-   double help, helpmax, extra, sum, sumbr;
+   double help, extra, sum, sumbr;
    tLayer layhelp, niclay;
    tArray<double> dgradehelp;
    tArray<double> dgradebrhelp;
@@ -962,7 +963,7 @@ double tLNode::getSlope()
 {
    int ctr;
    double rlen, curlen, slp, delz, downz;
-   tLNode *dn, *on, *tn;
+   tLNode *dn, *on;
 
    assert( flowedge != 0 );
    assert( flowedge->getLength()>0 ); // failure means lengths not init'd
@@ -1348,7 +1349,6 @@ void tLNode::addQs( int i, double val )
 void tLNode::addQs( tArray< double > val )
 {
    int i;
-   double sum=0;
    
    for(i=0; i<val.getSize(); i++){
       qsm[i] += val[i];
@@ -2272,17 +2272,17 @@ void tLNode::InitializeNode()
 tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 {
    int g;
-   double amt, val, olddep, before;
+   double amt, val, olddep;
    tArray<double> update;
    update.setSize(numg);
    tArray<double> hupdate;
    hupdate.setSize(numg);
 
    //NIC these are for testing
-   before=getLayerDepth(i);
+   //Xbefore=getLayerDepth(i);
    tArray<double> helper=valgrd;
    int numlay=getNumLayer();
-   int h;
+   //Xint h;
 
    //if(x<560.418 && x>560.416){
 //     if(getNumLayer()==2){

@@ -3,7 +3,7 @@
 **  globalFns.cpp: Global functions used by tGrid and other modules of
 **                 CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.2 1999-04-05 15:29:23 gtucker Exp $
+**  $Id: globalFns.cpp,v 1.3 1999-05-04 17:14:51 gtucker Exp $
 \**************************************************************************/
 
 #include "globalFns.h"
@@ -236,7 +236,7 @@ int InNewTri( tArray< double > &xy, tTriangle *ct )
 int Intersect( tEdge * ae, tEdge * be )
 {
    //cout << "Intersect(...)..." << endl;
-   int i;
+   //Xint i;
    tLNode * lnode;
    
    if( !ae || !be )
@@ -425,7 +425,7 @@ int Intersect( tEdge * ae, tEdge * be )
 tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
 {
    //cout << "IntersectsAnyEdge( tEdge * edge )..." << endl;
-   int i;
+   //Xint i;
    tEdge * ce;
    tPtrListIter< tEdge > edgIter( edglistRef );
    if( !edge )

@@ -3,7 +3,7 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.71 1999-04-16 20:51:57 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.72 1999-05-04 17:14:44 gtucker Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -944,8 +944,9 @@ MakeMeshFromScratch( tInputFile &infile )
    tArray< double > xyz(3);
    //cout << "In MGFS, calling node constr w/ infile\n";
    tSubNode tempnode( infile ),  // temporary node used to create node list
-       *cn, *node0, *node1, *node2, *node3;
-   tEdge *ce;
+       *node0, *node1, *node2;
+   //XtSubNode *cn, *node3;
+   //XtEdge *ce;
    tMeshListIter< tEdge > edgIter( edgeList );
    tMeshListIter< tSubNode > nodIter( nodeList );
    tPtrList< tSubNode > bndList;
@@ -1502,9 +1503,9 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 MakeRandomPointsFromArcGrid( tInputFile &infile )
 {
-   int i, j,                        // loop counter
-       n;                            // counter
-   int updatemesh;                  // flag to indicate whether AddNode
+   int i, j;                        // loop counter
+   //Xn;                            // counter
+   //int updatemesh;                  // flag to indicate whether AddNode
                                     // should call UpdateMesh
    int numrows, numcols, numpts;    // no. of rows, cols, points in mesh
    int delgrid,                     // arc grid cell size (side, meters) 
@@ -1516,18 +1517,18 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    ifstream gridfile;               // the file (stream) itself
    double minx = 1e12, miny = 1e12, // minimum x and y coords
        maxx = 0, maxy=0,            // maximum x and y coords 
-       minz= 1e12, maxz = 0,        // min. and max. elevs.
-       minzx, minzy,                // x and y coords of min. elevation
+       minz= 1e12, /*maxz = 0,*/    // min. and max. elevs.
+       //minzx, minzy,            // x and y coords of min. elevation
        dx, dy,                      // max width and height of region (meters)
        di, dj,                      // width and height of region in pixels
        xgen, ygen,                  // randomly generated x and y val's
        zinterp;                     // interp'd elev.
    double mindist;
    double delx, dely, dist;
-   tSubNode *closestPtr;
+   //XtSubNode *closestPtr;
    tSubNode tempnode( infile ),     // temporary node used in creating new pts
        *stp1, *stp2, *stp3;         // supertriangle vertices
-   double dumval;
+   //Xdouble dumval;
    char dumhead[3];
    tSubNode *cn, *minzPtr;
    tEdge* ce;
@@ -1620,7 +1621,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
    srand48( seed );
    numpts = numcols * numrows;
    tempnode.setBoundaryFlag( kNonBoundary );
-   n = 0;
+   //Xn = 0;
    mindist = delgrid / 10.0;
    for( i=0; i<numpts; ++i )
    {
@@ -1649,7 +1650,7 @@ MakeRandomPointsFromArcGrid( tInputFile &infile )
       // if not too close, add it:
       if( dist > mindist )
       {
-         cn = AddNode( tempnode, updatemesh = 0 );
+         cn = AddNode( tempnode, /*updatemesh =*/ 0 );
          if( zinterp != nodata && zinterp < minz )
          {
             minz = zinterp;
@@ -1723,9 +1724,9 @@ void tMesh< tSubNode >::
 MakeHexMeshFromArcGrid( tInputFile &infile )
 {
    /*bool*/int keepgoing;
-   int i, j,                        // loop counter
-       n;                            // counter
-   int updatemesh;                  // flag to indicate whether AddNode
+   int i, j;                        // loop counter
+   //Xn;                            // counter
+   //int updatemesh;                  // flag to indicate whether AddNode
                                     // should call UpdateMesh
    int numrows, numcols;            // no. of rows, cols, points in mesh
    int delgrid,                     // arc grid cell size (side, meters) 
@@ -1737,15 +1738,15 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
    ifstream gridfile;               // the file (stream) itself
    double minx = 1e12, miny = 1e12, // minimum x and y coords
        maxx = 0, maxy=0,            // maximum x and y coords 
-       minz= 1e12, maxz = 0,        // min. and max. elevs.
-       minzx, minzy,                // x and y coords of min. elevation
+       minz= 1e12, /*maxz = 0,*/        // min. and max. elevs.
+       /*minzx, minzy,*/                // x and y coords of min. elevation
        dx, dy,                      // max width and height of region (meters)
        di, dj,                      // width and height of region in pixels
        xgen, ygen,                  // randomly generated x and y val's
        zinterp;                     // interp'd elev.
    tSubNode tempnode( infile ),     // temporary node used in creating new pts
        *stp1, *stp2, *stp3;         // supertriangle vertices
-   double dumval;
+   //Xdouble dumval;
    char dumhead[3];
    tSubNode *cn, *minzPtr;
    tEdge* ce;
@@ -1847,7 +1848,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
       x = xgen * delgrid + minx;
       y = ygen * delgrid + miny;
       tempnode.set3DCoords( x, y, zinterp );
-      cn = AddNode( tempnode, updatemesh = 0 );
+      cn = AddNode( tempnode, /*updatemesh =*/ 0 );
       if( zinterp != nodata && zinterp < minz )
       {
          minz = zinterp;
@@ -2990,8 +2991,6 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    assert( &nbrList != 0 );
    //cout << "RepairMesh: " << endl;
    if( nbrList.getSize() < 3 ) return 0;
-   int flowflag,   // Apparently not used -- delete? TODO
-       i, j;
    tSubNode * meshnodePtr = 0;
    nbrList.makeCircular();
    tPtrListIter< tSubNode > nbrIter( nbrList );
@@ -3000,7 +2999,7 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    while( nbrList.getSize() > 3 )
    {
       //cout << "in loop, nbr size = " << nbrList.getSize() << endl;
-      flowflag = 1;  // PURPOSE??
+      //Xflowflag = 1;  // PURPOSE??
       if( Next3Delaunay( nbrList, nbrIter ) ) //checks for ccw and Del.
       {
            //cout << "found 3 Delaun!\n";
@@ -3058,13 +3057,13 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
      "between nodes " << node1->getID()
      << " and " << node2->getID() << " w/ ref to node " << node3->getID() << endl;*/
    int flowflag = 1;  // Boundary code for new edges
-   int i, j, newid;
+   int i, /*j,*/ newid;
    tEdge tempEdge1, tempEdge2;  // The new edges
    tEdge *ce, *le;
    tMeshListIter< tEdge > edgIter( edgeList );
    tMeshListIter< tSubNode > nodIter( nodeList );
    tPtrListIter< tEdge > spokIter;
-   tPtrListNode< tEdge >* spokeNodePtr;
+   //XtPtrListNode< tEdge >* spokeNodePtr;
    tArray<double> p1, p2, p3;           // Used to store output of UnitVector
 
    // Set origin and destination nodes and find boundary status
@@ -3246,8 +3245,7 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
 {
    assert( (&nbrList != 0) && (&nbrIter != 0) );
    //cout << "AddEdgeAndMakeTriangle" << endl << flush;
-   //int flowflag = 1;
-   int i, j, newid;
+   //Xint i, j, newid;
    tSubNode *cn, *cnn, *cnnn;
    tPtrList< tSubNode > tmpList;
    tPtrListIter< tSubNode > tI( tmpList );
@@ -3297,7 +3295,8 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    tTriangle tempTri;
    tTriangle *nbrtriPtr;
    tSubNode *cn, *cnn, *cnnn;
-   tEdge *ce, *dce;
+   tEdge *ce;
+   //XtEdge *dce;
    tTriangle *ct;
    tListIter< tTriangle > triIter( triList );
    tMeshListIter< tEdge > edgIter( edgeList );
@@ -3404,7 +3403,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    // we need to find the triangle that points to edge (p0->p1), and so on.
    // In general, t((j+2)%3) is the triangle that points to edge
    // p(j)->p((j+1)%3).
-   dce = 0;
+   //Xdce = 0;
    nbrtriPtr = 0;
    cn = nbrIter.FirstP();
    //cout << "starting w/ node " << cn->getID();
@@ -3413,7 +3412,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
       // get spokelist for p(j) and advance to p(j+1)
       spokIter.Reset( cn->getSpokeListNC() );
       cn = nbrIter.NextP();               //step forward once in nbrList
-      if( j>0 ) dce = ce;
+      //Xif( j>0 ) dce = ce;
 
       // Find edge ce that connects p(j)->p(j+1)
       for( ce = spokIter.FirstP();
@@ -3507,6 +3506,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
 **                the new node (GT)
 **        -10/98: if node is open boundary,
 **                added with tMeshList::insertAtBoundFront() (SL)
+**        -5/99: removed unreferenced vars tedg1, tedg3 (GT)
 **
 \**************************************************************************/
 #define kLargeNumber 1000000000
@@ -3514,11 +3514,11 @@ template< class tSubNode >
 tSubNode * tMesh< tSubNode >::
 AddNode( tSubNode &nodeRef, int updatemesh, double time )
 {
-   int i, j, k, ctr;
+   int i, /*j, k,*/ ctr;
    tTriangle *tri;
    tSubNode *cn;
-   tEdge * tedg1;
-   tEdge * tedg3;
+   //XtEdge * tedg1;
+   //XtEdge * tedg3;
    tArray< double > xyz( nodeRef.get3DCoords() );
    tMeshListIter< tSubNode > nodIter( nodeList );
    assert( &nodeRef != 0 );
@@ -3746,7 +3746,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    else tri = LocateNewTriangle( xyz[0], xyz[1] );
    if( tri == 0 )      return 0;
    
-   int i, j, k, ctr;
+   int i, ctr;
    tMeshListIter< tSubNode > nodIter( nodeList );
    tSubNode tempNode, *cn;
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );
@@ -3970,7 +3970,7 @@ UpdateMesh()
    //tMeshListIter<tSubNode> nlist( nodeList );
    tEdge * curedg = 0;
    double len;
-   tTriangle * curtri;
+   //XtTriangle * curtri;
    
    // Edge lengths
    curedg = elist.FirstP();
@@ -4200,12 +4200,12 @@ void tMesh< tSubNode >::
 CheckLocallyDelaunay()
 {
    //cout << "CheckLocallyDelaunay()" << endl;
-   tTriangle *at, * trop[3];
+   tTriangle *at;
    tPtrList< tTriangle > triPtrList;
    tPtrListIter< tTriangle > triPtrIter( triPtrList );
    tListIter< tTriangle > triIter( triList );
-   int i, change, flipped;
-   int id0, id1, id2;
+   int i, change;
+   //Xint id0, id1, id2;
    tArray< int > npop(3);
    tSubNode *nodPtr;
    int flip = 1;
@@ -4213,10 +4213,6 @@ CheckLocallyDelaunay()
    // Search through tri list to find triangles with at least one
    // moving vertex, and put these on triPtrList
    //put each triangle into the stack
-     //flipped = TRUE;
-     /*do
-   {*/
-     //flipped = FALSE;
    for( at = triIter.FirstP(); !( triIter.AtEnd() ); at = triIter.NextP() )
    {
       change = FALSE;
@@ -4435,12 +4431,12 @@ CheckTriEdgeIntersect()
 {
    //cout << "CheckTriEdgeIntersect()..." << flush << endl;
      //DumpNodes();
-   int i, j, nv, nvopp, id0, id1, id2;
+   int i, j, nv, nvopp;
    int flipped = TRUE;
    int crossed;
    tSubNode *subnodePtr, tempNode, newNode;  
-   tEdge * newedg, * cedg, * ccedg, *fedg, *ce, *cex;
-   tTriangle * ct, * ctop, *rmtri, *tri;
+   tEdge * cedg, *ce;
+   tTriangle * ct, * ctop, *rmtri/* *tri*/;
    tListIter< tTriangle > triIter( triList );
    tMeshListIter< tEdge > edgIter( edgeList );
    tMeshListIter< tSubNode > nodIter( nodeList );
@@ -4449,7 +4445,7 @@ CheckTriEdgeIntersect()
    tMeshList< tSubNode > tmpNodeList;
    tMeshListIter< tSubNode > tmpIter( tmpNodeList );
    tArray< double > p0, p1, p2, xy, xyz, xy1, xy2;
-   tSubNode *cn, *vtx;
+   tSubNode *cn;
    tPtrList< tTriangle > triptrList;
    tPtrListNode< tTriangle > *tpListNode;
    tPtrListIter< tTriangle > tpIter( triptrList );
@@ -4557,10 +4553,10 @@ CheckTriEdgeIntersect()
                                          ce = spokIter.NextP() )
                                     {
                                        rmtri = TriWithEdgePtr( ce );
-                                       for( tri = tpIter.FirstP();
+                                       for( /*tri =*/ tpIter.FirstP();
                                             tpIter.ReportNextP() != rmtri &&
                                                 !(tpIter.AtEnd());
-                                            tri = tpIter.NextP() );
+                                                      /*tri =*/ tpIter.NextP() );
                                        if( !(tpIter.AtEnd()) ) //rmtri is in tri ptrlist
                                        {
                                           tpListNode = tpIter.NodePtr();

@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.64 1999-04-16 20:50:59 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.65 1999-05-04 17:15:49 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -286,7 +286,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
 {
-   int g;
+   //Xint g;
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
@@ -417,7 +417,8 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
 {
    int i;
    char add, name[20];
-   double help, sum;
+   double help;
+   //Xdouble sum;
 
    //cout << "tSedTransWilcock(infile)\n" << endl;
    add='1';
@@ -460,7 +461,8 @@ tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
 \***********************************************************************/
 double tSedTransWilcock::TransCapacity( tLNode *nd )
 {
-   double tau, tauold;
+   double tau;
+   //Xtauold;
    double taucrit;
    double persand=nd->getLayerDgrade(0,0)/(nd->getLayerDepth(0));
    //double timeadjust=31536000.00; /* number of seconds in a year */
@@ -679,7 +681,7 @@ void tErosion::ErodeDetachLim( double dtg )
    double dt,
        dtmax = 1000000.0; // time increment: initialize to arbitrary large val
    double frac = 0.9; //fraction of time to zero slope
-   int i;
+   //Xint i;
    tLNode * cn, *dn;
    int nActNodes = meshPtr->getNodeList()->getActiveSize();
    tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
@@ -739,14 +741,13 @@ void tErosion::ErodeDetachLim( double dtg, tUplift *UPtr )
    double dt,
        dtmax = 1000000.0; // time increment: initialize to arbitrary large val
    double frac = 0.1; //fraction of time to zero slope
-   int i;
+   //Xint i;
    tLNode * cn, *dn;
    int nActNodes = meshPtr->getNodeList()->getActiveSize();
    tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
-   tArray<double> //dz( nActNodes ), // Erosion depth @ each node
-       dzdt( nActNodes ); //Erosion rate @ ea. node
+   tArray<double> dzdt( nActNodes ); //Erosion rate @ ea. node
    double ratediff;
-   double slp, dslpdt;
+   //Xdouble dslpdt;
    double dtmin = dtg * 0.0001;
 
    // Iterate until total time dtg has been consumed
@@ -822,7 +823,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
    double dt,
        dtmax;         // time increment: initialize to arbitrary large val
    double frac = 0.3; // fraction of time to zero slope
-   int i;
+   //Xint i;
    tLNode * cn, *dn;
    int nActNodes = meshPtr->getNodeList()->getActiveSize();
    tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
@@ -1035,7 +1036,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
        dtmax;         // time increment: initialize to arbitrary large val
    double frac = 0.3; //fraction of time to zero slope
    double timegb; //time gone by - for layering time purposes
-   int i,n;
+   int i;
    tLNode * cn, *dn;
    int nActNodes = meshPtr->getNodeList()->getActiveSize();
    tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
@@ -1366,14 +1367,14 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
    int nActNodes = meshPtr->getNodeList()->getActiveSize();
    tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
    double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
-       dzdt, 
+       //Xdzdt, 
        drdt,
        dz,
        depck,
        qs,
        excap,
-       sum,
-       addon;
+       sum;
+   //Xaddon;
    tLNode * inletNode = strmNet->getInletNodePtr();
    double insedloadtotal = strmNet->getInSedLoad();
    

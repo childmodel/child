@@ -8,7 +8,7 @@
 **    - GT added currentItem, FirstP(), and NextP(), plus modifications
 **      to prevent currentItem from getting corrupted (1/22/99)
 **
-**  $Id: tList.cpp,v 1.17 1999-04-16 20:51:13 nmgaspar Exp $
+**  $Id: tList.cpp,v 1.18 1999-05-04 17:15:56 gtucker Exp $
 \**************************************************************************/
 
 #include "tList.h"
@@ -651,7 +651,7 @@ NextP()
 }
 
 template< class NodeType >                         //tList
-const NodeType tList< NodeType >::
+NodeType tList< NodeType >::
 getIthData( int num ) const
 {
    int i;
@@ -1197,7 +1197,7 @@ GetP( int num )
    assert( listPtr != 0 );
    if( num < 0 ) return 0;
    //cout << "Get: num " << num << "; ";
-   int i;
+
    tListNode< NodeType > *tempnodeptr = listPtr->first;
    counter = 0;
    while( tempnodeptr->getDataPtr()->getID() != num && tempnodeptr != 0 )
