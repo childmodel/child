@@ -4,14 +4,26 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
+**  A tLNode object encapsulates data and methods for a single landscape
+**  node. It inherits basic data and methods from the generic tNode
+**  class (see meshElements.h/.cpp). Embedded within tLNode are four
+**  small classes, tChannel, tSurface, tRegolith, and tRock, that
+**  contain data specific to channel geometry, surface characteristics,
+**  regolith properties, and rock properties (many of the properties in
+**  these embedded objects are now obsolete and need to be surgically
+**  removed). Embedded within tChannel is an additional class,
+**  tMeander, that contains node-data related to stream meandering.
+**
 **  Changes:
 **    - GT commented out inclusion of run timer, 1/99
+**    - removed obsolete class tErode, GT 4/99
 **
-**  $Id: tLNode.h,v 1.41 1999-04-05 22:44:48 nmgaspar Exp $
+**  $Id: tLNode.h,v 1.42 1999-04-15 14:21:20 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
 #define TLNODE_H
+
 #include <iostream.h>
 #include <fstream.h>
 #include <string.h>
@@ -21,10 +33,10 @@
 #include "../tList/tList.h"
 #include "../tInputFile/tInputFile.h"
 #include "../globalFns.h"
-//#include "../tRunTimer/tRunTimer.h" //doesn't seem to be needed (gt 1/99)
 
 #define kSink        3  // ...or a dry sink (unfilled depression).
 #define kVeryHigh 100000  // Used in FillLakes
+
 
 /** class tLayer *********************************************************/
 /* Layer records */
@@ -77,7 +89,7 @@ class tLayer
 };
 
 /** class tErode ***********************************************************/
-class tErode
+/*class tErode
 {
    friend class tChannel;
    friend class tLNode;
@@ -88,18 +100,18 @@ class tErode
    ~tErode();
    const tErode &operator=( const tErode & );
   private:
-     /*int erodtype;*/
-   double sedinput;     /* Sed. volume input (output if neg) during an iteration*/
-   double dz;           /* Elevation change during an iteration*/
-   double zp;           /* Predicted elevation (used in numerical scheme)*/
-   double qs;           /* Sediment transport rate*/
-   double qsp;          /* Predicted sed trans rate at new time step*/
-   double qsin;         /* Sediment influx rate*/
-   double qsinp;        /* Predicted sed influx at new time step*/
-   int nsmpts;         /* # of points downstream over which to apply smoothing*/
-   tArray< double > smooth; /*weights for erosion applied to downstrm nodes*/
-   double tau;          /* Shear stress (or similar quantity)*/
-};
+    
+   double sedinput;
+   double dz;      
+   double zp;      
+   double qs;      
+   double qsp;     
+   double qsin;    
+   double qsinp;   
+   int nsmpts;     
+   tArray< double > smooth;
+   double tau;
+};*/
 
 
 /** class tMeander *************************************************************/
@@ -190,7 +202,6 @@ class tChannel
    double hydrslope;
    double diam;    	/* Grain diameter of bed material*/
 /*member objects:*/
-   //tErode erosion;
    tMeander migration;
 };
 
