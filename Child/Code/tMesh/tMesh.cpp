@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.160 2003-05-29 16:04:10 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.161 2003-05-30 12:40:47 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2820,7 +2820,7 @@ ExtricateEdge( tEdge * edgePtr )
    // Puts edgIter at edgePtr's node!
 
    // WarnSpokeLeaving is virtual:
-    ce->getOriginPtrNC()->WarnSpokeLeaving( ce );
+   ce->getOriginPtrNC()->WarnSpokeLeaving( ce );
    // Remove the edge from it's origin's spokelist:
    spokIter.Reset( ce->getOriginPtrNC() );
    if( spokIter.Get( ce ) )
@@ -2852,7 +2852,7 @@ ExtricateEdge( tEdge * edgePtr )
    //to one of the edges that will be removed.  Also, may be implications
    //for some types of subnodes, so take care of that also.
    // WarnSpokeLeaving is virtual:
-    cce->getOriginPtrNC()->WarnSpokeLeaving( cce );
+   cce->getOriginPtrNC()->WarnSpokeLeaving( cce );
 
    // Find the triangle that points to the edges complement
    //cout << "find other triangle; " << flush;
@@ -2914,7 +2914,7 @@ ClearEdge( tEdge* ce ) const
    //to one of the edges that will be removed.  Also, may be implications
    //for some types of subnodes, so take care of that also.
    // WarnSpokeLeaving is virtual:
-    ce->getOriginPtrNC()->WarnSpokeLeaving( ce );
+   ce->getOriginPtrNC()->WarnSpokeLeaving( ce );
    // Remove the edge from it's origin's spokelist:
    spokIter.Reset( ce->getOriginPtrNC() );
    if( spokIter.Get( ce ) )
@@ -3778,8 +3778,7 @@ AttachNode( tSubNode* cn, tTriangle* tri )
   tArray< double > xyz( cn->get3DCoords() );
 
   // flush its spoke list
-  tEdge* ce = 0;
-  cn->setEdg( ce );
+  cn->setEdg( 0 );
 
   //make ptr list of triangle's vertices:
   tPtrList< tSubNode > bndyList;
