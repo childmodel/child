@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.41 2000-06-24 15:14:18 gtucker Exp $
+**  $Id: tOutput.cpp,v 1.42 2000-06-24 20:19:21 daniel Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -311,7 +311,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
 **
 \*************************************************************************/
 template< class tSubNode >
-void tLOutput<tSubNode>::WriteTSOutput( double time )
+void tLOutput<tSubNode>::WriteTSOutput()
 {
    tMeshListIter<tSubNode> niter( m->getNodeList() ); // node list iterator
 
@@ -338,9 +338,6 @@ void tLOutput<tSubNode>::WriteTSOutput( double time )
    }
 
 }
-
-
-
 
 
 
