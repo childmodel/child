@@ -4,7 +4,7 @@
 **
 **  (see tOutput.h for a description of these classes)
 **
-**  $Id: tOutput.cpp,v 1.44 2000-07-04 05:19:33 daniel Exp $
+**  $Id: tOutput.cpp,v 1.45 2001-06-21 09:45:58 gtucker Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -187,7 +187,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr, tInputFile &infile )
         : tOutput<tSubNode>( meshPtr, infile )  // call base-class constructor
 {
    int opOpt;  // Optional modules: only output stuff when needed
-   int optTSOutput;
+   //int optTSOutput;
    
    counter=0;
    strcpy(nums, "0123456789");
@@ -296,6 +296,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
    }
    
    layofs.close();
+
 }
 
 
@@ -321,7 +322,7 @@ void tLOutput<tSubNode>::WriteTSOutput()
           area = 0,
           cover = 0;
 
-   cout << "tLOutput::WriteTSOutput()\n" << flush;
+   //cout << "tLOutput::WriteTSOutput()\n" << flush;
    
    int i = 0;
    for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
@@ -330,7 +331,7 @@ void tLOutput<tSubNode>::WriteTSOutput()
    }
    
    volsofs << volume << endl;
-   tareaofs << area << endl;
+   //tareaofs << area << endl;
 
    if( vegofs.good() ) {
      for( cn = niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
@@ -339,4 +340,8 @@ void tLOutput<tSubNode>::WriteTSOutput()
    }
 
 }
+
+
+template< class tSubNode >
+int tLOutput<tSubNode>::OptTSOutput() { return optTSOutput; }
 
