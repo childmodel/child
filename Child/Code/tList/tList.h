@@ -33,7 +33,7 @@
  **      track position on list w/o an iterator, 1/22/99
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **
- **  $Id: tList.h,v 1.44 2003-08-06 16:11:58 childcvs Exp $
+ **  $Id: tList.h,v 1.45 2003-08-11 11:49:38 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -1278,6 +1278,7 @@ int tListIter< NodeType >::
 NextIfNoCurrent()
 {
   assert( listPtr != 0 );
+  assert( curnode == 0 );
   curnode = listPtr->first;
   counter = 0;
   return curnode != 0 ? 1:0;
@@ -1302,6 +1303,7 @@ int tListIter< NodeType >::
 PrevIfNoCurrent()
 {
   assert( listPtr != 0 );
+  assert( curnode == 0 );
   curnode = listPtr->last;
   counter = -1;
   return curnode != 0 ? 1:0;

@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.37 2003-08-06 16:11:59 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.38 2003-08-11 11:49:40 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -1205,6 +1205,7 @@ int tPtrListIter< NodeType >::
 NextIfNoCurrent()
 {
   assert( ptrlistPtr != 0 );
+  assert( curptrnode == 0 );
   curptrnode = ptrlistPtr->first;
   counter = 0;
   return curptrnode !=0 ? 1:0;
@@ -1229,6 +1230,7 @@ int tPtrListIter< NodeType >::
 PrevIfNoCurrent()
 {
   assert( ptrlistPtr != 0 );
+  assert( curptrnode == 0 );
   curptrnode = ptrlistPtr->last;
   counter = -1;
   return curptrnode != 0 ? 1:0;
