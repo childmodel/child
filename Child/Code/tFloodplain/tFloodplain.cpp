@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.1 1999-01-25 16:33:53 gtucker Exp $
+**  $Id: tFloodplain.cpp,v 1.2 1999-03-13 22:20:30 gtucker Exp $
 \**************************************************************************/
 
 #include "tFloodplain.h"
@@ -78,6 +78,8 @@
 \**************************************************************************/
 tFloodplain::tFloodplain( tInputFile &infile, tGrid<tLNode> *gp )
 {
+   int numg;
+   
    // Keep a pointer to the mesh in order to access list of nodes
    gridPtr = gp;
    assert( gridPtr!=0 );
@@ -92,6 +94,9 @@ tFloodplain::tFloodplain( tInputFile &infile, tGrid<tLNode> *gp )
    fplamda = infile.ReadItem( fplamda, "FP_LAMBDA" );
    
    kdb = kdb*pow( event_min, mqbmqs );
+
+   numg = infile.ReadItem( numg, "NUMGRNSIZE" );
+   deparr.setSize(numg); // dimension & init to 0 the deparr array
    
 }
 
@@ -112,17 +117,24 @@ tFloodplain::tFloodplain( tInputFile &infile, tGrid<tLNode> *gp )
 **        IF node elevation < WSH at closest flood node
 **          Calculate total deposition depth and update node elevation
 **
+**  Modifications:
+**   - hydraulic geometry parameters should be interpreted for discharge
+**     units of meters per second, not meters per year. Corrected. GT 3/99
+**   - now uses call to EroDep with layer info. deparr is passed to
+**     EroDep; all overbank deposits are assumed to be finest fraction,
+**     which is assumed to be the 1st size in the array. GT 3/13/99
+**
 **    Parameters:
 **      precip -- precipitation rate for current storm event
 **      delt -- duration of current storm event
 **      ctime -- current time
 **    Notes:
-**      - does not currently support layering (TODO)
 **      - deposition rate is current max AT flood nodes; however, there
 **        are physical arguments for reducing the deposition rate within
 **        a main channel, and this could be built in (TODO?)
 **
 \**************************************************************************/
+#define kYearpersec 3.171e-8 // 1/SecondsPerYear
 void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 {
    if( precip < event_min ) return;
@@ -139,8 +151,8 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
        floodDepth,       // local flood depth
        dx,dy,            // x and y distance to flood node
        wsh,              // water surface height
-       drarea,           // drainage area at flood node
-       depo;             // depth of sediment deposited
+       drarea;           // drainage area at flood node
+   //Xdepo;             // depth of sediment deposited
    
    cout << "tFloodplain\n";
    
@@ -151,8 +163,10 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
       if( ( drarea = cn->getDrArea() ) >= drarea_min )
       {
          floodNode.nodePtr = cn;
-         floodNode.wsh = kdb*pow( drarea, mqbmqs )*pow( cn->getQ(), mqs )
+         floodNode.wsh = kdb*pow( drarea, mqbmqs )
+             *pow( cn->getQ()*kYearpersec, mqs )
              + cn->getZ();
+         cout << "flood depth " << cn->getID() << " = " << floodNode.wsh-cn->getZ() << endl;
          if( floodNode.wsh > maxWSH )
              maxWSH = floodNode.wsh;
          floodList.insertAtBack( floodNode );
@@ -191,10 +205,14 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
            << endl << flush;*/
 
          // If current node is below flood level, do some deposition
+         // (note: deposit is assumed to consist of 100% of the finest
+         // grain size fraction, which is assumed to be the first fraction.
+         // All other entries in deparr are zero)
          if( ( floodDepth = wsh - cn->getZ() ) > 0.0 )
          {
-            depo = floodDepth*fpmu*exp( -minDist/fplamda )*delt;
-            cn->ChangeZ( depo ); // (note: use layering-TODO)
+            deparr[0] = floodDepth*fpmu*exp( -minDist/fplamda )*delt;
+            //Xcn->ChangeZ( depo ); // (note: use layering-TODO)
+            cn->EroDep( 0, deparr, ctime );
             /*cout << " OBDep " << depo << " at (" << cn->getX()
               << "," << cn->getY() << ")\n";*/
          }
