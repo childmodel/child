@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.7 1998-03-21 21:50:58 gtucker Exp $
+**  $Id: tMesh.h,v 1.8 1998-04-29 21:46:29 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -22,6 +22,20 @@
 #include "../tListInputData/tListInputData.h"
 #include "../tListOutputData/tListOutputData.h"
 
+
+/***************************/
+/**** Defined constants ****/
+/***************************/
+
+/* codes passed to DeleteNode (why don't default args work?) */
+#define kRepairMesh 1
+#define kNoRepair 0
+
+
+/****************************/
+/**** Class Declarations ****/
+/****************************/
+
 /** class tGrid ************************************************************/
 template< class tSubNode >
 class tGrid
@@ -35,6 +49,7 @@ public:
     ~tGrid();
     void MakeGridFromScratch( tInputFile & );
     void MakeGridFromInputData( tInputFile & );
+    void MakeGridFromPoints( tInputFile & );
     void Print();
     /*makes edg, ccwedg structure from spokelists*/
     void MakeCCWEdges();
@@ -46,8 +61,8 @@ public:
      /*returns ptr to triangle which points to edge, or zero if none:*/ 
     tTriangle *TriWithEdgePtr( tEdge * );
      /*only routine needed to delete node; calls ExNode, RepairMesh:*/
-    int DeleteNode( tListNode< tSubNode > * );
-    int DeleteNode( tSubNode * );
+    int DeleteNode( tListNode< tSubNode > *, int repairFlag=1 );
+    int DeleteNode( tSubNode *, int repairFlag=1 );
      /*deletes spokes, *calls ExEdge, makes nbr ptr list:*/
     int ExtricateNode( tSubNode *, tPtrList< tSubNode > & );
     int DeleteEdge( tEdge * );
@@ -70,12 +85,13 @@ public:
     tGridList<tEdge> * GetEdgeList();
     tGridList<tSubNode> * GetNodeList();
     tList< tTriangle > * GetTriList();
-    tEdge *getEdgeCompliment( tEdge * );
-    void CheckMeshConsistency();  // Tests consistency of a user-defined mesh
-     /*Updates mesh by computing edge lengths & slopes & node Voronoi areas */ 
+    tEdge *getEdgeComplement( tEdge * );
+      /* Tests consistency of a user-defined mesh */
+    void CheckMeshConsistency( int boundaryCheckFlag=1 );
+      /* Updates mesh by comp'ing edg lengths & slopes & node Voronoi areas */ 
     void UpdateMesh();
-     /* computes edge slopes as (Zorg-Zdest)/Length */
-   //void CalcSlopes();
+      /* computes edge slopes as (Zorg-Zdest)/Length */
+   //void CalcSlopes(); /* WHY is this commented out? */
    /*routines used to move points; MoveNodes is "master" function*/
     int CheckForFlip( tTriangle *, int, int );
     void FlipEdge( tTriangle *, tTriangle *, int, int );
