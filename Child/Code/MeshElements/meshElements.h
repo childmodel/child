@@ -40,7 +40,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.26 2002-04-11 10:00:53 arnaud Exp $
+**  $Id: meshElements.h,v 1.27 2002-04-23 10:02:10 arnaud Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -328,12 +328,11 @@ private:
 \***********************************************************************/
 
 //default constructor
-inline tNode::tNode()
-{
-   id = boundary = 0;
-   x = y = z = varea = varea_rcp = 0.0;
-   edg = 0;
-}
+inline tNode::tNode() :
+  id(0),
+  x(0.), y(0.), z(0.), varea(0.), varea_rcp(0.),
+  boundary(0), edg(0)
+{}
 
 //copy constructor
 inline tNode::tNode( const tNode &original )

@@ -30,7 +30,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.21 2002-04-22 18:14:29 arnaud Exp $
+**  $Id: tList.h,v 1.22 2002-04-23 10:02:11 arnaud Exp $
 \**************************************************************************/
 
 #ifndef TLIST_H
@@ -331,22 +331,21 @@ protected:
 
 //default constructor
 template< class NodeType >                         //tList
-inline tList< NodeType >::tList()
+inline tList< NodeType >::tList() :
+  nNodes(0), first(0), last(0), currentItem(0)
 {
-   first = last = currentItem = 0;
-   nNodes = 0;
      //cout << "list instantiated" << first << endl;
 }
 
 //copy constructor
 template< class NodeType >                         //tList
 inline tList< NodeType >::
-tList( const tList< NodeType > *original )
+tList( const tList< NodeType > *original ) :
+  nNodes(0)
 {
    int i;
 
    assert( original != 0 );
-   nNodes = 0;
      //nNodes = original->nNodes;
    tListNode<NodeType> * current = original->first;
    for( i=0; i<original->nNodes; i++ )
