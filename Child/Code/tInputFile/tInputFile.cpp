@@ -6,7 +6,7 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.cpp,v 1.11 2002-05-01 14:48:26 arnaud Exp $
+**  $Id: tInputFile.cpp,v 1.12 2002-05-29 13:14:19 arnaud Exp $
 \****************************************************************************/
 
 #include <iostream.h>
@@ -60,7 +60,6 @@ tInputFile::tInputFile( const char *filename )
    
 }
 
-
 /****************************************************************************\
 **
 **  tInputFile::ReadItem
@@ -83,6 +82,25 @@ tInputFile::tInputFile( const char *filename )
 **      12/23/97 SL
 **
 \****************************************************************************/
+static
+void readUntilKeyword(char *headerLine, ifstream& infile,
+		      const char *itemCode){
+  do {
+    infile.getline( headerLine, kMaxNameLength );
+  } while( !( infile.eof() ) &&
+	   ( headerLine[0]==kCommentMark ||
+	     strncmp( itemCode, headerLine, strlen( itemCode ) )!=0 ) );
+}
+
+static
+void skipCommentsAndReadValue(char *headerLine, ifstream& infile){
+  do {
+    infile.getline( headerLine, kMaxNameLength );
+  } while( !( infile.eof() ) &&
+	   ( headerLine[0]==kCommentMark ) );
+}
+
+
 int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode )
 {
    //cout << "ReadItem( int )...";
@@ -93,28 +111,29 @@ int tInputFile::ReadItem( const int & /*datType*/, const char *itemCode )
 
    // NB: Should check for eof on reading each line
 
-   infile.getline( headerLine, kMaxNameLength );
-   while( !( infile.eof() ) &&
-          ( headerLine[0]==kCommentMark ||
-            strncmp( itemCode, headerLine, strlen( itemCode ) )!=0 ) )
-       infile.getline( headerLine, kMaxNameLength );
-   if( !( infile.eof() ) )
-   {
-      infile >> item;
-      infile.ignore( 1, '\n' );
-      inoutfile << itemCode << endl << item << endl;
-   }
-   else
+   // look for itemCode
+   readUntilKeyword(headerLine, infile, itemCode);
+   if ( infile.eof() )
+     goto fail;
 
-       //if( strncmp( itemCode, headerLine, strlen( itemCode ) )!=0 )
-   {
-      cerr << "I expected to read the parameter '" << itemCode
-           << "', but reached EOF first" << endl;
-      ReportFatalError( "Missing parameter in input file" );
-   }
-   //infile.seekg( original );
+   // skip any comment and read value
+   skipCommentsAndReadValue(headerLine, infile);
+   if( headerLine[0]!=kCommentMark )
+     {
+       item = atoi(headerLine);
+       inoutfile << itemCode << endl << item << endl;
+     }
+   else
+     {
+       goto fail;
+     }
    infile.seekg( 0, ios::beg );
    return item;
+   
+ fail:
+   cerr << "I expected to read the parameter '" << itemCode
+	<< "', but reached EOF first" << endl;
+   ReportFatalError( "Missing parameter in input file" );
 }
 
 long tInputFile::ReadItem( const long & /*datType*/, const char *itemCode )
@@ -125,27 +144,31 @@ long tInputFile::ReadItem( const long & /*datType*/, const char *itemCode )
   
    assert( infile.good() );
   
-     // NB: Should check for eof on reading each line
+   // NB: Should check for eof on reading each line
 
-   infile.getline( headerLine, kMaxNameLength );
-   while( !( infile.eof() ) &&
-          ( headerLine[0]==kCommentMark ||
-            strncmp( itemCode, headerLine, strlen( itemCode ) )!=0 ) )
-       infile.getline( headerLine, kMaxNameLength );
-   if( !( infile.eof() ) )
-   {
-      infile >> item;
-      infile.ignore( 1, '\n' );
-      inoutfile << itemCode << endl << item << endl;
-   }
+   // look for itemCode
+   readUntilKeyword(headerLine, infile, itemCode);
+   if ( infile.eof() )
+     goto fail;
+
+   // skip any comment and read value
+   skipCommentsAndReadValue(headerLine, infile);
+   if( headerLine[0]!=kCommentMark )
+     {
+       item = atol(headerLine);
+       inoutfile << itemCode << endl << item << endl;
+     }
    else
-   {
-      cerr << "I expected to read the parameter '" << itemCode
-           << "', but reached EOF first" << endl;
-      ReportFatalError( "Missing parameter in input file" );
-   }
+     {
+       goto fail;
+     }
    infile.seekg( 0, ios::beg );
    return item;
+
+ fail:
+   cerr << "I expected to read the parameter '" << itemCode
+	<< "', but reached EOF first" << endl;
+   ReportFatalError( "Missing parameter in input file" );
 }
 
 double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode )
@@ -156,27 +179,31 @@ double tInputFile::ReadItem( const double & /*datType*/, const char *itemCode )
    
    assert( infile.good() );
   
-     // NB: Should check for eof on reading each line
+   // NB: Should check for eof on reading each line
 
-   infile.getline( headerLine, kMaxNameLength );
-   while( !( infile.eof() ) &&
-          ( headerLine[0]==kCommentMark ||
-            strncmp( itemCode, headerLine, strlen( itemCode ) )!=0 ) )
-       infile.getline( headerLine, kMaxNameLength );
-   if( !( infile.eof() ) )
-   {
-      infile >> item;
-      infile.ignore( 1, '\n' );
-      inoutfile << itemCode << endl << item << endl;
-   }
+   // look for itemCode
+   readUntilKeyword(headerLine, infile, itemCode);
+   if ( infile.eof() )
+     goto fail;
+
+   // skip any comment and read value
+   skipCommentsAndReadValue(headerLine, infile);
+   if( headerLine[0]!=kCommentMark )
+     {
+       item = atof(headerLine);
+       inoutfile << itemCode << endl << item << endl;
+     }
    else
-   {
-      cerr << "I expected to read the parameter '" << itemCode
-           << "', but reached EOF first" << endl;
-      ReportFatalError( "Missing parameter in input file" );
-   }
+     {
+       goto fail;
+     }
    infile.seekg( 0, ios::beg );
    return item;
+
+ fail:
+   cerr << "I expected to read the parameter '" << itemCode
+	<< "', but reached EOF first" << endl;
+   ReportFatalError( "Missing parameter in input file" );
 }
 
 
@@ -187,22 +214,30 @@ void tInputFile::ReadItem(  char * theString, const char *itemCode )
    
    assert( infile.good() );
 
-   infile.getline( headerLine, kMaxNameLength );
-   while( !( infile.eof() ) &&
-          ( headerLine[0]==kCommentMark ||
-            strncmp( itemCode, headerLine, strlen( itemCode ) )!=0 ) )
-       infile.getline( headerLine, kMaxNameLength );
+   // look for itemCode
+   readUntilKeyword(headerLine, infile, itemCode);
+   if ( infile.eof() )
+     goto fail;
 
-   if( !( infile.eof() ) )
-   {
-      infile.getline( theString, kMaxNameLength );
-      inoutfile << itemCode << endl << theString << endl;
-   }
+   // skip any comment and read value
+   do {
+     infile.getline( headerLine, kMaxNameLength );
+   } while( !( infile.eof() ) &&
+	    ( headerLine[0]==kCommentMark ) );
+   if( headerLine[0]!=kCommentMark )
+     {
+       strcpy(theString,headerLine);
+       inoutfile << itemCode << endl << theString << endl;
+     }
    else
-   {
-      cerr << "I expected to read the parameter '" << itemCode
-           << "', but reached EOF first" << endl;
-      ReportFatalError( "Missing parameter in input file" );
-   }
+     {
+       goto fail;
+     }
    infile.seekg( 0, ios::beg );
+   return;
+
+ fail:
+   cerr << "I expected to read the parameter '" << itemCode
+	<< "', but reached EOF first" << endl;
+   ReportFatalError( "Missing parameter in input file" );
 }
