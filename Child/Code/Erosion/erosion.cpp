@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.44 1998-08-09 21:28:28 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.45 1998-08-19 17:50:50 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1446,7 +1446,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
       }// End for( cn = ni.FirstP()..
       dtmax *= frac;  // Take a fraction of time-to-flattening
       timegb+=dtmax;
-      //cout<<"dtmax is  "<<dtmax<<endl;
+
 //       cout<<"timegb is "<<timegb<<endl;
       
       //At this point: we have drdt and qs for each node, plus dtmax
