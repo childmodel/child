@@ -97,13 +97,13 @@ bool needswap(int i1, int i2, int i3, int i4, const point p[]){
   // i4-i2-i3 using the algorithm of Cline and Renka for roundoff
   // error.
   
-  // t1=angle(i2,i3,i4), t2=angle(i1i4,i1i3), 
+  // t1=angle(i2i3,i2i4), t2=angle(i1i4,i1i3), 
   // a swap is needed if t1+t2 > pi
   // Since t1+t2 < 2pi, this is equivalent to sin(t1+t2) < 0
   // This leads to: cos(t1)*cos(t2)+sin(t1)*sin(t2) < 0
   //
   // see discussion in:
-  // Sloan, S.W. "A fast algorihtm for constructing Delaunay 
+  // Sloan, S.W. "A fast algorithm for constructing Delaunay 
   // triangulations in the plane", Adv. Eng, Software,
   // 1987, 9(1)
   // Cline, A.K., Renka, R.L., "A Storage efficient method for 
