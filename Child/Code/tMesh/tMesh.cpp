@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.8 1998-01-31 19:12:48 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.9 1998-02-02 17:05:21 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -429,11 +429,11 @@ tGrid( tListInputData< tSubNode > &input )                           //tGrid
       ccwedgid = input.nextid[i];
       ccwedg = edgIter.GetP( ccwedgid );
       curedg->SetCCWEdg( ccwedg );
-      cout << "Edg " << ccwedgid << " (" << ccwedg->getOriginPtr()->getID()
+      /*cout << "Edg " << ccwedgid << " (" << ccwedg->getOriginPtr()->getID()
            << " " << ccwedg->getDestinationPtr()->getID() << ") is ccw from "
            << curedg->getID() << " ("
            << curedg->getOriginPtr()->getID()
-           << " " << curedg->getDestinationPtr()->getID() << ") " << endl;
+           << " " << curedg->getDestinationPtr()->getID() << ") " << endl;*/
       
    }
    
@@ -458,11 +458,11 @@ tGrid( tListInputData< tSubNode > &input )                           //tGrid
    
    tListIter< tTriangle > trIter1( triList );
    tListIter< tTriangle > trIter2( triList );
-   cout << "tGrid: set tri ptrs" << endl;
+   //cout << "tGrid: set tri ptrs" << endl;
    i = 0;
    do                                                //for ( i=0; i<ntri; i++ )
    {
-      cout << "tGrid: Tri loop, i: " << i << endl;
+      //cout << "tGrid: Tri loop, i: " << i << endl;
       if( trIter2.Get( input.t0[i] ) )
           trIter1.DatRef().setTPtr( 0, &(trIter2.DatRef()) );
       else trIter1.DatRef().setTPtr( 0, 0 );
@@ -475,7 +475,7 @@ tGrid( tListInputData< tSubNode > &input )                           //tGrid
       i++;
    }
    while( trIter1.Next() );
-   cout<<"set list data values"<<endl;
+   //cout<<"set list data values"<<endl;
 
    CheckMeshConsistency();
    
@@ -517,8 +517,8 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
           nodeList.insertAtBack( tempnode );       //kClosedBoundary
       //cout << input.x[i] << input.y[i] << input.z[i]
       //     << input.boundflag[i] << endl;
-      cout << tempnode.getBoundaryFlag() << " ";
-      cout << nodeList.getLast()->getDataPtr()->getBoundaryFlag() << endl;
+      //cout << tempnode.getBoundaryFlag() << " ";
+      //cout << nodeList.getLast()->getDataPtr()->getBoundaryFlag() << endl;
    }
    
    // Create and initialize the edge list by creating two temporary edges
@@ -533,32 +533,32 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
       // Assign values: ID, origin and destination pointers
       tempedge1.setID( i );
       tempedge2.setID( i + 1 );
-      cout << input.orgid[i] << " " << input.destid[i] << endl;
-      cout << nodIter.Get( input.orgid[i] ) << " ";
-      cout << nodIter.Get( input.destid[i] ) << endl;
+      //cout << input.orgid[i] << " " << input.destid[i] << endl;
+      //cout << nodIter.Get( input.orgid[i] ) << " ";
+      //cout << nodIter.Get( input.destid[i] ) << endl;
       assert( nodIter.Get( input.orgid[i] ) );
           //{
          tempedge1.setOriginPtr( &(nodIter.DatRef()) );
          tempedge2.setDestinationPtr( &(nodIter.DatRef()) );
          obnd = nodIter.DatRef().getBoundaryFlag();
-         cout << nodIter.DatRef().getID() << "->";
+         //cout << nodIter.DatRef().getID() << "->";
          //}
          assert( nodIter.Get( input.destid[i] ) );
           //{
          tempedge1.setDestinationPtr( &(nodIter.DatRef()) );
          tempedge2.setOriginPtr( &(nodIter.DatRef()) );
          dbnd = nodIter.DatRef().getBoundaryFlag();
-         cout << nodIter.DatRef().getID() << endl;
+         //cout << nodIter.DatRef().getID() << endl;
          //}
       // Set the "flowallowed" status (FALSE if either endpoint is a
          // closed boundary) and insert edge pair onto the list --- active
          // part of list if flow is allowed, inactive if not
-         cout << "BND: " << obnd << " " << dbnd << " " << kClosedBoundary
-              << endl;
+         //cout << "BND: " << obnd << " " << dbnd << " " << kClosedBoundary
+         //     << endl;
       if( obnd == kClosedBoundary || dbnd == kClosedBoundary )
       {
-         cout << "setting edges " << tempedge1.getID() << " and "
-              << tempedge2.getID() << " as no-flux" << endl;
+         /*cout << "setting edges " << tempedge1.getID() << " and "
+              << tempedge2.getID() << " as no-flux" << endl;*/
          tempedge1.setFlowAllowed( 0 );
          tempedge2.setFlowAllowed( 0 );
          edgeList.insertAtBack( tempedge1 );
@@ -566,13 +566,13 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
       }
       else
       {
-         cout << "setting edges " << tempedge1.getID() << " and "
-              << tempedge2.getID() << " as OPEN" << endl;
+         /*cout << "setting edges " << tempedge1.getID() << " and "
+              << tempedge2.getID() << " as OPEN" << endl;*/
          tempedge1.setFlowAllowed( 1 );
          tempedge2.setFlowAllowed( 1 );
          edgeList.insertAtActiveBack( tempedge1 );
          edgeList.insertAtActiveBack( tempedge2 );
-         cout << "EDGFA " << tempedge2.FlowAllowed() << endl;
+         //cout << "EDGFA " << tempedge2.FlowAllowed() << endl;
       }
    }
 
@@ -596,8 +596,8 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
           curnode->insertBackSpokeList( &(edgIter.DatRef()) );
           //nodIter.DatRef().insertBackSpokeList( &(edgIter.DatRef()) );
           curnode->SetEdg( edgIter.DatPtr() );
-          cout << "Node " << curnode->getID() << " has edg "
-               << (curnode->GetEdg())->getID() << endl;
+          /*cout << "Node " << curnode->getID() << " has edg "
+               << (curnode->GetEdg())->getID() << endl;*/
       }
       for( ne = input.nextid[e1]; ne != e1; ne = input.nextid[ne] )
       {
@@ -627,11 +627,11 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
       ccwedgid = input.nextid[i];
       ccwedg = edgIter.GetP( ccwedgid );
       curedg->SetCCWEdg( ccwedg );
-      cout << "Edg " << ccwedgid << " (" << ccwedg->getOriginPtr()->getID()
+      /*cout << "Edg " << ccwedgid << " (" << ccwedg->getOriginPtr()->getID()
            << " " << ccwedg->getDestinationPtr()->getID() << ") is ccw from "
            << curedg->getID() << " ("
            << curedg->getOriginPtr()->getID()
-           << " " << curedg->getDestinationPtr()->getID() << ") " << endl;
+           << " " << curedg->getDestinationPtr()->getID() << ") " << endl;*/
       
    }
    
@@ -640,16 +640,16 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
    do                                        //for( i=0; i<nnodes; i++ )
    {
       spokIter.Reset( nodIter.DatRef().getSpokeListNC() );
-      cout << " node " << nodIter.DatRef().getID() << " with spoke edges";
+      //cout << " node " << nodIter.DatRef().getID() << " with spoke edges";
       i = 0;
       do
       {
          if( i > 0 ) spokIter.Next();
-         cout << " " << spokIter.DatPtr()->getID();
+         //cout << " " << spokIter.DatPtr()->getID();
          i++;
       }
       while( spokIter.NextIsNotFirst() );
-      cout << endl;
+      //cout << endl;
    }
    while( nodIter.Next() );
    
@@ -677,11 +677,11 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
        trIter1( triList );
    tListIter< tTriangle >
        trIter2( triList );
-   cout << "tGrid: set tri ptrs" << endl;
+   //cout << "tGrid: set tri ptrs" << endl;
    i = 0;
    do                                                //for ( i=0; i<ntri; i++ )
    {
-      cout << "tGrid: Tri loop, i: " << i << endl;
+      //cout << "tGrid: Tri loop, i: " << i << endl;
       if( trIter2.Get( input.t0[i] ) )
           trIter1.DatRef().setTPtr( 0, &(trIter2.DatRef()) );
       else trIter1.DatRef().setTPtr( 0, 0 );
@@ -694,8 +694,8 @@ tGrid( tListInputData< tLNode > &input, int lnodflag = 0 )                      
       i++;
    }
    while( trIter1.Next() );
-   cout<<"set list data values"<<endl;
-   cout << "tGrid( input )" << endl;
+   //cout<<"set list data values"<<endl;
+   //cout << "tGrid( input )" << endl;
 
    CheckMeshConsistency();
 }
@@ -1582,15 +1582,15 @@ LocateTriangle( double x, double y )
       }
       else {lv++;}
         //if( !(n < ntri) )
-      if( lt != 0 )
+      /*if( lt != 0 )
           cout << "find tri for point w/ x, y, " << x << ", " << y
                << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;
       if( n >= ntri + 20 )
       {
          DumpTriangles();
          DumpNodes();
-      }
-      cout << flush;
+      }*/
+      //cout << flush;
       assert( n < ntri + 20 );
    }
    return(lt);
@@ -2154,8 +2154,8 @@ AddNode( tSubNode &nodeRef )
        p4( node4->get2DCoords() );
    if( xyz.getSize() == 3)
    {
-      cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
+      /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
       if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
           cout << "new tri not CCW" << endl;
    }
@@ -2165,8 +2165,8 @@ AddNode( tSubNode &nodeRef )
       if( node2->Meanders() ) p2 = node2->getNew2DCoords();
       if( node3->Meanders() ) p3 = node3->getNew2DCoords();
       if( node4->Meanders() ) p4 = node4->getNew2DCoords();  
-      cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
+      /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
       if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
           cout << "new tri not CCW" << endl;
    }
@@ -2239,9 +2239,9 @@ tSubNode *tGrid< tSubNode >::
 AddNodeAt( tArray< double > &xyz )
 {
    assert( &xyz != 0 );
-   cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
+   //cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
    tTriangle *tri;
-   cout << "locate tri" << endl << flush;
+   //cout << "locate tri" << endl << flush;
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
    else tri = LocateNewTriangle( xyz[0], xyz[1] );
    if( tri == 0 ) return 0;
@@ -2279,8 +2279,8 @@ AddNodeAt( tArray< double > &xyz )
        p4( node4->get2DCoords() );
    if( xyz.getSize() == 3)
    {
-      cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
+      /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
       if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
           cout << "new tri not CCW" << endl;
    }
@@ -2290,8 +2290,8 @@ AddNodeAt( tArray< double > &xyz )
       if( node2->Meanders() ) p2 = node2->getNew2DCoords();
       if( node3->Meanders() ) p3 = node3->getNew2DCoords();
       if( node4->Meanders() ) p4 = node4->getNew2DCoords();  
-      cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
+      /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
       if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
           cout << "new tri not CCW" << endl;
    }
@@ -2496,7 +2496,7 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop )
    //cout << "FlipEdge(...)..." << endl;
    tSubNode *cn;
    tPtrList< tSubNode > nbrList;
-   DumpTriangles();
+   //DumpTriangles();
    nbrList.insertAtBack( (tSubNode *) tri->pPtr(nv) );
    nbrList.insertAtBack( (tSubNode *) tri->pPtr((nv+1)%3) );
    nbrList.insertAtBack( (tSubNode *) triop->pPtr( nvop ) );
@@ -2582,9 +2582,9 @@ CheckLocallyDelaunay()
             else id1 = -1;
             if( at->tPtr(2) != 0 ) id2 = at->tPtr(2)->getID();
             else id2 = -1;
-            cout << "check tri " << at->getID() << " with nbrs "
+            /*cout << "check tri " << at->getID() << " with nbrs "
                  << id0 << ", " << id1
-                 << ", and " << id2;
+                 << ", and " << id2;*/
                
             if( tp->tPtr(0) != 0 ) id0 = tp->tPtr(0)->getID();
             else id0 = -1;
@@ -2592,12 +2592,12 @@ CheckLocallyDelaunay()
             else id1 = -1;
             if( tp->tPtr(2) != 0 ) id2 = tp->tPtr(2)->getID();
             else id2 = -1;
-            cout << " against tri " << tp->getID() << " with nbrs "
+            /*cout << " against tri " << tp->getID() << " with nbrs "
                  << id0 << ", " << id1
-                 << ", and " << id2 << endl;
+                 << ", and " << id2 << endl;*/
             if( CheckForFlip( at, i, flip ) )
             {
-               cout << "flipped tri's, got tri ";
+               //cout << "flipped tri's, got tri ";
                if( tn != 0 )
                    triPtrList.removeNext( tn, duptriPtrIter.NodePtr() );
                tn = triIter.LastP();
@@ -2607,9 +2607,9 @@ CheckLocallyDelaunay()
                else id1 = -1;
                if( tn->tPtr(2) != 0 ) id2 = tn->tPtr(2)->getID();
                else id2 = -1;
-               cout << tn->getID() << " with nbrs "
+               /*cout << tn->getID() << " with nbrs "
                     << id0 << ", " << id1
-                    << ", and " << id2;
+                    << ", and " << id2;*/
                triPtrList.insertAtBack( tn );
                tn = triIter.PrevP();
                if( tn->tPtr(0) != 0 ) id0 = tn->tPtr(0)->getID();
@@ -2618,9 +2618,9 @@ CheckLocallyDelaunay()
                else id1 = -1;
                if( tn->tPtr(2) != 0 ) id2 = tn->tPtr(2)->getID();
                else id2 = -1;
-               cout << " and tri " << tn->getID() << " with nbrs "
+               /*cout << " and tri " << tn->getID() << " with nbrs "
                     << id0 << ", " << id1
-                    << ", and " << id2 << endl;
+                    << ", and " << id2 << endl;*/
                triPtrList.insertAtBack( tn );
                break;
             }
