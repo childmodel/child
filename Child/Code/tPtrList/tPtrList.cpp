@@ -4,7 +4,7 @@
 **                tPtrListIter. (see tPtrList.h for a description of
 **                what these classes do)
 **
-**  $Id: tPtrList.cpp,v 1.16 1999-12-07 19:45:06 gtucker Exp $
+**  $Id: tPtrList.cpp,v 1.17 2000-01-13 19:21:07 gtucker Exp $
 \**************************************************************************/
 
 #include "tPtrList.h"
@@ -718,7 +718,7 @@ makeCircular() {assert( first != 0 ); last->next = first;}
 **
 \**************************************************************************/
 template< class NodeType >                      //tPtrList
-void tPtrList< NodeType >::
+tPtrList< NodeType > *tPtrList<NodeType>::
 DataCopy()
 {
    tPtrListIter iter( this );
