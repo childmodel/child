@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.88 2004-03-26 11:31:29 childcvs Exp $
+ **  $Id: tLNode.h,v 1.89 2004-04-19 14:00:25 childcvs Exp $
  */
 /************************************************************************/
 
@@ -447,6 +447,7 @@ public:
   inline tFlood_t getFloodStatus() const;
   inline void setFloodStatus( tFlood_t status );
   inline tEdge * getFlowEdg();
+  inline tEdge const * getFlowEdg() const;
   inline void setFlowEdg( tEdge * );
   void setFlowEdgToZero() { flowedge = 0; }
   inline void setDrArea( double );
@@ -455,6 +456,7 @@ public:
   inline void AddDrArea( double );
   inline void AddDischarge( double );
   inline tLNode * getDownstrmNbr();
+  inline tLNode const * getDownstrmNbr() const;
   tLNode* getUpstrmNbr();
   inline double getQ() const;  // Gets total discharge from embedded chan obj
   // fluvial discharge is in now in m^3/YR
@@ -686,6 +688,11 @@ inline tEdge * tLNode::getFlowEdg()
   return flowedge;
 }
 
+inline tEdge const * tLNode::getFlowEdg() const
+{
+  return flowedge;
+}
+
 inline void tLNode::setFlowEdg( tEdge * newflowedge )
 {
   assert( newflowedge != 0 );  // Fails when passed an invalid edge
@@ -701,6 +708,13 @@ inline tLNode * tLNode::getDownstrmNbr()
 {
   return ( flowedge != 0 ) ?
     static_cast<tLNode *>(flowedge->getDestinationPtrNC()):
+    0;
+}
+
+inline tLNode const * tLNode::getDownstrmNbr() const
+{
+  return ( flowedge != 0 ) ?
+    static_cast<tLNode const *>(flowedge->getDestinationPtr()):
     0;
 }
 
