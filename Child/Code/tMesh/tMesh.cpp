@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.47 1998-08-14 19:49:14 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.48 1998-08-18 20:33:11 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -597,7 +597,12 @@ MakeLayersFromInputData( tInputFile &infile )
 **
 **   Created: 2/11/98, SL
 **   Calls: tListInputData( infile ), UpdateMesh(), CheckMeshConsistency()
-**   Parameters: 
+**   Inputs: infile -- main input file from which various items are read
+**                     (such as the names of the files containing mesh
+**                     data)
+**
+**   Modifications:
+**    - 2nd edge iterator used in CCW-setup loop to enhance speed. GT 8/98
 **
 \**************************************************************************/
 template< class tSubNode >
@@ -612,7 +617,7 @@ MakeGridFromInputData( tInputFile &infile )
    nnodes = input.x.getSize();
    nedges = input.orgid.getSize();
    ntri = input.p0.getSize();
-   cout << "nnodes, nedges, ntri: " << nnodes << " " << nedges << " " << ntri << endl;
+   cout << "nnodes, nedges, ntri: " << nnodes << " " << nedges << " " << ntri << endl << flush;
    assert( nnodes > 0 );
    assert( nedges > 0 );
    assert( ntri > 0 );
@@ -620,7 +625,7 @@ MakeGridFromInputData( tInputFile &infile )
    // Create the node list by creating a temporary node and then iteratively
    // (1) assigning it values from the input data and (2) inserting it onto
    // the back of the node list.
-   cout << "Creating node list...";
+   cout << "Creating node list..." << flush;
    tSubNode tempnode( infile );
    int bound;
    for( i = 0; i< nnodes; i++ )
@@ -647,7 +652,7 @@ MakeGridFromInputData( tInputFile &infile )
    // (which are complementary, ie share the same endpoints) and then
    // iteratively assigning values to the pair and inserting them onto the
    // back of the edgeList
-   cout << "Creating edge list...";
+   cout << "Creating edge list..." << flush;
    tGridListIter< tSubNode > nodIter( nodeList );
    tEdge tempedge1, tempedge2;
    int obnd, dbnd;
@@ -703,7 +708,7 @@ MakeGridFromInputData( tInputFile &infile )
    // set up the lists of edges (spokes) connected to each node
    // (GT added code to also assign the 1st edge to "edg" as an alternative
    // to spokelist implementation)
-   cout << "setting up node-edge connectivity...";
+   cout << "setting up spoke lists..." << flush;
    int e1;
    int ne;
    tGridListIter< tEdge >
@@ -740,17 +745,22 @@ MakeGridFromInputData( tInputFile &infile )
       i++;
    }
    while( nodIter.Next() );
+   cout << "done.\n";
 
    // Assign ccwedg connectivity (that is, tell each edge about its neighbor
    // immediately counterclockwise) (added by gt Dec 97 to re-implement
-   // previous data structure)
+   // previous data structure) TODO: can this be done using makeCCWEdges?
+   cout << "Setting up CCW edges..." << flush;
    tEdge * curedg, * ccwedg;
    int ccwedgid;
-   for( i=0; i<nedges; i++ )
+   tGridListIter<tEdge> ccwIter( edgeList ); // 2nd iter for performance
+   //X for( i=0; i<nedges; i++ )
+   for( i=0, curedg=edgIter.FirstP(); i<nedges; i++, curedg=edgIter.NextP() )
    {
-      curedg = edgIter.GetP( i );
+      //X curedg = edgIter.GetP( i );
       ccwedgid = input.nextid[i];
-      ccwedg = edgIter.GetP( ccwedgid );
+      //X ccwedg = edgIter.GetP( ccwedgid );
+      ccwedg = ccwIter.GetP( ccwedgid ); //test
       curedg->setCCWEdg( ccwedg );
       /*cout << "Edg " << ccwedgid << " (" << ccwedg->getOriginPtr()->getID()
            << " " << ccwedg->getDestinationPtr()->getID() << ") is ccw from "
@@ -780,7 +790,7 @@ MakeGridFromInputData( tInputFile &infile )
    }
    while( nodIter.Next() );*/
 
-   cout << "setting up triangle connectivity...";
+   cout << "setting up triangle connectivity..." << flush;
    tTriangle temptri;
    for ( i=0; i<ntri; i++ )
    {
@@ -1508,7 +1518,13 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
               << " points to a CCW edge with the same destination\n";
          goto error;
       }
-
+      if( org==dest )
+      {
+         cerr << "EDGE #" << ce->getID()
+              << " has the same origin and destination nodes\n";
+         goto error;
+      }
+      
    }
      //cout << "EDGES PASSED\n";
 
@@ -1554,6 +1570,23 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
                  << ": infinite loop in spoke connectivity\n";
             goto error;
          }
+
+         // Make sure node is the origin --- and not the destination
+         if( ce->getOriginPtrNC()!=cn )
+         {
+            cerr << "EDGE #" << ce->getID()
+                 << " is in the spoke chain of NODE " << cn->getID()
+                 << " but does not have the node as an origin\n";
+            goto error;
+         }
+         if( ce->getDestinationPtrNC()==cn )
+         {
+            cerr << "EDGE #" << ce->getID()
+                 << " is in the spoke chain of NODE " << cn->getID()
+                 << " but has the node as its destination\n";
+            goto error;
+         }   
+         
       } while( (ce=ce->getCCWEdg())!=cn->getEdg() );
       if( !boundary_check_ok )
       {
@@ -1561,8 +1594,9 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
               << " is surrounded by closed boundary nodes\n";
          goto error;
       }
-        //make sure node coords are consistent with edge endpoint coords:
-      /*sIter.Reset( cn->getSpokeListNC() );
+      
+      //make sure node coords are consistent with edge endpoint coords:
+      sIter.Reset( cn->getSpokeListNC() );
       for( ce = sIter.FirstP(); !(sIter.AtEnd()); ce = sIter.NextP() )
       {
          if( ce->getOriginPtrNC()->getX() != cn->getX() ||
@@ -1572,10 +1606,11 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
                  << " coords don't match spoke origin coords\n";
             goto error;
          }
-      }*/
+      }
+      
    }
      //cout << "NODES PASSED\n";
-   
+
    // Triangles: check for valid points and connectivity
    for( ct=triIter.FirstP(); !(triIter.AtEnd()); ct=triIter.NextP() )
    {
