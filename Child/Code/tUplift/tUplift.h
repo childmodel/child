@@ -18,7 +18,10 @@
 **  function, which in turn calls the appropriate function (e.g.,
 **  UpliftUniform()) to implement the desired behavior.
 **
-**  $Id: tUplift.h,v 1.6 1999-04-05 15:22:21 gtucker Exp $
+**  Major modifications:
+**    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
+**
+**  $Id: tUplift.h,v 1.7 2000-06-15 13:25:16 gtucker Exp $
 \************************************************************************/
 
 #ifndef TUPLIFT_H
@@ -39,12 +42,17 @@ public:
 private:
     void UpliftUniform( tMesh<tLNode> *mp, double delt );
     void BlockUplift( tMesh<tLNode> *mp, double delt );
+    void StrikeSlip( tMesh<tLNode> *mp, double delt );
+    void FoldPropErf( tMesh<tLNode> *mp, double delt );
+    void CosineWarp2D( tMesh<tLNode> *mp, double delt );
 
 private:
     int typeCode;          // Code for the type of uplift desired
     double duration;       // Duration of uplift
     double rate;           // Rate of uplift
     double faultPosition;  // Position of fault (y-location)
+    double slipRate;       // Slip rate for strike-slip motion and fault prop
+    double foldParam;      // Parameter used in folding calculation
 
 };
 
