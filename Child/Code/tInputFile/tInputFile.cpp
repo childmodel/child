@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.32 2004-05-19 17:03:10 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.33 2004-05-26 16:05:46 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -28,7 +28,7 @@
 using namespace std;
 #else
 # include <iostream.h>
-# include <fstream.h>
+# include <.h>
 #endif
 
 #define kCommentMark '#'
@@ -421,21 +421,27 @@ void tInputFile::ReadItem( char * theString, size_t len,
     theString[llen-1] = '\0';
 }
 
-int tInputFile::ReadInt( const char *itemCode )
+int tInputFile::ReadInt( const char *itemCode ) const
 {
   int datTypeInt;
   return ReadItem( datTypeInt, itemCode );
 }
 
-double tInputFile::ReadDouble( const char *itemCode )
+double tInputFile::ReadDouble( const char *itemCode ) const
 {
   double datTypeDouble;
   return ReadItem( datTypeDouble, itemCode );
 }
 
-tArray< tKeyPair > * tInputFile::GetKeyWordTablePtr()
+long tInputFile::ReadLong( const char *itemCode ) const
 {
-  return &KeyWordTable;
+  long datTypeLong;
+  return ReadItem( datTypeLong, itemCode );
+}
+
+tArray< tKeyPair > & tInputFile::GetKeyWordTableRef()
+{
+  return KeyWordTable;
 }
 
 
