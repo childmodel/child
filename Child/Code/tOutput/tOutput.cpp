@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.73 2003-05-23 11:38:58 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.74 2003-05-30 14:51:25 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -75,7 +75,10 @@ void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
 {
    char fullName[kMaxNameSize+6];  // name of file to be created
 
+   // workaround for an obscure bug re. gcc/valgrind
+#ifndef __GNUC__
    assert(strlen(baseName)+strlen(extension) < sizeof(fullName));
+#endif
 
    strcpy( fullName, baseName );
    strcat( fullName, extension );
@@ -116,7 +119,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
    const int ntri = m->getTriList()->getSize();     // "    triangles "
 
    if (1)//DEBUG
-     cout << "tOutput::WriteOutput()" << endl;
+     cout << "tOutput::WriteOutput() time=" << time << endl;
 
    // Renumber IDs in order by position on list
    if (!CanonicalNumbering)
