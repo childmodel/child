@@ -29,13 +29,12 @@
 **
 **  For information regarding this program, please contact Greg Tucker at:
 **
-**     Before July 1, 2000:               After July 1, 2000:
-**       Dept. of Civil and                 School of Geography
-**         Environmental Engr'ing           University of Oxford
-**       MIT, Bldg 48, Room 429             Mansfield Road
-**       Cambridge, MA 02139 USA            Oxford OX1 3TB United Kingdom
+**       School of Geography and the Environment
+**       University of Oxford
+**       Mansfield Road
+**       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.2 2000-06-19 17:39:35 gtucker Exp $
+**  $Id: toddlermain.cpp,v 1.3 2000-12-07 11:50:05 gtucker Exp $
 \**************************************************************************/
 
 
@@ -117,6 +116,29 @@ main( int argc, char **argv )
    // If applicable, create eolian deposition object
    if( optLoessDep )
        loess = new tEolian( inputFile );
+
+   // Temporary -- for canyon range stuff
+   cout << "Densifying around fold strike ...\n";
+   int optFoldDens = inputFile.ReadItem( optFoldDens, "OPTFOLDDENS" );
+   if( optFoldDens )
+     {
+       double foldDensYmin = inputFile.ReadItem( foldDensYmin, "FOLDDENSYMIN" );
+       double foldDensYmax = inputFile.ReadItem( foldDensYmax, "FOLDDENSYMAX" );
+       for( int i=1; i<=optFoldDens; i++ )
+	 {
+	   tPtrList<tLNode> foldPoints;
+	   tMeshListIter<tLNode> ni( mesh.getNodeList() );
+	   tLNode *cn;
+	   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+	     if( cn->getY()>=foldDensYmin && cn->getY()<=foldDensYmax )
+	       foldPoints.insertAtBack( cn );
+	   tPtrListIter<tLNode> fpi( foldPoints );
+	   for( cn=fpi.FirstP(); !(fpi.AtEnd()); cn=fpi.NextP() )
+	     mesh.AddNodesAround( cn, 0.0 );
+	   foldPoints.Flush();
+	 }
+     }
+
 
    /**************** MAIN LOOP ******************************************\
    **  ALGORITHM
