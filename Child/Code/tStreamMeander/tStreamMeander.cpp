@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.76 2003-04-09 15:52:21 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.77 2003-04-24 13:58:07 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -2152,7 +2152,7 @@ void tStreamMeander::CheckBrokenFlowedg()
   int nrn, nln, breakedge = 1;
   int nloops = 0;
   double area;
-  int flip = 0;
+  const bool flip = false;
   double dis0, dis1;
   tLNode *cn, *dn, *rn, *ln;
   tEdge *fedg, *cedg;

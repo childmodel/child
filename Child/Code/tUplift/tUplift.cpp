@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.12 2003-01-17 17:30:49 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.13 2003-04-24 13:58:10 childcvs Exp $
 */
 /************************************************************************/
 
@@ -219,7 +219,7 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt )
         cn->setNew2DCoords( cn->getX()+slip, cn->getY() );
      }
    }
-   mp->MoveNodes( 0, 0 );
+   mp->MoveNodes( 0, false );
    
 }
 

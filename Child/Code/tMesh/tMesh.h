@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.44 2003-04-23 10:48:33 childcvs Exp $
+**  $Id: tMesh.h,v 1.45 2003-04-24 13:58:06 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -125,7 +125,7 @@ public:
    void CheckTrianglesAt( tSubNode * );
    void AddToList( tSubNode& );
    //add a node with referenced value/properties, update mesh connectivity
-   tSubNode *AddNode( tSubNode &, int updatemesh = 0, double time = 0.0 );
+   tSubNode *AddNode( tSubNode &, bool updatemesh = false, double time = 0.0 );
    tSubNode* InsertNode( tSubNode*, double );
    //add a generic node at the referenced coordinates
    tSubNode *AddNodeAt( tArray< double > &, double time = 0.0 );
@@ -141,7 +141,7 @@ public:
    /* computes edge slopes as (Zorg-Zdest)/Length */
    //void CalcSlopes(); /* WHY is this commented out? */
    /*routines used to move points; MoveNodes is "master" function*/
-   int CheckForFlip( tTriangle *, int, int );
+   bool CheckForFlip( tTriangle *, int, bool );
    void FlipEdge( tTriangle *, tTriangle *, int, int );
    tEdge * IntersectsAnyEdge( tEdge * );
    //CheckTriEdgeIntersect and CheckLocallyDelaunay are the essential functions
@@ -152,7 +152,7 @@ public:
    //once 'newx' and 'newy' are set, this is the only function one needs to call
    //to execute the move; maybe should have a separate function for doing things
    //peculiar to channels, but now this is the only one.
-   void MoveNodes( double time = 0.0, int interpFlag=1 );
+   void MoveNodes( double time = 0.0, bool interpFlag=true );
    /*end moving routines*/
 
    void AddNodesAround( tSubNode *, double time=0.0 );  // Local mesh densify
@@ -174,7 +174,7 @@ protected:
    int miNextEdgID;                    // next ID for added triangle
    int miNextTriID;                    // next ID for added triangle
    long seed;                      // random seed
-   int layerflag;                 // flag indicating whether nodes have layers
+   bool layerflag;                 // flag indicating whether nodes have layers
    tTriangle* mSearchOriginTriPtr; // ptr to tri. from which to start searches
 
 };

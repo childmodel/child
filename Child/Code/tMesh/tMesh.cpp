@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.132 2003-04-23 10:48:31 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.133 2003-04-24 13:58:04 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -96,7 +96,7 @@ tMesh()
   nedges(0),
   ntri(0),
   seed(0),
-  layerflag(FALSE),
+  layerflag(false),
   miNextNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),
@@ -164,7 +164,7 @@ tMesh( tInputFile &infile )
   miNextEdgID(0),
   miNextTriID(0),
   seed(0),
-  layerflag(FALSE),
+  layerflag(false),
   mSearchOriginTriPtr(0)
 {
    // mSearchOriginTriPtr:
@@ -175,8 +175,7 @@ tMesh( tInputFile &infile )
    {
      int help;
      help = infile.ReadItem( help, "OPTINTERPLAYER" );
-     if(help>0) layerflag=TRUE;
-     else layerflag=FALSE;
+     layerflag = (help>0) ? true:false;
    }
    // option for reading/generating initial mesh
    int read;
@@ -2428,7 +2427,17 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
                     << "is a non-boundary point\n";
                goto error;
             }
-         }    
+         }
+	 // check flip test
+	 if( ct->tPtr(i) != 0 )
+	   {
+	     if ( CheckForFlip( ct, i, false ) ) {
+               cerr << "TRIANGLE #" << ct->getID()
+                    << ": flip test failed for edge opposite to vertex "
+                    << cn->getID() << ".\n";
+               goto error;
+	     }
+	   }
       }
    }
      //cout << "TRIANGLES PASSED\n";
@@ -3733,7 +3742,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
 #define kLargeNumber 1000000000
 template< class tSubNode >
 tSubNode * tMesh< tSubNode >::
-AddNode( tSubNode &nodeRef, int updatemesh, double time )
+AddNode( tSubNode &nodeRef, bool updatemesh, double time )
 {
    tArray< double > xyz( nodeRef.get3DCoords() );
    assert( &nodeRef != 0 );
@@ -3793,7 +3802,7 @@ CheckTrianglesAt( tSubNode* nPtr )
   triptrList.insertAtBack( triIter.PrevP() );
 
   //check list for flips; if flip, put new triangles at end of list
-  int flip = 1;
+  const bool flip = true;
   int ctr = 0;
   while( !( triptrList.isEmpty() ) )
     {
@@ -4275,19 +4284,19 @@ UpdateMesh()
 **      Called by: AddNode, AddNodeAt, CheckLocallyDelaunay,
 **                 tStreamMeander::CheckBrokenFlowedge
 **      Calls: PointsCCW, FlipEdge, TriPasses
-**     
+**
 **      Created: 8/28/97 SL
-**      Modified: 12/16/97 SL                                            
-**                                               
+**      Modified: 12/16/97 SL
+**
 \*****************************************************************************/
 template< class tSubNode >
-int tMesh< tSubNode >::
-CheckForFlip( tTriangle * tri, int nv, int flip )
+bool tMesh< tSubNode >::
+CheckForFlip( tTriangle * tri, int nv, bool flip )
 {
    if( tri == 0 )  // TODO: is this just a bug check?
    {
       cout << "CheckForFlip: tri == 0" << endl;
-      return 0;
+      return false;
    }
    assert( nv < 3 );
    if (0) //DEBUG
@@ -4318,7 +4327,7 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
    }
 
    // If p0-p1-p2 passes the test, no flip is necessary
-   if( TriPasses( ptest, p0, p1, p2 ) ) return 0;
+   if( TriPasses( ptest, p0, p1, p2 ) ) return false;
 
    // Otherwise, a flip is needed, provided that the new triangles are
    // counter-clockwise (would this really ever happen??) and that the
@@ -4326,12 +4335,12 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
    if( flip )                     //and make sure there isn't already an edge?
    {
       if( !PointsCCW( p0, p1, ptest ) || !PointsCCW( p0, ptest, p2 ) )
-          return 0;
+          return false;
       //cout << "calling Flip edge from cff" << endl;
       FlipEdge( tri, triop, nv, nvop );
    }
      //cout << "finished" << endl;
-   return 1;
+   return true;
 }
 
 
@@ -4450,22 +4459,23 @@ CheckLocallyDelaunay()
    tPtrList< tTriangle > triPtrList;
    tPtrListIter< tTriangle > triPtrIter( triPtrList );
    tListIter< tTriangle > triIter( triList );
-   int i, change;
+   int i;
+   bool change;
    //Xint id0, id1, id2;
    tArray< int > npop(3);
    tSubNode *nodPtr;
-   int flip = 1;
+   const bool flip = true;
 
    // Search through tri list to find triangles with at least one
    // moving vertex, and put these on triPtrList
    //put each triangle into the stack
    for( at = triIter.FirstP(); !( triIter.AtEnd() ); at = triIter.NextP() )
    {
-      change = FALSE;
+      change = false;
       for( i = 0; i < 3; i++ )
       {
          nodPtr = static_cast< tSubNode * >(at->pPtr(i));
-         if( nodPtr->Meanders() ) change = TRUE;
+         if( nodPtr->Meanders() ) change = true;
       }
       if( change ) triPtrList.insertAtBack( at );
    }
@@ -4622,8 +4632,8 @@ CheckTriEdgeIntersect()
      cout << "CheckTriEdgeIntersect()..." << flush << endl;
      //DumpNodes();
    int i, j, nv, nvopp;
-   int flipped = TRUE;
-   int crossed;
+   bool flipped = true;
+   bool crossed;
    tSubNode *subnodePtr, tempNode, newNode;
    tEdge * cedg, *ce;
    tTriangle * ct, * ctop, *rmtri/* *tri*/;
@@ -4644,7 +4654,7 @@ CheckTriEdgeIntersect()
    //newedg = new tEdge;
    while( flipped )
    {
-      flipped = FALSE;
+      flipped = false;
 
       // Make a list of triangles containing at least one moving vertex
       for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
@@ -4664,7 +4674,7 @@ CheckTriEdgeIntersect()
            //<<ct->e[0]->id<<", "<<ct->e[1]->id<<", "<<ct->e[2]->id<<endl<<flush;
          if( !NewTriCCW( ct ) )
          {
-            flipped = TRUE;
+            flipped = true;
             for( i=0, j=0; i<3; i++ )
             {
                if( ct->pPtr(i)->getBoundaryFlag() != kNonBoundary ) j++;
@@ -4679,7 +4689,7 @@ CheckTriEdgeIntersect()
             }
             else
             {
-               crossed = FALSE;
+               crossed = false;
                for( i=0; i<3; i++ )
                {
                   cn = static_cast<tSubNode *>(ct->pPtr(i));
@@ -4699,7 +4709,7 @@ CheckTriEdgeIntersect()
                            }
                            else
                            {
-                              crossed = TRUE;
+                              crossed = true;
                               ctop = ct->tPtr(i);
                               xy = cn->getNew2DCoords();
                                 //check to make sure the opposite tri is still CCW;
@@ -4773,7 +4783,7 @@ CheckTriEdgeIntersect()
                   }
                   if( crossed ) break;
                }
-            }   
+            }
          }
       }
    }
@@ -4836,7 +4846,7 @@ CheckTriEdgeIntersect()
 \*****************************************************************************/
 template< class tSubNode >
 void tMesh< tSubNode >::
-MoveNodes( double time, int interpFlag )
+MoveNodes( double time, bool interpFlag )
 {
    cout << "MoveNodes()... time " << time <<flush << endl;
    tSubNode * cn;
@@ -4916,7 +4926,7 @@ AddNodesAround( tSubNode * centerNode, double time )
       tmpnode.set3DCoords( xyz->x, xyz->y, xyz->z );  // Assign to tmpnode
       //cn->TellAll();
       //cout << "Before addition\n";
-      AddNode( tmpnode, FALSE, time );  // Add the node
+      AddNode( tmpnode, false, time );  // Add the node
    }
    UpdateMesh();
 
