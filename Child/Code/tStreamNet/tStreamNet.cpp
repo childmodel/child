@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.55 1999-02-22 23:01:31 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.56 1999-03-11 17:38:26 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -462,7 +462,7 @@ void tStreamNet::CalcSlopes()
 	tGridListIter<tEdge> i( gridPtr->getEdgeList() );
   double slp, length;
 
-  cout << "CalcSlopes()...";
+  //cout << "CalcSlopes()...";
 
   // Loop through each pair of edges on the list
 	for( curedg = i.FirstP(); !( i.AtEnd() ); curedg = i.NextP() )
@@ -487,7 +487,7 @@ void tStreamNet::CalcSlopes()
      //curedg->setLength( length );
      assert( curedg->getLength() > 0 );
 	}
-  cout << "CalcSlopes() finished" << endl;	
+  //cout << "CalcSlopes() finished" << endl;	
 }
 
 
@@ -662,120 +662,118 @@ void tStreamNet::FlowDirs()
    tLNode *curnode;  // ptr to the current node
    tLNode *newnode;  // ptr to new downstream node
    tLNode * nbr;
-   const tNode *tempnode;  // temporary node for testing purposes
    tEdge * firstedg; // ptr to first edg
    tEdge * curedg;   // pointer to current edge
    tEdge * nbredg;   // steepest neighbouring edge so far
    /*long seed = 91324;
-   double chngnum;*/
+     double chngnum;*/
    int ctr;
    
 //#if TRACKFNS
-   cout << "FlowDirs()..." << endl;
+   //cout << "FlowDirs()..." << endl;
 //#endif
-
+   
    //int redo = 1;
    //while( redo )
    //{
    //   redo = 0;
    
-      // Find the connected edge with the steepest slope
-      curnode = i.FirstP();
-      while( i.IsActive() )  // DO for each non-boundary (active) node
+   // Find the connected edge with the steepest slope
+   curnode = i.FirstP();
+   while( i.IsActive() )  // DO for each non-boundary (active) node
+   {
+//        if(curnode->getID()==240 || curnode->getID()==213 ){
+//           cout<<"in flowdirs with node "<<curnode->getID()<<endl;
+//        }
+      
+      curnode->setFloodStatus( kNotFlooded );  // Init flood status flag
+      firstedg =  curnode->getFlowEdg();
+      if( firstedg <= 0 )
+          curnode->TellAll();
+      assert( firstedg > 0 );
+      slp = firstedg->getSlope();
+      nbredg = firstedg;
+//        if(curnode->getID()==240 || curnode->getID()==213) {
+//           nbr = (tLNode *)firstedg->getDestinationPtrNC();
+//           cout<<"node "<<curnode->getID()<<" edge "<<nbredg->getID()<<" slp "<<slp<<" downstream nbr "<<nbr->getID()<<endl;
+//           cout<<"z "<<curnode->getZ()<<" dsn z "<<nbr->getZ();
+//           cout<<" meander "<<curnode->Meanders()<<endl;
+//        }
+      curedg = firstedg->getCCWEdg();
+      ctr = 0;         
+      
+      // Check each of the various "spokes", stopping when we've gotten
+      // back to the beginning
+      while( curedg!=firstedg )
       {
-           if(curnode->getID()==151 ){
-              cout<<"in flowdirs with node 151"<<endl;
-           }
-
-         curnode->setFloodStatus( kNotFlooded );  // Init flood status flag
-         firstedg =  curnode->getFlowEdg();
-         if( firstedg <= 0 )
-             curnode->TellAll();
-         assert( firstedg > 0 );
-         slp = firstedg->getSlope();
-         nbredg = firstedg;
-         if(curnode->getID()==151 ) {
-            nbr = (tLNode *)firstedg->getDestinationPtrNC();
-            cout<<"node "<<curnode->getID()<<" edge "<<nbredg->getID()<<" slp "<<slp<<" downstream nbr "<<nbr->getID()<<endl;
-            cout<<"z "<<curnode->getZ()<<" dsn z "<<nbr->getZ();
-            cout<<" meander "<<curnode->Meanders()<<endl;
+//           if(curnode->getID()==240 || curnode->getID()==213 ){
+//              nbr = (tLNode *)curedg->getDestinationPtrNC();
+//              cout<<"node "<<curnode->getID()<<" edge "<<curedg->getID()<<" slp "<<curedg->getSlope()<<" downstream nbr "<<nbr->getID()<<" nbr bndry "<<nbr->getBoundaryFlag()<<endl<<flush;
+//           }
+         assert( curedg > 0 );
+         if ( curedg->getSlope() > slp && curedg->FlowAllowed())
+//&& ((tLNode *)(curedg->getDestinationPtrNC()))->getDownstrmNbr() != curnode )
+         {
+            slp = curedg->getSlope();
+            nbredg = curedg;
+            
          }
-         curedg = firstedg->getCCWEdg();
-         ctr = 0;         
-         
-         // Check each of the various "spokes", stopping when we've gotten
-         // back to the beginning
-         while( curedg!=firstedg )
+         curedg = curedg->getCCWEdg();
+         ctr++;
+         if( ctr>kMaxSpokes ) // Make sure to prevent endless loops
          {
-              if(curnode->getID()==151){
-                 nbr = (tLNode *)curedg->getDestinationPtrNC();
-                 cout<<"node "<<curnode->getID()<<" edge "<<curedg->getID()<<" slp "<<slp<<" downstream nbr "<<nbr->getID()<<endl;
-              }
-            tempnode=curedg->getOriginPtr();
-            assert( curedg > 0 );
-            if ( curedg->getSlope() > slp && curedg->FlowAllowed() )
-            {
-               slp = curedg->getSlope();
-               nbredg = curedg;
-               
-            }
-            curedg = curedg->getCCWEdg();
-            ctr++;
-            if( ctr>kMaxSpokes ) // Make sure to prevent endless loops
-            {
-               cerr << "Mesh error: node " << curnode->getID()
-                    << " going round and round"
-                    << endl;
-               ReportFatalError( "Bailing out of FlowDirs()" );
-            }
-         }         
-
-     //add a wrinkle: if node is a meander node and presently flows
-     //to another meander node and the new 'nbredg' does not lead to a
-     //meander node, then choose a random number and
-     //compare it to the probability that a meander node will change
-     //flow direction to a non-meander node
-           /*if( mndrDirChngProb != 1.0 )
-         {
-            newnode = (tLNode *) nbredg->getDestinationPtrNC();
-            if( curnode->getDownstrmNbr()->Meanders() &&
-                curnode->getDownstrmNbr()->getZ() < curnode->getZ() &&
-                !(newnode->Meanders()) )
-            {
-               chngnum = ran3( &seed );
-               if( chngnum <= mndrDirChngProb ) curnode->setFlowEdg( nbredg );
-            }
-            else curnode->setFlowEdg( nbredg );
+            cerr << "Mesh error: node " << curnode->getID()
+                 << " going round and round"
+                 << endl;
+            ReportFatalError( "Bailing out of FlowDirs()" );
          }
-         else curnode->setFlowEdg( nbredg );*/
+      }         
       
-         curnode->setFlowEdg( nbredg );
-
-           /*if( slp < 0 )
-         {
-            if( DamBypass( curnode ) )
-            {
-               InitFlowDirs();
-               redo = 1;
-               break;
-            }
-         }*/
-         //Nicole changed the line below which is commented out, replaced
-         //it with the new if because of the new function WarnSpokeLeaving
-         //which can set a node as a boundary node.
-         //curnode->setFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
-         if( (slp>0) && (curnode->getBoundaryFlag() != kClosedBoundary) )
-             curnode->setFloodStatus( kNotFlooded );
-         else
-             curnode->setFloodStatus( kSink );
-        
-         curnode = i.NextP();   
-      }
+      //add a wrinkle: if node is a meander node and presently flows
+      //to another meander node and the new 'nbredg' does not lead to a
+      //meander node, then choose a random number and
+      //compare it to the probability that a meander node will change
+      //flow direction to a non-meander node
+      /*if( mndrDirChngProb != 1.0 )
+        {
+        newnode = (tLNode *) nbredg->getDestinationPtrNC();
+        if( curnode->getDownstrmNbr()->Meanders() &&
+        curnode->getDownstrmNbr()->getZ() < curnode->getZ() &&
+        !(newnode->Meanders()) )
+        {
+        chngnum = ran3( &seed );
+        if( chngnum <= mndrDirChngProb ) curnode->setFlowEdg( nbredg );
+        }
+        else curnode->setFlowEdg( nbredg );
+        }
+        else curnode->setFlowEdg( nbredg );*/
       
+      curnode->setFlowEdg( nbredg );
       
-      //}
-   cout << "FlowDirs() finished" << endl << flush;
-  
+      /*if( slp < 0 )
+        {
+        if( DamBypass( curnode ) )
+        {
+        InitFlowDirs();
+        redo = 1;
+        break;
+        }
+        }*/
+      //Nicole changed the line below which is commented out, replaced
+      //it with the new if because of the new function WarnSpokeLeaving
+      //which can set a node as a boundary node. NG does not understand
+      //her own comment here?????
+      //curnode->setFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
+      if( (slp>0) && (curnode->getBoundaryFlag() != kClosedBoundary) )
+          curnode->setFloodStatus( kNotFlooded );
+      else
+          curnode->setFloodStatus( kSink );
+      
+      curnode = i.NextP();
+   }
+   
+   //cout << "FlowDirs() finished" << endl << flush;
+   
 }
 #undef kLargeNegative
 #undef kMaxSpokes
@@ -929,7 +927,7 @@ void tStreamNet::RouteRunoff( tLNode *curnode, double addedArea,
 \*****************************************************************************/
 void tStreamNet::MakeFlow( double tm )
 {
-   cout << "MakeFlow()..."<<flush;
+   //cout << "MakeFlow()..."<<flush;
       
    if( filllakes ) FillLakes();
    DrainAreaVoronoi();
@@ -955,7 +953,7 @@ void tStreamNet::MakeFlow( double tm )
           FlowUniform();      // Spatially uniform infiltration-excess runoff
    }
 
-   cout << "MakeFlow() finished" << endl;
+   //cout << "MakeFlow() finished" << endl;
 }
 
 
@@ -1247,6 +1245,7 @@ void tStreamNet::FillLakes()
       if( cn->getFloodStatus() == kSink )
       {
          // Create a new lake-list, initially containing just the sink node.
+         
          lakeList.insertAtBack( cn );
          cn->setFloodStatus( kCurrentLake );
          
@@ -1337,7 +1336,7 @@ void tStreamNet::FillLakes()
                if( cln->getFloodStatus() != kOutletFlag )
                {
                   done = FALSE;
-
+                  
                   // Check each neighbor
                   ce = cln->getEdg();
                   do
@@ -1347,15 +1346,12 @@ void tStreamNet::FillLakes()
                      {     // found one!  
                         cln->setFloodStatus( kOutletPreFlag );
                         cln->setFlowEdg( ce );
-                        //cout << "Node " << cln->getID() << " flows to "
-                        //<< cln->getDownstrmNbr()->getID() << endl;
-                        
                      }
                   } while( cln->getFloodStatus() != kOutletFlag
                            && ( ce=ce->getCCWEdg() ) != cln->getEdg() );
                } // END if node not flagged as outlet
             } // END for each lake node
-
+            
             // Now flag all the "preflagged" lake nodes as outlets
             for( cln = lakeIter.FirstP(); !( lakeIter.AtEnd() );
                  cln = lakeIter.NextP() )
