@@ -3,7 +3,7 @@
 **  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
 **                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.8 1998-02-17 01:18:13 stlancas Exp $
+**  $Id: tPtrList.cpp,v 1.9 1998-04-29 18:57:23 gtucker Exp $
 \**************************************************************************/
 
 #include "tPtrList.h"
@@ -19,6 +19,7 @@ tPtrListNode< NodeType >::tPtrListNode()
    Ptr = 0;
    next = 0;
 }
+
 
 template< class NodeType >                  //tPtrListNode
 tPtrListNode< NodeType >::
