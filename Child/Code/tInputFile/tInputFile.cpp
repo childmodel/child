@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.35 2004-05-27 17:20:55 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.36 2004-05-28 16:43:26 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -161,6 +161,14 @@ void stripKey(char *key){
 }
 
 static
+void stripTrailingCR(char *s){
+  // strip trailing '\r' if we are dealing with a windows CR/LF text file
+  const size_t len = strlen(s);
+  if (len == 0) return;
+  if (s[len-1] == '\r') s[len-1] = '\0';
+}
+
+static
 void stripTrailingBlanks(char *s){
   const size_t len = strlen(s);
   int i = len - 1;
@@ -187,6 +195,7 @@ void readInputFile(ifstream& infile, tList< tKeyPair > &KeyWordList){
       break;
     if (isComment(headerLine))
       goto fail;
+    stripTrailingCR(headerLine);
     stripTrailingBlanks(headerLine);
     // if a blank line is reached, we stop.
     if (headerLine[0] == '\0')
@@ -313,8 +322,14 @@ int tInputFile::findKeyWord( const char *key ) const
   const size_t sizeKey = strlen(key);
 
   for(int i=0; i < len; ++i){
-    if (0 == strncmp(key, KeyWordTable[i].key(), sizeKey))
+    const char * const thisKey = KeyWordTable[i].key();
+    if (0 == strncmp(key, thisKey, sizeKey)) {
+      if (strlen(thisKey) != sizeKey)
+	cout
+	  << "Warning: `" << thisKey << "' chosen as match for keyword `"
+	  << key << "'." << endl;
       return i;
+    }
   }
   return notFound;
 }
@@ -327,7 +342,7 @@ void tInputFile::WarnObsoleteKeyword(const char *ancient,
 				     const char *modern) const {
   if (Contain(ancient))
     cout
-      << "Warning: `" << ancient << "` is obsolete and is ignored.\n Use `"
+      << "Warning: `" << ancient << "' is obsolete and is ignored.\n Use `"
       << modern << "' instead." << endl;
 }
 
@@ -395,12 +410,6 @@ void tInputFile::ReadItem( char * theString, size_t len,
   }
   strncpy(theString, KeyWordTable[i].value(), len);
   theString[len-1] = '\0';
-
-  const size_t llen = strlen(theString);
-  if (llen == 0) return;
-  // strip trailing '\r' if we are dealing with a windows CR/LF text file
-  if (theString[llen-1] == '\r')
-    theString[llen-1] = '\0';
 }
 
 bool tInputFile::ReadBool( const char *itemCode, bool reqParam ) const
