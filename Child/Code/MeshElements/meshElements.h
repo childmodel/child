@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.63 2003-10-02 14:21:55 childcvs Exp $
+**  $Id: meshElements.h,v 1.64 2003-10-15 09:26:01 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -587,9 +587,7 @@ inline void tNode::setVArea_Rcp( double val )
 
 inline void tNode::setBoundaryFlag( tBoundary_t val )
 {
-  assert( val>=0 && val<=2 );
   boundary = val;
-  /*boundary = (val >=0 && val <= 2) ? val : 0;*/
 }
 
 inline void tNode::set2DCoords( double val1, double val2 )
