@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.125 2003-10-02 10:09:24 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.126 2003-10-02 14:42:29 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -1742,9 +1742,11 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tVegetation * pV
       }
 
       // Update veg
+#if 0
 #define NEWVEG 0
       if( pVegetation && NEWVEG ) pVegetation->ErodeVegetation( meshPtr, dtmax );
 #undef NEWVEG
+#endif
 
       //update time:
       dtg -= dtmax;
@@ -2532,7 +2534,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 
             dn = cn->getDownstrmNbr();
             ratediff = dn->getDzDt() - cn->getDzDt(); //Are the pts converging?
-            if( ratediff > 0. && (cn->getSlope()) > 1e-7 )  // if yes, get time
+            if( ratediff > 0. && (cn->calcSlope()) > 1e-7 )  // if yes, get time
             {                                              //  to zero slope
                if(0) {
 		 double dt;
@@ -2701,9 +2703,11 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 	  } // Ends for( cn = ni.FirstP()...
 
 	 // Erode vegetation
+#if 0
 #define NEWVEG 0
 	 if( pVegetation && NEWVEG ) pVegetation->ErodeVegetation( meshPtr, dtmax );
 #undef NEWVEG
+#endif
 
 	// Update time remainig
 	dtg -= dtmax;

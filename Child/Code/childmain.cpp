@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.10 2003-08-01 17:14:54 childcvs Exp $
+**  $Id: childmain.cpp,v 1.11 2003-10-02 14:42:29 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -189,10 +189,11 @@ OptTSOutput." );
       strmNet.UpdateNet( time.getCurrentTime(), storm );
       
       if( optDetachLim )
-          erosion.ErodeDetachLim( storm.getStormDuration(), &strmNet );
+          erosion.ErodeDetachLim( storm.getStormDuration(), &strmNet,
+				  vegetation );
       else
           erosion.DetachErode( storm.getStormDuration(), &strmNet,
-                               time.getCurrentTime() );
+                               time.getCurrentTime(), vegetation );
 
       if( optMeander )
 	  strmMeander->Migrate( time.getCurrentTime() );
