@@ -811,7 +811,7 @@ oriented_edge oriented_edge::next_cw_around_from(const edge* edges) const {
 oriented_edge oriented_edge::ccw_edge_around_from(const edge* edges) const {
   oriented_edge ccw = next_ccw_around_from(edges);
   if (ccw.nonvalid()) {
-    // iterated on clockwise edges
+    // iterate on clockwise edges
     oriented_edge e1(*this);
     for(;;){
       const oriented_edge enext = e1.next_cw_around_from(edges);
