@@ -12,7 +12,7 @@
 **    - move, add, and/or delete nodes
 **    - update Delaunay and Voronoi geometry
 **
-**  $Id: tMesh.h,v 1.22 1999-05-11 19:07:55 gtucker Exp $
+**  $Id: tMesh.h,v 1.23 1999-09-09 21:31:42 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TMESH_H
@@ -95,7 +95,7 @@ public:
                      tPtrListIter< tSubNode > & );
    int AddEdge( tSubNode *, tSubNode *, tSubNode * );
    //add a node with referenced value/properties, update mesh connectivity
-   tSubNode *AddNode( tSubNode &, int updatemesh = 1, double time = 0.0 );
+   tSubNode *AddNode( tSubNode &, int updatemesh = 0, double time = 0.0 );
    //add a generic node at the referenced coordinates
    tSubNode *AddNodeAt( tArray< double > &, double time = 0.0 );
    tMeshList<tEdge> * getEdgeList();
