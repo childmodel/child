@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.26 1998-03-23 23:15:27 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.27 1998-03-26 01:38:20 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -932,7 +932,7 @@ MakeGridFromScratch( tInputFile &infile )
       tempnode.setBoundaryFlag( kClosedBoundary );
       for( i=0, id=0; i<n; i++, id++ )
       {
-         dist = i * delGrid + 0.0001 * delGrid * ( ran3( &seed ) - 0.5 );
+         dist = i * delGrid + 0.01 * delGrid * ( ran3( &seed ) - 0.5 );
          tempnode.set3DCoords( dist, 0, 0 );
          tempnode.setID( id );
          nodeList.insertAtBack( tempnode );
@@ -3319,7 +3319,7 @@ CheckTriEdgeIntersect()
                   cn = (tSubNode *) ct->pPtr(i);
                   if( cn->Meanders() )
                   {
-                     cedg = ct->ePtr( (i+1)%3 );
+                     cedg = ct->ePtr( (i+2)%3 );
                      spokIter.Reset( cn->getSpokeListNC() );
                      for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
                           ce = spokIter.NextP() )

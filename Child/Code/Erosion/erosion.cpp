@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.14 1998-03-24 21:04:43 gtucker Exp $
+**  $Id: erosion.cpp,v 1.15 1998-03-26 01:38:39 stlancas Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -318,6 +318,10 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          // (this also sets the node's Qs value)
          cap = sedTrans.TransCapacity( cn );
          pedr = (cn->getQsin() - cap ) / cn->getVArea();
+        //sediment input:
+         if( cn == strmNet->getInletNodePtrNC() )
+             pedr += strmNet->getInSedLoad() / cn->getVArea();
+         
          // If we're on bedrock, adjust accordingly
          if( cn->OnBedrock() && pedr<0 )
          {
@@ -359,9 +363,11 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       dtmax *= frac;  // Take a fraction of time-to-flattening
 
       // Zero out sed influx again, because depending on bedrock-alluvial
-      // interaction it may be modified
+      // interaction it may be modified; if inlet, give it strmNet->inlet.inSedLoad
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
           cn->setQsin( 0.0 );
+        //sediment input:
+      strmNet->getInletNodePtrNC()->setQsin( strmNet->getInSedLoad() );
 
       // Notes for multi-size adaptation:
       // qs, qsin, dz, etc could be arrays with dimensions (1..NUMG+1) with
