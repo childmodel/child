@@ -111,7 +111,7 @@ class tDataFile {
 class tTimeSeriesImp {
  public:
   virtual void configure(const char *s) = 0;
-  virtual double calc(const double time) const = 0;
+  virtual double calc(double time) const = 0;
   virtual void TellAll() const = 0;
   virtual ~tTimeSeriesImp() {}
 };
