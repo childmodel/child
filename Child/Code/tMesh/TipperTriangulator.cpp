@@ -400,15 +400,10 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edg
   edges[nap].lef=nap+1;
   edges[nap].let=0;
   // interior edges
-  if (nap==3){
-    edges[nap+1].lef=0;
-    edges[nap+1].let=nap;
-    edges[nap+1].ref=1;
-    edges[nap+1].ret=nap-1;
-  } else {
-    edges[nap+1].lef=0;
-    edges[nap+1].let=nap;
-    edges[nap+1].ref=1;
+  edges[nap+1].lef=0;
+  edges[nap+1].let=nap;
+  edges[nap+1].ref=1;
+  if (nap!=3){ // more than one interior edge
     edges[nap+1].ret=nap+2;
     int iedge2 = 1;
     for(int iedge=nap+2;iedge<2*nap-2;++iedge){
@@ -421,8 +416,8 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edg
     edges[2*nap-2].lef=iedge2;
     edges[2*nap-2].let=2*nap-3;
     edges[2*nap-2].ref=iedge2+1;
-    edges[2*nap-2].ret=nap-1;
   }
+  edges[2*nap-2].ret=nap-1;
   //
   next_edge = 2*nap-1; // number of existing edges: 2*nap-1
   next_point = nap+1;
