@@ -3,7 +3,9 @@
 //Scaling is nlogn for random datasets
 //Mike Bithell 31/08/01
 
-// Arnaud Desitter. Q2 2002. Binding to CHILD data structures.
+// Arnaud Desitter. Q2 2002. 
+// Debugging and extension of the algorithm.
+// Binding to CHILD data structures.
 
 #include <math.h>
 #include <fstream.h>
@@ -34,6 +36,15 @@ const point &point::operator=( const point &p ) {
   }
   return *this;
 }
+
+// we sort according x *and* y (if x are equal) so that
+// vertically aligned point are ordered.
+int point::operator < (const point& p) const {
+  if (x == p.x)
+    return y<p.y;
+  return x<p.x;
+}
+
 #if defined(DEBUG_PRINT)
 void point::print () const {cout << x << ' '<< y <<endl;}
 #endif
@@ -177,8 +188,8 @@ public:
     checkRange(list_pos);
     return ejs[list_pos].prev;
   }
-  int addBefore(int a, int ej); // ej is the data to be stored after location a
-  int addAfter(int a, int ej); // ej is the data to be stored after location a
+  int addBefore(int a /*location*/, int ej /*data*/);
+  int addAfter(int a /*location*/, int ej /*data*/);
 #if defined(DEBUG_PRINT)
   void print() const;
 #endif
@@ -296,7 +307,140 @@ void cyclist::print() const {
 }
 #endif
 
+// if the first points are aligned, then we built "by hand" the triangulation.
+// Draw a picture to find out. Not that difficult.
+void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edge,
+			 int &next_point,
+			 int npoints, const point *p,  edge *edges,
+			 cyclist &hull){
+  // the 3 first points are aligned.
+  // find the first non aligned point
+  int orient = 0;
+  int j;
+  for(j=3;j<npoints;++j){
+    const double v = vecprod(j-2,j-1,j,p);
+    if (v!=0.){
+      orient = -1;
+      if (v>0.) 
+	orient = 1;
+      break;
+    }
+  }
+  if (orient == 0){
+    cout << "All nodes aligned. Ill-conditioned problem. Bailing out." 
+	 << endl;
+    exit(1);
+  }
+  // if orient > 0, build edge from 0 to j-1
+  // if orient < 0, build edge from j-1 to 0
+  if (0) // DEBUG
+    cout << "first non aligned j=" << j << " o=" << orient << endl;
+  
+  const int nap = j; // first non aligned point
+  if (orient > 0) {
+    // aligned edges
+    int inode = 0;
+    for(int iedge = 0; iedge<nap-1; ++iedge ){
+      edges[iedge].from=inode;
+      edges[iedge].to=inode+1;
+      inode++;
+      if (0) // DEBUG
+	cout << "edge=" << iedge << " from=" << edges[iedge].from << " to=" 
+	     << edges[iedge].to << endl; 
+    }
+    
+  } else {
+    int inode = nap-2;
+    for(int iedge = 0; iedge<nap-1; ++iedge ){
+      edges[iedge].from=inode+1;
+      edges[iedge].to=inode;
+      inode--;
+      if (0) // DEBUG
+	cout << "edge=" << iedge << " from=" << edges[iedge].from << " to=" 
+	     << edges[iedge].to << endl; 
+    }
+  }
+  // close the domain
+  edges[nap-1].from=edges[nap-2].to;
+  edges[nap-1].to=nap;
+  edges[nap].from=nap;
+  edges[nap].to=edges[0].from;
+  // fill cyclic list
+  {
+    // because the triangulation done, lower_hull_pos and upper_hull_pos
+    // should be properly defined
+    int start=hull.addAfter(0,0);
+    for (int iedge=1;iedge<nap-1; ++iedge){
+      start=hull.addAfter(start,iedge);
+    }
+    start=hull.addAfter(start,nap-1);
+    lower_hull_pos=start;
+    start=hull.addAfter(start,nap);
+    upper_hull_pos=start;
+  }
+  // add interior edges (nap-2 of them)
+  {
+    int iedge2=0;
+    for(int iedge=nap+1;iedge<2*nap-1;++iedge){
+      edges[iedge].from=edges[iedge2].to;
+      edges[iedge].to=nap;
+      iedge2++;
+    }
+  }
+  // compute neighbour edges
+  for(int iedge=0;iedge<nap-2;++iedge){
+    edges[iedge].lef=nap+iedge;
+    edges[iedge].let=nap+1+iedge;
+  }
+  edges[nap-2].lef=2*nap-2;
+  edges[nap-2].let=nap-1;
+  // closure of domain
+  edges[nap-1].lef=nap-2;
+  edges[nap-1].let=2*nap-2;
+  edges[nap].lef=nap+1;
+  edges[nap].let=0;
+  // interior edges
+  edges[nap+1].lef=0;
+  edges[nap+1].let=nap;
+  edges[nap+1].ref=1;
+  edges[nap+1].ret=nap+2;
+  {
+    int iedge2 = 1;
+    for(int iedge=nap+2;iedge<2*nap-2;++iedge){
+      edges[iedge].lef=iedge2;
+      edges[iedge].let=iedge-1;
+      edges[iedge].ref=iedge2+1;
+      edges[iedge].ret=iedge+1;
+      iedge2++;
+    }
+    edges[2*nap-2].lef=iedge2;
+    edges[2*nap-2].let=2*nap-3;
+    edges[2*nap-2].ref=iedge2+1;
+    edges[2*nap-2].ret=nap-1;
+  }  
+  //
+  next_edge = 2*nap-1; // number of existing edges: 2*nap-1
+  next_point = nap+1;
+  if (0) // DEBUG
+    cout << "next point=" << next_point << endl;
+  //
+  if (0) { //DEBUG
+    for (int iedge=0;iedge<next_edge; iedge++){
+      cout << "iedge=" << iedge
+	   << " from=" << edges[iedge].from
+	   << " to=" << edges[iedge].to
+ 	   << " lef=" << edges[iedge].lef 
+ 	   << " let=" << edges[iedge].let 
+ 	   << " ref=" << edges[iedge].ref 
+ 	   << " ret=" << edges[iedge].ret 
+	   << endl;
+    }
+  }
+}
+
 void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
+
+  assert(npoints >= 3);
 
   //convex hull is a cyclical list - it will consist of anticlockwise
   //ordered edges - since each new point adds at most 1 extra edge (nett)
@@ -308,49 +452,58 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
   edge* edges;
   edges=new edge[nn];
 
+  int lower_hull_pos, upper_hull_pos, next_edge, next_point;
+
   //make first three edges  - these will form the initial convex hull
   //make sure orientation is anticlockwise
   // Arnaud: orientation is counter clockwise <=> angle(p0p1,p0p2) >= 0
   //  <=> sin(p0p1,p0p2) >=0 <=> vect_prod(p0p1,p0p2) >= 0
   {
     const double v = vecprod(0,1,2,p);
-    if (v>0) {
-      edges[0].from=0;
-      edges[0].to=1;
-      edges[1].from=1;
-      edges[1].to=2;
-      edges[2].from=2;
-      edges[2].to=0;
-    }
-    else{
-      edges[0].from=0;
-      edges[0].to=2;
-      edges[1].from=2;
-      edges[1].to=1;
-      edges[2].from=1;
-      edges[2].to=0;
+    if (v!=0.) {
+      if (v>0.) {
+	edges[0].from=0;
+	edges[0].to=1;
+	edges[1].from=1;
+	edges[1].to=2;
+	edges[2].from=2;
+	edges[2].to=0;
+      } else {
+	edges[0].from=0;
+	edges[0].to=2;
+	edges[1].from=2;
+	edges[1].to=1;
+	edges[2].from=1;
+	edges[2].to=0;
+      }
+      //make left edges
+      edges[0].lef=2;
+      edges[0].let=1;
+      edges[1].lef=0;
+      edges[1].let=2;
+      edges[2].lef=1;
+      edges[2].let=0;
+      // add the edges to the hull in order
+      // get upper and lower edges as indices into the hull
+      // 'cos hull is cyclic, we don't need to bother if these are visible
+      // but they do need to be oriented so that upper edge is further round the 
+      // hull in a positive direction than lower_hull_pos
+      int start=hull.addAfter(0,0);
+      lower_hull_pos=hull.addAfter(start,1); 
+      upper_hull_pos=hull.addAfter(lower_hull_pos,2);
+      // loop through the remaining points adding edges to the hull
+      next_edge=3;
+      next_point=3;
+    } else {
+      start_aligned_point(lower_hull_pos, upper_hull_pos, next_edge,
+			  next_point,
+			  npoints, p, edges, hull);
     }
   }
-  //make left edges
-  edges[0].lef=2;
-  edges[0].let=1;
-  edges[1].lef=0;
-  edges[1].let=2;
-  edges[2].lef=1;
-  edges[2].let=0;
-  // add the edges to the hull in order
-  // get upper and lower edges as indices into the hull
-  // 'cos hull is cyclic, we don't need to bother if these are visible
-  // but they do need to be oriented so that upper edge is further round the 
-  // hull in a positive direction than lower_hull_pos
-  int start=hull.addAfter(0,0);
-  int lower_hull_pos=hull.addAfter(start,1); 
-  int upper_hull_pos=hull.addAfter(lower_hull_pos,2);
-  // loop through the remaining points adding edges to the hull
-  int next_edge=3;
+
   int count,saved_edge;
   
-  for (int i=3;i<npoints;i++){
+  for (int i=next_point;i<npoints;i++){
     saved_edge=-1;
     //go round the hull looking for visible edges - we need to go round
     //in two directions from the current upper and lower edges
@@ -374,7 +527,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
       if(!edges[hull.getEdge(lower_hull_pos)].visible(p,i)){
 	//can't see the upper or lower edge - chose a bad initial state! go round
 	//the hull a bit.Upper hull will still be invisible (its what used to be lower hull)
-	if (i==3){
+	if (i==3){ // only when starting from a single initial triangle
 	  lower_hull_pos=hull.getNextPos(upper_hull_pos);
 	  upper_hull_pos=hull.getNextPos(lower_hull_pos);
 	}else{
@@ -499,6 +652,18 @@ void sort_triangulate(int npoints, point *p, int *pnedges, edge** edges_ret){
     cout << "elapsed time (clock)= " << (double)(tick2-tick1)/CLOCKS_PER_SEC << " s" << endl;
   }
 #endif
+  if (0) { // DEBUG
+    for (int iedge=0;iedge<*pnedges; iedge++){
+      cout << "iedge=" << iedge
+	   << " from=" << (*edges_ret)[iedge].from
+	   << " to=" << (*edges_ret)[iedge].to
+ 	   << " lef=" << (*edges_ret)[iedge].lef 
+ 	   << " let=" << (*edges_ret)[iedge].let 
+ 	   << " ref=" << (*edges_ret)[iedge].ref 
+ 	   << " ret=" << (*edges_ret)[iedge].ret 
+	   << endl;
+	}
+  }
 }
 
 // Auxilary class used when building the element to node connectivity
@@ -714,6 +879,16 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
       const double v=
 	vecprod(elems[ielem].p2,elems[ielem].p1,elems[ielem].p3,p);
       // points should not be aligned.
+      if (v==0.){
+	cout << "These points are aligned: "
+	     << elems[ielem].p1 << "(" << p[elems[ielem].p1].x
+	     << "," << p[elems[ielem].p1].y << "), " 
+	     << elems[ielem].p2 << "(" << p[elems[ielem].p2].x
+	     << "," << p[elems[ielem].p2].y << "), " 
+	     << elems[ielem].p3 << "(" << p[elems[ielem].p3].x
+	     << "," << p[elems[ielem].p3].y << ")" 
+	     << endl;
+      }
       assert(v != 0.);
       if (v>0) {
 	SWAP_E(p1,p3)
