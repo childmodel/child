@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.127 2003-03-31 17:41:23 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.128 2003-04-07 17:01:01 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3529,6 +3529,21 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > & /*nbrList*/,
    return 1;
 }
 
+template< class tSubNode >
+int tMesh< tSubNode >::
+AddEdgeAndMakeTriangle( tSubNode* cn, tSubNode* cnn, tSubNode* cnnn )
+{
+   if( !AddEdge( cnnn, cn, cnn ) ) return 0;
+
+   tPtrList< tSubNode > tmpList;
+   tPtrListIter< tSubNode > tI( tmpList );
+   tmpList.insertAtBack( cn );
+   tmpList.insertAtBack( cnn );
+   tmpList.insertAtBack( cnnn );
+   tmpList.makeCircular();
+   if( !MakeTriangle( tmpList, tI ) ) return 0;
+   return 1;
+}
 
 /**************************************************************************\
 **
@@ -3738,7 +3753,6 @@ template< class tSubNode >
 tSubNode * tMesh< tSubNode >::
 AddNode( tSubNode &nodeRef, int updatemesh, double time )
 {
-   int i, ctr;
    tTriangle *tri;
    tSubNode *cn;
    tArray< double > xyz( nodeRef.get3DCoords() );
@@ -3767,22 +3781,8 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    //Xint newid = nodIter.LastP()->getID() + 1;
    nodeRef.setID( miNextNodeID );
    miNextNodeID++;
-   if( nodeRef.getBoundaryFlag()==kNonBoundary ){
-       nodeList.insertAtActiveBack( nodeRef );
-       //cout<<"knonboundary"<<endl;
-   }
-   else if( nodeRef.getBoundaryFlag() == kOpenBoundary ){
-       nodeList.insertAtBoundFront( nodeRef );
-       //cout<<"kOpenBoundary"<<endl;
-   }
-   else{
-       nodeList.insertAtBack( nodeRef );
-       //cout<<"other"<<endl;
-   }
 
-   //assert( nodeList.getSize() == nnodes + 1 );
-   nnodes++;
-
+   AddToList(nodeRef);
    // Retrieve a pointer to the new node and flush its spoke list
    if( nodeRef.getBoundaryFlag() == kNonBoundary )
        cn = nodIter.LastActiveP();
@@ -3793,127 +3793,14 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    assert( cn!=0 );
    cn->getSpokeListNC().Flush();
 
-   //make ptr list of triangle's vertices:
-   tPtrList< tSubNode > bndyList;
-   tSubNode *tmpPtr;
-   for( i=0; i<3; i++ )
-   {
-      tmpPtr = static_cast<tSubNode *>(tri->pPtr(i));
-      bndyList.insertAtBack( tmpPtr );
-   }
-   bndyList.makeCircular();
-
-
-   // Delete the triangle in which the node falls
-   i = DeleteTriangle( tri );
-   assert( i != 0 );  //if ( !DeleteTriangle( tri ) ) return 0;
-
-   //make 3 new triangles
-   //cout << "creating new triangles\n" << flush;
-   tPtrListIter< tSubNode > bndyIter( bndyList );
-   tSubNode *node3 = bndyIter.FirstP();     // p0 in original triangle
-   //XtSubNode *node2 = nodIter.LastActiveP(); // new node
-   tSubNode *node2 = cn;                    // new node
-   tSubNode *node1 = bndyIter.NextP();      // p1 in orig triangle
-   tSubNode *node4 = bndyIter.NextP();      // p2 in orig triangle
-   tArray< double > p1( node1->get2DCoords() ),
-       p2( node2->get2DCoords() ), p3( node3->get2DCoords() ),
-       p4( node4->get2DCoords() );
-
-   if( xyz.getSize() == 3) //why would this ever not be the case? If we need to access new coords:
-       //size of xyz is basically the flag; the 4th element is never used o.w.
-   {
-      //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-      //     << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
-      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
-          cout << "new tri not CCW" << endl;
-   }
-   else
-   {
-      if( node1->Meanders() ) p1 = node1->getNew2DCoords();
-      if( node2->Meanders() ) p2 = node2->getNew2DCoords();
-      if( node3->Meanders() ) p3 = node3->getNew2DCoords();
-      if( node4->Meanders() ) p4 = node4->getNew2DCoords();
-      /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-           << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
-      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
-          cout << "new tri not CCW" << endl;
-   }
-
-   // Here's how the following works. Let the old triangle vertices be A,B,C
-   // and the new node N. The task is to create 3 new triangles ABN, NBC, and
-   // NCA, and 3 new edge-pairs AN, BN, and CN.
-   // First, edge pair BN is added. Then AEMT is called to create triangle
-   // ABN and edge pair AN. AEMT is called again to create tri NBC and edge
-   // pair CN. With all the edge pairs created, it remains only to call
-   // MakeTriangle to create tri NCA.
-   //cout << "calling AE, AEMT, AEMT, and MT\n" << flush;
-   assert( node1 != 0 && node2 != 0 && node3 != 0 );
-   AddEdge( node1, node2, node3 );  //add edge between node1 and node2
-   tPtrList< tSubNode > tmpList;
-   tmpList.insertAtBack( node3 );  // ABN
-   tmpList.insertAtBack( node1 );
-   tmpList.insertAtBack( node2 );
-   tPtrListIter< tSubNode > tmpIter( tmpList );
-   AddEdgeAndMakeTriangle( tmpList, tmpIter );
-   tmpList.Flush();
-   tmpList.insertAtBack( node2 );  // NBC
-   tmpList.insertAtBack( node1 );
-   tmpList.insertAtBack( node4 );
-   tmpIter.First();
-   AddEdgeAndMakeTriangle( tmpList, tmpIter );
-   tmpList.Flush();
-   tmpList.insertAtBack( node2 );  // NCA
-   tmpList.insertAtBack( node4 );
-   tmpList.insertAtBack( node3 );
-   tmpList.makeCircular();
-   tmpIter.First();
-   MakeTriangle( tmpList, tmpIter );
+   tSubNode* newNodePtr = AttachNode( cn, tri);
 
    //hasn't changed yet
    //put 3 resulting triangles in ptr list
    //cout << "Putting tri's on list\n" << flush;
    if( xyz.getSize() == 3 )
    {
-      //Xcout << "flip checking in addnode" << endl;
-      tPtrList< tTriangle > triptrList;
-      tListIter< tTriangle > triIter( triList );
-      tPtrListIter< tTriangle > triptrIter( triptrList );
-      tTriangle *ct;
-      triptrList.insertAtBack( triIter.LastP() );
-      triptrList.insertAtBack( triIter.PrevP() );
-      triptrList.insertAtBack( triIter.PrevP() );
-
-      //check list for flips; if flip, put new triangles at end of list
-      int flip = 1;
-      ctr = 0;
-      while( !( triptrList.isEmpty() ) )
-      {
-         ctr++;
-         if( ctr > kLargeNumber ) // Make sure to prevent endless loops
-         {                        // TODO: remove for release ver
-            cerr << "Mesh error: adding node " << node2->getID()
-                 << " flip checking forever"
-                 << endl;
-            ReportFatalError( "Bailing out of AddNode()" );
-         }
-         ct = triptrIter.FirstP();
-      
-         for( i=0; i<3; i++ )
-         {
-            if( ct->tPtr(i) != 0 )
-            {
-               if( CheckForFlip( ct, i, flip ) )
-               {
-                  triptrList.insertAtBack( triIter.LastP() );
-                  triptrList.insertAtBack( triIter.PrevP() );
-                  break;
-               }
-            }
-         }
-
-         triptrList.removeFromFront( ct );
-      }
+     CheckTrianglesAt( newNodePtr );
    }
 
    //reset node id's
@@ -3922,18 +3809,11 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
    {
       cn->setID( miNextNodeID );
    }
-   node2->makeCCWEdges();
-   node2->InitializeNode();
+   newNodePtr->makeCCWEdges();
+   newNodePtr->InitializeNode();
 
    if( updatemesh ) UpdateMesh();
    //cout << "AddNode finished" << endl;
-
-#if 0
-   tEdge *ce, *fe;
-   //fe = node2->getFlowEdg(); GT changed to Edg 'cus was crashing
-   fe = node2->getEdg();
-   ce = fe;
-#endif
 
    //Xint hlp=0;
    //do{
@@ -3944,9 +3824,170 @@ AddNode( tSubNode &nodeRef, int updatemesh, double time )
 //        cout<<"AddNode  number of spokes "<<node2->getSpokeListNC().getSize()<<" number of ccwedges "<<hlp<<endl<<flush;
 //     }
 
-   return node2;  // Return ptr to new node
+   return newNodePtr;  // Return ptr to new node
 }
 
+/**************************************************************************\
+** CheckTrianglesAt(tNode*)
+**  SL 3/99
+**  AD 4/2003
+\**************************************************************************/
+template< class tSubNode >
+void tMesh< tSubNode >::
+CheckTrianglesAt( tSubNode* nPtr )
+{
+  // put 3 last (new) triangles in ptr list and
+  // re-triangulate to fix mesh (make it Delaunay)
+
+  int i;
+  tPtrList< tTriangle > triptrList;
+  tListIter< tTriangle > triIter( triList );
+  tPtrListIter< tTriangle > triptrIter( triptrList );
+  tTriangle *ct;
+  triptrList.insertAtBack( triIter.LastP() );
+  triptrList.insertAtBack( triIter.PrevP() );
+  triptrList.insertAtBack( triIter.PrevP() );
+
+  //check list for flips; if flip, put new triangles at end of list
+  int flip = 1;
+  int ctr = 0;
+  while( !( triptrList.isEmpty() ) )
+    {
+      ctr++;
+      if( ctr > kLargeNumber ) // Make sure to prevent endless loops
+	{                        // TODO: remove for release ver
+	  cerr << "Mesh error: adding node " << nPtr->getID()
+	       << " flip checking forever"
+	       << endl;
+	  ReportFatalError( "Bailing out of AddNode()" );
+	}
+      ct = triptrIter.FirstP();
+
+      for( i=0; i<3; i++ )
+	{
+	  if( ct->tPtr(i) != 0 )
+            {
+	      if( CheckForFlip( ct, i, flip ) )
+		{
+                  triptrList.insertAtBack( triIter.LastP() );
+                  triptrList.insertAtBack( triIter.PrevP() );
+                  break;
+		}
+            }
+	}
+
+      triptrList.removeFromFront( ct );
+    }
+}
+
+/**************************************************************************\
+** AddToList( tNode* newNodePtr ): adds new node to appropriate place in
+**   nodeList.
+** SL 3/99
+** AD 4/2003
+\**************************************************************************/
+template< class tSubNode >
+void tMesh< tSubNode >::
+AddToList( tSubNode& newNode )
+{
+  // insert node at the back of either the
+  // active portion of the node list (if it's not a boundary) or the
+  // boundary portion (if it is)
+  if( newNode.getBoundaryFlag()==kNonBoundary )
+    nodeList.insertAtActiveBack( newNode );
+  else if( newNode.getBoundaryFlag() == kOpenBoundary )
+    nodeList.insertAtBoundFront( newNode );
+  else
+    nodeList.insertAtBack( newNode );
+  assert( nodeList.getSize() == nnodes + 1 );
+  ++nnodes;
+}
+
+/**************************************************************************\
+** AttachNode( node, tri ): makes necessary edges and triangles to incor-
+**   porate the node in the triangulation. Assumes node is already added
+**   to nodeList. Triangle, tri, is deleted. Triangulation is not checked
+**   for Delaunay-ness.
+**
+** SL 3/99
+** AD 4/2003
+\**************************************************************************/
+template< class tSubNode >
+tSubNode* tMesh< tSubNode >::
+AttachNode( tSubNode* cn, tTriangle* tri )
+{
+  assert( tri != 0 && cn != 0 );
+  int i;
+  tArray< double > xyz( cn->get3DCoords() );
+
+  //make ptr list of triangle's vertices:
+  tPtrList< tSubNode > bndyList;
+  tSubNode *tmpPtr;
+  for( i=0; i<3; i++ )
+    {
+      tmpPtr = static_cast<tSubNode *>(tri->pPtr(i));
+      bndyList.insertAtBack( tmpPtr );
+    }
+  bndyList.makeCircular();
+
+  // Delete the triangle in which the node falls
+  i = DeleteTriangle( tri );
+  assert( i != 0 );  //if ( !DeleteTriangle( tri ) ) return 0;
+
+  //make 3 new triangles
+  //cout << "creating new triangles\n" << flush;
+  tPtrListIter< tSubNode > bndyIter( bndyList );
+  tSubNode *node3 = bndyIter.FirstP();     // p0 in original triangle
+  tSubNode *node2 = cn;                    // new node
+  tSubNode *node1 = bndyIter.NextP();      // p1 in orig triangle
+  tSubNode *node4 = bndyIter.NextP();      // p2 in orig triangle
+  tArray< double > p1( node1->get2DCoords() ),
+    p2( node2->get2DCoords() ), p3( node3->get2DCoords() ),
+    p4( node4->get2DCoords() );
+
+  if( xyz.getSize() == 3) //why would this ever not be the case? If we need to access new coords:
+    //size of xyz is basically the flag; the 4th element is never used o.w.
+    {
+      //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+      //     << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
+      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
+	cout << "new tri not CCW" << endl;
+    }
+  else
+    {
+      if( node1->Meanders() ) p1 = node1->getNew2DCoords();
+      if( node2->Meanders() ) p2 = node2->getNew2DCoords();
+      if( node3->Meanders() ) p3 = node3->getNew2DCoords();
+      if( node4->Meanders() ) p4 = node4->getNew2DCoords();
+      /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+	<< p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
+      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
+	cout << "new tri not CCW" << endl;
+    }
+
+  // Here's how the following works. Let the old triangle vertices be A,B,C
+  // and the new node N. The task is to create 3 new triangles ABN, NBC, and
+  // NCA, and 3 new edge-pairs AN, BN, and CN.
+  // First, edge pair BN is added. Then AEMT is called to create triangle
+  // ABN and edge pair AN. AEMT is called again to create tri NBC and edge
+  // pair CN. With all the edge pairs created, it remains only to call
+  // MakeTriangle to create tri NCA.
+  //cout << "calling AE, AEMT, AEMT, and MT\n" << flush;
+  assert( node1 != 0 && node2 != 0 && node3 != 0 );
+  AddEdge( node1, node2, node3 );  //add edge between node1 and node2
+  AddEdgeAndMakeTriangle( node3, node1, node2 ); // ABN
+  AddEdgeAndMakeTriangle( node2, node1, node4 ); // NBC
+  tPtrList< tSubNode > tmpList;
+  tPtrListIter< tSubNode > tmpIter( tmpList );
+  tmpList.insertAtBack( node2 );  // NCA
+  tmpList.insertAtBack( node4 );
+  tmpList.insertAtBack( node3 );
+  tmpList.makeCircular();
+  tmpIter.First();
+  MakeTriangle( tmpList, tmpIter );
+
+  return node2;
+}
 
 /**************************************************************************\
 **
@@ -4056,42 +4097,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    //put 3 resulting triangles in ptr list
    if( xyz.getSize() == 3 )
    {
-      //cout << "flip checking" << endl;
-      tPtrList< tTriangle > triptrList;
-      tListIter< tTriangle > triIter( triList );
-      tPtrListIter< tTriangle > triptrIter( triptrList );
-      tTriangle *ct;
-      triptrList.insertAtBack( triIter.LastP() );
-      triptrList.insertAtBack( triIter.PrevP() );
-      triptrList.insertAtBack( triIter.PrevP() );
-        //check list for flips; if flip, put new triangles at end of list
-      int flip = 1;
-      ctr = 0;
-      while( !( triptrList.isEmpty() ) )
-      {
-         ctr++;
-         if( ctr > kLargeNumber ) // Make sure to prevent endless loops
-         {
-            cerr << "Mesh error: adding node " << node2->getID()
-                 << " flip checking forever"
-                 << endl;
-            ReportFatalError( "Bailing out of AddNodeAt()" );
-         }
-         ct = triptrIter.FirstP();
-         for( i=0; i<3; i++ )
-         {
-            if( ct->tPtr(i) != 0 )
-            {
-               if( CheckForFlip( ct, i, flip ) )
-               {
-                  triptrList.insertAtBack( triIter.LastP() );
-                  triptrList.insertAtBack( triIter.PrevP() );
-                  break;
-               }
-            }
-         }
-         triptrList.removeFromFront( ct );
-      }
+     CheckTrianglesAt( node2 );
    }
    //reset node id's
    cout << "reset ids\n";
