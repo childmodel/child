@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.34 1998-07-22 21:30:06 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.35 1998-07-24 19:20:34 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -275,6 +275,9 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
    double erorate =n->getLayerErody(i)*pow( n->getQ(), mb )*pow( slp, nb );
+   cout << "NODE:\n";
+   n->TellAll();
+   cout << "Detach rate: " << erorate << endl;
    n->setDrDt( -erorate );
 //    if(n->getID() == 11 ){
 //       cout<<"node 11 is in detach capacity"<<endl;
@@ -484,8 +487,14 @@ double tSedTransWilcock::WeightedTransCap( tLNode *nd, int i, double weight )
 {
    double tau;
    double taucrit;
+   cout << "BEFORE\n" << flush;
+   assert( nd->getLayerDepth(i)>0 );
    double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
-   double timeadjust=31536000.00; /* number of seconds in a year */
+   cout << "after\n" << flush;
+   cin >> tau;
+   //double timeadjust=31536000.00; /* number of seconds in a year */
+   cout << "BEFORE\n" << flush;
+   double timeadjust=1;
    double qss, qsg; //gravel and sand transport rate
    
 
