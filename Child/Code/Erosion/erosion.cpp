@@ -18,8 +18,10 @@
 **     - detach capacity functions modified to use spatially variable
 **       (ie node-based, not "global") critical shear stress, in
 **       conjunction w/ veg module. GT, Jan 2000
+**     - added DensifyMesh function to add new nodes in areas of high
+**       erosion/deposition flux. (gt, 2/2000)
 **
-**  $Id: erosion.cpp,v 1.78 2000-01-27 22:34:32 gtucker Exp $
+**  $Id: erosion.cpp,v 1.79 2000-03-09 20:05:20 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -300,11 +302,13 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
    double tau = kt*pow( n->getQ(), mb )*pow( n->getDrArea(), ma )
        *pow( slp, nb );
+   if( n->getQ()<0.0 || n->getDrArea()<0.0 ) n->TellAll();
+   assert( n->getQ()>=0.0 );
+   assert( n->getDrArea()>=0.0 );
    n->setTau( tau );
    double erorate = tau - n->getTauCrit();
-   //cout << "1erorate: " << erorate << endl;
-   //if( n->getDrArea()>1e7 )
-   //    cout << "slp: " << slp << " Q: " << n->getQ() << " tauex: " << erorate;
+   //cout << "tau " << tau;
+   //cout << " tauc " << n->getTauCrit() << endl;
    erorate = (erorate>0.0) ? erorate : 0.0;
    erorate = n->getLayerErody(0)*pow( erorate, pb );
    //if( n->getDrArea()>1e7 ) cout << " erorate: " << erorate << endl;
@@ -728,6 +732,11 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
 
    // Read parameters needed from input file
    kd = infile.ReadItem( kd, "KD" );  // Hillslope diffusivity coefficient
+
+   int optAdaptMesh = infile.ReadItem( optAdaptMesh, "OPTMESHADAPTDZ" );
+   if( optAdaptMesh )
+       mdMeshAdaptMaxFlux = infile.ReadItem( mdMeshAdaptMaxFlux,
+                                             "MESHADAPT_MAXNODEFLUX" );
    
 }
 
@@ -783,13 +792,14 @@ void tErosion::ErodeDetachLim( double dtg )
    {
       //first find erosion rate:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->setQs( -bedErode.DetachCapacity( cn ) );
-      dtmax = dtg;
+          cn->setDzDt( -bedErode.DetachCapacity( cn ) );
+
       //find max. time step s.t. slope does not reverse:
+      dtmax = dtg;
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
          dn = cn->getDownstrmNbr();
-         ratediff = dn->getQs() - cn->getQs();
+         ratediff = dn->getDzDt() - cn->getDzDt();
          if( ratediff > 0 )
          {
             dt = ( cn->getZ() - dn->getZ() ) / ratediff * frac;
@@ -802,13 +812,7 @@ void tErosion::ErodeDetachLim( double dtg )
          //ng added stuff below to update layering using the other erodep
          //tArray<double> valgrd;
          //valgrd.setSize(1);
-         valgrd[0]=cn->getQs() * dtmax;
-
-         //Debug prints below are qc's
-         //cout<<"x= "<<cn->getX()<<endl;
-         //cout<<"y= "<<cn->getY()<<endl;
-         //end debug,qc
-
+         valgrd[0]=cn->getDzDt() * dtmax;
          cn->EroDep( 0, valgrd, 0);
          //cn->EroDep( cn->getQs() * dtmax );
       }
@@ -1886,6 +1890,55 @@ void tErosion::UpdateExposureTime( double dtg)
 }
 
 
+/***********************************************************************\
+ **
+ ** tErosion::DensifyMesh
+ **
+ ** Called only when the option for adaptive remeshing is invoked,
+ ** this routine is used to increase mesh resolution in areas where
+ ** erosion (or deposition) is especially rapid. For each point,
+ ** a check is made to see whether the current erosion rate (ie, the
+ ** most recently recorded value) times the Voronoi area is greater
+ ** than a user-specified threshold, mdMeshAdaptMaxFlux. Note that
+ ** the dimensions are L3/T, ie sediment flux being eroded from
+ ** (or deposited into) the node; thus the threshold is a maximum
+ ** allowable sediment flux resulting from local erosion. If the
+ ** flux exceeds this threshold at a given node, new nodes are
+ ** added at each of the node's Voronoi vertices.
+ **
+ **   Created: 2/2000 gt for gully erosion study
+ **   Assumptions: assumes node dzdt value is correct
+ **
+ **********************************************************************/
+void tErosion::DensifyMesh( double time )
+{
+   tMeshListIter<tLNode> niter( meshPtr->getNodeList() );  // node list iter.
+   tLNode *cn;              // Current node being checked
+   int pointsAdded = FALSE; // Flag: did we do any densifying?
+   tLNode * dbgnode;
+
+   double dbgnf, dbgmax=0;
+   
+   cout << "Checking nodes...\n";
+   
+   // Check all active nodes
+   for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
+   {
+      dbgnf = fabs(cn->getVArea()*cn->getDzDt());
+      if( dbgnf>dbgmax ) dbgmax = dbgnf;
+      
+      // If local flux (ero rate * varea) exceeds threshold, add new nodes
+      if( fabs(cn->getVArea()*cn->getDzDt()) > mdMeshAdaptMaxFlux )
+      {
+         meshPtr->AddNodesAround( cn, time );
+         //cout << "*** Adding points here:\n";
+         //cn->TellAll();
+      }
+   }
+   
+   cout << "Max node flux: " << dbgmax << endl;
+   
+}
 
    
          
