@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.11 1998-03-20 15:41:44 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.12 1998-03-21 21:54:35 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -348,7 +348,7 @@ double tNode::ComputeVoronoiArea()
    // Check boundary status: Voronoi area only defined for non-boundary nodes
    if( boundary == kNonBoundary )
    {
-      CalcSpokeVEdgLengths();
+      //XCalcSpokeVEdgLengths();  replaced by tGrid::CalcVEdgLengths
       cw = TRUE;
       //cout << "find clockwise loops" << endl << flush;
       do
@@ -704,6 +704,38 @@ double tEdge::CalcSlope()
    slope = ( org->getZ() - dest->getZ() ) / len;
    return slope;
 }
+
+
+/**************************************************************************\
+**
+**  tEdge::CalcVEdgLen
+**
+**  Calculates the length of the Voronoi cell edge associated with the
+**  current triangle edge. The Voronoi cell edge length is equal to the
+**  distance between the Voronoi vertex of the right-hand triangle and
+**  the Voronoi vertex of the left-hand triangle. The vertex for the
+**  right-hand triangle is stored with rvtx[] (and is assumed to be up to
+**  date), and the vertex for the left-hand triangle is stored in the
+**  edge's counter-clockwise (left-hand) neighbor (also assumed valid and
+**  up to date).
+**
+**  Data mbrs modified:  vedglen
+**  Returns:  the Voronoi edge length
+**  Assumes:  ccwedg valid, rvtx[] up to date
+**
+\**************************************************************************/
+double tEdge::CalcVEdgLen()
+{
+	assert( ccwedg!=0 );
+	
+	double dx, dy;
+	
+	dx = rvtx[0] - ccwedg->rvtx[0];
+	dy = rvtx[1] - ccwedg->rvtx[1];
+	vedglen = sqrt( dx*dx + dy*dy );
+	return( vedglen );
+}
+
 
 
 ostream &operator<<( ostream &output, const tEdge &edge )            //'tEdge'
