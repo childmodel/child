@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.59 1999-04-01 18:06:34 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.60 1999-04-05 15:18:56 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -88,13 +88,13 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 **
 **  Constructor
 **
-**     The constructor asks for references to a grid (i.e., _the_
-**     grid), a storm, and an input file). It sets the _gridPtr_ and
+**     The constructor asks for references to a mesh (i.e., _the_
+**     mesh), a storm, and an input file). It sets the _meshPtr_ and
 **     _stormPtr_, initializes the rainfall rate, and reads in various
 **     hydrologic options and parameters from the input file.
 **     It then initializes flow directions, drainage areas, etc.
 **
-**     Inputs:  gridRef -- reference to tGrid object. This ref is copied
+**     Inputs:  meshRef -- reference to tMesh object. This ref is copied
 **                         and used to communicate w/ the mesh.
 **              storm   -- ref to storm object, copied and used to obtain
 **                         rainfall input.
@@ -106,14 +106,14 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
 \**************************************************************************/
 
 #define kYearpersec 3.171e-8 // 1/SecondsPerYear
-tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
+tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
                         tInputFile &infile )
-    : inlet( &gridRef, infile )
+    : inlet( &meshRef, infile )
 {
    cout << "tStreamNet(...)...";
-   assert( &gridRef != 0 );
-   gridPtr = &gridRef;
-   assert( gridPtr != 0 );
+   assert( &meshRef != 0 );
+   meshPtr = &meshRef;
+   assert( meshPtr != 0 );
    stormPtr = &storm;
    assert( stormPtr != 0 );
 
@@ -185,7 +185,7 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
 
    // Initialize the network by calculating slopes, flow directions,
    // drainage areas, and discharge
-   CalcSlopes();  // TODO: should be in tGrid
+   CalcSlopes();  // TODO: should be in tMesh
    InitFlowDirs(); // TODO: should all be done in call to updatenet
    FlowDirs();
    CheckNetConsistency();
@@ -196,7 +196,7 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
 //necessary?
 tStreamNet::~tStreamNet()
 {
-   gridPtr = 0;
+   meshPtr = 0;
    stormPtr = 0;
    cout << "~tStreamNet()" << endl;
 }
@@ -207,18 +207,18 @@ tStreamNet::~tStreamNet()
 **  tStreamNet get/set functions
 **
 \**************************************************************************/
-void tStreamNet::ResetGrid( tGrid< tLNode > &gridRef )
+void tStreamNet::ResetMesh( tMesh< tLNode > &meshRef )
 {
-   assert( &gridRef != 0 );
-   gridPtr = &gridRef;
-   assert( gridPtr != 0 );
+   assert( &meshRef != 0 );
+   meshPtr = &meshRef;
+   assert( meshPtr != 0 );
 }
 
-const tGrid< tLNode > *
-tStreamNet::getGridPtr() const {return gridPtr;}
+const tMesh< tLNode > *
+tStreamNet::getMeshPtr() const {return meshPtr;}
 
-tGrid< tLNode > *
-tStreamNet::getGridPtrNC() {return gridPtr;}
+tMesh< tLNode > *
+tStreamNet::getMeshPtrNC() {return meshPtr;}
 
 const tStorm *tStreamNet::getStormPtr() const {return stormPtr;}
 
@@ -310,13 +310,13 @@ void tStreamNet::setMndrDirChngProb( double val )
 **      simply calls "regular" version after doing its own thing. GT
 **  
 **  TODO: move mesh-related routines -- slopes, voronoi areas, etc --
-**         to tGrid
+**         to tMesh
 **
 \**************************************************************************/
 void tStreamNet::UpdateNet( double time )
 {
    //cout << "UpdateNet()...";
-   CalcSlopes();          // TODO: should be in tGrid
+   CalcSlopes();          // TODO: should be in tMesh
    FlowDirs();
    MakeFlow( time );
    CheckNetConsistency();
@@ -351,8 +351,8 @@ void tStreamNet::CheckNetConsistency()
 {
    int ctr = 0;
    tLNode *cn, *dn, *ln;
-   tGridListIter< tLNode > nI( gridPtr->getNodeList() ),
-       tI( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nI( meshPtr->getNodeList() ),
+       tI( meshPtr->getNodeList() );
    
    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
    {
@@ -450,14 +450,14 @@ void tStreamNet::CheckNetConsistency()
 **   - complementary edges on the list are assumed to be organized pairwise;
 **     that is, edges AB and BA are always together, for example.
 **
-**  TODO: should be a member of tGrid!
+**  TODO: should be a member of tMesh!
 **
 \****************************************************************************/
 void tStreamNet::CalcSlopes()
 {
-	assert( gridPtr != 0 );
+	assert( meshPtr != 0 );
 	tEdge *curedg;
-	tGridListIter<tEdge> i( gridPtr->getEdgeList() );
+	tMeshListIter<tEdge> i( meshPtr->getEdgeList() );
   double slp, length;
 
   //cout << "CalcSlopes()...";
@@ -497,7 +497,7 @@ void tStreamNet::CalcSlopes()
 **  flows to another active node (or open boundary node). This initialization
 **  process allows the FlowDirs function to assume that the previous flowedg
 **  is always valid in the sense that it doesn't point to a closed boundary
-**  (which otherwise could happen when the grid is first read in).
+**  (which otherwise could happen when the mesh is first read in).
 **
 **  Modifies: node flow directions (flowedg)
 **  Written 12/1/97 gt.
@@ -506,7 +506,7 @@ void tStreamNet::CalcSlopes()
 #define kMaxSpokes 100
 void tStreamNet::InitFlowDirs()
 {
-   tGridListIter<tLNode> i( gridPtr->getNodeList() );
+   tMeshListIter<tLNode> i( meshPtr->getNodeList() );
    tLNode * curnode;
    tEdge * flowedg;
    int ctr;
@@ -594,13 +594,13 @@ void tStreamNet::InitFlowDirs()
       nnxy = nxtnbr->get2DCoords();
       if( PointsCCW( cxy, nxy, nnxy ) )
       {
-         mytri = gridPtr->TriWithEdgePtr( fedg );
+         mytri = meshPtr->TriWithEdgePtr( fedg );
          nv = mytri->nVtx( snknod );
          othernbr = (tLNode *) mytri->pPtr( (nv+2)%3 );
       }
       else
       {
-         mytri = gridPtr->TriWithEdgePtr( gridPtr->getEdgeComplement( fedg ) );
+         mytri = meshPtr->TriWithEdgePtr( meshPtr->getEdgeComplement( fedg ) );
          nv = mytri->nVtx( snknod );
          othernbr = (tLNode *) mytri->pPtr( (nv+1)%3 );
       }
@@ -610,7 +610,7 @@ void tStreamNet::InitFlowDirs()
       if( dis0 < dis1 ) pointtodelete = nbr;
       else pointtodelete = othernbr;
       if( pointtodelete->getBoundaryFlag() == kNonBoundary )
-          gridPtr->DeleteNode( pointtodelete );
+          meshPtr->DeleteNode( pointtodelete );
       else return 0;
       cntr++;
       for( ce = sI.FirstP(); !(sI.AtEnd()); ce = sI.NextP() )
@@ -618,7 +618,7 @@ void tStreamNet::InitFlowDirs()
          nz = ce->getDestinationPtrNC()->getZ();
          slp = ( cz - nz ) / ce->getLength();
          ce->setSlope( slp );
-         gridPtr->getEdgeComplement( ce )->setSlope( -slp );
+         meshPtr->getEdgeComplement( ce )->setSlope( -slp );
          //if( ce->getDestinationPtrNC()->getZ() < cz ) uphill = 0;
       }
       //}
@@ -654,7 +654,7 @@ void tStreamNet::InitFlowDirs()
 #define kMaxSpokes 100
 void tStreamNet::FlowDirs()
 {
-   tGridListIter<tLNode> i( gridPtr->getNodeList() );  // gets nodes from the list
+   tMeshListIter<tLNode> i( meshPtr->getNodeList() );  // gets nodes from the list
    double slp;        // steepest slope found so far
    tLNode *curnode;  // ptr to the current node
    tLNode *newnode;  // ptr to new downstream node
@@ -790,7 +790,7 @@ void tStreamNet::DrainAreaVoronoi()
    //cout << "DrainAreaVoronoi()..." << endl << flush;
 //#endif
    tLNode * curnode;
-   tGridListIter<tLNode> nodIter( gridPtr->getNodeList() );
+   tMeshListIter<tLNode> nodIter( meshPtr->getNodeList() );
    
    // Reset drainage areas to zero
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
@@ -902,7 +902,7 @@ void tStreamNet::RouteRunoff( tLNode *curnode, double addedArea,
 **
 **      Created:  YC
 **      Added:   YC
-**      Modified:  GT made it a mbr func of tGrid 7/97
+**      Modified:  GT made it a mbr func of tMesh 7/97
 **         updated 12/19/97 SL
 **         - GT added sinusoidal variation in infiltration capacity, and tm
 **             parameter to go along w/ it
@@ -955,7 +955,7 @@ void tStreamNet::MakeFlow( double tm )
 void tStreamNet::FlowUniform()
 {
    //cout << "FlowUniform..." << endl << flush;
-   tGridListIter< tLNode > nodIter( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
    tLNode *curnode;
    double runoff = rainrate - infilt;
    double discharge;
@@ -989,7 +989,7 @@ void tStreamNet::FlowUniform()
 **  transmissivity by the Voronoi edge length for the flow edge.
 **
 **  Parameters:  none
-**  Calls:  various utilities of tGridListIter and tLNode
+**  Calls:  various utilities of tMeshListIter and tLNode
 **  Called by:  main
 **  Modifies: node discharge
 **  Modifications:
@@ -1000,7 +1000,7 @@ void tStreamNet::FlowUniform()
 void tStreamNet::FlowSaturated1()
 {
    //cout << "FlowSaturated1...";
-   tGridListIter< tLNode > nodIter( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
    tLNode *curnode;
    tEdge *fedg;
    double discharge;
@@ -1038,7 +1038,7 @@ void tStreamNet::FlowSaturated1()
 \*****************************************************************************/
 void tStreamNet::FlowSaturated2()
 {
-   tGridListIter< tLNode > nodIter( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
    tLNode *curnode;
    tEdge *fedg;
    double discharge;
@@ -1136,7 +1136,7 @@ void tStreamNet::FlowBucket()
 {
    assert( stormPtr!=0 );
    //cout << "FlowBucket..." << endl << flush;
-   tGridListIter< tLNode > nodIter( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() );
    tLNode *curnode;
    double infiltEx=0.0,  /* infiltration excess runoff (L/T) */  
        satEx=0.0,        /* saturation excess runoff (L/T) */
@@ -1213,7 +1213,7 @@ void tStreamNet::FillLakes()
        *lowestNode,        // Lowest node on perimeter found so far
        *cln,               // current lake node
        *node;              // placeholder
-   tGridListIter< tLNode > nodIter( gridPtr->getNodeList() ); // node iterator
+   tMeshListIter< tLNode > nodIter( meshPtr->getNodeList() ); // node iterator
    tPtrList< tLNode > lakeList;                 // List of flooded nodes
    tPtrListIter< tLNode > lakeIter( lakeList ); // Iterator for lake list
    tEdge *ce;              // Pointer to an edge
@@ -1284,12 +1284,12 @@ void tStreamNet::FillLakes()
                   lowestNode->setFloodStatus( kCurrentLake );
                }
             }
-            if( lakeList.getSize() > gridPtr->getNodeList()->getActiveSize() )
+            if( lakeList.getSize() > meshPtr->getNodeList()->getActiveSize() )
             {
                cout << "LAKE LIST SIZE: " << lakeList.getSize() << endl;
             }
             
-            assert( lakeList.getSize() <= gridPtr->getNodeList()->getActiveSize() );
+            assert( lakeList.getSize() <= meshPtr->getNodeList()->getActiveSize() );
          } while( !done );
 
          // Now we've found an outlet for the current lake.
@@ -1466,9 +1466,9 @@ void tStreamNet::SortNodesByNetOrder()
    int i;
    int done=0;
    tLNode * cn;
-   tGridList<tLNode> *nodeList = gridPtr->getNodeList();
+   tMeshList<tLNode> *nodeList = meshPtr->getNodeList();
    int nUnsortedNodes = nodeList->getActiveSize();  // Number not yet sorted
-   tGridListIter<tLNode> listIter( nodeList );
+   tMeshListIter<tLNode> listIter( nodeList );
    
    //test
    /*Xcout << "BEFORE: " << endl;
@@ -1568,7 +1568,7 @@ void tStreamNet::FindHydrGeom()
    widpow = 1.0 - ewstn / ewds;
    deppow = 1.0 - edstn / edds;
    npow = 1.0 - enstn / ends;
-   tGridListIter< tLNode > nIter( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
    for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
    {
       //cout<<"FHG node "<<cn->getID()<<" meanders "<<cn->Meanders()<<endl;
@@ -1649,7 +1649,7 @@ void tStreamNet::FindChanGeom()
    double radfactor, hradius, slope;
    double lambda;
    tLNode *cn;
-   tGridListIter< tLNode > nIter( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nIter( meshPtr->getNodeList() );
    //timeadjust = 86400 * days;  /* 86400 = seconds in a day */
    tStorm *sPtr = getStormPtrNC();
    double isdmn = sPtr->getMeanInterstormDur();
@@ -1736,11 +1736,11 @@ tInlet::tInlet()
 {
    innode = 0;
    inDrArea = 0;
-   gridPtr = 0;
+   meshPtr = 0;
 }
 
 #define LARGE_DISTANCE 1e9
-tInlet::tInlet( tGrid< tLNode > *gPtr, tInputFile &infile )
+tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
 {
    int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" ),
        numg = infile.ReadItem( numg, "NUMGRNSIZE" );
@@ -1761,8 +1761,8 @@ tInlet::tInlet( tGrid< tLNode > *gPtr, tInputFile &infile )
    tPtrList< tLNode > nPL;            // List of nearby non-boundary nodes
    tPtrListIter< tLNode > itr( nPL ); // Iterator for the above list
    
-   gridPtr = gPtr;
-   assert( gridPtr != 0 );
+   meshPtr = gPtr;
+   assert( meshPtr != 0 );
    if( inletbc )
    {
       // Read drainage area and sediment load at inlet. If more than one
@@ -1794,7 +1794,7 @@ tInlet::tInlet( tGrid< tLNode > *gPtr, tInputFile &infile )
       // node is found by interpolation.
       xin = infile.ReadItem( xin, "INLET_X" );
       yin = infile.ReadItem( yin, "INLET_Y" );
-      intri = gridPtr->LocateTriangle( xin, yin );
+      intri = meshPtr->LocateTriangle( xin, yin );
       assert( intri > 0 );
       for( i=0; i<3; i++ )
       {
@@ -1859,11 +1859,11 @@ tInlet::tInlet( tGrid< tLNode > *gPtr, tInputFile &infile )
          //xyz[0] = xin;
          //xyz[1] = yin;
          //xyz[2] = zin;
-         //innode = gridPtr->AddNodeAt( xyz );
-         innode = gridPtr->AddNode( *newnode );
+         //innode = meshPtr->AddNodeAt( xyz );
+         innode = meshPtr->AddNode( *newnode );
          cout << "INLET NODE IS:\n";
          innode->TellAll();
-         //Don't delet newnode because it is now part of the grid list
+         //Don't delet newnode because it is now part of the mesh list
       }
    }
    
@@ -1878,7 +1878,7 @@ tInlet::tInlet( tGrid< tLNode > *gPtr, tInputFile &infile )
 tInlet::~tInlet()
 {
    innode = 0;
-   gridPtr = 0;
+   meshPtr = 0;
 }
 
 
@@ -1899,7 +1899,7 @@ void tInlet::FindNewInlet()
    tLNode *cn, *newinnode, *mn;
    tNode *bn0, *bn1, *mnn;
    tEdge *ce, *me;
-   tGridListIter< tLNode > nI( gridPtr->getNodeList() );
+   tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
    tPtrListIter< tEdge > sI, msI;
    int n;
      //tPtrList< tLNode > bList;
