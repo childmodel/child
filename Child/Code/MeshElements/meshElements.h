@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.38 2003-04-29 10:01:18 childcvs Exp $
+**  $Id: meshElements.h,v 1.39 2003-04-29 15:44:00 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -203,6 +203,9 @@ public:
 
   tEdge();                // default constructor
   tEdge( const tEdge & ); // copy constructor
+  tEdge( tNode*, tNode* ); // makes edge between two nodes
+  tEdge( int, tNode*, tNode* ); // makes edge between two nodes w/ given id
+
   //~tEdge();               // destructor
 
   const tEdge &operator=( const tEdge & );  // assignment operator
@@ -291,7 +294,8 @@ class tTriangle
 public:
   tTriangle();                    // default constructor
   tTriangle( const tTriangle & ); // copy constructor
-  tTriangle( int, tNode *, tNode *, tNode * );
+  tTriangle( int, tNode*, tNode*, tNode* );
+  tTriangle( int, tNode*, tNode*, tNode*, tEdge*, tEdge*, tEdge* );
   ~tTriangle();                   // destructor
 
   const tTriangle &operator=( const tTriangle & ); // assignment operator
@@ -652,6 +656,36 @@ inline tEdge::tEdge( const tEdge &original ) :
   cwedg(original.cwedg), compedg(original.compedg), tri(original.tri)
 {}
 
+inline tEdge::tEdge(tNode* n1, tNode* n2) :
+  id(0), flowAllowed(0), len(0.), slope(0.),
+  rvtx(2),
+  vedglen(0.),
+  org(0), dest(0), ccwedg(0), cwedg(0),
+  compedg(0), tri(0)
+{
+  setOriginPtr( n1 );
+  setDestinationPtr( n2 );
+  flowAllowed = ( n1->getBoundaryFlag() != kClosedBoundary
+		  && n2->getBoundaryFlag() != kClosedBoundary
+		  && !( n1->getBoundaryFlag()==kOpenBoundary
+			&& n2->getBoundaryFlag()==kOpenBoundary ) ) ? 1 : 0;
+}
+
+inline tEdge::tEdge(int id_, tNode* n1, tNode* n2) :
+  id(id_), flowAllowed(0), len(0.), slope(0.),
+  rvtx(2),
+  vedglen(0.),
+  org(0), dest(0), ccwedg(0), cwedg(0),
+  compedg(0), tri(0)
+{
+  setOriginPtr( n1 );
+  setDestinationPtr( n2 );
+  flowAllowed = ( n1->getBoundaryFlag() != kClosedBoundary
+		  && n2->getBoundaryFlag() != kClosedBoundary
+		  && !( n1->getBoundaryFlag()==kOpenBoundary
+			&& n2->getBoundaryFlag()==kOpenBoundary ) ) ? 1 : 0;
+}
+
 //tEdge::~tEdge() {/*cout << "    ~tEdge()" << endl;*/}      //tEdge
 
 
@@ -979,16 +1013,29 @@ inline tTriangle::tTriangle( const tTriangle &init ) :
 inline tTriangle::tTriangle( int id_, tNode* n0, tNode* n1, tNode* n2 ) :
   id(id_)
 {
-   assert( n0 > 0 && n1 > 0 && n2 > 0 );
-   p[0] = n0;
-   p[1] = n1;
-   p[2] = n2;
-   setEPtr( 0, n0->EdgToNod( n2 ) );
-   setEPtr( 1, n1->EdgToNod( n0 ) );
-   setEPtr( 2, n2->EdgToNod( n1 ) );
-   t[0] = t[1] = t[2] = 0;
+  assert( n0 != 0 && n1 != 0 && n2 != 0 );
+  p[0] = n0;
+  p[1] = n1;
+  p[2] = n2;
+  setEPtr( 0, n0->EdgToNod( n2 ) );
+  setEPtr( 1, n1->EdgToNod( n0 ) );
+  setEPtr( 2, n2->EdgToNod( n1 ) );
+  t[0] = t[1] = t[2] = 0;
 }
 
+inline tTriangle::tTriangle( int id_, tNode* n0, tNode* n1, tNode* n2,
+                             tEdge* e0, tEdge* e1, tEdge* e2 ) :
+  id(id_)
+{
+  assert( n0 != 0 && n1 != 0 && n2 != 0 && e0 != 0 && e1 != 0 && e2 != 0 );
+  p[0] = n0;
+  p[1] = n1;
+  p[2] = n2;
+  setEPtr( 0, e0 );
+  setEPtr( 1, e1 );
+  setEPtr( 2, e2 );
+  t[0] = t[1] = t[2] = 0;
+}
 /***********************************************************************\
 **
 **  Overloaded operators:

@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.135 2003-04-29 09:33:49 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.136 2003-04-29 15:44:00 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -490,7 +490,7 @@ MakeMeshFromInputData( tInputFile &infile )
    ntri = input.p0.getSize();
    if (0) //DEBUG
      cout << "nnodes, nedges, ntri: "
-	  << nnodes << " " << nedges << " " << ntri << endl << flush;
+	  << nnodes << " " << nedges << " " << ntri << endl;
    assert( nnodes > 0 );
    assert( nedges > 0 );
    assert( ntri > 0 );
@@ -521,169 +521,142 @@ MakeMeshFromInputData( tInputFile &infile )
 	cout << nodeList.getLast()->getDataPtr()->getBoundaryFlag() << endl;
       }
    }
-   const tIdArray< tSubNode > NodeTable(nodeList); // for fast lookup per ID
    cout << "done.\n";
 
-   // Create and initialize the edge list by creating two temporary edges
-   // (which are complementary, ie share the same endpoints) and then
-   // iteratively assigning values to the pair and inserting them onto the
-   // back of the edgeList
-   cout << "Creating edge list..." << flush;
    {
-     tEdge tempedge1, tempedge2;
-     int obnd, dbnd;
-     for( miNextEdgID = 0; miNextEdgID < nedges-1; miNextEdgID+=2 )
-       {
-	 // Assign values: ID, origin and destination pointers
-	 tempedge1.setID( miNextEdgID );
-	 tempedge2.setID( miNextEdgID + 1 );
-	 if (0) //DEBUG
-	   cout << input.orgid[miNextEdgID] << " "
-		<< input.destid[miNextEdgID] << endl;
+     const tIdArray< tSubNode > NodeTable(nodeList); // for fast lookup per ID
+     // Create and initialize the edge list by creating two temporary edges
+     // (which are complementary, ie share the same endpoints) and then
+     // iteratively assigning values to the pair and inserting them onto the
+     // back of the edgeList
+     cout << "Creating edge list..." << flush;
+     {
+       for( miNextEdgID = 0; miNextEdgID < nedges-1; miNextEdgID+=2 )
 	 {
+	   if (0) //DEBUG
+	     cout << input.orgid[miNextEdgID] << " "
+		  << input.destid[miNextEdgID] << endl;
 	   tSubNode *nodPtr1 = NodeTable[ input.orgid[miNextEdgID] ];
-	   tempedge1.setOriginPtr( nodPtr1 );
-	   tempedge2.setDestinationPtr( nodPtr1 );
-	   obnd = (*nodPtr1).getBoundaryFlag();
-	   if (0) //DEBUG
-	     cout << (*nodPtr1).getID() << "->";
-	 }
-	 {
 	   tSubNode *nodPtr2 = NodeTable[ input.destid[miNextEdgID] ];
-	   tempedge1.setDestinationPtr( nodPtr2 );
-	   tempedge2.setOriginPtr( nodPtr2 );
-	   dbnd = (*nodPtr2).getBoundaryFlag();
 	   if (0) //DEBUG
-	     cout << (*nodPtr2).getID() << endl;
+	     cout << nodPtr1->getID() << "->" << nodPtr2->getID() << endl;
+
+	   // Assign values: ID, origin and destination pointers,
+	   // "flowallowed" status
+	   tEdge
+	     tempedge1( miNextEdgID  , nodPtr1, nodPtr2),
+	     tempedge2( miNextEdgID+1, nodPtr2, nodPtr1);
+
+	   // insert edge pair onto the list --- active
+	   // part of list if flow is allowed, inactive if not
+	   if (0) //DEBUG
+	     cout << "Setting edges " << tempedge1.getID() << " and "
+		  << tempedge2.getID() <<
+	       (tempedge1.FlowAllowed() ? " as OPEN" : " as no-flux")
+		  << endl;
+	   if( tempedge1.FlowAllowed() )
+	     {
+	       edgeList.insertAtActiveBack( tempedge1 );
+	       tEdge *e1 = edgeList.getLastActive()->getDataPtrNC();
+	       edgeList.insertAtActiveBack( tempedge2 );
+	       tEdge *e2 = edgeList.getLastActive()->getDataPtrNC();
+	       e1->setComplementEdge(e2);
+	       e2->setComplementEdge(e1);
+	     }
+	   else
+	     {
+	       edgeList.insertAtBack( tempedge1 );
+	       tEdge *e1 = edgeList.getLast()->getDataPtrNC();
+	       edgeList.insertAtBack( tempedge2 );
+	       tEdge *e2 = edgeList.getLast()->getDataPtrNC();
+	       e1->setComplementEdge(e2);
+	       e2->setComplementEdge(e1);
+	     }
 	 }
+     }
+     const tIdArray< tEdge > EdgeTable(edgeList); // for fast lookup per ID
+     cout << "done.\n";
 
-	 // set the "flowallowed" status (FALSE if either endpoint is a
-	 // closed boundary, or both are open boundaries)
-	 // and insert edge pair onto the list --- active
-	 // part of list if flow is allowed, inactive if not
-	 if (0) //DEBUG
-	   cout << "BND: " << obnd << " " << dbnd << " " << kClosedBoundary
-		<< endl;
-	 if( obnd == kClosedBoundary || dbnd == kClosedBoundary
-	     || (obnd==kOpenBoundary && dbnd==kOpenBoundary) )
-	   {
-	     if (0) //DEBUG
-	       cout << "setting edges " << tempedge1.getID() << " and "
-		    << tempedge2.getID() << " as no-flux" << endl;
-	     tempedge1.setFlowAllowed( 0 );
-	     tempedge2.setFlowAllowed( 0 );
-	     edgeList.insertAtBack( tempedge1 );
-	     tEdge *e1 = edgeList.getLast()->getDataPtrNC();
-	     edgeList.insertAtBack( tempedge2 );
-	     tEdge *e2 = edgeList.getLast()->getDataPtrNC();
-	     e1->setComplementEdge(e2);
-	     e2->setComplementEdge(e1);
-	   }
-	 else
-	   {
-	     if (0) //DEBUG
-	       cout << "setting edges " << tempedge1.getID() << " and "
-		    << tempedge2.getID() << " as OPEN" << endl;
-	     tempedge1.setFlowAllowed( 1 );
-	     tempedge2.setFlowAllowed( 1 );
-	     edgeList.insertAtActiveBack( tempedge1 );
-	     tEdge *e1 = edgeList.getLastActive()->getDataPtrNC();
-	     edgeList.insertAtActiveBack( tempedge2 );
-	     tEdge *e2 = edgeList.getLastActive()->getDataPtrNC();
-	     e1->setComplementEdge(e2);
-	     e2->setComplementEdge(e1);
-	     if (0) //DEBUG
-	       cout << "EDGFA " << tempedge2.FlowAllowed() << endl;
-	   }
-       }
-   }
-   const tIdArray< tEdge > EdgeTable(edgeList); // for fast lookup per ID
-   cout << "done.\n";
-
-   //DEBUG
-   if (0) {
-     cout << "JUST ADDED EDGES:\n";
-     tMeshListIter< tEdge > ei( edgeList );
-     tEdge * ce;
-
-     for( ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
-       {
-	 ce->TellCoords();
-	 cout << ce->FlowAllowed() << endl;
-       }
-   }
-
-   // set up the lists of edges (spokes) connected to each node
-   // (GT added code to also assign the 1st edge to "edg" as an alternative
-   // to spokelist implementation)
-   cout << "setting edg pointers and spoke configs..." << flush;
-   // (no real lists: "insert" functions simply set appropriate ccwedg's and
-   // cwedg's)
-   {
-     tMeshListIter< tSubNode > nodIter( nodeList );
-     int ret = nodIter.First();
-     assert( ret != 0 );
-     tSubNode * curnode;
-     do
-       {
-	 curnode = nodIter.DatPtr();
-	 tSpkIter spkI( curnode );
-	 const int edgid1 = input.edgid[curnode->getID()];  //fix of above error
-	 spkI.insertAtBack(  EdgeTable[edgid1] );
-	 int ne;
-	 for( ne = input.nextid[edgid1]; ne != edgid1; ne = input.nextid[ne] )
-	   {
-	     if( ne>=nedges )
-	       {
-		 cerr << "Warning: edge " << edgid1 << " has non-existant ccw edge "
-		      << ne << endl;
-		 cerr << "This is likely to be a problem in the edge input file"
-		      << endl;
-	       }
-	     spkI.insertAtBack( EdgeTable[ne] );
-	   }
-       }
-     while( (curnode = nodIter.NextP()) != 0 );
-   }
-   cout << "done.\n";
-
-   cout << "setting up triangle connectivity..." << flush;
-   {
-     tMeshListIter< tEdge > edgIter( edgeList );
-     tMeshListIter< tSubNode > nodIter( nodeList );
-     for ( i=0; i<ntri; i++ )
-       {
-	 if (0) // DEBUG
-	   cout << "TRI " << i << endl << flush;
-	 tTriangle newtri;
-	 newtri.setID( i );
+     //DEBUG
+     if (0) {
+       cout << "JUST ADDED EDGES:\n";
+       tMeshListIter< tEdge > ei( edgeList );
+       for( tEdge *ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() )
 	 {
-	   newtri.setPPtr( 0, NodeTable[ input.p0[i] ] );
-	   newtri.setPPtr( 1, NodeTable[ input.p1[i] ] );
-	   newtri.setPPtr( 2, NodeTable[ input.p2[i] ] );
+	   ce->TellCoords();
+	   cout << ce->FlowAllowed() << endl;
 	 }
+     }
+
+     // set up the lists of edges (spokes) connected to each node
+     // (GT added code to also assign the 1st edge to "edg" as an alternative
+     // to spokelist implementation)
+     cout << "Setting edg pointers and spoke configs..." << flush;
+     // (no real lists: "insert" functions simply set appropriate ccwedg's and
+     // cwedg's)
+     {
+       tMeshListIter< tSubNode > nodIter( nodeList );
+       int ret = nodIter.First();
+       assert( ret != 0 );
+       tSubNode * curnode;
+       do
 	 {
-	   newtri.setEPtr( 0, EdgeTable[ input.e0[i] ] );
-	   newtri.setEPtr( 1, EdgeTable[ input.e1[i] ] );
-	   newtri.setEPtr( 2, EdgeTable[ input.e2[i] ] );
+	   curnode = nodIter.DatPtr();
+	   tSpkIter spkI( curnode );
+	   const int edgid1 = input.edgid[curnode->getID()];  //fix of above error
+	   spkI.insertAtBack(  EdgeTable[edgid1] );
+	   int ne;
+	   for( ne = input.nextid[edgid1]; ne != edgid1; ne = input.nextid[ne] )
+	     {
+	       if( ne>=nedges )
+		 {
+		   cerr << "Warning: edge " << edgid1
+			<< " has non-existant ccw edge " << ne << '\n';
+		   cerr << "This is likely to be a problem in the edge "
+		     "input file" << endl;
+		 }
+	       spkI.insertAtBack( EdgeTable[ne] );
+	     }
 	 }
-	 triList.insertAtBack( newtri );
-       }
+       while( (curnode = nodIter.NextP()) != 0 );
+     }
+     cout << "done.\n";
+
+     cout << "Setting up triangle connectivity..." << flush;
+     {
+       for ( int i=0; i<ntri; i++ )
+	 {
+	   if (0) // DEBUG
+	     cout << "TRI " << i << endl;
+	   tTriangle newtri( i,
+			     NodeTable[ input.p0[i] ],
+			     NodeTable[ input.p1[i] ],
+			     NodeTable[ input.p2[i] ],
+			     EdgeTable[ input.e0[i] ],
+			     EdgeTable[ input.e1[i] ],
+			     EdgeTable[ input.e2[i] ]
+			     );
+	   triList.insertAtBack( newtri );
+	 }
+     }
+   }
+   {
      const tIdArray< tTriangle > TriTable(triList); // for fast lookup per ID
-
-     tListIter< tTriangle > triIter( triList );
-     tTriangle * ct, * nbrtri;
-     for( i=0, ct=triIter.FirstP(); i<ntri; ct=triIter.NextP(), i++ )
+     for( int i=0; i<ntri; ++i )
        {
-	 nbrtri = ( input.t0[i]>=0 ) ? TriTable[ input.t0[i] ] : 0;
-	 ct->setTPtr( 0, nbrtri );
-	 nbrtri = ( input.t1[i]>=0 ) ? TriTable[ input.t1[i] ] : 0;
-	 ct->setTPtr( 1, nbrtri );
-	 nbrtri = ( input.t2[i]>=0 ) ? TriTable[ input.t2[i] ] : 0;
-	 ct->setTPtr( 2, nbrtri );
+	 tTriangle *ct = TriTable[ i ];
+	 ct->setTPtr( 0,
+		      ( input.t0[i]>=0 ) ? TriTable[ input.t0[i] ] : 0
+		      );
+	 ct->setTPtr( 1,
+		      ( input.t1[i]>=0 ) ? TriTable[ input.t1[i] ] : 0
+		      );
+	 ct->setTPtr( 2,
+		      ( input.t2[i]>=0 ) ? TriTable[ input.t2[i] ] : 0
+		      );
        }
    }
-   cout<<"done.\n";
+   cout << "done.\n";
 
    MeshDensification( infile ); // optional mesh densification
 
@@ -701,7 +674,7 @@ MakeMeshFromInputData( tInputFile &infile )
    UpdateMesh();
    CheckMeshConsistency();
 
-   cout << "end of tMesh( input )" << endl << flush;
+   cout << "end of tMesh( input )" << endl;
 }
 
 
@@ -1519,7 +1492,7 @@ MakeMeshFromPoints( tInputFile &infile )
    tSubNode tempnode( infile ),     // temporary node used in creating new pts
        *stp1, *stp2, *stp3;         // supertriangle vertices
 
-   cout<<"MakeMeshFromPoints"<<endl<<flush;
+   cout<<"MakeMeshFromPoints"<<endl;
 
    // get the name of the file containing (x,y,z,b) data, open it,
    // and read the data into 4 temporary arrays
@@ -1609,7 +1582,7 @@ MakeMeshFromPoints( tInputFile &infile )
    tPtrListIter<tSubNode> stpIter( supertriptlist );
    MakeTriangle( supertriptlist, stpIter );
 
-   cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: " << nedges << " NT: " << ntri << endl << flush;
+   cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: " << nedges << " NT: " << ntri << endl;
    cout << "c4\n";
 
    // Now add the points one by one to construct the mesh.
@@ -1620,11 +1593,11 @@ MakeMeshFromPoints( tInputFile &infile )
       tempnode.set3DCoords( x[i],y[i],z[i] );
       tempnode.setBoundaryFlag( bnd[i] );
       //if(bnd[i]==kNonBoundary && z[i]<0)
-      //  cout<<"problem at x "<<x[i]<<" y "<<y[i]<<endl<<flush;
+      //  cout<<"problem at x "<<x[i]<<" y "<<y[i]<<endl;
       AddNode( tempnode );
    }
 
-   cout << "\n2 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: " << nedges << " NT: " << ntri << endl << flush;
+   cout << "\n2 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: " << nedges << " NT: " << ntri << endl;
 
    // We no longer need the supertriangle, so remove it by deleting its
    // vertices.
@@ -1632,7 +1605,7 @@ MakeMeshFromPoints( tInputFile &infile )
    DeleteNode( stp2, kNoRepair );
    DeleteNode( stp3, kNoRepair );
 
-   cout << "3 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: " << nedges << " NT: " << ntri << endl << flush;
+   cout << "3 NN: " << nnodes << " (" << nodeList.getActiveSize() << ") NE: " << nedges << " NT: " << ntri << endl;
 
    MeshDensification( infile ); // optional mesh densification
 
@@ -2549,7 +2522,7 @@ template <class tSubNode>
  void tMesh<tSubNode>::CalcVAreas()
 {
    if (0) //DEBUG
-     cout << "CalcVAreas()..." << endl << flush;
+     cout << "CalcVAreas()..." << endl;
    tSubNode* curnode;
    tMeshListIter< tSubNode > nodIter( nodeList );
 
@@ -3238,34 +3211,15 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
 	  << " and " << node2->getID() << " w/ ref to node "
 	  << node3->getID() << endl;
    tEdge *ce, *nle, *le;
-   tPtrListIter< tEdge > spokIterOld;
-   tSpkIter spokIter;
 
    {
-     int flowflag = 1;  // Boundary code for new edges
-     tEdge tempEdge1, tempEdge2;  // The new edges
-     // Set origin and destination nodes and find boundary status
-     tempEdge1.setOriginPtr( node1 );   //set edge1 ORG
-     tempEdge2.setDestinationPtr( node1 );//set edge2 DEST
-     if( node1->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
-     tempEdge2.setOriginPtr( node2 );   //set edge2 ORG
-     tempEdge1.setDestinationPtr( node2 );//set edge1 DEST
-     if( node2->getBoundaryFlag() == kClosedBoundary ) flowflag = 0;
-     if( node1->getBoundaryFlag()==kOpenBoundary     // Also no-flow if both
-	 && node2->getBoundaryFlag()==kOpenBoundary ) //  nodes are open bnds
-       flowflag = 0;
-
-     // Set boundary status and ID
-     tempEdge1.setID( miNextEdgID );                     //set edge1 ID
-     miNextEdgID++;
-     tempEdge2.setID( miNextEdgID );                     //set edge2 ID
-     miNextEdgID++;
-     tempEdge1.setFlowAllowed( flowflag );         //set edge1 FLOWALLOWED
-     tempEdge2.setFlowAllowed( flowflag );         //set edge2 FLOWALLOWED
+     tEdge
+       tempEdge1(miNextEdgID++, node1, node2),
+       tempEdge2(miNextEdgID++, node2, node1);
 
      // Place new edge pair on the list: active back if not a boundary
      // edge, back otherwise
-     if( flowflag == 1 )
+     if( tempEdge1.FlowAllowed() )
        {
 	 edgeList.insertAtActiveBack( tempEdge1 );  //put edge1 active in list
 	 tEdge *e1 = edgeList.getLastActive()->getDataPtrNC();
@@ -3290,6 +3244,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
    }
 
    //add pointers to the new edges to nodes' spokeLists:
+   tSpkIter spokIter;
    spokIter.Reset( node2 );
    if( spokIter.isEmpty() )
       spokIter.insertAtFront( le );
@@ -3377,7 +3332,7 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > & /*nbrList*/,
                         tPtrListIter< tSubNode > &nbrIter )
 {
    if (0) //DEBUG
-     cout << "AddEdgeAndMakeTriangle" << endl << flush;
+     cout << "AddEdgeAndMakeTriangle" << endl;
    tSubNode *cn, *cnn, *cnnn;
    tPtrList< tSubNode > tmpList;
    tPtrListIter< tSubNode > tI( tmpList );
@@ -3448,7 +3403,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
 {
    assert( nbrList.getSize() == 3 );
    if (0) //DEBUG
-     cout << "MakeTriangle" << endl << flush;
+     cout << "MakeTriangle" << endl;
    int i, j;
    //Xint newid;                          // ID of new triangle
    //XtTriangle tempTri;
@@ -3920,7 +3875,7 @@ AddNodeAt( tArray< double > &xyz, double time )
      cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", "
 	  << xyz[2] <<" time "<<time<< endl;
    tTriangle *tri;
-   //cout << "locate tri" << endl << flush;
+   //cout << "locate tri" << endl;
    if( xyz.getSize() == 3 ) tri = LocateTriangle( xyz[0], xyz[1] );
    else tri = LocateNewTriangle( xyz[0], xyz[1] );
    if( tri == 0 )      return 0;
@@ -4101,7 +4056,7 @@ void tMesh<tSubNode>::
 UpdateMesh()
 {
    if (0) //DEBUG
-     cout << "UpdateMesh()" << endl << flush;
+     cout << "UpdateMesh()" << endl;
 
    //tListIter<tTriangle> tlist( triList );
    tMeshListIter<tEdge> elist( edgeList );
@@ -4605,7 +4560,7 @@ CheckTriEdgeIntersect()
                                  {
                                     tpListNode = tpIter.NodePtr();
                                     triptrList.removeNext( rmtri, tpListNode );
-                                 }                        
+                                 }
                                  nv = ct->nVOp( ctop );
                                  nvopp = ctop->nVOp( ct );
                                  //cout << "call FlipEdge from CTEI for edge between nodes "
@@ -4624,7 +4579,6 @@ CheckTriEdgeIntersect()
                               {
                                  if( LocateTriangle( xy[0], xy[1] ) != 0 )
                                  {
-                           
                                       //tempNode = *cn;
                                       //find spoke tri's in tri ptr list and remove them
                                     for( ce = spokIter.FirstP(); !(spokIter.AtEnd());
@@ -4644,7 +4598,7 @@ CheckTriEdgeIntersect()
                                       //delete the node;
                                     xyz = cn->getNew3DCoords();
                                     //cout << "delete node at " << xyz[0] << ", " << xyz[1]
-                                    //     << ", " << xyz[2] << endl << flush;
+                                    //     << ", " << xyz[2] << endl;
                                     tmpNodeList.insertAtBack( *cn );
                                     DeleteNode( cn, kRepairMesh );
                                  }
@@ -4673,7 +4627,7 @@ CheckTriEdgeIntersect()
    {
       if ( cn->Meanders() ) cn->UpdateCoords();//Nic, here is where x&y change
       //cout << "add node at " << cn->getX() << ", " << cn->getY() << ", "
-      //     << cn->getZ() << endl << flush;
+      //     << cn->getZ() << endl;
       cn = AddNode( *cn );
       assert( cn!=0 );
    }
