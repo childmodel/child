@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.92 2003-08-01 17:14:59 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.93 2003-09-02 14:01:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -167,7 +167,7 @@ void tStreamMeander::FindMeander()
       //nmg
       if (0) //DEBUG
 	cout<<"FM cn "<<cn->getID()<<" z = "<<cn->getZ()<<endl;
-      cn->setReachMember( 0 );
+      cn->setReachMember( false );
       if( cn->getQ() >= critflow )
 	{
 	  cn->setMeanderStatus( kMeanderNode );
@@ -675,7 +675,7 @@ void tStreamMeander::FindReaches()
 		if(cn->getSlope()<=0) cout<<"bad node "<<cn->getID()<<" with slope "<<cn->getSlope()<<" added to reachlist"<<endl;
 	      }
 	      reachList.insertAtBack( rnodList );
-	      cn->setReachMember( 1 );
+	      cn->setReachMember( true );
 	    }
 	}
     }
@@ -723,7 +723,7 @@ void tStreamMeander::FindReaches()
 	  }
 	  nrnodes[i]++;
 	  reachlen[i] += cn->getFlowEdg()->getLength();
-	  cn->setReachMember( 1 );
+	  cn->setReachMember( true );
 	  plPtr->insertAtBack( cn );
 	  cn = cn->getDownstrmNbr();
 	}
