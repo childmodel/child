@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.43 1998-07-20 22:06:23 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.44 1998-07-25 21:47:00 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -162,11 +162,14 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tGrid< tLNode > &gRef,
    optrainvar = infilePtr->ReadItem( optrainvar, "OPTVAR" );
    kwds = infilePtr->ReadItem( kwds, "HYDR_WID_COEFF_DS" );
    //cout << "kwds: " << kwds << endl;
+   kdds = infile.ReadItem( kdds, "HYDR_DEP_COEFF_DS" );
    assert( kwds > 0 );
    ewds = infilePtr->ReadItem( ewds, "HYDR_WID_EXP_DS" );
    //cout << "ewds: " << ewds << endl;
+   edds = infile.ReadItem( edds, "HYDR_DEP_EXP_DS" );
    ewstn = infilePtr->ReadItem( ewstn, "HYDR_WID_EXP_STN" );
    //cout << "ewstn: " << ewstn << endl;
+   edstn = infile.ReadItem( ewstn, "HYDR_DEP_EXP_STN" );
    knds = infilePtr->ReadItem( knds, "HYDR_ROUGH_COEFF_DS" );
    //cout << "knds: " << knds << endl;
    assert( knds > 0 );
@@ -261,6 +264,7 @@ void tStreamMeander::FindHydrGeom()
 {
    int i, j, num;
    double hradius, kwdspow, kndspow, widpow, npow, radfactor, qpsec;
+   double deppow, kddspow;
    double width, depth, rough, slope;
    tLNode *cn;
 
@@ -281,15 +285,17 @@ void tStreamMeander::FindHydrGeom()
             qpsec = cn->getQ();
             width = pow(cn->getChanWidth(), widpow) * kwdspow * pow(qpsec, ewstn);
             cn->setHydrWidth( width );
+            depth = pow(cn->getChanDepth(), deppow) * kddspow * pow(qpsec, edstn);
+            cn->setHydrDepth( depth );
             rough = pow(cn->getChanRough(), npow) * kndspow * pow(qpsec, enstn);
             cn->setHydrRough( rough );
             slope = cn->getChanSlope();
             assert( slope > 0 );
-            radfactor = qpsec * rough / width / sqrt(slope);
-            hradius = pow(radfactor, 0.6);
-            depth = width / ( width / hradius - 2.0 );
-            cn->setHydrSlope( slope );
-            cn->setHydrDepth( depth );
+//             radfactor = qpsec * rough / width / sqrt(slope);
+//             hradius = pow(radfactor, 0.6);
+//             depth = width / ( width / hradius - 2.0 );
+//             cn->setHydrSlope( slope );
+//             cn->setHydrDepth( depth );
          }
          //if rainfall does not vary, set hydraulic geom. = channel geom.
          else
@@ -348,6 +354,7 @@ void tStreamMeander::FindChanGeom()
          qbf = cn->getDrArea() * qbffactor;
          if( !qbf ) qbf = cn->getQ();  // q is now in m^3/s
          width = kwds * pow(qbf, ewds);
+         depth = kdds * pow(qbf, edds);
          rough = knds * pow(qbf, ends);
          lambda = klambda * pow(qbf, elambda);
          cn->setChanWidth( width );
@@ -355,18 +362,18 @@ void tStreamMeander::FindChanGeom()
          cn->setBankRough( lambda );
          slope = cn->getSlope();
          //make sure slope will produce a positive depth:
-         critS = qbf * qbf * rough * rough * 8.0 * pow( 2.0, 0.333 )/
-             ( width * width * width * width * width * pow( width, 0.333 ) );
-         if( slope > critS ) //should also catch negative slope flag
-         {
-              //cout << "in FindChanGeom, slope = " << slope << endl << flush;
-            cn->setChanSlope( slope );
-            radfactor = qbf * rough / width / sqrt(slope);
-            hradius = pow(radfactor, 0.6); 
-            depth = width / (width / hradius - 2.0);
-            cn->setChanDepth( depth );
-         }
-         else cn->setMeanderStatus( kNonMeanderNode );
+//          critS = qbf * qbf * rough * rough * 8.0 * pow( 2.0, 0.333 )/
+//            ( width * width * width * width * width * pow( width, 0.333 ) );
+//          if( slope > critS ) //should also catch negative slope flag
+//          {
+//               //cout << "in FindChanGeom, slope = " << slope << endl << flush;
+//             cn->setChanSlope( slope );
+//             radfactor = qbf * rough / width / sqrt(slope);
+//             hradius = pow(radfactor, 0.6); 
+//             depth = width / (width / hradius - 2.0);
+//             cn->setChanDepth( depth );
+//          }
+//          else cn->setMeanderStatus( kNonMeanderNode );
          if( slope < 0.0 )
          {
             cout << "negative slope,"
@@ -387,7 +394,7 @@ void tStreamMeander::FindChanGeom()
 **      added in between the two channel nodes, colinear except for
 **      a small random perturbation. If more than one node is added
 **      between a channel pair, then the routine generates a random
-**      walk in which the step size is weighted by an exponential
+**      walk in which the step size is weighted by an exponential    double kwds, ewds, ewstn;//coeff's & exp's for dwnstrm & at-a-stn hydr. width
 **      which decays as the distance from the line connecting the
 **      two channel points increases. This weighting tends to keep
 **      the final point of the walk within reasonable bounds.
@@ -566,6 +573,11 @@ void tStreamMeander::MakeReaches()
    do
    {
       FindMeander(); //if Q > Qcrit, meander = TRUE
+      //TODO: Since FindChanGeom and FindHydrGeom are both now in
+      //tStreamNet, these functions should be called from tStreamNet
+      //Other possibility is that these functions are called in every
+      //erosion routine.  For now, NG has just changed them to be
+      //identical to the functions in tStreamNet (changed depth calculation)
       FindChanGeom();//if meander = TRUE, find chan. width and reach avg. slope
                      //if " and slope > critslope, find chan. depth;
                      //else meander = FALSE
