@@ -7,7 +7,7 @@
 **  Equilibrium check objects:
 **    tEquilibCheck
 **  Transport objects:
-**    tSedTransPwrLaw
+**    tSedTransPwrLawn
 **    tSedTransWilcock
 **    tSedTransMineTailings //added 4/00 ng
 **  Detachment objects:
@@ -26,6 +26,7 @@
 **       to m3/s added in the constructor -- so kt is READ in SI units,
 **       and multiplied by the unit conversion factor before being
 **       used in the detachment and transport equations. (GT 6/01)
+**     - added functions for new class tSedTransPwrLawMulti (GT 2/02)
 **
 **    Known bugs:
 **     - ErodeDetachLim assumes 1 grain size. If multiple grain sizes
@@ -33,12 +34,13 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.87 2001-06-21 13:54:00 gtucker Exp $
+**  $Id: erosion.cpp,v 1.88 2002-02-11 09:12:35 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
 #include <assert.h>
 #include <iomanip.h>
+#include <string>
 #include "erosion.h"
 
 /***************************************************************************\
@@ -494,11 +496,13 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node )
    double slp = node->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
-   double tauex, cap = 0;
+   double tau, tauex, cap = 0;
    if( !node->getFloodStatus() )
    {
-      tauex = kt * pow( node->getQ()/node->getHydrWidth(), mf )
-          * pow( slp, nf ) - tauc;
+      tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
+      node->setTau( tau );
+      //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << endl;
+      tauex = tau - tauc;
       tauex = (tauex>0.0) ? tauex : 0.0;
       cap = kf * node->getHydrWidth() * pow( tauex, pf );
       //cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
@@ -527,12 +531,14 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
    double slp = node->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
-   double tauex, cap = 0;
+   double tau, tauex, cap = 0;
    
    if( !node->getFloodStatus() )
    {
-      tauex = kt * pow( node->getQ()/node->getHydrWidth(), mf )
-          * pow( slp, nf ) - tauc;
+      tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
+      node->setTau( tau );
+      //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << " tau=" << tau << endl;
+      tauex = tau - tauc;
       tauex = (tauex>0.0) ? tauex : 0.0;
       cap = weight * kf * node->getHydrWidth() * pow( tauex, pf );
       //cap = kf * pow( node->getQ(), mf ) * pow( slp, nf );
@@ -554,6 +560,128 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
 }
 
    
+/*************************************************************************\
+**  FUNCTIONS FOR CLASS tSedTransPwrLawMulti
+\**************************************************************************/
+
+/*************************************************************************\
+**  
+**  tSedTransPwrLawMulti constructor
+**
+\**************************************************************************/
+tSedTransPwrLawMulti::tSedTransPwrLawMulti( tInputFile &infile )
+{
+   double secPerYear = 365.25*24*3600.0;  // # secs in one year
+
+   kf = infile.ReadItem( kf, "KF" );
+   kt = infile.ReadItem( kt, "KT" );
+   mf = infile.ReadItem( mf, "MF" );
+   nf = infile.ReadItem( nf, "NF" );
+   pf = infile.ReadItem( pf, "PF" );
+   miNumgrnsizes = infile.ReadItem( miNumgrnsizes, "NUMGRNSIZE" );
+   if( miNumgrnsizes>9 )
+     {
+       cout << "WARNING: maximum of 9 grain size classes exceeded.\n";
+       cout << "Resetting to 9 size-fractions.\n";
+       cout << "(That was a non-fatal warning, my friend!)\n";
+       miNumgrnsizes = 9;
+     }
+
+   // Record diameter of each size-fraction
+   mdGrndiam.setSize( miNumgrnsizes );
+   mdTauc.setSize( miNumgrnsizes );
+   std::string taglinebase = "GRAINDIAM";
+   std::string digits = "123456789";
+   std::string tagline;
+   int i;
+   double thetac = 0.045,
+     sig = 2650.0,
+     rho = 1000.0,
+     g = 9.81;
+   for( i=0; i<miNumgrnsizes; i++ )
+     {
+       tagline = taglinebase + digits.substr(i,i);
+       mdGrndiam[i] = infile.ReadItem( mdGrndiam[i], tagline.c_str() );
+       mdTauc[i] = thetac * (sig-rho) * g * mdGrndiam[i];
+       //cout << "Diam " << i << " = " << mdGrndiam[i] << " tauc = " << mdTauc[i] << endl;
+     }
+
+   // Add unit conversion factor for kt -- this is required to convert
+   // the quantity (Q/W)^mb from units of years to units of seconds.
+   kt = kt * pow( secPerYear, -mf );
+
+   // Read hiding/protrusion exponent (should be btwn 0 to 1)
+   mdHidingexp = infile.ReadItem( mdHidingexp, "HIDINGEXP" );
+
+}
+
+
+
+/***************************************************************************\
+**  tSedTransPwrLawMulti::TransCapacity
+**
+**
+**  Created: 02/02 GT & RAJR
+**
+\***************************************************************************/
+double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight )
+{
+   double slp = node->getSlope();
+   if( slp < 0.0 )
+       ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
+   double d50 = 0.0,   // Mean grain size
+     tau,              // Shear stress
+     tauex,            // Excess shear stress 
+     cap = 0;          // Xport capacity for a given size
+   static tArray<double> frac( miNumgrnsizes );
+   int i;
+   
+   // Compute D50 and fraction of each size
+   for( i=0; i<miNumgrnsizes; i++ )
+     {
+       frac[i] = node->getLayerDgrade(lyr,i) / node->getLayerDepth(lyr);
+       d50 += frac[i] * mdGrndiam[i];
+       //cout << "frac " << i << " = " << frac[i] << endl;
+     }
+   //cout << "D50 = " << d50 << endl;
+
+   // Compute shear stress
+   if( node->getFloodStatus() ) slp = 0.0;
+   tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
+   node->setTau( tau );
+    //cout << "kt=" << kt << " Q=" << node->getQ() << " W=" << node->getHydrWidth() << " S=" << node->getSlope() << " tau=" << tau << endl;
+
+   // Compute crit shear stress and xport capacity for each size fraction
+   double totalcap = 0.0,
+     tauc;
+   for( i=0; i<miNumgrnsizes; i++ )
+     {
+       tauc = mdTauc[i] * pow( mdGrndiam[i] / d50, -mdHidingexp );
+       //cout << "tauc " << i << " = " << tauc << endl;
+       tauex = tau - tauc;
+       tauex = (tauex>0.0) ? tauex : 0.0;
+       cap = frac[i] * weight * kf * node->getHydrWidth() * pow( tauex, pf );
+       totalcap += cap;
+       node->addQs( i, cap );
+   }
+   /*if( node->getDrArea() > 1e7 ) {
+       node->TellAll();*/
+   //cout << "tau=" << tau << "tauex=" << tauex << " bfwid=" << node->getChanWidth()
+   //<< " wid=" << node->getHydrWidth() << " cap=" << totalcap << endl;
+            
+   
+   
+   node->setQs( totalcap );
+   return totalcap;
+}
+
+
+double tSedTransPwrLawMulti::TransCapacity( tLNode * node )
+{
+  return 0.0;
+}
+
+
 /*************************************************************************\
 **  FUNCTIONS FOR CLASS tSedTransWilcock
 \**************************************************************************/
@@ -1271,7 +1399,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
        dzr;          // Potential depth of bedrock erosion
    int smallflag=0, smallcount=0;
 
-   //cout << "tErosion::StreamErode\n";
+   cout << "tErosion::StreamErode\n";
 
    // Sort so that we always work in upstream to downstream order
    strmNet->SortNodesByNetOrder();
@@ -1360,7 +1488,11 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
           cn->setQsin( 0.0 );
         //sediment input:
       if(strmNet->getInletNodePtrNC() != NULL)
+	{
           strmNet->getInletNodePtrNC()->setQsin( strmNet->getInSedLoad() );
+	  cout << "Inlet node:\n";
+	  strmNet->getInletNodePtr()->TellAll();
+	}
 
       // Notes for multi-size adaptation:
       // qs, qsin, dz, etc could be arrays with dimensions (1..NUMG+1) with
@@ -1850,6 +1982,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                for( i=0; i<cn->getNumg(); i++ ){
                   cn->setQs(i,0.0);
                   cn->setQsin( i, insed[i] );
+		  //cout << "inlet qsin size " << i << "=" << insed[i] << endl;
                }
             }
          }
@@ -1865,7 +1998,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             drdt=0;
             qs=0;
             
-            assert(cn->getChanDepth()<100);
+            assert(cn->getChanDepth()<1000);
             
             while((cn->getChanDepth()-depck)>0.0001)
             {
@@ -2167,17 +2300,28 @@ void tErosion::Diffuse( double rt, int noDepoFlag )
    // mesh has changed since last time through)
    dtmax = rt;  // Initialize dtmax to total time rt
    for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
+     {
+       if( ce->getVEdgLen() > 5000.0 )
+	 {
+	   //cout << "In Diffuse(), large vedglen detected: " << ce->getVEdgLen() << endl;
+	   //ce->TellCoords();
+	   /*cout << "Connected to ORIGIN:\n";
+	     ce->getOriginPtr()->TellAll();
+	     cout << "DESTINATION:\n";
+	     ce->getDestinationPtr()->TellAll();*/
+	 }
        if( (denom=kd*ce->getVEdgLen() ) > kVerySmall )
-       {
-          delt = kEpsOver2*(ce->getLength()/denom);
-          if( delt < dtmax )
-          {
-             dtmax = delt;
-             /*cout << "TIME STEP CONSTRAINED TO " << dtmax << " AT EDGE:\n";
-             ce->TellCoords();*/
-          }
-       }
-
+	 {
+	   delt = kEpsOver2*(ce->getLength()/denom);
+	   if( delt < dtmax )
+	     {
+	       dtmax = delt;
+	       /*cout << "TIME STEP CONSTRAINED TO " << dtmax << " AT EDGE:\n";
+		 ce->TellCoords();*/
+	     }
+	 }
+     }
+   
    // Loop until we've used up the entire time interval rt
    do
    {
