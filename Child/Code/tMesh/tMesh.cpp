@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.18 1998-02-25 00:36:53 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.19 1998-03-10 23:31:57 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1366,7 +1366,7 @@ DeleteNode( tListNode< tSubNode > *nodPtr )
    }
    while( nodIter.Next() );
    
-   
+   UpdateMesh();
      //cout << "Mesh repaired" << endl;
    return 1;
 }
@@ -1423,6 +1423,12 @@ DeleteNode( tSubNode *node )
    }
    while( nodIter.Next() );
      //cout << "Mesh repaired" << endl;
+   /*tSubNode *cn;
+   for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
+   {
+      cout << "node " << cn->getID() << endl;
+   }*/
+   UpdateMesh();
    return 1;
 }
 

@@ -2,7 +2,7 @@
 **
 **  tUplift.cpp: Functions for class tUplift.
 **
-**  $Id: tUplift.cpp,v 1.2 1998-02-24 01:42:11 stlancas Exp $
+**  $Id: tUplift.cpp,v 1.3 1998-03-10 23:30:54 stlancas Exp $
 \************************************************************************/
 
 #include "tUplift.h"
@@ -57,8 +57,10 @@ void tUplift::UpliftUniform( tGrid<tLNode> *gp, double delt )
    double rise = rate*delt;
 
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
-       cn->ChangeZ( rise );
-   
+   {
+      cn->ChangeZ( rise );
+      cn->setUplift( rate );
+   }
 }
 
 

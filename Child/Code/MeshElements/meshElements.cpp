@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.9 1998-02-24 01:40:46 stlancas Exp $
+**  $Id: meshElements.cpp,v 1.10 1998-03-10 23:31:33 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -872,6 +872,16 @@ int tTriangle::nVOp( tTriangle *ct )
    return i;
 }
 
+int tTriangle::nVtx( tNode *cn )
+{
+   int i;
+   for( i=0; i<4; i++ )
+   {
+      assert( i<3 );
+      if( p[i] == cn ) return i;
+   }
+   return i;
+}
 
 /*****************************************************************************\
 **

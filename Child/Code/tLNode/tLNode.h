@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.12 1998-03-03 22:28:31 gtucker Exp $
+**  $Id: tLNode.h,v 1.13 1998-03-10 23:30:40 stlancas Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -178,6 +178,7 @@ public:
     tLNode * GetDownstrmNbr();
     double GetQ();        // Gets total discharge from embedded chan obj
     double GetSlope();    // Computes and returns slope in flow direction
+   double GetDSlopeDt();
     int Meanders() const;
     void SetMeanderStatus( int );
     void setHydrWidth( double );
@@ -243,6 +244,9 @@ public:
    void SetDzDt( double );
    double GetDrDt();
    void SetDrDt( double );
+   void setUplift( double );
+   double getUplift() const;
+   
 #ifndef NDEBUG
    void TellAll();
 #endif
@@ -259,7 +263,7 @@ protected:
    double drdt;      /* Rock erosion rate */
    double qs;           /* Sediment transport rate*/
    double qsin;         /* Sediment influx rate*/
-   
+   double uplift;  /*uplift rate*/
 };
 
 #endif

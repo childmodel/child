@@ -4,7 +4,7 @@
 **                  and tTriangle. Each of these grid elements is
 **                  implemented as an object, as described below.
 **
-**  $Id: meshElements.h,v 1.5 1998-02-03 00:48:47 stlancas Exp $
+**  $Id: meshElements.h,v 1.6 1998-03-10 23:32:07 stlancas Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -213,6 +213,7 @@ public:
    void setEPtr( int, tEdge * );
    void setTPtr( int, tTriangle * );
    int nVOp( tTriangle * );
+   int nVtx( tNode * );
    tArray<double> FindCircumcenter();
 
 private:
