@@ -3,7 +3,7 @@ CXX = CC
 WARNINGFLAGS = -DHAVE_NO_NAMESPACE
 CFLAGS = $(WARNINGFLAGS) -c -O
 LDFLAGS = $(WARNINGFLAGS) -O
-LIBS = -L/usr/local/lib -lm
+LIBS =
 EXENAME = toddler
 
 OBJECTS = toddlermain.o erosion.o meshElements.o mathutil.o \
