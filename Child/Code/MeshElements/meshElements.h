@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.57 2003-08-07 14:35:51 childcvs Exp $
+**  $Id: meshElements.h,v 1.58 2003-08-08 12:26:25 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -229,15 +229,15 @@ public:
   inline tNode *getDestinationPtrNC(); // returns ptr to destination node (non-const)
   inline tEdge * getCCWEdg();          // returns ptr to counter-clockwise neighbor
   inline tEdge * getCWEdg();
-  tEdge* getComplementEdge();
-  void setComplementEdge( tEdge* );
-  tArray< double > getRVtx() const;  // returns Voronoi vertex for RH triangle
-  double getVEdgLen() const;    // returns length of assoc'd Voronoi cell edge
-  tEdgeBoundary_t FlowAllowed() const; // returns boundary status ("flow allowed")
+  inline tEdge* getComplementEdge();
+  inline void setComplementEdge( tEdge* );
+  inline tArray< double > const & getRVtx() const;  // returns Voronoi vertex for RH triangle
+  inline double getVEdgLen() const;    // returns length of assoc'd Voronoi cell edge
+  inline tEdgeBoundary_t FlowAllowed() const; // returns boundary status ("flow allowed")
 
-  void setID( int );                 // sets ID number
-  void setLength( double );          // sets edge length
-  void setSlope( double );           // sets slope
+  inline void setID( int );                 // sets ID number
+  inline void setLength( double );          // sets edge length
+  inline void setSlope( double );           // sets slope
   inline void setOriginPtr( tNode * );      // sets origin ptr
   inline void setDestinationPtr( tNode * ); // sets destination ptr
   static tEdgeBoundary_t isFlowAllowed( const tNode*, const tNode* );
@@ -500,20 +500,13 @@ inline ostream &operator<<( ostream &output, tNode &node )
 inline tArray< double >
 tNode::get3DCoords() const
 {
-   tArray< double > xyz(3);
-   xyz[0] = x;
-   xyz[1] = y;
-   xyz[2] = z;
-   return xyz;
+  return tArray< double > (x, y, z);
 }
 
 inline tArray< double >
 tNode::get2DCoords() const
 {
-   tArray< double > xy(2);
-   xy[0] = x;
-   xy[1] = y;
-   return xy;
+  return tArray< double > (x, y);
 }
 
 inline int tNode::getID() const {return id;}
@@ -828,7 +821,7 @@ inline tEdgeBoundary_t tEdge::FlowAllowed() const
    return flowAllowed;
 }
 
-inline tArray< double >
+inline tArray< double > const &
 tEdge::getRVtx() const
 {
    return rvtx;
