@@ -4,10 +4,10 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tEolian.cpp,v 1.1 1999-02-05 14:54:49 gtucker Exp $
+**  $Id: tEolian.cpp,v 1.2 1999-02-05 14:58:25 gtucker Exp $
 \**************************************************************************/
 
-#include "tFloodplain.h"
+#include "tEolian.h"
 
 /**************************************************************************\
 **
@@ -49,9 +49,9 @@ tEolian::tEolian( tInputFile &infile )
 **      - could be done as a polynomial surface
 **
 \**************************************************************************/
-void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
+void tEolian::DepositLoess( tGrid<tLNode> *gp, double delt, double ctime )
 {
-   tGridListIter<tLNode> ni( gridPtr->getNodeList() ); // iterator for nodes
+   tGridListIter<tLNode> ni( gp->getNodeList() ); // iterator for nodes
    tLNode *cn;
    
    depositDepth[0] = loessDepRate*delt;

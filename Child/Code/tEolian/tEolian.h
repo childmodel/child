@@ -17,7 +17,7 @@
 **
 **  (Created 2/99 by GT)
 **
-**  $Id: tEolian.h,v 1.1 1999-02-05 14:55:29 gtucker Exp $
+**  $Id: tEolian.h,v 1.2 1999-02-05 14:58:31 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TEOLIAN_H
@@ -43,7 +43,7 @@ class tEolian
 {
 public:
     tEolian( tInputFile &infile );
-    void DepositLoess( tGrid<tLNode>, double delt, double ctime );
+    void DepositLoess( tGrid<tLNode> *gp, double delt, double ctime );
     
 private:
     double loessDepRate;
