@@ -12,7 +12,7 @@
 **     "gridElements", 1/20/98 gt
 **   - added tNode::AttachNewSpoke and tEdge::WelcomeCCWNeighbor gt 2/99
 **
-**  $Id: meshElements.cpp,v 1.29 1999-05-04 17:14:32 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.30 1999-05-11 19:06:10 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1004,14 +1004,14 @@ tNode *tEdge::getDestinationPtrNC() {return dest;}               //tEdge
 
 double tEdge::getOrgZ() 
 {
-   const tNode * org = getOriginPtr();
+   //Xconst tNode * org = getOriginPtr(); 5/99
    assert( org!=0 );
    return( org->getZ() );
 }
 
 double tEdge::getDestZ()
 {
-   const tNode * dest = getDestinationPtr();
+   //Xconst tNode * dest = getDestinationPtr(); 5/99
    assert( dest!=0 );
    return( dest->getZ() );
 }
@@ -1120,8 +1120,8 @@ void tEdge::setVEdgLen( double val )
 \**************************************************************************/
 double tEdge::CalcLength()
 {
-   const tNode * org = getOriginPtr();
-   const tNode * dest = getDestinationPtr();
+   //Xconst tNode * org = getOriginPtr(); 5/99
+   //Xconst tNode * dest = getDestinationPtr(); 5/99
    assert( org!=0 );  // Failure = edge has no origin and/or destination node
    assert( dest!=0 );
    
@@ -1144,8 +1144,8 @@ double tEdge::CalcLength()
 \**************************************************************************/
 double tEdge::CalcSlope()
 {
-   const tNode * org = getOriginPtr();
-   const tNode * dest = getDestinationPtr();
+   //Xconst tNode * org = getOriginPtr(); 5/99
+   //Xconst tNode * dest = getDestinationPtr(); 5/99
    
    assert( org!=0 );  // Failure = edge has no origin and/or destination node
    assert( dest!=0 );
