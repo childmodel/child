@@ -19,7 +19,7 @@
 **  is included in this file.
 **
 **  Version 1.0, Greg Tucker, November 1997.
-**  $Id: tStorm.cpp,v 1.10 1998-06-04 21:27:44 gtucker Exp $
+**  $Id: tStorm.cpp,v 1.11 1998-07-15 22:25:41 gtucker Exp $
 */
 
 #include <math.h>
@@ -31,11 +31,14 @@
 /*
 **  tStorm::tStorm:  Constructor for storms. The default constructor
 **                   assigns a value of unity to storm depth, duration,
-**                   and interstorm duration.
+**                   and interstorm duration. (Note:
+**                   this constructor does not allow option for sinusoidal
+**                   variation in means).
 */
 tStorm::tStorm( int optvar )
 {
    optVariable = optvar;
+   optSinVar = 0;
    pMean = 1.0;
    stdurMean = 1.0;
    istdurMean = 1.0;
@@ -50,11 +53,14 @@ tStorm::tStorm( int optvar )
 **  tStorm::tStorm:  The constructor that's really used assigns values for
 **                   mean storm depth, duration, and interstorm duration,
 **                   initializes current depth, etc, to the mean values,
-**                   and initializes the random number generator.
+**                   and initializes the random number generator. (Note:
+**                   this constructor does not allow option for sinusoidal
+**                   variation in means).
 */
 tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar )
 {
    optVariable = optvar;
+   optSinVar = 0;
    pMean = mp;
    stdurMean = ms;
    istdurMean = mis;
@@ -74,9 +80,15 @@ tStorm::tStorm( double mp, double ms, double mis, unsigned sd, int optvar )
 **  the point of these objects---but a user may wish to switch off variation
 **  as a test), mean values for rainfall intensity, duration, and interstorm
 **  period, and a random seed to initialize the random number generator.
+**    Also reads an option for long-term sinusoidal variations in the mean
+**  values, and if the option is selected, reads the relevant parameters.
+**  Variables p0, stdur0, and istdur0 are the mean values of the means;
+**  pdev, stdurdev, and istdurdev are the range of variation (e.g., if pMean
+**  were to fluctuate between 5 and 10, p0 would be 7.5 and pdev 2.5).
 */
 tStorm::tStorm( tInputFile &infile )
 {
+   // Read + set parameters for storm intensity, duration, and spacing
    optVariable = infile.ReadItem( optVariable, "OPTVAR" );
    pMean = infile.ReadItem( pMean, "PMEAN" );
    stdurMean = infile.ReadItem( stdurMean, "STDUR" );
@@ -84,6 +96,27 @@ tStorm::tStorm( tInputFile &infile )
    p = pMean;
    stdur = stdurMean;
    istdur = istdurMean;
+
+   // Handle option for sinuidoil variation in means
+   optSinVar = infile.ReadItem( optSinVar, "OPTSINVAR" );
+   if( optSinVar )
+   {
+      p0 = pMean;
+      stdur0 = stdurMean;
+      istdur0 = istdurMean;
+      twoPiLam = (2.0*PI)/(infile.ReadItem( twoPiLam, "PERIOD" ));
+      pdev = infile.ReadItem( pdev, "MAXPMEAN" ) - pMean;
+      if( pdev<0 ) cerr << "Warning: MAXPMEAN < PMEAN !";
+      else if( pdev > pMean ) cerr << "Warning: MINPMEAN < 0 !";
+      stdurdev = infile.ReadItem( stdurdev, "MAXSTDURMN" ) - stdurMean;
+      if( stdurdev<0 ) cerr << "Warning: MAXSTDURMN < STDURMN !";
+      else if( stdurdev > stdurMean ) cerr << "Warning: MINSTDURMN < 0 !";
+      istdurdev = infile.ReadItem( istdurdev, "MAXISTDURMN" ) - istdurMean;
+      if( istdurdev<0 ) cerr << "Warning: MAXISTDURMN < ISTDURMN !";
+      else if( istdurdev > istdurMean ) cerr << "Warning: MINISTDURMN < 0 !";
+   }
+
+   // Read and initialize seed for random number generation
    seed = infile.ReadItem( seed, "SEED" );
    srand( seed );
 }
@@ -100,11 +133,32 @@ tStorm::tStorm( tInputFile &infile )
 **  is stored istdur.
 **
 **  Parameters:  minp -- minimum value of rainfall rate p (default 0)
-**  Members updated:  p, stdur, istdur take on new random values
+**               mind -- minimum storm depth to produce runoff (default 0)
+**               tm -- current time in simulation
+**  Members updated:  p, stdur, istdur take on new random values (if optVar)
+**                    pMean, stdurMean, istdurMean adjusted (if optSinVar)
 **  Assumptions:  pMean > 0
 */
-void tStorm::GenerateStorm( double minp, double mind )
+void tStorm::GenerateStorm( double tm, double minp, double mind )
 {
+   // If option for sinusoidal variation is on, adjust the means
+   // Also set values for current storm to the means, in case option for
+   // random storms is off.
+   if( optSinVar )
+   {
+      double sinfn = sin( tm*twoPiLam );
+      pMean = p0 + pdev*sinfn;
+      cout << "pMean = " << pMean << endl;
+      stdurMean = stdur0 + stdurdev*sinfn;
+      istdurMean = istdur0 + istdurdev*sinfn;
+      p = pMean;
+      stdur = stdurMean;
+      istdur = istdurMean;
+   }
+   
+   // If option for random storms is on, pick a storm at random.
+   // Keep picking and accumulating time until the storm depth or intensity
+   // is greater than the minimum value needed to produce runoff.
    if( optVariable )
    {
       stdur = 0;
