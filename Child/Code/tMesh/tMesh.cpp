@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.204 2004-03-29 16:01:19 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.205 2004-03-31 17:53:50 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -144,7 +144,7 @@ tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
 \**************************************************************************/
 template< class tSubNode >
 tMesh< tSubNode >::
-tMesh( const tInputFile &infile )
+tMesh( const tInputFile &infile, bool checkMeshConsistency  )
   :
   nodeList(),
   mSearchOriginTriPtr(0),
@@ -155,7 +155,7 @@ tMesh( const tInputFile &infile )
   miNextEdgID(0),
   miNextTriID(0),
   layerflag(false),
-  runCheckMeshConsistency(CHECKMESHCONSISTENCY)
+  runCheckMeshConsistency(checkMeshConsistency)
 {
    // mSearchOriginTriPtr:
    // initially set search origin (tTriangle*) to zero:

@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.78 2004-03-26 18:11:36 childcvs Exp $
+**  $Id: tMesh.h,v 1.79 2004-03-31 17:53:51 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -146,7 +146,7 @@ public:
    typedef tIdArray< tTriangle, tListNodeListable< tTriangle > > tIdArrayTri_t;
 
    tMesh();
-   tMesh( const tInputFile & );
+   tMesh( const tInputFile &, bool checkMeshConsistency );
    tMesh( tMesh const * );
    ~tMesh();
    void BatchAddNodes(); // quickly adds many nodes when starting w/ dense mesh
@@ -271,12 +271,6 @@ protected:
    bool layerflag;                 // flag indicating whether nodes have layers
    bool runCheckMeshConsistency;    // shall we run the tests ?
 };
-
-#ifdef BYPASS_DEBUG_ROUTINES
-# define CHECKMESHCONSISTENCY false
-#else
-# define CHECKMESHCONSISTENCY true
-#endif
 
 /*
 ** The following is designed to allow for compiling under the Borland-style

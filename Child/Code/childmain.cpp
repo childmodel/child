@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.18 2004-03-24 14:54:32 childcvs Exp $
+**  $Id: childmain.cpp,v 1.19 2004-03-31 17:53:49 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -41,14 +41,12 @@
 #include "tFloodplain/tFloodplain.h"
 #include "tStratGrid/tStratGrid.h"
 #include "tEolian/tEolian.h"
-
+#include "tOption/tOption.h"
 
 Predicates predicate;
 
-
 int main( int argc, char **argv )
 {
-   bool silent_mode;      // Option for silent mode (no time output to stdout)
    int optDetachLim,      // Option for detachment-limited erosion only
        optFloodplainDep,  // Option for floodplain (overbank) deposition
        optLoessDep,       // Option for eolian deposition
@@ -80,14 +78,7 @@ int main( int argc, char **argv )
    \**********************************************************************/
 
    // Check command-line arguments
-   if( argc<2 )
-   {
-      cerr << "Usage: " << argv[0] << " <input file>" << endl;
-      ReportFatalError( "You need to give the name of an input file." );
-   }
-
-   // Check whether we're in silent mode
-   silent_mode = BOOL( argc>2 && argv[2][1]=='s' );
+   tOption option( argc, argv );
 
    // Say hello
    cout << "\nThis is CHILD, version " << VERSION
@@ -95,14 +86,14 @@ int main( int argc, char **argv )
 	<< endl << endl;
 
    // Open main input file
-   tInputFile inputFile( argv[1] );
+   tInputFile inputFile( option.inputFile );
 
    // Create a random number generator for the simulation itself
    tRand rand( inputFile );
 
    // Create and initialize objects:
    cout << "Creating mesh...\n";
-   tMesh<tLNode> mesh( inputFile );
+   tMesh<tLNode> mesh( inputFile, option.checkMeshConsistency );
 
    cout << "Creating output files...\n";
    tLOutput<tLNode> output( &mesh, inputFile, &rand );
@@ -148,7 +139,7 @@ int main( int argc, char **argv )
    }
 
    cout << "Writing data for time zero...\n";
-   tRunTimer time( inputFile, BOOL(!silent_mode) );
+   tRunTimer time( inputFile, !option.silent_mode );
    output.WriteOutput( 0. );
    cout << "Initialization done.\n";
 
