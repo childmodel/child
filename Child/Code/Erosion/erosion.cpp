@@ -21,6 +21,11 @@
 **       conjunction w/ veg module. GT, Jan 2000
 **     - added DensifyMesh function to add new nodes in areas of high
 **       erosion/deposition flux. (gt, 2/2000)
+**     - modified detachment and power-law transport formulas to use
+**       kt in truly SI units, with a conversion factor from Q in m3/yr
+**       to m3/s added in the constructor -- so kt is READ in SI units,
+**       and multiplied by the unit conversion factor before being
+**       used in the detachment and transport equations. (GT 6/01)
 **
 **    Known bugs:
 **     - ErodeDetachLim assumes 1 grain size. If multiple grain sizes
@@ -28,7 +33,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.86 2001-06-11 14:46:54 gtucker Exp $
+**  $Id: erosion.cpp,v 1.87 2001-06-21 13:54:00 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -226,12 +231,21 @@ double tEquilibCheck::FindLongTermChngRate( double newtime )
 **     result, ma is now obsolete and mb is no longer modified after being
 **     read in from file. mb is still the specific-discharge exponent,
 **     NOT the total-discharge exponent. (GT 2/01)
+**   - kt now read in SI units, with conversion factor between discharge
+**     in m3/yr and shear stress (sic) in SI units factored in here in
+**     this constructor. The derivation is:
+**   
+**       Tau (SI) = kt(SI) * Uconv * (Q(m/yr)/W)^mb * S^nb
+**     
+**     where Tau is shear stress or power or whatever, depending on
+**     dimensions, and Uconv = SPY^-mb where SPY = # secs in a year
+**     (GT 6/01)
+**
 \***************************************************************************/
-//constructor: reads and sets the 3 parameters
+//constructor: reads and sets the parameters
 tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 {
-  //double wb,  // downstream channel width-discharge exponent
-  //    ws;     // at-a-station width-discharge exponent
+  double secPerYear = 365.25*24*3600.0;  // # secs in one year
 
    kb = infile.ReadItem( kb, "KB" );
    kt = infile.ReadItem( kt, "KT" );
@@ -243,6 +257,10 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
    nb = infile.ReadItem( nb, "NB" );
    pb = infile.ReadItem( pb, "PB" );
    taucd = infile.ReadItem( taucd, "TAUCD" );
+
+   // Add unit conversion factor for kt -- this is required to convert
+   // the quantity (Q/W)^mb from units of years to units of seconds.
+   kt = kt * pow( secPerYear, -mb );
 }
 
 
@@ -434,17 +452,30 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 
 /***************************************************************************\
 **  tSedTransPwrLaw Constructor:
+**
 **    Given a tInputFile as an argument, will read relevant parameters from
 **  the input file.
+**
+**  Modifications:
+**   - kt adjusted to include unit conversion from Q in m3/yr to shear
+**     stress (sic) in SI units. See comment above for tBedErodePwrLaw
+**     constructor. (GT 06/01)
+**
 \***************************************************************************/
 tSedTransPwrLaw::tSedTransPwrLaw( tInputFile &infile )
 {
+   double secPerYear = 365.25*24*3600.0;  // # secs in one year
+
    kf = infile.ReadItem( kf, "KF" );
    kt = infile.ReadItem( kt, "KT" );
    mf = infile.ReadItem( mf, "MF" );
    nf = infile.ReadItem( nf, "NF" );
    pf = infile.ReadItem( pf, "PF" );
    tauc = infile.ReadItem( tauc, "TAUCD" );
+
+   // Add unit conversion factor for kt -- this is required to convert
+   // the quantity (Q/W)^mb from units of years to units of seconds.
+   kt = kt * pow( secPerYear, -mf );
 }
 
 
