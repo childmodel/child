@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.182 2003-09-19 13:43:39 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.183 2003-09-19 14:56:41 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2707,7 +2707,7 @@ DeleteNode( tListNode< tSubNode >* nodPtr, kRepairMesh_t repairFlag,
        }
    }
 
-   if( updateFlag ==kUpdateMesh ) UpdateMesh();
+   if( updateFlag == kUpdateMesh ) UpdateMesh();
    return 1;
 }
 
@@ -3068,7 +3068,13 @@ LocateTriangle( double x, double y, bool useFuturePosn)
          ++lv;
       }
 
-      assert( n < 3*ntri );
+      // SL, 9/2003:
+      // can spin infinitely in cases where triangulation
+      // has been altered to fit "new" positions (and it's
+      // it's not clear when to use LocateNewTriangle) so
+      // bail out with failure (and comment out the assert):
+      if( n >= 3*ntri ) return 0;
+      //assert( n < 3*ntri );
    }
    if( online != -1 )
        if( lt->pPtr(online)->getBoundaryFlag() != kNonBoundary &&
@@ -4385,6 +4391,29 @@ CheckLocallyDelaunay()
 **  Modifications:
 **   - minor change from i = AddNode to cn = AddNode to handle changed
 **     return type (GT 7/98)
+**   - change in case of moving into opposite triangle so that, if FlipEdge
+**     returns "false", meaning the edge it's trying to create already exists,
+**     then we go on to the "complicated" situation where a node is deleted
+**     and re-added. -SL 8/2003
+**   - found a case where point remains in its original polygon but, because
+**     that polygon doesn't have a convex hull, causes a triangle to become
+**     !ccw; the fix isn't simple (i.e., no single edge flip), so refer it
+**     to delete-add. -SL 8/2003
+**   - TODO: Encountered a bug I can't figure out how to fix when 
+**     tStreamMeander::CheckBanksTooClose is "turned off" and this function
+**     is doing most of the adjustment of the triangulation. I'm probably 
+**     missing a case. Symptoms: (1) Old tri !ccw, but new tri ccw, led to 
+**     failure in calculation of Voronoi area in UpdateMesh after a node
+**     deletion; now bypass UpdateMesh at that point. (2) Couldn't find a 
+**     node that was within bounds with LocateTriangle; now bypass 
+**     LocateTriangle as an in-bounds test until re-addition of nodes. 
+**     (3) Now, something "FUNNY" happens in MakeTriangle (i.e., happens
+**     during node deletion or re-addition) such that two complements of edges
+**     of the new triangle point to the same triangle and, then, a fatal error
+**     occurs in CheckMeshConsistency after FlipEdge is told to connect two
+**     nodes that are the same node: add a check for this in FlipEdge so that
+**     it will report that an edge already exists and, I hope, the node in
+**     question will be deleted. -SL 9/2003
 **
 \*****************************************************************************/
 template< class tSubNode >
@@ -4442,6 +4471,9 @@ CheckTriEdgeIntersect()
             {
                for( i=0, j=0; i<3; i++ )
                {
+                  // TODO: Don't like this static_cast, which is
+                  // necessary to use function only defined for tLNode.
+                  // Should use virtual function defined for tNode.
                   subnodePtr = static_cast<tSubNode *>(ct->pPtr(i));
                   subnodePtr->RevertToOldCoords();
                }
@@ -4449,6 +4481,8 @@ CheckTriEdgeIntersect()
             else
             {
                crossed = false;
+               bool no_edge = true;
+               bool useFuturePosn = false;
                for( i=0; i<3; i++ )
                {
                   cn = static_cast<tSubNode *>(ct->pPtr(i));
@@ -4456,87 +4490,89 @@ CheckTriEdgeIntersect()
                   {
                      cedg = ct->ePtr( (i+2)%3 );
 		     tSpkIter spokIter( cn );
+                     tArray<double> xy = cn->FuturePosn();
                      for( ce = spokIter.FirstP(); !( spokIter.AtEnd() );
                           ce = spokIter.NextP() )
                      {
                         if( Intersect( ce, cedg ) )
                         {
-                           if( ct->tPtr(i) == 0 ) //boundary has been crossed
+                           crossed = true;
+                           ctop = ct->tPtr(i);
+			   if( ctop == 0 )
                            {
-                              subnodePtr = static_cast<tSubNode *>(ct->pPtr(i));
-                              subnodePtr->RevertToOldCoords();
+			     //boundary has been crossed
+			     cn->RevertToOldCoords();
                            }
-                           else
+                           else if( NewTriCCW( ctop ) && InNewTri( xy, ctop ) )
                            {
-                              crossed = true;
-                              ctop = ct->tPtr(i);
-			      const tArray< double > xy = cn->getNew2DCoords();
-                                //check to make sure the opposite tri is still CCW;
-                                //if so, check whether the point has moved into it;
-                                //otherwise delete node and re-add it
-                              if( NewTriCCW( ctop ) && InNewTri( xy, ctop ) )
+                              // check to make sure the opposite tri is still CCW;
+                              // if so, check whether the point has moved into it;
+                              // otherwise delete node and re-add it.
+                              //if node has simply moved into 'opposite' triangle;
+                              //remove opposite tri from ptr list, flipedge,
+                              //add two new tri's to ptr list.
+                              // flag to insure use of new geometry to initialize edges
+                              // (also tells us the above "if" statement was true):
+                              useFuturePosn = true;
+                              for( tpIter.First();
+                                   tpIter.ReportNextP() != ctop && !(tpIter.AtEnd());
+                                   tpIter.Next() );
+                              if( !(tpIter.AtEnd()) ) //ctop is in tri ptrlist
                               {
-                                   //if node has simply moved into 'opposite' triangle;
-                                   //remove opposite tri from ptr list, flipedge,
-                                   //add two new tri's to ptr list.
-				 for( tpIter.First();
-                                      tpIter.ReportNextP() != ctop && !(tpIter.AtEnd());
-                                      tpIter.Next() );
-                                 if( !(tpIter.AtEnd()) ) //ctop is in tri ptrlist
-                                 {
-                                    tpListNode = tpIter.NodePtr();
-                                    triptrList.removeNext( tpListNode );
-                                 }
-                                 nv = ct->nVOp( ctop );
-                                 nvopp = ctop->nVOp( ct );
-				 if (0) //DEBUG
-				   cout << "call FlipEdge from CTEI for edge between nodes "
-					<< ct->pPtr( (nv+1)%3 )->getID() << " and "
-					<< ct->pPtr( (nv+2)%3 )->getID() << endl;
-                                 FlipEdge( ct, ctop, nv, nvopp );
-                                 triptrList.insertAtBack( ct );
-                                 triptrList.insertAtBack( ctop );
+                                 tpListNode = tpIter.NodePtr();
+                                 triptrList.removeNext( tpListNode );
                               }
-                              else
-                                    //things have gotten complicated and it's probably
-                                    //easier to just delete the node and add it again
-                                    //at the new location
-                              {
-                                 if( LocateTriangle( xy[0], xy[1] ) != 0 )
-                                 {
-                                      //find spoke tri's in tri ptr list and remove them
-                                    for( ce = spokIter.FirstP(); !(spokIter.AtEnd());
-                                         ce = spokIter.NextP() )
-                                    {
-                                       rmtri = TriWithEdgePtr( ce );
-                                       for( tpIter.First();
-					    tpIter.ReportNextP() != rmtri &&
-					      !(tpIter.AtEnd());
-					    tpIter.Next() );
-                                       if( !(tpIter.AtEnd()) ) //rmtri is in tri ptrlist
-                                       {
-                                          tpListNode = tpIter.NodePtr();
-                                          triptrList.removeNext( tpListNode );
-                                       }
-                                    }
-				    //delete the node;
-				    if (0) {//DEBUG
-				      const tArray< double > xyz = cn->getNew3DCoords();
-				      cout << "delete node at " << xyz[0] << ", " << xyz[1]
-					   << ", " << xyz[2] << endl;
-				    }
-                                    tmpNodeList.insertAtBack( *cn );
-                                    DeleteNode( cn, kRepairMesh );
-                                 }
-                                 else
-                                 {
-                                    subnodePtr = static_cast<tSubNode *>(ct->pPtr(i));
-                                    subnodePtr->RevertToOldCoords();
-                                 }
-                              }
+                              nv = ct->nVOp( ctop );
+                              nvopp = ctop->nVOp( ct );
+			      if (0) //DEBUG
+				cout << "call FlipEdge from CTEI for edge between nodes "
+				     << ct->pPtr( (nv+1)%3 )->getID() << " and "
+				     << ct->pPtr( (nv+2)%3 )->getID() << endl;
+                              no_edge = FlipEdge( ct, ctop, nv, nvopp, useFuturePosn );
+                              if( no_edge ) triptrList.insertAtBack( ct );
+                              triptrList.insertAtBack( ctop );
                            }
                            break;
                         }
+                     }
+                     // SL 8/2003: changed this from "else" to logic statement
+                     // reflecting results of above tests including for
+                     // prior existence of edge where we were trying to "flip" to
+                     // and cases where movement within polygon formed by neighbors
+                     // results in !ccw new triangle (can happen when polygon has
+                     // non-convex hull).
+                     if( !crossed || ( crossed && ( !useFuturePosn || !no_edge ) ) )
+                     {
+                        //things have gotten complicated and it's probably
+                        //easier to just delete the node and add it again
+                        //at the new location
+                        crossed = true; // although not strictly true, want to break below
+                        // SL, 9/2003:
+                        // don't worry about whether within bounds here because
+                        // location may fail due to jiggered triangulation!
+                        // instead delete and check location when re-added:
+                        for( ce = spokIter.FirstP(); !(spokIter.AtEnd());
+                             ce = spokIter.NextP() )
+                        {
+                           rmtri = TriWithEdgePtr( ce );
+                           for( tpIter.First();
+                                tpIter.ReportNextP() != rmtri &&
+                                    !(tpIter.AtEnd());
+                                tpIter.Next() );
+                           if( !(tpIter.AtEnd()) ) //rmtri is in tri ptrlist
+                           {
+                              tpListNode = tpIter.NodePtr();
+                              triptrList.removeNext( tpListNode );
+                           }
+                        }
+                        //delete the node;
+			if (0) {//DEBUG
+			  const tArray<double> xyz = cn->getNew3DCoords();
+			  cout << "delete node at " << xyz[0] << ", " << xyz[1]
+			       << ", " << xyz[2] << endl;
+			}
+                        tmpNodeList.insertAtBack( *cn );
+                        DeleteNode( cn, kRepairMesh, kNoUpdateMesh );
                      }
                   }
                   if( crossed ) break;
@@ -4549,13 +4585,19 @@ CheckTriEdgeIntersect()
    // Update coordinates of moving nodes. (UpdateCoords is virtual)
    for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
      cn->UpdateCoords();//Nic, here is where x&y change
+   // re-add nodes that were deleted; add at new coords if within bounds,
+   // otherwise revert to old coords before adding:
    for( cn = tmpIter.FirstP(); !(tmpIter.AtEnd()); cn = tmpIter.NextP() )
    {
-     cn->UpdateCoords();//Nic, here is where x&y change
-     //cout << "add node at " << cn->getX() << ", " << cn->getY() << ", "
-     //     << cn->getZ() << endl;
-     cn = AddNode( *cn );
-     assert( cn!=0 );
+      const tArray<double> xy = cn->FuturePosn();
+      if( LocateTriangle( xy[0], xy[1] ) != 0 )
+	cn->UpdateCoords();//Nic, here is where x&y change
+      else
+          cn->RevertToOldCoords();
+      //cout << "add node at " << cn->getX() << ", " << cn->getY() << ", "
+      //     << cn->getZ() << endl;
+      cn = AddNode( *cn );
+      assert( cn!=0 );
    }
 
 /*   for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
