@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.8 1999-02-01 21:01:28 gtucker Exp $
+**  $Id: tRunTimer.cpp,v 1.9 1999-04-01 17:20:22 gtucker Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -21,8 +21,8 @@
 #include <assert.h>
 
 #include "../tInputFile/tInputFile.h"
-
 #include "tRunTimer.h"
+
 //****************************************************
 // Constructors
 //
@@ -79,6 +79,7 @@ tRunTimer::tRunTimer( tInputFile &infile, int optprint )
 	optPrintEachTime = optprint;
 	notifyInterval = 1000;
   double help;
+
   //If you are reading in layering information, the timer should
   //be set to the time in which the layers were output, since
   //time is tracked in the layers and restarting at time zero
