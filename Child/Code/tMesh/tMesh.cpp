@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.146 2003-05-12 11:50:13 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.147 2003-05-12 12:07:07 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -3931,7 +3931,7 @@ AddNodeAt( tArray< double > &xyz, double time )
 
    int i;
    tMeshListIter< tSubNode > nodIter( nodeList );
-   tSubNode tempNode, *cn;
+   tSubNode tempNode;
    tempNode.set3DCoords( xyz[0], xyz[1], xyz[2]  );
    if( layerflag && time > 0.0) tempNode.LayerInterpolation( tri, xyz[0], xyz[1], time );
    if( xyz.getSize() != 3 ) tempNode.setNew2DCoords( xyz[0], xyz[1] );
