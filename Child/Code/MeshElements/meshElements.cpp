@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.59 2003-08-07 14:35:50 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.60 2003-08-11 15:45:43 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -108,14 +108,10 @@ tArray< double > FindIntersectionCoords( tArray< double > const &xy1,
 \*****************************************************************************/
 double tNode::Dist( tNode const * p0, tNode const * p1 ) const
 {
-  double a,b,c,res;
-
-  a=(p1->y)-(p0->y);
-  b=-((p1->x)-(p0->x));
-  c=-((a*(p0->x))+(b*(p0->y)));
-  res=(a*x + b*y + c) / sqrt(a*a + b*b);
-  if (res<0) res=-res;
-  return(res);
+  const double a=(p1->y)-(p0->y);
+  const double b=-((p1->x)-(p0->x));
+  const double c=-((a*(p0->x))+(b*(p0->y)));
+  return fabs((a*x + b*y + c) / sqrt(a*a + b*b));
 }
 
 
@@ -182,17 +178,10 @@ tEdge *tNode::EdgToNod( tNode const * nod )
 \*****************************************************************************/
 double tNode::ComputeVoronoiArea()
 {
-   int cw;
    double area = 0;
    double dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
    double vx, vy, x0, y0, x1, y1, x2, y2, m1, m2;
    tEdge * ce, *edgptr;
-   tPtrList< tEdge > vedgList /*= spokeList*/;
-   tPtrListIter< tEdge > //spokIter( spokeList ),
-       vtxIter( vedgList );
-   tList< tArray< double > > vcL; // list of vertex coordinates
-   tListIter< tArray< double > > vcI( vcL ); // iterator for coord list
-   tArray< double > xy, xyn, xynn, xynnn, xy1, xy2, xy3, xy4;
    int i;
 
    // the following is a temporary hack, which should be replaced by a more
@@ -210,6 +199,10 @@ double tNode::ComputeVoronoiArea()
    // to get the correct list of vertices; we don't want to delete the
    // spoke ptr, so we make a duplicate list.
    //if( id==83 ) cout << "NODE 83: " << x << "," << y << endl;
+
+   tPtrList< tEdge > vedgList /*= spokeList*/;
+   tPtrListIter< tEdge > //spokIter( spokeList ),
+       vtxIter( vedgList );
    ce = edg;
    do
    {
@@ -228,7 +221,7 @@ double tNode::ComputeVoronoiArea()
    // Check boundary status: Voronoi area only defined for non-boundary nodes
    if( boundary == kNonBoundary )
    {
-      cw = TRUE;
+      bool cw = true;
       //cout << "find clockwise loops" << endl << flush;
       do
       {
@@ -241,19 +234,19 @@ double tNode::ComputeVoronoiArea()
          // the new vertex at the intersection of the perp. bisectors
          // of the edges to either 'side' of the deleted edge. Iterate.
          // Really. It works.
-         cw = FALSE;
+         cw = false;
          for( ce=vtxIter.FirstP(); !( vtxIter.AtEnd() ); ce=vtxIter.NextP() )
          {
-            xy = ce->getRVtx();
-            xyn = vtxIter.NextP()->getRVtx();
-            xynn = vtxIter.NextP()->getRVtx();
+            tArray< double > const &xy = ce->getRVtx();
+            tArray< double > const &xyn = vtxIter.NextP()->getRVtx();
+            tArray< double > const &xynn = vtxIter.NextP()->getRVtx();
             dx0 = xynn[0] - xyn[0];
             dy0 = xynn[1] - xyn[1];
             dx1 = xy[0] - xyn[0];
             dy1 = xy[1] - xyn[1];
             if( dy0 * dx1 > dx0 * dy1 ) //clockwise
             {
-               xynnn = vtxIter.NextP()->getRVtx();
+               tArray< double > const &xynnn = vtxIter.NextP()->getRVtx();
                dx0 = xynnn[0] - xynn[0];
                dy0 = xynnn[1] - xynn[1];
                dx1 = xyn[0] - xynn[0];
@@ -263,12 +256,14 @@ double tNode::ComputeVoronoiArea()
                   //two consecutive clockwise vertices=>want intersection
                   //of bisectors of ce->nextedg and
                   //ce->nextedg->nextedg->nextedg:
-                  cw = TRUE;
+                  cw = true;
                   x0 = x; //node.x
                   y0 = y; //node.y
-                  xy1 = ce->getDestinationPtr()->get2DCoords();
+                  const tArray<double> xy1 =
+		    ce->getDestinationPtr()->get2DCoords();
                   //vtxIter.Prev();
-                  xy2 = vtxIter.PrevP()->getDestinationPtr()->get2DCoords();
+                  const tArray<double> xy2 =
+		    vtxIter.PrevP()->getDestinationPtr()->get2DCoords();
                   x1 = ( x0 + xy1[0] ) / 2;
                   y1 = ( y0 + xy1[1] ) / 2;
                   x2 = ( x0 + xy2[0] ) / 2;
@@ -306,8 +301,7 @@ double tNode::ComputeVoronoiArea()
                      }
                   }
                   edgptr = vtxIter.PrevP();
-                  xyn[0] = vx;
-                  xyn[1] = vy;
+                  const tArray< double > xyn( vx, vy );
                   dx = xy[0] - vx;
                   dy = xy[1] - vy;
                   //cout << "reset vedglen and rvtx for edge "
@@ -343,31 +337,35 @@ double tNode::ComputeVoronoiArea()
       //outlying area as long as all boundaries are convex.
       // Go through spokes and put RVtx of ccw edge in coord list, but
       // first check that the vtx lies within the bndies
+      tList< tArray< double > > vcL; // list of vertex coordinates
+      tListIter< tArray< double > > vcI( vcL ); // iterator for coord list
       tEdge *ne, *nne;
-      tNode *bn0, *bn1;
       for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
       {
          ne = ce->getCCWEdg();
-         xy1 = ne->getRVtx();
+         tArray<double> const &xy1 = ne->getRVtx();
          //checking polygon edge is on boundary and ccw edge's RVtx is on
          //wrong side of bndy edge...
          if( ce->getBoundaryFlag() && ne->getBoundaryFlag() )
          {
             //if( id==83 ) cout << " CASE A\n";
-            bn0 = ce->getDestinationPtrNC();
+	    tNode *bn0, *bn1;
+	    bn0 = ce->getDestinationPtrNC();
             bn1 = ne->getDestinationPtrNC();
-            xy2 = bn0->get2DCoords();
-            xy3 = bn1->get2DCoords();
+            const tArray<double> xy2 = bn0->get2DCoords();
+            const tArray<double> xy3 = bn1->get2DCoords();
             if( !PointsCCW( xy1, xy2, xy3 ) )
             {
                //"cut off" portion of V. area outside bndy by finding intersections
                //of V. edges and bndy edge:
                //if( id==83 ) cout << " CASE B\n";
-               xy = FindIntersectionCoords( ce->getRVtx(), xy1, xy2, xy3 );
-               vcL.insertAtBack( xy );
+               const tArray< double > xy_1 =
+		 FindIntersectionCoords( ce->getRVtx(), xy1, xy2, xy3 );
+               vcL.insertAtBack( xy_1 );
                nne = ne->getCCWEdg();
-               xy = FindIntersectionCoords( xy1, nne->getRVtx(), xy2, xy3 );
-               vcL.insertAtBack( xy );
+               const tArray< double > xy_2 =
+		 FindIntersectionCoords( xy1, nne->getRVtx(), xy2, xy3 );
+               vcL.insertAtBack( xy_2 );
             }
             else vcL.insertAtBack( xy1 );
          }
@@ -380,29 +378,29 @@ double tNode::ComputeVoronoiArea()
       // sum of the area of triangles [P(1) P(i) P(i+1)] for i=2,3...N-1.
       //cout << "find polygon area" << endl << flush;
       // coords of first vertex:
-      xy = *(vcI.FirstP()); //ce = vtxIter.FirstP();
+      tArray< double > const * const xy = vcI.FirstP(); //ce = vtxIter.FirstP();
       //xy = ce->getRVtx();
       // Find out # of vertices in polygon:
-      int nverts = vcL.getSize(); //vedgList.getSize();
+      const int nverts = vcL.getSize(); //vedgList.getSize();
       for( i=2; i<=nverts-1; i++ )
       {
          double a, b, c;
 
-         xyn = *(vcI.NextP()); //xyn = vtxIter.NextP()->getRVtx();// Vertex i
-         xynn = *(vcI.NextP());//vtxIter.ReportNextP()->getRVtx(); // Vertex i+1
+         tArray<double> const * const xyn = vcI.NextP(); //xyn = vtxIter.NextP()->getRVtx();// Vertex i
+         tArray<double> const * const xynn = vcI.NextP();//vtxIter.ReportNextP()->getRVtx(); // Vertex i+1
 	 {
-	   const double dx = xyn[0] - xy[0];
-	   const double dy = xyn[1] - xy[1];
+	   const double dx = (*xyn)[0] - (*xy)[0];
+	   const double dy = (*xyn)[1] - (*xy)[1];
 	   a = sqrt( dx*dx + dy*dy );
 	 }
 	 {
-	   const double dx = xynn[0] - xyn[0];
-	   const double dy = xynn[1] - xyn[1];
+	   const double dx = (*xynn)[0] - (*xyn)[0];
+	   const double dy = (*xynn)[1] - (*xyn)[1];
 	   b = sqrt( dx*dx + dy*dy );
 	 }
 	 {
-	   const double dx = xynn[0] - xy[0];
-	   const double dy = xynn[1] - xy[1];
+	   const double dx = (*xynn)[0] - (*xy)[0];
+	   const double dy = (*xynn)[1] - (*xy)[1];
 	   c = sqrt( dx*dx + dy*dy );
 	 }
 	 // Kahan, W. 1986. Calculating Area and Angle of a Needle-like
@@ -440,7 +438,7 @@ double tNode::ComputeVoronoiArea()
        cout << " reading list: ";
        for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
 	 {
-	   xy = ce->getRVtx();
+	   tArray<double> const &xy = ce->getRVtx();
 	   cout << xy[0] << " " << xy[1] << "; " << flush;
 	 }
        cout << endl << flush;
@@ -449,11 +447,11 @@ double tNode::ComputeVoronoiArea()
        do
 	 {
 	   assert( ce!=0 );
-	   xy = ce->getRVtx();
+	   tArray<double> const &xy = ce->getRVtx();
 	   cout << xy[0] << " " << xy[1] << "; " << flush;
 	   ce = ce->getCCWEdg();
 	 } while( ce != edg );
-       cout << endl << flush;
+       cout << endl;
      }
    }
 
@@ -476,9 +474,6 @@ double tNode::ComputeVoronoiArea()
 \*******************************************************************/
 void tNode::getVoronoiVertexList( tList<Point2D> * vertexList )
 {
-   tArray<double> vtxarr;
-   Point2D vtx;
-
    assert( !boundary );
 
    vertexList->Flush();
@@ -488,9 +483,8 @@ void tNode::getVoronoiVertexList( tList<Point2D> * vertexList )
    tEdge *ce = edg;
    do
    {
-      vtxarr = ce->getRVtx();
-      vtx.x = vtxarr[0];
-      vtx.y = vtxarr[1];
+      tArray<double> const & vtxarr = ce->getRVtx();
+      const Point2D vtx( vtxarr[0], vtxarr[1] );
       //cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << endl;
       vertexList->insertAtBack( vtx );
       ce = ce->getCCWEdg();
@@ -517,10 +511,6 @@ void tNode::getVoronoiVertexList( tList<Point2D> * vertexList )
 \*******************************************************************/
 void tNode::getVoronoiVertexXYZList( tList<Point3D> * vertexList )
 {
-   tArray<double> vtxarr,
-       zvals(3),
-       p0(2), p1(2), p2(2);
-   Point3D vtx;
    tNode *n1, *n2;
 
    assert( !boundary );
@@ -536,14 +526,14 @@ void tNode::getVoronoiVertexXYZList( tList<Point3D> * vertexList )
       ce = ce->getCCWEdg();
       n1 = n2;
       n2 = ce->getDestinationPtrNC();
-      vtxarr = ce->getRVtx();
-      vtx.x = vtxarr[0];
-      vtx.y = vtxarr[1];
-      zvals[0] = this->z;
-      zvals[1] = n1->getZ();
-      zvals[2] = n2->getZ();
-      vtx.z = PlaneFit( vtx.x, vtx.y, this->get2DCoords(), n1->get2DCoords(), n2->get2DCoords(), zvals );
-      //Xcout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << " z " << vtx.z << endl;
+      tArray<double> const &vtxarr = ce->getRVtx();
+      const tArray<double> zvals( this->z, n1->getZ(), n2->getZ());
+      const double zz =
+	PlaneFit(vtxarr[0], vtxarr[1], this->get2DCoords(),
+		 n1->get2DCoords(), n2->get2DCoords(), zvals );
+      const Point3D vtx(vtxarr[0], vtxarr[1], zz);
+      if (0) //DEBUG
+	cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << " z " << vtx.z << endl;
       vertexList->insertAtBack( vtx );
    }
    while( ce!=edg );
@@ -824,67 +814,65 @@ tTriangle::~tTriangle()
 tArray< double >
 tTriangle::FindCircumcenter() const
 {
-   double x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
-   tArray< double > xyo, xyd1, xyd2, xy(2);
-
    assert( pPtr(0) && pPtr(1) && pPtr(2) );
 
    // Coordinates of triangle's nodes p0, p1, and p2
-   xyo = pPtr(0)->get2DCoords();
-   xyd1 = pPtr(1)->get2DCoords();
-   xyd2 = pPtr(2)->get2DCoords();
+   tArray< double > const xyo = pPtr(0)->get2DCoords();
+   tArray< double > const xyd1 = pPtr(1)->get2DCoords();
+   tArray< double > const xyd2 = pPtr(2)->get2DCoords();
 
    // Find the midpoints of the two sides (p0,p1) and (p0,p2) and store them
    // in (x1,y1) & (x2,y2). Then get the distance between p0 and the
    // midpoints of each side
-   x1 = (xyo[0] + xyd1[0]) / 2;
-   y1 = (xyo[1] + xyd1[1]) / 2;
-   x2 = (xyo[0] + xyd2[0]) / 2;
-   y2 = (xyo[1] + xyd2[1]) / 2;
-   dx1 = x1-xyo[0];
-   dy1 = y1-xyo[1];
-   dx2 = x2-xyo[0];
-   dy2 = y2-xyo[1];
+   const double x1 = (xyo[0] + xyd1[0]) / 2;
+   const double y1 = (xyo[1] + xyd1[1]) / 2;
+   const double x2 = (xyo[0] + xyd2[0]) / 2;
+   const double y2 = (xyo[1] + xyd2[1]) / 2;
+   const double dx1 = x1-xyo[0];
+   const double dy1 = y1-xyo[1];
+   const double dx2 = x2-xyo[0];
+   const double dy2 = y2-xyo[1];
+
+   double XX, YY;
 
    // Compute the intercept of the bisectors of the two sides:
    // Case: neither spoke is horizontal (ok to divide by dy1 and dy2)
    if( fabs(dy1)>0 && fabs(dy2)>0 )
    {
       assert( dy1!=0 && dy2!=0 );
-      m1= -dx1/dy1;
-      m2 = -dx2/dy2;
+      const double m1= -dx1/dy1;
+      const double m2 = -dx2/dy2;
       assert( m1!=m2 ); // should never happen; means edges are parallel
-      xy[0] = (y2 - m2 * x2 - y1 + m1 * x1) / (m1 - m2);
-      xy[1] = m1 * (xy[0] - x1) + y1;
+      XX = (y2 - m2 * x2 - y1 + m1 * x1) / (m1 - m2);
+      YY = m1 * (XX - x1) + y1;
    }
    // Case: one spoke is horizontal, but neither are vertical
    else if( dx1!=0 && dx2!=0 )
    {
       assert( dx1!=0 && dx2!=0 );
-      m1 = dy1/dx1;
-      m2 = dy2/dx2;
+      const double m1 = dy1/dx1;
+      const double m2 = dy2/dx2;
       assert( m1!=m2 );
-      xy[1] = (m1 * y1 + x1 - m2 * y2 - x2) / (m1 - m2);
-      xy[0] = -xy[1] * m1 + m1 * y1 + x1;
+      YY = (m1 * y1 + x1 - m2 * y2 - x2) / (m1 - m2);
+      XX = -YY * m1 + m1 * y1 + x1;
    }
    // Special case: one is vertical, the other horizontal
    else
    {
       if( dx1!=0 )
       {
-         xy[0] = xyo[0] + dx1;
-         xy[1] = xyo[1] + dy2;
          assert( dx2==0 && dy1==0 );
+	 XX = xyo[0] + dx1;
+	 YY = xyo[1] + dy2;
       }
       else
       {
-         xy[0] = xyo[0] + dx2;
-         xy[1] = xyo[1] + dy1;
          assert( dx1==0 && dy2==0 );
+	 XX = xyo[0] + dx2;
+	 YY = xyo[1] + dy1;
       }
    }
-
-   return xy;
+   return tArray< double >(XX, YY);
 }
 
 
