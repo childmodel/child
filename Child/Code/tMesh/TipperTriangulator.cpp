@@ -20,6 +20,14 @@ typedef enum { false=0, true } bool;
 
 #define TIMING 1
 
+// vector product (or cross product) of p0p1,p0p2
+static
+double vecprod(int p0,int p1,int p2,const point *p){
+  return
+    (p[p1].x-p[p0].x)*(p[p2].y-p[p0].y)
+    -(p[p1].y-p[p0].y)*(p[p2].x-p[p0].x);
+}
+
 const point &point::operator=( const point &p ) {
   if ( &p != this ) {
     x=p.x; y=p.y;
@@ -41,6 +49,14 @@ bool edge::visible(const point p[],int i) const {
   //rely on the fact that a) hull is anticlockwise oriented
   //b)data is positive x ordered
 
+#if 1
+  // visible if p[i] is on the right of p[from]p[to] and not colinear,
+  // that is if angle(from-to,from-i) < 0 
+  const double v = vecprod(from,to,i, p);
+  if (v>=0)
+    return false;
+  return true;
+#else
   const double mindistance = 0.0000001;
   if (fabs(p[from].x-p[to].x) < mindistance) return true;
   if (fabs(p[to].y-p[from].y)<mindistance){
@@ -55,6 +71,7 @@ bool edge::visible(const point p[],int i) const {
     if(p[i].y>p[from].y+(p[to].y-p[from].y)/(p[to].x-p[from].x)*(p[i].x-p[from].x))return true;
   }
   return false;
+#endif
 }
 
 int edge::swap(int tint,edge e[],const point p[]){
@@ -142,7 +159,7 @@ class cyclist{
   void delNext(int list_pos);
   void add(int ej);
   void invariant() const;
-  void checkRange(int e) const;
+  void checkRange(int) const;
 public:
   cyclist(int s);
   ~cyclist();
@@ -160,42 +177,46 @@ public:
     checkRange(list_pos);
     return ejs[list_pos].prev;
   }
-  int addBefore(int a, int ej);
-  int addAfter(int a, int ej);
+  int addBefore(int a, int ej); // ej is the data to be stored after location a
+  int addAfter(int a, int ej); // ej is the data to be stored after location a
 #if defined(DEBUG_PRINT)
   void print() const;
 #endif
 private:
-  const int size; 
   struct item{
     int next,prev,data;
   };
   item* ejs;  // array of size "size"
-  // hole points to the next unfilled location,
-  // prev to the location that was last filled
+  const int size; // maximum size
+  // "hole" points to the next unfilled location,
+  // "prev" to the location that was last filled
   // we keep track of empty bits of the list using hole to point to an empty slot,
   // and the value ejs[hole] to point to the next empty slot
+  // "num" is the current number of elements 
   int prev, hole, num;
 };
 
-cyclist::cyclist(int s): size(s),ejs(0),prev(0),hole(0),num(0) {
+cyclist::cyclist(int s): ejs(0),size(s),prev(0),hole(0),num(0) {
   ejs=new item[size];
   //fill ej array with a set of pointers to the next unfilled location
-  for (int i=0;i<size;i++) ejs[i].data=i+1;
+  for (int i=0;i<size-1;i++) ejs[i].data=i+1;
+  ejs[size-1].data = -1;
 }
 cyclist::~cyclist(){
   invariant();
   delete [] ejs;
 }
-void cyclist::checkRange(int e) const {
-  assert(e<size);
-  assert(0<=e);
+void cyclist::checkRange(int p) const {
+  assert(p<size);
+  assert(0<=p);
 }
 void cyclist::invariant() const {
   assert(num<=size);
   assert(0<=num);
-  checkRange(hole);
   checkRange(prev);
+  assert(hole<size);
+  if (num!=size)
+    assert(0<=hole);
 }
 void cyclist::delNext(int list_pos){
   checkRange(list_pos);
@@ -228,7 +249,8 @@ void cyclist::add(int ej){
   ejs[hole].next=0;
   ejs[0].prev=hole;
   prev=hole;
-  hole=n;num++;
+  hole=n;
+  num++;
 }
 int cyclist::addBefore(int a, int ej){
   checkRange(a);
@@ -265,16 +287,14 @@ int cyclist::addAfter(int a,int ej){
   return prev;
 }
 #if defined(DEBUG_PRINT)
-void cyclist::print() const {int j=ejs[0].next;for (int i=0;i<num;i++){cout<<ejs[j].data<<endl;j=ejs[j].next;}}
-#endif
-
-// vector product (or cross product) of p0p1,p0p2
-static
-double vecprod(int p0,int p1,int p2,const point *p){
-  return
-    (p[p1].x-p[p0].x)*(p[p2].y-p[p0].y)
-    -(p[p1].y-p[p0].y)*(p[p2].x-p[p0].x);
+void cyclist::print() const {
+  int j=ejs[0].next;
+  for (int i=0;i<num;i++){
+    cout<<ejs[j].data<<endl;
+    j=ejs[j].next;
+  }
 }
+#endif
 
 void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 
@@ -337,14 +357,15 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
     //first set up the new edge that joins to the point coincident
     //between upper and lower edge
     if(edges[hull.getEdge(upper_hull_pos)].visible(p,i)){
+      const int hup = hull.getEdge(upper_hull_pos);
       //make new edge - from and to nodes preserve hull orientation
-      edges[next_edge].from=edges[hull.getEdge(upper_hull_pos)].from;
+      edges[next_edge].from=edges[hup].from;
       edges[next_edge].to=i;
       //save hull position for possible later use
       saved_edge=next_edge;
       //connectivity for swapping - we know the ID of the
       //next edge to be created since upper hull is visible
-      edges[next_edge].lef=hull.getEdge(upper_hull_pos);
+      edges[next_edge].lef=hup;
       edges[next_edge].let=next_edge+1;
       next_edge++;
     }
@@ -362,38 +383,38 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 	  exit(1);
 	}
       }
+      const int hlow = hull.getEdge(lower_hull_pos);
       edges[next_edge].from=i;
-      edges[next_edge].to=edges[hull.getEdge(lower_hull_pos)].to;
+      edges[next_edge].to=edges[hlow].to;
 
       //connectivity for swapping - we know the ID of the
       //next edge but one to be created since upper hull is *not* visible
-      edges[next_edge].let=hull.getEdge(lower_hull_pos);
+      edges[next_edge].let=hlow;
       edges[next_edge].lef=next_edge+1;
       next_edge++;
     }
     //now we need to add the upper hull edges - drop through to set edge made above
     //to the new upper edge if upper edge not visible
     count=0;
-    int h;
     while (edges[hull.getEdge(upper_hull_pos)].visible(p,i)){
-      h=hull.getEdge(upper_hull_pos);
+      const int hup=hull.getEdge(upper_hull_pos);
       edges[next_edge].from=i;
-      edges[next_edge].to=edges[h].to;
+      edges[next_edge].to=edges[hup].to;
       //if we got here, the upper hull is visible, so we know which way the edges point
       //set the left and right neighbour edges
       if (count!=0){
 	//if we're on the second time round the loop, the edge made in
 	// the previous pass needs to be connected on its right side
 	edges[next_edge-1].ref=next_edge;
-	edges[next_edge-1].ret=h;
+	edges[next_edge-1].ret=hup;
       }
       count++;
-      edges[h].ref=next_edge-1;
-      edges[h].ret=next_edge;
-      edges[next_edge].let=h;
+      edges[hup].ref=next_edge-1;
+      edges[hup].ret=next_edge;
+      edges[next_edge].let=hup;
       edges[next_edge].lef=next_edge-1;
       //check the hull edge's delauniness
-      edges[h].swap(h,edges,p);
+      edges[hup].swap(hup,edges,p);
       next_edge++;
       //delete upper edge from the hull
       //and go round the hull in the positive direction
@@ -405,24 +426,24 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
     upper_hull_pos=hull.addBefore(upper_hull_pos,next_edge-1);
     //now we need to add the lower hull edges
     while (edges[hull.getEdge(lower_hull_pos)].visible(p,i)){
-      h=hull.getEdge(lower_hull_pos);
+      const int hlow=hull.getEdge(lower_hull_pos);
       //upper hull was not visible
       if (saved_edge==-1){
 	//after this pass through the loop, always do the else clause
 	saved_edge=next_edge-1;
       }else{
 	//connect right side of previously created edge
-	edges[saved_edge].ref=h;
+	edges[saved_edge].ref=hlow;
 	edges[saved_edge].ret=next_edge;
       }
       edges[next_edge].to=i;
-      edges[next_edge].from=edges[h].from;
-      edges[h].ret=saved_edge;
-      edges[h].ref=next_edge;
-      edges[next_edge].lef=h;
+      edges[next_edge].from=edges[hlow].from;
+      edges[hlow].ret=saved_edge;
+      edges[hlow].ref=next_edge;
+      edges[next_edge].lef=hlow;
       edges[next_edge].let=saved_edge;
       //swap it if it needs it
-      edges[h].swap(h,edges,p);
+      edges[hlow].swap(hlow,edges,p);
       //keep the edge for below - this is necessary in case the upper hull wasn't visible
       saved_edge=next_edge;
       next_edge++;
@@ -436,6 +457,7 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
     lower_hull_pos=hull.addAfter(lower_hull_pos,saved_edge);
   }
 
+  // results
   { 
     int i=0;
     while(edges[i].from != -1 ) i++;
