@@ -57,7 +57,7 @@
  **     - Added codes to go along with erosion & transport options, to
  **       enable checking against user-specified options (GT 7/02)
  **
- **  $Id: erosion.h,v 1.54 2004-04-19 12:07:40 childcvs Exp $
+ **  $Id: erosion.h,v 1.55 2004-04-27 10:40:20 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -67,6 +67,7 @@
 #include "../Definitions.h"
 #include "../Classes.h"
 #include "../tArray/tArray.h"
+#include "../tArray/tArray2.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tLNode/tLNode.h"
 #include "../tUplift/tUplift.h"
@@ -115,7 +116,7 @@ private:
   tMesh< tLNode > *meshPtr; //ptr to tMesh
   tRunTimer *timePtr; //ptr to tRunTimer
   double longTime; //'long' time interval
-  tList< tArray< double > > massList; //linked list of arrays: (time, mesh mass)
+  tList< tArray2< double > > massList; //linked list of arrays: (time, mesh mass)
   //'mass' is misnomer--actually mean elev.
   double longRate;
   double shortRate;

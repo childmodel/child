@@ -45,7 +45,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.133 2004-04-19 17:30:08 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.134 2004-04-27 10:40:18 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -218,32 +218,35 @@ double tEquilibCheck::getShortRate() const {return shortRate;}
 double tEquilibCheck::FindIterChngRate()
 {
   assert( timePtr != 0 && meshPtr != 0 );
-  tArray< double > tmp(2);
-  tmp[0] = timePtr->getCurrentTime();
-  tMesh< tLNode >::nodeListIter_t nI( meshPtr->getNodeList() );
-  tListIter< tArray< double > > mI( massList );
-  tLNode *cn;
-  double mass = 0.0;
-  double area = 0.0;
-  for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
-    {
-      mass += cn->getZ() * cn->getVArea();
-      area += cn->getVArea();
-    }
-  tmp[1] = mass / area;
+
+  double ma;
+  {
+    tMesh< tLNode >::nodeListIter_t nI( meshPtr->getNodeList() );
+    tLNode *cn;
+    double mass = 0.0;
+    double area = 0.0;
+    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+      {
+	mass += cn->getZ() * cn->getVArea();
+	area += cn->getVArea();
+      }
+    ma = mass / area;
+  }
+  const tArray2< double > tmp( timePtr->getCurrentTime(), ma);
+
+  tListIter< tArray2< double > > mI( massList );
   if( !(massList.isEmpty()) )
     {
-      tArray< double > *last;
-      last = mI.LastP();
-      double dt = (tmp[0] - (*last)[0]);
+      tArray2< double > *last = mI.LastP();
+      double dt = (tmp.at(0) - (*last).at(0));
       assert( dt > 0.0 );
-      shortRate = (tmp[1] - (*last)[1]) / dt;
+      shortRate = (tmp.at(1) - (*last).at(1)) / dt;
     }
   else
     {
       //cout << "tEquilibCheck::FindIterChngRate(), Warning: empty massList\n";
-      assert( tmp[0] > 0 );
-      shortRate = tmp[1] / tmp[0];
+      assert( tmp.at(0) > 0 );
+      shortRate = tmp.at(1) / tmp.at(0);
     }
   massList.insertAtBack( tmp );
   return shortRate;
@@ -261,23 +264,23 @@ double tEquilibCheck::FindIterChngRate()
 double tEquilibCheck::FindLongTermChngRate()
 {
   FindIterChngRate();
-  tListIter< tArray< double > > mI( massList );
-  tArray< double > *last = mI.LastP();
-  tArray< double > *ca, *na;
-  double dt, targetTime = (*last)[0] - longTime;
+  tListIter< tArray2< double > > mI( massList );
+  tArray2< double > *last = mI.LastP();
+  tArray2< double > *ca, *na;
+  double dt, targetTime = (*last).at(0) - longTime;
   if( longTime == 0.0 || mI.FirstP() == mI.LastP() ) longRate = shortRate;
   else
     {
       ca = mI.FirstP();
       na = mI.NextP();
-      while( (*na)[0] < targetTime && !(mI.AtEnd()) )
+      while( (*na).at(0) < targetTime && !(mI.AtEnd()) )
 	{
 	  ca = na;
 	  na = mI.NextP();
 	}
-      dt = (*last)[0] - (*ca)[0];
+      dt = (*last).at(0) - (*ca).at(0);
       assert( dt > 0 );
-      longRate = ((*last)[1] - (*ca)[1]) / dt;
+      longRate = ((*last).at(1) - (*ca).at(1)) / dt;
     }
   return longRate;
 }
