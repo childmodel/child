@@ -24,7 +24,7 @@
 **  Recent modifications:
 **    - 1/00: GT added vegofs for output of vegetation cover
 **
-**  $Id: tOutput.h,v 1.18 2000-06-24 20:19:49 daniel Exp $
+**  $Id: tOutput.h,v 1.19 2000-07-04 04:44:28 daniel Exp $
 \*************************************************************************/
 
 #ifndef TOUTPUT_H
@@ -95,6 +95,7 @@ public:
     tLOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile );
     void WriteNodeData( double time );  
     void WriteTSOutput();
+    int NodeCount();
 private:
     ofstream drareaofs;  // Drainage areas
     ofstream netofs;     // Downstream neighbor IDs
