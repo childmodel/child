@@ -14,7 +14,7 @@
 **  Created January, 2000, GT
 **  State read back from file if needed - November 2003, AD
 **
-**  $Id: tVegetation.cpp,v 1.14 2004-03-24 14:54:45 childcvs Exp $
+**  $Id: tVegetation.cpp,v 1.15 2004-03-24 17:05:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -72,7 +72,7 @@ tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, const tInputFile &infil
 			 " in input file." );
      // Rely on the fact that the IDs have not been re-numbered.
      // for fast lookup per ID
-     const tIdArray< tLNode > NodeTable(*(meshPtr->getNodeList()));
+     const tMesh< tLNode >::tIdArrayNode_t NodeTable(*(meshPtr->getNodeList()));
      for( int id=0; id < nnodes; ++id )
        NodeTable[id]->getVegCover().mdVeg = inputVegData.vegCov[id];
      for( tLNode *cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )

@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.200 2004-03-24 14:54:35 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.201 2004-03-24 17:05:43 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -535,7 +535,7 @@ MakeMeshFromInputData( const tInputFile &infile )
    cout << "done.\n";
 
    {
-     const tIdArray< tSubNode > NodeTable(nodeList); // for fast lookup per ID
+     const tIdArrayNode_t NodeTable(nodeList); // for fast lookup per ID
      // Create and initialize the edge list by creating two temporary edges
      // (which are complementary, ie share the same endpoints) and then
      // iteratively assigning values to the pair and inserting them onto the
@@ -585,7 +585,7 @@ MakeMeshFromInputData( const tInputFile &infile )
 	     }
 	 }
      }
-     const tIdArray< tEdge > EdgeTable(edgeList); // for fast lookup per ID
+     const tIdArrayEdge_t EdgeTable(edgeList); // for fast lookup per ID
      cout << "done.\n";
 
      //DEBUG
@@ -652,7 +652,7 @@ MakeMeshFromInputData( const tInputFile &infile )
      }
    }
    {
-     const tIdArray< tTriangle > TriTable(triList); // for fast lookup per ID
+     const tIdArrayTri_t TriTable(triList); // for fast lookup per ID
      for( int i=0; i<ntri; ++i )
        {
 	 tTriangle *ct = TriTable[ i ];

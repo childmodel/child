@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.74 2004-03-24 15:26:19 childcvs Exp $
+**  $Id: tMesh.h,v 1.75 2004-03-24 17:05:45 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -48,6 +48,30 @@
 #include "../globalFns.h"
 #include "../Predicates/predicates.h"
 
+/** @class tIdArray
+    @brief Lookup table per Id for a tList
+*/
+template< class T >
+class tIdArray
+{
+  tArray< T* > e_;
+public:
+  tIdArray(tList< T >& List);
+  T* operator[]( int subscript ) const {
+    // return a value and not a reference, hence the "const".
+    return e_[subscript];
+  }
+};
+
+template< class T >
+tIdArray< T >::tIdArray(tList< T >& List) :
+  e_(List.getSize())
+{
+  tListIter< T > Iter( List );
+  T *c;
+  for( c=Iter.FirstP(); !(Iter.AtEnd()); c=Iter.NextP() )
+    e_[c->getID()] = c;
+}
 
 /***************************/
 /****** Defined types ******/
@@ -112,6 +136,11 @@ public:
   // tListNode types
    typedef tListNode< tSubNode > nodeListNode_t;
    typedef tListNode< tEdge > edgeListNode_t;
+
+   // tIdArray
+   typedef tIdArray< tSubNode > tIdArrayNode_t;
+   typedef tIdArray< tEdge > tIdArrayEdge_t;
+   typedef tIdArray< tTriangle > tIdArrayTri_t;
 
    tMesh();
    tMesh( const tInputFile & );
@@ -245,31 +274,6 @@ protected:
 #else
 # define CHECKMESHCONSISTENCY true
 #endif
-
-/** @class tIdArray
-    @brief Lookup table per Id for a tList
-*/
-template< class T >
-class tIdArray
-{
-  tArray< T* > e_;
-public:
-  tIdArray(tList< T >& List);
-  T* operator[]( int subscript ) const {
-    // return a value and not a reference, hence the "const".
-    return e_[subscript];
-  }
-};
-
-template< class T >
-tIdArray< T >::tIdArray(tList< T >& List) :
-  e_(List.getSize())
-{
-  tListIter< T > Iter( List );
-  T *c;
-  for( c=Iter.FirstP(); !(Iter.AtEnd()); c=Iter.NextP() )
-    e_[c->getID()] = c;
-}
 
 /*
 ** The following is designed to allow for compiling under the Borland-style

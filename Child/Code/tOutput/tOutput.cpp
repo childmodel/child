@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.91 2004-03-24 14:54:38 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.92 2004-03-24 17:05:46 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -261,7 +261,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
       WriteNodeRecord( cn );
   } else {
     // write nodes in ID order
-    tIdArray< tSubNode > RNode(*(m->getNodeList()));
+    typename tMesh< tSubNode >::tIdArrayNode_t  RNode(*(m->getNodeList()));
     for( int i=0; i<nnodes; ++i )
       WriteNodeRecord( RNode[i] );
   }
@@ -273,7 +273,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
       WriteEdgeRecord( ce );
   } else {
     // write edges in ID order
-    tIdArray< tEdge > REdge(*(m->getEdgeList()));
+    typename tMesh< tSubNode >::tIdArrayEdge_t REdge(*(m->getEdgeList()));
     for( int i=0; i<nedges; ++i )
       WriteEdgeRecord( REdge[i] );
   }
@@ -285,7 +285,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
       WriteTriangleRecord( ct );
   } else {
     // write triangles in ID order
-    tIdArray< tTriangle > RTri(*(m->getTriList()));
+    typename tMesh< tSubNode >::tIdArrayTri_t RTri(*(m->getTriList()));
     for( int i=0; i<ntri; ++i ) {
       assert( RTri[i]->isIndexIDOrdered() );
       WriteTriangleRecord( RTri[i] );
@@ -503,7 +503,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
       WriteAllNodeData( cn );
   } else {
     // write in node ID order
-    tIdArray< tSubNode > RNode(*(m->getNodeList()));
+    typename tMesh< tSubNode >::tIdArrayNode_t RNode(*(m->getNodeList()));
     int i;
     for( i=0; i<nActiveNodes; ++i )
       WriteActiveNodeData( RNode[i] );

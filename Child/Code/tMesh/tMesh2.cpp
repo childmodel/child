@@ -202,7 +202,7 @@ BuildDelaunayMeshTipper()
    this->nedges = 2*nedgesl;
    this->ntri = nelem;
    {
-     const tIdArray< tSubNode > NodeTable(nodeList); // for fast lookup per ID
+     const tIdArrayNode_t NodeTable(nodeList); // for fast lookup per ID
 
      // Create and initialize the edge list by creating two temporary edges
      // (which are complementary, ie share the same endpoints) and then
@@ -247,7 +247,7 @@ BuildDelaunayMeshTipper()
 	   }
        }
      }
-     const tIdArray< tEdge > EdgeTable(edgeList); // for fast lookup per ID
+     const tIdArrayEdge_t EdgeTable(edgeList); // for fast lookup per ID
      cout << "done.\n";
 
      if (0) { //DEBUG
@@ -345,7 +345,7 @@ BuildDelaunayMeshTipper()
    delete [] edges; edges = 0;
    delete [] p;
    {
-     const tIdArray< tTriangle > TriTable(triList); // for fast lookup per ID
+     const tIdArrayTri_t TriTable(triList); // for fast lookup per ID
      int ielem;
      for( ielem=0; ielem<nelem; ++ielem ) {
        tTriangle *ct = TriTable[ ielem ];
