@@ -10,10 +10,11 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.3 1998-01-16 00:14:47 gtucker Exp $
+**  $Id: erosion.cpp,v 1.4 1998-01-21 22:11:01 gtucker Exp $
 \***************************************************************************/
 
-#include "../Inclusions.h"
+#include <math.h>
+#include <assert.h>
 #include "erosion.h"
 
 /***************************************************************************\
