@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.77 2004-03-25 17:27:49 childcvs Exp $
+**  $Id: tMesh.h,v 1.78 2004-03-26 18:11:36 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -126,23 +126,24 @@ class tMesh
    void SplitNonFlippableEdge( tPtrList< tEdge > &, double time );
 public:
    // list types
-   typedef tMeshList< tSubNode > nodeList_t;
-   typedef tMeshList< tEdge > edgeList_t;
-   typedef tList< tTriangle > triList_t;
+   typedef tMeshList< tSubNode, tListNodeListable< tSubNode > > nodeList_t;
+   typedef tMeshList< tEdge, tListNodeListable< tEdge > > edgeList_t;
+   typedef tList< tTriangle, tListNodeListable< tTriangle > > triList_t;
 
    // iterators types
-   typedef tMeshListIter< tSubNode > nodeListIter_t;
-   typedef tMeshListIter< tEdge > edgeListIter_t;
-   typedef tListIter< tTriangle > triListIter_t;
+   typedef tMeshListIter< tSubNode, tListNodeListable< tSubNode > > nodeListIter_t;
+   typedef tMeshListIter< tEdge, tListNodeListable< tEdge > > edgeListIter_t;
+   typedef tListIter< tTriangle, tListNodeListable< tTriangle > > triListIter_t;
 
    // tListNode types
-   typedef tListNodeBasic< tSubNode > nodeListNode_t;
-   typedef tListNodeBasic< tEdge > edgeListNode_t;
+   typedef tListNodeListable< tSubNode > nodeListNode_t;
+   typedef tListNodeListable< tEdge > edgeListNode_t;
+   typedef tListNodeListable< tTriangle > triListNode_t;
 
    // tIdArray
-   typedef tIdArray< tSubNode > tIdArrayNode_t;
-   typedef tIdArray< tEdge > tIdArrayEdge_t;
-   typedef tIdArray< tTriangle > tIdArrayTri_t;
+   typedef tIdArray< tSubNode, tListNodeListable< tSubNode > > tIdArrayNode_t;
+   typedef tIdArray< tEdge, tListNodeListable< tEdge > > tIdArrayEdge_t;
+   typedef tIdArray< tTriangle, tListNodeListable< tTriangle > > tIdArrayTri_t;
 
    tMesh();
    tMesh( const tInputFile & );

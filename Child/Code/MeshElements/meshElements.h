@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.71 2004-03-24 13:19:02 childcvs Exp $
+**  $Id: meshElements.h,v 1.72 2004-03-26 18:11:32 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -160,12 +160,16 @@ public:
   virtual void PrepForAddition( tTriangle const *, double ) {}
   virtual void PrepForMovement( tTriangle const *, double ) {}
 
+  void setListPtr(void *ptr) { listObj.setListPtr(ptr); }
+  void *getListPtr() const { return listObj.getListPtr(); }
+
 #ifndef NDEBUG
    void TellAll() const;  // Debugging routine that outputs node data
 #endif
 
 
 protected:
+  tListable        listObj;
   int id;           // ID number
   double x;         // x coordinate
   double y;         // y coordinate
@@ -262,16 +266,20 @@ public:
   void setVEdgLen( double ); // sets length of corresponding Voronoi edge
   double CalcVEdgLen();      // computes, sets & returns length of V cell edg
   tEdge * FindComplement();  // returns ptr to edge's complement
-  tTriangle* TriWithEdgePtr();
-  void setTri( tTriangle* );
+  inline tTriangle* TriWithEdgePtr();
+  inline void setTri( tTriangle* );
 
   inline bool isFlippable() const;
+
+  void setListPtr(void *ptr) { listObj.setListPtr(ptr); }
+  void *getListPtr() const { return listObj.getListPtr(); }
 
 #ifndef NDEBUG
   void TellCoords();  // debug routine that reports edge coordinates
 #endif
 
 private:
+  tListable        listObj;
   int id;          // ID number
   tEdgeBoundary_t flowAllowed; // boundary flag, usu. false when org & dest = closed bds
   double len;      // edge length
@@ -345,7 +353,11 @@ public:
   void TellAll() const;  // debugging routine
 #endif
 
+  void setListPtr(void *ptr) { listObj.setListPtr(ptr); }
+  void *getListPtr() const { return listObj.getListPtr(); }
+
 private:
+  tListable        listObj;
   tNode *p[3];     // ptrs to 3 nodes (vertices)
   tEdge *e[3];     // ptrs to 3 clockwise-oriented edges
   tTriangle *t[3]; // ptrs to 3 neighboring triangles (or 0 if no nbr exists)
@@ -425,6 +437,7 @@ private:
 
 //default constructor
 inline tNode::tNode() :
+  listObj(),
   id(0),
   x(0.), y(0.), z(0.),
   varea(0.), varea_rcp(0.),
@@ -433,6 +446,7 @@ inline tNode::tNode() :
 
 //copy constructor
 inline tNode::tNode( const tNode &original ) :
+  listObj(original.listObj),
   id(original.id),
   x(original.x), y(original.y), z(original.z),
   varea(original.varea), varea_rcp(original.varea_rcp),
@@ -464,7 +478,7 @@ inline const tNode &tNode::operator=( const tNode &right )
 {
    if( &right != this )
    {
-      tPtrListIter< tEdge > spokIter;
+      listObj = right.listObj,
       id = right.id;
       x = right.x;
       y = right.y;
@@ -685,6 +699,7 @@ inline tArray< double > tNode::FuturePosn() {return get2DCoords();}
 
 //default constructor
 inline tEdge::tEdge() :
+  listObj(),
   id(0), flowAllowed(kFlowNotAllowed), len(0.), slope(0.),
   rvtx(2),
   vedglen(0.),
@@ -697,6 +712,7 @@ inline tEdge::tEdge() :
 
 //copy constructor
 inline tEdge::tEdge( const tEdge &original ) :
+  listObj(original.listObj),
   id(original.id), flowAllowed(original.flowAllowed),
   len(original.len), slope(original.slope),
   rvtx(original.rvtx),
@@ -706,6 +722,7 @@ inline tEdge::tEdge( const tEdge &original ) :
 {}
 
 inline tEdge::tEdge(tNode* n1, tNode* n2) :
+  listObj(),
   id(0), flowAllowed(kFlowNotAllowed), len(0.), slope(0.),
   rvtx(2),
   vedglen(0.),
@@ -718,6 +735,7 @@ inline tEdge::tEdge(tNode* n1, tNode* n2) :
 }
 
 inline tEdge::tEdge(int id_, tNode* n1, tNode* n2) :
+  listObj(),
   id(id_), flowAllowed(kFlowNotAllowed), len(0.), slope(0.),
   rvtx(2),
   vedglen(0.),
@@ -746,6 +764,7 @@ inline const tEdge &tEdge::operator=( const tEdge &original )
 {
    if( &original != this )
    {
+      listObj = original.listObj;
       id = original.id;
       len = original.len;
       slope = original.slope;
@@ -1062,6 +1081,7 @@ void tTriangle::SetIndex()
 
 //default
 inline tTriangle::tTriangle() :
+  listObj(),
   id(-1)
 {
    for( int i=0; i<3; i++ )
@@ -1077,6 +1097,7 @@ inline tTriangle::tTriangle() :
 
 //copy constructor
 inline tTriangle::tTriangle( const tTriangle &init ) :
+  listObj(init.listObj),
   id(init.id)
 {
    for( int i=0; i<3; i++ )
@@ -1092,6 +1113,7 @@ inline tTriangle::tTriangle( const tTriangle &init ) :
 
 // construct with id and 3 vertices
 inline tTriangle::tTriangle( int id_, tNode* n0, tNode* n1, tNode* n2 ) :
+  listObj(),
   id(id_)
 {
   assert( n0 != 0 && n1 != 0 && n2 != 0 );
@@ -1107,6 +1129,7 @@ inline tTriangle::tTriangle( int id_, tNode* n0, tNode* n1, tNode* n2 ) :
 
 inline tTriangle::tTriangle( int id_, tNode* n0, tNode* n1, tNode* n2,
                              tEdge* e0, tEdge* e1, tEdge* e2 ) :
+  listObj(),
   id(id_)
 {
   assert( n0 != 0 && n1 != 0 && n2 != 0 && e0 != 0 && e1 != 0 && e2 != 0 );
@@ -1139,6 +1162,7 @@ inline const tTriangle &tTriangle::operator=( const tTriangle &init )
 {
    if( &init != this )
    {
+      listObj = init.listObj;
       id = init.id;
       for( int i=0; i<3; i++ )
       {

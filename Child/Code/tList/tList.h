@@ -34,7 +34,7 @@
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **    - AD - March 2004: tListNode is a template argument.
  **
- **  $Id: tList.h,v 1.52 2004-03-25 17:27:48 childcvs Exp $
+ **  $Id: tList.h,v 1.53 2004-03-26 18:11:33 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -83,7 +83,9 @@ public:
   inline const NodeType *getDataPtr() const;           // returns const ptr to data
   inline const tListNodeBasic< NodeType > * getNext() const;// returns const ptr to next
   inline const tListNodeBasic< NodeType > * getPrev() const;
-  static bool isListable() { return false; }
+  enum {
+    isListable = false
+  };
   static tListNodeBasic< NodeType > *getListPtr( NodeType *ptr) {
     return 0;
   }
@@ -247,6 +249,246 @@ getNext() const {return next;}
 //return prev pointer
 template< class NodeType >
 inline const tListNodeBasic< NodeType > *tListNodeBasic< NodeType >::
+getPrev() const {return prev;}
+
+
+/**************************************************************************/
+/**
+ ** @class tListable
+ **
+ ** Used by classes T that can be used by tList<T,tListNodeListable<T> >.
+ **
+ */
+/**************************************************************************/
+class tListable
+{
+public:
+  tListable() : listPtr(0) {}
+  // listPtr is not copied and set to 0.
+  tListable(tListable const &) : listPtr(0) {}
+  // listPtr is left identical.
+  tListable& operator=(tListable const &) { return *this; }
+  void setListPtr(void *ptr) { listPtr = ptr; }
+  void *getListPtr() const { return listPtr; }
+private:
+  void *listPtr;  // Pointer to ListNode
+};
+
+/**************************************************************************/
+/**
+ ** @class tListNodeListable
+ **
+ ** Class tListNodeListable is similar to tListNode except that it sets
+ ** a backpointer in NodeType.
+ **
+ */
+/**************************************************************************/
+template< class NodeType >
+class tListNodeListable
+{
+  friend class tList< NodeType, tListNodeListable< NodeType > >;
+  friend class tMeshList< NodeType, tListNodeListable< NodeType > >;
+  friend class tListIter< NodeType, tListNodeListable< NodeType > >;
+  friend class tMeshListIter< NodeType, tListNodeListable< NodeType > >;
+public:
+  inline tListNodeListable();                                // default constructor
+  inline tListNodeListable( const tListNodeListable< NodeType > & ); // copy constructor #1
+  inline tListNodeListable( const NodeType & );              // copy constructor #2
+  const tListNodeListable< NodeType >
+  &operator=( const tListNodeListable< NodeType > & );           // assignment
+  inline bool operator==( const tListNodeListable< NodeType > & ) const; // equality
+  inline bool operator!=( const tListNodeListable< NodeType > & ) const; // inequality
+  /*set*/
+  inline NodeType getDataNC() const;               // returns copy of data item
+  inline NodeType &getDataRefNC();                 // returns modifiable ref to data
+  inline NodeType *getDataPtrNC();                 // returns modifiable ptr to data
+  inline tListNodeListable< NodeType > * getNextNC() const;// returns ptr to next list node
+  /*get*/
+  inline NodeType getData() const;                     // returns const copy of data
+  inline const NodeType &getDataRef() const;           // returns const ref to data
+  inline const NodeType *getDataPtr() const;           // returns const ptr to data
+  inline const tListNodeListable< NodeType > * getNext() const;// returns const ptr to next
+  inline const tListNodeListable< NodeType > * getPrev() const;
+  enum {
+    isListable = true
+  };
+  static tListNodeListable< NodeType > *getListPtr( NodeType const *dataPtr) {
+    return static_cast<tListNodeListable< NodeType >*>(dataPtr->getListPtr());
+  }
+
+protected:
+  NodeType data_;               // data item
+  tListNodeListable< NodeType > *next; // ptr to next node on list (=0 if end)
+  tListNodeListable< NodeType > *prev;
+};
+
+
+/**************************************************************************\
+ **
+ **         FUNCTIONS FOR CLASS tListNodeListable< NodeType >
+ **
+ **         tListNodeListables contain a data item and a pointer to the next
+ **         tListNodeListable in the tList (or tMeshList). The data item may
+ **         be of any type, specified in the template brackets.
+ **
+ **         Some of the functions for retrieving the data are duplicated
+ **         by tListIter.
+ **
+ **         Created: fall, 97, SL
+ **
+\**************************************************************************/
+
+/**************************************************************************\
+ **
+ **  tListNodeListable constructors:
+ **
+ **  Default constructor: sets next to null
+ **  Copy constructor #1: makes a copy of a given tListNodeListable
+ **  Copy constructor #2: fills in data item w/ copy of given NodeType
+ **
+\**************************************************************************/
+
+//default constructor
+template< class NodeType >
+inline tListNodeListable< NodeType >::
+tListNodeListable() :
+  next(0),
+  prev(0)
+{
+  data_.setListPtr(this);
+}
+
+//copy constructor with data reference
+template< class NodeType >
+inline tListNodeListable< NodeType >::
+tListNodeListable( const tListNodeListable< NodeType > &original ) :
+  data_(original.data_),
+  next(original.next),
+  prev(original.prev)
+{
+  data_.setListPtr(this);
+}
+
+//value (by reference) constructor
+template< class NodeType >
+inline tListNodeListable< NodeType >::
+tListNodeListable( const NodeType &info ) :
+  data_(info),
+  next(0),
+  prev(0)
+{
+  data_.setListPtr(this);
+}
+
+
+/**************************************************************************\
+ **
+ **  tListNodeListable overloaded operators:
+ **
+ **  Assignment: makes a copy (including next ptr)
+ **  Equality: compares both data contents and next ptr
+ **  Inequality: compares both data contents and next ptr
+ **
+\**************************************************************************/
+
+//overloaded assignment operator
+template< class NodeType >
+inline const tListNodeListable< NodeType > &tListNodeListable< NodeType >::
+operator=( const tListNodeListable< NodeType > &right )
+{
+  if( &right != this )
+    {
+      data_ = right.data_;
+      next = right.next;
+      prev = right.prev;
+    }
+  return *this;
+}
+
+//overloaded equality operator:
+template< class NodeType >
+inline bool tListNodeListable< NodeType >::
+operator==( const tListNodeListable< NodeType > &right ) const
+{
+  if( next != right.next ) return false;
+  if( prev != right.prev ) return false;
+  if( &data_ != &(right.data_) ) return false;
+  return true;
+}
+
+//overloaded inequality operator:
+template< class NodeType >
+inline bool tListNodeListable< NodeType >::
+operator!=( const tListNodeListable< NodeType > &right ) const
+{
+  return ! operator==(right);
+}
+
+
+/**************************************************************************\
+ **
+ **  tListNodeListable "get" functions:
+ **  (note: to "set" an item, use non-const "get")
+ **
+ **  getDataNC: returns a non-const (modifiable) copy of data
+ **  getDataRefNC: returns a non-const (modifiable) reference to data
+ **  getDataPtrNC: returns a non-const (modifiable) pointer to data
+ **  getNextNC: returns non-const ptr to next item on list
+ **  getData: returns const copy of data
+ **  getDataRef: returns const reference to data
+ **  getDataPtr: returns const ptr to data
+ **  getNext: returns const ptr to next item on list
+ **
+\**************************************************************************/
+
+//set data by returning non-const
+template< class NodeType >
+inline NodeType tListNodeListable< NodeType >::
+getDataNC() const {
+  NodeType aData(data_);
+  aData.setListPtr(0);
+  return aData;
+}
+
+template< class NodeType >
+inline NodeType &tListNodeListable< NodeType >::
+getDataRefNC() {return data_;}
+
+template< class NodeType >
+inline NodeType *tListNodeListable< NodeType >::
+getDataPtrNC() {return &data_;}
+
+template< class NodeType >
+inline tListNodeListable< NodeType > *tListNodeListable< NodeType >::
+getNextNC() const {return next;}
+
+//return data by value
+template< class NodeType >
+inline NodeType tListNodeListable< NodeType >::
+getData() const {
+  NodeType aData(data_);
+  aData.setListPtr(0);
+  return aData;
+}
+
+//return data by reference
+template< class NodeType >
+inline const NodeType &tListNodeListable< NodeType >::
+getDataRef() const {return data_;}
+
+//return data by pointer
+template< class NodeType >
+inline const NodeType *tListNodeListable< NodeType >::
+getDataPtr() const {return &data_;}
+
+//return next pointer
+template< class NodeType >
+inline const tListNodeListable< NodeType > *tListNodeListable< NodeType >::
+getNext() const {return next;}
+
+//return prev pointer
+template< class NodeType >
+inline const tListNodeListable< NodeType > *tListNodeListable< NodeType >::
 getPrev() const {return prev;}
 
 
@@ -1058,6 +1300,7 @@ class tListIter
   tListIter& operator=(const tListIter&);
   int NextIfNoCurrent();  // set 1st as current undefined
   int PrevIfNoCurrent();  // set last as current undefined
+  void GetByPtrVerify( NodeType const *, ListNodeType const *);
 public:
   inline tListIter();               // default constructor
   tListIter(const tListIter&);      // copy constructor
@@ -1067,6 +1310,9 @@ public:
   inline int First();    // sets position to 1st list item (rtns 0 on failure)
   inline int Last();     // sets position to last "    "     "
   int Get( int ); // use only if NodeType has member getID()!!
+  inline int GetByPtr( NodeType const * );
+  int GetByPtrSlow( NodeType const * );
+  inline NodeType * GetByPtrP( NodeType const * );
   inline int Next();     // advances to next item (or 1st if current undefined)
   inline int Prev();     // moves to previous item (or last if current undef'd)
   inline int Where() const;  // use only if NodeType has member getID()!!
@@ -1244,6 +1490,83 @@ Get( int num )
   if( tempnodeptr->getDataPtr()->getID() != num ) return 0;
   curnode = tempnodeptr;
   return 1;
+}
+
+
+/**************************************************************************\
+ **
+ **  tListIter::GetByPtr
+ **
+ **  Move to list item with the same adress.
+ **
+\**************************************************************************/
+template< class NodeType, class ListNodeType >
+inline int tListIter< NodeType, ListNodeType >::
+GetByPtr( NodeType const *dataPtr )
+{
+  assert( listPtr != 0 );
+  assert( dataPtr != 0 );
+
+  if (ListNodeType::isListable) {
+    // ListNodeType is "listable". Therefore, we use the back pointer.
+    ListNodeType *tempnodeptr = ListNodeType::getListPtr( dataPtr );
+    if (0) //DEBUG
+      GetByPtrVerify( dataPtr, tempnodeptr);
+    if (tempnodeptr == 0)
+      return 0;
+    curnode = tempnodeptr;
+    counter = -2;
+    return 1;
+  } else
+    // linear search.
+    return GetByPtrSlow( dataPtr );
+}
+
+template< class NodeType, class ListNodeType >
+void tListIter< NodeType, ListNodeType >::
+GetByPtrVerify( NodeType const *dataPtr, ListNodeType const *tempnodeptr )
+{
+  if (Get(dataPtr->getID()) != 0)
+    assert(tempnodeptr == curnode);
+  else
+    assert(tempnodeptr == 0);
+}
+
+template< class NodeType, class ListNodeType >
+int tListIter< NodeType, ListNodeType >::
+GetByPtrSlow( NodeType const *dataPtr )
+{
+  assert( listPtr != 0 );
+  if( dataPtr == NULL ) cout << "tListIter::GetByPtr(ptr): ptr < 0" << endl;
+
+  // linear search.
+  ListNodeType *tempnodeptr;
+  for( tempnodeptr = listPtr->first, counter = 0;
+       counter <= listPtr->nNodes && tempnodeptr != 0;
+       tempnodeptr = tempnodeptr->next, ++counter )
+    {
+      if( tempnodeptr->getDataPtr() == dataPtr ) break;
+    }
+  if( tempnodeptr == 0 ) return 0;
+  if( tempnodeptr->getDataPtr() != dataPtr ) return 0;
+  curnode = tempnodeptr;
+  return 1;
+}
+
+/**************************************************************************\
+ **
+ **  tListIter::GetByPtrP
+ **
+ **  Similar to Get, but returns a pointer to the current data item (or
+ **  0 if undefined).
+ **
+\**************************************************************************/
+template< class NodeType, class ListNodeType >
+inline NodeType * tListIter< NodeType, ListNodeType >::
+GetByPtrP( NodeType const *dataPtr )
+{
+  return ( GetByPtr( dataPtr ) ) ?
+    curnode->getDataPtrNC() : 0;
 }
 
 

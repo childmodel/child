@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.202 2004-03-25 16:03:09 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.203 2004-03-26 18:11:34 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2655,9 +2655,10 @@ DeleteNode( tSubNode const *node, kRepairMesh_t repairFlag,
 	    bool allowMobileDeletion )
 {
   nodeListIter_t nodIter( nodeList );
-  if( nodIter.Get( node->getID() ) )
+  if( nodIter.GetByPtr( node ) ) {
     return DeleteNode( nodIter.NodePtr(), repairFlag, updateFlag,
 		       allowMobileDeletion );
+  }
   return 0;
 }
 
@@ -2929,7 +2930,8 @@ ExtricateEdge( tEdge * edgePtr )
    //cout << "find edge in list; " << flush;
 
    // point edgIter to edgePtr
-   ce = edgIter.GetP( edgePtr->getID() );
+
+   ce = edgIter.GetByPtrP( edgePtr );
 
    // WarnSpokeLeaving is virtual:
    ce->getOriginPtrNC()->WarnSpokeLeaving( ce );
@@ -3269,12 +3271,9 @@ ExtricateTriangle( tTriangle const *triPtr )
    if (0) //DEBUG
      cout << "ExtricateTriangle" << endl;
    triListIter_t triIter( triList );
-   tTriangle *ct;
 
-   // Find the triangle on the list
-   for( ct = triIter.FirstP(); ct != triPtr && !( triIter.AtEnd() );
-        ct = triIter.NextP() );
-   if( ( triIter.AtEnd() ) ) return 0;
+   if( triIter.GetByPtr( triPtr ) == 0 )
+     return 0;
 
    // Tell your neighboring triangles that you're about to disappear by
    // setting their corresponding tPtr's to zero
