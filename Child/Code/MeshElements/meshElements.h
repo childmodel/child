@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.66 2004-01-07 14:06:07 childcvs Exp $
+**  $Id: meshElements.h,v 1.67 2004-01-08 11:54:39 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -337,6 +337,7 @@ public:
   const unsigned char *index() const { return index_; }
   void SetIndexIDOrdered(); // build the ordering index array
   inline bool isIndexIDOrdered() const;
+  bool containsPoint(double, double) const; // does "this" contains the point (x,y)
 
 #ifndef NDEBUG
   void TellAll() const;  // debugging routine

@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.63 2003-10-15 09:27:46 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.64 2004-01-08 11:54:39 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -920,6 +920,28 @@ void tTriangle::SetIndexIDOrdered()
   // complete the sequence
   index_[1] = (index_[0]+1)%3;
   index_[2] = (index_[1]+1)%3;
+}
+
+/*****************************************************************************\
+**
+**  tTriangle::containsPoint
+**
+**  Does the current triangle contain the point (x,y)
+**
+\*****************************************************************************/
+bool tTriangle::containsPoint(double x, double y) const
+{
+  const double P[] = {x, y};
+  const double P0[] = {p[0]->getX(), p[0]->getY()};
+  const double P1[] = {p[1]->getX(), p[1]->getY()};
+  if (predicate.orient2d(P0, P1, P) <0)
+    return false;
+  const double P2[] = {p[2]->getX(), p[2]->getY()};
+  if (predicate.orient2d(P1, P2, P) <0)
+    return false;
+  if (predicate.orient2d(P2, P0, P) <0)
+    return false;
+  return true;
 }
 
 /* TellAll: debugging output routine */
