@@ -7,14 +7,14 @@
 **  simulation model. Their services include keeping track of when it's
 **  time to write output, printing the current time to standard output if
 **  desired, and writing the current time to a file every so often.
-** 
+**
 **  Version 1.0, Greg Tucker, November 1997
 **
 **  Potential additions/improvements:
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.24 2003-09-02 13:52:14 childcvs Exp $
+**  $Id: tRunTimer.cpp,v 1.25 2003-09-03 12:37:05 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -100,18 +100,18 @@ tRunTimer::tRunTimer( tInputFile &infile, bool optprint )
   {
     int tmp_;
     tmp_ = infile.ReadItem( tmp_, "OPTTSOUTPUT" );
-    optTSOutput = tmp_;
+    optTSOutput = BOOL(tmp_ != 0);
   }
   if( optTSOutput )
     TSOutputInterval = infile.ReadItem( TSOutputInterval, "TSOPINTRVL" );
-	
+
   //If you are reading in layering information, the timer should
   //be set to the time in which the layers were output, since
   //time is tracked in the layers and restarting at time zero
   //would make the layer times non-sensical.
   int tmp;
   int optReadInput = infile.ReadItem( tmp, "OPTREADINPUT" );
-  if( optReadInput==1 ) /* If reading existing mesh file, eg from restart */ 
+  if( optReadInput==1 ) /* If reading existing mesh file, eg from restart */
   {
      double help = infile.ReadItem( help, "INPUTTIME" );
      currentTime = help;
@@ -174,13 +174,13 @@ int tRunTimer::Advance( double dt )
 //****************************************************
 // ReportTimeStatus
 //
-// Reports the current time to a file and to 
+// Reports the current time to a file and to
 // standard output if desired. Output to file is
 // only done at selected intervals.
 // Compares currentTime with nextNotify to see
 // whether it's time to update the time status file,
 // and if so opens the file and writes the current
-// time (overwriting any previous contents). 
+// time (overwriting any previous contents).
 // Regardless of the status of nextNotify, if
 // optPrintEachTime is selected, the current time is
 // reported to cout.
@@ -204,14 +204,14 @@ void tRunTimer::ReportTimeStatus()
 // Checks to see whether it's time to write output
 // yet.
 //*************************************************
-int tRunTimer::CheckOutputTime()
+bool tRunTimer::CheckOutputTime()
 {
 	if( currentTime>=nextOutputTime )
 	{
 		nextOutputTime += outputInterval;
-		return 1;
+		return true;
 	}
-	else return 0;
+	return false;
 }
 
 //*************************************************
@@ -220,24 +220,24 @@ int tRunTimer::CheckOutputTime()
 // Checks to see weather it's time to write time
 // series output yet.
 //*************************************************
-int tRunTimer::CheckTSOutputTime()
+bool tRunTimer::CheckTSOutputTime()
 {
         if( currentTime >= nextTSOutputTime )
 	{
 	    	nextTSOutputTime += TSOutputInterval;
-		return 1;
+		return true;
 	}
-	else return 0;
+	return false;
 }
-    
+
 //*************************************************
 // IsFinished
 //
 // Checks to see whether the run is finished.
 //*************************************************
-int tRunTimer::IsFinished() const
+bool tRunTimer::IsFinished() const
 {
-	return( currentTime >= endTime );
+	return BOOL( currentTime >= endTime );
 }
 
 

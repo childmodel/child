@@ -1,4 +1,4 @@
-//-*-c++-*- 
+//-*-c++-*-
 
 /***************************************************************************/
 /**
@@ -10,7 +10,7 @@
 **  time to write output, printing the current time to standard output if
 **  desired, and writing the current time to a file every so often.
 **
-**  $Id: tRunTimer.h,v 1.12 2003-09-02 13:52:16 childcvs Exp $
+**  $Id: tRunTimer.h,v 1.13 2003-09-03 12:37:07 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -26,12 +26,12 @@ public:
 	tRunTimer();
 	double getCurrentTime() const;     // Report the current time
 	int Advance( double );             // Advance time by given amount
-	int IsFinished() const;            // Are we done yet?
+	bool IsFinished() const;           // Are we done yet?
 	double RemainingTime() const;      // How much time is left
 	void Start( double, double=0.0 );  // Set current and (optionally) end times
-	int CheckOutputTime();             // Is it time to write output yet?
+	bool CheckOutputTime();             // Is it time to write output yet?
 	void ReportTimeStatus();           // Report time to file and (opt) screen
-	int CheckTSOutputTime();           // Is it time to write time series output yet?
+	bool CheckTSOutputTime();           // Is it time to write time series output yet?
 
 private:
 	ofstream timeStatusFile;  // file "run.time" for tracking current time
