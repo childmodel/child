@@ -15,7 +15,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.2 1999-01-25 16:44:36 gtucker Exp $
+**  $Id: tFloodplain.h,v 1.3 1999-03-13 22:21:00 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TFLOODPLAIN_H
@@ -38,6 +38,11 @@
 **  parameters from an input file and a DepositOverbank function to
 **  implement the model.
 **
+**  Modifications:
+**    - 3/13/99 GT added deparr variable which is used by DepositOverbank
+**              (could be a local var but this saves having to reinit
+**              it with every call to tFloodplain)
+**
 \**************************************************************************/
 class tFloodplain
 {
@@ -54,6 +59,7 @@ private:
     double drarea_min;      // min drainage area for a "flood node"
     double mqs;             // depth-disch at-a-station exponent
     double mqbmqs;          // bankfull minus at-a-station exponents
+    tArray<double> deparr;  // depth deposited (# grn size; all but 1st=0)
     tGrid<tLNode> *gridPtr; // ptr to mesh
 };
 
