@@ -4,7 +4,7 @@
 **
 **  Header file for derived class tLNode and its member classes
 **
-**  $Id: tLNode.h,v 1.13 1998-03-10 23:30:40 stlancas Exp $
+**  $Id: tLNode.h,v 1.14 1998-03-16 18:50:36 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -13,6 +13,7 @@
 #include "../tArray/tArray.h"
 #include "../GridElements/gridElements.h"
 #include "../tList/tList.h"
+#include "../tInputFile/tInputFile.h"
 
 /** class tDeposit *********************************************************/
 /* Deposit records */
@@ -32,7 +33,7 @@ class tDeposit
    tArray< double > dgrade;/*( NUMG );depth of that sediment class in deposit [m]*/
 };
 
-/** class tErode ***************************************************************/
+/** class tErode ***********************************************************/
 class tErode
 {
    friend class tChannel;
@@ -117,8 +118,9 @@ class tRegolith
    friend class tLNode;
   public:
    tRegolith();
+   tRegolith( tInputFile &infile ); /* Reads needed values from input file*/
    tRegolith( const tRegolith & );
-   tRegolith( int, double ); /*number of grain sizes and active layer thickness*/
+   tRegolith( int, double ); /*no. of grain sizes and active layer thickness*/
    ~tRegolith();
    const tRegolith &operator=( const tRegolith & );
   private:
@@ -162,6 +164,7 @@ class tLNode : public tNode
 {
 public:
     tLNode();
+    tLNode( tInputFile &infile );
     tLNode( const tLNode & );
     ~tLNode();
     const tLNode &operator=( const tLNode & );   
