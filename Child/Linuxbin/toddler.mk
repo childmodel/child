@@ -15,7 +15,7 @@ OBJECTS = toddlermain.o erosion.o meshElements.o mathutil.o \
  tInputFile.o tLNode.o tRunTimer.o \
 tPtrList.o tStorm.o tStreamNet.o tUplift.o errors.o tFloodplain.o \
 tEolian.o globalFns.o predicates.o tVegetation.o \
-ParamMesh_t.o TipperTriangulator.o
+ParamMesh_t.o TipperTriangulator.o TipperTriangulatorError.o
 
 toddler: $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o toddler $(LIBS)
@@ -66,6 +66,9 @@ ParamMesh_t.o: $(PT)/tMesh/ParamMesh_t.cpp $(PT)/tMesh/ParamMesh_t.h
 
 TipperTriangulator.o: $(PT)/tMesh/TipperTriangulator.cpp $(PT)/tMesh/TipperTriangulator.h $(PT)/tMesh/heapsort.h
 	$(CC) $(CFLAGS) $(PT)/tMesh/TipperTriangulator.cpp
+
+TipperTriangulatorError.o: $(PT)/tMesh/TipperTriangulatorError.cpp $(PT)/tMesh/TipperTriangulator.h
+	$(CC) $(CFLAGS) $(PT)/tMesh/TipperTriangulatorError.cpp
 
 globalFns.o: $(PT)/globalFns.cpp $(PT)/globalFns.h
 	$(CC) $(CFLAGS) $(PT)/globalFns.cpp
