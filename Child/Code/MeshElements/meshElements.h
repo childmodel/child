@@ -35,7 +35,7 @@
 **     neighboring triangle 1, and so on. Node 1 is also the origin for
 **     edge 1, etc.
 **   
-**  $Id: meshElements.h,v 1.16 1999-01-11 22:54:04 gtucker Exp $
+**  $Id: meshElements.h,v 1.17 1999-01-12 15:52:47 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -80,71 +80,75 @@ class tEdge;
 \**************************************************************************/
 class tNode
 {
-   friend ostream &operator<<( ostream &, tNode & );
-   friend istream &operator>>( istream &, tNode & );
-  public:
-   tNode();
-   tNode( const tNode & );
-   ~tNode();
-   const tNode &operator=( const tNode & );
-   tArray< double > get3DCoords() const;
-   tArray< double > get2DCoords() const;
-   int getID() const;
-   double getX() const;
-   double getY() const;
-   double getZ() const;
-   double getVArea() const;
-   double getVArea_Rcp() const;
-   int getBoundaryFlag() const;
-   const tPtrList< tEdge > &getSpokeList() const;
-   tPtrList< tEdge > &getSpokeListNC();
-   const tPtrListNode< tEdge > *getFirstSpokeNode() const;
-   tPtrListNode< tEdge > *getFirstSpokeNodeNC();
-   
-   const tPtrListNode< tEdge > *
-       getNextSpokeNode( const tPtrListNode< tEdge > * ) const;
-   
-   tPtrListNode< tEdge > *
-       getNextSpokeNodeNC( tPtrListNode< tEdge > * ) const;
-       
-   void setID( int );
-   void setX( double );
-   void setY( double );
-   void setZ( double );
-   void ChangeZ( double );   // adds or subtracts from the current Z value
-   void setVArea( double );
-   void setVArea_Rcp( double );
-   void set2DCoords( double, double );
-   void set3DCoords( double, double, double );
-   void insertFrontSpokeList( tEdge * );
-   void insertBackSpokeList( tEdge * );
-   void makeWheel();
-   void setBoundaryFlag( int );
-   tEdge * getEdg();
-   void setEdg( tEdge * );
-   double Dist( tNode *, tNode * );
-   tEdge *EdgToNod( tNode * );
-   double ComputeVoronoiArea();
-   void makeCCWEdges();
-   void ConvertToClosedBoundary();
-   void WarnSpokeLeaving( tEdge *);
+  friend ostream &operator<<( ostream &, tNode & );
+  friend istream &operator>>( istream &, tNode & );
+
+public:
+
+  tNode();                                   // default constructor
+  tNode( const tNode & );                    // copy constructor
+  ~tNode();                                  // destructor
+
+  const tNode &operator=( const tNode & );   // assignment op
+  tArray< double > get3DCoords() const;      // returns x,y,z
+  tArray< double > get2DCoords() const;      // returns x,y
+  int getID() const;                         // returns ID number
+  double getX() const;                       // returns x coord
+  double getY() const;                       // returns y coord
+  double getZ() const;                       // returns z value
+  double getVArea() const;                   // returns Voronoi area
+  double getVArea_Rcp() const;               // returns 1/Voronoi area
+  int getBoundaryFlag() const;               // returns boundary code
+
+  const tPtrList< tEdge > &getSpokeList() const;  // returns ref to spokelist
+  tPtrList< tEdge > &getSpokeListNC();            // returns non-const ref "
+  const tPtrListNode< tEdge > *getFirstSpokeNode() const; // returns 1st spoke
+  tPtrListNode< tEdge > *getFirstSpokeNodeNC();   // returns non-const "
+  
+  // returns next spokelist element (as const and non-const, respectively)
+  const tPtrListNode< tEdge > *
+      getNextSpokeNode( const tPtrListNode< tEdge > * ) const;
+  tPtrListNode< tEdge > *
+      getNextSpokeNodeNC( tPtrListNode< tEdge > * ) const;
+  
+  void setID( int );              // sets ID number
+  void setX( double );            // sets x coord
+  void setY( double );            // sets y coord
+  void setZ( double );            // sets z value
+  void ChangeZ( double );         // adds or subtracts from the current z value
+  void setVArea( double );        // sets Voronoi area
+  void setVArea_Rcp( double );    // sets 1 / Voronoi area
+  void set2DCoords( double, double );         // sets x and y values
+  void set3DCoords( double, double, double ); // sets x, y, and z values
+  void insertFrontSpokeList( tEdge * ); // adds edge ptr to front of spokelist
+  void insertBackSpokeList( tEdge * );  // adds edge ptr to back of spokelist
+  void makeWheel();
+  void setBoundaryFlag( int );
+  tEdge * getEdg();
+  void setEdg( tEdge * );
+  double Dist( tNode *, tNode * );
+  tEdge *EdgToNod( tNode * );
+  double ComputeVoronoiArea();
+  void makeCCWEdges();
+  void ConvertToClosedBoundary();
+  void WarnSpokeLeaving( tEdge *);
    
 #ifndef NDEBUG
    void TellAll();  // Debugging routine
 #endif
    
-  protected:
-   int id;
-   double x;
-   double y;
-   double z;
-   double varea;        /* Voronoi area (2/97) */
-   double varea_rcp;    /* Reciprocal of Voronoi area = 1/varea (for speed)*/
-   int boundary;
-   tEdge * edg;        // Ptr to one edge
-   tPtrList< tEdge > spokeList; /* list of connected edges */
-   const tEdge *NextSpoke( tPtrListNode< tEdge > * );
-   const tEdge *NextSpokeNC( tPtrListNode< tEdge > * );
+protected:
+  int id;
+  double x;
+  double y;
+  double z;
+  double varea;        /* Voronoi area (2/97) */
+  double varea_rcp;    /* Reciprocal of Voronoi area = 1/varea (for speed)*/
+  int boundary;
+  tEdge * edg;        // Ptr to one edge
+  tPtrList< tEdge > spokeList; /* list of connected edges */
+  const tEdge *NextSpoke( tPtrListNode< tEdge > * );
+  const tEdge *NextSpokeNC( tPtrListNode< tEdge > * );
 };
 
 
