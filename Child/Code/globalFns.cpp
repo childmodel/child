@@ -3,7 +3,7 @@
 **  globalFns.cpp: Global functions used by tGrid and other modules of
 **                 CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.3 1999-05-04 17:14:51 gtucker Exp $
+**  $Id: globalFns.cpp,v 1.4 1999-05-11 15:27:11 gtucker Exp $
 \**************************************************************************/
 
 #include "globalFns.h"
@@ -473,13 +473,13 @@ double InterpSquareGrid( double xgen, double ygen, tMatrix< double >& elev,
    int nx = elev.getNumCols();
    int ny = elev.getNumRows();
    
-   int ix = xgen;  //                           z3----z4
-   int iy = ygen; //                            |     |
+   int ix = (int)xgen;  //                      z3----z4
+   int iy = (int)ygen; //                       |     |
    double xrem = xgen - (double)ix; //          |     |
    double yrem = ygen - (double)iy; //          z1----z2
    double yrows = elev.getNumRows();
    int i = ix;
-   int j = yrows - 1.0 - ygen;
+   int j = (int)(yrows - 1.0 - ygen);
    
    double z3 = elev( j, i );
    double z4 = ( i < nx - 1 ) ? elev( j, i + 1 ) : nodata;
