@@ -4,16 +4,17 @@
 **
 **  Greg Tucker, November 1997
 **
-**  $Id: tInputFile.h,v 1.2 1998-01-29 20:15:32 stlancas Exp $
+**  $Id: tInputFile.h,v 1.3 1999-02-01 21:45:22 gtucker Exp $
 \****************************************************************************/
+
+#ifndef TINPUTFILE_H
+#define TINPUTFILE_H
 
 #include <iostream.h>
 #include <fstream.h>
 
-#ifndef TINPUTFILE_H
-#define TINPUTFILE_H
-/*#define kMaxNameLength 80
-#define kCommentMark '#'*/
+#define kMaxNameLength 80
+#define kCommentMark '#'
 
 class tInputFile
 {
