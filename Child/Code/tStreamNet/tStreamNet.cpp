@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.50 2003-08-08 12:27:34 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.51 2003-08-12 15:55:43 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -985,18 +985,15 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
    // As long as the current node is neither a boundary nor a sink, add
    // _addedArea_ to its total drainage area and advance to the next node
    // downstream
-   while( !(curnode->getBoundaryFlag()) && (curnode->getFloodStatus()!=kSink) )
+   while( (curnode->getBoundaryFlag() == kNonBoundary) &&
+	  (curnode->getFloodStatus()!=kSink) )
    {
       curnode->AddDrArea( addedArea );
       curnode = curnode->getDownstrmNbr();
 //#if DEBUG
       niterations++;
-      if( niterations>9990 )
-      {
-         curnode->TellAll();
-         cout  << flush;
-      }
-      assert( niterations < 10000 );
+      if( unlikely(niterations>9990) )
+	RouteError( curnode );
 //#endif
    }
    if (0) //DEBUG
@@ -1030,23 +1027,40 @@ void tStreamNet::RouteRunoff( tLNode *curnode, double addedArea,
    // As long as the current node is neither a boundary nor a sink, add
    // _addedArea_ to its total drainage area and _addedRunoff_ to its total
    // discharge and then advance to the next node downstream.
-   while( !(curnode->getBoundaryFlag()) && (curnode->getFloodStatus()!=kSink) )
+   while( (curnode->getBoundaryFlag() == kNonBoundary)
+	  && (curnode->getFloodStatus()!=kSink) )
    {
       curnode->AddDrArea( addedArea );
       curnode->AddDischarge( addedRunoff );
       curnode = curnode->getDownstrmNbr();
 //#if DEBUG
       niterations++;
-      if( niterations>9990 )
-      {
-         curnode->TellAll();
-         cout  << flush;
-      }
-      assert( niterations < 10000 );
+      if( unlikely(niterations>9990) )
+	RouteError( curnode );
 //#endif
    }
    if (0) //DEBUG
      cout << "RouteRunoff() finished" << endl;
+}
+
+/*****************************************************************************\
+**
+**  tStreamNet::RouteError
+**
+**  Error handler
+**  Created: 8/2003 AD
+**
+\*****************************************************************************/
+void tStreamNet::RouteError( tLNode *curnode )
+{
+  while( (curnode->getBoundaryFlag() == kNonBoundary)
+	 && (curnode->getFloodStatus()!=kSink) )
+    {
+      curnode->TellAll();
+      cout  << flush;
+      curnode = curnode->getDownstrmNbr();
+    }
+  ReportFatalError("Maximum number of iterations exceeded in RouteError.");
 }
 
 
@@ -1694,7 +1708,7 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node ) const
 **  The two methods should be tested and compared.
 **
 \*****************************************************************************/
-void tStreamNet::SortNodesByNetOrder( int optMultiFlow )
+void tStreamNet::SortNodesByNetOrder( bool optMultiFlow )
 {
    int nThisPass;                      // Number moved in current iteration
    int i;
