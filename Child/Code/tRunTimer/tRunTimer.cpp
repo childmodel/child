@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.11 2000-06-05 22:13:27 daniel Exp $
+**  $Id: tRunTimer.cpp,v 1.12 2000-06-05 22:18:17 daniel Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -205,7 +205,7 @@ int tRunTimer::CheckTSOutputTime()
 {
         if( currentTime >= nextTSOutputTime )
 	{
-	    	nextTSOutputTime += TSoutputInterval;
+	    	nextTSOutputTime += TSOutputInterval;
 		return 1;
 	}
 	else return 0;
