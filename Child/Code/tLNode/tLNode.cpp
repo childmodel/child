@@ -4,7 +4,12 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.85 2000-01-24 22:22:34 gtucker Exp $
+**  Modifications:
+**    - changes related to addition of Vegetation module (GT 1/2000):
+**       - removed tSurface class & fn
+**       - modified constructors (tLNode) to handle tau, tauc, vegCover
+** 
+**  $Id: tLNode.cpp,v 1.86 2000-01-25 19:03:34 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -207,7 +212,7 @@ const tBedrock &tBedrock::operator=( const tBedrock &right )     //tBedrock
    return *this;
 }
 
-tSurface::tSurface()                                             //tSurface
+/*tSurface::tSurface()                                             //tSurface
 {
    veg = tauc = vegerody = 0.0;
      //cout << "  tSurface()" << endl;
@@ -239,7 +244,7 @@ const tSurface &tSurface::operator=( const tSurface &right )     //tSurface
       vegerody = right.vegerody;
    }
    return *this;
-}
+}*/
 
 /***** Functions for class tRegolith **************************************/
 
@@ -351,9 +356,9 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
    return *this;
 }
 
-// /***** Functions for class tLNode *****************************************/
+/***** Functions for class tLNode *****************************************/
 
-/**************************************************************************\**
+/**************************************************************************\
 **  Constructors:
 **   - Default: initializes several variables to zero and calls
 **              constructors for embedded objects.
@@ -372,7 +377,7 @@ double tLNode::maxregdep = 1;
 double tLNode::KRnew = 1.0;
 
 tLNode::tLNode()                                                   //tLNode
-        : tNode(), rock(), surf(), reg(), chan(), qsm(), qsinm(), 
+        : tNode(), rock(), vegCover(), reg(), chan(), qsm(), qsinm(), 
           layerlist()
 {
    //cout << "=>tLNode()" << endl;
@@ -380,10 +385,11 @@ tLNode::tLNode()                                                   //tLNode
    flowedge = 0;
    tracer = 0;
    dzdt = drdt = qs = qsin = uplift = 0.0;
+   tau = tauc = 0;
 }
 
 tLNode::tLNode( tInputFile &infile )                               //tLNode
-        : tNode(), rock(), surf(), reg(), chan(), qsm(), qsinm(), 
+        : tNode(), rock(), vegCover(), reg(), chan(), qsm(), qsinm(), 
           layerlist()
 {
    int i;
@@ -393,6 +399,8 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
    tArray<double> dgradehelp;
    tArray<double> dgradebrhelp;
 
+   tau = 0.0;
+   tauc = infile.ReadItem( tauc, "TAUC" );
    
    //cout << "=>tLNode( infile )" << endl;
    flood = 0;
@@ -550,7 +558,7 @@ tLNode::tLNode( tInputFile &infile )                               //tLNode
 
 tLNode::tLNode( const tLNode &orig )                               //tLNode
         : tNode( orig ),
-          rock( orig.rock ), surf( orig.surf ),
+          rock( orig.rock ), vegCover( orig.vegCover ),
           reg( orig.reg ), chan( orig.chan ), qsm( orig.qsm),
           qsinm( orig.qsinm ), 
           layerlist( orig.layerlist)
@@ -586,8 +594,9 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
    if( &right != this )
    {
       tNode::operator=( right );
+      vegCover = right.vegCover;
       rock = right.rock;
-      surf = right.surf;
+      //surf = right.surf;
       reg = right.reg;
       chan = right.chan;
       flowedge = right.flowedge;
@@ -597,6 +606,8 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
       drdt = right.drdt;
       qs = right.qs;
       qsin = right.qsin;
+      tau = right.tau;
+      tauc = right.tauc;
       uplift = right.uplift;
       qsm = right.qsm;
       qsinm = right.qsinm;
@@ -608,12 +619,12 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
 //"get" and "set" functions; most simply return or set a data value, respectively:
 
 const tBedrock &tLNode::getRock() const {return rock;}
-const tSurface &tLNode::getSurf() const {return surf;}
+//Xconst tSurface &tLNode::getSurf() const {return surf;}
 const tRegolith &tLNode::getReg() const {return reg;}
 const tChannel &tLNode::getChan() const {return chan;}
 
 void tLNode::setRock( const tBedrock & val ) {rock = val;}
-void tLNode::setSurf( const tSurface & val ) {surf = val;}
+//Xvoid tLNode::setSurf( const tSurface & val ) {surf = val;}
 void tLNode::setReg( const tRegolith & val ) {reg = val;}
 void tLNode::setChan( const tChannel & val ) {chan = val;}
 
@@ -1097,10 +1108,11 @@ tLNode::getAlluvThicknessm( ) const
    return reg.dgrade;
 }
 
-void tLNode::setVegErody( double val )
+/*Xvoid tLNode::setVegErody( double val )
 {surf.vegerody = ( val >= 0.0 ) ? val : 0.0;}
 
 double tLNode::getVegErody() const {return surf.vegerody;}
+*/
 
 void tLNode::setBedErody( double val )
 {rock.erodibility = ( val >= 0.0 ) ? val : 0.0;}
