@@ -5,7 +5,7 @@
 **  tStreamNet objects contain data and functions related to flow routing
 **  and sediment transport across the landscape surface.
 **
-**  $Id: tStreamNet.h,v 1.20 1998-05-05 19:46:17 gtucker Exp $
+**  $Id: tStreamNet.h,v 1.21 1998-05-05 22:07:34 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TSTREAMNET_H
@@ -23,6 +23,8 @@
 
 #define kSaturatedFlow 1   // Option for saturation-excess flow generation
 #define kConstSoilStore 2  // Option for "bucket"-type flow generation
+#define kSecperyear 31536000  // No. of seconds in one year
+
 
 /** class tInlet *************************************************************/
 class tInlet
