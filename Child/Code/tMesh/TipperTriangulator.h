@@ -20,7 +20,7 @@ public:
   point(double ix,double iy) : x(ix), y(iy), id(-1) {}
   point(const point& p) : x(p.x), y(p.y), id(p.id) {}
   const point &operator=( const point &p );
-  int operator < (const point& p) const {return x<p.x;}
+  int operator < (const point& p) const;
   point operator - (const point& p) const {return point(x-p.x,y-p.y);}
   point operator + (const point& p) const {return point(x+p.x,y+p.y);}
   point operator / (double f) const {return point(x/f,y/f);}
