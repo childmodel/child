@@ -1,0 +1,7 @@
+
+protected:
+    bool event( QEvent* );
+    void closeEvent( QCloseEvent* );
+};
+
+#endif // CHINTZ_BASE_H

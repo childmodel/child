@@ -1,0 +1,42 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Operation and Filenames</title>
+  </head>
+
+  <body>
+<a href="smudgerun.html">Previous: Running Smudge</a><br><br><hr>
+    <h2>Smudge: Operation and Filenames</h2>
+
+Smudge uses the Qt widget set which is free for UNIX platforms from <a href="www.trolltech.com">www.trolltech.com</a> and which is distributed with many LINUX versions. The code is written entirely in C++.
+When smudge is run it first compiles smudge_exec.cpp (if necessary :- using "make smudge") and runs it. 
+Smudge_exec reads the smudge.ui file and a list of names of the
+widgets to be generated in the user interface is printed.
+At the same time generates a set of files containing C++ code these are:-
+<OL>
+<LI>generated_blankcode        
+<LI>generated_child_outputcode
+<LI>generated_chintz_base_constructor_insert
+<LI>generated_slotcode 
+<LI>generated_chintz_base_header_insert
+<LI>generated_slot_header_insert
+<LI>generated_child_readcode 
+<LI>generated_extra_readcode
+</OL>
+The  first four of these are incoporated into chintz_base.cpp. Items 5 and 6 are used to construct
+a new header file chintz_base.h using chintz_header.bottom and chintz_header.top. For this reason it is
+best not to modify chintz_base.h by hand unless you also remember to make the same changes in 
+chintz_header.top before running smudge.<br>
+The last two items are incorporated into ReadChildContolFile.cpp, which is then also added to 
+chintz_base.cpp. <br>
+Finally, "make chintz" is used to compile the new code.
+   <br><br><hr>
+<a href="smudgetrouble.html">Next: Troubleshooting</a><br>
+<a href="smudge.html">Back to Smudge Contents</a><hr>
+
+<!-- Created: Thu Jan 24 16:12:46 GMT 2002 -->
+<!-- hhmts start -->
+Last modified: Fri Jan 25 16:11:25 GMT 2002
+<!-- hhmts end -->
+  </body>
+</html>

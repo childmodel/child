@@ -1,0 +1,1182 @@
+<Page><Title> Setup </Title>
+
+<Frame,id=Meshframe><Geometry> 10 10 420 480 </Geometry>
+  <Title>Mesh </Title>
+
+<Frame,id=Meshset><Geometry> 10 145 400 320 </Geometry>
+   <Style> NoFrame </Style>
+  <Buttons,id=TYP_BOUND><Title> Open Boundary Type </Title><Bold> TRUE </Bold>
+    <Geometry> 10 0 190 90 </Geometry>
+    <RadioButton><Title> Corner </Title>
+      <Checked> true </Checked>
+      <Bold> FALSE </Bold>
+      <Geometry>10 20 140 20 </Geometry>
+    </RadioButton>
+    <RadioButton><Title>1 Side</Title>
+      <Bold> FALSE</Bold>
+      <Geometry> 10 40 70 20 </Geometry>
+    </RadioButton>
+    <RadioButton><Title> 2 Sides </Title>
+      <Bold> FALSE </Bold>
+      <Geometry> 10 60 130 20</Geometry>
+    </RadioButton>
+    <RadioButton><Title> 4 Sides </Title>
+      <Bold> FALSE </Bold>
+      <Geometry> 80 20 100 20 </Geometry>
+    </RadioButton>
+    <RadioButton><Title> Other</Title>
+      <Switch> OUTLETBOX TRUE</Switch>
+      <Bold> FALSE </Bold>
+      <Geometry> 80 40 100 20 </Geometry>
+    </RadioButton>
+  </Buttons>
+
+  <Buttons,id=OPT_PT_PLACE><Title> Point Placement </Title><Bold> TRUE </Bold>
+    <Geometry> 205 0 185 90 </Geometry>
+    <RadioButton><Title> Uniform </Title>
+      <Bold> FALSE </Bold>
+      <Geometry> 10 20 140 20 </Geometry>
+      <Checked> TRUE </Checked>
+    </RadioButton>
+    <RadioButton><Title> Perturbed </Title>
+      <Bold> FALSE </Bold>
+      <Geometry> 10 40 90 20 </Geometry>
+    </RadioButton>
+    <RadioButton><Title> Random </Title>
+      <Switch> rando true </Switch>
+      <Bold> FALSE </Bold>
+      <Geometry> 10 60 130 20 </Geometry>
+    </RadioButton>
+  </Buttons>
+
+ <Box><Geometry> 10 100 380 80 </Geometry>
+  <Title> Mesh Dimensions </Title>
+
+  <Line,id=X_GRID_SIZE> 
+   <Title>
+     X Size 
+     <Geometry>10 20 50 20 </Geometry>
+   </Title> 
+   <Geometry> 60 20 70 20 </Geometry>
+  </Line>
+  <Line,id=Y_GRID_SIZE> 
+    <Title> 
+      Y Size 
+     <Geometry> 10 42 50 30 </Geometry>
+    </Title>  
+     <Geometry> 60 50 70 20 </Geometry>
+  </Line>
+  <Frame,id=rando><Style> NoFrame </Style>
+    <Enabled> false </Enabled>
+    <Geometry> 150 20 220 50 </Geometry>
+    <Line,id=GRID_SPACING> 
+       <Title>
+         Mean Grid Spacing (m) 
+       <Geometry> 0 0 130 20 </Geometry>
+       </Title> 
+       <Geometry> 140 0 70 20 </Geometry>
+    </Line>
+    <Line,id=NUM_PTS> 
+        <Title>
+          Number of Random \nGrid Points 
+          <Geometry> 0 22 130 30 </Geometry>
+        </Title> 
+        <Geometry> 140 30 70 20 </Geometry>
+    </Line>
+  </Frame>
+ </Box>
+
+  <Box,id=OUTLETBOX><Geometry> 10 180 110 130 </Geometry>
+   <Enabled> false </Enabled>
+   <Title> Outlet Point </Title>
+   <Line,id=OUTLET_X_COORD> 
+    <Title>
+      X
+      <Geometry> 15 40 50 20 </Geometry>
+    </Title> 
+    <Geometry> 45 40 40 20 </Geometry>
+   </Line>
+   <Line,id=OUTLET_Y_COORD> 
+     <Title> 
+       Y 
+      <Geometry> 15 65 50 30 </Geometry>
+     </Title>  
+      <Geometry> 45 70 40 20 </Geometry>
+   </Line>
+  </Box>
+
+  <Box><Geometry> 120 180 270 130 </Geometry>
+   <Title> Slope </Title>
+   <CheckBox,id=SLOPED_SURF><Title> Sloped </Title> 
+     <Geometry> 10 20 90 30 </Geometry>
+     <Checked> true </Checked>
+     <Bold> false </Bold>
+   </CheckBox>
+
+   <Line,id=UPPER_BOUND_Z> 
+    <Title>
+      Elevation of Upper Boundary
+      <Geometry> 15 50 170 20 </Geometry>
+    </Title> 
+    <Geometry> 180 50 70 20 </Geometry>
+   </Line>
+
+   <Line,id=MEAN_ELEV> 
+     <Title> 
+       Mean Elevation (Initially)
+       <Geometry> 15 75 150 30 </Geometry>
+     </Title>  
+     <Geometry> 180 80 70 20 </Geometry>
+   </Line>
+
+  </Box>
+
+ </Frame>
+  <Buttons,id=OPTREADINPUT><Title> Input Mesh File Options </Title><Bold> TRUE </Bold>
+    <Geometry> 20 30 380 110 </Geometry>
+    <RadioButton><Title> Generate New Mesh </Title>
+      <Switch> Meshset true </Switch>
+      <Bold> FALSE </Bold>
+      <Geometry> 10 20 140 20 </Geometry>
+      <Checked> TRUE </Checked>
+    </RadioButton>
+    <RadioButton><Title> Read TIN </Title>
+       <Switch> TINfiles true </Switch>
+       <Bold> FALSE </Bold>
+       <Geometry> 200 20 90 20 </Geometry>
+    </RadioButton>
+    <RadioButton><Title> Generate from Point File </Title>
+       <Switch> POfile true </Switch>
+      <Bold> FALSE </Bold>
+      <Geometry> 200 50 175 20 </Geometry>
+    </RadioButton>
+    <RadioButton><Title> Generate from DEM </Title>
+       <Switch> ARCfile true </Switch>
+      <Bold> FALSE </Bold>
+      <Geometry> 200 80 150 20 </Geometry>
+    </RadioButton>
+  </Buttons>
+
+
+
+</Frame>
+
+<Frame>
+  <Title> Files </Title>
+  <Geometry>  431 10 310 250 </Geometry>
+  <Box,id=TINfiles><Geometry> 20 35 140 120 </Geometry>
+   <Enabled> false </Enabled>
+   <Line,id=INPUTDATAFILE> 
+     <Title> 
+       Input Data File
+       <Geometry> 10 5 100 20 </Geometry>
+     </Title>  
+     <Geometry> 10 25 100 20 </Geometry>
+     <BrowseButton>
+   </Line>
+   <Line,id=INPUTTIME> 
+     <Title> 
+       Input Time
+       <Geometry> 10 55 100 20 </Geometry>
+     </Title>  
+     <Geometry> 10 75 100 20 </Geometry>
+   </Line>
+  </Box>
+  <Box><Geometry> 20 150 140 60 </Geometry>
+   <Line,id=OUTFILENAME> 
+     <Title> 
+       Output File
+       <Geometry> 10 5 100 20 </Geometry>
+     </Title>  
+     <Geometry> 10 25 100 20 </Geometry>
+     <BrowseButton>
+   </Line>
+  </Box>
+  <Box,id=POfile><Geometry> 160 35 140 60 </Geometry>
+   <Enabled> false </Enabled>
+   <Line,id=POINTFILENAME> 
+     <Title> 
+       Point File Name
+       <Geometry> 10 5 100 20 </Geometry>
+     </Title>  
+     <Geometry> 10 25 100 20 </Geometry>
+     <BrowseButton>
+   </Line>
+  </Box>
+  <Box,id=ARCfile><Geometry> 160 90 140 60 </Geometry>
+   <Enabled> false </Enabled>
+   <Line,id=ARCGRIDFILENAME> 
+     <Title> 
+       ARC/INFO ascii grid
+       <Geometry> 10 5 120 20 </Geometry>
+     </Title>  
+     <Geometry> 10 25 100 20 </Geometry>
+     <BrowseButton>
+   </Line>
+  </Box>
+</Frame>
+
+<Frame>
+  <Title> Control </Title>
+  <Geometry>  431 260 310 230 </Geometry>
+  <Box><Geometry> 20 50 170 150 </Geometry>
+   <Line,id=RUNTIME> 
+     <Title> 
+       Run Duration (Years)
+       <Geometry> 10 10 150 30 </Geometry>
+     </Title>  
+     <Geometry> 10 40 110 20 </Geometry>
+   </Line>
+   <Line,id=OPINTRVL> 
+     <Title> 
+       Output Interval (Years)
+       <Geometry> 10 70 150 30 </Geometry>
+     </Title>  
+     <Geometry> 10 100 110 20 </Geometry>
+   </Line>
+  </Box>
+</Frame>
+
+</Page>
+<Page><Title> Rain and Run-off </Title>
+ <Frame>
+   <Title> Rainfall Variation </Title>
+   <Geometry>  10 10 730 150 </Geometry>
+
+   <CheckBox,id=OPTSINVAR><Title> Sinusoidal Storms </Title> 
+     <Geometry> 20 30 150 30 </Geometry>
+     <Checked> false </Checked>
+     <Switch> Sinus true </Switch>
+     <Bold> false </Bold>
+   </CheckBox>
+
+   <CheckBox,id=OPTVAR><Title> Random Storms </Title> 
+     <Switch> storm true </Switch>
+     <Geometry> 20 60 150 30 </Geometry>
+     <Checked> false </Checked>
+     <Bold> false </Bold>
+   </CheckBox>
+
+   <Line,id=SEED> 
+     <Title> 
+       Random Seed?
+       <Geometry> 20 100 100 20 </Geometry>
+     </Title>  
+     <Geometry> 110 100 40 20 </Geometry>
+   </Line>
+
+   <Box,id=storm>
+     <Geometry>  190 10 270 130 </Geometry>
+
+    <Line,id=PMEAN> 
+      <Title> 
+        Mean Storm Intensity (m/yr)
+        <Geometry> 20 20 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 20 50 20 </Geometry>
+    </Line>
+  
+    <Line,id=STDUR> 
+      <Title> 
+        Mean Storm Duration (years)
+        <Geometry> 20 50 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 50 50 20 </Geometry>
+    </Line>
+
+    <Line,id=ISTDUR> 
+      <Title> 
+        Mean time between Storms (yr)
+        <Geometry> 20 80 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 80 50 20 </Geometry>
+    </Line>
+
+   </Box>
+
+   <Box,id=Sinus>
+     <Enabled> false </Enabled>
+     <Geometry>  460 10 250 130 </Geometry>
+
+    <Line,id=PERIOD> 
+      <Title> 
+        Variation Period
+        <Geometry> 20 10 200 20 </Geometry>
+      </Title>  
+      <Geometry> 160 10 70 20 </Geometry>
+    </Line>
+  
+    <Line,id=MAXPMEAN> 
+      <Title> 
+        Max. Mean Intensity
+        <Geometry> 20 40 200 20 </Geometry>
+      </Title>  
+      <Geometry> 160 40 70 20 </Geometry>
+    </Line>
+
+    <Line,id=MAXSTDURNM> 
+      <Title> 
+        Max. Duration
+        <Geometry> 20 70 200 20 </Geometry>
+      </Title>  
+      <Geometry> 160 70 70 20 </Geometry>
+    </Line>
+
+    <Line,id=MAXISTDURMN> 
+      <Title> 
+        Max. Spacing
+        <Geometry> 20 100 200 20 </Geometry>
+      </Title>  
+      <Geometry> 160 100 70 20 </Geometry>
+    </Line>
+
+   </Box>
+
+ </Frame>
+ <Frame>
+   <Title> Run-off </Title>
+   <Geometry>  10 160 470 310 </Geometry>
+
+   <CheckBox,id=LAKEFILL><Title> Fill Lakes </Title> 
+     <Geometry> 150 5 100 30 </Geometry>
+     <Checked> false </Checked>
+     <Bold> false </Bold>
+   </CheckBox>
+
+
+   <Box>
+     <Title> Infiltration Settings </Title>
+     <Geometry>  20 120 440 90 </Geometry>
+
+    <Frame,id=icap><Style> NoFrame </Style>
+    <Enabled> true </Enabled>
+    <Geometry> 10 20 320 20 </Geometry>
+
+    <Line,id=INFILTRATION> 
+      <Title> 
+        Infiltration Capacity (m/yr)
+        <Geometry> 10 0 180 20 </Geometry>
+      </Title>  
+      <Geometry> 180 0 70 20 </Geometry>
+    </Line>
+
+    </Frame>
+  
+    <Frame,id=sws><Style> NoFrame </Style>
+    <Enabled> false </Enabled>
+    <Geometry> 10 40 320 20 </Geometry>
+
+    <Line,id=SOIL_STORE> 
+      <Title> 
+        Soil Water Storage Capacity
+        <Geometry> 10 0 180 20 </Geometry>
+      </Title>  
+      <Geometry> 180 0 70 20 </Geometry>
+    </Line>
+
+    </Frame>
+
+    <Frame,id=trans><Style> NoFrame </Style>
+    <Enabled> false </Enabled>
+    <Geometry> 10 60 320 20 </Geometry>
+
+    <Line,id=TRANSMISSIVITY> 
+      <Title> 
+        Transmissivity
+        <Geometry> 10 0 180 20 </Geometry>
+      </Title>  
+      <Geometry> 180 0 70 20 </Geometry>
+    </Line>
+
+    </Frame>
+
+    <Frame,id=kin><Style> NoFrame </Style>
+     <Enabled> false </Enabled>
+     <Geometry> 260 20 170 40 </Geometry>
+     <Line,id=KINWAVE_HQEXP> 
+       <Title> 
+         2D Exponent
+         <Geometry> 10 0 100 20 </Geometry>
+       </Title>  
+       <Geometry> 100 0 70 20 </Geometry>
+     </Line>
+    </Frame>
+
+    <Frame,id=hydro><Style> NoFrame </Style>
+     <Enabled> false </Enabled>
+     <Geometry> 260 40 170 40 </Geometry>
+     <Line,id=FLOWVELOCITY> 
+       <Title> 
+         Flow Velocity
+         <Geometry> 10 0 100 20 </Geometry>
+       </Title>  
+       <Geometry> 100 0 70 20 </Geometry>
+     </Line>
+     <Line,id=HYDROSHAPEFAC> 
+       <Title> 
+         Shape Factor
+         <Geometry> 10 20 100 20 </Geometry>
+       </Title>  
+       <Geometry> 100 20 70 20 </Geometry>
+     </Line>
+    </Frame>
+
+   </Box>
+
+   <Box,id=sinvar>
+     <Title> Sinusoidal time variation </Title>
+     <Geometry>  20 210 340 90 </Geometry>
+     <CheckBox,id=OPTSINVARINFILT>
+       <Geometry> 20 30 100 30 </Geometry>
+       <Checked> false </Checked>
+       <Switch> sinv true </Switch>
+       <Bold> false </Bold>
+     </CheckBox>
+
+     <Frame,id=sinv><Enabled> false </Enabled><Style> NoFrame </Style>
+      <Geometry>  40 15 280 70 </Geometry>
+      <Line,id=PERIOD_INFILT> 
+        <Title> 
+          Period
+          <Geometry> 40 10 200 20 </Geometry>
+        </Title>  
+        <Geometry> 210 10 50 20 </Geometry>
+      </Line>
+  
+      <Line,id=MAXICMEAN> 
+        <Title> 
+          Max. Infiltration Capacity
+          <Geometry> 40 40 200 20 </Geometry>
+        </Title>  
+        <Geometry> 210 40 50 20 </Geometry>
+      </Line>
+     </Frame>
+
+   </Box>
+   <Buttons,id=FLOWGEN>
+     <Title> Type </Title>
+     <Geometry>  20 30 440 90 </Geometry>
+    <RadioButton><Title> Uniform Hortonian </Title>
+       <Switch> sinvar true </Switch>
+       <Switch> icap true </Switch>
+       <Checked> true </Checked>
+       <Bold> FALSE </Bold>
+      <Geometry> 10 20 200 20 </Geometry>
+    </RadioButton>
+    <RadioButton><Title> Saturation Excess (O'Loughlin) </Title>
+       <Switch> trans true </Switch>
+       <Bold> FALSE </Bold>
+       <Geometry> 10 40 200 20 </Geometry>
+    </RadioButton>
+    <RadioButton><Title> Uniform Soil Storage Capacity </Title>
+       <Switch> sws true </Switch>
+       <Switch> icap true </Switch>
+       <Bold> FALSE </Bold>
+       <Geometry> 10 60 200 20 </Geometry>
+    </RadioButton>
+    <RadioButton><Title> 2D kin. Wave </Title>
+       <Switch> kin true </Switch>
+       <Bold> FALSE </Bold>
+       <Geometry> 210 20 180 20 </Geometry>
+    </RadioButton>
+    <RadioButton><Title> Hydro Peak Routing </Title>
+       <Switch> hydro true </Switch>
+        <Bold> FALSE </Bold>
+       <Geometry> 210 40 180 20 </Geometry>
+    </RadioButton>
+   </Buttons>
+
+ </Frame>
+ <Frame>
+   <Title> Inflow </Title>
+   <Geometry>  480 160 260 310 </Geometry>
+
+   <CheckBox,id=OPTINLET><Title> Activate Inlet </Title> 
+     <Geometry> 20 30 100 30 </Geometry>
+     <Checked> false </Checked>
+     <Switch> Inflow true </Switch>
+     <Bold> false </Bold>
+   </CheckBox>
+
+   <Box,id=Inflow>
+     <Enabled> false </Enabled>
+     <Geometry>  10 70 240 230 </Geometry>
+
+     <Line,id=INLET_X> 
+       <Title> 
+         Inlet X
+         <Geometry> 20 10 150 20 </Geometry>
+       </Title>  
+       <Geometry> 160 10 50 20 </Geometry>
+     </Line>
+   
+     <Line,id=INLET_Y> 
+       <Title> 
+         Inlet Y 
+         <Geometry> 20 40 150 20 </Geometry>
+       </Title>  
+       <Geometry> 160 40 50 20 </Geometry>
+     </Line>
+ 
+     <Line,id=INDRAREA> 
+        <Title> 
+         Input Drainage Area
+         <Geometry> 20 70 150 20 </Geometry>
+       </Title>  
+       <Geometry> 160 70 50 20 </Geometry>
+     </Line>
+
+     <Box>
+       <Title> Volumetric Sediment Loads </Title>
+       <Geometry>  10 100 220 120 </Geometry>
+    <Line,id=INSEDLOAD1> 
+      <Title> 
+        Grain Size 1
+        <Geometry> 20 25 100 20 </Geometry>
+      </Title>  
+      <Geometry> 110 25 50 20 </Geometry>
+    </Line>
+  
+    <Line,id=INSEDLOAD2> 
+      <Title> 
+        Grain Size 2
+        <Geometry> 20 55 100 20 </Geometry>
+      </Title>  
+      <Geometry> 110 55 50 20 </Geometry>
+    </Line>
+
+    <Line,id=INSEDLOAD3> 
+      <Title> 
+        Grain Size 3
+        <Geometry> 20 85 100 20 </Geometry>
+      </Title>  
+      <Geometry> 110 85 50 20 </Geometry>
+    </Line>
+     </Box>
+   </Box>
+
+ </Frame>
+</Page>
+<Page><Title> Sediment </Title>
+   <Line,id=MAXREGDEPTH> 
+     <Title> 
+       Depth of Active Mixing Layer
+       <Geometry> 30 20 200 20 </Geometry>
+     </Title>  
+     <Geometry> 220 20 100 20 </Geometry>
+   </Line>
+ 
+   <Box>
+    <Title> Sediment Transport </Title>
+    <Geometry> 10 50 340 300 </Geometry>
+
+    <CheckBox,id=OPTDETACHLIM>
+      <Geometry> 20 30 200 20 </Geometry>
+      <Title> 
+        Detachment Limited Erosion
+      </Title>
+      <Checked> false </Checked>
+      <Bold> false </Bold>
+    </CheckBox>
+
+    <Line,id=KF> 
+      <Title> 
+        Efficiency Factor
+        <Geometry> 20 60 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 60 100 20 </Geometry>
+    </Line>
+    <Line,id=MF> 
+      <Title> 
+        Discharge Exponent
+        <Geometry> 20 90 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 90 100 20 </Geometry>
+    </Line>
+    <Line,id=NF> 
+      <Title> 
+        Slope Exponent
+        <Geometry> 20 120 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 120 100 20 </Geometry>
+    </Line>
+    <Line,id=TAUCD> 
+      <Title> 
+        Detachment Threshold
+        <Geometry> 20 150 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 150 100 20 </Geometry>
+    </Line>
+    <Line,id=PB> 
+      <Title> 
+        Excess Shear Stress Exponent
+        <Geometry> 20 180 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 180 100 20 </Geometry>
+    </Line>
+
+    <CheckBox,id=OPTDIFFDEP>
+      <Geometry> 20 220 270 20 </Geometry>
+      <Title> 
+        Hillslope Diffusion only applied to Erosion
+      </Title>
+      <Checked> false </Checked>
+      <Bold> false </Bold>
+    </CheckBox>
+
+    <Line,id=KD> 
+      <Title> 
+        Hillslope Diffusion Coefficient
+        <Geometry> 20 250 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 250 100 20 </Geometry>
+    </Line>
+  </Box>
+ <Frame>
+   <Geometry> 400 10 340 470 </Geometry> 
+
+    <Line,id=NUMGRNSIZE> 
+      <Title> 
+        Number of Grain Size Classes
+        <Geometry> 20 20 200 20 </Geometry>
+      </Title>  
+      <Geometry> 190 20 100 20 </Geometry>
+    </Line>
+
+   <Box>
+     <Title> Grain Size Class Diameters </Title>
+     <Geometry>  10 60 320 110 </Geometry>
+
+    <Line,id=GRAINDIAM1> 
+      <Title> 
+        Size 1
+        <Geometry> 70 20 200 20 </Geometry>
+      </Title>  
+      <Geometry> 150 20 100 20 </Geometry>
+    </Line>
+  
+    <Line,id=GRAINDIAM2> 
+      <Title> 
+        Size 2
+        <Geometry> 70 50 200 20 </Geometry>
+      </Title>  
+      <Geometry> 150 50 100 20 </Geometry>
+    </Line>
+
+    <Line,id=GRAINDIAM3> 
+      <Title> 
+        Size 3
+        <Geometry> 70 80 200 20 </Geometry>
+      </Title>  
+      <Geometry> 150 80 100 20 </Geometry>
+    </Line>
+
+   </Box>
+   <Box>
+     <Title> Proportions of Grain Size Class in Regolith </Title>
+     <Geometry>  10 180 320 110 </Geometry>
+
+    <Line,id=REGPROPORTION1> 
+      <Title> 
+        Size 1
+        <Geometry> 70 20 200 20 </Geometry>
+      </Title>  
+      <Geometry> 150 20 100 20 </Geometry>
+    </Line>
+  
+    <Line,id=REGPROPORTION2> 
+      <Title> 
+        Size 2
+        <Geometry> 70 50 200 20 </Geometry>
+      </Title>  
+      <Geometry> 150 50 100 20 </Geometry>
+    </Line>
+
+    <Line,id=REGPROPORTION3> 
+      <Title> 
+        Size 3
+        <Geometry> 70 80 200 20 </Geometry>
+      </Title>  
+      <Geometry> 150 80 100 20 </Geometry>
+    </Line>
+
+   </Box>
+   <Box>
+     <Title>  Proportions of Grain Size Class in Bedrock </Title>
+     <Geometry>  10 300 320 110 </Geometry>
+
+    <Line,id=BRPROPORTION1> 
+      <Title> 
+        Size 1
+        <Geometry> 70 20 200 20 </Geometry>
+      </Title>  
+      <Geometry> 150 20 100 20 </Geometry>
+    </Line>
+  
+    <Line,id=BRPROPORTION2> 
+      <Title> 
+        Size 2
+        <Geometry> 70 50 200 20 </Geometry>
+      </Title>  
+      <Geometry> 150 50 100 20 </Geometry>
+    </Line>
+
+    <Line,id=BRPROPORTION3> 
+      <Title> 
+        Size 3
+        <Geometry> 70 80 200 20 </Geometry>
+      </Title>  
+      <Geometry> 150 80 100 20 </Geometry>
+    </Line>
+
+   </Box>
+ </Frame>
+</Page>
+
+<Page><Title> Erosion and Uplift </Title>
+
+ <Frame><Title> Erosion </Title>
+   <Geometry>  10 10 700 230 </Geometry>
+
+   <CheckBox,id=OPTREADLAYER>
+     <Geometry> 20 32 470 20 </Geometry>
+      <Title> 
+       Read Layers from File  (Layer file name = Input data file name + .lay)
+      </Title>
+     <Checked> false </Checked>
+     <Bold> false </Bold>
+   </CheckBox>
+
+   <Box>
+     <Title> Regolith </Title>
+     <Geometry>  10 60 340 150 </Geometry>
+
+    <Line,id=KR> 
+      <Title> 
+        Erodibility Coefficient 
+        <Geometry> 20 40 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 40 100 20 </Geometry>
+    </Line>
+  
+    <Line,id=REGINIT> 
+      <Title> 
+        Initial Thickness
+        <Geometry> 20 70 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 70 100 20 </Geometry>
+    </Line>
+ 
+   </Box>
+
+   <Box>
+     <Title> Bedrock </Title>
+     <Geometry>  350 60 340 150 </Geometry>
+
+    <Line,id=KB> 
+      <Title> 
+        Erodibility Coefficient 
+        <Geometry> 20 20 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 20 100 20 </Geometry>
+    </Line>
+  
+    <Line,id=MB> 
+      <Title> 
+        Erodibility Discharge Exponent
+        <Geometry> 20 50 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 50 100 20 </Geometry>
+    </Line>
+
+    <Line,id=NB> 
+      <Title> 
+        Erodibility Slope Exponent 
+        <Geometry> 20 80 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 80 100 20 </Geometry>
+    </Line>
+  
+    <Line,id=BEDROCKDEPTH> 
+      <Title> 
+        Initial Depth
+        <Geometry> 20 110 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 110 100 20 </Geometry>
+    </Line>
+ 
+   </Box>
+ </Frame>
+
+ <Frame>
+  <Title> Uplift </Title>
+  <Geometry> 10 240 700 200 </Geometry>
+  <Frame,id=Upsy>
+    <Style> NoFrame </Style>
+    <Enabled> false </Enabled>
+    <Geometry> 200 30 400 160 </Geometry>
+    <Box>
+     <Title> Position </Title>
+     <Geometry> 50 0 300 60 </Geometry>
+     <Line,id=FAULTPOS> 
+       <Title> 
+         Fault Y Co-ordinate
+         <Geometry> 10 25 130 20 </Geometry>
+       </Title>  
+       <Geometry> 140 25 100 20 </Geometry>
+     </Line>
+    </Box>
+    <Box>
+     <Title> Timing </Title>
+     <Geometry> 50 60 300 100 </Geometry>
+     <Line,id=UPDUR> 
+       <Title> 
+         Duration of Uplift (yrs.)
+         <Geometry> 10 25 130 20 </Geometry>
+       </Title>  
+       <Geometry> 140 25 100 20 </Geometry>
+     </Line>
+     <Line,id=UPRATE> 
+       <Title> 
+         Uplift Rate (m/yr)
+         <Geometry> 10 60 130 20 </Geometry>
+       </Title>  
+       <Geometry> 140 60 100 20 </Geometry>
+     </Line>
+    </Box>
+
+   </Frame> 
+  <Buttons,id=UPTYPE>
+    <Title> Type </Title>
+    <Geometry> 50 30 150 160 </Geometry>
+    <RadioButton>
+      <Geometry> 30 30 100 20 </Geometry>
+      <Title> None </Title>
+      <Bold> false </Bold>
+      <Checked> true </Checked>
+      <Switch> Upsy false </Switch>
+    </RadioButton>
+    <RadioButton>
+      <Geometry> 30 70 100 20 </Geometry>
+      <Title> Uniform </Title>
+      <Bold> false </Bold>
+    </RadioButton>
+    <RadioButton>
+      <Geometry> 30 110 100 20 </Geometry>
+      <Title> Block </Title>
+      <Bold> false </Bold>
+    </RadioButton>
+  </Buttons>
+
+
+  </Frame> 
+</Page>
+
+<Page><Title> Hydraulics </Title>
+    <Line,id=BANKFULLEVENT> 
+      <Title> 
+        Bank full event run-off rate
+        <Geometry> 30 20 200 20 </Geometry>
+      </Title>  
+      <Geometry> 220 20 100 20 </Geometry>
+    </Line>
+
+   <Box>
+     <Title> Width </Title>
+     <Geometry>  10 50 340 110 </Geometry>
+
+    <Line,id=HYDR_WID_COEFF_DS> 
+      <Title> 
+        Downstream coefficient
+        <Geometry> 20 20 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 20 100 20 </Geometry>
+    </Line>
+  
+    <Line,id=HYDR_WID_EXP_DS> 
+      <Title> 
+        Downstream Exponent
+        <Geometry> 20 50 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 50 100 20 </Geometry>
+    </Line>
+
+    <Line,id=HYDR_WID_EXP_STN> 
+      <Title> 
+        At-a-station Exponent
+        <Geometry> 20 80 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 80 100 20 </Geometry>
+    </Line>
+
+   </Box>
+
+   <Box>
+     <Title> Depth </Title>
+     <Geometry>  350 50 340 110 </Geometry>
+
+    <Line,id=HYDR_DEP_COEFF_DS> 
+      <Title> 
+        Downstream coefficient
+        <Geometry> 20 20 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 20 100 20 </Geometry>
+    </Line>
+  
+    <Line,id=HYDR_DEP_EXP_DS> 
+      <Title> 
+        Downstream exponent
+        <Geometry> 20 50 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 50 100 20 </Geometry>
+    </Line>
+
+    <Line,id=HYDR_DEP_EXP_STN> 
+      <Title> 
+        At-a-station Exponent
+        <Geometry> 20 80 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 80 100 20 </Geometry>
+    </Line>
+
+   </Box>
+
+   <Box>
+     <Title> Hydraulic Roughness </Title>
+     <Geometry>  10 160 340 110 </Geometry>
+
+    <Line,id=HYDR_ROUGH_COEFF_DS> 
+      <Title> 
+        Downstream coefficient
+        <Geometry> 20 20 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 20 100 20 </Geometry>
+    </Line>
+  
+    <Line,id=HYDR_ROUGH_EXP_DS> 
+      <Title> 
+        Downstream exponent
+        <Geometry> 20 50 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 50 100 20 </Geometry>
+    </Line>
+
+    <Line,id=HYDR_ROUGH_EXP_STN> 
+      <Title> 
+        At-a-station exponent
+        <Geometry> 20 80 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 80 100 20 </Geometry>
+    </Line>
+
+   </Box>
+
+   <Box>
+     <Title> Bank Roughness </Title>
+     <Geometry>  350 160 340 110 </Geometry>
+
+    <Line,id=BANK_ROUGH_COEFF> 
+      <Title> 
+        Downstream Coefficient
+        <Geometry> 20 20 200 20 </Geometry>
+      </Title>  
+      <Geometry> 210 20 100 20 </Geometry>
+    </Line>
+  
+    <Line,id=BANK_ROUGH_EXP> 
+      <Title> 
+        Downstream discharge \nexponent
+        <Geometry> 20 50 200 30 </Geometry>
+      </Title>  
+      <Geometry> 210 50 100 20 </Geometry>
+    </Line>
+
+   </Box>
+</Page>
+<Page><Title> Meanders and Surfaces </Title>
+<Frame>
+ <Title> Meanders </Title>
+ <Geometry> 10 10 380 350 </Geometry>
+ <CheckBox,id=OPTMNDR>
+    <Switch> mndr true </Switch>
+    <Checked> false </Checked>
+    <Geometry> 20 30 240 20 </Geometry>
+    <Title> Allow Meandering </Title>
+    <Bold> false </Bold>
+ </CheckBox>
+ <Frame,id=mndr><Geometry> 10 60 360 250 </Geometry>
+      <Style> NoFrame </Style>
+      <Enabled> false </Enabled>
+      <Line,id=CRITICAL_FLOW> 
+        <Title> 
+          Critical Flow Rate
+          <Geometry> 20 20 240 20 </Geometry>
+        </Title>  
+        <Geometry> 270 20 50 20 </Geometry>
+      </Line>
+      <Line,id=DEF_CHAN_DISCR> 
+        <Title> 
+          Default Channel Discretization
+          <Geometry> 20 40 240 20 </Geometry>
+        </Title>  
+        <Geometry> 270 40 50 20 </Geometry>
+      </Line>
+      <Line,id=FRAC_WID_MOVE> 
+        <Title> 
+          Max Fraction of channel node moves
+          <Geometry> 20 70 240 20 </Geometry>
+        </Title>  
+        <Geometry> 270 70 50 20 </Geometry>
+      </Line>
+      <Line,id=FRAC_WID_ADD> 
+        <Title> 
+          Fraction of channel before node added
+          <Geometry> 20 100 240 20 </Geometry>
+        </Title>  
+        <Geometry> 270 100 50 20 </Geometry>
+      </Line>
+      <Line,id=VEG_ERODY> 
+        <Title> 
+          Erodibility of vegetated banks
+          <Geometry> 20 130 240 20 </Geometry>
+        </Title>  
+        <Geometry> 270 130 50 20 </Geometry>
+      </Line>
+      <Line,id=LATADJUST> 
+        <Title> 
+          Ratio of bank to bed erodibility
+          <Geometry> 20 160 240 20 </Geometry>
+        </Title>  
+        <Geometry> 270 160 50 20 </Geometry>
+      </Line>
+      <CheckBox,id=BNKHTDEP>
+        <Checked> false </Checked>
+        <Geometry> 20 200 240 20 </Geometry>
+        <Title> Erodibility depends on bank height </Title>
+        <Bold> false </Bold>
+      </CheckBox>
+      <CheckBox,id=OPTINTERPLAYER>
+        <Checked> false </Checked>
+        <Geometry> 20 230 240 20 </Geometry>
+        <Title> Layer Interpolation when points move </Title>
+        <Bold> false </Bold>
+      </CheckBox>
+ </Frame>
+</Frame>
+<Frame>
+ <Geometry> 390 10 300 400 </Geometry>
+ <Title> Deposition </Title>
+ <Box>
+   <Bold> true </Bold>
+   <Geometry> 20 30 250 200 </Geometry>
+   <Title> Overbank </Title>
+   <Frame,id=ovdep><Style> NoFrame </Style>
+   <Enabled> false </Enabled>
+   <Geometry> 20 50 210 140 </Geometry>
+      <Line,id=FP_MU> 
+        <Title> 
+          Deposition Rate
+          <Geometry> 0 10 200 20 </Geometry>
+        </Title>  
+        <Geometry> 130 10 50 20 </Geometry>
+      </Line>
+      <Line,id=FP_LAMBDA> 
+        <Title> 
+          Distance Decay
+          <Geometry> 0 40 200 20 </Geometry>
+        </Title>  
+        <Geometry> 130 40 50 20 </Geometry>
+      </Line>
+      <Line,id=PF_DRAREAMIN> 
+        <Title> 
+          Min. Drainage Area
+          <Geometry> 0 70 200 20 </Geometry>
+        </Title>  
+        <Geometry> 130 70 50 20 </Geometry>
+      </Line>
+      <Line,id=FP_BANKFULLEVENT> 
+        <Title> 
+          Min. Bankfull Event
+          <Geometry> 0 100 200 20 </Geometry>
+        </Title>  
+        <Geometry> 130 100 50 20 </Geometry>
+      </Line>
+   </Frame>
+   <CheckBox,id=OPTFLOODPLAIN>
+     <Switch> ovdep true </Switch>
+     <Checked> false </Checked>
+     <Geometry> 20 20 210 20 </Geometry>
+     <Title> Include overbank deposition </Title>
+     <Bold> false </Bold>
+   </CheckBox>
+ </Box>
+ <Box>
+   <Bold> true </Bold>
+   <Title> Eolian </Title>
+   <Geometry> 20 240 250 100 </Geometry>
+   <Frame,id=eodep><Style> NoFrame </Style>
+   <Geometry> 20 50 210 40 </Geometry>
+    <Enabled> false </Enabled>
+      <Line,id=LOESS_DEP_RATE> 
+        <Title> 
+          Deposition Rate
+          <Geometry> 0 10 100 20 </Geometry>
+        </Title>  
+        <Geometry> 130 10 50 20 </Geometry>
+      </Line>
+   </Frame>
+   <CheckBox,id=OPTLOESSDEP>
+     <Switch> eodep true </Switch>
+     <Title> Include eolian deposition </Title>
+     <Geometry> 20 20 170 20 </Geometry>
+     <Bold> false </Bold>
+   </CheckBox>
+ </Box>
+ <CheckBox,id=OPTEXPOSURETIME>
+  <Title> Track Exposure Ages </Title>
+  <Geometry> 40 350 220 20 </Geometry>
+ </CheckBox>
+</Frame>
+</Page>
+<Page><Title> Miscellaneous </Title>
+ <Frame>
+  <Title> Extra Parameters </Title>
+  <Geometry> 10 10 730 500 </Geometry>
+  <Frame><Geometry> 70 50 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+  <Frame><Geometry> 70 150 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+  <Frame><Geometry> 70 250 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+  <Frame><Geometry> 70 350 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+  <Frame><Geometry> 270 50 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+  <Frame><Geometry> 270 150 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+  <Frame><Geometry> 270 250 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+  <Frame><Geometry> 270 350 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+  <Frame><Geometry> 470 50 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+  <Frame><Geometry> 470 150 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+  <Frame><Geometry> 470 250 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+  <Frame><Geometry> 470 350 165 90 </Geometry>
+    <BiLine><Origin> 5 5 </Origin></BiLine>
+  </Frame>
+</Frame>
+</Page>

@@ -1,0 +1,806 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="StarOffice 6.0  (Linux)">
+	<META NAME="CREATED" CONTENT="20020124;11262500">
+	<META NAME="CHANGED" CONTENT="20020124;11262500">
+	<STYLE>
+	<!--
+		@page { size: 21.59cm 27.94cm; margin: 2.54cm }
+		P.sdfootnote { margin-left: 1.04cm; margin-right: 0.64cm; text-indent: -0.41cm; margin-bottom: 0cm; color: #000000; font-family: "Times"; font-size: 10pt; text-align: left; widows: 2; orphans: 2 }
+		A.sdfootnoteanc { font-size: 57% }
+	-->
+	</STYLE>
+</HEAD>
+<BODY TEXT="#000000">
+<P ALIGN=CENTER STYLE="margin-top: 0.85cm; margin-bottom: 0.42cm; line-height: 0.64cm; page-break-after: avoid">
+<BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.85cm; margin-bottom: 0.42cm; line-height: 0.64cm; page-break-after: avoid">
+<BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.42cm; margin-bottom: 0.42cm; line-height: 0.64cm; page-break-after: avoid">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=5><B>CHILD
+Program Description</B></FONT></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.42cm; margin-bottom: 0.42cm; line-height: 0.64cm; page-break-after: avoid">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=5><B>Version 2.0</B></FONT></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.49cm; page-break-after: avoid">
+<BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.49cm">
+<BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="text-indent: 1.27cm; margin-bottom: 0cm; line-height: 0.49cm">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT FACE="Times"><FONT COLOR="#000000">Greg
+Tucker<A CLASS="sdfootnoteanc<A CLASS="" NAME="sdfootnote1<A CLASS="" NAME="anc" HREF="#sdfootnote1<A CLASS="" NAME="anc" HREF="#sym"><SUP>1</SUP></A></FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.49cm">
+<BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="text-indent: 1.27cm; margin-bottom: 0cm; line-height: 0.49cm">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>Department of
+Civil and Environmental Engineering</FONT></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="text-indent: 1.27cm; margin-bottom: 0cm; line-height: 0.49cm">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>Massachusetts
+Institute of Technology</FONT></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="text-indent: 1.27cm; margin-bottom: 0cm; line-height: 0.49cm">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>Cambridge, MA
+02139</FONT></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.49cm">
+<BR><BR>
+</P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-left: 1.91cm; margin-bottom: 0cm; line-height: 0.49cm; page-break-after: avoid">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>Part IV-B of
+final technical report submitted to U.S. Army Corps of Engineers
+Construction Engineering Research Laboratory (USACERL)</FONT></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm; line-height: 0.49cm; page-break-after: avoid">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>by Gregory E.
+Tucker, Nicole M. Gasparini, Rafael L. Bras, and Stephen T. Lancaster
+</FONT></FONT></FONT>
+</P>
+<P ALIGN=CENTER STYLE="margin-left: 1.91cm; margin-bottom: 0cm; line-height: 0.49cm; page-break-after: avoid">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>in fulfillment
+of contract number DACA88-95-C-0017</FONT></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.49cm; page-break-after: avoid">
+<BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.49cm">
+<BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="text-indent: 1.27cm; margin-bottom: 0cm; line-height: 0.49cm">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>April, 1999</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.85cm; margin-bottom: 0.42cm; line-height: 0.64cm; page-break-after: avoid">
+<BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.86cm; margin-bottom: 0.42cm; line-height: 0.64cm; page-break-before: always; page-break-after: avoid">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=5><B>CHILD
+Program Description</B></FONT></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.42cm; margin-bottom: 0.42cm; line-height: 0.64cm; page-break-after: avoid">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=5><B>Version 2.0</B></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-top: 0.07cm; line-height: 0.83cm; page-break-after: avoid">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=4><B>Design
+Philosophy</B></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm; page-break-after: avoid">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>The CHILD
+software has been designed to maximize modularity and flexibility.
+For that reason, the C++ code is divided among a group of files and
+classes, many of which are general utilities that are independent of
+the model itself and may be reused in other applications. The
+mesh-handling routines are designed to function independently of the
+process routines, so that in principal the mesh-handling routines can
+be used by other applications unrelated to CHILD (note that with the
+current release, some explicit references to CHILD&#8217;s meandering
+and &#8220;layering&#8221; capabilities still exist within the mesh
+routines; further development is needed to fully realize the
+potential for completely independent mesh capabilities). Basic
+parameters and functionality related to each process are in most
+cases grouped into a single &#8220;process class&#8221; or group of
+related classes; for example, overbank deposition is managed using
+the tFloodplain class, which is wholly contained within the files
+tFloodplain.h and tFloodplain.cpp. The various functional
+capa&shy;bilities of the model and the associated classes and files
+are summarized in Table 1.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>The tMesh class
+manages the simulation mesh and it includes functions for creating,
+read&shy;ing, and updating the mesh, as well as routines for managing
+dynamic point addition, deletion, and movement. Class tMesh contains
+linked lists of each of the three mesh elements, which are
+encapsulated in the classes tNode, tEdge, and tTriangle. Decoupling
+of these mesh-management capabilities from the various process
+routines is accomplished in part by the use of templates. tMesh is a
+templated class, with the template variable being the data type that
+represents a node on the mesh. In principal, this design makes it
+possible to create a mesh using any user-specified node type as long
+as the user-defined node class is a descendent of the base class
+tNode (again, with the current release this decoupling is not
+complete; some &#8220;landscape-related&#8221; functionality is still
+required within the inherited node class). The base tNode class
+simply represents a node in a Delaunay triangulation, and does not
+include any data or methods related to landscape processes. Instead,
+landscape data for individual nodes (data such as discharge, flow
+direction, erodibility, etc.) are contained within the inherited
+class tLNode (see summary in Table 1). The base class tNode provides
+several virtual functions that are overridden by tLNode to handle
+cases such as node initialization following mesh insertion and the
+addition or removal of a &#8220;spoke.&#8221;</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>Output routines
+follow a similar design. The tOutput class manages output of
+triangulation data for a generic mesh. It provides a virtual
+function, WriteNodeData, that can be overridden by any descendent
+class to perform additional output specific to a given application.
+In CHILD, the inherited tLOutput class manages output of various
+hydrologic and geomorphic quantities.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>Typically, a
+given process or set of processes requires both &#8220;global&#8221;
+parameters and func&shy;tions &#8212;e.g., physical constants that
+are uniform in space and time and routines that compute pro&shy;cess
+rates across the whole domain &#8212; as well as properties that vary
+in space (such as runoff) and must therefore be included at the node
+level. In most cases, this is handled by encapsulating glo&shy;bal
+data and methods within a master process class, and adding
+node-specific variables as needed to the tLNode class (or the classes
+embedded within it; see Table 1). In this regard, CHILD&#8217;s
+ero&shy;sion, transport, and deposition routines deserve special
+mention. The tErosion class contains basic parameters and functions
+related to hillslope and channel erosion. This class also includes a
+numerical solution scheme for stream detachment and transport. The
+solution scheme is not spe&shy;cifically tied to any given formula.
+Ideally, therefore, one should be able to modify or replace the
+underlying detachment and/or transport calculations without needing
+to recreate the overall solu&shy;tion scheme. To make this possible,
+the tLNode class contains two embedded objects, &#8220;detach&#8221;
+and &#8220;sedTrans,&#8221; that perform the detachment and transport
+capacity calculations, respectively, at a specific point on the
+landscape. The classes from which these objects are derived may be
+changed at compile-time (in the present version, for example, one can
+alternately use the tSedTransPwrLaw or tSedTransWilcock classes to
+compute sediment transport capacity at a given node). While it would
+be convenient to have the transport-function option available at run
+time instead of compile time, the need for a branch operation at
+every sub-iteration for every node would impose a significant
+performance burden.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>The CHILD code
+also includes several generic utility classes, including a class that
+han&shy;dles input files (tInputFiles), a class that keeps track of
+simulation time (tRunTimer), and a collec&shy;tion of container
+classes (tArray, tMatrix, tList, tPtrList, and tMeshList). The
+linked-list classes in particular are extensively used throughout the
+code. The tMeshList class is used to store mesh nodes and directed
+edges. It is inherited from tList, and it divides a list into two
+parts: an &#8220;active&#8221; portion containing nodes and edges in
+the interior of the mesh, and a &#8220;boundary&#8221; portion
+contain&shy;ing boundary nodes or &#8220;no flow&#8221; edges (edges
+connected to at least one closed boundary node). Data on the linked
+lists are accessed using a separate &#8220;iterator&#8221; class that
+can move up or down along a list to retrieving data items. Because of
+the extensive use of iterators, the syntax of loops in the CHILD code
+may look unusual to those accustomed to more traditional programming
+style. A typical example of loop syntax is:</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 0.64cm; margin-bottom: 0cm; line-height: 0.42cm">
+<FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3>tMeshList&lt;tLNode&gt;
+nodeList = meshPtr-&gt;getNodeList();</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 0.64cm; margin-bottom: 0cm; line-height: 0.42cm">
+<FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3>tMeshListIter&lt;tLNode&gt;
+nodIter( nodeList );</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 0.64cm; margin-bottom: 0cm; line-height: 0.42cm">
+<FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3>tLNode *cn;</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0cm; line-height: 0.42cm">
+<BR>
+</P>
+<P ALIGN=LEFT STYLE="text-indent: 0.64cm; margin-bottom: 0cm; line-height: 0.42cm">
+<FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3>for(cn=nodIter.FirstP();nodIter.IsActive();cn=nodIter.NextP())</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 0.64cm; margin-bottom: 0cm; line-height: 0.42cm">
+<FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3>{ ... }</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<BR><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-top: 0.49cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>In this
+example, the loop sweeps through the &#8220;active&#8221; portion of
+the list of nodes from top to bot&shy;tom. At each step, the position
+of the iterator on the list is updated through the call to
+nodIter.NextP(), which returns a pointer to the mesh node that is
+stored at the current position on the list.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<BR><BR>
+</P>
+<OL>
+	<LI><P ALIGN=CENTER STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><B>Summary
+	of CHILD classes and files organized by functional category</B></FONT></FONT></FONT></P>
+</OL>
+<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><BR>
+</P>
+<TABLE WIDTH=634 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=1 CELLSPACING=0 FRAME=HSIDES RULES=GROUPS>
+	<COL WIDTH=153>
+	<COL WIDTH=153>
+	<COL WIDTH=166>
+	<COL WIDTH=153>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2>FUNCTION
+				/ CATEGORY</FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2>CLASS(ES)</FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2>FILE(S)</FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2>NOTES</FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+	</TBODY>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Initialization
+				and main loop</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">-</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">main.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Mesh
+				handling</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tMesh</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tNode</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tEdge</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tTriangle</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tListInputData</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tMesh.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>meshElements.h/.cpp</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tListInputData.h/.cpp</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>globalFns.h/.cpp</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				master mesh class</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+				</P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+				</P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+				</P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				reads mesh input files</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				geometry functions</I></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Landscape-specific
+				node data and methods</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tNode
+				: tLNode</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tLayer</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tChannel</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tMeander</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tSurface</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tRegolith</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tBedrock</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tLNode.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				represents one node</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				represents one layer</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				embedded in tLNode</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Output</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tOutput</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tOutput
+				: tLOutput</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tOutput.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				generic mesh output</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				CHILD-specific output</I></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Storms
+				and rainfall</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tStorm</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tStorm.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Runoff,
+				flow routing, and hydraulic geometry</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tStreamNet</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tInlet</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tStreamNet.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>(node-specific
+				data stored in tLNode and tChannel)</I></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Channel
+				and hillslope ero&shy;sion, transport, and depo&shy;sition</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tErosion</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tBedErodePwrLaw</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tSedTransPwrLaw</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tSedTransWilcock</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tEquilibCheck</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">erosion.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				master erosion class</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				bedrock erosion class</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				sed transport class</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				alternate transpt. class</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				not presently used</I></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Stream
+				meandering</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tStreamMeander</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tReach</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tStreamMeander.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tReach.h/.cpp</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>meander.f</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				handles mesh interface</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				constructs 1D reaches</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				1D model (FORTRAN)</I></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Layer
+				handling: intializa&shy;tion, updating, interpola&shy;tion, age
+				and exposure age tracking</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tLayer</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tNode
+				: tLNode</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tMesh</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tLNode.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tMesh.h/.cpp</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				one layer</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				tLNode has layer fns</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				layer input done in tMesh</I></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Floodplain
+				overbank dep&shy;osition</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tFloodplain</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tFloodplain.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Eolian
+				deposition</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tEolian</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tEolian.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Tectonics
+				and baselevel change</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tUplift</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tUplift.h/.cpp</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>General
+				simulation utilities</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tInputFile</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tRunTimer</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tInputFile.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tRunTimer.h/.cpp</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				manages main input file</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				tracks/updates run time</I></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Container
+				utilities</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tArray</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tMatrix</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tList</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tListNode</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tListIter</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tPtrList</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tPtrListNode</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tPtrListIter</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tList
+				: tMeshList</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><I><FONT SIZE=2 STYLE="font-size: 9pt"><FONT FACE="Courier"><FONT COLOR="#000000">tListIter:tMeshLis&shy;tIter</FONT></FONT></FONT></I></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">tArray.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tMatrix.h/.cpp</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tList.h/.cpp</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tPtrList.h/.cpp</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>tMeshList.h/.cpp</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>&#8220;</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				1D arrays</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				2D arrays</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				linked lists</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				element on list</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				list iterator</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				list of pointers</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+				</P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+				</P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				list of mesh elems</I></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Miscellaneous
+				math func&shy;tions</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">-</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Predicates</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">mathUtil.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>globalFns.h/.cpp</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>predicates.h/.cpp</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				includes rand # gen</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+				</P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-&gt;
+				public domain code by J.R.Shewchuk, Carnegie Mellon Univ.</I></FONT></FONT></FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Error
+				handling</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">-</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 9pt"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3><SPAN STYLE="font-style: normal"><FONT SIZE=3><FONT FACE="Courier"><FONT COLOR="#000000">errors.h/.cpp</FONT></FONT></FONT></SPAN></FONT></FONT></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 9pt"><I>General
+				header data: glo&shy;bal inclusions, declara&shy;tions, and
+				definitions</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>-</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=166>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Classes.h</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Definitions.h</I></FONT></FONT></FONT></P>
+				<P ALIGN=CENTER><FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=2 STYLE="font-size: 9pt"><I>Inclusions.h</I></FONT></FONT></FONT></P>
+			</TD>
+			<TD WIDTH=153>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<BR><BR>
+</P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<BR><BR>
+</P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm">
+<BR><BR>
+</P>
+<P ALIGN=LEFT STYLE="line-height: 0.83cm; widows: 2; orphans: 2; page-break-after: avoid">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=4><B>Chain of
+Events in Response to Node Movement</B></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm; widows: 2; orphans: 2; page-break-after: avoid">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>CHILD&#8217;s
+dynamic remeshing capabilities are rather complex. To illustrate how
+dynamic remeshing works, this section outlines the sequence of
+function calls in response to addition of a single node to the mesh.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="text-indent: 1.27cm; margin-bottom: 0.49cm; line-height: 0.42cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3>The calling
+function is assumed to &#8220;pre-move&#8221; the nodes by setting
+their (newx, newy) values. It then calls MoveNodes, which initiates
+the sequence of function calls shown below. Here &#8220;g&#8221;
+denotes a global function, &lt;&gt; denotes a virtual function that
+may be overridden, and () denotes a conditional call (i.e., one which
+only happens if a certain condition is met).</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3>CheckTriEdgeIntersect</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">NewTriCCW
+(g)</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">(Intersect
+(g))</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">(InNewTri
+(g))</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">(FlipEdge)</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">		</FONT><FONT FACE="Courier">DeleteEdge</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">ExtricateEdge</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">				</FONT><FONT FACE="Courier">DeleteTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">					</FONT><FONT FACE="Courier">ExtricateTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">				</FONT><FONT FACE="Courier">&lt;tSubNode&gt;::WarnSpokeLeaving</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">		</FONT><FONT FACE="Courier">AddEdgeAndMakeTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">AddEdge</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">				</FONT><FONT FACE="Courier">(&lt;tSubNode&gt;::AttachFirstSpoke)</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">				</FONT><FONT FACE="Courier">tEdge::WelcomeCCWNeighbor</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">MakeTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">		</FONT><FONT FACE="Courier">MakeTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">(LocateTriangle)</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">(DeleteNode)</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">		</FONT><FONT FACE="Courier">ExtricateNode</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">DeleteEdge</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">				</FONT><FONT FACE="Courier">ExtricateEdge</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">					</FONT><FONT FACE="Courier">DeleteTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">						</FONT><FONT FACE="Courier">ExtricateTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">					</FONT><FONT FACE="Courier">&lt;tSubNode&gt;::WarnSpokeLeaving</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">		</FONT><FONT FACE="Courier">(RepairMesh)</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">Next3Delaunay
+(g)</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">AddEdgeAndMakeTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">				</FONT><FONT FACE="Courier">AddEdge</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">					</FONT><FONT FACE="Courier">&lt;tSubNode&gt;::AttachFirstSpoke</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">					</FONT><FONT FACE="Courier">tEdge::WelcomeCCWNeighbor</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">				</FONT><FONT FACE="Courier">MakeTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">MakeTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">		</FONT><FONT FACE="Courier">(UpdateMesh)</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">MakeCCWEdges</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">setVoronoiVertices</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">CalcVoronoiEdgeLengths</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">tNode::UpdateCoords</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">(AddNode)</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3>CheckLocallyDelaunay</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">CheckForFlip</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">		</FONT><FONT FACE="Courier">TriPasses</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">		</FONT><FONT FACE="Courier">(FlipEdge)</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">DeleteEdge</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">				</FONT><FONT FACE="Courier">ExtricateEdge</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">					</FONT><FONT FACE="Courier">DeleteTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">						</FONT><FONT FACE="Courier">ExtricateTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">					</FONT><FONT FACE="Courier">&lt;tSubNode&gt;::WarnSpokeLeaving</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">AddEdgeAndMakeTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">				</FONT><FONT FACE="Courier">AddEdge</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">					</FONT><FONT FACE="Courier">(&lt;tSubNode&gt;::AttachFirstSpoke)</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">					</FONT><FONT FACE="Courier">tEdge::WelcomeCCWNeighbor</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">				</FONT><FONT FACE="Courier">MakeTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">			</FONT><FONT FACE="Courier">MakeTriangle</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Courier"><FONT SIZE=3>UpdateMesh</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">MakeCCWEdges</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">setVoronoiVertices</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<FONT COLOR="#000000"><FONT FACE="Times"><FONT SIZE=3><FONT SIZE=3><FONT COLOR="#000000"><FONT FACE="Times">	</FONT><FONT FACE="Courier">CalcVoronoiEdgeLengths</FONT></FONT></FONT></FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-left: 0.64cm; text-indent: -0.64cm; margin-bottom: 0cm; line-height: 0.49cm; widows: 2; orphans: 2">
+<BR>
+</P>
+<DIV ID="sdfootnote1">
+	<P CLASS="sdfootnote" ALIGN=LEFT STYLE="margin-right: 0cm; text-indent: -0.64cm; line-height: 0.49cm">
+	<A CLASS="sdfootnotesym<A CLASS="" NAME="sdfootnote1<A CLASS="" NAME="sym" HREF="#sdfootnote1<A CLASS="" NAME="sym" HREF="#anc">1</A>		<FONT SIZE=2><FONT FACE="Times"><FONT COLOR="#000000">To
+	whom correspondence should be addressed: Dept. of Civil &amp;
+	Environmental Engineering, MIT Room 48-429, Cambridge, MA 02139, ph.
+	(617) 252-1607, fax (617) 253-7475, email gtucker@mit.edu</FONT></FONT></FONT></P>
+</DIV>
+</BODY>
+</HTML>

@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Using Chintz</title>
+  </head>
+
+  <body>
+    <h2>Using Chintz</h2>
+Chintz provides a means for constructing the driver files for the child program. At present this is
+only available for the LINUX platform, and it has only been tested under RedHat7.0.
+It does not run
+child itself :- once the driver file is constructed, child must be run separately. Existing driver files can
+be loaded for modification, provided that the variable names are recognised by the interface. Unrecognised
+variables will be loaded into the "Miscellaneous" page, provided that there are no more than 16 of them.
+This page also allows the definition of new variables which are not catered for elsewhere. For an explanation
+of the driver file variables, see the <a href="childuguide.html">Child User Guide</a>. <br>
+Entry of text into the various text boxes does not generally require return to be pressed - the variables to 
+which each box is bound will be updated as you type. The one exception to this is the text box
+labelled "Child Control File" on the button bar. Changes in this box only take effect when you press return
+so as to avoid confusion and overwriting of exiting driver files.<br>
+Default values for the child variables are read in at start up from the file .ChintzDefaults. It is not
+recommended that you edit this file by hand. If you wish to modify it, then alter the values in the user
+interface, and use Save As... to make a new default file
+<br>
+The appearance and behaviour of the user interface can be modified fairly extensively by using the code
+generator provided :- <a href="smudge.html">Smudge</a> 
+
+
+    <hr>
+Created by Mike Bithell<br>
+<!-- Created: Fri Jan 25 15:23:18 GMT 2002 -->
+<!-- hhmts start -->
+Last modified: Fri Jan 25 15:37:53 GMT 2002
+<!-- hhmts end -->
+  </body>
+</html>

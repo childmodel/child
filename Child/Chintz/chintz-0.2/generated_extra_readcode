@@ -1,0 +1,84 @@
+if(num==1){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a1->setText(f.c_str());
+set_BiLine_a1var(f.c_str());
+BiLine_b1->setText(qty);
+set_BiLine_b1var(qty);}
+if(num==2){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a2->setText(f.c_str());
+set_BiLine_a2var(f.c_str());
+BiLine_b2->setText(qty);
+set_BiLine_b2var(qty);}
+if(num==3){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a3->setText(f.c_str());
+set_BiLine_a3var(f.c_str());
+BiLine_b3->setText(qty);
+set_BiLine_b3var(qty);}
+if(num==4){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a4->setText(f.c_str());
+set_BiLine_a4var(f.c_str());
+BiLine_b4->setText(qty);
+set_BiLine_b4var(qty);}
+if(num==5){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a5->setText(f.c_str());
+set_BiLine_a5var(f.c_str());
+BiLine_b5->setText(qty);
+set_BiLine_b5var(qty);}
+if(num==6){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a6->setText(f.c_str());
+set_BiLine_a6var(f.c_str());
+BiLine_b6->setText(qty);
+set_BiLine_b6var(qty);}
+if(num==7){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a7->setText(f.c_str());
+set_BiLine_a7var(f.c_str());
+BiLine_b7->setText(qty);
+set_BiLine_b7var(qty);}
+if(num==8){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a8->setText(f.c_str());
+set_BiLine_a8var(f.c_str());
+BiLine_b8->setText(qty);
+set_BiLine_b8var(qty);}
+if(num==9){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a9->setText(f.c_str());
+set_BiLine_a9var(f.c_str());
+BiLine_b9->setText(qty);
+set_BiLine_b9var(qty);}
+if(num==10){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a01->setText(f.c_str());
+set_BiLine_a01var(f.c_str());
+BiLine_b01->setText(qty);
+set_BiLine_b01var(qty);}
+if(num==11){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a11->setText(f.c_str());
+set_BiLine_a11var(f.c_str());
+BiLine_b11->setText(qty);
+set_BiLine_b11var(qty);}
+if(num==12){
+int pos=val.find(":");
+string f=val.substr(0,pos);
+BiLine_a21->setText(f.c_str());
+set_BiLine_a21var(f.c_str());
+BiLine_b21->setText(qty);
+set_BiLine_b21var(qty);}

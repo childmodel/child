@@ -1,0 +1,376 @@
+void Chintz_base::RadioButton5OUTLETBOX_switch(int i){
+if(OUTLETBOX==0)return;
+if (i !=0) {OUTLETBOX->setEnabled(TRUE);}
+ else {OUTLETBOX->setEnabled(!TRUE);}}
+void Chintz_base::set_TYP_BOUND(int i){
+ TYP_BOUND.setNum(i);
+}
+void Chintz_base::RadioButton8rando_switch(int i){
+if(rando==0)return;
+if (i !=0) {rando->setEnabled(true);}
+ else {rando->setEnabled(!true);}}
+void Chintz_base::set_OPT_PT_PLACE(int i){
+ OPT_PT_PLACE.setNum(i);
+}
+void Chintz_base::set_X_GRID_SIZE(const QString& S){
+X_GRID_SIZE=S;}
+void Chintz_base::set_Y_GRID_SIZE(const QString& S){
+Y_GRID_SIZE=S;}
+void Chintz_base::set_GRID_SPACING(const QString& S){
+GRID_SPACING=S;}
+void Chintz_base::set_NUM_PTS(const QString& S){
+NUM_PTS=S;}
+void Chintz_base::set_OUTLET_X_COORD(const QString& S){
+OUTLET_X_COORD=S;}
+void Chintz_base::set_OUTLET_Y_COORD(const QString& S){
+OUTLET_Y_COORD=S;}
+void Chintz_base::set_SLOPED_SURF(bool i){
+ SLOPED_SURF.setNum(i);
+}
+void Chintz_base::set_UPPER_BOUND_Z(const QString& S){
+UPPER_BOUND_Z=S;}
+void Chintz_base::set_MEAN_ELEV(const QString& S){
+MEAN_ELEV=S;}
+void Chintz_base::RadioButton9Meshset_switch(int i){
+if(Meshset==0)return;
+if (i !=0) {Meshset->setEnabled(true);}
+ else {Meshset->setEnabled(!true);}}
+void Chintz_base::RadioButton01TINfiles_switch(int i){
+if(TINfiles==0)return;
+if (i !=0) {TINfiles->setEnabled(true);}
+ else {TINfiles->setEnabled(!true);}}
+void Chintz_base::RadioButton11POfile_switch(int i){
+if(POfile==0)return;
+if (i !=0) {POfile->setEnabled(true);}
+ else {POfile->setEnabled(!true);}}
+void Chintz_base::RadioButton21ARCfile_switch(int i){
+if(ARCfile==0)return;
+if (i !=0) {ARCfile->setEnabled(true);}
+ else {ARCfile->setEnabled(!true);}}
+void Chintz_base::set_OPTREADINPUT(int i){
+ OPTREADINPUT.setNum(i);
+}
+void Chintz_base::INPUTDATAFILELineFileSelect(){
+QString S=QFileDialog::getSaveFileName(QString::null,"*",this);
+if (S.length()!=0){set_INPUTDATAFILE(S);INPUTDATAFILELine->setText(S);}}
+void Chintz_base::set_INPUTDATAFILE(const QString& S){
+INPUTDATAFILE=S;}
+void Chintz_base::set_INPUTTIME(const QString& S){
+INPUTTIME=S;}
+void Chintz_base::OUTFILENAMELineFileSelect(){
+QString S=QFileDialog::getSaveFileName(QString::null,"*",this);
+if (S.length()!=0){set_OUTFILENAME(S);OUTFILENAMELine->setText(S);}}
+void Chintz_base::set_OUTFILENAME(const QString& S){
+OUTFILENAME=S;}
+void Chintz_base::POINTFILENAMELineFileSelect(){
+QString S=QFileDialog::getSaveFileName(QString::null,"*",this);
+if (S.length()!=0){set_POINTFILENAME(S);POINTFILENAMELine->setText(S);}}
+void Chintz_base::set_POINTFILENAME(const QString& S){
+POINTFILENAME=S;}
+void Chintz_base::ARCGRIDFILENAMELineFileSelect(){
+QString S=QFileDialog::getSaveFileName(QString::null,"*",this);
+if (S.length()!=0){set_ARCGRIDFILENAME(S);ARCGRIDFILENAMELine->setText(S);}}
+void Chintz_base::set_ARCGRIDFILENAME(const QString& S){
+ARCGRIDFILENAME=S;}
+void Chintz_base::set_RUNTIME(const QString& S){
+RUNTIME=S;}
+void Chintz_base::set_OPINTRVL(const QString& S){
+OPINTRVL=S;}
+void Chintz_base::OPTSINVARChkBxSinus_switch(int i){
+if(Sinus==0)return;
+if (i !=0) {Sinus->setEnabled(true);}
+ else {Sinus->setEnabled(!true);}}
+void Chintz_base::set_OPTSINVAR(bool i){
+ OPTSINVAR.setNum(i);
+}
+void Chintz_base::OPTVARChkBxstorm_switch(int i){
+if(storm==0)return;
+if (i !=0) {storm->setEnabled(true);}
+ else {storm->setEnabled(!true);}}
+void Chintz_base::set_OPTVAR(bool i){
+ OPTVAR.setNum(i);
+}
+void Chintz_base::set_SEED(const QString& S){
+SEED=S;}
+void Chintz_base::set_PMEAN(const QString& S){
+PMEAN=S;}
+void Chintz_base::set_STDUR(const QString& S){
+STDUR=S;}
+void Chintz_base::set_ISTDUR(const QString& S){
+ISTDUR=S;}
+void Chintz_base::set_PERIOD(const QString& S){
+PERIOD=S;}
+void Chintz_base::set_MAXPMEAN(const QString& S){
+MAXPMEAN=S;}
+void Chintz_base::set_MAXSTDURNM(const QString& S){
+MAXSTDURNM=S;}
+void Chintz_base::set_MAXISTDURMN(const QString& S){
+MAXISTDURMN=S;}
+void Chintz_base::set_LAKEFILL(bool i){
+ LAKEFILL.setNum(i);
+}
+void Chintz_base::set_INFILTRATION(const QString& S){
+INFILTRATION=S;}
+void Chintz_base::set_SOIL_STORE(const QString& S){
+SOIL_STORE=S;}
+void Chintz_base::set_TRANSMISSIVITY(const QString& S){
+TRANSMISSIVITY=S;}
+void Chintz_base::set_KINWAVE_HQEXP(const QString& S){
+KINWAVE_HQEXP=S;}
+void Chintz_base::set_FLOWVELOCITY(const QString& S){
+FLOWVELOCITY=S;}
+void Chintz_base::set_HYDROSHAPEFAC(const QString& S){
+HYDROSHAPEFAC=S;}
+void Chintz_base::OPTSINVARINFILTChkBxsinv_switch(int i){
+if(sinv==0)return;
+if (i !=0) {sinv->setEnabled(true);}
+ else {sinv->setEnabled(!true);}}
+void Chintz_base::set_OPTSINVARINFILT(bool i){
+ OPTSINVARINFILT.setNum(i);
+}
+void Chintz_base::set_PERIOD_INFILT(const QString& S){
+PERIOD_INFILT=S;}
+void Chintz_base::set_MAXICMEAN(const QString& S){
+MAXICMEAN=S;}
+void Chintz_base::RadioButton31sinvar_switch(int i){
+if(sinvar==0)return;
+if (i !=0) {sinvar->setEnabled(true);}
+ else {sinvar->setEnabled(!true);}}
+void Chintz_base::RadioButton31icap_switch(int i){
+if(icap==0)return;
+if (i !=0) {icap->setEnabled(true);}
+ else {icap->setEnabled(!true);}}
+void Chintz_base::RadioButton41trans_switch(int i){
+if(trans==0)return;
+if (i !=0) {trans->setEnabled(true);}
+ else {trans->setEnabled(!true);}}
+void Chintz_base::RadioButton51sws_switch(int i){
+if(sws==0)return;
+if (i !=0) {sws->setEnabled(true);}
+ else {sws->setEnabled(!true);}}
+void Chintz_base::RadioButton51icap_switch(int i){
+if(icap==0)return;
+if (i !=0) {icap->setEnabled(true);}
+ else {icap->setEnabled(!true);}}
+void Chintz_base::RadioButton61kin_switch(int i){
+if(kin==0)return;
+if (i !=0) {kin->setEnabled(true);}
+ else {kin->setEnabled(!true);}}
+void Chintz_base::RadioButton71hydro_switch(int i){
+if(hydro==0)return;
+if (i !=0) {hydro->setEnabled(true);}
+ else {hydro->setEnabled(!true);}}
+void Chintz_base::set_FLOWGEN(int i){
+ FLOWGEN.setNum(i);
+}
+void Chintz_base::OPTINLETChkBxInflow_switch(int i){
+if(Inflow==0)return;
+if (i !=0) {Inflow->setEnabled(true);}
+ else {Inflow->setEnabled(!true);}}
+void Chintz_base::set_OPTINLET(bool i){
+ OPTINLET.setNum(i);
+}
+void Chintz_base::set_INLET_X(const QString& S){
+INLET_X=S;}
+void Chintz_base::set_INLET_Y(const QString& S){
+INLET_Y=S;}
+void Chintz_base::set_INDRAREA(const QString& S){
+INDRAREA=S;}
+void Chintz_base::set_INSEDLOAD1(const QString& S){
+INSEDLOAD1=S;}
+void Chintz_base::set_INSEDLOAD2(const QString& S){
+INSEDLOAD2=S;}
+void Chintz_base::set_INSEDLOAD3(const QString& S){
+INSEDLOAD3=S;}
+void Chintz_base::set_MAXREGDEPTH(const QString& S){
+MAXREGDEPTH=S;}
+void Chintz_base::set_OPTDETACHLIM(bool i){
+ OPTDETACHLIM.setNum(i);
+}
+void Chintz_base::set_KF(const QString& S){
+KF=S;}
+void Chintz_base::set_MF(const QString& S){
+MF=S;}
+void Chintz_base::set_NF(const QString& S){
+NF=S;}
+void Chintz_base::set_TAUCD(const QString& S){
+TAUCD=S;}
+void Chintz_base::set_PB(const QString& S){
+PB=S;}
+void Chintz_base::set_OPTDIFFDEP(bool i){
+ OPTDIFFDEP.setNum(i);
+}
+void Chintz_base::set_KD(const QString& S){
+KD=S;}
+void Chintz_base::set_NUMGRNSIZE(const QString& S){
+NUMGRNSIZE=S;}
+void Chintz_base::set_GRAINDIAM1(const QString& S){
+GRAINDIAM1=S;}
+void Chintz_base::set_GRAINDIAM2(const QString& S){
+GRAINDIAM2=S;}
+void Chintz_base::set_GRAINDIAM3(const QString& S){
+GRAINDIAM3=S;}
+void Chintz_base::set_REGPROPORTION1(const QString& S){
+REGPROPORTION1=S;}
+void Chintz_base::set_REGPROPORTION2(const QString& S){
+REGPROPORTION2=S;}
+void Chintz_base::set_REGPROPORTION3(const QString& S){
+REGPROPORTION3=S;}
+void Chintz_base::set_BRPROPORTION1(const QString& S){
+BRPROPORTION1=S;}
+void Chintz_base::set_BRPROPORTION2(const QString& S){
+BRPROPORTION2=S;}
+void Chintz_base::set_BRPROPORTION3(const QString& S){
+BRPROPORTION3=S;}
+void Chintz_base::set_OPTREADLAYER(bool i){
+ OPTREADLAYER.setNum(i);
+}
+void Chintz_base::set_KR(const QString& S){
+KR=S;}
+void Chintz_base::set_REGINIT(const QString& S){
+REGINIT=S;}
+void Chintz_base::set_KB(const QString& S){
+KB=S;}
+void Chintz_base::set_MB(const QString& S){
+MB=S;}
+void Chintz_base::set_NB(const QString& S){
+NB=S;}
+void Chintz_base::set_BEDROCKDEPTH(const QString& S){
+BEDROCKDEPTH=S;}
+void Chintz_base::set_FAULTPOS(const QString& S){
+FAULTPOS=S;}
+void Chintz_base::set_UPDUR(const QString& S){
+UPDUR=S;}
+void Chintz_base::set_UPRATE(const QString& S){
+UPRATE=S;}
+void Chintz_base::RadioButton81Upsy_switch(int i){
+if(Upsy==0)return;
+if (i !=0) {Upsy->setEnabled(false);}
+ else {Upsy->setEnabled(!false);}}
+void Chintz_base::set_UPTYPE(int i){
+ UPTYPE.setNum(i);
+}
+void Chintz_base::set_BANKFULLEVENT(const QString& S){
+BANKFULLEVENT=S;}
+void Chintz_base::set_HYDR_WID_COEFF_DS(const QString& S){
+HYDR_WID_COEFF_DS=S;}
+void Chintz_base::set_HYDR_WID_EXP_DS(const QString& S){
+HYDR_WID_EXP_DS=S;}
+void Chintz_base::set_HYDR_WID_EXP_STN(const QString& S){
+HYDR_WID_EXP_STN=S;}
+void Chintz_base::set_HYDR_DEP_COEFF_DS(const QString& S){
+HYDR_DEP_COEFF_DS=S;}
+void Chintz_base::set_HYDR_DEP_EXP_DS(const QString& S){
+HYDR_DEP_EXP_DS=S;}
+void Chintz_base::set_HYDR_DEP_EXP_STN(const QString& S){
+HYDR_DEP_EXP_STN=S;}
+void Chintz_base::set_HYDR_ROUGH_COEFF_DS(const QString& S){
+HYDR_ROUGH_COEFF_DS=S;}
+void Chintz_base::set_HYDR_ROUGH_EXP_DS(const QString& S){
+HYDR_ROUGH_EXP_DS=S;}
+void Chintz_base::set_HYDR_ROUGH_EXP_STN(const QString& S){
+HYDR_ROUGH_EXP_STN=S;}
+void Chintz_base::set_BANK_ROUGH_COEFF(const QString& S){
+BANK_ROUGH_COEFF=S;}
+void Chintz_base::set_BANK_ROUGH_EXP(const QString& S){
+BANK_ROUGH_EXP=S;}
+void Chintz_base::OPTMNDRChkBxmndr_switch(int i){
+if(mndr==0)return;
+if (i !=0) {mndr->setEnabled(true);}
+ else {mndr->setEnabled(!true);}}
+void Chintz_base::set_OPTMNDR(bool i){
+ OPTMNDR.setNum(i);
+}
+void Chintz_base::set_CRITICAL_FLOW(const QString& S){
+CRITICAL_FLOW=S;}
+void Chintz_base::set_DEF_CHAN_DISCR(const QString& S){
+DEF_CHAN_DISCR=S;}
+void Chintz_base::set_FRAC_WID_MOVE(const QString& S){
+FRAC_WID_MOVE=S;}
+void Chintz_base::set_FRAC_WID_ADD(const QString& S){
+FRAC_WID_ADD=S;}
+void Chintz_base::set_VEG_ERODY(const QString& S){
+VEG_ERODY=S;}
+void Chintz_base::set_LATADJUST(const QString& S){
+LATADJUST=S;}
+void Chintz_base::set_BNKHTDEP(bool i){
+ BNKHTDEP.setNum(i);
+}
+void Chintz_base::set_OPTINTERPLAYER(bool i){
+ OPTINTERPLAYER.setNum(i);
+}
+void Chintz_base::set_FP_MU(const QString& S){
+FP_MU=S;}
+void Chintz_base::set_FP_LAMBDA(const QString& S){
+FP_LAMBDA=S;}
+void Chintz_base::set_PF_DRAREAMIN(const QString& S){
+PF_DRAREAMIN=S;}
+void Chintz_base::set_FP_BANKFULLEVENT(const QString& S){
+FP_BANKFULLEVENT=S;}
+void Chintz_base::OPTFLOODPLAINChkBxovdep_switch(int i){
+if(ovdep==0)return;
+if (i !=0) {ovdep->setEnabled(true);}
+ else {ovdep->setEnabled(!true);}}
+void Chintz_base::set_OPTFLOODPLAIN(bool i){
+ OPTFLOODPLAIN.setNum(i);
+}
+void Chintz_base::set_LOESS_DEP_RATE(const QString& S){
+LOESS_DEP_RATE=S;}
+void Chintz_base::OPTLOESSDEPChkBxeodep_switch(int i){
+if(eodep==0)return;
+if (i !=0) {eodep->setEnabled(true);}
+ else {eodep->setEnabled(!true);}}
+void Chintz_base::set_OPTLOESSDEP(bool i){
+ OPTLOESSDEP.setNum(i);
+}
+void Chintz_base::set_OPTEXPOSURETIME(bool i){
+ OPTEXPOSURETIME.setNum(i);
+}
+void Chintz_base::set_BiLine_a1var(const QString& S){
+BiLine_a1var=S;}
+void Chintz_base::set_BiLine_b1var(const QString& S){
+BiLine_b1var=S;}
+void Chintz_base::set_BiLine_a2var(const QString& S){
+BiLine_a2var=S;}
+void Chintz_base::set_BiLine_b2var(const QString& S){
+BiLine_b2var=S;}
+void Chintz_base::set_BiLine_a3var(const QString& S){
+BiLine_a3var=S;}
+void Chintz_base::set_BiLine_b3var(const QString& S){
+BiLine_b3var=S;}
+void Chintz_base::set_BiLine_a4var(const QString& S){
+BiLine_a4var=S;}
+void Chintz_base::set_BiLine_b4var(const QString& S){
+BiLine_b4var=S;}
+void Chintz_base::set_BiLine_a5var(const QString& S){
+BiLine_a5var=S;}
+void Chintz_base::set_BiLine_b5var(const QString& S){
+BiLine_b5var=S;}
+void Chintz_base::set_BiLine_a6var(const QString& S){
+BiLine_a6var=S;}
+void Chintz_base::set_BiLine_b6var(const QString& S){
+BiLine_b6var=S;}
+void Chintz_base::set_BiLine_a7var(const QString& S){
+BiLine_a7var=S;}
+void Chintz_base::set_BiLine_b7var(const QString& S){
+BiLine_b7var=S;}
+void Chintz_base::set_BiLine_a8var(const QString& S){
+BiLine_a8var=S;}
+void Chintz_base::set_BiLine_b8var(const QString& S){
+BiLine_b8var=S;}
+void Chintz_base::set_BiLine_a9var(const QString& S){
+BiLine_a9var=S;}
+void Chintz_base::set_BiLine_b9var(const QString& S){
+BiLine_b9var=S;}
+void Chintz_base::set_BiLine_a01var(const QString& S){
+BiLine_a01var=S;}
+void Chintz_base::set_BiLine_b01var(const QString& S){
+BiLine_b01var=S;}
+void Chintz_base::set_BiLine_a11var(const QString& S){
+BiLine_a11var=S;}
+void Chintz_base::set_BiLine_b11var(const QString& S){
+BiLine_b11var=S;}
+void Chintz_base::set_BiLine_a21var(const QString& S){
+BiLine_a21var=S;}
+void Chintz_base::set_BiLine_b21var(const QString& S){
+BiLine_b21var=S;}

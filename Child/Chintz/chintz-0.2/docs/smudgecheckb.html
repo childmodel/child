@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Smudge: The CheckBox Tag</title>
+  </head>
+
+  <body>
+<a href="smudgebili.html">Previous: The BiLine Tag </a><br><br>
+<hr>
+    <h2>Smudge: The CheckBox Tag</h2>
+CheckBoxes provide a means of writing variables to the child control file which may take on values
+0 or 1. As with <a href="smudgebutt.html">Buttons</a> or <a href="smudgeline.html">Lines</a>, the variable
+name is specified via the id. CheckBoxes have a  <a href="smudgegeometry.html">Geometry</a> relative to
+their container, and a <a href="smudgetitle.html">Title</a> which can be <a href="smudgebold.html">Bold</a>. There is one futher tag which can be used
+with CheckBoxes and <a href="smudgeradio.html">RadioButtons</a>, which is <br> 
+<a href="smudgeswitch.html">&lt Switch></a> Identifier true/false &lt /Switch> <br> Here the Identifier
+refers to a previously labelled <a href="smudgeframe.html">Frame</a> or <a href="smudgebox.html">Box</a>.
+If the value true is chosen, then the Frame or Box will be enabled when the CheckBox is checked, otherwise
+it will be disabled. Using the value false will disable the Frame or Box when the CheckBox is Checked. The
+initial state of the CheckBox can be determined using the <a href="smudgechecked.html">Checked</a> tag.
+
+<br>
+Example:-<br><br>
+<font color="#ff00aa">
+&lt Page><br>
+ &lt Title> Setup &lt /Title><br>
+&nbsp &nbsp &lt Frame,id=Firstframe><br>
+&nbsp &nbsp  &nbsp &lt Geometry> 10 10 100 200 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &lt Enabled> false &lt /Enabled><br>
+&nbsp &nbsp &lt /Frame><br><br>
+
+&nbsp &nbsp &lt Frame,id=Anotherframe><br>
+&nbsp &nbsp  &nbsp &lt Style> NoFrame &lt /Style><br>
+&nbsp &nbsp  &nbsp &lt Geometry> 10 210 100 200 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &lt Enabled> false &lt /Enabled><br>
+&nbsp &nbsp  &nbsp &lt Title> Mesh &lt /Title><br><br>
+&nbsp &nbsp &nbsp &lt CheckBox,id=LAKEFILL><br>
+&nbsp &nbsp  &nbsp &lt Geometry> 10 10 70 20 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &lt Title> Fill Lakes &lt /Title><br>
+&nbsp &nbsp  &nbsp &lt Checked> true &lt /Checked><br>
+&nbsp &nbsp  &nbsp &lt Switch> Firstframe true &lt /Switch><br>
+&nbsp &nbsp &nbsp &lt /CheckBox><br><br>
+&nbsp &nbsp &lt /Frame><br>
+&lt /Page><br>
+</font><br>
+a page, labelled "Setup", containing a two frames, one labelled "Mesh", which in turn contains
+a CheckBox labelled "Fill Lakes", allowing the setting of LAKEFILL to 0 or 1. The Checkbox is initially
+checked, and controls the enabling of Firstframe via the &lt Switch> tag. It is advisable to define Switches
+after the id of the Frame or Box is defined (i.e. put the Switch further down the smudge.ui file than
+the Frame) to avoid possible problems with undefined pointers when chintz is run.
+<br> <br>
+<hr>
+<a href="smudgeradio.html">Next: The RadioButton Tag </a><br><br>
+<a href="smudge.html">Back to Smudge Contents</a>
+
+    <hr>
+
+<!-- Created: Fri Jan 25 12:58:07 GMT 2002 -->
+<!-- hhmts start -->
+Last modified: Fri Jan 25 12:58:19 GMT 2002
+<!-- hhmts end -->
+  </body>
+</html>

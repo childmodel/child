@@ -1,0 +1,46 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Smudge: Troubleshooting</title>
+  </head>
+
+  <body>
+<a href="smudgefiles.html">Previous: Operation and Files </a><br><br><hr>
+    <h2>Smudge: Troubleshooting</h2>
+<UL>
+<LI>
+Smudge has only been compiled and tested on a LINUX box running Redhat7.0. However, it is known that there can
+ be problems using Qt-2.2.0 (the code produces a segmentation fault when run). Successful runs have only
+been obtained so far after compiling and linking with Qt-2.3.0. 
+<LI>
+The most likely secondary cause of a "segmentation fault" on running chintz is the definition of a switch
+in the smudge.ui file before the name to which it refers has been defined.
+<LI>
+A complaint on compilation that a variable is not defined is likely to be where a switch is set for 
+a name which has not been defined at all
+<LI>
+If tags are increctly speled or capitalized, or contain spaces, or are given an id=name where none is expected, they may be ignored (just as in HTML). This may lead to some
+ weird effects, especially if a termination tag is missing. Smudge tries to 
+check for tag errors and hopefully will produce a reasonable error message.
+<LI>
+Setting the correct geometry is very important :- if two elements are given the same geometry, one will be
+hidden behind the other, and will be invisible in chintz. Similarly, if elements are put into a frame which
+is too small, they may not appear in the UI.
+<LI>
+Buttons and CheckBoxes must be defined in the .ChintzDefaults file if their values are to be saved
+correctly when they have not been modfied during the current session.
+<LI>
+You can safely ignore errors of the form<br>
+rm: cannot remove `chintz.o': No such file or directory <br>
+make: *** [clean] Error 1 <br>
+when running smudge
+</UL>
+    <hr>
+<a href="smudge.html">Back to Smudge Contents </a><br><hr>
+
+<!-- Created: Fri Jan 25 16:05:55 GMT 2002 -->
+<!-- hhmts start -->
+Last modified: Fri Jan 25 23:53:58 GMT 2002
+<!-- hhmts end -->
+  </body>
+</html>

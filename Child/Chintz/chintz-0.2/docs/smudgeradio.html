@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Smudge: The RadioButton Tag</title>
+  </head>
+
+  <body>
+<a href="smudgecheckb.html">Previous: The CheckBox Tag </a><br><br>
+<hr>
+    <h2>Smudge: The RadioButton Tag</h2>
+RadioButtons provide a means, from within an enclosing <a href="smudgebutt.html">Buttons</a> container,
+for setting child switches which can take integer values.One RadioButton out of a group can be set <a href="smudgechek.html">Checked</a>
+initially ,as for <a href="smudgecheckb.html">CheckBoxes</a>. Values are assigned to the variable defined by
+the enclosing &lt Buttons> container in order, with the first button listed setting the variable to 0,
+the second setting to 1 and so on. RadioButtons have a  <a href="smudgegeometry.html">Geometry</a> relative to
+their container, and a <a href="smudgetitle.html">Title</a> which can be <a href="smudgebold.html">Bold</a>,
+and can set <a href="smudgeswitch.html">Switches</a> in the same way as <a href="smudgecheckb.html">CheckBoxes</a>.
+
+
+<br>
+Example:-<br><br>
+<font color="#ff00aa">
+&lt Page><br>
+ &lt Title> Setup &lt /Title><br>
+&nbsp &nbsp &lt Frame,id=Firstframe><br>
+&nbsp &nbsp  &nbsp &lt Geometry> 10 10 100 200 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &lt Enabled> false &lt /Enabled><br>
+&nbsp &nbsp &lt /Frame><br><br>
+
+&nbsp &nbsp &lt Buttons,id=OPT_PT_PLACE><br>
+&nbsp &nbsp  &nbsp &lt Style> NoFrame &lt /Style><br>
+&nbsp &nbsp  &nbsp &lt Geometry> 10 210 100 200 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &lt Enabled> false &lt /Enabled><br>
+&nbsp &nbsp  &nbsp &lt Title> Point Placement &lt /Title><br><br>
+&nbsp &nbsp &nbsp &lt RadioButton><br>
+&nbsp &nbsp  &nbsp &lt Geometry> 10 10 70 20 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &lt Title> Uniform &lt /Title><br>
+&nbsp &nbsp  &nbsp &lt Checked> true &lt /Checked><br>
+&nbsp &nbsp  &nbsp &lt Switch> Firstframe false &lt /Switch><br>
+&nbsp &nbsp &nbsp &lt /RadioButton><br><br>
+&nbsp &nbsp &lt /Buttons><br>
+&lt /Page><br>
+</font><br>
+a page, labelled "Setup", containing a frame, and a Button container labelled "Point Placement", which in turn contains
+a single RadioButton, labelled "Uniform". The Button container allows the setting of OPT_PT_PLACE. The RadioButton is initially
+selected, and controls the enabling of Firstframe via the &lt Switch> tag. When the RadioButton is Checked, the Frame will be disabled. Again, it is advisable to define Switches
+after the id of the Frame or Box is defined (i.e. put the Switch further down the smudge.ui file than
+the Frame) to avoid possible problems with undefined pointers when chintz is run.
+<br> <br>
+<hr>
+<a href="smudgebrowse.html">Next: The BrowseButton Tag </a><br><br>
+<a href="smudge.html">Back to Smudge Contents</a>
+
+    <hr>
+
+<!-- Created: Fri Jan 25 12:58:07 GMT 2002 -->
+<!-- hhmts start -->
+Last modified: Fri Jan 25 13:43:04 GMT 2002
+<!-- hhmts end -->
+  </body>
+</html>

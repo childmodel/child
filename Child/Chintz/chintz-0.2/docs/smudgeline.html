@@ -1,0 +1,70 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Smudge: The Line Tag</title>
+  </head>
+
+  <body>
+<a href="smudgebutt.html">Previous: The Buttons Tag</a><br><br>
+<hr>
+    <h2>Smudge: The Line Tag</h2>
+A Line provides the second of four ways of setting variables for the child control file. Again,
+the id is used to provide the name of the child variable to be written out, but a text box is used
+to set its value. The Line provides a text box with a <a href="smudgetitle.html">Title</a>, each of which
+has a separate <a href="smudgegeometry.html">Geometry</a>, so that their sizes can be set separately. The &lt Title> &lt /Title> tag can <em> in this case only </em> 
+have a &lt Geometry> embedded within it to set its size. 
+&lt Geometry> set outside of the Title, but
+within the &lt Line> &lt /Line> delimiters sets the size of the text box. The title and text box can also each
+separately be set to boldface. Again, a Line must be set into a separate <a href="smudgeframe.html">Frame</a>
+ if it is to be switched on 
+or off.<br>
+A further special tag is available <em>only</em> for the Line tag, namely 
+<a href="smudgebrowse.html">&lt BrowseButton></a>. This tag must appear at the end of the specification,
+just before &lt /Line>. There is <em>no</em> closing &lt /BrowseButton>. This draws a small clickable button
+to the right of the textbox, which when clicked brings up a file browser. The text box value and the variable
+ named in the Line id are set to the value of the file selected. <br> 
+
+<br>
+
+Hence:-<br><br>
+<font color="#ff00aa">
+&lt Page><br>
+ &lt Title> Setup &lt /Title><br>
+&nbsp &nbsp &lt Frame,id=Firstframe><br>
+&nbsp &nbsp  &nbsp &lt Style> NoFrame &lt /Style><br>
+&nbsp &nbsp  &nbsp &lt Geometry> 10 10 100 200 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &lt Enabled> false &lt /Enabled><br>
+&nbsp &nbsp  &nbsp &lt Title> Mesh &lt /Title><br><br>
+&nbsp &nbsp &nbsp &lt Line,id=NUM_PTS><br>
+&nbsp &nbsp  &nbsp &nbsp &lt Geometry> 80 10 110 20 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &nbsp &lt Title> Number of Random \nGrid Points <br>
+&nbsp &nbsp  &nbsp &nbsp &nbsp &nbsp &lt Geometry> 10 10 70 20 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &nbsp &lt /Title><br>
+&nbsp &nbsp  &nbsp &nbsp &lt BrowseButton><br>
+&nbsp &nbsp &nbsp &lt /Line><br><br>
+&nbsp &nbsp &lt /Frame><br>
+&lt /Page><br>
+</font><br>
+a page, labelled "Setup", containing a frame labelled "Mesh", which in turn contains a Line 
+labelled "Number of Random Grid Points". 
+This title will be Drawn to the left of the text box (starting 10 pixels into the Frame).
+The value typed into the text box will be assigned to the variable NUM_PTS, for writing to the control file,
+as in the <a href="smudgebutt.html">Buttons</a> example.
+Again if the id is omitted, then an internally
+generated variable name will be written to the control file.
+
+<br> <br>
+<hr>
+<a href="smudgebili.html">Next: The BiLine Tag </a><br><br>
+<a href="smudge.html">Back to Smudge Contents</a>
+
+
+
+    <hr>
+
+<!-- Created: Fri Jan 25 12:14:24 GMT 2002 -->
+<!-- hhmts start -->
+Last modified: Fri Jan 25 12:43:38 GMT 2002
+<!-- hhmts end -->
+  </body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Running Smudge</title>
+  </head>
+
+  <body><a href="smudgechek.html">Previous: The Checked Tag </a><br><br><hr>
+    <h2>Running Smudge</h2>
+Smudge is a command line program. There are no arguments to it. It runs from a single shell script named
+smudge which calls the program smudge_exec to generate C++ code.
+The definitions for the user interface must be saved in a single file called smudge.ui :- a version is 
+provided with the distribution. There is also a copy called smudge.defaults_ui for recovery in case of 
+disaster. Edit the smudge.ui, save your changes and then type smudge at the command line. 
+The code will be re-compiled, and you should see your changes when you next run chintz. If you make 
+extensive changes then you should make a new .ChintzDefaults file. This is particularly the case if you
+add any Buttons containers or CheckBoxes. By default, any variable whose value is not set in the user 
+interface does not get written to the child control file. If .ChintzDefaults does not contain entries for
+the RadioButtons or CheckBoxes, then their values will not be written to the control file unless they have
+been modified (even though they appear to have values in the user interface). For this reason you should
+run chintz and modify the contents of each new CheckBox or Buttons group, and then save these to the 
+.ChintzDefaults file when first running chintz after modification.
+
+    <hr>
+ <a href="smudgefiles.html">Next: Operation and Filenames </a><br><br>
+<a href="smudge.html">Back to Smudge Contents </a><br><hr>
+<!-- Created: Thu Jan 24 16:12:23 GMT 2002 -->
+<!-- hhmts start -->
+Last modified: Fri Jan 25 16:06:39 GMT 2002
+<!-- hhmts end -->
+  </body>
+</html>

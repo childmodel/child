@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Smudge: The Box Tag</title>
+  </head>
+
+  <body>
+<a href="smudgebox.html">Previous: The Box Tag</a><br><br>
+<hr>
+    <h2>Smudge: The Buttons Tag</h2>
+Buttons provide a special container within which the user can place clickable 
+<a href="smudgeradio.html">RadioButtons</a>. The RadioButtons
+are exclusive, that is only one of them can be selected at any time. As with the previous containers, the
+Buttons container can have a <a href="smudgetitle.html">Title</a>, which may be <a href="smudgebold.html">Bold</a>, and a <a href="smudgegeometry.html">Geometry</a>. However, the Buttons container cannot 
+be switched :- to do this, it must be embedded within another switchable element, such as a Frame. This is to
+allow a secondary use for the id, which is to identify a variable whose value is to be written to the child
+control file.<br>
+
+Example:-<br><br>
+<font color="#ff00aa">
+&lt Page><br>
+ &lt Title> Setup &lt /Title><br>
+&nbsp &nbsp &lt Frame,id=Firstframe><br>
+&nbsp &nbsp  &nbsp &lt Style> NoFrame &lt /Style><br>
+&nbsp &nbsp  &nbsp &lt Geometry> 10 10 100 200 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &lt Enabled> false &lt /Enabled><br>
+&nbsp &nbsp  &nbsp &lt Title> Mesh &lt /Title><br><br>
+&nbsp &nbsp &nbsp &lt Buttons,id=OPT_PT_PLACE><br>
+&nbsp &nbsp  &nbsp &nbsp &lt Geometry> 10 10 70 100 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &nbsp &lt Title> Open Boundary Type &lt /Title><br><br>
+&nbsp &nbsp  &nbsp &nbsp &lt RadioButton> <br>
+&nbsp &nbsp  &nbsp &nbsp &nbsp &nbsp &lt Geometry> 10 10 70 20 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &nbsp &nbsp &nbsp &lt Title> Corner &lt /Title><br>
+&nbsp &nbsp  &nbsp &nbsp &lt /RadioButton> <br><br> 
+&nbsp &nbsp  &nbsp &nbsp &lt RadioButton> <br>
+&nbsp &nbsp  &nbsp &nbsp &nbsp &nbsp &lt Geometry> 10 30 70 20 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &nbsp &nbsp &nbsp &lt Title> 1 Side &lt /Title><br>
+&nbsp &nbsp  &nbsp &nbsp &lt /RadioButton> <br><br> 
+&nbsp &nbsp &nbsp &lt /Buttons><br><br>
+&nbsp &nbsp &lt /Frame><br>
+&lt /Page><br>
+</font><br>
+a page, labelled "Setup", containing a frame labelled "Mesh", which in turn contains a Buttons container 
+labelled "Open Boundary Type". This title will be inset into the Buttons border, as for the Box container.
+The Buttons geometry is again relative to the Frame which contains it, so its origin is 10 pixels into the 
+frame. There are two RadioButtons in the box, with labels "Corner" and "1 Side". The RadioButton
+Geometry sets their positions in the Box. In this case the RadioButtons are aligned in X, but are placed one
+above another using the Yorigin. When the "Corner" 
+RadioButton is selected, the value 0 will be assigned to the variable OPT_PT_PLACE,
+as defined by the id of the Buttons container. When the control file is saved, the text<br><br>
+OPT_PT_PLACE:<br>
+0<br><br>
+will be written to it. Similarly, selecting the second button will give OPT_PT_PLACE value 1. In this way
+the options for child can be set up as required. Note that if the id is omitted, then an internally
+generated variable name (e.g. Buttons1var) will be written to the control file.
+
+<br> <br>
+<hr>
+<a href="smudgeline.html">Next: The Line Tag </a><br><br>
+<a href="smudge.html">Back to Smudge Contents</a>
+
+
+
+    <hr>
+
+<!-- Created: Fri Jan 25 11:27:44 GMT 2002 -->
+<!-- hhmts start -->
+Last modified: Fri Jan 25 12:13:05 GMT 2002
+<!-- hhmts end -->
+  </body>
+</html>

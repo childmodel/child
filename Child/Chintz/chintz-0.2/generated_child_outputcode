@@ -1,0 +1,475 @@
+void Chintz_base::WriteChildControlFile(ofstream& ofile){
+ofile<<"#Automatically generated CHILD input file Chintz v0.2"<<endl;
+if (TYP_BOUND.length() != 0){
+  ofile<<"TYP_BOUND:"<<endl;
+  ofile<<TYP_BOUND<<endl;
+}
+if (OPT_PT_PLACE.length() != 0){
+  ofile<<"OPT_PT_PLACE:"<<endl;
+  ofile<<OPT_PT_PLACE<<endl;
+}
+if (X_GRID_SIZE.length() != 0){
+  ofile<<"X_GRID_SIZE:"<<endl;
+  ofile<<X_GRID_SIZE<<endl;
+}
+if (Y_GRID_SIZE.length() != 0){
+  ofile<<"Y_GRID_SIZE:"<<endl;
+  ofile<<Y_GRID_SIZE<<endl;
+}
+if (GRID_SPACING.length() != 0){
+  ofile<<"GRID_SPACING:"<<endl;
+  ofile<<GRID_SPACING<<endl;
+}
+if (NUM_PTS.length() != 0){
+  ofile<<"NUM_PTS:"<<endl;
+  ofile<<NUM_PTS<<endl;
+}
+if (OUTLET_X_COORD.length() != 0){
+  ofile<<"OUTLET_X_COORD:"<<endl;
+  ofile<<OUTLET_X_COORD<<endl;
+}
+if (OUTLET_Y_COORD.length() != 0){
+  ofile<<"OUTLET_Y_COORD:"<<endl;
+  ofile<<OUTLET_Y_COORD<<endl;
+}
+if (SLOPED_SURF.length() != 0){
+  ofile<<"SLOPED_SURF:"<<endl;
+  ofile<<SLOPED_SURF<<endl;
+}
+if (UPPER_BOUND_Z.length() != 0){
+  ofile<<"UPPER_BOUND_Z:"<<endl;
+  ofile<<UPPER_BOUND_Z<<endl;
+}
+if (MEAN_ELEV.length() != 0){
+  ofile<<"MEAN_ELEV:"<<endl;
+  ofile<<MEAN_ELEV<<endl;
+}
+if (OPTREADINPUT.length() != 0){
+  ofile<<"OPTREADINPUT:"<<endl;
+  ofile<<OPTREADINPUT<<endl;
+}
+if (INPUTDATAFILE.length() != 0){
+  ofile<<"INPUTDATAFILE:"<<endl;
+  ofile<<INPUTDATAFILE<<endl;
+}
+if (INPUTTIME.length() != 0){
+  ofile<<"INPUTTIME:"<<endl;
+  ofile<<INPUTTIME<<endl;
+}
+if (OUTFILENAME.length() != 0){
+  ofile<<"OUTFILENAME:"<<endl;
+  ofile<<OUTFILENAME<<endl;
+}
+if (POINTFILENAME.length() != 0){
+  ofile<<"POINTFILENAME:"<<endl;
+  ofile<<POINTFILENAME<<endl;
+}
+if (ARCGRIDFILENAME.length() != 0){
+  ofile<<"ARCGRIDFILENAME:"<<endl;
+  ofile<<ARCGRIDFILENAME<<endl;
+}
+if (RUNTIME.length() != 0){
+  ofile<<"RUNTIME:"<<endl;
+  ofile<<RUNTIME<<endl;
+}
+if (OPINTRVL.length() != 0){
+  ofile<<"OPINTRVL:"<<endl;
+  ofile<<OPINTRVL<<endl;
+}
+if (OPTSINVAR.length() != 0){
+  ofile<<"OPTSINVAR:"<<endl;
+  ofile<<OPTSINVAR<<endl;
+}
+if (OPTVAR.length() != 0){
+  ofile<<"OPTVAR:"<<endl;
+  ofile<<OPTVAR<<endl;
+}
+if (SEED.length() != 0){
+  ofile<<"SEED:"<<endl;
+  ofile<<SEED<<endl;
+}
+if (PMEAN.length() != 0){
+  ofile<<"PMEAN:"<<endl;
+  ofile<<PMEAN<<endl;
+}
+if (STDUR.length() != 0){
+  ofile<<"STDUR:"<<endl;
+  ofile<<STDUR<<endl;
+}
+if (ISTDUR.length() != 0){
+  ofile<<"ISTDUR:"<<endl;
+  ofile<<ISTDUR<<endl;
+}
+if (PERIOD.length() != 0){
+  ofile<<"PERIOD:"<<endl;
+  ofile<<PERIOD<<endl;
+}
+if (MAXPMEAN.length() != 0){
+  ofile<<"MAXPMEAN:"<<endl;
+  ofile<<MAXPMEAN<<endl;
+}
+if (MAXSTDURNM.length() != 0){
+  ofile<<"MAXSTDURNM:"<<endl;
+  ofile<<MAXSTDURNM<<endl;
+}
+if (MAXISTDURMN.length() != 0){
+  ofile<<"MAXISTDURMN:"<<endl;
+  ofile<<MAXISTDURMN<<endl;
+}
+if (LAKEFILL.length() != 0){
+  ofile<<"LAKEFILL:"<<endl;
+  ofile<<LAKEFILL<<endl;
+}
+if (INFILTRATION.length() != 0){
+  ofile<<"INFILTRATION:"<<endl;
+  ofile<<INFILTRATION<<endl;
+}
+if (SOIL_STORE.length() != 0){
+  ofile<<"SOIL_STORE:"<<endl;
+  ofile<<SOIL_STORE<<endl;
+}
+if (TRANSMISSIVITY.length() != 0){
+  ofile<<"TRANSMISSIVITY:"<<endl;
+  ofile<<TRANSMISSIVITY<<endl;
+}
+if (KINWAVE_HQEXP.length() != 0){
+  ofile<<"KINWAVE_HQEXP:"<<endl;
+  ofile<<KINWAVE_HQEXP<<endl;
+}
+if (FLOWVELOCITY.length() != 0){
+  ofile<<"FLOWVELOCITY:"<<endl;
+  ofile<<FLOWVELOCITY<<endl;
+}
+if (HYDROSHAPEFAC.length() != 0){
+  ofile<<"HYDROSHAPEFAC:"<<endl;
+  ofile<<HYDROSHAPEFAC<<endl;
+}
+if (OPTSINVARINFILT.length() != 0){
+  ofile<<"OPTSINVARINFILT:"<<endl;
+  ofile<<OPTSINVARINFILT<<endl;
+}
+if (PERIOD_INFILT.length() != 0){
+  ofile<<"PERIOD_INFILT:"<<endl;
+  ofile<<PERIOD_INFILT<<endl;
+}
+if (MAXICMEAN.length() != 0){
+  ofile<<"MAXICMEAN:"<<endl;
+  ofile<<MAXICMEAN<<endl;
+}
+if (FLOWGEN.length() != 0){
+  ofile<<"FLOWGEN:"<<endl;
+  ofile<<FLOWGEN<<endl;
+}
+if (OPTINLET.length() != 0){
+  ofile<<"OPTINLET:"<<endl;
+  ofile<<OPTINLET<<endl;
+}
+if (INLET_X.length() != 0){
+  ofile<<"INLET_X:"<<endl;
+  ofile<<INLET_X<<endl;
+}
+if (INLET_Y.length() != 0){
+  ofile<<"INLET_Y:"<<endl;
+  ofile<<INLET_Y<<endl;
+}
+if (INDRAREA.length() != 0){
+  ofile<<"INDRAREA:"<<endl;
+  ofile<<INDRAREA<<endl;
+}
+if (INSEDLOAD1.length() != 0){
+  ofile<<"INSEDLOAD1:"<<endl;
+  ofile<<INSEDLOAD1<<endl;
+}
+if (INSEDLOAD2.length() != 0){
+  ofile<<"INSEDLOAD2:"<<endl;
+  ofile<<INSEDLOAD2<<endl;
+}
+if (INSEDLOAD3.length() != 0){
+  ofile<<"INSEDLOAD3:"<<endl;
+  ofile<<INSEDLOAD3<<endl;
+}
+if (MAXREGDEPTH.length() != 0){
+  ofile<<"MAXREGDEPTH:"<<endl;
+  ofile<<MAXREGDEPTH<<endl;
+}
+if (OPTDETACHLIM.length() != 0){
+  ofile<<"OPTDETACHLIM:"<<endl;
+  ofile<<OPTDETACHLIM<<endl;
+}
+if (KF.length() != 0){
+  ofile<<"KF:"<<endl;
+  ofile<<KF<<endl;
+}
+if (MF.length() != 0){
+  ofile<<"MF:"<<endl;
+  ofile<<MF<<endl;
+}
+if (NF.length() != 0){
+  ofile<<"NF:"<<endl;
+  ofile<<NF<<endl;
+}
+if (TAUCD.length() != 0){
+  ofile<<"TAUCD:"<<endl;
+  ofile<<TAUCD<<endl;
+}
+if (PB.length() != 0){
+  ofile<<"PB:"<<endl;
+  ofile<<PB<<endl;
+}
+if (OPTDIFFDEP.length() != 0){
+  ofile<<"OPTDIFFDEP:"<<endl;
+  ofile<<OPTDIFFDEP<<endl;
+}
+if (KD.length() != 0){
+  ofile<<"KD:"<<endl;
+  ofile<<KD<<endl;
+}
+if (NUMGRNSIZE.length() != 0){
+  ofile<<"NUMGRNSIZE:"<<endl;
+  ofile<<NUMGRNSIZE<<endl;
+}
+if (GRAINDIAM1.length() != 0){
+  ofile<<"GRAINDIAM1:"<<endl;
+  ofile<<GRAINDIAM1<<endl;
+}
+if (GRAINDIAM2.length() != 0){
+  ofile<<"GRAINDIAM2:"<<endl;
+  ofile<<GRAINDIAM2<<endl;
+}
+if (GRAINDIAM3.length() != 0){
+  ofile<<"GRAINDIAM3:"<<endl;
+  ofile<<GRAINDIAM3<<endl;
+}
+if (REGPROPORTION1.length() != 0){
+  ofile<<"REGPROPORTION1:"<<endl;
+  ofile<<REGPROPORTION1<<endl;
+}
+if (REGPROPORTION2.length() != 0){
+  ofile<<"REGPROPORTION2:"<<endl;
+  ofile<<REGPROPORTION2<<endl;
+}
+if (REGPROPORTION3.length() != 0){
+  ofile<<"REGPROPORTION3:"<<endl;
+  ofile<<REGPROPORTION3<<endl;
+}
+if (BRPROPORTION1.length() != 0){
+  ofile<<"BRPROPORTION1:"<<endl;
+  ofile<<BRPROPORTION1<<endl;
+}
+if (BRPROPORTION2.length() != 0){
+  ofile<<"BRPROPORTION2:"<<endl;
+  ofile<<BRPROPORTION2<<endl;
+}
+if (BRPROPORTION3.length() != 0){
+  ofile<<"BRPROPORTION3:"<<endl;
+  ofile<<BRPROPORTION3<<endl;
+}
+if (OPTREADLAYER.length() != 0){
+  ofile<<"OPTREADLAYER:"<<endl;
+  ofile<<OPTREADLAYER<<endl;
+}
+if (KR.length() != 0){
+  ofile<<"KR:"<<endl;
+  ofile<<KR<<endl;
+}
+if (REGINIT.length() != 0){
+  ofile<<"REGINIT:"<<endl;
+  ofile<<REGINIT<<endl;
+}
+if (KB.length() != 0){
+  ofile<<"KB:"<<endl;
+  ofile<<KB<<endl;
+}
+if (MB.length() != 0){
+  ofile<<"MB:"<<endl;
+  ofile<<MB<<endl;
+}
+if (NB.length() != 0){
+  ofile<<"NB:"<<endl;
+  ofile<<NB<<endl;
+}
+if (BEDROCKDEPTH.length() != 0){
+  ofile<<"BEDROCKDEPTH:"<<endl;
+  ofile<<BEDROCKDEPTH<<endl;
+}
+if (FAULTPOS.length() != 0){
+  ofile<<"FAULTPOS:"<<endl;
+  ofile<<FAULTPOS<<endl;
+}
+if (UPDUR.length() != 0){
+  ofile<<"UPDUR:"<<endl;
+  ofile<<UPDUR<<endl;
+}
+if (UPRATE.length() != 0){
+  ofile<<"UPRATE:"<<endl;
+  ofile<<UPRATE<<endl;
+}
+if (UPTYPE.length() != 0){
+  ofile<<"UPTYPE:"<<endl;
+  ofile<<UPTYPE<<endl;
+}
+if (BANKFULLEVENT.length() != 0){
+  ofile<<"BANKFULLEVENT:"<<endl;
+  ofile<<BANKFULLEVENT<<endl;
+}
+if (HYDR_WID_COEFF_DS.length() != 0){
+  ofile<<"HYDR_WID_COEFF_DS:"<<endl;
+  ofile<<HYDR_WID_COEFF_DS<<endl;
+}
+if (HYDR_WID_EXP_DS.length() != 0){
+  ofile<<"HYDR_WID_EXP_DS:"<<endl;
+  ofile<<HYDR_WID_EXP_DS<<endl;
+}
+if (HYDR_WID_EXP_STN.length() != 0){
+  ofile<<"HYDR_WID_EXP_STN:"<<endl;
+  ofile<<HYDR_WID_EXP_STN<<endl;
+}
+if (HYDR_DEP_COEFF_DS.length() != 0){
+  ofile<<"HYDR_DEP_COEFF_DS:"<<endl;
+  ofile<<HYDR_DEP_COEFF_DS<<endl;
+}
+if (HYDR_DEP_EXP_DS.length() != 0){
+  ofile<<"HYDR_DEP_EXP_DS:"<<endl;
+  ofile<<HYDR_DEP_EXP_DS<<endl;
+}
+if (HYDR_DEP_EXP_STN.length() != 0){
+  ofile<<"HYDR_DEP_EXP_STN:"<<endl;
+  ofile<<HYDR_DEP_EXP_STN<<endl;
+}
+if (HYDR_ROUGH_COEFF_DS.length() != 0){
+  ofile<<"HYDR_ROUGH_COEFF_DS:"<<endl;
+  ofile<<HYDR_ROUGH_COEFF_DS<<endl;
+}
+if (HYDR_ROUGH_EXP_DS.length() != 0){
+  ofile<<"HYDR_ROUGH_EXP_DS:"<<endl;
+  ofile<<HYDR_ROUGH_EXP_DS<<endl;
+}
+if (HYDR_ROUGH_EXP_STN.length() != 0){
+  ofile<<"HYDR_ROUGH_EXP_STN:"<<endl;
+  ofile<<HYDR_ROUGH_EXP_STN<<endl;
+}
+if (BANK_ROUGH_COEFF.length() != 0){
+  ofile<<"BANK_ROUGH_COEFF:"<<endl;
+  ofile<<BANK_ROUGH_COEFF<<endl;
+}
+if (BANK_ROUGH_EXP.length() != 0){
+  ofile<<"BANK_ROUGH_EXP:"<<endl;
+  ofile<<BANK_ROUGH_EXP<<endl;
+}
+if (OPTMNDR.length() != 0){
+  ofile<<"OPTMNDR:"<<endl;
+  ofile<<OPTMNDR<<endl;
+}
+if (CRITICAL_FLOW.length() != 0){
+  ofile<<"CRITICAL_FLOW:"<<endl;
+  ofile<<CRITICAL_FLOW<<endl;
+}
+if (DEF_CHAN_DISCR.length() != 0){
+  ofile<<"DEF_CHAN_DISCR:"<<endl;
+  ofile<<DEF_CHAN_DISCR<<endl;
+}
+if (FRAC_WID_MOVE.length() != 0){
+  ofile<<"FRAC_WID_MOVE:"<<endl;
+  ofile<<FRAC_WID_MOVE<<endl;
+}
+if (FRAC_WID_ADD.length() != 0){
+  ofile<<"FRAC_WID_ADD:"<<endl;
+  ofile<<FRAC_WID_ADD<<endl;
+}
+if (VEG_ERODY.length() != 0){
+  ofile<<"VEG_ERODY:"<<endl;
+  ofile<<VEG_ERODY<<endl;
+}
+if (LATADJUST.length() != 0){
+  ofile<<"LATADJUST:"<<endl;
+  ofile<<LATADJUST<<endl;
+}
+if (BNKHTDEP.length() != 0){
+  ofile<<"BNKHTDEP:"<<endl;
+  ofile<<BNKHTDEP<<endl;
+}
+if (OPTINTERPLAYER.length() != 0){
+  ofile<<"OPTINTERPLAYER:"<<endl;
+  ofile<<OPTINTERPLAYER<<endl;
+}
+if (FP_MU.length() != 0){
+  ofile<<"FP_MU:"<<endl;
+  ofile<<FP_MU<<endl;
+}
+if (FP_LAMBDA.length() != 0){
+  ofile<<"FP_LAMBDA:"<<endl;
+  ofile<<FP_LAMBDA<<endl;
+}
+if (PF_DRAREAMIN.length() != 0){
+  ofile<<"PF_DRAREAMIN:"<<endl;
+  ofile<<PF_DRAREAMIN<<endl;
+}
+if (FP_BANKFULLEVENT.length() != 0){
+  ofile<<"FP_BANKFULLEVENT:"<<endl;
+  ofile<<FP_BANKFULLEVENT<<endl;
+}
+if (OPTFLOODPLAIN.length() != 0){
+  ofile<<"OPTFLOODPLAIN:"<<endl;
+  ofile<<OPTFLOODPLAIN<<endl;
+}
+if (LOESS_DEP_RATE.length() != 0){
+  ofile<<"LOESS_DEP_RATE:"<<endl;
+  ofile<<LOESS_DEP_RATE<<endl;
+}
+if (OPTLOESSDEP.length() != 0){
+  ofile<<"OPTLOESSDEP:"<<endl;
+  ofile<<OPTLOESSDEP<<endl;
+}
+if (OPTEXPOSURETIME.length() != 0){
+  ofile<<"OPTEXPOSURETIME:"<<endl;
+  ofile<<OPTEXPOSURETIME<<endl;
+}
+if (BiLine_a1var.length() != 0 && BiLine_b1var.length()!=0){
+  ofile<<BiLine_a1var<<":"<<endl;
+  ofile<<BiLine_b1var<<endl;
+}
+if (BiLine_a2var.length() != 0 && BiLine_b2var.length()!=0){
+  ofile<<BiLine_a2var<<":"<<endl;
+  ofile<<BiLine_b2var<<endl;
+}
+if (BiLine_a3var.length() != 0 && BiLine_b3var.length()!=0){
+  ofile<<BiLine_a3var<<":"<<endl;
+  ofile<<BiLine_b3var<<endl;
+}
+if (BiLine_a4var.length() != 0 && BiLine_b4var.length()!=0){
+  ofile<<BiLine_a4var<<":"<<endl;
+  ofile<<BiLine_b4var<<endl;
+}
+if (BiLine_a5var.length() != 0 && BiLine_b5var.length()!=0){
+  ofile<<BiLine_a5var<<":"<<endl;
+  ofile<<BiLine_b5var<<endl;
+}
+if (BiLine_a6var.length() != 0 && BiLine_b6var.length()!=0){
+  ofile<<BiLine_a6var<<":"<<endl;
+  ofile<<BiLine_b6var<<endl;
+}
+if (BiLine_a7var.length() != 0 && BiLine_b7var.length()!=0){
+  ofile<<BiLine_a7var<<":"<<endl;
+  ofile<<BiLine_b7var<<endl;
+}
+if (BiLine_a8var.length() != 0 && BiLine_b8var.length()!=0){
+  ofile<<BiLine_a8var<<":"<<endl;
+  ofile<<BiLine_b8var<<endl;
+}
+if (BiLine_a9var.length() != 0 && BiLine_b9var.length()!=0){
+  ofile<<BiLine_a9var<<":"<<endl;
+  ofile<<BiLine_b9var<<endl;
+}
+if (BiLine_a01var.length() != 0 && BiLine_b01var.length()!=0){
+  ofile<<BiLine_a01var<<":"<<endl;
+  ofile<<BiLine_b01var<<endl;
+}
+if (BiLine_a11var.length() != 0 && BiLine_b11var.length()!=0){
+  ofile<<BiLine_a11var<<":"<<endl;
+  ofile<<BiLine_b11var<<endl;
+}
+if (BiLine_a21var.length() != 0 && BiLine_b21var.length()!=0){
+  ofile<<BiLine_a21var<<":"<<endl;
+  ofile<<BiLine_b21var<<endl;
+}
+}

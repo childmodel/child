@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Smudge: The BiLine Tag</title>
+  </head>
+
+  <body>
+<a href="smudgeline.html">Previous: The Line Tag</a><br><br>
+<hr>
+    <h2>Smudge: The BiLine Tag</h2>
+The BiLine tag is the third way to set up child control variables (the remaining one is 
+<a href="smudgecheckb.html">&lt CheckBox></a>). 
+In this case, the only additional
+tag available,which applies only to the BiLine is <a href="smudgeorigin.html">&lt Origin></a> Xorigin Yorigin &lt /Origin>, which defines the BiLine origin relative to its container. There is no id for a BiLine.
+
+A BiLine provides two text boxes, the first labelled "Variable" and the second "Value". The overall size
+is 150 wide and 80 deep. When entries are made into both boxes, then saving from chintz writes<br><br>
+Variable text:<br>
+Value text<br><br>
+to the child control file, where "Variable text" represents what was typed into the Variable text box, and
+"Value text" that typed in the value box. This provides the user of chintz with a way of defining new 
+variables
+that are not otherwise catered for in the chintz UI.
+
+
+<br><br>
+
+Example:-<br><br>
+<font color="#ff00aa">
+&lt Page><br>
+ &lt Title> Setup &lt /Title><br>
+&nbsp &nbsp &lt Frame,id=Firstframe><br>
+&nbsp &nbsp  &nbsp &lt Style> NoFrame &lt /Style><br>
+&nbsp &nbsp  &nbsp &lt Geometry> 10 10 100 200 &lt /Geometry><br>
+&nbsp &nbsp  &nbsp &lt Enabled> false &lt /Enabled><br>
+&nbsp &nbsp  &nbsp &lt Title> Mesh &lt /Title><br><br>
+&nbsp &nbsp &nbsp &lt BiLine><br>
+&nbsp &nbsp  &nbsp &nbsp &lt Origin> 80 10  &lt /Origin><br>
+&nbsp &nbsp &nbsp &lt /BiLine><br><br>
+&nbsp &nbsp &lt /Frame><br>
+&lt /Page><br>
+</font><br>
+a page, labelled "Setup", containing a frame labelled "Mesh", which in turn contains a BiLine, 
+starting 80 pixels in X and 10 in Y into the Frame.
+
+
+<br> <br>
+<hr>
+<a href="smudgecheckb.html">Next: The CheckBox Tag </a><br><br>
+<a href="smudge.html">Back to Smudge Contents</a>
+
+
+
+
+
+    <hr>
+
+<!-- Created: Fri Jan 25 12:42:13 GMT 2002 -->
+<!-- hhmts start -->
+Last modified: Fri Jan 25 12:56:53 GMT 2002
+<!-- hhmts end -->
+  </body>
+</html>

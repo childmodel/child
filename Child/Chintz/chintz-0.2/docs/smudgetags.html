@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Tags</title>
+  </head>
+
+  <body>
+<a href="smudge.html">Previous: Smudge</a><br><br><hr>
+    <h2>Smudge: Tags</h2>
+The basic tag within which all others must be contained is the &lt Page> tag. Each Page
+will appear as a new tab in the chintz user interface. No Page can contain futher nested Pages. Three futher
+types of container are available, Frames, Boxes and buttons.
+The arrangement of Frames and Boxes is hierarchical - all  appearing between a &lt Page> tag and its closing
+ &lt /Page> will be drawn on the same Page in the chintz user interface, but Frames may be nested within 
+Frames or Boxes, and Boxes within Boxes or Frames<br><br>
+ 
+Thus:-<br><br>
+<font color="#ff00aa">
+&lt Page,id=firstPage><br>
+&nbsp &nbsp &lt Frame><br>
+&nbsp &nbsp &nbsp &nbsp &lt line> &lt Title> A Text Line\nWith a line break &lt /Title> &lt /line><br>
+&nbsp &nbsp &lt /Frame><br>
+&lt /Page><br>
+<br>
+&lt Page,id=second Page><br>
+&nbsp &nbsp &lt Frame><br>
+&nbsp &nbsp &nbsp &nbsp &lt Frame><br>
+&nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &lt Title> A Nested Frame  &lt /Title><br>
+&nbsp &nbsp &nbsp &nbsp &lt /Frame><br>
+&nbsp &nbsp &lt /Frame><br>
+&lt Page><br>
+</font>
+<br>
+defines two Pages, the first with a Frame drawn on it, within which there appears a text Box. Note the
+use of \n to break the text over two lines. The second Page contains two Frames, one drawn within the other,
+the second Frame bearing some title text. Indentation of the tags is included for clarity, but is not
+required. Similarly , blank lines will be ignored, and tags may appear on the same line or separate lines.
+<br> <br>
+<hr>
+<a href="smudgetagdefs.html">Next: Tag definitions </a><br><br>
+<a href="smudge.html">Back to Smudge Contents</a>
+    <hr>
+<!-- Created: Thu Jan 24 16:06:16 GMT 2002 -->
+<!-- hhmts start -->
+Last modified: Fri Jan 25 11:38:38 GMT 2002
+<!-- hhmts end -->
+  </body>
+</html>
