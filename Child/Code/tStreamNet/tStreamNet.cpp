@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.63 2003-10-22 13:04:29 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.64 2004-01-28 16:02:08 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -462,8 +462,8 @@ void tStreamNet::CheckNetConsistency()
 	{
 	  if( cn->calcSlope() < 0.0 )
 	    {
-	      cerr << "NODE #" << cn->getID()
-		   << " meanders and returns negative calcSlope\n";
+	      cerr << "error in tStreamNet::CheckNetConsistency at NODE #" << cn->getID()
+	      << ",meanders and returns negative getSlope of "<<cn->calcSlope()<<'\n';
 	      goto error;
 	    }
 	}
@@ -573,6 +573,224 @@ int tStreamNet::CheckNetConsistencyFlowPath( tLNode **pcn )
    return 1;
 }
 
+
+void tStreamNet::CheckMeander()
+{
+
+   tLNode *cn, *secondnode,*thirdnode;
+   tEdge * fe; 
+   double totlen;
+   
+   
+   cout<<"                              \n";
+   cout<<" --tStreamNet::CheckMeander-- \n";
+   
+   totlen=0.;
+   cn= getInletNodePtr();
+   int counter=0;
+   while (counter < 150 && cn != NULL)		// check the first to hundred meander cells
+    {
+      fe = cn->getFlowEdg();
+      if(fe==0) break;
+      assert( fe );
+      totlen += fe->getLength();
+        
+      
+      secondnode = cn->getDownstrmNbr();
+      thirdnode  = secondnode->getDownstrmNbr();
+      
+      //cout<<cn->getID()<<" "<<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()<<" M: "<<cn->Meanders()<<" F: "<<cn->getFloodStatus()<<endl;
+      
+      
+      //----------------------------AVULSION---------------------------------------------------
+      // Check for avulsion
+      // If an avulsion happened in the the experiments with the Thames DEM as template
+      // the y-coordinate of a channel cells should be > 20250 or < 19500
+      if( (cn->getY() > 22000 || cn->getY() < 18000) && cn->getX() > 7100){
+      	cout<<" --AVULSION ERROR--"<<endl;
+      	cout<<"Printing the whole meander list in function CheckMeander:"<<endl;
+      	cout<<"Locations "<<cn->getID()<<" "<<cn->getX()<<" "<<cn->getY()<<" are too far away from the channel/ basin axis "<<endl;
+      	cout<<"Find the avulsion site...."<<endl;
+      	
+      	cout<<"Showing the existing meander list:  "<<endl;
+        cn= getInletNodePtr();
+        counter=0;
+        while (counter < 150 && cn->getX() < 11900){
+   	      if(!cn->Meanders()) cout<<" *|*| Avulsion here?"<<endl;
+   	      cout<<cn->getID()<<" "<<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()<<" M: "<<cn->Meanders()<<" F: "<<cn->getFloodStatus()<<endl;
+   	      cn=cn->getDownstrmNbr();
+   	      counter++;
+         }
+        
+        
+        //exit(1);
+      	
+      } // end avulsion..
+      
+      //-------------------------RECURSION-----------------------------------------------------
+      
+      //Check For Recursion
+      if(thirdnode==cn && cn != NULL){
+      	cout<<"   "<<endl;
+        cout<<"ERROR: in Checkmeander, recursion in channel"<<endl;
+        cout<<"Node "<<cn->getID()<<' '<<cn->getX()<<' '<<cn->getY()<<' '<<cn->getZ()<<endl;
+        cout<<"points to "<<endl;
+        cout<<"Node "<<secondnode->getID()<<' '<<secondnode->getX()<<' '<<secondnode->getY()<<' '<<secondnode->getZ()<<endl;
+        cout<<"and back, ID of dwnstrnbt is: "<<endl;
+        cout<<thirdnode->getID()<<endl;
+        cout<<"   "<<endl;
+        cout<<"The nodes surrounding "<< cn->getID()<<" are: "<<endl;
+        tEdge *ce;
+        tSpkIter spokIter( cn );   
+        for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
+        {
+          tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
+          cout<<surnode->getID()<<" "<<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()<<" M: "<<surnode->Meanders()<<" F: "<<surnode->getFloodStatus()<<endl;
+        }
+        
+        cout<<"   "<<endl;
+        cout<<"The nodes surrounding its dwnstr nbr "<< secondnode->getID()<<" are: "<<endl;   
+        tSpkIter spokIter2( secondnode );
+        for( ce = spokIter2.FirstP(); !( spokIter2.AtEnd() ); ce = spokIter2.NextP() )
+        {
+          tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
+          cout<<surnode->getID()<<" "<<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()<<" M: "<<surnode->Meanders()<<" F: "<<surnode->getFloodStatus()<<endl;
+        }
+        
+        cout<<"     "<<endl;
+        cout<<"Showing the existing meander list:  "<<endl;
+        cn= getInletNodePtr();
+        counter=0;
+        while (counter < 150){
+   	
+   	      cout<<cn->getID()<<" "<<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()<<" M: "<<cn->Meanders()<<" F: "<<cn->getFloodStatus()<<endl;
+   	      cn=cn->getDownstrmNbr();
+   	      counter++;
+         }
+        
+        
+        //exit(1);
+      
+       }
+
+
+       
+
+      //---------------------------CHANNEL BUMPS-------------------------------------------------
+      
+      // Remove bumps
+      double newelev;
+      if(secondnode->getZ() > cn->getZ()){
+      	 
+      	 if(thirdnode !=NULL){
+           newelev = ( thirdnode->getZ() + cn->getZ() )/2.0;
+         }
+         else{
+          newelev = cn->getZ();
+         }
+         cout<<"    "<<endl;
+         cout<<"ERROR: in CheckMeander, bump in channel"<<endl;
+         cout<<"Node "<<cn->getID()<<' '<<cn->getX()<<' '<<cn->getY()<<' '<<cn->getZ()<<endl;
+         cout<<"is lower than its downstreamNeighbour"<<endl;
+         cout<<"Node "<<secondnode->getID()<<' '<<secondnode->getX()<<' '<<secondnode->getY()<<' '<<secondnode->getZ()<<endl;
+        
+        
+         tEdge *ce;
+         tSpkIter spokIter( cn );
+         for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
+         {
+          tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
+          if(surnode !=NULL){
+            cout<<surnode->getID()<<" "<<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()<<" M: "<<surnode->Meanders()<<" F: "<<surnode->getFloodStatus()<<endl;
+          }
+         }
+         
+        cout<<"    "<<endl; 
+        cout<<"The nodes surrounding its dwnstr nbr "<< secondnode->getID()<<" are: "<<endl;   
+        tSpkIter spokIter3( secondnode );
+        for( ce = spokIter3.FirstP(); !( spokIter3.AtEnd() ); ce = spokIter3.NextP() )
+        {
+          tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
+          cout<<surnode->getID()<<" "<<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()<<" M: "<<surnode->Meanders()<<" F: "<<surnode->getFloodStatus()<<endl;
+        }
+         
+         cout<<"     "<<endl;
+         cout<<"Showing the existing meander list:  "<<endl;
+         cn= getInletNodePtr();
+         counter=0;
+         while (counter < 150 && cn != NULL){
+   	
+   	      cout<<cn->getID()<<" "<<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()<<" M: "<<cn->Meanders()<<" F: "<<cn->getFloodStatus()<<endl;
+   	      cn=cn->getDownstrmNbr();
+   	
+   	      counter++;
+         }
+         
+         
+         
+         cout<<"Stop Run due to bump "<<endl;
+         //exit(1);
+      }
+      
+      if(cn != NULL){
+        if(cn->getFloodStatus()>0){
+      	  cout<<"Warning: node "<<cn->getID()<<' '<<cn->getX()<<' '<<cn->getY()<<' '<<cn->getZ()<<endl;
+      	  cout<<"has flood status: "<<cn->getFloodStatus()<<endl;
+      	}
+      }
+      
+     
+      
+      counter++;
+      
+      if(cn == NULL) break;
+      
+      cn = cn->getDownstrmNbr();
+      
+      if(cn == NULL) break;
+      
+      if(cn->getBoundaryFlag() != 0) break;
+       
+      }
+     
+    //---------------end new correction stuff------------------  
+     
+      
+   //cout<< "M-Nodes " <<cn->getID()<<' '<<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()<<" A= "<<cn->getDrArea()<<" Q= "<<cn->getQ()<<" W= "<<cn->getChanWidth()<< " Mndr="<<cn->Meanders()<<" Fld= "<<cn->getFloodStatus()<<endl;
+       
+  cout<<" --tStreamNet::CheckMeander, Finished -- \n";
+  cout<<"   \n";
+
+} // CheckMeander
+
+//---------------------------------------------------------
+void tStreamNet::ShowMeanderNeighbours(int debugID)
+{
+
+         tLNode *cn = getInletNodePtr();
+         int counter = 0;
+         while (counter < 100){
+   	
+   	      //cout<<cn->getID()<<" "<<cn->getX()<<" "<<cn->getY()<<" "<<cn->getZ()<<" M: "<<cn->Meanders()<<" F: "<<cn->getFloodStatus()<<endl;
+   	      if( cn->getID() ==debugID){
+   	      	
+   	      	tEdge *ce;
+                tSpkIter spokIter( cn );
+         
+                for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
+                {
+                 tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
+                 cout<<surnode->getID()<<" "<<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()<<" M: "<<surnode->Meanders()<<" F: "<<surnode->getFloodStatus()<<endl;
+                }	
+   	      }
+   	      
+   	      cn=cn->getDownstrmNbr();
+   	      counter++;
+         }	
+	
+	
+	
+}
 
 /****************************************************************************\
 **
@@ -790,26 +1008,25 @@ void tStreamNet::InitFlowDirs()
 void tStreamNet::FlowDirs()
 {
    tMeshListIter<tLNode> i( meshPtr->getNodeList() );  // gets nodes from the list
-   double slp;        // steepest slope found so far
-   tLNode *curnode;  // ptr to the current node
+   double slp;                          // steepest slope found so far
+   double meanderslp;			// steepest meander slope found so far
+   double selectslope;			// value of the selected slope
+   tLNode *curnode;                     // ptr to the current node
    //XtLNode *newnode;  // ptr to new downstream node
    //XtLNode * nbr;
-   tEdge * firstedg; // ptr to first edg
-   tEdge * curedg;   // pointer to current edge
-   tEdge * nbredg;   // steepest neighbouring edge so far
-   /*long seed = 91324;
-     double chngnum;*/
+   tEdge * firstedg;   // ptr to first edg
+   tEdge * curedg;     // pointer to current edge
+   tEdge * nbredg;     // steepest neighbouring edge so far
+   tEdge * meanderedg;  // steepest meander edge so far
+  
    int ctr;
 
-   //int redo = 1;
-   //while( redo )
-   //{
-   //   redo = 0;
 
    // Find the connected edge with the steepest slope
    curnode = i.FirstP();
-   while( i.IsActive() )  // DO for each non-boundary (active) node
+   while( i.IsActive() )  // DO for each non-boundary (active) node   = LOOP OVER NODES !
    {
+      selectslope = 0.0;	
       curnode->setFloodStatus( kNotFlooded );  // Init flood status flag
       firstedg =  curnode->getFlowEdg();
       if( unlikely(firstedg == 0) ) {
@@ -824,16 +1041,41 @@ void tStreamNet::FlowDirs()
 //           cout<<"z "<<curnode->getZ()<<" dsn z "<<nbr->getZ();
 //           cout<<" meander "<<curnode->Meanders()<<endl;
 //        }
-      curedg = firstedg->getCCWEdg();
+      curedg = firstedg->getCCWEdg();			// Go to the next counter clockwise edge
       ctr = 0;
 
-      // Check each of the various "spokes", stopping when we've gotten
-      // back to the beginning
+      /*******************************************************************\
+      ** MEANDER - SPECIFIC
+      ** If the node meanders, please check whether it is still connected
+      ** to another downstream meander node. If yes, get the  connecting 
+      ** spoke and its downstream slope
+      \*******************************************************************/
+      if( curnode->Meanders() ){
+      	 	
+      	// if the current node meeanders, check whether its current downstream neighbor also meanders
+      	// (should be..)
+      	tLNode *NodeAlongEdge =
+		static_cast<tLNode *>(firstedg->getDestinationPtrNC());
+      	if( NodeAlongEdge->Meanders()){
+      	 meanderslp = firstedg->getSlope();
+      	 meanderedg = firstedg;	
+      	}
+      	else{
+      	 meanderslp = 0.0;
+      	 meanderedg = NULL;
+      	}
+      }
+      
+     /*************************************************************\
+     ** Standard: Check all existing spokes for the steepest
+     ** downstream direction
+     \**************************************************************/ 
+      
       while( curedg!=firstedg )
       {
          assert( curedg != 0 );
          if ( curedg->getSlope() > slp && curedg->FlowAllowed())
-//&& ((tLNode *)(curedg->getDestinationPtrNC()))->getDownstrmNbr() != curnode )
+
          {
             slp = curedg->getSlope();
             nbredg = curedg;
@@ -849,6 +1091,81 @@ void tStreamNet::FlowDirs()
             ReportFatalError( "Bailing out of FlowDirs()" );
          }
       }
+      
+      /***************************************************************************************\
+      ** MEANDER - SPECIFIC
+      ** Now make a choice. Compare the steepest descent spoke with the existing meander spoke
+      ** if both go to meandering nodes, select the one with the steepest spoke
+      ** if not, give preference to the meandering one, also if the normal spoke is steeper
+      \***************************************************************************************/
+      if(curnode->Meanders() && meanderedg != NULL ){
+      	tLNode *SteepestDescentNode =
+	       static_cast<tLNode *>(nbredg->getDestinationPtrNC());
+	 
+	// the steepest descent one is meandering       
+	if( SteepestDescentNode->Meanders() ){
+	   if(slp > meanderslp){
+	     curnode->setFlowEdg( nbredg);
+	     selectslope = slp;
+	   }
+	   else if(slp <= meanderslp){
+	     curnode->setFlowEdg( meanderedg);
+	     selectslope = meanderslp;
+	   }		
+	}
+	// the steepest descent one is not meandering
+	else if ( !SteepestDescentNode->Meanders() ){
+	  if(meanderslp > 0.0){				// pick the meander edge if it is positive
+	    curnode->setFlowEdg( meanderedg);
+	    selectslope = meanderslp;
+	  }
+	  else{
+	    curnode->setFlowEdg( nbredg);
+	    selectslope = slp;
+	  }	
+	}
+	
+      }
+      else{ // all other cases, no menadering nodes involved
+        curnode->setFlowEdg( nbredg ); 
+        selectslope = slp; 
+      }
+      	
+    
+
+#if 1
+      // ocasionally there are bumps in the meandering channel.
+      // Even when all normal erosion and deposition functions
+      // are swithched off (k's are 0)! Modify the downstream elevation
+      // by flattening the occasional bump.
+      
+      //tLNode *secondnode = curnode->getDownstrmNbr();
+      //tLNode *thirdnode  = secondnode->getDownstrmNbr();
+      
+      //if(  curnode->Meanders() && curnode != thirdnode ){
+      	
+      	//if( secondnode->Meanders() && secondnode->getZ() < curnode->getZ() ){
+      	  //curnode->setFlowEdg( firstedg);	  
+      	//}
+      	//else if ( secondnode->Meanders() && secondnode->getZ() >= curnode->getZ() ){
+      	  //double newelev = (curnode->getZ() + thirdnode->getZ() )/2.0;
+      	  //secondnode->setZ(newelev);
+      	  //curnode->setFlowEdg( firstedg);
+      	  //curedg->getSlope();
+      	  //cout<<"in FlowDirs: Flattening a bump in the channel: "<<endl;
+      	  //cout<<curnode->getX()<<' '<<curnode->getY()<<' '<<curnode->getZ()<<endl;
+      	  //cout<<secondnode->getX()<<' '<<secondnode->getY()<<' '<<secondnode->getZ()<<endl;
+      	  //cout<<thirdnode->getX()<<' '<<thirdnode->getY()<<' '<<thirdnode->getZ()<<endl;
+      	  //exit(1);	
+      	//}
+      	//else{
+      	  //curnode->setFlowEdg( nbredg );
+      	//}
+      //}
+      //else{
+       // curnode->setFlowEdg( nbredg );  
+      //}
+#endif
 
       //add a wrinkle: if node is a meander node and presently flows
       //to another meander node and the new 'nbredg' does not lead to a
@@ -869,28 +1186,34 @@ void tStreamNet::FlowDirs()
         }
         else curnode->setFlowEdg( nbredg );*/
 
-      curnode->setFlowEdg( nbredg );
 
-      /*if( slp < 0 )
-        {
-        if( DamBypass( curnode ) )
-        {
-        InitFlowDirs();
-        redo = 1;
-        break;
-        }
-        }*/
-      //Nicole changed the line below which is commented out, replaced
-      //it with the new if because of the new function WarnSpokeLeaving
-      //which can set a node as a boundary node. NG does not understand
-      //her own comment here?????
-      //curnode->setFloodStatus( ( slp>0 ) ? kNotFlooded : kSink );  // (NB: opt branch pred?)
-      if( (slp>0) && (curnode->getBoundaryFlag() != kClosedBoundary) )
+
+
+      if(selectslope <= 0.0 && curnode->Meanders()){
+      	cout<<"WARNING-Type 1, from tStreamNet::CalcSlopes....detected a meander node without positive drainage"<<endl;
+        cout<<"ID= "<<curnode->getID()<<", X= "<<curnode->getX()<<", Y= "<<curnode->getY()<<", Z= "<<curnode->getZ()<<endl;
+          
+        //DebugShowNbrs( curnode );
+        //exit(1);	
+      }
+      
+       // If the selected node has a positve slope
+      if( (selectslope>0) && (curnode->getBoundaryFlag() != kClosedBoundary) ){
           curnode->setFloodStatus( kNotFlooded );
-      else
-          curnode->setFloodStatus( kSink );
+         
+      }
+      else{
+         curnode->setFloodStatus( kSink );
+         if( curnode->Meanders() ){
+          cout<<"WARNING-Type 2, from tStreamNet::CalcSlopes....detected a meander node without positive drainage"<<endl;
+          cout<<"ID= "<<curnode->getID()<<", X= "<<curnode->getX()<<", Y= "<<curnode->getY()<<", Z= "<<curnode->getZ()<<endl;
+          
+          //DebugShowNbrs( curnode );
+          //exit(1);	
+         }
 
-      curnode = i.NextP();
+      }
+      curnode = i.NextP();                // Continue with the next node on the active list
    }
 
    if (0) //DEBUG
@@ -937,11 +1260,22 @@ void tStreamNet::DrainAreaVoronoi()
    for( curnode = nodIter.FirstP(); nodIter.IsActive();
         curnode = nodIter.NextP() )
    {
+   
+      // Debug Quintijn
+      if(curnode->getVArea() < 0.0){
+        cout<< "Voronoi area <  0.0 at \n";
+        cout<< curnode->getX() <<' '<<curnode->getY()<<endl;
+        cout<< "Area= "<<curnode->getVArea()<<endl;	
+      	exit(1);
+      }	
+    	
       RouteFlowArea( curnode, curnode->getVArea() );
    }
    if( inlet.innode != 0 )
    {
-      inlet.FindNewInlet();
+#if 1
+      //inlet.FindNewInlet();            QC commented this out -> avoid channel hopping around
+#endif
       RouteFlowArea( inlet.innode, inlet.inDrArea );
    }
    if (0) //DEBUG
@@ -2159,8 +2493,14 @@ void tStreamNet::FindChanGeom()
       }
       if( unlikely(slope < 0.0) )
       {
+#if 1
+         cout << "Negative slope = " << slope<<" at x,y "<< cn->getX() << ' ' << cn->getY()<< '\n';
+         cout << "MeanderStatus= "<< cn->Meanders() << '\n'; 
+         cout << " probably from infinite loop in tLNode::GetSlope()" << endl;
+#else
          cout << "negative slope,"
               << " probably from infinite loop in tLNode::GetSlope()" << endl;
+#endif
          ReportFatalError("negative slope in tStreamNet::FindChanGeom");
       }
    }
@@ -2358,6 +2698,11 @@ void tStreamNet::DensifyMeshDrArea( double time )
 **      initialized, even though it's used in DetachErode; also,
 **      changed reading of inputs to use stl string class instead
 **      of C-style character manipulation (GT)
+**    - 7/03 the elevation of the inlet node is now found by interpolating
+**      only the non-boundary nodes of the triangle the inlet is placed into.
+**      ,and not interpolating using the nodes of the surrounding triangles 
+**      because this may lead to a resultant elevation of the inlet which 
+**      is lower than its direct surroundings, making it a pond. (QC)  
 **
 \**************************************************************************/
 
@@ -2374,7 +2719,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
 {
    int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" ),
        numg = infile.ReadItem( numg, "NUMGRNSIZE" );
-   int add = 1;
+   int add = 1;       // Use AddNode at for placing the inlet
    //char end, name[20];
    double xin, yin,   // Coords of inlet node
        mindist,       // Minimum distance above which new node will be added
@@ -2442,17 +2787,23 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
       assert( intri != 0 );  //TODO: should be error-check not assert
       for( i=0; i<3; i++ )
       {
-         cn = static_cast<tLNode *>(intri->pPtr(i));
-         if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
-         ntri = intri->tPtr(i);
-         if( ntri != 0 )
-         {
-	   cn = static_cast<tLNode *>(ntri->pPtr( ntri->nVOp( intri ) ));
-	   if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
-         }
+       	 // Surrounding nodes of the Triangle
+        cn = static_cast<tLNode *>(intri->pPtr(i));
+        if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
+
+        // Nodes of the Triangles surrounding the one selected
+        if(add==0){
+	  ntri = intri->tPtr(i);
+	  if( ntri != 0 )
+	    {
+	      cn = static_cast<tLNode *>(ntri->pPtr( ntri->nVOp( intri ) ));
+	      if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
+	    }
+	}
       }
       minDistFound = LARGE_DISTANCE;
       mindist = 0.000001;
+      cout<< "x,y,z of nodes surrounding inlet are: \n";
       for( cn = itr.FirstP(); !(itr.AtEnd()); cn = itr.NextP() )
       {
          x = cn->getX();
@@ -2463,18 +2814,21 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
             minDistFound = dist;
             closestNode = cn;
          }
-         if( dist > mindist )
+         if( dist > mindist )          // find elev by interpolation
          {
             zin += cn->getZ() / dist;
             suminvdist += 1 / dist;
          }
-         else
+         else                         // we're on a existing node, re-use
          {
             innode = cn;
             add = 0;
          }
 
-         /*
+         
+         // DEBUG
+         cout<<cn->getX()<<' '<<cn->getY()<<' '<<cn->getZ()<<cn->getBoundaryFlag()<<" dist= "<<dist<<endl;
+        /*
          if( dist < mindist )
          {
             dist = mindist;
@@ -2482,10 +2836,18 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
          }*/
       }
 
+      // Debug
+      if( add == 0){
+       cout<< "ADDING INLET by resetting an existing node:" << endl;
+       cout <<"Innode boundary flag =" << innode->getBoundaryFlag() << '\n';
+      }
+
       if( add ) // fix here:
       {
 	assert( closestNode != 0 );
-         //cout << "ADDING INLET: Closest node is:" << endl;
+ 	 cout <<' '<<endl;
+         cout << "ADDING INLET by calling AddNode():" << endl;
+         cout <<' '<<endl;
          //closestNode->TellAll();
          //BE AWARE
          //The following commented line caused many problems for the code:
@@ -2507,6 +2869,9 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
          //xyz[2] = zin;
          //innode = meshPtr->AddNodeAt( xyz );
          innode = meshPtr->AddNode( newnode, kUpdateMesh ); // true means update mesh
+         cout <<"Innode boundary flag =" << innode->getBoundaryFlag()<< '\n';
+         cout <<"Innode x,y,z= "<<innode->getX()<<' '<<innode->getY()<<' '<<innode->getZ()<<endl;
+         cout <<' '<<endl;
          //cout << "INLET NODE IS:\n";
          //innode->TellAll();
       }
@@ -2843,4 +3208,48 @@ void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
 	if( cn->getChanWidth()==0. && cn->getFloodStatus()==0 ) cn->TellAll();
       }
 
+}
+
+
+
+
+void tStreamNet::DebugShowNbrs( tLNode *theNode )
+{
+	
+  if(theNode->getX() < 12000 && theNode->getX() > 7000){	// stay within boundary
+  cout<<"Look around node number: " << theNode->getID() << " " << theNode->getX() << " " << theNode->getY() <<" "<<theNode->getZ()<<" M: "<<theNode->Meanders()<<" F: "<<theNode->getFloodStatus()<<endl;
+  tLNode *nextNode = theNode->getDownstrmNbr();
+  if(nextNode != NULL){
+     cout<<"with dstr nbr:		 " << nextNode->getID() << " " << nextNode->getX() << " " << nextNode->getY() <<" "<<nextNode->getZ()<<" M: "<<nextNode->Meanders()<<" F: "<<nextNode->getFloodStatus()<<endl;
+  }
+  cout << "flowedge flippable ? " << (theNode->getFlowEdg()->isFlippable()
+				    ? "yes": "no") << endl;
+
+  cout<<"other nbrs are:          "<<endl;
+        
+  tEdge *ce;
+  tSpkIter spokIter( theNode );
+  
+  int counter=0;
+  for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
+    {
+      counter++;
+      tLNode* surnode = static_cast<tLNode *>( ce->getDestinationPtrNC() );
+      cout<<"    "<<endl;
+      cout<<"neighbour "<<counter<< ":"<<endl;
+      cout<<surnode->getID()<<" "<<surnode->getX()<<" "<<surnode->getY()<<" "<<surnode->getZ()<<" M: "<<surnode->Meanders()<<" F: "<<surnode->getFloodStatus()<<" ce-slope: "<<ce->getSlope()<<endl;
+      cout<<"has nbrs itself: "<<endl;
+      tEdge *cee;
+      tSpkIter spokIter2(surnode);
+      if(1){
+      for( cee = spokIter2.FirstP(); !( spokIter2.AtEnd() ); cee = spokIter2.NextP() ){
+      	  tLNode* morenode = static_cast<tLNode *>( cee->getDestinationPtrNC() );
+      	  cout<<morenode->getID()<<" "<<morenode->getX()<<" "<<morenode->getY()<<" "<<morenode->getZ()<<" M: "<<morenode->Meanders()<<" F: "<<morenode->getFloodStatus()<<" ce-slope: "<<cee->getSlope()<<endl;
+      }
+      }
+      
+    }
+    cout<<"   "<<endl;
+    
+   }
 }

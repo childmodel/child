@@ -26,7 +26,7 @@
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
 **
-**  $Id: tStreamNet.h,v 1.54 2003-10-15 09:20:42 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.55 2004-01-28 16:02:10 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -101,6 +101,7 @@ private:
     double inSedLoad; // total sediment load
     tArray< double > inSedLoadm; // incoming sediment load if multi-sizes
     tMesh< tLNode > *meshPtr;  // ptr to mesh
+    
 };
 
 
@@ -233,6 +234,7 @@ public:
     void UpdateNet( double time, tStorm & );
     void CheckNetConsistency();
     int CheckNetConsistencyFlowPath( tLNode **);
+    void CheckMeander();
     void CalcSlopes();
     void InitFlowDirs();
     void FlowDirs();
@@ -256,6 +258,7 @@ public:
     void FindChanGeom();
     void FindHydrGeom();
     void DensifyMeshDrArea( double time=0.0 );  // Densifies mesh locally
+    void ShowMeanderNeighbours(int);
 
 protected:
     tLNode *BuildLakeList( tPtrList< tLNode > &, tLNode *);
@@ -291,6 +294,8 @@ protected:
     double mdMeshAdaptMaxVArea; // Max voronoi area for nodes above threshold
     double mdHydrgrphShapeFac;  // "Fhs" for hydrograph peak method
     double mdFlowVelocity;      // Runoff velocity for computing travel time
+
+  void DebugShowNbrs( tLNode * theNode );  // debugging function shows neighbor nodes
 };
 
 #endif
