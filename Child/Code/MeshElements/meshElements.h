@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.65 2004-01-07 13:51:45 childcvs Exp $
+**  $Id: meshElements.h,v 1.66 2004-01-07 14:06:07 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -134,7 +134,7 @@ public:
   void setX( double );            // sets x coord
   void setY( double );            // sets y coord
   void setZ( double );            // sets z value
-  void ChangeZ( double );         // adds or subtracts from the current z value
+  virtual void ChangeZ( double );         // adds or subtracts from the current z value
   void setVArea( double );        // sets Voronoi area
   void setVArea_Rcp( double );    // sets 1 / Voronoi area
   void set2DCoords( double, double );         // sets x and y values
@@ -154,7 +154,7 @@ public:
   virtual bool isMobile() const { return false;}
   virtual bool flowThrough( tEdge const * ) const { return false; }
   virtual tNode *splitFlowEdge() { return 0; }
-  virtual void setDownstrmNbr( tNode * ) {};
+  virtual void setDownstrmNbr( tNode * ) {}
 
   virtual void PrepForAddition( tTriangle const *, double ) {}
   virtual void PrepForMovement( tTriangle const *, double ) {}
