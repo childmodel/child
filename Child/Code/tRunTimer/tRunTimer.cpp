@@ -13,7 +13,7 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.6 1998-08-04 20:51:57 nmgaspar Exp $
+**  $Id: tRunTimer.cpp,v 1.7 1998-09-28 21:43:05 nmgaspar Exp $
 \***************************************************************************/
 
 #include <iostream.h>
@@ -83,7 +83,7 @@ tRunTimer::tRunTimer( tInputFile &infile, int optprint )
   //be set to the time in which the layers were output, since
   //time is tracked in the layers and restarting at time zero
   //would make the layer times non-sensical.
-  help = infile.ReadItem( help, "OPTREADLAYER" );
+  help = infile.ReadItem( help, "OPTREADINPUT" );
   if(help>0){
      help = infile.ReadItem( help, "INPUTTIME" );
      currentTime = help;
