@@ -1,0 +1,14 @@
+#! /bin/sh -u
+
+#
+# Extract warnings related to initialisation list
+# in constructors from the output of "g++ -Weffc++"
+#
+
+# join again the lines that are split 
+awk '
+/g\+\+/ { printf "\n%s",$0 }
+/^\//   { printf "\n%s",$0 }
+/^[^\/]/{ printf "%s",$0 }
+END     {printf "\n"}
+' | grep 'should be initialized in the member' | sort -u
