@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.53 2003-05-16 16:22:21 childcvs Exp $
+**  $Id: tMesh.h,v 1.54 2003-05-19 14:56:50 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -142,7 +142,7 @@ public:
    /* computes edge slopes as (Zorg-Zdest)/Length */
    //void CalcSlopes(); /* WHY is this commented out? */
    /*routines used to move points; MoveNodes is "master" function*/
-   bool CheckForFlip( tTriangle *, int, bool );
+   bool CheckForFlip( tTriangle *, int, bool, bool useFuturePosn=true );
    void FlipEdge( tTriangle *, tTriangle *, int, int );
    tEdge * IntersectsAnyEdge( tEdge * );
    //CheckTriEdgeIntersect and CheckLocallyDelaunay are the essential functions

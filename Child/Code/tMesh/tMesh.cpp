@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.151 2003-05-16 16:22:19 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.152 2003-05-19 14:56:49 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -2104,7 +2104,7 @@ MakeHexMeshFromArcGrid( tInputFile &infile )
 #define kMaxSpokes 100
 template<class tSubNode>
 void tMesh< tSubNode >::
-CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
+CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
 {
    tMeshListIter<tSubNode> nodIter( nodeList );
    tMeshListIter<tEdge> edgIter( edgeList );
@@ -2376,7 +2376,7 @@ CheckMeshConsistency( bool boundaryCheckFlag ) /* default: TRUE */
 	 // check flip test
 	 if( ct->tPtr(i) != 0 )
 	   {
-	     if ( CheckForFlip( ct, i, false ) ) {
+	     if ( CheckForFlip( ct, i, false, false ) ) {
                cerr << "TRIANGLE #" << ct->getID()
                     << ": flip test failed for edge opposite to vertex "
                     << cn->getID() << ".\n";
@@ -3042,36 +3042,29 @@ LocateNewTriangle( double x, double y )
    if (0) //DEBUG
      cout << "LocateTriangle" << endl;
    int n, lv=0;
-   tListIter< tTriangle > triIter( triList );  //lt
+   tListIter< tTriangle > triIter( triList );
    tTriangle *lt = triIter.FirstP();
-   tSubNode *p1, *p2;
 
-   tArray< double > xy1, xy2;
    /* it starts from the first triangle,
       searches through the triangles until the point is on
       the same side of all the edges of a triangle.
       "lt" is the current triangle and "lv" is the edge number.
    */
-   for (n=0 ;(lv!=3)&&(lt); n++)
+   for (n=0; lv!=3 && lt; ++n)
    {
+      tSubNode *p1, *p2;
       p1 = static_cast<tSubNode *>(lt->pPtr(lv));
-      if( p1->Meanders() ) xy1 = p1->getNew2DCoords();
-      else xy1 = p1->get2DCoords();
+      tArray< double > xy1 = p1->FuturePosn();
       p2 = static_cast<tSubNode *>(lt->pPtr( (lv+1)%3 ));
-      if( p2->Meanders() ) xy1 = p2->getNew2DCoords();
-      else xy2 = p2->get2DCoords();
+      tArray< double > xy2 = p2->FuturePosn();
       if ( ( (xy1[1] - y) * (xy2[0] - x) ) > ( (xy1[0] - x) * (xy2[1] - y)) )
       {
          lt=lt->tPtr( (lv+2)%3 );
          lv=0;
       }
-      else {lv++;}
-      /*if( !(n < ntri) )
-        cout << "tri not found for point w/ x, y, " << x << ", " << y
-        << "; no. tri's " << ntri << "; now at tri " << lt->getID() << endl;*/
-      //assert( n < ntri + 20 );
+      else ++lv;
    }
-   return(lt);
+   return lt;
 }
 
 
@@ -3841,12 +3834,11 @@ AttachNode( tSubNode* cn, tTriangle* tri )
     }
   else
     {
-      if( node1->Meanders() ) p1 = node1->getNew2DCoords();
-      if( node2->Meanders() ) p2 = node2->getNew2DCoords();
-      if( node3->Meanders() ) p3 = node3->getNew2DCoords();
-      if( node4->Meanders() ) p4 = node4->getNew2DCoords();
-      /*cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-	<< p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;*/
+      // use virtual function that will return new coords for nodes
+      p1 = node1->FuturePosn();
+      p2 = node2->FuturePosn();
+      p3 = node3->FuturePosn();
+      p4 = node4->FuturePosn();
       if( !PointsCCW( p3, p1, p2 ) ||
 	  !PointsCCW( p2, p1, p4 ) ||
 	  !PointsCCW( p2, p4, p3 ) )
@@ -3962,21 +3954,23 @@ AddNodeAt( tArray< double > &xyz, double time )
        p4( node4->get2DCoords() );
    if( xyz.getSize() == 3)
    {
-      //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-      // << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
-      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
-          cout << "new tri not CCW" << endl;
+      if( !PointsCCW( p3, p1, p2 ) ||
+	  !PointsCCW( p2, p1, p4 ) ||
+	  !PointsCCW( p2, p4, p3 ) )
+	cout << "new tri not CCW" << endl;
    }
    else
    {
-      if( node1->Meanders() ) p1 = node1->getNew2DCoords();
-      if( node2->Meanders() ) p2 = node2->getNew2DCoords();
-      if( node3->Meanders() ) p3 = node3->getNew2DCoords();
-      if( node4->Meanders() ) p4 = node4->getNew2DCoords();
-      //cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-      //   << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << endl;
-      if( !PointsCCW( p3, p1, p2 ) || !PointsCCW( p2, p1, p4 ) || !PointsCCW( p2, p4, p3 ) )
-          cout << "new tri not CCW" << endl;
+      // use virtual function that will return new coords for nodes
+      // inheriting tMobility, orig. coords o.w.:
+      p1 = node1->FuturePosn();
+      p2 = node2->FuturePosn();
+      p3 = node3->FuturePosn();
+      p4 = node4->FuturePosn();
+      if( !PointsCCW( p3, p1, p2 ) ||
+	  !PointsCCW( p2, p1, p4 ) ||
+	  !PointsCCW( p2, p4, p3 ) )
+	cout << "new tri not CCW" << endl;
    }
 
    assert( node1 != 0 && node2 != 0 && node3 != 0 );
@@ -4163,7 +4157,7 @@ UpdateMesh()
 \*****************************************************************************/
 template< class tSubNode >
 bool tMesh< tSubNode >::
-CheckForFlip( tTriangle * tri, int nv, bool flip )
+CheckForFlip( tTriangle * tri, int nv, bool flip, bool useFuturePosn )
 {
    if( tri == 0 )  // TODO: is this just a bug check?
    {
@@ -4183,19 +4177,21 @@ CheckForFlip( tTriangle * tri, int nv, bool flip )
    tTriangle *triop = tri->tPtr(nv);
    int nvop = triop->nVOp( tri );
    node3 = static_cast< tSubNode * >(triop->pPtr( nvop ));
-   tArray< double > ptest( node3->get2DCoords() ), p0( node0->get2DCoords() ),
-       p1( node1->get2DCoords() ), p2( node2->get2DCoords() );
+   tArray< double >
+     p0( node0->get2DCoords() ),
+     p1( node1->get2DCoords() ),
+     p2( node2->get2DCoords() ),
+     ptest( node3->get2DCoords() );
 
    // If "flip" flag isn't set and the node is a moving node, use "new"
    // coordinates rather than current coordinates
-   // TODO: decouple this from meandering -- use a "moving" flag instead
-   // for generality?
-   if( !flip )
+   if( !flip && useFuturePosn)
    {
-      if( node0->Meanders() ) p0 = node0->getNew2DCoords();
-      if( node1->Meanders() ) p1 = node1->getNew2DCoords();
-      if( node2->Meanders() ) p2 = node2->getNew2DCoords();
-      if( node3->Meanders() ) ptest = node3->getNew2DCoords();
+     // use virtual function that will return new coords for nodes
+     p0 = node0->FuturePosn();
+     p1 = node1->FuturePosn();
+     p2 = node2->FuturePosn();
+     ptest = node3->FuturePosn();
    }
 
    // If p0-p1-p2 passes the test, no flip is necessary
@@ -4371,7 +4367,7 @@ CheckLocallyDelaunay()
 	for( int i = 0; i < 3; i++ )
 	  {
 	    nodPtr = static_cast< tSubNode * >(at->pPtr(i));
-	    if( nodPtr->Meanders() ) change = true;
+	    if( nodPtr->isMobile() ) change = true;
 	  }
 	if( change ) triPtrList.insertAtBack( at );
       }
@@ -4436,7 +4432,7 @@ CheckTriEdgeIntersect()
          for( i=0; i<3; i++ )
          {
             cn = static_cast<tSubNode *>(ct->pPtr(i));
-            if( cn->Meanders() ) break;
+            if( cn->isMobile() ) break;
          }
          if( i!=3 ) triptrList.insertAtBack( ct );
       }
@@ -4467,7 +4463,7 @@ CheckTriEdgeIntersect()
                for( i=0; i<3; i++ )
                {
                   cn = static_cast<tSubNode *>(ct->pPtr(i));
-                  if( cn->Meanders() )
+                  if( cn->isMobile() )
                   {
                      cedg = ct->ePtr( (i+2)%3 );
 		     tSpkIter spokIter( cn );
@@ -4559,16 +4555,16 @@ CheckTriEdgeIntersect()
       }
    }
 
-   // Update coordinates of moving nodes. TODO: make general
+   // Update coordinates of moving nodes. (UpdateCoords is virtual)
    for( cn = nodIter.FirstP(); !(nodIter.AtEnd()); cn = nodIter.NextP() )
-       if ( cn->Meanders() ) cn->UpdateCoords();//Nic, here is where x&y change
+     cn->UpdateCoords();//Nic, here is where x&y change
    for( cn = tmpIter.FirstP(); !(tmpIter.AtEnd()); cn = tmpIter.NextP() )
    {
-      if ( cn->Meanders() ) cn->UpdateCoords();//Nic, here is where x&y change
-      //cout << "add node at " << cn->getX() << ", " << cn->getY() << ", "
-      //     << cn->getZ() << endl;
-      cn = AddNode( *cn );
-      assert( cn!=0 );
+     cn->UpdateCoords();//Nic, here is where x&y change
+     //cout << "add node at " << cn->getX() << ", " << cn->getY() << ", "
+     //     << cn->getZ() << endl;
+     cn = AddNode( *cn );
+     assert( cn!=0 );
    }
 
 /*   for( ct = triIter.FirstP(); !( triIter.AtEnd() ); ct = triIter.NextP() )
