@@ -7,8 +7,8 @@ using namespace std;
 # include <fstream.h>
 #endif
 
-#if __SUNPRO_CC==0x420
-# if !defined(ENUM_BOOL_DEFINED)
+#if defined(__SUNPRO_CC)
+# if __SUNPRO_CC==0x420 && !defined(ENUM_BOOL_DEFINED)
 #  define ENUM_BOOL_DEFINED 1
 typedef enum { false=0, true } bool;
 # endif
