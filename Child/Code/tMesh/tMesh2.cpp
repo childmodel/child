@@ -16,9 +16,9 @@
 **   algorithm.
 **
 **   Created: 07/2002, Arnaud Desitter
-**   Calls: 
-**   Parameters: 
-**   Modified: 
+**   Calls:
+**   Parameters:
+**   Modified:
 **
 \**************************************************************************/
 
@@ -40,7 +40,7 @@ MakeMeshFromScratchTipper( tInputFile &infile )
      MakePointInterior(Param, infile, false);
      nnodes = nodeList.getSize();
    }
-   
+
    // call triangulator based on Tipper's method
    BuildDelaunayMeshTipper();
 
@@ -68,7 +68,7 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
     ifstream pointfile;              // the file (stream) itself
 
     tSubNode tempnode( infile );  // temporary node used to create node list
-   
+
     //Read Points
     infile.ReadItem( pointFilenm, "POINTFILENAME" );
     pointfile.open( pointFilenm );
@@ -83,7 +83,7 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
       cerr << "\nPoint file name: '" << pointFilenm << "'\n";;
       ReportFatalError( "I can't find a file by this name." );
     }
-    //Read point file, make Nodelist 
+    //Read point file, make Nodelist
     for( int i=0; i<numpts; i++ ){
       double x, y, z;
       int bnd;
@@ -103,7 +103,7 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
       if( bnd<0 || bnd>3 ){
 	ReportFatalError("Invalid boundary code.");
       }
-      
+
       switch(bnd){
       case kNonBoundary:
 	nodeList.insertAtActiveBack( tempnode );
@@ -122,7 +122,7 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
 
   // call triangulator based on Tipper's method
   BuildDelaunayMeshTipper();
-  
+
   cout<<"MakeMeshFromPointsTipper done.\n";
 }
 
@@ -134,9 +134,9 @@ MakeMeshFromPointsTipper( tInputFile &infile ){
 **   algorithm.
 **
 **   Created: 07/2002, Arnaud Desitter
-**   Calls: 
-**   Parameters: 
-**   Modified: 
+**   Calls:
+**   Parameters:
+**   Modified:
 **
 \**************************************************************************/
 // edge numbering translation
@@ -151,7 +151,7 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 BuildDelaunayMeshTipper()
 {
-   point *p = new point[nnodes];   // for Tipper triangulator 
+   point *p = new point[nnodes];   // for Tipper triangulator
    {
      tMeshListIter< tSubNode > nodIter(nodeList);
      tSubNode* cn;
@@ -205,7 +205,7 @@ BuildDelaunayMeshTipper()
      for( int iedge = 0; iedge < nedgesl; ++iedge ) {
        tEdge tempedge1, tempedge2;
        int obnd, dbnd;
-     
+
        // Assign values: ID, origin and destination pointers
        tempedge1.setID( e_t2c(iedge,true) );
        tempedge2.setID( e_t2c(iedge,false) );
@@ -221,16 +221,16 @@ BuildDelaunayMeshTipper()
 	 tempedge2.setOriginPtr( nodPtr2 );
 	 dbnd = (*nodPtr2).getBoundaryFlag();
        }
-       
+
        // set the "flowallowed" status (FALSE if either endpoint is a
-       // closed boundary, or both are open boundaries) 
+       // closed boundary, or both are open boundaries)
        // and insert edge pair onto the list --- active
        // part of list if flow is allowed, inactive if not
        if( obnd == kClosedBoundary || dbnd == kClosedBoundary
 	   || (obnd==kOpenBoundary && dbnd==kOpenBoundary) )
 	 {
 	   if (0) //DEBUG
-	     cout << "setting edges " << tempedge1.getID() << " and "
+	     cout << "Setting edges " << tempedge1.getID() << " and "
 		  << tempedge2.getID() << " as no-flux" << endl;
 	   tempedge1.setFlowAllowed( 0 );
 	   tempedge2.setFlowAllowed( 0 );
@@ -244,7 +244,7 @@ BuildDelaunayMeshTipper()
        else
 	 {
 	   if (0) //DEBUG
-	     cout << "setting edges " << tempedge1.getID() << " and "
+	     cout << "Setting edges " << tempedge1.getID() << " and "
 		  << tempedge2.getID() << " as OPEN" << endl;
 	   tempedge1.setFlowAllowed( 1 );
 	   tempedge2.setFlowAllowed( 1 );
@@ -272,7 +272,7 @@ BuildDelaunayMeshTipper()
    }
 
    // set up the lists of edges (spokes) connected to each node
-   cout << "setting up spoke lists..." << flush;
+   cout << "Setting up spoke lists..." << flush;
    {
      // connectivity point - sorted point
      tArray< int > p2sp(nnodes);
@@ -316,32 +316,29 @@ BuildDelaunayMeshTipper()
    // immediately counterclockwise)
    cout << "Setting up CCW edges..." << flush;
    {
-     int iedge;
-     tEdge * curedg;
-     tMeshListIter< tEdge > edgIter( edgeList );
-     for( iedge=0, curedg=edgIter.FirstP(); iedge<nedgesl; ++iedge)
+     for( int iedge=0; iedge<nedgesl; ++iedge)
        {
 	 {
+	   tEdge *curedg = EdgeTable[ e_t2c(iedge, true) ];
 	   const oriented_edge e1(iedge,true);
 	   const oriented_edge ccw_from = e1.ccw_edge_around_from(edges);
 	   const int ccwedgid = e_t2c(ccw_from);
 	   tEdge *ccwedg = EdgeTable[ccwedgid];
 	   curedg->setCCWEdg( ccwedg );
 	 }
-	 curedg = edgIter.NextP();
 	 {
+	   tEdge *curedg = EdgeTable[ e_t2c(iedge, false) ];
 	   const oriented_edge e2(iedge,false);
 	   const oriented_edge ccw_to = e2.ccw_edge_around_from(edges);
 	   const int ccwedgid = e_t2c(ccw_to);
 	   tEdge *ccwedg = EdgeTable[ccwedgid];
 	   curedg->setCCWEdg( ccwedg );
 	 }
-	 curedg = edgIter.NextP(); 
        }
    }
    cout << "done.\n";
-   
-   cout << "setting up triangle connectivity..." << flush;
+
+   cout << "Setting up triangle connectivity..." << flush;
    {
      int ielem;
      for ( ielem=0; ielem<nelem; ++ielem ) {
@@ -352,13 +349,13 @@ BuildDelaunayMeshTipper()
        if (0) { // DEBUG
 	 cout << "p0=" << p[elems[ielem].p1].id() << " "
 	      << "(" << p[elems[ielem].p1].x()
-	      << "," << p[elems[ielem].p1].y() << "), " 
+	      << "," << p[elems[ielem].p1].y() << "), "
 	      << "p1=" << p[elems[ielem].p2].id() << " "
 	      << "(" << p[elems[ielem].p2].x()
-	      << "," << p[elems[ielem].p2].y() << "), " 
+	      << "," << p[elems[ielem].p2].y() << "), "
 	      << "p2=" << p[elems[ielem].p3].id() << " "
 	      << "(" << p[elems[ielem].p3].x()
-	      << "," << p[elems[ielem].p3].y() << "), " 
+	      << "," << p[elems[ielem].p3].y() << "), "
 	      << "e0=" << elems[ielem].e1 << " "
 	      << "e1=" << elems[ielem].e2 << " "
 	      << "e2=" << elems[ielem].e3 << endl;
@@ -369,7 +366,7 @@ BuildDelaunayMeshTipper()
 	 newtri.setPPtr( 2, NodeTable[p[elems[ielem].p3].id()] );
        }
        {
-	 newtri.setEPtr( 0, EdgeTable[e_t2c(elems[ielem].e1, 
+	 newtri.setEPtr( 0, EdgeTable[e_t2c(elems[ielem].e1,
 					    elems[ielem].eo1)] );
 	 newtri.setEPtr( 1, EdgeTable[e_t2c(elems[ielem].e2,
 					    elems[ielem].eo2)] );
@@ -379,10 +376,10 @@ BuildDelaunayMeshTipper()
        triList.insertAtBack( newtri );
      }
      const tIdArray< tTriangle > TriTable(triList); // for fast lookup per ID
-     
+
      tTriangle * ct, * nbrtri;
      tListIter< tTriangle > triIter( triList );
-     for( ielem=0, ct=triIter.FirstP(); ielem<nelem; ct=triIter.NextP(), 
+     for( ielem=0, ct=triIter.FirstP(); ielem<nelem; ct=triIter.NextP(),
 	    ++ielem ) {
        nbrtri = ( elems[ielem].t1>=0 ) ? TriTable[ elems[ielem].t1 ] : 0;
        ct->setTPtr( 0, nbrtri );
@@ -391,21 +388,20 @@ BuildDelaunayMeshTipper()
        nbrtri = ( elems[ielem].t3>=0 ) ? TriTable[ elems[ielem].t3 ] : 0;
        ct->setTPtr( 2, nbrtri );
      }
-   }   
+   }
    cout<<"done.\n";
 
    // deallocation of Tipper triangulator data structures
    delete [] edges;
    delete [] elems;
    delete [] p;
-   
+
    // assertions
    assert( edgeList.getSize() == 2*nedgesl );
    assert( triList.getSize() == nelem );
 
-   //
-   UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
    CheckMeshConsistency();                     //remove CMC call from UM
+   UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
 }
 
 
