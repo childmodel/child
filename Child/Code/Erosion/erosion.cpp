@@ -14,7 +14,7 @@
 **
 **    Created 1/98 gt; add tEqChk 5/98 sl
 **
-**  $Id: erosion.cpp,v 1.45 1998-08-19 17:50:50 nmgaspar Exp $
+**  $Id: erosion.cpp,v 1.46 1998-08-19 21:40:15 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -223,13 +223,16 @@ tBedErodePwrLaw::tBedErodePwrLaw( tInputFile &infile )
 **  Assumptions: n->getSlope() does not return a negative value (returns neg.
 **               only if infinite loop in getSlope()); kb, mb,
 **               and nb all >=0.
+**  Modifications:
+**   - replaced uniform erodibility coefficient kb with erodibility of
+**     topmost layer at node n (GT 8/98)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 {
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*,double)");
-   return( kb*pow( n->getQ(), mb )*pow( slp, nb )*dt );
+   return( n->getLayerErody(0)*pow( n->getQ(), mb )*pow( slp, nb )*dt );
 }
 
 /***************************************************************************\
@@ -243,13 +246,16 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 **  Assumptions: n->getSlope() does not return a negative value (returns neg.
 **               only if infinite loop in getSlope()); kb, mb,
 **               and nb all >=0.
+**  Modifications:
+**   - replaced uniform erodibility coefficient kb with erodibility of
+**     topmost layer at node n (GT 8/98)
 \***************************************************************************/
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
    double slp = n->getSlope();
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::DetachCapacity(tLNode*)");
-   double erorate =  kb*pow( n->getQ(), mb )*pow( slp, nb );
+   double erorate =  n->getLayerErody(0)*pow( n->getQ(), mb )*pow( slp, nb );
    n->setDrDt( -erorate );
    return erorate;
 }
@@ -259,6 +265,8 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 **
 **  Computes the rate of erosion  = e* Q^mb S^nb
 **  Here erodibility of layer is used as the coefficient for detach capacity
+**
+**  TODO: have this just call the other DetachCapacity and multiply by dt!
 **
 **  Input: n -- node at which to compute detachment capacity
 **         i -- layer which you are computing detachment of
