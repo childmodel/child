@@ -1,8 +1,9 @@
 /**************************************************************************\
 **
-**  tPtrList.cpp: Functions for classes tPtrList and tPtrListNode.
+**  tPtrList.cpp: Functions for classes tPtrList, tPtrListNode, and
+**                tPtrListIter.
 **
-**  $Id: tPtrList.cpp,v 1.1 1998-01-21 00:49:35 gtucker Exp $
+**  $Id: tPtrList.cpp,v 1.2 1998-01-21 01:05:53 gtucker Exp $
 \**************************************************************************/
 
 #include <iostream.h>
@@ -497,5 +498,293 @@ getIthPtrNC( int num ) const
       curPtr = curPtr->next;
    }
    return curPtr->getPtrNC();
+}
+
+
+/**************************************************************************\
+**
+**         Utilities for class tPtrListIter
+**
+\**************************************************************************/
+template< class NodeType >     //tPtrListIter
+tPtrListIter< NodeType >::
+tPtrListIter()
+{
+   ptrlistPtr = 0;
+   curptrnode = 0;
+   counter = 0;
+     //cout << "tPtrListIter()" << endl;
+}
+
+template< class NodeType >    //tPtrListIter
+tPtrListIter< NodeType >::
+tPtrListIter( tPtrList< NodeType > &ptrlist )
+{
+   assert( &ptrlist != 0 );
+   ptrlistPtr = &ptrlist;
+   curptrnode = ptrlist.first;
+   counter = 0;
+     //cout << "tPtrListIter( ptrlist )" << endl;
+}
+
+template< class NodeType >    //tPtrListIter
+tPtrListIter< NodeType >::
+~tPtrListIter()
+{
+   ptrlistPtr = 0;
+   curptrnode = 0;
+     //cout << "    ~tPtrListIter()" << endl;
+}
+
+template< class NodeType >     //tPtrListIter
+void tPtrListIter< NodeType >::
+Reset( tPtrList< NodeType > &ptrlist )
+{
+   assert( &ptrlist != 0 );
+   ptrlistPtr = &ptrlist;
+   assert( ptrlistPtr != 0 );
+   curptrnode = ptrlistPtr->first;
+   counter = 0;
+   //assert( curptrnode != 0 );
+}
+
+template< class NodeType >     //tPtrListIter
+int tPtrListIter< NodeType >::
+First()
+{
+   assert( ptrlistPtr != 0 );
+   curptrnode = ptrlistPtr->first;
+   counter = 0;
+   if( curptrnode != 0 ) return 1;
+   else return 0;
+}
+
+template< class NodeType >     //tPtrListIter
+int tPtrListIter< NodeType >::
+Last()
+{
+   assert( ptrlistPtr != 0 );
+   curptrnode = ptrlistPtr->last;
+   counter = -1;
+   if( curptrnode != 0 ) return 1;
+   else return 0;
+}
+
+template< class NodeType >     //tPtrListIter
+int tPtrListIter< NodeType >::
+Get( int num )
+{
+     //cout << "Get: num " << num << "; ";
+   assert( ptrlistPtr != 0 );
+   if( num < 0 ) return 0;
+   tPtrListNode< NodeType > *tempnodeptr;// = ptrlistPtr->first;
+     //counter = 0;
+   for( tempnodeptr = ptrlistPtr->first, counter = 0;
+        counter <= ptrlistPtr->getSize() && tempnodeptr != 0;
+        tempnodeptr = tempnodeptr->next, counter++ )
+         //while( tempnodeptr != 0 )
+   {
+        //cout << "Get: tempnodeptr->id " << tempnodeptr->getPtr()->getID()
+        //   << "; ";
+        //tempnodeptr = tempnodeptr->next;
+        //if( tempnodeptr != 0 ) counter++;
+      if( tempnodeptr->Ptr->getID() == num ) break;
+   }
+     //cout << endl;
+   if( tempnodeptr == 0 ) return 0;
+   if( tempnodeptr->Ptr->getID() != num ) return 0;
+   curptrnode = tempnodeptr;
+   return 1;
+}
+
+template< class NodeType >     //tPtrListIter
+int tPtrListIter< NodeType >::
+Next()
+{
+   assert( ptrlistPtr != 0 );
+   if( curptrnode == 0 )
+   {
+      curptrnode = ptrlistPtr->first;
+      counter = 0;
+      if( curptrnode != 0 ) return 1;
+      else return 0;
+   }
+   curptrnode = curptrnode->next;
+   counter++;
+   if( curptrnode != 0 ) return 1;
+   else return 0;
+}
+
+template< class NodeType >     //tPtrListIter
+int tPtrListIter< NodeType >::
+Prev()
+{
+   assert( ptrlistPtr != 0 );
+   if( curptrnode == 0 )
+   {
+      curptrnode = ptrlistPtr->last;
+      counter = -1;
+      if( curptrnode != 0 ) return 1;
+      else return 0;
+   }
+   if( curptrnode == ptrlistPtr->first )
+   {
+      if( ptrlistPtr->last->next == 0 ) return 0;
+      else
+      {
+         assert( ptrlistPtr->last->next == curptrnode );
+         curptrnode = ptrlistPtr->last;
+         counter = -1;
+         return 1;
+      }
+   }
+   tPtrListNode< NodeType > *tempnode;
+   for( tempnode = ptrlistPtr->first;
+        tempnode->next->Ptr->getID() != curptrnode->Ptr->getID();
+        tempnode = tempnode->next );
+   curptrnode = tempnode;
+   assert( curptrnode != 0 );
+   counter--;
+   return 1;
+}
+
+template< class NodeType >     //tPtrListIter
+int tPtrListIter< NodeType >::
+Where()
+{
+   if( curptrnode == 0 ) return -1;
+   return curptrnode->getPtr()->getID();
+}
+
+template< class NodeType >     //tPtrListIter
+NodeType *tPtrListIter< NodeType >::
+DatPtr()
+{
+   if( curptrnode == 0 ) return 0;
+   return curptrnode->Ptr;
+}
+
+
+template< class NodeType >     //tPtrListIter
+tPtrListNode< NodeType > *tPtrListIter< NodeType >::
+NodePtr()
+{
+   return curptrnode;
+}
+
+template< class NodeType >     //tPtrListIter
+int tPtrListIter< NodeType >::
+NextIsNotFirst()
+{
+   assert( curptrnode != 0 );
+   assert( ptrlistPtr != 0 );
+   if( curptrnode->next == ptrlistPtr->first ) return 0;
+   return 1;
+}
+
+template< class NodeType >        //tListIter
+NodeType * tPtrListIter< NodeType >::
+FirstP()
+{
+   assert( ptrlistPtr != 0 );
+   curptrnode = ptrlistPtr->first;
+   counter = 0;
+   if( curptrnode != 0 ) return curptrnode->Ptr;
+   else return 0;
+}
+   
+template< class NodeType >        //tListIter
+NodeType * tPtrListIter< NodeType >::
+LastP()
+{
+   assert( ptrlistPtr != 0 );
+   curptrnode = ptrlistPtr->last;
+   counter = 0;
+   if( curptrnode != 0 ) return curptrnode->Ptr;
+   else return 0;
+}
+   
+template< class NodeType >        //tListIter
+NodeType * tPtrListIter< NodeType >::
+NextP()
+{
+   assert( ptrlistPtr != 0 );
+   if( curptrnode == 0 )
+   {
+      curptrnode = ptrlistPtr->first;
+      counter = 0;
+      if( curptrnode != 0 ) return curptrnode->Ptr;
+      else return 0;
+   }
+   curptrnode = curptrnode->next;
+   counter++;
+   if( curptrnode != 0 ) return curptrnode->Ptr;
+   else return 0;
+}
+
+template< class NodeType >       //tListIter
+NodeType * tPtrListIter< NodeType >::
+GetP( int num )
+{
+   assert( ptrlistPtr != 0 );
+   if( num < 0 ) return 0;
+   //cout << "Get: num " << num << "; ";
+   int i;
+   tPtrListNode< NodeType > *tempnodeptr = ptrlistPtr->first;
+   counter = 0;
+   while( tempnodeptr->Ptr->getID() != num && tempnodeptr != 0 )
+   {
+      //cout << "Get: tempnodeptr->id " << tempnodeptr->getDataPtr()->getID()
+      //     << "; ";
+      tempnodeptr = tempnodeptr->next;
+      assert( tempnodeptr != 0 );
+      counter++;
+   }
+   //cout << endl;
+   if( tempnodeptr == 0 ) return 0;
+   if( tempnodeptr->Ptr->getID() != num ) return 0;
+   curnode = tempnodeptr;
+   return tempnodeptr->Ptr;
+}
+
+template< class NodeType >        //tListIter
+NodeType * tPtrListIter< NodeType >::
+ReportNextP()
+{
+   assert( ptrlistPtr != 0 );
+   if( curptrnode == 0 ) return 0;
+   if( curptrnode->next != 0 ) return curptrnode->next->Ptr;
+   else return 0;
+}
+
+template< class NodeType >        //tListIter
+NodeType * tPtrListIter< NodeType >::
+ReportPrevP()
+{
+   assert( ptrlistPtr != 0 );
+   if( curptrnode == 0 ) return 0;
+   if( curptrnode == ptrlistPtr->first )
+   {
+      if( ptrlistPtr->last->next == 0 ) return 0;
+      else
+      {
+         assert( ptrlistPtr->last->next == curptrnode );
+         return ptrlistPtr->last->Ptr;
+      }
+   }
+   tPtrListNode< NodeType > *tempnode;
+   for( tempnode = ptrlistPtr->first;
+        tempnode->next != curptrnode;
+        tempnode = tempnode->next );
+   assert( tempnode != 0 );
+   return tempnode->Ptr;
+}
+
+template< class NodeType >       //tListIter
+int tPtrListIter< NodeType >::
+AtEnd()
+{
+   if( ptrlistPtr->last->next == 0 ) return ( curptrnode==0 );
+   else return ( curptrnode == ptrlistPtr->first && counter != 0 );
 }
 
