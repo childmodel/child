@@ -1,10 +1,11 @@
 /**************************************************************************\
 **
-**  tGridList.h
+**  tMeshList.h
 **
-**  Header file for derived classes tGridList and tGridListIter.
+**  Header file for derived classes tMeshList and tMeshListIter.
+**  (formerly tGridList)
 **
-**  A tGridList is derived from the generic linked list class tList.
+**  A tMeshList is derived from the generic linked list class tList.
 **  It is used in CHILD to store lists of grid elements (nodes and edges),
 **  and differs from a generic list in being divided into two parts:
 **  (1) an "active" part, representing elements that are not part of the
@@ -13,7 +14,7 @@
 **  sedimentation); and (2) a "boundary" part, containing elements along
 **  the mesh boundary.
 **
-**  A tGridListIter is an iterator for a tGridList. It has the same services
+**  A tMeshListIter is an iterator for a tMeshList. It has the same services
 **  as a tListIterator (getting the current node, moving to the first, last,
 **  next, or previous node on the list, etc). It also will move to the
 **  last "active" (non-boundary) node on a grid list, or to the first
@@ -23,42 +24,42 @@
 **  the end of the list is reached, or the current node is null for some
 **  other reason).
 **
-**  See also tList, tArray, tMatrix, tGrid
+**  See also tList, tArray, tMatrix, tMesh
 **
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.h,v 1.6 1999-04-02 22:17:56 gtucker Exp $
+**  $Id: tMeshList.h,v 1.7 1999-04-05 15:00:32 gtucker Exp $
 \**************************************************************************/
 
-#ifndef TGRIDLIST_H
-#define TGRIDLIST_H
+#ifndef TMESHLIST_H
+#define TMESHLIST_H
 
 #include "../Classes.h"
 #include "../tList/tList.h"
 
 
 /**************************************************************************\
-** class tGridList ********************************************************
+** class tMeshList ********************************************************
 **
-** Class tGridList implements a linked list that is divided into two
+** Class tMeshList implements a linked list that is divided into two
 ** parts, an "active" (front) and "inactive" (back) part. It is derived
 ** from tList.
 **
 \**************************************************************************/
 template< class NodeType >
-class tGridList : public tList< NodeType >
+class tMeshList : public tList< NodeType >
 {
    friend class tListIter< NodeType  >;
-   friend class tGridListIter< NodeType  >;
+   friend class tMeshListIter< NodeType  >;
   public:
-   tGridList();
-   tGridList( const tGridList< NodeType > * );
-   ~tGridList();
-   const tGridList< NodeType >
-       &operator=( const tGridList< NodeType > & );
-   int operator==( const tGridList< NodeType > & ) const;
-   int operator!=( const tGridList< NodeType > & ) const;
+   tMeshList();
+   tMeshList( const tMeshList< NodeType > * );
+   ~tMeshList();
+   const tMeshList< NodeType >
+       &operator=( const tMeshList< NodeType > & );
+   int operator==( const tMeshList< NodeType > & ) const;
+   int operator!=( const tMeshList< NodeType > & ) const;
    int getActiveSize() const;
    tListNode< NodeType  > * getLastActive() const;
    int isActiveEmpty() const;
@@ -87,25 +88,25 @@ class tGridList : public tList< NodeType >
 
 
 /**************************************************************************\
-** class tGridListIter *****************************************************
+** class tMeshListIter *****************************************************
 **
-** Helper class for tGridList, derived from tListIter ("iterators" that
+** Helper class for tMeshList, derived from tListIter ("iterators" that
 ** walk up and down a tList, fetching items -- see tList.h/.cpp). 
-** In addition to tListIter capabilities, tGridListIter adds methods to
+** In addition to tListIter capabilities, tMeshListIter adds methods to
 ** move to and/or fetch the last active or first boundary (inactive)
 ** items, and to indicate whether it is on currently on the active portion
 ** of the list.
 **
 \**************************************************************************/
 template< class NodeType >
-class tGridListIter
+class tMeshListIter
                 : public tListIter< NodeType >
 {
   public:
-   tGridListIter();
-   tGridListIter( tGridList< NodeType > & );
-   tGridListIter( tGridList< NodeType > * );
-   ~tGridListIter();
+   tMeshListIter();
+   tMeshListIter( tMeshList< NodeType > & );
+   tMeshListIter( tMeshList< NodeType > * );
+   ~tMeshListIter();
    int LastActive();
    int FirstBoundary();
    int IsActive();
@@ -114,7 +115,7 @@ class tGridListIter
 //   NodeType * FirstP();
 //   NodeType * NextP();
   //private:
-   //tGridList< NodeType > *gridlistPtr; 
+   //tMeshList< NodeType > *meshlistPtr; 
 };
 
 #endif

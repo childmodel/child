@@ -1,22 +1,22 @@
 /**************************************************************************\
 **
-**  tGridList.cpp
+**  tMeshList.cpp
 **
-**  Functions for derived classes tGridList and tGridListIter. The classes
-**  are declared in tGridList.h (q.v.).
+**  Functions for derived classes tMeshList and tMeshListIter. The classes
+**  are declared in tMeshList.h (q.v.). (NOTE: formerly called tGridList)
 **
 **  Modifications:
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **
-**  $Id: tMeshList.cpp,v 1.7 1999-04-02 22:17:38 gtucker Exp $
+**  $Id: tMeshList.cpp,v 1.8 1999-04-05 15:00:23 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
-#include "tGridList.h"
+#include "tMeshList.h"
 
 
 /**************************************************************************\
-**  FUNCTIONS FOR CLASS tGridList
+**  FUNCTIONS FOR CLASS tMeshList
 \**************************************************************************/
 
 /**************************************************************************\
@@ -27,37 +27,37 @@
 **  Copy constructor: creates a copy of _original_
 **
 \**************************************************************************/
-template< class NodeType >                     //tGridtList
-tGridList< NodeType >::
-tGridList()
+template< class NodeType >                     //tMeshtList
+tMeshList< NodeType >::
+tMeshList()
 {
    nActiveNodes = 0;
    lastactive = 0;
-     //cout << "                  from tGridList()" << first << endl;
+     //cout << "                  from tMeshList()" << first << endl;
 }
 
-template< class NodeType >                     //tGridtList
-tGridList< NodeType >::
-tGridList( const tGridList< NodeType > *original )
+template< class NodeType >                     //tMeshtList
+tMeshList< NodeType >::
+tMeshList( const tMeshList< NodeType > *original )
         : tList< NodeType >( original )
 {
    nActiveNodes = original->nActiveNodes;
    if( original->lastactive != 0 ) lastactive = original->lastactive;
    else lastactive = 0;
-     //cout << "                  from tGridList( original )" << first << endl;
+     //cout << "                  from tMeshList( original )" << first << endl;
 }
 
-template< class NodeType >                     //tGridtList
-tGridList< NodeType >::
-~tGridList()
+template< class NodeType >                     //tMeshtList
+tMeshList< NodeType >::
+~tMeshList()
 {
-     //cout << "                  from ~tGridList()" << first << endl;
+     //cout << "                  from ~tMeshList()" << first << endl;
 }
 
 
 /**************************************************************************\
 **
-**  tGridList overloaded operators
+**  tMeshList overloaded operators
 **
 **  Assignment: creates a copy of right-hand list
 **  Equality and inequality: adds test of # of active items and lastactive
@@ -66,9 +66,9 @@ tGridList< NodeType >::
 \**************************************************************************/
 
 //overloaded assignment operator
-template< class NodeType >                     //tGridList
-const tGridList< NodeType > &tGridList< NodeType >::
-operator=( const tGridList< NodeType > &right )
+template< class NodeType >                     //tMeshList
+const tMeshList< NodeType > &tMeshList< NodeType >::
+operator=( const tMeshList< NodeType > &right )
 {
    if( this != &right )
    {
@@ -76,14 +76,14 @@ operator=( const tGridList< NodeType > &right )
       lastactive = right.lastactive;
       nActiveNodes = right.nActiveNodes;
    }
-     //cout << "tGridList assigned" << first << endl;
+     //cout << "tMeshList assigned" << first << endl;
    return *this;
 }
 
 //overloaded equality operator:
-template< class NodeType >                      //tGridList
-int tGridList< NodeType >::
-operator==( const tGridList< NodeType > &right ) const
+template< class NodeType >                      //tMeshList
+int tMeshList< NodeType >::
+operator==( const tMeshList< NodeType > &right ) const
 {
    if( tList< NodeType >::operator!=( right ) ) return 0;
    if( nActiveNodes != right.nActiveNodes ) return 0;
@@ -92,9 +92,9 @@ operator==( const tGridList< NodeType > &right ) const
 }
 
 //overloaded inequality operator:
-template< class NodeType >                      //tGridList
-int tGridList< NodeType >::
-operator!=( const tGridList< NodeType > &right ) const
+template< class NodeType >                      //tMeshList
+int tMeshList< NodeType >::
+operator!=( const tMeshList< NodeType > &right ) const
 {
    if( tList< NodeType >::operator!=( right ) ) return 1;
    if( nActiveNodes != right.nActiveNodes ) return 1;
@@ -104,42 +104,42 @@ operator!=( const tGridList< NodeType > &right ) const
 
 /**************************************************************************\
 **
-**  tGridList "get" functions
+**  tMeshList "get" functions
 **
 \**************************************************************************/
 
-template< class NodeType >                      //tGridList
-int tGridList< NodeType >::
+template< class NodeType >                      //tMeshList
+int tMeshList< NodeType >::
 getActiveSize() const {return nActiveNodes;}
 
-template< class NodeType >                      //tGridList
+template< class NodeType >                      //tMeshList
 tListNode< NodeType > *
-tGridList< NodeType >::
+tMeshList< NodeType >::
 getLastActive() const {return lastactive;}
 
-template< class NodeType >                     //tGridtList
-void tGridList< NodeType >::
+template< class NodeType >                     //tMeshtList
+void tMeshList< NodeType >::
 setNActiveNodes( int val ) {nActiveNodes = ( val >= 0 ) ? val : 0;}
 
-template< class NodeType >                     //tGridtList
-int tGridList< NodeType >::
+template< class NodeType >                     //tMeshtList
+int tMeshList< NodeType >::
 isActiveEmpty() const
 {
-     //cout << "checking if tGridList empty of active nodes" << endl;
+     //cout << "checking if tMeshList empty of active nodes" << endl;
    if( lastactive == 0 )
    {
-        //cout << "tGridList is empty of active nodes" << endl;
+        //cout << "tMeshList is empty of active nodes" << endl;
       return 1;
    }
    else
    {
-        //cout << "tGridList is not empty of active nodes" << endl;
+        //cout << "tMeshList is not empty of active nodes" << endl;
       return 0;
    }
 }
 
-template< class NodeType >                     //tGridtList
-int tGridList< NodeType >::
+template< class NodeType >                     //tMeshtList
+int tMeshList< NodeType >::
 isBoundEmpty() const
 {
    if( lastactive == last ) return 1;
@@ -149,7 +149,7 @@ isBoundEmpty() const
 
 /**************************************************************************\
 **
-**  tGridList insertion and removal functions
+**  tMeshList insertion and removal functions
 **
 **  Adds and removes items to/from the list. Supplements tList
 **  functionality by adding capability to add items to front of
@@ -159,7 +159,7 @@ isBoundEmpty() const
 \**************************************************************************/
 
 template< class NodeType >                         //tList
-void tGridList< NodeType >::
+void tMeshList< NodeType >::
 insertAtFront( const NodeType &value )
 {
    tList< NodeType >::insertAtFront( value );
@@ -167,12 +167,12 @@ insertAtFront( const NodeType &value )
    nActiveNodes++;
 }
 
-template< class NodeType >                     //tGridtList
-void tGridList< NodeType >::
+template< class NodeType >                     //tMeshtList
+void tMeshList< NodeType >::
 insertAtBoundFront( const NodeType &value )
 {
    tListNode< NodeType > * newPtr = getNewNode( value );
-     //cout << "add new node at boundary front of tGridList" << endl;
+     //cout << "add new node at boundary front of tMeshList" << endl;
    assert( newPtr>0 );
    assert( this != 0 );
    
@@ -194,13 +194,13 @@ insertAtBoundFront( const NodeType &value )
    }
    
      //nNodes++;  // why commented out? why not increment nnodes & nactive?
-     //cout << "added node to front of boundary tGridList" << endl;
+     //cout << "added node to front of boundary tMeshList" << endl;
     
 }
 
 
-template< class NodeType >                     //tGridtList
-int tGridList< NodeType >::
+template< class NodeType >                     //tMeshtList
+int tMeshList< NodeType >::
 removeFromBoundFront( NodeType &value )
 {
    assert( &value != 0 );
@@ -219,12 +219,12 @@ removeFromBoundFront( NodeType &value )
 }
    
 
-template< class NodeType >                     //tGridtList
-void tGridList< NodeType >::
+template< class NodeType >                     //tMeshtList
+void tMeshList< NodeType >::
 insertAtActiveBack( const NodeType &value )
 {
    tListNode< NodeType > * newPtr = getNewNode( value );
-     //cout << "add new node at active back of tGridList" << endl;
+     //cout << "add new node at active back of tMeshList" << endl;
    assert( this != 0 );
    //cout << " isActiveEmpty() = " << isActiveEmpty() << endl;
    if( isEmpty() )
@@ -257,11 +257,11 @@ insertAtActiveBack( const NodeType &value )
    if( isBoundEmpty() ) last = lastactive;
      //nNodes++;
    nActiveNodes++;
-     //cout << "added node to back of active tGridList" << endl;
+     //cout << "added node to back of active tMeshList" << endl;
 }
 
-template< class NodeType >                     //tGridtList
-int tGridList< NodeType >::
+template< class NodeType >                     //tMeshtList
+int tMeshList< NodeType >::
 removeFromActiveBack( NodeType &value )
 {
    if( isEmpty() ) return 0;
@@ -287,7 +287,7 @@ removeFromActiveBack( NodeType &value )
 }
 
 template< class NodeType >                         //tList
-int tGridList< NodeType >::
+int tMeshList< NodeType >::
 removeFromFront( NodeType &value )
 {
    if( !( isActiveEmpty() ) )
@@ -300,7 +300,7 @@ removeFromFront( NodeType &value )
 
 //delete next node
 template< class NodeType >                         //tList
-int tGridList< NodeType >::
+int tMeshList< NodeType >::
 removeNext( NodeType &value, tListNode< NodeType > * ptr )
 {
    if( ptr->next == 0 ) return 0;
@@ -317,7 +317,7 @@ removeNext( NodeType &value, tListNode< NodeType > * ptr )
 
 //delete previous node
 template< class NodeType >                         //tList
-int tGridList< NodeType >::
+int tMeshList< NodeType >::
 removePrev( NodeType &value, tListNode< NodeType > * ptr )
 {
    if( ptr == 0 ) return 0;
@@ -334,7 +334,7 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
 
 /**************************************************************************\
 **
-**  tGridList::moveToBack ( tListNode * )
+**  tMeshList::moveToBack ( tListNode * )
 **
 **  Moves mvnode to the back of the list (the boundary portion).
 **  Handles case of moved node being the last active node, in which case
@@ -348,7 +348,7 @@ removePrev( NodeType &value, tListNode< NodeType > * ptr )
 **
 \**************************************************************************/
 template< class NodeType >                         //tList
-void tGridList< NodeType >::
+void tMeshList< NodeType >::
 moveToBack( tListNode< NodeType > * mvnode ) 
 {
    //cout << "moveToBack( tListNode )\n";
@@ -376,7 +376,7 @@ moveToBack( tListNode< NodeType > * mvnode )
 
 /**************************************************************************\
 **
-**  tGridList::moveToBack ( NodeType * )
+**  tMeshList::moveToBack ( NodeType * )
 **
 **  Finds the ListNode whose data are identical to mvnodedata and calls
 **  moveToBack( tListNode ) to move it to the back of the list.
@@ -386,7 +386,7 @@ moveToBack( tListNode< NodeType > * mvnode )
 **
 \**************************************************************************/
 template< class NodeType >                         //tList
-void tGridList< NodeType >::
+void tMeshList< NodeType >::
 moveToBack( NodeType * mvnodedata ) 
 {
    assert( getListNode( mvnodedata )!=0 );  // failure: null or not on list
@@ -396,7 +396,7 @@ moveToBack( NodeType * mvnodedata )
 
 /**************************************************************************\
 **
-**  tGridList::moveToFront
+**  tMeshList::moveToFront
 **
 **  Moves mvnode to the front of the list, taking care to handle the case
 **  in which the node being moved is the last on the active section
@@ -405,7 +405,7 @@ moveToBack( NodeType * mvnodedata )
 **
 \**************************************************************************/
 template< class NodeType >                         //tList
-void tGridList< NodeType >::
+void tMeshList< NodeType >::
 moveToFront( tListNode< NodeType > * mvnode ) 
 {
    tListNode< NodeType > *prev;
@@ -423,14 +423,14 @@ moveToFront( tListNode< NodeType > * mvnode )
 
 /**************************************************************************\
 **
-**  tGridList::moveToActiveBack
+**  tMeshList::moveToActiveBack
 **
 **  Moves mvnode to the back of the "active" portion of the list
 **  (does not update nActiveNodes if the node happens to be inactive!)
 **
 \**************************************************************************/
 template< class NodeType >                         //tList
-void tGridList< NodeType >::
+void tMeshList< NodeType >::
 moveToActiveBack( tListNode< NodeType > * mvnode ) 
 {
    tListNode< NodeType > * prev;
@@ -461,7 +461,7 @@ moveToActiveBack( tListNode< NodeType > * mvnode )
 
 /**************************************************************************\
 **
-**  tGridList::moveToBoundFront
+**  tMeshList::moveToBoundFront
 **
 **  Moves mvnode to the front of the "boundary" portion of the list,
 **  making sure to update nActiveNodes is the node was previously on
@@ -469,7 +469,7 @@ moveToActiveBack( tListNode< NodeType > * mvnode )
 **
 \**************************************************************************/
 template< class NodeType >                         //tList
-void tGridList< NodeType >::
+void tMeshList< NodeType >::
 moveToBoundFront( tListNode< NodeType > * mvnode ) 
 {
    tListNode< NodeType > * prev;
@@ -501,13 +501,13 @@ moveToBoundFront( tListNode< NodeType > * mvnode )
 
 /**************************************************************************\
 **
-**  tGridList::Flush
+**  tMeshList::Flush
 **
 **  Also reinitializes lastactive and nActiveNodes
 **
 \**************************************************************************/
 template< class NodeType >                         //tList
-void tGridList< NodeType >::
+void tMeshList< NodeType >::
 Flush()
 {
    tList< NodeType >::Flush();
@@ -518,7 +518,7 @@ Flush()
 
 /**************************************************************************\
 **
-**  tGridList::InActiveList
+**  tMeshList::InActiveList
 **
 **  Reports whether a given list node is in the active portion of the list.
 **
@@ -529,7 +529,7 @@ Flush()
 **
 \**************************************************************************/
 template< class NodeType >                         //tList
-int tGridList< NodeType >::
+int tMeshList< NodeType >::
 InActiveList( tListNode< NodeType > * theNode )
 {
    tListNode< NodeType > * listnode = first;
@@ -545,64 +545,64 @@ InActiveList( tListNode< NodeType > * theNode )
 
 
 /**************************************************************************\
-**     FUNCTIONS FOR DERIVED CLASS tGridListIter
+**     FUNCTIONS FOR DERIVED CLASS tMeshListIter
 \**************************************************************************/
 
-template< class NodeType >   //tGridListIter
-tGridListIter< NodeType >::
-tGridListIter()
+template< class NodeType >   //tMeshListIter
+tMeshListIter< NodeType >::
+tMeshListIter()
 {
-     //cout << "    from tGridListIter()" << endl;
+     //cout << "    from tMeshListIter()" << endl;
 }
 
-template< class NodeType >   //tGridListIter
-tGridListIter< NodeType >::
-tGridListIter( tGridList< NodeType > &list )
+template< class NodeType >   //tMeshListIter
+tMeshListIter< NodeType >::
+tMeshListIter( tMeshList< NodeType > &list )
         : tListIter< NodeType >( list )
 {
    assert( &list != 0 );
      //gridlistPtr = &list;
    curnode = /*grid*/listPtr->first;
      //if( listPtr->first != 0 ) assert( curnode != 0 );
-     //cout << "    from tGridListIter( list )" << endl;
+     //cout << "    from tMeshListIter( list )" << endl;
 }
 
-template< class NodeType >   //tGridListIter
-tGridListIter< NodeType >::
-tGridListIter( tGridList< NodeType > *ptr )
+template< class NodeType >   //tMeshListIter
+tMeshListIter< NodeType >::
+tMeshListIter( tMeshList< NodeType > *ptr )
         : tListIter< NodeType >( ptr )
 {
    assert( ptr != 0 );
      //gridlistPtr = &list;
    curnode = /*grid*/listPtr->first;
    assert( curnode != 0 );
-     //cout << "    from tGridListIter( ptr )" << endl;
+     //cout << "    from tMeshListIter( ptr )" << endl;
 }
 
-template< class NodeType >   //tGridListIter
-tGridListIter< NodeType >::
-~tGridListIter()
+template< class NodeType >   //tMeshListIter
+tMeshListIter< NodeType >::
+~tMeshListIter()
 {
-     //cout << "    from ~tGridListIter()" << endl;
+     //cout << "    from ~tMeshListIter()" << endl;
 }
 
 
 /**************************************************************************\
 **
-**  tGridListIter::LastActive
+**  tMeshListIter::LastActive
 **
 **  Moves the iterator to the last active node.
 **
 \**************************************************************************/
-template< class NodeType >   //tGridListIter
-int tGridListIter< NodeType >::
+template< class NodeType >   //tMeshListIter
+int tMeshListIter< NodeType >::
 LastActive()
 {
-   tGridList< NodeType > *gridlistPtr;
+   tMeshList< NodeType > *meshlistPtr;
 
-   gridlistPtr = ( tGridList< NodeType > * ) listPtr;
-   assert( gridlistPtr != 0 );
-   curnode = gridlistPtr->lastactive;
+   meshlistPtr = ( tMeshList< NodeType > * ) listPtr;
+   assert( meshlistPtr != 0 );
+   curnode = meshlistPtr->lastactive;
    if( curnode != 0 ) return 1;
    else return 0;
 }
@@ -610,21 +610,21 @@ LastActive()
 
 /**************************************************************************\
 **
-**  tGridListIter::FirstBoundary
+**  tMeshListIter::FirstBoundary
 **
 **  Moves the iterator to the first boundary node.
 **
 \**************************************************************************/
-template< class NodeType >   //tGridListIter
-int tGridListIter< NodeType >::
+template< class NodeType >   //tMeshListIter
+int tMeshListIter< NodeType >::
 FirstBoundary()
 {
-   tGridList< NodeType > *gridlistPtr;
-   gridlistPtr = ( tGridList< NodeType > * ) listPtr;
-   assert( gridlistPtr != 0 );
-   if( gridlistPtr->isActiveEmpty() ) curnode = listPtr->first;
-   else if( gridlistPtr->isBoundEmpty() ) curnode = 0;
-   else curnode = gridlistPtr->lastactive->next;
+   tMeshList< NodeType > *meshlistPtr;
+   meshlistPtr = ( tMeshList< NodeType > * ) listPtr;
+   assert( meshlistPtr != 0 );
+   if( meshlistPtr->isActiveEmpty() ) curnode = listPtr->first;
+   else if( meshlistPtr->isBoundEmpty() ) curnode = 0;
+   else curnode = meshlistPtr->lastactive->next;
    if( curnode != 0 ) return 1;
    else return 0;
 }
@@ -632,22 +632,22 @@ FirstBoundary()
 
 /**************************************************************************\
 **
-**  tGridListIter::FirstBoundaryP
+**  tMeshListIter::FirstBoundaryP
 **
 **  Moves the iterator to the first boundary node and returns a pointer
 **  to the data at that location.
 **
 \**************************************************************************/
-template< class NodeType >   //tGridListIter
-NodeType* tGridListIter< NodeType >::
+template< class NodeType >   //tMeshListIter
+NodeType* tMeshListIter< NodeType >::
 FirstBoundaryP()
 {
-   tGridList< NodeType > *gridlistPtr;
-   gridlistPtr = ( tGridList< NodeType > * ) listPtr;
-   assert( gridlistPtr != 0 );
-   if( gridlistPtr->isActiveEmpty() ) curnode = listPtr->first;
-   else if( gridlistPtr->isBoundEmpty() ) curnode = 0;
-   else curnode = gridlistPtr->lastactive->next;
+   tMeshList< NodeType > *meshlistPtr;
+   meshlistPtr = ( tMeshList< NodeType > * ) listPtr;
+   assert( meshlistPtr != 0 );
+   if( meshlistPtr->isActiveEmpty() ) curnode = listPtr->first;
+   else if( meshlistPtr->isBoundEmpty() ) curnode = 0;
+   else curnode = meshlistPtr->lastactive->next;
    if( curnode != 0 ) return curnode->getDataPtrNC();
    else return 0;
 }
@@ -655,20 +655,20 @@ FirstBoundaryP()
 
 /**************************************************************************\
 **
-**  tGridListIter::LastActiveP
+**  tMeshListIter::LastActiveP
 **
 **  Moves the iterator to the last active node and returns a pointer
 **  to the data at that location.
 **
 \**************************************************************************/
-template< class NodeType >   //tGridListIter
-NodeType *tGridListIter< NodeType >::
+template< class NodeType >   //tMeshListIter
+NodeType *tMeshListIter< NodeType >::
 LastActiveP()
 {
-   tGridList< NodeType > *gridlistPtr;
-   gridlistPtr = ( tGridList< NodeType > * ) listPtr;
-   assert( gridlistPtr != 0 );
-   curnode = gridlistPtr->lastactive;
+   tMeshList< NodeType > *meshlistPtr;
+   meshlistPtr = ( tMeshList< NodeType > * ) listPtr;
+   assert( meshlistPtr != 0 );
+   curnode = meshlistPtr->lastactive;
    if( curnode != 0 ) return curnode->getDataPtrNC();
    else return 0;
 }
@@ -676,15 +676,15 @@ LastActiveP()
 
 /**************************************************************************\
 **
-**  tGridListIter::IsActive
+**  tMeshListIter::IsActive
 **
 **  Indicates whether the current item is on the active portion of the
 **  list, returning 1 if so, 0 if not. Assumes NodeType has a member
 **  function getBoundaryFlag.
 **
 \**************************************************************************/
-template< class NodeType >   //tGridListIter
-int tGridListIter< NodeType >::
+template< class NodeType >   //tMeshListIter
+int tMeshListIter< NodeType >::
 IsActive()
 {
    int act;
