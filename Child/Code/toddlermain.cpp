@@ -34,10 +34,11 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.6 2002-04-11 10:55:00 arnaud Exp $
+**  $Id: toddlermain.cpp,v 1.7 2002-07-15 12:09:17 arnaud Exp $
 \**************************************************************************/
 
-
+/* set traps for some floating point exceptions on Linux */
+#include "trapfpe.h"
 #include "Inclusions.h"
 #include "tFloodplain/tFloodplain.h"
 #include "tEolian/tEolian.h"
