@@ -5,7 +5,7 @@
 **
 **  A. Desitter - March 2004
 **
-**  $Id: tOption.cpp,v 1.2 2004-04-01 09:57:28 childcvs Exp $
+**  $Id: tOption.cpp,v 1.3 2004-04-01 11:02:25 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -30,6 +30,10 @@ tOption::tOption(int argc, char const * const argv[])
     int i = parseOptions(argv);
     argc -= i;
     argv += i;
+  }
+  if (inputFile ==NULL){
+    usage();
+    exit(EXIT_FAILURE);
   }
 }
 
