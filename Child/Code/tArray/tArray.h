@@ -12,7 +12,7 @@
 **  argument passed to the constructor or by assignment of one array
 **  to another. 
 **
-**  $Id: tArray.h,v 1.1 1998-01-14 20:12:51 gtucker Exp $
+**  $Id: tArray.h,v 1.2 1998-01-20 14:24:22 stlancas Exp $
 \***************************************************************************/
 
 #ifndef TARRAY_H
@@ -36,7 +36,8 @@ class tArray
    int operator!=( const tArray< T > & ) const;    // memberwise comparison
    T &operator[]( int );               
    int getSize();             // returns the number of elements in the array
-   
+   T *getArrayPtr();          // returns the actual array; needed for passing
+                              // to fortran.
   private:
    int npts;
    T * avalue;
