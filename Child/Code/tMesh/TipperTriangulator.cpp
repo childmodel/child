@@ -447,9 +447,9 @@ void sort_triangulate(int npoints, point *p, int *pnedges, edge** edges_ret){
 #endif
 }
 
-class edge_auxi {
+class edge_visit {
 public:
-  edge_auxi() : left_visited_(false), right_visited_(false) {};
+  edge_visit() : left_visited_(false), right_visited_(false) {};
   bool left_visited() const { return left_visited_; }
   bool right_visited() const { return right_visited_; }
   void mark_left() { left_visited_ = true; } 
@@ -461,14 +461,14 @@ private:
 // mark as visited the side of iedge_markable that points to
 // iedge_orig
 void mark_as_visited(int iedge_markable, int iedge_orig,
-		     const edge* edges, edge_auxi* edges_auxi){
+		     const edge* edges, edge_visit* edges_visit){
   if (edges[iedge_markable].lef == iedge_orig ||
       edges[iedge_markable].let == iedge_orig){
-    edges_auxi[iedge_markable].mark_left();
+    edges_visit[iedge_markable].mark_left();
   } else {
     assert(edges[iedge_markable].ref == iedge_orig ||
 	   edges[iedge_markable].ret == iedge_orig);
-    edges_auxi[iedge_markable].mark_right();
+    edges_visit[iedge_markable].mark_right();
   }
 }
 
@@ -477,41 +477,41 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
   // Euler invariant for a triangulation:
   const int nelem = 1 + nedges - npoints;
   elem *elems = new elem[nelem]; 
-  edge_auxi *edges_auxi = new edge_auxi[nedges];
+  edge_visit *edges_visit = new edge_visit[nedges];
 
   { 
     // build edges per element
     int ielem = 0;
     for(int iedge=0;iedge<nedges;iedge++) {
       // left
-      if (! edges_auxi[iedge].left_visited()) {
+      if (! edges_visit[iedge].left_visited()) {
 	if (edges[iedge].lef == -1) {
 	  assert(edges[iedge].let == -1);
 	} else {
       // don't bother with orientation at the moment
 	  elems[ielem].e1 = iedge;
 	  elems[ielem].e2 = edges[iedge].lef;
-	  mark_as_visited(edges[iedge].lef,iedge,edges, edges_auxi);
+	  mark_as_visited(edges[iedge].lef,iedge,edges, edges_visit);
 	  elems[ielem].e3 = edges[iedge].let;
-	  mark_as_visited(edges[iedge].let,iedge,edges, edges_auxi);
+	  mark_as_visited(edges[iedge].let,iedge,edges, edges_visit);
 	  ielem++;
 	}
-	edges_auxi[iedge].mark_left();
+	edges_visit[iedge].mark_left();
       }
       // right
-      if (! edges_auxi[iedge].right_visited()) {
+      if (! edges_visit[iedge].right_visited()) {
 	if (edges[iedge].ref == -1) {
 	  assert(edges[iedge].ref == -1);
 	} else {
       // don't bother with orientation at the moment
 	  elems[ielem].e1 = iedge;
 	  elems[ielem].e2 = edges[iedge].ref;
-	  mark_as_visited(edges[iedge].ref,iedge,edges, edges_auxi);
+	  mark_as_visited(edges[iedge].ref,iedge,edges, edges_visit);
 	  elems[ielem].e3 = edges[iedge].ret;
-	  mark_as_visited(edges[iedge].ret,iedge,edges, edges_auxi);
+	  mark_as_visited(edges[iedge].ret,iedge,edges, edges_visit);
 	  ielem++;
 	}
-	edges_auxi[iedge].mark_right();
+	edges_visit[iedge].mark_right();
       }
     }
     assert(ielem == nelem);
@@ -519,7 +519,6 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
   {
     // build vertices per element
     for(int ielem=0;ielem<nelem;ielem++){
-      // don't bother with orientation at the moment
       elems[ielem].p1 = edges[elems[ielem].e1].to;
       elems[ielem].p2 = edges[elems[ielem].e1].from;
       int itemp = edges[elems[ielem].e2].from;
@@ -528,6 +527,28 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
       } else {
 	elems[ielem].p3 = itemp;
       }
+      // orientation: counter clockwise
+      // angle(p2p1.p2p3) must be positive
+      // <=> sine(p2p1.p2p3) >= 0 <=> vect_prod(p2p1,p2p3) >=0
+      double v=
+	(p[elems[ielem].p1].x-p[elems[ielem].p2].x)*
+	(p[elems[ielem].p3].y-p[elems[ielem].p2].y)
+	-(p[elems[ielem].p1].y-p[elems[ielem].p2].y)*
+	(p[elems[ielem].p3].x-p[elems[ielem].p2].x);
+      if (v<0) { // swap p1, p3
+	int ptemp = elems[ielem].p1;
+	elems[ielem].p1 = elems[ielem].p3;
+	elems[ielem].p3 = ptemp;
+      }
+#if 1
+      assert(
+	     (
+	      (p[elems[ielem].p1].x-p[elems[ielem].p2].x)*
+	      (p[elems[ielem].p3].y-p[elems[ielem].p2].y)
+	      -(p[elems[ielem].p1].y-p[elems[ielem].p2].y)*
+	      (p[elems[ielem].p3].x-p[elems[ielem].p2].x)
+	      ) >= 0);
+#endif
     }
   }
 #if 0
@@ -542,7 +563,7 @@ void build_elem_table(int npoints, const point *p, int nedges, const edge* edges
   }
 #endif
 
-  delete [] edges_auxi;
+  delete [] edges_visit;
   *pnelem = nelem;
   *pelems_ret = elems;
 }
