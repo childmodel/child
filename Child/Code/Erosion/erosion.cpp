@@ -27,7 +27,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.81 2000-03-30 22:44:09 gtucker Exp $
+**  $Id: erosion.cpp,v 1.82 2000-04-04 19:56:49 nmgaspar Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -474,6 +474,7 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
    double tauex, cap = 0;
+   
    if( !node->getFloodStatus() )
    {
       tauex = kt * pow( node->getQ()/node->getHydrWidth(), mf )
@@ -1474,339 +1475,346 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 
 void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
 {
-   double dt,
-       dtmax;          // time increment: initialize to arbitrary large val
-   double frac = 0.3;  //fraction of time to zero slope
-   double timegb=time; //time gone by - for layering time purposes
-   int i,j, flag;
-   tLNode * cn, *dn;
-   int nActNodes = meshPtr->getNodeList()->getActiveSize();
-   tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
-   double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
-       drdt,
-       dz,
-       depck,
-       qs,
-       excap,
-       sum;
-   tLNode * inletNode = strmNet->getInletNodePtr();
-   double insedloadtotal = strmNet->getInSedLoad();
-   
-   cn = ni.FirstP();
-   
-   tArray <double> ret( cn->getNumg() ); //amt actually ero'd/dep'd
-   tArray <double> erolist( cn->getNumg() );
-   tArray <double> insed = strmNet->getInSedLoadm();
 
-   // Sort so that we always work in upstream to downstream order
-   strmNet->SortNodesByNetOrder();
-   strmNet->FindChanGeom();
-   strmNet->FindHydrGeom();
+   //Added 4/00, if there is no runoff, this would crash, so check
+   if(strmNet->getRainRate()-strmNet->getInfilt()>0){
 
-   // Compute erosion and/or deposition until all of the elapsed time (dtg)
-   // is used up
-   do
-   {   
-      // Zero out sed influx of all sizes
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-      {
-         cn->setQs(0.0);
-         if( cn!=inletNode )
-         {
-            cn->setQsin(0.0); //totals are for ts calculation
-            for( i=0; i<cn->getNumg(); i++ ){
-               cn->setQsin( i, 0.0 );
-               cn->setQs(i,0.0);
-            }
-         }
-         else
-         {
-            cn->setQsin(insedloadtotal); //totals are for ts calculation
-            for( i=0; i<cn->getNumg(); i++ ){
-               cn->setQs(i,0.0);
-               cn->setQsin( i, insed[i] );
-            }
-         }
-      }
-
-      // Estimate erosion rates and time-step size
-      // NOTE - in this first loop we are only dealing with
-      // totals for time-step calculations, however transport
-      // rates for each size are also set within the function call.
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-      {
-         depck=0;
-         i=0;
-         drdt=0;
-         qs=0;
-
-         assert(cn->getChanDepth()<100);
-
-         while((cn->getChanDepth()-depck)>0.0001)
-         {
-            // Total transport capacity is a weighted average
-            // of the transport capacity calculated from each 
-            // layer within the channel depth.
-            // sediment and bedrock treated the same
-            // units on qs are l^3/t
-            if((depck+cn->getLayerDepth(i))<=cn->getChanDepth()){
-               //TransportCapacity function should keep running
-               //sum of qs of each grain size.  
-               //qs returned is in m^3/yr; qs stored in tLNode has same units
-               qs+=sedTrans.TransCapacity(cn,i,cn->getLayerDepth(i)/cn->getChanDepth());
-               }
-            else{
-               qs+=sedTrans.TransCapacity(cn,i,1-(depck/cn->getChanDepth()));
-            }
-            depck+=cn->getLayerDepth(i); //need to keep this here for qs calc
-            i++;
-         }
-         
-         //NIC this detachcapacity returns the correct thing, but
-         //it also sets within the layer the drdt of each size.
-         //You don't want to use detach capacity this way, so
-         //I don't think that will affect anything, just be careful of
-         //using those values!!!
-
-         if(depck>cn->getChanDepth()) //which layer are you basing detach on?
-             drdt=-bedErode.DetachCapacity( cn, i-1 );
-         else
-             drdt=-bedErode.DetachCapacity( cn, i );//[m^3/yr]
-
-         cn->setDrDt(drdt);
-         cn->setDzDt(drdt);
-
-         excap=(qs - cn->getQsin())/cn->getVArea();//[m/yr]
-         //excap negative = deposition; positive = erosion
-         //Note that signs are opposite to what one
-         //might expect.  This works out for Qsin addition.
-         //Limit erosion to capacity of flow or deposition
-         if( -drdt > excap ){
-            cn->setDzDt(-excap);
-         }
-         cn->getDownstrmNbr()->addQsin(cn->getQsin()-cn->getDzDt()*cn->getVArea());
-      }//ends for( cn = ni.FirstP...
+      double dt,
+          dtmax;          // time increment: initialize to arbitrary large val
+      double frac = 0.3;  //fraction of time to zero slope
+      double timegb=time; //time gone by - for layering time purposes
+      int i,j, flag;
+      tLNode * cn, *dn;
+      int nActNodes = meshPtr->getNodeList()->getActiveSize();
+      tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
+      double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
+          drdt,
+          dz,
+          depck,
+          qs,
+          excap,
+          sum;
+      tLNode * inletNode = strmNet->getInletNodePtr();
+      double insedloadtotal = strmNet->getInSedLoad();
       
-      //Find local time-step based on dzdt
-      dtmax = dtg/frac;
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-      {
-         //Not for time step calculations, just utilizing loop
-         if( cn!=inletNode )
+      cn = ni.FirstP();
+      
+      tArray <double> ret( cn->getNumg() ); //amt actually ero'd/dep'd
+      tArray <double> erolist( cn->getNumg() );
+      tArray <double> insed = strmNet->getInSedLoadm();
+      
+      // Sort so that we always work in upstream to downstream order
+      strmNet->SortNodesByNetOrder();
+      strmNet->FindChanGeom();
+      strmNet->FindHydrGeom();
+      
+      
+      // Compute erosion and/or deposition until all of the elapsed time (dtg)
+      // is used up
+      do
+      {   
+         // Zero out sed influx of all sizes
+         for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
          {
-            //Note-seting qsini for each size should automatically
-            //properly set qstotal to be the sum of all qsini
-            for( i=0; i<cn->getNumg(); i++ )
-                cn->setQsin( i, 0.0 );
-         }
-         else
-         {
-            for( i=0; i<cn->getNumg(); i++ )
-                cn->setQsin( i, insed[i] );
-         }
-         
-         dn = cn->getDownstrmNbr();
-         ratediff = dn->getDzDt() - cn->getDzDt(); //Are the pts converging?
-         if( ratediff > 0 && (cn->getSlope()) > 1e-7 )  // if yes, get time
-         {                                              //  to zero slope
-            dt = ( cn->getZ() - dn->getZ() ) / ratediff;
-            if( dt < dtmax ) dtmax = dt;
-            if( dt < 0.0001 )
+            cn->setQs(0.0);
+            if( cn!=inletNode )
             {
-               //cout << "Very small dt " << dt <<  endl;
-               //cout << "rate dif is " << ratediff << endl;
-               //cout << "elev dif is " << cn->getZ() - dn->getZ() << endl;
-               //cout << "dzdt upstream is " << cn->getDzDt() << endl;
-               //cout << "dzdt downstream is " << dn->getDzDt() << endl;
-               //cn->TellAll();
-               //dn->TellAll();
-               //cout << "arbitrarily set dt to 0.0015" << endl;
-               dtmax=0.0001; //GREG I added this just because things
-               // were taking forever.  I kept it for now just for
-               // testing stuff.  Maybe we should discuss this.
-            }
-         }
-      }// End for( cn = ni.FirstP()..
-      dtmax *= frac;  // Take a fraction of time-to-flattening
-      timegb+=dtmax;
-
-      //At this point: we have drdt and qs for each node, plus dtmax
-      
-      // Do erosion/deposition
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-      {
-         //need to recalculate cause qsin may change due to time step calc
-         excap=(cn->getQs() - cn->getQsin())/cn->getVArea();         
-
-         //cout<<"actual erosion excap = "<<excap<<endl;
-         //cout<<"drdt is "<<cn->getDrDt()<<endl;
-         //again, excap pos if eroding, neg if depositing
-         //nic here is where drdt comes in again
-         //flag is used to determine the texture of what should be eroded.
-         //If detach limited, just erode what is there, but always limit
-         //it by what flow has capacity to transport.  If transport limited,
-         //the texture of what erode is determined by the calculated values
-         //of qs.
-         dz=0;
-         if( -cn->getDrDt() < excap ){
-            dz = cn->getDrDt()*dtmax; // detach-lim
-            flag = 0;
-         }
-         else{
-            dz = -excap*dtmax; // trans-lim
-            flag = 1;
-         }
-
-         for(i=0; i<cn->getNumg(); i++)
-             cn->getDownstrmNbr()->addQsin(i,cn->getQsin(i));
-         //What goes downstream will be what comes in + what gets ero'd/dep'd
-         //This should always be negative or zero since max amt
-         //to deposit is what goes in.
-         //i.e. send (qsin[i]-ret[i]*varea/dtmax) downstream
-         //Note: I think need to do the add in here and possibly take out later
-         //because of looping through layers for the same erosion pass.
-         
-         /*DEBUG double l0, l1;
-         if( cn->getX()>50.0 && cn->getX()<51.0 
-             && cn->getY()>29.0 && cn->getY()<30.0 )
-         {
-            cout << "f (" << cn->getID() << " ld = " << cn->getLayerDepth(0) << endl;
-            l0 = cn->getLayerDgrade(0,0);
-            l1 = cn->getLayerDgrade(0,1);
-            }*/
-         
-         if( dz<0 ) //total erosion
-         {
-            if(flag==0){ // detach-lim
-               i=0;
-               depck=0;
-               while(dz<-0.000000001&&depck<cn->getChanDepth()&&i<cn->getNumLayer()){   
-                  depck+=cn->getLayerDepth(i);
-                  if(-dz<=cn->getLayerDepth(i)){//top layer can supply total depth
-                     for(j=0;j<cn->getNumg();j++){
-                        erolist[j]=dz*cn->getLayerDgrade(i,j)/cn->getLayerDepth(i);
-                        if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
-                           //decrease total dz because of capacity limitations
-                           erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
-                           cn->setQsin(j,0.0);
-                           cn->setQs(j,0.0);
-                        }
-                     }
-                     ret=cn->EroDep(i,erolist,timegb);
-                     for(j=0;j<cn->getNumg();j++){
-                        cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
-                     }
-                     dz=0;
-                  }
-                  else{//top layer is not deep enough, need to erode more layers
-                     sum=0;
-                     flag=0;
-                     for(j=0;j<cn->getNumg();j++){
-                        erolist[j]=-cn->getLayerDgrade(i,j);
-                        if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
-                           //decrease total dz because of capacity limitations
-                           erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
-                           cn->setQsin(j,0.0);
-                           cn->setQs(j,0.0);
-                           //need to set these to zero since the capacity has
-                           //now been filled by the stuff in this layer
-                           flag=1;
-                           //Since not taking all of the material from the
-                           //surface, surface layer won't be removed-must inc i
-                        }
-                        dz-=erolist[j];
-                     }
-                     ret=cn->EroDep(i,erolist,timegb);
-                     for(j=0;j<cn->getNumg();j++){
-                        //if * operator was overloaded for arrays, no loop necessary
-                        cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
-                     }
-                     if(flag==1){
-                        i++;
-                     }
-                  }
+               cn->setQsin(0.0); //totals are for ts calculation
+               for( i=0; i<cn->getNumg(); i++ ){
+                  cn->setQsin( i, 0.0 );
+                  cn->setQs(i,0.0);
                }
             }
-            else{//trans-lim
-               for(j=0;j<cn->getNumg();j++){
-                  erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+            else
+            {
+               cn->setQsin(insedloadtotal); //totals are for ts calculation
+               for( i=0; i<cn->getNumg(); i++ ){
+                  cn->setQs(i,0.0);
+                  cn->setQsin( i, insed[i] );
                }
-               
-               i=0;
-               depck=0;
-               while(depck<cn->getChanDepth()){
-                  depck+=cn->getLayerDepth(i);
-                  flag=cn->getNumLayer();
-                  ret=cn->EroDep(i,erolist,timegb);
-                  sum=0;
-                  for(j=0;j<cn->getNumg();j++){
-                     cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
-                     erolist[j]-=ret[j];
-                     sum+=erolist[j];
-                  }
-                  if(sum>-0.0000001)
-                      depck=cn->getChanDepth();
-                  if(flag==cn->getNumLayer())
-                      i++;
-               }
-            }//end if( trans-limited )
-         }//ends(if dz<0)
-         else if(dz>0) //total deposition -> need if cause erodep chokes with 0
+            }
+         }
+         
+         // Estimate erosion rates and time-step size
+         // NOTE - in this first loop we are only dealing with
+         // totals for time-step calculations, however transport
+         // rates for each size are also set within the function call.
+         for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
          {
-            //Get texture of stuff to be deposited
-            for(j=0;j<cn->getNumg();j++)
-                erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
-            ret=cn->EroDep(0,erolist,timegb);
-            for(j=0;j<cn->getNumg();j++){
-               cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+            depck=0;
+            i=0;
+            drdt=0;
+            qs=0;
+            
+            assert(cn->getChanDepth()<100);
+            
+            while((cn->getChanDepth()-depck)>0.0001)
+            {
+               // Total transport capacity is a weighted average
+               // of the transport capacity calculated from each 
+               // layer within the channel depth.
+               // sediment and bedrock treated the same
+               // units on qs are l^3/t
+               if((depck+cn->getLayerDepth(i))<=cn->getChanDepth()){
+                  //TransportCapacity function should keep running
+                  //sum of qs of each grain size.  
+                  //qs returned is in m^3/yr; qs stored in tLNode has same units
+                  qs+=sedTrans.TransCapacity(cn,i,cn->getLayerDepth(i)/cn->getChanDepth());
+               }
+               else{
+                  qs+=sedTrans.TransCapacity(cn,i,1-(depck/cn->getChanDepth()));
+               }
+               depck+=cn->getLayerDepth(i); //need to keep this here for qs calc
+               i++;
             }
             
-         }
-
-      } // Ends for( cn = ni.FirstP()...
-      // Update time remainig   
-      dtg -= dtmax;
-      //cout<<"Time remaining now "<<dtg<<endl;
-   } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
+            //NIC this detachcapacity returns the correct thing, but
+            //it also sets within the layer the drdt of each size.
+            //You don't want to use detach capacity this way, so
+            //I don't think that will affect anything, just be careful of
+            //using those values!!!
+            
+            if(depck>cn->getChanDepth()) //which layer are you basing detach on?
+                drdt=-bedErode.DetachCapacity( cn, i-1 );
+            else
+                drdt=-bedErode.DetachCapacity( cn, i );//[m^3/yr]
+            
+            cn->setDrDt(drdt);
+            cn->setDzDt(drdt);
+            
+            excap=(qs - cn->getQsin())/cn->getVArea();//[m/yr]
+            //excap negative = deposition; positive = erosion
+            //Note that signs are opposite to what one
+            //might expect.  This works out for Qsin addition.
+            //Limit erosion to capacity of flow or deposition
+            if( -drdt > excap ){
+               cn->setDzDt(-excap);
+            }
+            cn->getDownstrmNbr()->addQsin(cn->getQsin()-cn->getDzDt()*cn->getVArea());
+         }//ends for( cn = ni.FirstP...
+         
+         //Find local time-step based on dzdt
+         dtmax = dtg/frac;
+         for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+         {
+            //Not for time step calculations, just utilizing loop
+            if( cn!=inletNode )
+            {
+               //Note-seting qsini for each size should automatically
+               //properly set qstotal to be the sum of all qsini
+               for( i=0; i<cn->getNumg(); i++ )
+                   cn->setQsin( i, 0.0 );
+            }
+            else
+            {
+               for( i=0; i<cn->getNumg(); i++ )
+                   cn->setQsin( i, insed[i] );
+            }
+            
+            dn = cn->getDownstrmNbr();
+            ratediff = dn->getDzDt() - cn->getDzDt(); //Are the pts converging?
+            if( ratediff > 0 && (cn->getSlope()) > 1e-7 )  // if yes, get time
+            {                                              //  to zero slope
+               dt = ( cn->getZ() - dn->getZ() ) / ratediff;
+               if( dt < dtmax ) dtmax = dt;
+               if( dt < 0.0001 )
+               {
+                  //cout << "Very small dt " << dt <<  endl;
+                  //cout << "rate dif is " << ratediff << endl;
+                  //cout << "elev dif is " << cn->getZ() - dn->getZ() << endl;
+                  //cout << "dzdt upstream is " << cn->getDzDt() << endl;
+                  //cout << "dzdt downstream is " << dn->getDzDt() << endl;
+                  //cn->TellAll();
+                  //dn->TellAll();
+                  //cout << "arbitrarily set dt to 0.0015" << endl;
+                  dtmax=0.0001; //GREG I added this just because things
+                  // were taking forever.  I kept it for now just for
+                  // testing stuff.  Maybe we should discuss this.
+               }
+            }
+         }// End for( cn = ni.FirstP()..
+         dtmax *= frac;  // Take a fraction of time-to-flattening
+         timegb+=dtmax;
+         
+         //At this point: we have drdt and qs for each node, plus dtmax
+         
+         // Do erosion/deposition
+         for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+         {
+            //need to recalculate cause qsin may change due to time step calc
+            excap=(cn->getQs() - cn->getQsin())/cn->getVArea();         
+            
+            //cout<<"actual erosion excap = "<<excap<<endl;
+            //cout<<"drdt is "<<cn->getDrDt()<<endl;
+            //again, excap pos if eroding, neg if depositing
+            //nic here is where drdt comes in again
+            //flag is used to determine the texture of what should be eroded.
+            //If detach limited, just erode what is there, but always limit
+            //it by what flow has capacity to transport.  If transport limited,
+            //the texture of what erode is determined by the calculated values
+            //of qs.
+            dz=0;
+            if( -cn->getDrDt() < excap ){
+               dz = cn->getDrDt()*dtmax; // detach-lim
+               flag = 0;
+            }
+            else{
+               dz = -excap*dtmax; // trans-lim
+               flag = 1;
+            }
+            
+            for(i=0; i<cn->getNumg(); i++)
+                cn->getDownstrmNbr()->addQsin(i,cn->getQsin(i));
+            //What goes downstream will be what comes in + what gets ero'd/dep'd
+            //This should always be negative or zero since max amt
+            //to deposit is what goes in.
+            //i.e. send (qsin[i]-ret[i]*varea/dtmax) downstream
+            //Note: I think need to do the add in here and possibly take out later
+            //because of looping through layers for the same erosion pass.
+            
+            /*DEBUG double l0, l1;
+              if( cn->getX()>50.0 && cn->getX()<51.0 
+              && cn->getY()>29.0 && cn->getY()<30.0 )
+              {
+              cout << "f (" << cn->getID() << " ld = " << cn->getLayerDepth(0) << endl;
+              l0 = cn->getLayerDgrade(0,0);
+              l1 = cn->getLayerDgrade(0,1);
+              }*/
+            
+            if( dz<0 ) //total erosion
+            {
+               if(flag==0){ // detach-lim
+                  i=0;
+                  depck=0;
+                  while(dz<-0.000000001&&depck<cn->getChanDepth()&&i<cn->getNumLayer()){   
+                     depck+=cn->getLayerDepth(i);
+                     if(-dz<=cn->getLayerDepth(i)){//top layer can supply total depth
+                        for(j=0;j<cn->getNumg();j++){
+                           erolist[j]=dz*cn->getLayerDgrade(i,j)/cn->getLayerDepth(i);
+                           if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
+                              //decrease total dz because of capacity limitations
+                              erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+                              cn->setQsin(j,0.0);
+                              cn->setQs(j,0.0);
+                           }
+                        }
+                        ret=cn->EroDep(i,erolist,timegb);
+                        for(j=0;j<cn->getNumg();j++){
+                           cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+                        }
+                        dz=0;
+                     }
+                     else{//top layer is not deep enough, need to erode more layers
+                        sum=0;
+                        flag=0;
+                        for(j=0;j<cn->getNumg();j++){
+                           erolist[j]=-cn->getLayerDgrade(i,j);
+                           if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
+                              //decrease total dz because of capacity limitations
+                              erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+                              cn->setQsin(j,0.0);
+                              cn->setQs(j,0.0);
+                              //need to set these to zero since the capacity has
+                              //now been filled by the stuff in this layer
+                              flag=1;
+                              //Since not taking all of the material from the
+                              //surface, surface layer won't be removed-must inc i
+                           }
+                           dz-=erolist[j];
+                        }
+                        ret=cn->EroDep(i,erolist,timegb);
+                        for(j=0;j<cn->getNumg();j++){
+                           //if * operator was overloaded for arrays, no loop necessary
+                           cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+                        }
+                        if(flag==1){
+                           i++;
+                        }
+                     }
+                  }
+               }
+               else{//trans-lim
+                  for(j=0;j<cn->getNumg();j++){
+                     erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+                  }
+                  
+                  i=0;
+                  depck=0;
+                  while(depck<cn->getChanDepth()){
+                     depck+=cn->getLayerDepth(i);
+                     flag=cn->getNumLayer();
+                     ret=cn->EroDep(i,erolist,timegb);
+                     sum=0;
+                     for(j=0;j<cn->getNumg();j++){
+                        cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+                        erolist[j]-=ret[j];
+                        sum+=erolist[j];
+                     }
+                     if(sum>-0.0000001)
+                         depck=cn->getChanDepth();
+                     if(flag==cn->getNumLayer())
+                         i++;
+                  }
+               }//end if( trans-limited )
+            }//ends(if dz<0)
+            else if(dz>0) //total deposition -> need if cause erodep chokes with 0
+            {
+               //Get texture of stuff to be deposited
+               for(j=0;j<cn->getNumg();j++)
+                   erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+               ret=cn->EroDep(0,erolist,timegb);
+               for(j=0;j<cn->getNumg();j++){
+                  cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+               }
+               
+            }
+            
+         } // Ends for( cn = ni.FirstP()...
+         // Update time remainig   
+         dtg -= dtmax;
+         //cout<<"Time remaining now "<<dtg<<endl;
+      } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
+   }//end if rainrate-infilt>0
+   
 
    //cout<<"ending detach erode"<<endl;
 }// End erosion algorithm
 
 
 /*****************************************************************************\
-**
-**  tErosion::Diffuse
-**
-**  Computes slope-dependent mass transfer by hillslope creep-related
-**  processes (hillslope diffusion). Volumetric flux of sediment occurs
-**  across each Voronoi cell face; the volume rate of sediment transfer
-**  between two nodes that share a Voronoi face of length Lv is
-**    Fv = Kd * S * Lv,
-**  with transfer being in the downhill (positive S) direction. The total
-**  transfer during a time step dt is Fv*dt.
-**    Because transfer occurs along edges (across Voronoi faces), we can
-**  compute the solution most efficiently by calculating the exchange along
-**  each edge pair, accumulating the net influx/outflux at each node, and
-**  then summing the influx/outflux for each node and dividing by the node's
-**  Voronoi area to get the change in elevation.
-**    To ensure numerical stability, the routine begins by estimating a
-**  maximum stable time-step size for each pair of nodes (ie, each edge)
-**  using the Courant condition Dt <= (Le^2)/(2KdLv). The minimum of these
-**  is used as the maximum step size. If the estimated maximum is smaller
-**  than the "global" time size size (storm+interstorm duration) rt, the
-**  solution is computed in a series of sub-steps until all of rt has been
-**  used up.
-**    The routine includes an option to "turn off" deposition in areas of
-**  concave topography (= net deposition), on the assumption that stream
-**  erosion would quickly remove such material.
-**
-**  Inputs:  rt -- time duration over which to compute diffusion
-**           noDepoFlag -- if true, material is only eroded, never
-**                             deposited
-**  Modifies:  node elevations (z); node Qsin (sed influx) is reset and
-**             used in the computations
-**  Notes:  as of 3/98, does not differentiate between rock and sediment
-**
+ **
+ **  tErosion::Diffuse
+ **
+ **  Computes slope-dependent mass transfer by hillslope creep-related
+ **  processes (hillslope diffusion). Volumetric flux of sediment occurs
+ **  across each Voronoi cell face; the volume rate of sediment transfer
+ **  between two nodes that share a Voronoi face of length Lv is
+ **    Fv = Kd * S * Lv,
+ **  with transfer being in the downhill (positive S) direction. The total
+ **  transfer during a time step dt is Fv*dt.
+ **    Because transfer occurs along edges (across Voronoi faces), we can
+ **  compute the solution most efficiently by calculating the exchange along
+ **  each edge pair, accumulating the net influx/outflux at each node, and
+ **  then summing the influx/outflux for each node and dividing by the node's
+ **  Voronoi area to get the change in elevation.
+ **    To ensure numerical stability, the routine begins by estimating a
+ **  maximum stable time-step size for each pair of nodes (ie, each edge)
+ **  using the Courant condition Dt <= (Le^2)/(2KdLv). The minimum of these
+ **  is used as the maximum step size. If the estimated maximum is smaller
+ **  than the "global" time size size (storm+interstorm duration) rt, the
+ **  solution is computed in a series of sub-steps until all of rt has been
+ **  used up.
+ **    The routine includes an option to "turn off" deposition in areas of
+ **  concave topography (= net deposition), on the assumption that stream
+ **  erosion would quickly remove such material.
+ **
+ **  Inputs:  rt -- time duration over which to compute diffusion
+ **           noDepoFlag -- if true, material is only eroded, never
+ **                             deposited
+ **  Modifies:  node elevations (z); node Qsin (sed influx) is reset and
+ **             used in the computations
+ **  Notes:  as of 3/98, does not differentiate between rock and sediment
+ **
 \*****************************************************************************/
 #define kVerySmall 1e-6
 #define kEpsOver2 0.1
