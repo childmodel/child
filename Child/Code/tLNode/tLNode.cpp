@@ -11,7 +11,7 @@
 **    - fixed problem with layer initialization in copy constructor
 **      (gt, 2/2000; see below)
 ** 
-**  $Id: tLNode.cpp,v 1.93 2002-04-11 10:01:56 arnaud Exp $
+**  $Id: tLNode.cpp,v 1.94 2002-04-11 11:56:46 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -1436,7 +1436,6 @@ void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double t
 {
    assert(tri!=0);
    
-   int dbg;
    //cout<<endl<<"tLNode::LayerInterpolation....";
 //   cout<<" current x = "<<x<<" current y = "<<y;
 //   cout<<" newx= "<<tx<<" newy= "<<ty<<endl<<flush;

@@ -10,7 +10,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.95 2002-04-11 11:10:08 arnaud Exp $
+**  $Id: tMesh.cpp,v 1.96 2002-04-11 11:56:48 arnaud Exp $
 \***************************************************************************/
 
 #ifndef __GNUC__
@@ -2645,7 +2645,6 @@ template< class tSubNode >
 int tMesh< tSubNode >::
 DeleteNode( tSubNode *node, int repairFlag )
 {
-   int i;
    tPtrList< tSubNode > nbrList;
    tListNode< tSubNode > *nodPtr;
    tMeshListIter< tSubNode > nodIter( nodeList );
@@ -2851,7 +2850,6 @@ ExtricateEdge( tEdge * edgePtr )
    tPtrListIter< tEdge > spokIter;
    tPtrList< tEdge > *spkLPtr;
    tListNode< tEdge > *listnodePtr;
-   tTriangle triVal1, triVal2;
    tArray< tTriangle * > triPtrArr(2);
 
    //cout << "find edge in list; " << flush;
@@ -3303,7 +3301,6 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
      "between nodes " << node1->getID()
      << " and " << node2->getID() << " w/ ref to node " << node3->getID() << endl;*/
    int flowflag = 1;  // Boundary code for new edges
-   int i;
    tEdge tempEdge1, tempEdge2;  // The new edges
    tEdge *ce, *le;
    tMeshListIter< tEdge > edgIter( edgeList );
@@ -4971,7 +4968,6 @@ AddNodesAround( tSubNode * centerNode, double time )
    centerNode->getVoronoiVertexXYZList( &vvtxlist );
    tLNode tmpnode = *centerNode;  // New node to be added -- passed to AddNode
    Point3D *xyz;  // Coordinates of current vertex
-   int i;
 
    // Here we add a new node at each vertex. Note that the call to
    // getVoronoiVertexListXYZList will compute a z value at each vertex

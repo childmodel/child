@@ -12,7 +12,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.9 2002-04-11 11:20:45 arnaud Exp $
+**  $Id: tStreamNet.cpp,v 1.10 2002-04-11 11:56:50 arnaud Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -2169,7 +2169,7 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, tInputFile &infile )
    int i, inletbc = infile.ReadItem( inletbc, "OPTINLET" ),
        numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    int add = 1;
-   char end, name[20];
+   //char end, name[20];
    double xin, yin,   // Coords of inlet node
        mindist,       // Minimum distance above which new node will be added
        dist,          // Distance btwn inlet and a nearby node
@@ -2582,14 +2582,14 @@ void tParkerChannels::CalcChanGeom( tMesh<tLNode> *meshPtr )
 {
   tMeshListIter<tLNode> ni( meshPtr->getNodeList() );
   tLNode *cn;
-  double denom;
 
   //cout << "tParkerChannels::CalcChanGeom\n";
 
   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
     {
       cn->setHydrWidth( mdPPfac * cn->getQ() * pow(cn->getSlope(),mdPPexp ) );
-      /*if( ( denom = cn->getHydrWidth() * sqrt( cn->getSlope() ) ) > 0.0 )
+      /* double denom;
+        if( ( denom = cn->getHydrWidth() * sqrt( cn->getSlope() ) ) > 0.0 )
 	cn->setHydrDepth( pow( ( cn->getQ() * mdRough ) / denom,
 			  mdDepthexp ) );
       else

@@ -34,7 +34,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.89 2002-04-10 16:13:08 gtucker Exp $
+**  $Id: erosion.cpp,v 1.90 2002-04-11 11:56:45 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -699,9 +699,11 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode * node )
 tSedTransWilcock::tSedTransWilcock( tInputFile &infile )
         : grade()
 {
+  /*
    int i;
    char add[1], name[20];
    double help;
+  */
 
    cout << "tSedTransWilcock(infile)\n" << endl;
    //strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
@@ -2427,8 +2429,6 @@ void tErosion::DensifyMesh( double time )
 {
    tMeshListIter<tLNode> niter( meshPtr->getNodeList() );  // node list iter.
    tLNode *cn;              // Current node being checked
-   int pointsAdded = FALSE; // Flag: did we do any densifying?
-   tLNode * dbgnode;
 
    double dbgnf, dbgmax=0;
    

@@ -9,7 +9,7 @@
 **       *.chanwid. Activated if Parker-Paola width model used.
 **       If so, channel depths are also output.
 **
-**  $Id: tOutput.cpp,v 1.48 2002-04-11 09:59:44 arnaud Exp $
+**  $Id: tOutput.cpp,v 1.49 2002-04-11 11:56:49 arnaud Exp $
 \*************************************************************************/
 
 #include <math.h>    // For fmod function
@@ -365,7 +365,6 @@ void tLOutput<tSubNode>::WriteTSOutput()
 
    //cout << "tLOutput::WriteTSOutput()\n" << flush;
    
-   int i = 0;
    for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
        volume += cn->getZ()*cn->getVArea();
        area += cn->getVArea();
