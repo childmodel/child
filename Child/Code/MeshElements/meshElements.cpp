@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.2 1998-01-21 20:15:31 gtucker Exp $
+**  $Id: meshElements.cpp,v 1.3 1998-01-29 19:56:26 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -84,31 +84,31 @@ const tNode &tNode::operator=( const tNode &right )                  //tNode
    return *this;
 }
 //get
-tArray< float >                                                       //tNode
+tArray< double >                                                       //tNode
 tNode::get3DCoords() const
 {
-   tArray< float > xyz(3);
+   tArray< double > xyz(3);
    xyz[0] = x;
    xyz[1] = y;
    xyz[2] = z;
    return xyz;
 }
 
-tArray< float >                                                   //tNode
+tArray< double >                                                   //tNode
 tNode::get2DCoords() const
 {
-   tArray< float > xy(2);
+   tArray< double > xy(2);
    xy[0] = x;
    xy[1] = y;
    return xy;
 }
 
 int tNode::getID() const {return id;}                                //tNode
-float tNode::getX() const {return x;}
-float tNode::getY() const {return y;}
-float tNode::getZ() const {return z;}
-float tNode::getVArea() const {return varea;}                        //tNode
-float tNode::getVArea_Rcp() const {return varea_rcp;}                //tNode
+double tNode::getX() const {return x;}
+double tNode::getY() const {return y;}
+double tNode::getZ() const {return z;}
+double tNode::getVArea() const {return varea;}                        //tNode
+double tNode::getVArea_Rcp() const {return varea_rcp;}                //tNode
 int tNode::getBoundaryFlag() const {return boundary;}                //tNode
 
 tEdge * tNode::GetEdg() 
@@ -138,24 +138,24 @@ getNextSpokeNodeNC( tPtrListNode< tEdge > *prevedg ) const
 
 //set
 void tNode::setID( int val ) {id = val;}                             //tNode
-void tNode::setX( float val ) {x = val;}                             //tNode
-void tNode::setY( float val ) {y = val;}                             //tNode
-void tNode::setZ( float val ) {z = val;}                             //tNode
-void tNode::setVArea( float val )                                    //tNode
+void tNode::setX( double val ) {x = val;}                             //tNode
+void tNode::setY( double val ) {y = val;}                             //tNode
+void tNode::setZ( double val ) {z = val;}                             //tNode
+void tNode::setVArea( double val )                                    //tNode
 {varea = ( val >= 0.0 ) ? val : 0.0;}
 
-void tNode::setVArea_Rcp( float val )                                //tNode
+void tNode::setVArea_Rcp( double val )                                //tNode
 {varea_rcp =  ( val >= 0.0 ) ? val : 0.0;}
 
 void tNode::setBoundaryFlag( int val )                               //tNode
 {boundary = (val >=0 && val <= 2) ? val : 0;}
 
-void tNode::set2DCoords( float val1, float val2 )                    //tNode
+void tNode::set2DCoords( double val1, double val2 )                    //tNode
 {
    setX( val1 );
    setY( val2 );
 }
-void tNode::set3DCoords( float val1, float val2, float val3 )        //tNode
+void tNode::set3DCoords( double val1, double val2, double val3 )        //tNode
 {
    setX( val1 );
    setY( val2 );
@@ -226,9 +226,9 @@ const tEdge *tNode::NextSpoke( tPtrListNode< tEdge > * current )//tNode
 **      Calls:  
 **
 \*****************************************************************************/
-float tNode::Dist( tNode * p0, tNode * p1 )
+double tNode::Dist( tNode * p0, tNode * p1 )
 {
-  float a,b,c,res;
+  double a,b,c,res;
 
   a=(p1->y)-(p0->y);  
   b=-((p1->x)-(p0->x));
@@ -241,7 +241,7 @@ float tNode::Dist( tNode * p0, tNode * p1 )
 void tNode::CalcSpokeVEdgLengths()
 {
    tEdge *curedg, *nextedg;
-   tArray< float > cvtx, nvtx;
+   tArray< double > cvtx, nvtx;
    tPtrListIter< tEdge > spokIter( spokeList );
    
    for( curedg = spokIter.FirstP(); !( spokIter.AtEnd() );
@@ -250,8 +250,8 @@ void tNode::CalcSpokeVEdgLengths()
       nextedg = spokIter.ReportNextP();
       cvtx = curedg->getRVtx();
       nvtx = nextedg->getRVtx();
-      float dx = nvtx[0] - cvtx[0];
-      float dy = nvtx[1] - cvtx[1];
+      double dx = nvtx[0] - cvtx[0];
+      double dy = nvtx[1] - cvtx[1];
       nextedg->setVEdgLen( sqrt( dx * dx + dy * dy ) );
    }
 }
@@ -296,7 +296,7 @@ tEdge *tNode::EdgToNod( tNode * nod )
 **        (could save space too by only storing VVert in tri's not edges)
 **
 \*****************************************************************************/
-float tNode::ComputeVoronoiArea()
+double tNode::ComputeVoronoiArea()
 {
      //calculates area by defining the voronoi polygon vertices, dividing that
      //polygon into triangles, and calc'ing the area of each triangle, sum of
@@ -305,14 +305,14 @@ float tNode::ComputeVoronoiArea()
    //cout<<"VoronoiArea(...)...";
 //#endif
    int cw;
-   float area = 0;
-   float a, b, c, dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
-   float vx, vy, x0, y0, x1, y1, x2, y2, m1, m2;
+   double area = 0;
+   double a, b, c, dx, dy, dx0, dx1, dy0, dy1, dx2, dy2;
+   double vx, vy, x0, y0, x1, y1, x2, y2, m1, m2;
    tEdge * ce, *edgptr;
    tPtrList< tEdge > vedgList/*( centre->getSpokeListNC() )*/;
    tPtrListIter< tEdge > //XspokIter( centre->getSpokeListNC() ),
        vtxIter( vedgList );
-   tArray< float > xy, xyn, xynn, xynnn, xy1, xy2;
+   tArray< double > xy, xyn, xynn, xynnn, xy1, xy2;
    int i;
 
 /*X   for( ce = spokIter.FirstP(); !(spokIter.AtEnd()); ce = spokIter.NextP() )
@@ -540,9 +540,9 @@ int tEdge::getID() const {return id;}                                //tEdge
 int tEdge::getBoundaryFlag() const                                   //tEdge
 {return !( flowAllowed == kFlowAllowed );} 
 
-float tEdge::getLength() const {return len;}                         //tEdge
+double tEdge::getLength() const {return len;}                         //tEdge
 
-float tEdge::getSlope() const {return slope;}                         //tEdge
+double tEdge::getSlope() const {return slope;}                         //tEdge
 
 const tNode *tEdge::getOriginPtr() const {return org;}                     //tEdge
 
@@ -552,14 +552,14 @@ tNode *tEdge::getOriginPtrNC() {return org;}                     //tEdge
 
 tNode *tEdge::getDestinationPtrNC() {return dest;}               //tEdge
 
-float tEdge::getOrgZ() 
+double tEdge::getOrgZ() 
 {
    const tNode * org = getOriginPtr();
    assert( org!=0 );
    return( org->getZ() );
 }
 
-float tEdge::getDestZ()
+double tEdge::getDestZ()
 {
    const tNode * dest = getDestinationPtr();
    assert( dest!=0 );
@@ -579,10 +579,10 @@ int tEdge::FlowAllowed()
 
 void tEdge::setID( int val ) {id = ( val >=0 ) ? val : 0;}           //tEdge
 
-void tEdge::setLength( float val )                                   //tEdge
+void tEdge::setLength( double val )                                   //tEdge
 {len = ( val >= 0.0 ) ? val : 0.0;}
 
-void tEdge::setSlope( float slp )
+void tEdge::setSlope( double slp )
 { slope = slp; }
 
 void tEdge::setOriginPtr( tNode * ptr ) {if( ptr != 0 ) org = ptr;}  //tEdge
@@ -609,15 +609,15 @@ void tEdge::SetCCWEdg( tEdge * edg )
 **  on the x,y plane). Assumes org and dest are valid.
 **
 \**************************************************************************/
-float tEdge::CalcLength()
+double tEdge::CalcLength()
 {
    const tNode * org = getOriginPtr();
    const tNode * dest = getDestinationPtr();
    assert( org!=0 );  // Failure = edge has no origin and/or destination node
    assert( dest!=0 );
    
-   float dx = org->getX() - dest->getX();
-   float dy = org->getY() - dest->getY();
+   double dx = org->getX() - dest->getX();
+   double dy = org->getY() - dest->getY();
    len = sqrt( dx*dx + dy*dy );
    return len;
 }
@@ -638,16 +638,16 @@ ostream &operator<<( ostream &output, const tEdge &edge )            //'tEdge'
   // return input;
 //}
 
-tArray< float >
+tArray< double >
 tEdge::getRVtx() const
 {
-   tArray< float >  xy( rvtx );
+   tArray< double >  xy( rvtx );
    return xy;
 }
 
-float tEdge::getVEdgLen() const {return vedglen;}
+double tEdge::getVEdgLen() const {return vedglen;}
 
-void tEdge::setRVtx( tArray< float > arr )
+void tEdge::setRVtx( tArray< double > arr )
 {
    assert( &arr != 0 );
      //cout << "setRVtx for edge " << id
@@ -655,7 +655,7 @@ void tEdge::setRVtx( tArray< float > arr )
    rvtx = arr;
 }
 
-void tEdge::setVEdgLen( float val ) {vedglen = ( val > 0 ) ? val : 0;}
+void tEdge::setVEdgLen( double val ) {vedglen = ( val > 0 ) ? val : 0;}
 
 
 
@@ -824,11 +824,11 @@ int tTriangle::nVOp( tTriangle *ct )
 **  the perpendicular bisectors of sides (p0,p1) and (p0,p2).
 **
 \*****************************************************************************/
-tArray< float >
+tArray< double >
 tTriangle::FindCircumcenter()
 {
-   float x, y, x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
-   tArray< float > xyo, xyd1, xyd2, xy(2);
+   double x, y, x1, y1, x2, y2, dx1, dy1, dx2, dy2, m1, m2;
+   tArray< double > xyo, xyd1, xyd2, xy(2);
 
    assert( pPtr(0) && pPtr(1) && pPtr(2) );
    

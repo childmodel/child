@@ -4,7 +4,7 @@
 **                  and tTriangle. Each of these grid elements is
 **                  implemented as an object, as described below.
 **
-**  $Id: meshElements.h,v 1.2 1998-01-21 20:17:24 gtucker Exp $
+**  $Id: meshElements.h,v 1.3 1998-01-29 19:55:40 gtucker Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 \**************************************************************************/
@@ -28,7 +28,7 @@ class tEdge;
 **  and a list of "spokes" (edges, of type tEdge) in the triangulation.  
 **
 **  Earlier modifications to tNode:
-**  - GT changed getZ to type float, and defined the fn in .cpp,
+**  - GT changed getZ to type double, and defined the fn in .cpp,
 **  11/16.
 **  - added getX, getY functions
 **  - added VoronoiArea function (was previously in tStreamNet)
@@ -43,14 +43,14 @@ class tNode
    tNode( const tNode & );
    ~tNode();
    const tNode &operator=( const tNode & );
-   tArray< float > get3DCoords() const;
-   tArray< float > get2DCoords() const;
+   tArray< double > get3DCoords() const;
+   tArray< double > get2DCoords() const;
    int getID() const;
-   float getX() const;
-   float getY() const;
-   float getZ() const;
-   float getVArea() const;
-   float getVArea_Rcp() const;
+   double getX() const;
+   double getY() const;
+   double getZ() const;
+   double getVArea() const;
+   double getVArea_Rcp() const;
    int getBoundaryFlag() const;
    const tPtrList< tEdge > &getSpokeList() const;
    tPtrList< tEdge > &getSpokeListNC();
@@ -64,31 +64,31 @@ class tNode
        getNextSpokeNodeNC( tPtrListNode< tEdge > * ) const;
        
    void setID( int );
-   void setX( float );
-   void setY( float );
-   void setZ( float );
-   void setVArea( float );
-   void setVArea_Rcp( float );
-   void set2DCoords( float, float );
-   void set3DCoords( float, float, float );
+   void setX( double );
+   void setY( double );
+   void setZ( double );
+   void setVArea( double );
+   void setVArea_Rcp( double );
+   void set2DCoords( double, double );
+   void set3DCoords( double, double, double );
    void insertFrontSpokeList( tEdge * );
    void insertBackSpokeList( tEdge * );
    void makeWheel();
    void setBoundaryFlag( int );
    tEdge * GetEdg();
    void SetEdg( tEdge * );
-   float Dist( tNode *, tNode * );
+   double Dist( tNode *, tNode * );
    void CalcSpokeVEdgLengths();
    tEdge *EdgToNod( tNode * );
-   float ComputeVoronoiArea();
+   double ComputeVoronoiArea();
    
   protected:
    int id;
-   float x;
-   float y;
-   float z;
-   float varea;        /* Voronoi area (2/97) */
-   float varea_rcp;    /* Reciprocal of Voronoi area = 1/varea (for speed)*/
+   double x;
+   double y;
+   double z;
+   double varea;        /* Voronoi area (2/97) */
+   double varea_rcp;    /* Reciprocal of Voronoi area = 1/varea (for speed)*/
    int boundary;
    tEdge * edg;        // Ptr to one edge
    tPtrList< tEdge > spokeList; /* list of connected edges */
@@ -133,36 +133,36 @@ class tEdge
    const tEdge &operator=( const tEdge & );
    int getID() const;
    int getBoundaryFlag() const;
-   float getLength() const;
-   float getSlope() const; // slope is the "z" gradient from org to dest nodes 
-   float getOrgZ();
-   float getDestZ();
+   double getLength() const;
+   double getSlope() const; // slope is the "z" gradient from org to dest nodes 
+   double getOrgZ();
+   double getDestZ();
    const tNode *getOriginPtr() const;
    const tNode *getDestinationPtr() const;
    tNode *getOriginPtrNC();
    tNode *getDestinationPtrNC();
    int FlowAllowed();
    void setID( int );
-   void setLength( float );
-   void setSlope( float );
+   void setLength( double );
+   void setSlope( double );
    void setOriginPtr( tNode * );
    void setDestinationPtr( tNode * );
    void setFlowAllowed( int );
-   float CalcLength();
+   double CalcLength();
    tEdge * GetCCWEdg();
    void SetCCWEdg( tEdge * edg );
-   tArray< float > getRVtx() const; // Get the Voronoi vertex for LH triangle
-   void setRVtx( tArray< float > );
-   float getVEdgLen() const;  // Get length of associated Voronoi cell edge
-   void setVEdgLen( float );
+   tArray< double > getRVtx() const; // Get the Voronoi vertex for LH triangle
+   void setRVtx( tArray< double > );
+   double getVEdgLen() const;  // Get length of associated Voronoi cell edge
+   void setVEdgLen( double );
 
   private:
    int id;
    int flowAllowed; // boundary flag, usu. false when org & dest = closed bds 
-   float len;       // edge length
-   float slope;
-   tArray< float > rvtx; // (x,y) coords of Voronoi vertex in LH triangle
-   float vedglen;        // length of Voronoi edge shared by org & dest
+   double len;       // edge length
+   double slope;
+   tArray< double > rvtx; // (x,y) coords of Voronoi vertex in LH triangle
+   double vedglen;        // length of Voronoi edge shared by org & dest
    tNode *org, *dest;    // ptrs to origin and destination tNodes
    tEdge *ccwedg;  // ptr to counter-clockwise (left-hand) edge w/ same origin 
 };
@@ -211,7 +211,7 @@ public:
    void setEPtr( int, tEdge * );
    void setTPtr( int, tTriangle * );
    int nVOp( tTriangle * );
-   tArray<float> FindCircumcenter();
+   tArray<double> FindCircumcenter();
 
 private:
    int id;       /* Triangle ID # for testing*/

@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.5 1998-01-27 22:06:31 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.6 1998-01-29 19:59:03 gtucker Exp $
 \***************************************************************************/
 
 #include <assert.h>
@@ -17,15 +17,15 @@
 
 //global function; determines whether test point violates "Delaunay-ness"
 //of other three; i.e., does the triangle 'pass the test' against the other
-int TriPasses( tArray< float > &ptest,
-               tArray< float > &p0,
-               tArray< float > &p1,
-               tArray< float > &p2 )
+int TriPasses( tArray< double > &ptest,
+               tArray< double > &p0,
+               tArray< double > &p1,
+               tArray< double > &p2 )
 {
    assert( (&ptest != 0) && (&p0 != 0) && (&p1 != 0) && (&p1 != 0) );
      //cout << "TriPasses? ";
-   float dx0, dx1, dy0, dy1;
-   float crossp, dotp, angle0_2_1, angle0_test_1;
+   double dx0, dx1, dy0, dy1;
+   double crossp, dotp, angle0_2_1, angle0_test_1;
    dx0 = p0[0] - p2[0];
    dx1 = p1[0] - p2[0];
    dy0 = p0[1] - p2[1];
@@ -54,15 +54,15 @@ int TriPasses( tArray< float > &ptest,
 }
 
 //global function; determines whether points are counter-clockwise:
-int PointsCCW( tArray< float > &p0,
-               tArray< float > &p1,
-               tArray< float > &p2 )
+int PointsCCW( tArray< double > &p0,
+               tArray< double > &p1,
+               tArray< double > &p2 )
 {
    assert( &p0 != 0 && &p1 != 0 && &p1 != 0 );
      //cout << "PointsCCW? ";
    int i;
-   float dx0, dx1, dy0, dy1;
-   float crossp;
+   double dx0, dx1, dy0, dy1;
+   double crossp;
    dx0 = p1[0] - p0[0];
    dx1 = p2[0] - p0[0];
    dy0 = p1[1] - p0[1];
@@ -86,23 +86,23 @@ int NewTriCCW( tTriangle *ct )
    assert( ct != 0 );
    tLNode *cn;
    cn = (tLNode *) ct->pPtr(0);
-   tArray< float > p0( cn->get2DCoords() );
+   tArray< double > p0( cn->get2DCoords() );
    if( cn->Meanders() ) p0 = cn->getNew2DCoords();
    cn = (tLNode *) ct->pPtr(1);
-   tArray< float > p1( cn->get2DCoords() );
+   tArray< double > p1( cn->get2DCoords() );
    if( cn->Meanders() ) p1 = cn->getNew2DCoords();
    cn = (tLNode *) ct->pPtr(2);
-   tArray< float > p2( cn->get2DCoords() );
+   tArray< double > p2( cn->get2DCoords() );
    if( cn->Meanders() ) p2 = cn->getNew2DCoords();
    if( PointsCCW( p0, p1, p2 ) ) return 1;
    else return 0;
 }
 
 //global function; determines whether coords are in "new" triangle
-int InNewTri( tArray< float > &xy, tTriangle *ct )
+int InNewTri( tArray< double > &xy, tTriangle *ct )
 {
    tLNode *vtx;
-   tArray< float > xy1, xy2;
+   tArray< double > xy1, xy2;
    for( int j=0; j<3; j++ )
    {
       vtx = (tLNode *) ct->pPtr(j);
@@ -134,10 +134,10 @@ int Next3Delaunay( tPtrList< tSubNode > &nbrList,
    nbrnd = nbrIter.DatPtr();
      //cout << "Next3Delaunay? no calls =  " << ncalls << endl;
      //global function prototypes
-     //int PointsCCW( tArray< float > &, tArray< float > &,
-     //           tArray< float > & );
-     //int TriPasses( tArray< float > &, tArray< float > &,
-     //           tArray< float > &, tArray< float > & );
+     //int PointsCCW( tArray< double > &, tArray< double > &,
+     //           tArray< double > & );
+     //int TriPasses( tArray< double > &, tArray< double > &,
+     //           tArray< double > &, tArray< double > & );
      //cout << "N3D: pt a\n";
    tPtrListIter< tSubNode > nbrIterCopy( nbrList );
      //cout << "N3D: pt b\n";
@@ -146,12 +146,12 @@ int Next3Delaunay( tPtrList< tSubNode > &nbrList,
    nbrIterCopy.Get(i);
      //cout << "N3D: point d\n";
    tPtrListNode< tSubNode > *tempptrnode = nbrIter.NodePtr();
-   tArray< float > p0( nbrIterCopy.DatPtr()->get2DCoords() );
-   tArray< float > p1( nbrIterCopy.NextP()->get2DCoords() );
-   tArray< float > p2( nbrIterCopy.NextP()->get2DCoords() );
+   tArray< double > p0( nbrIterCopy.DatPtr()->get2DCoords() );
+   tArray< double > p1( nbrIterCopy.NextP()->get2DCoords() );
+   tArray< double > p2( nbrIterCopy.NextP()->get2DCoords() );
      //cout << "N3D: point B\n";
    if( !PointsCCW( p0, p1, p2 ) ) return 0;
-   tArray< float > ptest;
+   tArray< double > ptest;
    cn = nbrIterCopy.NextP();
    while( cn != nbrnd )
    {
@@ -178,10 +178,10 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
    assert( (&nbrList != 0) && (&nbrIter != 0) && (&testNode != 0) );
    //cout << "PointAndNext2Delaunay?" << endl;
      //global function prototypes
-     //int PointsCCW( tArray< float > &, tArray< float > &,
-     //           tArray< float > & );
-     //int TriPasses( tArray< float > &, tArray< float > &,
-     //           tArray< float > &, tArray< float > & );
+     //int PointsCCW( tArray< double > &, tArray< double > &,
+     //           tArray< double > & );
+     //int TriPasses( tArray< double > &, tArray< double > &,
+     //           tArray< double > &, tArray< double > & );
    tPtrListIter< tSubNode > nbrIterCopy( nbrList );
    int i = nbrIter.Where();
      //cout << "Where: " << i << endl;
@@ -189,12 +189,12 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
      //assert( nbrIterCopy.Get( i ) );
    assert( nbrIterCopy.DatPtr() == nbrIter.DatPtr() );
    tPtrListNode< tSubNode > *tempptrnode = nbrIter.NodePtr();
-   tArray< float > p0( nbrIterCopy.DatPtr()->get2DCoords() );
+   tArray< double > p0( nbrIterCopy.DatPtr()->get2DCoords() );
    assert( nbrIterCopy.Next() );
-   tArray< float > p1( nbrIterCopy.DatPtr()->get2DCoords() );
-   tArray< float > p2( testNode.get2DCoords() );
+   tArray< double > p1( nbrIterCopy.DatPtr()->get2DCoords() );
+   tArray< double > p2( testNode.get2DCoords() );
    if( !PointsCCW( p0, p1, p2 ) ) return 0;
-   tArray< float > ptest;
+   tArray< double > ptest;
    assert( nbrIterCopy.Next() );
    while( nbrIterCopy.DatPtr() != nbrIter.DatPtr() )
    {
@@ -221,10 +221,10 @@ int PointAndNext2Delaunay( tSubNode &testNode, tPtrList< tSubNode > &nbrList,
 int Intersect( tEdge * ae, tEdge * be )
 {
    //cout << "Intersect(...)..." << endl;
-   float dxa, dxb, dya, dyb,
+   double dxa, dxb, dya, dyb,
        a, b, c, f, g, h, x, y,
        rangemina, rangeminb, rangemaxa, rangemaxb, rangemin, rangemax;
-   float smallnum = 0.0000000001;
+   double smallnum = 0.0000000001;
    tLNode * lnode;
    if( !ae || !be )
    {
@@ -238,16 +238,16 @@ int Intersect( tEdge * ae, tEdge * be )
       return( NULL );
    }
    lnode = (tLNode *) ae->getOriginPtrNC();
-   tArray< float > aoc( lnode->get2DCoords() );
+   tArray< double > aoc( lnode->get2DCoords() );
    if( lnode->Meanders() ) aoc = lnode->getNew2DCoords();
    lnode = (tLNode *) ae->getDestinationPtrNC();
-   tArray< float > adc( lnode->get2DCoords() );
+   tArray< double > adc( lnode->get2DCoords() );
    if( lnode->Meanders() ) adc = lnode->getNew2DCoords();
    lnode = (tLNode *) be->getOriginPtrNC();
-   tArray< float > boc( lnode->get2DCoords() );
+   tArray< double > boc( lnode->get2DCoords() );
    if( lnode->Meanders() ) boc = lnode->getNew2DCoords();
    lnode = (tLNode *) be->getDestinationPtrNC();
-   tArray< float > bdc( lnode->get2DCoords() );
+   tArray< double > bdc( lnode->get2DCoords() );
    if( lnode->Meanders() ) bdc = lnode->getNew2DCoords();
    
    dxa = adc[0] - aoc[0] + smallnum;
@@ -710,9 +710,9 @@ tGrid( tInputFile &infile )
 {
    int i, j, id, n, nx, ny;
    int numPts;
-   float dist;
-   float delGrid;
-   tArray< float > xyz(3);
+   double dist;
+   double delGrid;
+   tArray< double > xyz(3);
    tSubNode tempnode, *cn, *node0, *node1, *node2, *node3;
    tEdge *ce;
    tGridListIter< tEdge > edgIter( edgeList );
@@ -721,8 +721,8 @@ tGrid( tInputFile &infile )
    cout << "THIS IS TEST CONTRUCTOR FOR tGrid\n";
    seed = infile.ReadItem( seed, "SEED" );
      //reads in size of grid (meters)
-   float xGrid = infile.ReadItem( xGrid, "X_GRID_SIZE" );
-   float yGrid = infile.ReadItem( yGrid, "Y_GRID_SIZE" );
+   double xGrid = infile.ReadItem( xGrid, "X_GRID_SIZE" );
+   double yGrid = infile.ReadItem( yGrid, "Y_GRID_SIZE" );
      //read type of open boundary:
      //  0 = corner outlet (lower left)
      //  1 = one open side (lower)
@@ -731,7 +731,7 @@ tGrid( tInputFile &infile )
      //  4 = specify outlet coordinates
    int boundType = infile.ReadItem( boundType, "TYP_BOUND" );
      //read mean elevation (also determines elev variation)
-   float mElev = infile.ReadItem( mElev, "MEAN_ELEV" );
+   double mElev = infile.ReadItem( mElev, "MEAN_ELEV" );
      //reads method of point placement:
      //  0 = uniform grid;
      //  1 = perturbed grid;
@@ -839,7 +839,7 @@ tGrid( tInputFile &infile )
    }
    if( boundType == kOppositeSidesOpen )
    {
-      float upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
+      double upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
       n = xGrid / delGrid;
       tempnode.setBoundaryFlag( kOpenBoundary );
       for( i=1, id=0; i<n; i++, id++ )
@@ -923,8 +923,8 @@ tGrid( tInputFile &infile )
    }
    else if( boundType == kSpecifyOutlet )
    {
-      float xout = infile.ReadItem( xout, "OUTLET_X_COORD" );
-      float yout = infile.ReadItem( yout, "OUTLET_Y_COORD" );
+      double xout = infile.ReadItem( xout, "OUTLET_X_COORD" );
+      double yout = infile.ReadItem( yout, "OUTLET_Y_COORD" );
       n = xGrid / delGrid;
       tempnode.setBoundaryFlag( kClosedBoundary );
       for( i=0, id=0; i<n; i++, id++ )
@@ -1555,14 +1555,14 @@ ExtricateEdge( tEdge * edgePtr )
 
 template< class tSubNode >
 tTriangle * tGrid< tSubNode >::
-LocateTriangle( float x, float y )
+LocateTriangle( double x, double y )
 {
    //cout << "LocateTriangle" << endl;
    int n, lv=0;
    tListIter< tTriangle > triIter( triList );  //lt
    tTriangle *lt = &(triIter.DatRef());
-   float a, b, c;
-   tArray< float > xy1, xy2;
+   double a, b, c;
+   tArray< double > xy1, xy2;
      /* it starts from the first triangle, 
         searches through the triangles until the point is on
         the same side of all the edges of a triangle.
@@ -1598,7 +1598,7 @@ LocateTriangle( float x, float y )
 
 template< class tSubNode >
 tTriangle * tGrid< tSubNode >::
-LocateNewTriangle( float x, float y )
+LocateNewTriangle( double x, double y )
 {
    //cout << "LocateTriangle" << endl;
    int n, lv=0;
@@ -1606,7 +1606,7 @@ LocateNewTriangle( float x, float y )
    tTriangle *lt = triIter.FirstP();
    tSubNode *p1, *p2;
 
-   tArray< float > xy1, xy2;
+   tArray< double > xy1, xy2;
      /* it starts from the first triangle, 
         searches through the triangles until the point is on
         the same side of all the edges of a triangle.
@@ -1869,7 +1869,7 @@ AddEdgeAndMakeTriangle( tPtrList< tSubNode > &nbrList,
    cnn = nbrIter.NextP();
    cnnn = nbrIter.ReportNextP();
    nbrIter.Prev();
-   tArray< float > p0( cn->get2DCoords() ), p1( cnn->get2DCoords() ),
+   tArray< double > p0( cn->get2DCoords() ), p1( cnn->get2DCoords() ),
        p2( cnnn->get2DCoords() );
    if( !PointsCCW( p0, p1, p2 ) )
        cout << "in AEAMT nodes not CCW: " << cn->getID() << ", "
@@ -2020,7 +2020,7 @@ MakeTriangle( tPtrList< tSubNode > &nbrList,
    cnn = nbrIter.NextP();
    cnnn = nbrIter.NextP();
    nbrIter.Next();
-   tArray< float > p0( cn->get2DCoords() ), p1( cnn->get2DCoords() ),
+   tArray< double > p0( cn->get2DCoords() ), p1( cnn->get2DCoords() ),
        p2( cnnn->get2DCoords() );
    if( !PointsCCW( p0, p1, p2 ) )
    {
@@ -2117,7 +2117,7 @@ int tGrid< tSubNode >::
 AddNode( tSubNode &nodeRef )
 {
    assert( &nodeRef != 0 );
-   tArray< float > xyz( nodeRef.get3DCoords() );
+   tArray< double > xyz( nodeRef.get3DCoords() );
    cout << "AddNode at " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
    tTriangle *tri;
    cout << "locate tri" << endl << flush;
@@ -2149,7 +2149,7 @@ AddNode( tSubNode &nodeRef )
    tSubNode *node2 = nodIter.LastActiveP();
    tSubNode *node1 = bndyIter.NextP();
    tSubNode *node4 = bndyIter.NextP();
-   tArray< float > p1( node1->get2DCoords() ),
+   tArray< double > p1( node1->get2DCoords() ),
        p2( node2->get2DCoords() ), p3( node3->get2DCoords() ),
        p4( node4->get2DCoords() );
    if( xyz.getSize() == 3)
@@ -2236,7 +2236,7 @@ AddNode( tSubNode &nodeRef )
 
 template< class tSubNode >
 tSubNode *tGrid< tSubNode >::
-AddNodeAt( tArray< float > &xyz )
+AddNodeAt( tArray< double > &xyz )
 {
    assert( &xyz != 0 );
    cout << "AddNodeAt " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << endl;
@@ -2274,7 +2274,7 @@ AddNodeAt( tArray< float > &xyz )
    tSubNode *node2 = nodIter.LastActiveP();
    tSubNode *node1 = bndyIter.NextP();
    tSubNode *node4 = bndyIter.NextP();
-   tArray< float > p1( node1->get2DCoords() ),
+   tArray< double > p1( node1->get2DCoords() ),
        p2( node2->get2DCoords() ), p3( node3->get2DCoords() ),
        p4( node4->get2DCoords() );
    if( xyz.getSize() == 3)
@@ -2391,7 +2391,7 @@ UpdateMesh()
    tGridListIter<tEdge> elist( edgeList );
    //tGridListIter<tSubNode> nlist( nodeList );
    tEdge * curedg = 0;
-   float len;
+   double len;
    tTriangle * curtri;
    
    // Edge lengths
@@ -2460,7 +2460,7 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
    tTriangle *triop = tri->tPtr(nv);
    int nvop = triop->nVOp( tri );
    node3 = ( tSubNode * ) triop->pPtr( nvop );
-   tArray< float > ptest( node3->get2DCoords() ), p0( node0->get2DCoords() ),
+   tArray< double > ptest( node3->get2DCoords() ), p0( node0->get2DCoords() ),
        p1( node1->get2DCoords() ), p2( node2->get2DCoords() );
    if( !flip )
    {
@@ -2725,7 +2725,7 @@ CheckTriEdgeIntersect()
    tPtrListIter< tEdge > spokIter;
    tGridList< tSubNode > tmpNodeList;
    tGridListIter< tSubNode > tmpIter( tmpNodeList );
-   tArray< float > p0, p1, p2, xy, xyz, xy1, xy2;
+   tArray< double > p0, p1, p2, xy, xyz, xy1, xy2;
    tSubNode *cn, *vtx;
    tPtrList< tTriangle > triptrList;
    tPtrListNode< tTriangle > *tpListNode;

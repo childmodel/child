@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.3 1998-01-27 22:07:08 stlancas Exp $
+**  $Id: tMesh.h,v 1.4 1998-01-29 19:58:16 gtucker Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -29,8 +29,8 @@ class tGrid
    void Print();
      /*makes edg, ccwedg structure from spokelists*/
    void MakeCCWEdges();
-   tTriangle *LocateTriangle( float, float );
-   tTriangle *LocateNewTriangle( float, float );
+   tTriangle *LocateTriangle( double, double );
+   tTriangle *LocateNewTriangle( double, double );
      /*returns ptr to triangle which points to edge, or zero if none:*/ 
    tTriangle *TriWithEdgePtr( tEdge * );
      /*only routine needed to delete node; calls ExNode, RepairMesh:*/
@@ -54,7 +54,7 @@ class tGrid
      //add a node with referenced value/properties, update mesh connectivity
    int AddNode( tSubNode & );
      //add a generic node at the referenced coordinates
-   tSubNode *AddNodeAt( tArray< float > & );
+   tSubNode *AddNodeAt( tArray< double > & );
    tGridList<tEdge> * GetEdgeList();
    tGridList<tSubNode> * GetNodeList();
    tList< tTriangle > * GetTriList();
