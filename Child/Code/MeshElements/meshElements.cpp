@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.65 2004-02-18 16:51:49 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.66 2004-02-27 17:28:38 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -848,14 +848,14 @@ tTriangle::FindCircumcenter() const
    // Find the midpoints of the two sides (p0,p1) and (p0,p2) and store them
    // in (x1,y1) & (x2,y2). Then get the distance between p0 and the
    // midpoints of each side
-   const double x1 = (xyo[0] + xyd1[0]) / 2;
-   const double y1 = (xyo[1] + xyd1[1]) / 2;
-   const double x2 = (xyo[0] + xyd2[0]) / 2;
-   const double y2 = (xyo[1] + xyd2[1]) / 2;
-   const double dx1 = x1-xyo[0];
-   const double dy1 = y1-xyo[1];
-   const double dx2 = x2-xyo[0];
-   const double dy2 = y2-xyo[1];
+   const double x1 = (xyo.at(0) + xyd1.at(0)) / 2;
+   const double y1 = (xyo.at(1) + xyd1.at(1)) / 2;
+   const double x2 = (xyo.at(0) + xyd2.at(0)) / 2;
+   const double y2 = (xyo.at(1) + xyd2.at(1)) / 2;
+   const double dx1 = x1-xyo.at(0);
+   const double dy1 = y1-xyo.at(1);
+   const double dx2 = x2-xyo.at(0);
+   const double dy2 = y2-xyo.at(1);
 
    double XX, YY;
 
@@ -886,14 +886,14 @@ tTriangle::FindCircumcenter() const
       if( dx1!=0 )
       {
          assert( dx2==0 && dy1==0 );
-	 XX = xyo[0] + dx1;
-	 YY = xyo[1] + dy2;
+	 XX = xyo.at(0) + dx1;
+	 YY = xyo.at(1) + dy2;
       }
       else
       {
          assert( dx1==0 && dy2==0 );
-	 XX = xyo[0] + dx2;
-	 YY = xyo[1] + dy1;
+	 XX = xyo.at(0) + dx2;
+	 YY = xyo.at(1) + dy1;
       }
    }
    return tArray< double >(XX, YY);

@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.69 2004-02-27 16:40:56 childcvs Exp $
+**  $Id: meshElements.h,v 1.70 2004-02-27 17:28:38 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -863,8 +863,8 @@ tEdge::getRVtx() const
 inline void tEdge::getRVtx( tArray< double >& arr ) const
 {
    if( arr.getSize() != 2 ) arr.setSize(2);
-   arr[0] = rvtx[0];
-   arr[1] = rvtx[1];
+   arr.at(0) = rvtx.at(0);
+   arr.at(1) = rvtx.at(1);
 }
 
 inline double tEdge::getVEdgLen() const {return vedglen;}
@@ -951,8 +951,8 @@ inline void tEdge::setRVtx( tArray< double > const & arr )
    if (0)//DEBUG
      cout << "setRVtx for edge " << id
 	  << " to x, y, " << arr[0] << ", " << arr[1] << endl;
-   rvtx[0] = arr[0];
-   rvtx[1] = arr[1];
+   rvtx.at(0) = arr.at(0);
+   rvtx.at(1) = arr.at(1);
 }
 
 inline void tEdge::setVEdgLen( double val )
@@ -1026,8 +1026,8 @@ inline double tEdge::CalcVEdgLen()
 
 	double dx, dy;
 
-	dx = rvtx[0] - ccwedg->rvtx[0];
-	dy = rvtx[1] - ccwedg->rvtx[1];
+	dx = rvtx.at(0) - ccwedg->rvtx.at(0);
+	dy = rvtx.at(1) - ccwedg->rvtx.at(1);
 	vedglen = sqrt( dx*dx + dy*dy );
 	return( vedglen );
 }
