@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.18 2003-05-16 16:20:25 childcvs Exp $
+**  $Id: tMeshList.h,v 1.19 2003-05-19 13:26:59 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -84,6 +84,8 @@ class tMeshList : public tList< NodeType >
    void moveToBack( NodeType const * );
    void insertAtFront( const NodeType & );
    int removeFromFront( NodeType & );
+   void moveToBefore( tListNode< NodeType >*, tListNode< NodeType >* );
+   void moveToAfter( tListNode< NodeType >*, tListNode< NodeType >* );
    int InActiveList( tListNode< NodeType > const * );
    void Flush();
    
@@ -535,6 +537,28 @@ moveToBoundFront( tListNode< NodeType > * mvnode )
    }
 }
 
+
+template< class NodeType >
+inline void tMeshList< NodeType >::
+moveToBefore( tListNode< NodeType >* mvnode,
+              tListNode< NodeType >* plcnode )
+{
+  tList< NodeType >::moveToBefore( mvnode, plcnode );
+  if( plcnode == lastactive->next
+      && mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
+    lastactive = mvnode;
+}
+
+template< class NodeType >
+inline void tMeshList< NodeType >::
+moveToAfter( tListNode< NodeType >* mvnode,
+	     tListNode< NodeType >* plcnode )
+{
+  tList< NodeType >::moveToAfter( mvnode, plcnode );
+  if( plcnode == lastactive
+      && mvnode->getDataPtr()->getBoundaryFlag() == kNonBoundary )
+    lastactive = mvnode;
+}
 
 /**************************************************************************\
 **

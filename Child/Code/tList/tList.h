@@ -33,7 +33,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.37 2003-05-16 16:20:46 childcvs Exp $
+**  $Id: tList.h,v 1.38 2003-05-19 13:26:57 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -291,6 +291,8 @@ public:
     NodeType * NextP();   // moves to next node and returns ptr to data item
     void moveToBack( tListNode< NodeType > *  );  // move given node to back
     void moveToFront( tListNode< NodeType > *  ); // move given node to front
+    void moveToBefore( tListNode< NodeType >*, tListNode< NodeType >* );
+    void moveToAfter( tListNode< NodeType >*, tListNode< NodeType >* );
     void makeCircular();   // makes list circular (last points to first)
     const NodeType getIthData( int ) const;     // rtns copy of given item #
     const NodeType *getIthDataPtr( int ) const; // rtns ptr to given item #
@@ -915,7 +917,7 @@ moveToBack( tListNode< NodeType > * mvnode )
 
 template< class NodeType >                         //tList
 inline void tList< NodeType >::
-moveToFront( tListNode< NodeType > * mvnode ) 
+moveToFront( tListNode< NodeType > * mvnode )
 {
    if( mvnode != first )
    {
@@ -937,14 +939,70 @@ moveToFront( tListNode< NodeType > * mvnode )
    }
 }
 
+template< class NodeType >
+inline void tList< NodeType >::
+moveToBefore( tListNode< NodeType >* mvnode,
+              tListNode< NodeType >* plcnode )
+{
+   if( mvnode == plcnode ) return;
+   if( plcnode == first )
+   {
+      moveToFront( mvnode );
+      return;
+   }
+   if( mvnode == last )
+   {
+      last->prev->next = last->next;
+      last = last->prev;
+   }
+   else if( mvnode == first )
+   {
+      first->next->prev = first->prev;
+      first = first->next;
+   }
+   else
+   {
+      mvnode->prev->next = mvnode->next;
+      mvnode->next->prev = mvnode->prev;
+   }
+   mvnode->next = plcnode;
+   mvnode->prev = plcnode->prev;
+   plcnode->prev->next = mvnode;
+   plcnode->prev = mvnode;
+}
 
-
-/* GT commented this out 1/99 -- doesn't seem to be used anywhere, and
-   is a bit dangerous bcs the actual # of items on list is untouched
-template< class NodeType >                         //tList
-void tList< NodeType >::
-setNNodes( int val ) {nNodes = ( val >= 0 ) ? val : 0;}
-*/
+template< class NodeType >
+inline void tList< NodeType >::
+moveToAfter( tListNode< NodeType >* mvnode,
+             tListNode< NodeType >* plcnode )
+{
+   if( mvnode == plcnode ) return;
+   if( plcnode->next == mvnode ) return;
+   if( plcnode == last )
+   {
+      moveToBack( mvnode );
+      return;
+   }
+   if( mvnode == last )
+   {
+      last->prev->next = last->next;
+      last = last->prev;
+   }
+   else if( mvnode == first )
+   {
+      first->next->prev = first->prev;
+      first = first->next;
+   }
+   else
+   {
+      mvnode->prev->next = mvnode->next;
+      mvnode->next->prev = mvnode->prev;
+   }
+   mvnode->next = plcnode->next;
+   mvnode->prev = plcnode;
+   plcnode->next->prev = mvnode;
+   plcnode->next = mvnode;
+}
 
 /**************************************************************************\
 **
