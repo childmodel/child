@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.71 2004-04-14 12:57:32 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.72 2004-04-16 16:18:28 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -202,7 +202,7 @@ double tNode::ComputeVoronoiArea()
 
   tPtrList< tEdge > vedgList;
   tPtrListIter< tEdge > vtxIter( vedgList );
-  ce = edg;
+  ce = getEdg();
   do
     {
       assert( ce!=0 );
@@ -218,7 +218,7 @@ double tNode::ComputeVoronoiArea()
 	//                 << ce->getDestinationPtr()->getY() << endl;
       }
       ce = ce->getCCWEdg();
-    } while( ce != edg );
+    } while( ce != getEdg() );
   vedgList.makeCircular();
   //cout << endl;
   // Check boundary status: Voronoi area only defined for non-boundary nodes
@@ -435,7 +435,7 @@ double tNode::ComputeVoronoiArea()
   if( varea<=0.0 ) { // debug
     cout << "Error: zero or negative varea = " << varea << endl;
     cout << "Node: " << id << " " << x << " " << y << " " << boundary << endl;
-    edg->TellCoords();
+    getEdg()->TellCoords();
   }
   assert( varea>0.0 );
   varea_rcp = 1.0/varea;
@@ -451,14 +451,14 @@ double tNode::ComputeVoronoiArea()
 	}
       cout << endl;
       cout << "reading spokes: ";
-      ce = edg;
+      ce = getEdg();
       do
 	{
 	  assert( ce!=0 );
 	  tArray2<double> const &xy = ce->getRVtx();
 	  cout << xy.at(0) << " " << xy.at(1) << "; ";
 	  ce = ce->getCCWEdg();
-	} while( ce != edg );
+	} while( ce != getEdg() );
       cout << endl;
     }
   }
