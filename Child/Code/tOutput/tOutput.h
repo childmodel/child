@@ -31,19 +31,14 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.54 2004-05-10 10:52:49 childcvs Exp $
+ **  $Id: tOutput.h,v 1.55 2004-06-16 13:37:41 childcvs Exp $
  */
 /*************************************************************************/
 
 #ifndef TOUTPUT_H
 #define TOUTPUT_H
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <fstream>
-using namespace std;
-#else
-# include <fstream.h>
-#endif
+#include <fstream>
 #include "../MeshElements/meshElements.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tMesh/tMesh.h"
@@ -76,9 +71,9 @@ protected:
   tMesh<tSubNode> * m;          // ptr to mesh (for access to nodes, etc)
   char baseName[kMaxNameSize];  // name of output files
 
-  void CreateAndOpenFile( ofstream * theOFStream, const char * extension ) const;
+  void CreateAndOpenFile( std::ofstream * theOFStream, const char * extension ) const;
   // write time/number of element
-  static void WriteTimeNumberElements( ofstream &, double, int );
+  static void WriteTimeNumberElements( std::ofstream &, double, int );
 };
 
 /**************************************************************************/
@@ -104,11 +99,11 @@ public:
   void WriteOutput( double time );
 
 private:
-  ofstream nodeofs;             // output file for node data
-  ofstream edgofs;              // output file for edge data
-  ofstream triofs;              // output file for triangle data
-  ofstream zofs;                // output file for node "z" data
-  ofstream vaofs;               // output file for Voronoi areas
+  std::ofstream nodeofs;             // output file for node data
+  std::ofstream edgofs;              // output file for edge data
+  std::ofstream triofs;              // output file for triangle data
+  std::ofstream zofs;                // output file for node "z" data
+  std::ofstream vaofs;               // output file for Voronoi areas
 
 protected:
   bool CanonicalNumbering;      // Output in canonical order
@@ -196,20 +191,20 @@ public:
 protected:
   virtual void WriteNodeData( double time );
 private:
-  ofstream randomofs;  // Random number generator state
-  ofstream drareaofs;  // Drainage areas
-  ofstream netofs;     // Downstream neighbor IDs
-  ofstream slpofs;     // Slopes in the direction of flow
-  ofstream qofs;       // Discharge
-  ofstream layofs;     // Layer info
-  ofstream surfofs;    // Surfer style x,y,z file with top layer properties in columns of triangular nodes
-  ofstream texofs;     // Texture info
-  ofstream vegofs;     // Vegetation cover %
-  ofstream flowdepofs; // Flow depth
-  ofstream chanwidthofs; // Channel width
-  ofstream flowpathlenofs;  // Flow path length
-  ofstream tauofs;     // Shear stress
-  ofstream qsofs;      // Sed flux
+  std::ofstream randomofs;  // Random number generator state
+  std::ofstream drareaofs;  // Drainage areas
+  std::ofstream netofs;     // Downstream neighbor IDs
+  std::ofstream slpofs;     // Slopes in the direction of flow
+  std::ofstream qofs;       // Discharge
+  std::ofstream layofs;     // Layer info
+  std::ofstream surfofs;    // Surfer style x,y,z file with top layer properties in columns of triangular nodes
+  std::ofstream texofs;     // Texture info
+  std::ofstream vegofs;     // Vegetation cover %
+  std::ofstream flowdepofs; // Flow depth
+  std::ofstream chanwidthofs; // Channel width
+  std::ofstream flowpathlenofs;  // Flow path length
+  std::ofstream tauofs;     // Shear stress
+  std::ofstream qsofs;      // Sed flux
 
   tTSOutputImp<tSubNode> *TSOutput;  // Time Series output
   tStratOutputImp<tSubNode> *stratOutput;

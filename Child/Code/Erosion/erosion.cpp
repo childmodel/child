@@ -45,18 +45,13 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.137 2004-05-10 11:01:29 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.138 2004-06-16 13:37:24 childcvs Exp $
  */
 /***************************************************************************/
 
 #include <math.h>
 #include <assert.h>
-#if !defined(HAVE_NO_NAMESPACE)
 # include <iomanip>
-using namespace std;
-#else
-# include <iomanip.h>
-#endif
 //#include <string>
 #include "erosion.h"
 
@@ -422,7 +417,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
   if(0) //DEBUG
-    cout<<"in detach capacity "<<endl<<flush;
+    std::cout<<"in detach capacity "<<std::endl;
   assert( n->getQ()>=0.0 );
 
   if( n->getFloodStatus() != tLNode::kNotFlooded) return 0.0;
@@ -436,8 +431,8 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n )
   n->setTau( tau );
   double erorate = tau - n->getTauCrit();
   if(0) { //DEBUG
-    cout << "tau " << tau;
-    cout << " tauc " << n->getTauCrit() << endl;
+    std::cout << "tau " << tau;
+    std::cout << " tauc " << n->getTauCrit() << std::endl;
   }
   erorate = (erorate>0.0) ? erorate : 0.0;
   erorate = n->getLayerErody(0)*pow( erorate, pb );
@@ -482,7 +477,7 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, int i )
   n->setTau( tau );
   double erorate = tau - n->getTauCrit();
   if(0) //DEBUG
-    cout << "erorate: " << erorate << endl;
+    std::cout << "erorate: " << erorate << std::endl;
   erorate = (erorate>0.0) ? erorate : 0.0;
   erorate = n->getLayerErody(i)*pow( erorate, pb );
   n->setDrDt( -erorate );
@@ -519,7 +514,7 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
     ReportFatalError("neg. slope in tBedErodePwrLaw::setTimeStep(tLNode*)");
   assert( n->getQ()>=0 );
   double eroterm = kb * pow( n->getQ(), mb ) * pow( slp, nb-1.0 );
-  if( eroterm==0 ) return 100000;
+  if( eroterm==0 ) return 100000.;
   return( 0.2*n->getFlowEdg()->getLength() / eroterm );
 
 }
@@ -589,7 +584,7 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n, double dt )
   n->setTau( tau );
   double tauexpb = pow( tau, pb ) - pow( n->getTauCrit(), pb );
   if(0) //DEBUG
-    cout << "tauexpb: " << tauexpb << endl;
+    std::cout << "tauexpb: " << tauexpb << std::endl;
   tauexpb = (tauexpb>0.0) ? tauexpb : 0.0;
   return( n->getLayerErody(0)*tauexpb*dt );
 }
@@ -610,7 +605,7 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n, double dt )
 double tBedErodePwrLaw2::DetachCapacity( tLNode * n )
 {
   if(0) //DEBUG
-    cout<<"in detach capacity "<<endl<<flush;
+    std::cout<<"in detach capacity "<<std::endl;
   assert( n->getQ()>=0.0 );
 
   if( n->getFloodStatus() != tLNode::kNotFlooded) return 0.0;
@@ -624,8 +619,8 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n )
   n->setTau( tau );
   double erorate = pow( tau, pb ) - pow( n->getTauCrit(), pb );
   if(0) { //DEBUG
-    cout << "tau " << tau;
-    cout << " tauc " << n->getTauCrit() << endl;
+    std::cout << "tau " << tau;
+    std::cout << " tauc " << n->getTauCrit() << std::endl;
   }
   erorate = (erorate>0.0) ? erorate : 0.0;
   erorate = n->getLayerErody(0)*erorate;
@@ -661,7 +656,7 @@ double tBedErodePwrLaw2::DetachCapacity( tLNode * n, int i )
   n->setTau( tau );
   double erorate = pow( tau, pb ) - pow( n->getTauCrit(), pb );
   if(0) //DEBUG
-    cout << "erorate: " << erorate << endl;
+    std::cout << "erorate: " << erorate << std::endl;
   erorate = (erorate>0.0) ? erorate : 0.0;
   erorate = n->getLayerErody(i)*erorate;
   n->setDrDt( -erorate );
@@ -698,7 +693,7 @@ double tBedErodePwrLaw2::SetTimeStep( tLNode * n )
     ReportFatalError("neg. slope in tBedErodePwrLaw::setTimeStep(tLNode*)");
   assert( n->getQ()>=0 );
   double eroterm = kb * pow( n->getQ(), mb ) * pow( slp, nb-1.0 );
-  if( eroterm==0 ) return 100000;
+  if( eroterm==0 ) return 100000.;
   return( 0.2*n->getFlowEdg()->getLength() / eroterm );
 
 }
@@ -753,14 +748,14 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node )
   const double slp = node->calcSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
-  double tau, tauex, cap = 0;
+  double tau, tauex, cap = 0.;
   if( node->getFloodStatus() == tLNode::kNotFlooded )
     {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
       if(0) //DEBUG
-	cout << "kt=" << kt << " Q=" << node->getQ() << " W="
-	     << node->getHydrWidth() << " S=" << node->calcSlope() << endl;
+	std::cout << "kt=" << kt << " Q=" << node->getQ() << " W="
+	     << node->getHydrWidth() << " S=" << node->calcSlope() << std::endl;
       tauex = tau - tauc;
       tauex = (tauex>0.0) ? tauex : 0.0;
       cap = kf * node->getHydrWidth() * pow( tauex, pf );
@@ -789,16 +784,16 @@ double tSedTransPwrLaw::TransCapacity( tLNode *node, int lyr, double weight )
   const double slp = node->calcSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
-  double tau, tauex, cap = 0;
+  double tau, tauex, cap = 0.;
 
   if( node->getFloodStatus() == tLNode::kNotFlooded )
     {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
       if(0) //DEBUG
-	cout << "kt=" << kt << " Q=" << node->getQ() << " W="
+	std::cout << "kt=" << kt << " Q=" << node->getQ() << " W="
 	     << node->getHydrWidth() << " S=" << node->calcSlope()
-	     << " tau=" << tau << endl;
+	     << " tau=" << tau << std::endl;
       tauex = tau - tauc;
       tauex = (tauex>0.0) ? tauex : 0.0;
       cap = weight * kf * node->getHydrWidth() * pow( tauex, pf );
@@ -851,14 +846,14 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node )
   const double slp = node->calcSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
-  double tau, tauexpf, cap = 0;
+  double tau, tauexpf, cap = 0.;
   if( node->getFloodStatus() == tLNode::kNotFlooded )
     {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
       if(0) //DEBUG
-	cout << "kt=" << kt << " Q=" << node->getQ() << " W="
-	     << node->getHydrWidth() << " S=" << node->calcSlope() << endl;
+	std::cout << "kt=" << kt << " Q=" << node->getQ() << " W="
+	     << node->getHydrWidth() << " S=" << node->calcSlope() << std::endl;
       tauexpf = pow( tau, pf ) - pow( tauc, pf );
       tauexpf = (tauexpf>0.0) ? tauexpf : 0.0;
       cap = kf * node->getHydrWidth() * tauexpf;
@@ -884,16 +879,16 @@ double tSedTransPwrLaw2::TransCapacity( tLNode *node, int lyr, double weight )
   const double slp = node->calcSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
-  double tau, tauexpf, cap = 0;
+  double tau, tauexpf, cap = 0.;
 
   if( node->getFloodStatus() == tLNode::kNotFlooded )
     {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
       if(0) //DEBUG
-	cout << "kt=" << kt << " Q=" << node->getQ() << " W="
+	std::cout << "kt=" << kt << " Q=" << node->getQ() << " W="
 	     << node->getHydrWidth() << " S=" << node->calcSlope()
-	     << " tau=" << tau << endl;
+	     << " tau=" << tau << std::endl;
       tauexpf = pow( tau, pf ) - pow( tauc, pf );
       tauexpf = (tauexpf>0.0) ? tauexpf : 0.0;
       cap = weight * kf * node->getHydrWidth() * tauexpf;
@@ -954,14 +949,14 @@ double tSedTransBridgeDom::TransCapacity( tLNode *node )
   const double slp = node->calcSlope();
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
-  double tau, tauex, ustarex, cap = 0;
+  double tau, tauex, ustarex, cap = 0.;
   if( node->getFloodStatus() == tLNode::kNotFlooded )
     {
       tau = kt * pow( node->getQ()/node->getHydrWidth(), mf ) * pow( slp, nf );
       node->setTau( tau );
       if(0) //DEBUG
-	cout << "kt=" << kt << " Q=" << node->getQ() << " W="
-	     << node->getHydrWidth() << " S=" << node->calcSlope() << endl;
+	std::cout << "kt=" << kt << " Q=" << node->getQ() << " W="
+	     << node->getHydrWidth() << " S=" << node->calcSlope() << std::endl;
       tauex = ( tau > tauc ) ? (tau - tauc) : 0.0;
       ustarex = ( tau > tauc ) ? (sqrt(tau) - sqrtTauc) : 0.0;
       cap = kf * node->getHydrWidth() * tauex * ustarex;
@@ -1024,9 +1019,9 @@ tSedTransPwrLawMulti::tSedTransPwrLawMulti( const tInputFile &infile )
   miNumgrnsizes = infile.ReadItem( miNumgrnsizes, "NUMGRNSIZE" );
   if( miNumgrnsizes>9 )
     {
-      cout << "WARNING: maximum of 9 grain size classes exceeded.\n";
-      cout << "Resetting to 9 size-fractions.\n";
-      cout << "(That was a non-fatal warning, my friend!)\n";
+      std::cout << "WARNING: maximum of 9 grain size classes exceeded.\n";
+      std::cout << "Resetting to 9 size-fractions.\n";
+      std::cout << "(That was a non-fatal warning, my friend!)\n";
       miNumgrnsizes = 9;
     }
 
@@ -1052,8 +1047,8 @@ tSedTransPwrLawMulti::tSedTransPwrLawMulti( const tInputFile &infile )
       mdGrndiam[i] = infile.ReadItem( mdGrndiam[i], tagline );
       mdTauc[i] = thetac * (sig-rho) * g * mdGrndiam[i];
       if(0) //DEBUG
-	cout << "Diam " << i << " = " << mdGrndiam[i] << " tauc = "
-	     << mdTauc[i] << endl;
+	std::cout << "Diam " << i << " = " << mdGrndiam[i] << " tauc = "
+	     << mdTauc[i] << std::endl;
     }
 
   // Add unit conversion factor for kt -- this is required to convert
@@ -1094,17 +1089,17 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight
       d50 += frac[i] * mdGrndiam[i];
       if( 0 )
 	{
-	  cout << "uh oh2: " << node->getLayerDgrade(lyr,0) << " "
-	       << node->getLayerDgrade(lyr,1) << endl;
-	  cout << frac[0] << " " << frac[1] << endl;
+	  std::cout << "uh oh2: " << node->getLayerDgrade(lyr,0) << " "
+	       << node->getLayerDgrade(lyr,1) << std::endl;
+	  std::cout << frac[0] << " " << frac[1] << std::endl;
 	}
       if(0) //DEBUG
-	cout << "frac " << i << " = " << frac[i] << endl;
+	std::cout << "frac " << i << " = " << frac[i] << std::endl;
     }
   assert( d50>=0.0 );
   assert( d50<1e10 );
   if(0) //DEBUG
-    cout << "D50 = " << d50 << endl;
+    std::cout << "D50 = " << d50 << std::endl;
 
   // Compute shear stress
   if( node->getFloodStatus() ) tau = 0.0;
@@ -1115,9 +1110,9 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight
   }
   node->setTau( tau );
   if(0) //DEBUG
-    cout << "kt=" << kt << " Q=" << node->getQ() << " W="
+    std::cout << "kt=" << kt << " Q=" << node->getQ() << " W="
 	 << node->getHydrWidth() << " S=" << node->calcSlope()
-	 << " tau=" << tau << endl;
+	 << " tau=" << tau << std::endl;
 
   // Compute crit shear stress and xport capacity for each size fraction
   double totalcap = 0.0,
@@ -1126,7 +1121,7 @@ double tSedTransPwrLawMulti::TransCapacity( tLNode *node, int lyr, double weight
     {
       tauc = mdTauc[i] * pow( mdGrndiam[i] / d50, -mdHidingexp );
       if(0) //DEBUG
-	cout << "tauc " << i << " = " << tauc << endl;
+	std::cout << "tauc " << i << " = " << tauc << std::endl;
       tauex = tau - tauc;
       tauex = (tauex>0.0) ? tauex : 0.0;
       // Xport capacity for a given size
@@ -1159,7 +1154,7 @@ tSedTransWilcock::tSedTransWilcock( const tInputFile &infile )
   : grade(2)
 {
   if(0) //DEBUG
-    cout << "tSedTransWilcock(infile)\n" << endl;
+    std::cout << "tSedTransWilcock(infile)\n" << std::endl;
   //strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
   /*for(i=0; i<=1; i++){
     strcpy( name, "GRAINDIAM");
@@ -1223,10 +1218,10 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
   tau = taudim*pow(nd->getHydrRough()*nd->getQ()/SECPERYEAR/nd->getHydrWidth(), 0.6)*pow( nd->calcSlope(), 0.7);
 
   if(0) { //DEBUG
-    cout << "hydrrough is " << nd->getChanRough() << endl;
-    cout << "q is " << nd->getQ() << endl;
-    cout << "slope is " << nd->calcSlope() << endl;
-    cout << "taudim is " << taudim << endl;
+    std::cout << "hydrrough is " << nd->getChanRough() << std::endl;
+    std::cout << "q is " << nd->getQ() << std::endl;
+    std::cout << "slope is " << nd->calcSlope() << std::endl;
+    std::cout << "taudim is " << taudim << std::endl;
   }
 
   //Calculate Sand transport rates first
@@ -1288,7 +1283,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd )
 double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
 {
   if(0) //DEBUG
-    cout << "tSedTransWilcock::TransCapacity(tLNode,int,double)\n";
+    std::cout << "tSedTransWilcock::TransCapacity(tLNode,int,double)\n";
 
   if( nd->calcSlope() < 0 ){
     nd->setQs(0, 0.);
@@ -1302,18 +1297,18 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
   double taucrit;
   assert( nd->getLayerDepth(i)>0 );
   double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
-  double qss, qsg=0; //gravel and sand transport rate
+  double qss, qsg=0.; //gravel and sand transport rate
 
   // units of Q are m^3/yr; convert to m^3/sec
   //tau = taudim*pow(nd->getHydrRough()*nd->getQ()/nd->getHydrWidth(), 0.6)*pow( nd->calcSlope(), 0.7);
   tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->calcSlope(), 0.7);
 
   if(0) { //DEBUG
-    cout << "channel rough is " << nd->getChanRough() << endl;
-    cout << "channel width is " << nd->getChanWidth() << endl;
-    cout << "q in secs is " << nd->getQ()/SECPERYEAR << endl;
-    cout << "slope is " << nd->calcSlope() << endl;
-    cout << "taudim is " << taudim << endl;
+    std::cout << "channel rough is " << nd->getChanRough() << std::endl;
+    std::cout << "channel width is " << nd->getChanWidth() << std::endl;
+    std::cout << "q in secs is " << nd->getQ()/SECPERYEAR << std::endl;
+    std::cout << "slope is " << nd->calcSlope() << std::endl;
+    std::cout << "taudim is " << taudim << std::endl;
   }
 
   //Calculate Sand transport rates first
@@ -1330,7 +1325,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
     nd->addQs(0, qss);
   }
   else
-    qss=0 ;
+    qss=0.;
 
   //Now calculate Gravel transport rates
   if(nd->getNumg()==2){
@@ -1348,7 +1343,7 @@ double tSedTransWilcock::TransCapacity( tLNode *nd, int i, double weight )
       nd->addQs(1,qsg);
     }
     else
-      qsg=0;
+      qsg=0.;
   }
 
   //NOTE - don't need to update total qs cause this gets updates
@@ -1377,7 +1372,7 @@ tSedTransMineTailings::tSedTransMineTailings( const tInputFile &infile )
   double help;
 
   if(0) //DEBUG
-    cout << "tSedTransMineTailings(infile)\n" << endl;
+    std::cout << "tSedTransMineTailings(infile)\n" << std::endl;
   strcpy( add, "1" );  // GT changed from add = '1' to prevent glitch
   for(i=0; i<=1; i++){
     strcpy( name, "GRAINDIAM");
@@ -1439,10 +1434,10 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd )
   tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->calcSlope(), 0.7);
 
   if(0) { //DEBUG
-    cout << "hydrrough is " << nd->getChanRough() << endl;
-    cout << "q is " << nd->getQ() << endl;
-    cout << "slope is " << nd->calcSlope() << endl;
-    cout << "taudim is " << taudim << endl;
+    std::cout << "hydrrough is " << nd->getChanRough() << std::endl;
+    std::cout << "q is " << nd->getQ() << std::endl;
+    std::cout << "slope is " << nd->calcSlope() << std::endl;
+    std::cout << "taudim is " << taudim << std::endl;
   }
 
   //Calculate Sand transport rates first
@@ -1506,7 +1501,7 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd )
 double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
 {
   if(0) //DEBUG
-    cout << "tSedTransMineTailings::TransCapacity(tLNode,int,double)\n";
+    std::cout << "tSedTransMineTailings::TransCapacity(tLNode,int,double)\n";
 
   if( nd->calcSlope() < 0 ){
     nd->setQs(0, 0.);
@@ -1520,18 +1515,18 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
   double taucrit;
   assert( nd->getLayerDepth(i)>0.0 );
   double persand=nd->getLayerDgrade(i,0)/(nd->getLayerDepth(i));
-  double qss, qsg=0; //gravel and sand transport rate
+  double qss, qsg=0.; //gravel and sand transport rate
 
   // units of Q are m^3/yr; convert to m^3/sec
   //NIC check to see what taudim is -> probably right but U R anal
   tau = taudim*pow(0.03, 0.6)*pow(nd->getQ()/SECPERYEAR, 0.3)*pow( nd->calcSlope(), 0.7);
 
   if(0) { //DEBUG
-    cout << "Q is " << nd->getQ() << endl;
-    cout << "slope is " << nd->calcSlope() << endl;
-    cout << "taudim is " << taudim << endl;
-    cout << "persand is " << persand << endl;
-    cout << "weight is " << weight << endl;
+    std::cout << "Q is " << nd->getQ() << std::endl;
+    std::cout << "slope is " << nd->calcSlope() << std::endl;
+    std::cout << "taudim is " << taudim << std::endl;
+    std::cout << "persand is " << persand << std::endl;
+    std::cout << "weight is " << weight << std::endl;
   }
 
   //Calculate Sand transport rates first
@@ -1556,7 +1551,7 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
     nd->addQs(0, qss);
   }
   else{
-    qss=0 ;
+    qss=0.;
   }
 
   //Now calculate Gravel transport rates
@@ -1574,7 +1569,7 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
       nd->addQs(1,qsg);
     }
     else{
-      qsg=0;
+      qsg=0.;
     }
 
   }
@@ -1617,19 +1612,19 @@ tErosion::tErosion( tMesh<tLNode> *mptr, const tInputFile &infile ) :
 #undef X
       default:
     {
-      cerr << "\nError: You requested the detachment law '"
-	   << optProcessLaw << "' which does not exist."  << endl
-	   << "Available options:" << endl;
+      std::cerr << "\nError: You requested the detachment law '"
+	   << optProcessLaw << "' which does not exist."  << std::endl
+	   << "Available options:" << std::endl;
       for(int i=0; i!=NUMBER_OF_DETACHMENT_LAWS; ++i ){
-	cerr << " " << i << ": " << DetachmentLaw[i] << endl;
+	std::cerr << " " << i << ": " << DetachmentLaw[i] << std::endl;
       }
       ReportFatalError( "Requested detachment law not available. "
 			"Switch options.\n" );
     }
   }
 
-  cout << "DETACHMENT OPTION: "
-       << DetachmentLaw[optProcessLaw] << endl;
+  std::cout << "DETACHMENT OPTION: "
+       << DetachmentLaw[optProcessLaw] << std::endl;
 
   optProcessLaw = infile.ReadItem( optProcessLaw,
 				   "TRANSPORT_LAW" );
@@ -1641,18 +1636,18 @@ tErosion::tErosion( tMesh<tLNode> *mptr, const tInputFile &infile ) :
 #undef X
       default:
     {
-      cerr << "\nError: You requested the transport law '"
-	   << optProcessLaw << "' which does not exist."  << endl
-	   << "Available options:" << endl;
+      std::cerr << "\nError: You requested the transport law '"
+	   << optProcessLaw << "' which does not exist."  << std::endl
+	   << "Available options:" << std::endl;
       for(int i=0; i!=NUMBER_OF_TRANSPORT_LAWS; ++i ){
-	cerr << " " << i << ": " << TransportLaw[i] << endl;
+	std::cerr << " " << i << ": " << TransportLaw[i] << std::endl;
       }
       ReportFatalError( "Requested transport law not available. "
 			"Switch options.\n" );
     }
   }
-  cout << "SEDIMENT TRANSPORT OPTION: "
-       << TransportLaw[optProcessLaw] << endl;
+  std::cout << "SEDIMENT TRANSPORT OPTION: "
+       << TransportLaw[optProcessLaw] << std::endl;
 }
 
 tErosion::~tErosion(){
@@ -1696,7 +1691,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet,
 			       tVegetation * /*pVegetation*/ )
 {
   if(0) //DEBUG
-    cout<<"ErodeDetachLim...";
+    std::cout<<"ErodeDetachLim...";
   double dt,
     dtmax; // time increment
   const double frac = 0.9; //fraction of time to zero slope
@@ -1822,9 +1817,9 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift const *U
 		{
 		  dtmax = dtmin;
 		  if(0) //DEBUG
-		    cout << "time step too small because of node at x,y,z "
+		    std::cout << "time step too small because of node at x,y,z "
 			 << cn->getX() << " " << cn->getY() << " " << cn->getZ()
-			 << endl;
+			 << std::endl;
 		}
 	    }
 	}
@@ -1868,7 +1863,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
   bool smallflag=false;
   int smallcount=0;
 
-  cout << "tErosion::StreamErode\n";
+  std::cout << "tErosion::StreamErode\n";
 
   // Sort so that we always work in upstream to downstream order
   strmNet->SortNodesByNetOrder();
@@ -1923,7 +1918,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 	      if( dt < dtmax ) dtmax = dt;
 	      /*if( dt < kSmallTimeStep )
 		{
-		cout << "Very small dt " << dt << " at:\n";
+		std::cout << "Very small dt " << dt << " at:\n";
                 cn->TellAll();
                 dn->TellAll();
 		}*/
@@ -1935,19 +1930,19 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       if( dtmax <= 0.01 && !smallflag )
 	{
 	  smallflag=true;
-	  cout << "SMALL STEP: " << dtmax << endl;
+	  std::cout << "SMALL STEP: " << dtmax << std::endl;
 	}
       if( smallflag )
 	{
 	  smallcount++;
 	  if( smallcount==100 )
 	    {
-	      cout << "TIME REMAINING: " << dtg << endl;
+	      std::cout << "TIME REMAINING: " << dtg << std::endl;
 	      smallcount=0;
 	    }
 	}
 
-      //cout << "  dt " << dtmax << endl;
+      //std::cout << "  dt " << dtmax << std::endl;
 
       // Zero out sed influx again, because depending on bedrock-alluvial
       // interaction it may be modified; if inlet, give it strmNet->inlet.inSedLoad
@@ -1957,7 +1952,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       if(strmNet->getInletNodePtrNC() != NULL)
 	{
           strmNet->getInletNodePtrNC()->setQsin( strmNet->getInSedLoad() );
-	  cout << "Inlet node:\n";
+	  std::cout << "Inlet node:\n";
 	  strmNet->getInletNodePtr()->TellAll();
 	}
 
@@ -2010,24 +2005,24 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
             }
 	  }
 
-	  //cout << "** THIS node has dz " << dz << endl << flush;
+	  //std::cout << "** THIS node has dz " << dz << std::endl;
 	  //cn->TellAll();
 
 	  // Update alluvium thickness and node elevation
 	  /*if( cn->getID()==3214 )
 	    {
 	    cn->TellAll();
-	    cout << "Applying dz=" << dz << endl;
+	    std::cout << "Applying dz=" << dz << std::endl;
 	    }
 	    if( cn->getZ() < -1 ) {
-            cout << "The following node is going below baselevel:\n";
+            std::cout << "The following node is going below baselevel:\n";
             cn->TellAll();
 	    }*/
 	  cn->EroDep( dz );
 	  dn = cn->getDownstrmNbr();
 	  /*if( dn->getID()==3214 )
 	    {
-            cout << "SENDing to 3214: " << cn->getQsin() << " - " << dz*cn->getVArea()/dtmax << endl;
+            std::cout << "SENDing to 3214: " << cn->getQsin() << " - " << dz*cn->getVArea()/dtmax << std::endl;
             cn->TellAll();
 	    }*/
 
@@ -2037,9 +2032,9 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 	  dn->addQsin( cn->getQsin() - dz*cn->getVArea()/dtmax );
 	  //           if( (cn->getQsin() - dz*cn->getVArea()/dtmax) < -0.1 )
 	  //           {
-	  //              cout << "NEG OUTFLUX! (dz=" << dz << ")\n";
-	  //              cout << "outflux: " << cn->getQsin() - dz*cn->getVArea()/dtmax
-	  //                   << endl;
+	  //              std::cout << "NEG OUTFLUX! (dz=" << dz << ")\n";
+	  //              std::cout << "outflux: " << cn->getQsin() - dz*cn->getVArea()/dtmax
+	  //                   << std::endl;
 	  //              cn->TellAll();
 	  //              dn->TellAll();
 	  //           }
@@ -2050,7 +2045,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
 
     } while( dtg>1e-6 ); // Keep going until we've used up the whole time intrvl
 
-  //cout << "Leaving StreamErode()\n";
+  //std::cout << "Leaving StreamErode()\n";
 }
 
 
@@ -2101,11 +2096,11 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
   timegb=time;
   do
     {
-      //cout<<"AT BEGINNING!"<<endl;
+      //std::cout<<"AT BEGINNING!"<<std::endl;
       // Zero out sed influx of all sizes
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() ){
 	//if(cn->getID()==93)
-	//  cout<<"93 is active"<<endl;
+	//  std::cout<<"93 is active"<<std::endl;
 	cn->setQsin(0.0); //totals are for ts calculation
 	cn->setQs(0.0);
 	cn->setQsin( sedzero );
@@ -2113,7 +2108,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 	  cn->setQs(i,0.0);
 	}
 	//if(cn->getID()==93)
-	//    cout<<"93 is active"<<endl;
+	//    std::cout<<"93 is active"<<std::endl;
       }
 
       // Compute erosion rates: when this block is done, the transport rates
@@ -2143,7 +2138,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 		  dcap = -bedErode->DetachCapacity(cn)*(1-(cn->getLayerDepth(0)/cn->getMaxregdep()));
 		  pedr += dcap;
 		  // if(fabs(dcap)>1){
-		  //                   cout << "huge bedrock erosion of "<< dcap << " at node " << cn->getID()<<endl;
+		  //                   std::cout << "huge bedrock erosion of "<< dcap << " at node " << cn->getID()<<std::endl;
 		  //                }
 
 		}
@@ -2163,7 +2158,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 	      // Get detachment capacity (this also sets node's drdt)
 	      dcap = -bedErode->DetachCapacity( cn );
 	      // if(fabs(dcap)>1){
-	      //                 cout << "huge bedrock erosion of "<< dcap <<" at node " << cn->getID()<< endl;
+	      //                 std::cout << "huge bedrock erosion of "<< dcap <<" at node " << cn->getID()<< std::endl;
 	      //              }
 
 	      //if( dcap > pedr )
@@ -2172,21 +2167,21 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 	    }
 
 	  // if(cn->getX()==2.75 && cn->getY()==1){
-	  //             cout<<cn->getNumLayer()<<" layers" <<endl;
+	  //             std::cout<<cn->getNumLayer()<<" layers" <<std::endl;
 	  //             n=0;
 	  //             while(n<cn->getNumLayer()){
-	  //                cout << "layer " << n+1 << endl;
-	  //                cout << "layer creation time is " << cn->getLayerCtime(n) << endl;
-	  //                cout << "layer recent time is " << cn->getLayerRtime(n) << endl;
-	  //                cout << "layer depth is " << cn->getLayerDepth(n) << endl;
-	  //                cout << "layer erodibility is " << cn->getLayerErody(n) << endl;
-	  //                cout << "is layer sediment? " << cn->getLayerSed(n) << endl;
-	  //                cout << "dgrade 1 is " << cn->getLayerDgrade(n,0) << endl;
-	  //                cout << "dgrade 2 is " << cn->getLayerDgrade(n,1) << endl;
+	  //                std::cout << "layer " << n+1 << std::endl;
+	  //                std::cout << "layer creation time is " << cn->getLayerCtime(n) << std::endl;
+	  //                std::cout << "layer recent time is " << cn->getLayerRtime(n) << std::endl;
+	  //                std::cout << "layer depth is " << cn->getLayerDepth(n) << std::endl;
+	  //                std::cout << "layer erodibility is " << cn->getLayerErody(n) << std::endl;
+	  //                std::cout << "is layer sediment? " << cn->getLayerSed(n) << std::endl;
+	  //                std::cout << "dgrade 1 is " << cn->getLayerDgrade(n,0) << std::endl;
+	  //                std::cout << "dgrade 2 is " << cn->getLayerDgrade(n,1) << std::endl;
 	  //                n++;
 	  //             }
-	  //             cout<<"qs0 is "<<cn->getQs(0)<<" qs1 is "<<cn->getQs(1)<<endl;
-	  //             cout<<"texture of surface is "<<cn->getLayerSed(0)<<endl;
+	  //             std::cout<<"qs0 is "<<cn->getQs(0)<<" qs1 is "<<cn->getQs(1)<<std::endl;
+	  //             std::cout<<"texture of surface is "<<cn->getLayerSed(0)<<std::endl;
 	  //          }
 
 	  // Set the erosion (deposition) rate and send the corresponding
@@ -2195,7 +2190,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 	  cn->getDownstrmNbr()->addQsin( cn->getQsin() - pedr*cn->getVArea() );
 	  // only doing totals here
 	  // sediment transport rates for each grn size have been calculated
-	  //cout << "RATE STEP:\n";
+	  //std::cout << "RATE STEP:\n";
 	  //cn->TellAll();
 	}
 
@@ -2217,21 +2212,21 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 	      if( dt < 1e-6 )
 		{
 
-		  cout << "Very small dt " << dt << " at:\n" << endl;
-		  //cout << "rate dif is " << ratediff << endl;
-		  //cout << "elev dif is " << cn->getZ() - dn->getZ() << endl;
-		  //cout << "dzdt upstream is " << cn->getDzDt() << endl;
-		  //cout << "dzdt downstream is " << dn->getDzDt() << endl;
+		  std::cout << "Very small dt " << dt << " at:\n" << std::endl;
+		  //std::cout << "rate dif is " << ratediff << std::endl;
+		  //std::cout << "elev dif is " << cn->getZ() - dn->getZ() << std::endl;
+		  //std::cout << "dzdt upstream is " << cn->getDzDt() << std::endl;
+		  //std::cout << "dzdt downstream is " << dn->getDzDt() << std::endl;
 		  // cn->TellAll();
 		  //dn->TellAll();
-		  //cout << "arbitrarily set dt to 0.0015" << endl;
+		  //std::cout << "arbitrarily set dt to 0.0015" << std::endl;
 		  dtmax=0.005;
 		}
 	    }
 	}
       dtmax *= frac;  // Take a fraction of time-to-flattening
 
-      //cout<<"dtmax is "<<dtmax<<endl;
+      //std::cout<<"dtmax is "<<dtmax<<std::endl;
 
       // Zero out sed influx again, because depending on bedrock-alluvial
       // interaction it may be modified; if inlet, give it strmNet->inlet.inSedLoad
@@ -2284,38 +2279,38 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
 	{
 	  // Depth of potential erosion due to excess transport capacity
-	  dzt=0;
+	  dzt=0.;
 	  //cn->TellAll();
 	  for( size_t i=0; i<cn->getNumg(); i++ ){
             dz[i] = ( (cn->getQsin(i)-cn->getQs(i)) / cn->getVArea() ) * dtmax;
             dzt += dz[i];
-            retbr[i]=0;
-            retsed[i]=0;
+            retbr[i]=0.;
+            retsed[i]=0.;
 	  }
 	  //  if(cn->getX()==2.75 && cn->getY()==1){
-	  //             cout<<"qsin0 qs0 "<<cn->getQsin(0)<<" "<<cn->getQs(0)<<endl;
-	  //             cout<<"qsin1 qs1 "<<cn->getQsin(1)<<" "<<cn->getQs(1)<<endl;
-	  //             cout<<"area "<<cn->getVArea()<<" time "<<dtmax<<endl;
+	  //             std::cout<<"qsin0 qs0 "<<cn->getQsin(0)<<" "<<cn->getQs(0)<<std::endl;
+	  //             std::cout<<"qsin1 qs1 "<<cn->getQsin(1)<<" "<<cn->getQs(1)<<std::endl;
+	  //             std::cout<<"area "<<cn->getVArea()<<" time "<<dtmax<<std::endl;
 	  //          }
 
 
 	  // If we're on bedrock, scour the bedrock
-	  dzrt = 0;
+	  dzrt = 0.;
 	  if(cn->getLayerSed(0)<1){
             // Bedrock at surface
             for( size_t i=0; i<cn->getNumg(); i++ ){
 	      dzr[i] = cn->getDrDt()*cn->getLayerDgrade(0,i)/cn->getLayerDepth(0)*dtmax;
 	      dzrt += dzr[i];
 	      // if(cn->getX()==2.75 && cn->getY()==1){
-	      //                   cout<<"no sed drdt is "<<dzrt<<" of node "<<cn->getID()<<endl;
-	      //                   cout<<"should erode some bedrock"<<endl;
+	      //                   std::cout<<"no sed drdt is "<<dzrt<<" of node "<<cn->getID()<<std::endl;
+	      //                   std::cout<<"should erode some bedrock"<<std::endl;
 	      //                }
             }
 
             if(dzrt<0)
 	      retbr=cn->EroDep(0,dzr,timegb);
             //if(cn->getID()==93){
-            // cout<<"done with erosion nic"<< endl;
+            // std::cout<<"done with erosion nic"<< std::endl;
             //}
 
 	  }
@@ -2336,28 +2331,28 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 		// nic - don't think you need this
 	      }
 	      // if(cn->getX()==2.75 && cn->getY()==1){
-	      //                cout<<"sed on top drdt is "<<dzrt<<" of node "<<cn->getID()<<endl;
-	      //                cout<<"should erode some bedrock"<<endl;
+	      //                std::cout<<"sed on top drdt is "<<dzrt<<" of node "<<cn->getID()<<std::endl;
+	      //                std::cout<<"should erode some bedrock"<<std::endl;
 	      //             }
 
 	      if(dzrt<0)
                 retbr=cn->EroDep(1,dzr,timegb);
 	    }
 
-	  //cout << "** THIS node has dzs " << dzs << " & dzr " << dzr
-	  //     << " & net change " << dzr+dzs << endl;
+	  //std::cout << "** THIS node has dzs " << dzs << " & dzr " << dzr
+	  //     << " & net change " << dzr+dzs << std::endl;
 	  //cn->TellAll();
 
 	  // Update alluvium thickness and node elevation
 	  if(fabs(dzt)>0){
             // if(cn->getX()==2.75 && cn->getY()==1){
-	    //                 cout<<"eroding sediment at specified node, total of "<<dzt<<endl;
-	    //                 cout<<"Total number of layers is "<<cn->getNumLayer()<<endl;
-	    //                 cout<<"dz0 is "<<dz[0]<<" dz1 is "<<dz[1]<<endl;
+	    //                 std::cout<<"eroding sediment at specified node, total of "<<dzt<<std::endl;
+	    //                 std::cout<<"Total number of layers is "<<cn->getNumLayer()<<std::endl;
+	    //                 std::cout<<"dz0 is "<<dz[0]<<" dz1 is "<<dz[1]<<std::endl;
 
 	    //             }
 
-            //cout << "dzt is " << dzt << endl;
+            //std::cout << "dzt is " << dzt << std::endl;
             retsed=cn->EroDep(0, dz, timegb );
 	  }
 
@@ -2448,7 +2443,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 		cn->setQsin( insed );
 		for( size_t i=0; i<cn->getNumg(); i++ ){
                   cn->setQs(i,0.0);
-		  //cout << "inlet qsin size " << i << "=" << insed[i] << endl;
+		  //std::cout << "inlet qsin size " << i << "=" << insed[i] << std::endl;
 		}
 	      }
 	  }
@@ -2459,9 +2454,9 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 	// rates for each size are also set within the function call.
 	for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
 	  {
-            depck=0;
+            depck=0.;
             int i=0;
-            qs=0;
+            qs=0.;
 
             assert(cn->getChanDepth()<1000);
 
@@ -2499,9 +2494,9 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
             cn->setDrDt(drdt);
             cn->setDzDt(drdt);
 
-	    /*cout << "*** EROSION ***\n";
+	    /*std::cout << "*** EROSION ***\n";
 	      if( cn->getID()==342 ) {
-	      cout << "**** Trans Cap 342 = " << qs << endl;
+	      std::cout << "**** Trans Cap 342 = " << qs << std::endl;
 	      cn->TellAll();
 	      }*/
 
@@ -2548,11 +2543,11 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 		 if( dtmax < 0.0001 && dtmax < dtg )
 		   {
 		     if(0) { // debug
-		       cout << "Very small dtmax " << dtmax <<  endl;
-		       cout << "rate dif is " << ratediff << endl;
-		       cout << "elev dif is " << cn->getZ()-dn->getZ() << endl;
-		       cout << "dzdt upstream is " << cn->getDzDt() << endl;
-		       cout << "dzdt downstream is " << dn->getDzDt() << endl;
+		       std::cout << "Very small dtmax " << dtmax <<  std::endl;
+		       std::cout << "rate dif is " << ratediff << std::endl;
+		       std::cout << "elev dif is " << cn->getZ()-dn->getZ() << std::endl;
+		       std::cout << "dzdt upstream is " << cn->getDzDt() << std::endl;
+		       std::cout << "dzdt downstream is " << dn->getDzDt() << std::endl;
 		       cn->TellAll();
 		       dn->TellAll();
 		     }
@@ -2574,8 +2569,8 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
             //need to recalculate cause qsin may change due to time step calc
             excap=(cn->getQs() - cn->getQsin())/cn->getVArea();
 
-            //cout<<"actual erosion excap = "<<excap<<endl;
-            //cout<<"drdt is "<<cn->getDrDt()<<endl;
+            //std::cout<<"actual erosion excap = "<<excap<<std::endl;
+            //std::cout<<"drdt is "<<cn->getDrDt()<<std::endl;
             //again, excap pos if eroding, neg if depositing
             //nic here is where drdt comes in again
             //flag is used to determine the texture of what should be eroded.
@@ -2605,7 +2600,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
               if( cn->getX()>50.0 && cn->getX()<51.0
               && cn->getY()>29.0 && cn->getY()<30.0 )
               {
-              cout << "f (" << cn->getID() << " ld = " << cn->getLayerDepth(0) << endl;
+              std::cout << "f (" << cn->getID() << " ld = " << cn->getLayerDepth(0) << std::endl;
               l0 = cn->getLayerDgrade(0,0);
               l1 = cn->getLayerDgrade(0,1);
               }*/
@@ -2614,7 +2609,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 	      {
 		if(!flag){ // detach-lim
                   int i=0;
-                  depck=0;
+                  depck=0.;
                   while(dz<-0.000000001&&depck<cn->getChanDepth()&&i<cn->getNumLayer()){
 		    depck+=cn->getLayerDepth(i);
 		    if(-dz<=cn->getLayerDepth(i)){//top layer can supply total depth
@@ -2631,7 +2626,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 		      for(size_t j=0;j<cn->getNumg();j++){
 			cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
 		      }
-		      dz=0;
+		      dz=0.;
 		    }
 		    else{//top layer is not deep enough, need to erode more layers
 		      flag=false;
@@ -2662,20 +2657,20 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
                   }
 		}
 		else{//trans-lim
-                  //cout<<"X "<<cn->getX()<<" Y "<<cn->getY();
+                  //std::cout<<"X "<<cn->getX()<<" Y "<<cn->getY();
                   for(size_t j=0;j<cn->getNumg();j++){
 		    erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
-		    // cout<<" j "<<j<<" "<<erolist[j];
+		    // std::cout<<" j "<<j<<" "<<erolist[j];
                   }
-                  //cout<<endl;
+                  //std::cout<<std::endl;
 
                   int i=0;
-                  depck=0;
+                  depck=0.;
                   while(depck<cn->getChanDepth()){
 		    depck+=cn->getLayerDepth(i);
 		    int flag=cn->getNumLayer();
 		    ret=cn->EroDep(i,erolist,timegb);
-		    double sum=0;
+		    double sum=0.;
 		    for(size_t j=0;j<cn->getNumg();j++){
 		      cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
 		      erolist[j]-=ret[j];
@@ -2711,12 +2706,12 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 
 	// Update time remainig
 	dtg -= dtmax;
-	//cout<<"Time remaining now "<<dtg<<endl;
+	//std::cout<<"Time remaining now "<<dtg<<std::endl;
       } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
   }//end if rainrate-infilt>0
 
 
-   //cout<<"ending detach erode"<<endl;
+   //std::cout<<"ending detach erode"<<std::endl;
 }// End erosion algorithm
 
 
@@ -2768,7 +2763,7 @@ void tErosion::Diffuse( double rt, bool noDepoFlag )
   tMesh< tLNode >::edgeListIter_t edgIter( meshPtr->getEdgeList() );
 
 #ifdef TRACKFNS
-  cout << "tErosion::Diffuse()" << endl << flush;
+  std::cout << "tErosion::Diffuse()" << std::endl;
 #endif
 
   if( kd==0 ) return;
@@ -2783,7 +2778,7 @@ void tErosion::Diffuse( double rt, bool noDepoFlag )
     {
       if( 0 ) //DEBUG
 	{
-	  cout << "In Diffuse(), large vedglen detected: " << ce->getVEdgLen() << endl;
+	  std::cout << "In Diffuse(), large vedglen detected: " << ce->getVEdgLen() << std::endl;
 	  ce->TellCoords();
 	}
       //Xif( (denom=kd*ce->getVEdgLen() ) > kVerySmall )
@@ -2794,7 +2789,7 @@ void tErosion::Diffuse( double rt, bool noDepoFlag )
 	{
 	  dtmax = delt;
 	  if(0) { //DEBUG
-	    cout << "TIME STEP CONSTRAINED TO " << dtmax << " AT EDGE:\n";
+	    std::cout << "TIME STEP CONSTRAINED TO " << dtmax << " AT EDGE:\n";
 	    ce->TellCoords(); }
 	}
     }
@@ -2819,15 +2814,15 @@ void tErosion::Diffuse( double rt, bool noDepoFlag )
 	  cn->addQsin( volout );
 
 	  if( 0 ) { //DEBUG
-	    cout << volout << " mass exch. from " << ce->getOriginPtr()->getID()
+	    std::cout << volout << " mass exch. from " << ce->getOriginPtr()->getID()
 		 << " to "
 		 << ce->getDestinationPtr()->getID()
 		 << " on slp " << ce->getSlope() << " ve " << ce->getVEdgLen()
 		 << "\nvp " << ce->getRVtx().at(0)
-		 << " " << ce->getRVtx().at(1) << endl;
+		 << " " << ce->getRVtx().at(1) << std::endl;
 	    static_cast<tLNode *>(ce->getOriginPtrNC())->TellAll();
 	    static_cast<tLNode *>(ce->getDestinationPtrNC())->TellAll();
-	    cout << endl;
+	    std::cout << std::endl;
 	  }
 
 	  /*ce =*/ edgIter.NextP();  // Skip complementary edge
@@ -2837,15 +2832,15 @@ void tErosion::Diffuse( double rt, bool noDepoFlag )
       for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
 	{
 	  if( 0 ) //DEBUG
-	    cout << "Node " << cn->getID() << " Qsin: " << cn->getQsin()
-		 << " dz: " << cn->getQsin() / cn->getVArea() << endl;
+	    std::cout << "Node " << cn->getID() << " Qsin: " << cn->getQsin()
+		 << " dz: " << cn->getQsin() / cn->getVArea() << std::endl;
 	  if( noDepoFlag && cn->getQsin() > 0.0 )
 	      cn->setQsin( 0.0 );
 	  cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area
 	  if( 0 ) //DEBUG
-	    cout<<cn->getZ()<<" Q: "<<cn->getQ()
+	    std::cout<<cn->getZ()<<" Q: "<<cn->getQ()
 		<<" dz "<<cn->getQsin() / cn->getVArea()
-		<<" dt "<<dtmax<<endl;
+		<<" dt "<<dtmax<<std::endl;
 	  /*if( cn->id==700 ) {
 	    cn->TellAll();
 	    }*/
@@ -2875,7 +2870,7 @@ void tErosion::UpdateExposureTime( double dtg)
   tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
 
 #ifdef TRACKFNS
-  cout << "tErosion::UpdateExposureTime()" << endl << flush;
+  std::cout << "tErosion::UpdateExposureTime()" << std::endl;
 #endif
 
   for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() ){
@@ -2909,9 +2904,9 @@ void tErosion::DensifyMesh( double time )
   tMesh< tLNode >::nodeListIter_t niter( meshPtr->getNodeList() );  // node list iter.
   tLNode *cn;              // Current node being checked
 
-  double dbgnf, dbgmax=0;
+  double dbgnf, dbgmax=0.;
 
-  cout << "Checking nodes...\n";
+  std::cout << "Checking nodes...\n";
 
   // Check all active nodes
   for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
@@ -2923,11 +2918,11 @@ void tErosion::DensifyMesh( double time )
       if( fabs(cn->getVArea()*cn->getDzDt()) > mdMeshAdaptMaxFlux )
 	{
 	  meshPtr->AddNodesAround( cn, time );
-	  //cout << "*** Adding points here:\n";
+	  //std::cout << "*** Adding points here:\n";
 	  //cn->TellAll();
 	}
     }
 
-  cout << "Max node flux: " << dbgmax << endl;
+  std::cout << "Max node flux: " << dbgmax << std::endl;
 
 }

@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.75 2004-04-27 11:09:02 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.76 2004-06-16 13:37:27 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -189,8 +189,9 @@ double tNode::ComputeVoronoiArea()
   // have time to deal w/ it right now (gt, aug 02)
   if( getBoundaryFlag()!=kNonBoundary ) // if not an interior node, something's wrong
     {
-      cout << "Warning: attempt to compute Voronoi area for a boundary node: "
-	   << id << " " << x << " " << y << " " << BoundName(getBoundaryFlag()) << endl;
+      std::cout << "Warning: attempt to compute Voronoi area for a boundary node: "
+	   << id << " " << x << " " << y
+	   << " " << BoundName(getBoundaryFlag()) << std::endl;
       return 0.0;
     }
 
@@ -198,7 +199,7 @@ double tNode::ComputeVoronoiArea()
   // the correct vertices. In some cases, we may need to delete an edge
   // to get the correct list of vertices; we don't want to delete the
   // spoke ptr, so we make a duplicate list.
-  //if( id==83 ) cout << "NODE 83: " << x << "," << y << endl;
+  //if( id==83 ) std::cout << "NODE 83: " << x << "," << y << std::endl;
 
   tPtrList< tEdge > vedgList;
   tPtrListIter< tEdge > vtxIter( vedgList );
@@ -211,23 +212,23 @@ double tNode::ComputeVoronoiArea()
 	tArray2< double > const &xy1 = ce->getRVtx();
 	tArray2< double > const &xy2 =
 	  vedgList.getLast()->getPtr()->getRVtx();
-	cout
+	std::cout
 	  << xy1.at(0) << " " << xy1.at(1) << "; "
-	  << xy2.at(0) << " " << xy2.at(1) << endl;
-	//if( id==83) cout << " " << ce->getDestinationPtr()->getX() << ","
-	//                 << ce->getDestinationPtr()->getY() << endl;
+	  << xy2.at(0) << " " << xy2.at(1) << std::endl;
+	//if( id==83) std::cout << " " << ce->getDestinationPtr()->getX() << ","
+	//                 << ce->getDestinationPtr()->getY() << std::endl;
       }
       ce = ce->getCCWEdg();
     } while( ce != getEdg() );
   vedgList.makeCircular();
-  //cout << endl;
+  //std::cout << std::endl;
   // Check boundary status: Voronoi area only defined for non-boundary nodes
   if( getBoundaryFlag() == kNonBoundary )
     {
       {
 	tArray2< double > xy1, xy2;
 	bool cw = true;
-	//cout << "find clockwise loops" << endl;
+	//std::cout << "find clockwise loops" << std::endl;
 	do
 	  {
 	    // go through the list; we want the vertex list to run CCW;
@@ -305,19 +306,19 @@ double tNode::ComputeVoronoiArea()
 			edgptr = vtxIter.PrevP();
 			dx = xy.at(0) - vx;
 			dy = xy.at(1) - vy;
-			//cout << "reset vedglen and rvtx for edge "
+			//std::cout << "reset vedglen and rvtx for edge "
 			//     << edgptr->getID() << " to len "
 			//     << sqrt( dx*dx + dy*dy )
-			//     << ", x, y, " << xyn.at(0) << ", " << xyn.at(1) << endl;
+			//     << ", x, y, " << xyn.at(0) << ", " << xyn.at(1) << std::endl;
 			//reset 'next' edge's vertex to newly found intersection,
 			//length adjusted accordingly
 			edgptr->setVEdgLen( sqrt( dx*dx + dy*dy ) );
 			edgptr->setRVtx( tArray2<double>( vx, vy ) );
 			edgptr = vtxIter.ReportNextP();
-			//cout << "reset vedglen and rvtx for edge "
+			//std::cout << "reset vedglen and rvtx for edge "
 			//     << edgptr->getID()
 			//     << " to len 0.0, x, y, " << xynnn[0] << ", "
-			//     << xynnn[1] << endl;
+			//     << xynnn[1] << std::endl;
 			//reset 'next-next' edge's vertex to the coordinates
 			//of the 'next-next-next' edge's vertex; length to zero
 			edgptr->setVEdgLen(0.0);
@@ -352,7 +353,7 @@ double tNode::ComputeVoronoiArea()
 	    if( ce->getBoundaryFlag() != kNonBoundary &&
 		ne->getBoundaryFlag() != kNonBoundary)
 	      {
-		//if( id==83 ) cout << " CASE A\n";
+		//if( id==83 ) std::cout << " CASE A\n";
 		tNode *bn0, *bn1;
 		bn0 = ce->getDestinationPtrNC();
 		bn1 = ne->getDestinationPtrNC();
@@ -362,7 +363,7 @@ double tNode::ComputeVoronoiArea()
 		  {
 		    //"cut off" portion of V. area outside bndy by finding intersections
 		    //of V. edges and bndy edge:
-		    //if( id==83 ) cout << " CASE B\n";
+		    //if( id==83 ) std::cout << " CASE B\n";
 		    vcL.insertAtBack(
 				     FindIntersectionCoords( ce->getRVtx(),
 							     xy1, xy2, xy3 )
@@ -382,7 +383,7 @@ double tNode::ComputeVoronoiArea()
 	// fill the polygon; the sum of the tri areas is the v. area.
 	// For a convex polygon, we can compute the total area as the
 	// sum of the area of triangles [P(1) P(i) P(i+1)] for i=2,3...N-1.
-	//cout << "find polygon area" << endl;
+	//std::cout << "find polygon area" << std::endl;
 	// coords of first vertex:
 	tListIter< tArray2< double > > vcI( vcL ); // iterator for coord list
 	tArray2< double > const * const xy = vcI.FirstP(); //ce = vtxIter.FirstP();
@@ -433,9 +434,9 @@ double tNode::ComputeVoronoiArea()
     }
   varea = area;
   if( varea<=0.0 ) { // debug
-    cout << "Error: zero or negative varea = " << varea << endl;
-    cout << "Node: " << id << " " << x << " " << y << " "
-	 << BoundName(boundary) << endl;
+    std::cout << "Error: zero or negative varea = " << varea << std::endl;
+    std::cout << "Node: " << id << " " << x << " " << y << " "
+	 << BoundName(boundary) << std::endl;
     getEdg()->TellCoords();
   }
   assert( varea>0.0 );
@@ -444,23 +445,23 @@ double tNode::ComputeVoronoiArea()
   // debug
   if (0){ //DEBUG
     if( id==83 ) {
-      cout << " reading list: ";
+      std::cout << " reading list: ";
       for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
 	{
 	  tArray2<double> const &xy = ce->getRVtx();
-	  cout << xy.at(0) << " " << xy.at(1) << "; ";
+	  std::cout << xy.at(0) << " " << xy.at(1) << "; ";
 	}
-      cout << endl;
-      cout << "reading spokes: ";
+      std::cout << std::endl;
+      std::cout << "reading spokes: ";
       ce = getEdg();
       do
 	{
 	  assert( ce!=0 );
 	  tArray2<double> const &xy = ce->getRVtx();
-	  cout << xy.at(0) << " " << xy.at(1) << "; ";
+	  std::cout << xy.at(0) << " " << xy.at(1) << "; ";
 	  ce = ce->getCCWEdg();
 	} while( ce != getEdg() );
-      cout << endl;
+      std::cout << std::endl;
     }
   }
 
@@ -494,7 +495,7 @@ void tNode::getVoronoiVertexList( tList<Point2D> * vertexList )
    {
       tArray2<double> const & vtxarr = ce->getRVtx();
       const Point2D vtx( vtxarr.at(0), vtxarr.at(1) );
-      //cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << endl;
+      //std::cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << std::endl;
       vertexList->insertAtBack( vtx );
       ce = ce->getCCWEdg();
    }
@@ -542,7 +543,7 @@ void tNode::getVoronoiVertexXYZList( tList<Point3D> * vertexList )
 		 n1->get2DCoords(), n2->get2DCoords(), zvals );
       const Point3D vtx(vtxarr.at(0), vtxarr.at(1), zz);
       if (0) //DEBUG
-	cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << " z " << vtx.z << endl;
+	std::cout << "ADDING TO LIST: x " << vtx.x << " y " << vtx.y << " z " << vtx.z << std::endl;
       vertexList->insertAtBack( vtx );
    }
    while( ce!=edg );
@@ -591,13 +592,13 @@ void tNode::ConvertToClosedBoundary()
 #ifndef NDEBUG
 void tNode::TellAll() const
 {
-   cout << " NODE " << id << ":\n";
-   cout << "  x=" << x << " y=" << y << " z=" << z;
-   cout << "  boundary: " << BoundName(boundary)
-        << "\n  varea: " << varea << endl;
+   std::cout << " NODE " << id << ":\n";
+   std::cout << "  x=" << x << " y=" << y << " z=" << z;
+   std::cout << "  boundary: " << BoundName(boundary)
+        << "\n  varea: " << varea << std::endl;
    if( edg )
-       cout << "  points to edg #" << edg->getID() << endl;
-   else cout << "  edg is undefined!\n";
+       std::cout << "  points to edg #" << edg->getID() << std::endl;
+   else std::cout << "  edg is undefined!\n";
 
 }
 #endif
@@ -615,10 +616,10 @@ void tNode::TellAll() const
 \**************************************************************************/
 void tEdge::TellCoords()
 {
-   cout << "EDGE " << id << ":\n";
-   cout << "  " << org->getID() << " (" << org->getX() << ","
+   std::cout << "EDGE " << id << ":\n";
+   std::cout << "  " << org->getID() << " (" << org->getX() << ","
         << org->getY() << ") -> " << dest->getID() << " ("
-        << dest->getX() << "," << dest->getY() << ")" << endl;
+        << dest->getX() << "," << dest->getY() << ")" << std::endl;
 }
 
 
@@ -668,64 +669,64 @@ bool tEdge::CheckConsistency(){
 
   if( (org=getOriginPtrNC() ) == NULL)
     {
-      cerr << "EDGE #" << getID()
+      std::cerr << "EDGE #" << getID()
 	   << " does not have a valid origin point\n";
       return false;
     }
   if( (dest=getDestinationPtrNC() ) == NULL)
     {
-      cerr << "EDGE #" << getID()
+      std::cerr << "EDGE #" << getID()
 	   << " does not have a valid destination point\n";
       return false;
     }
   if( (ccwedg=getCCWEdg() ) == NULL)
     {
-      cerr << "EDGE #" << getID()
+      std::cerr << "EDGE #" << getID()
 	   << " does not point to a valid counter-clockwise edge\n";
       return false;
     }
   if( ccwedg->getOriginPtrNC()!=org )
     {
-      cerr << "EDGE #" << getID()
+      std::cerr << "EDGE #" << getID()
 	   << " points to a CCW edge with a different origin\n";
       return false;
     }
   if( ccwedg->getDestinationPtrNC()==dest )
     {
-      cerr << "EDGE #" << getID()
+      std::cerr << "EDGE #" << getID()
 	   << " points to a CCW edge with the same destination\n";
       return false;
     }
   tEdge *cwedg;
   if( (cwedg=getCWEdg() ) == NULL)
     {
-      cerr << "EDGE #" << getID()
+      std::cerr << "EDGE #" << getID()
 	   << " does not point to a valid clockwise edge\n";
       return false;
     }
   if( cwedg->getOriginPtrNC()!=org )
     {
-      cerr << "EDGE #" << getID()
+      std::cerr << "EDGE #" << getID()
 	   << " points to a CW edge with a different origin\n";
       return false;
     }
   if( cwedg->getDestinationPtrNC()==dest )
     {
-      cerr << "EDGE #" << getID()
+      std::cerr << "EDGE #" << getID()
 	   << " points to a CCW edge with the same destination\n";
       return false;
     }
   if ( getCCWEdg()->getCWEdg() != this ||
        getCWEdg()->getCCWEdg() != this)
     {
-      cerr << "EDGE #" << getID()
+      std::cerr << "EDGE #" << getID()
 	   << ": inconsistency related to pointers to CW and CCW edges\n";
       return false;
     }
 
   if( org==dest )
     {
-      cerr << "EDGE #" << getID()
+      std::cerr << "EDGE #" << getID()
 	   << " has the same origin and destination nodes\n";
       return false;
     }
@@ -1032,20 +1033,20 @@ void tTriangle::TellAll() const
    int i;
 
    assert( this!=0 );
-   cout << "TRIANGLE #" << id << ":\n";
+   std::cout << "TRIANGLE #" << id << ":\n";
    for( i=0; i<3; i++ )
    {
-      cout << "  P" << i << " ";
-      if( p[i]!=0 ) cout << p[i]->getID() << " (" << p[i]->getX() << ","
+      std::cout << "  P" << i << " ";
+      if( p[i]!=0 ) std::cout << p[i]->getID() << " (" << p[i]->getX() << ","
                          << p[i]->getY() << ")";
-      else cout << "(ndef)";
-      cout << "  E" << i << " ";
-      if( e[i]!=0 ) cout << e[i]->getID();
-      else cout << "(ndef)";
-      cout << "  T" << i << " ";
-      if( t[i]!=0 ) cout << t[i]->getID();
-      else cout << "(ndef)";
-      cout << endl;
+      else std::cout << "(ndef)";
+      std::cout << "  E" << i << " ";
+      if( e[i]!=0 ) std::cout << e[i]->getID();
+      else std::cout << "(ndef)";
+      std::cout << "  T" << i << " ";
+      if( t[i]!=0 ) std::cout << t[i]->getID();
+      else std::cout << "(ndef)";
+      std::cout << std::endl;
    }
 }
 #endif

@@ -15,14 +15,8 @@
 /***************************************************************************/
 
 #include <math.h>
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-# include <fstream>
-using namespace std;
-#else
-# include <iostream.h>
-# include <fstream.h>
-#endif
+#include <iostream>
+#include <fstream>
 #include <time.h>
 #include <assert.h>
 
@@ -111,20 +105,20 @@ const point &point::operator=( const point &p ) {
 
 // we sort according x *and* y (if x are equal) so that
 // vertically aligned point are ordered.
-int point::operator < (const point& p) const {
+bool point::operator < (const point& p) const {
   return x() == p.x() ? y()<p.y() : x()<p.x();
 }
 
 #if defined(DEBUG_PRINT)
-void point::print () const {cout << x() << ' '<< y() << '\n';}
+void point::print () const {std::cout << x() << ' '<< y() << '\n';}
 #endif
-void point::write(ofstream& f) const {f<<x()<<' '<<y()<< '\n';}
+void point::write(std::ofstream& f) const {f<<x()<<' '<<y()<< '\n';}
 
 
 #if defined(DEBUG_PRINT)
 void edge::print(const point p[]) const {p[from].print();p[to].print();}
 #endif
-void edge::write(ofstream& f,const point p[]) const {
+void edge::write(std::ofstream& f,const point p[]) const {
   p[from].write(f);p[to].write(f);}
 bool edge::visible(const point p[],int i) const {
   //test whether an edge on the hull is visible from a point
@@ -280,7 +274,7 @@ int cyclist::addAfter(int a,int ej){
 void cyclist::print() const {
   int j=ejs[0].next;
   for (int i=0;i<num;i++){
-    cout<<ejs[j].data<<endl;
+    std::cout<<ejs[j].data<<std::endl;
     j=ejs[j].next;
   }
 }
@@ -385,14 +379,14 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos,
     }
   }
   if (orient == 0){
-    cout << "All nodes aligned. Ill-conditioned problem. Bailing out."
-	 << endl;
+    std::cout << "All nodes aligned. Ill-conditioned problem. Bailing out."
+	 << std::endl;
     tt_error_handler();
   }
   // if orient > 0, build edge from 0 to j-1
   // if orient < 0, build edge from j-1 to 0
   if (0) // DEBUG
-    cout << "first non aligned j=" << j << " o=" << orient << endl;
+    std::cout << "first non aligned j=" << j << " o=" << orient << std::endl;
 
   const int nap = j; // first non aligned point
   if (orient > 0) {
@@ -403,8 +397,8 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos,
       edges[iedge].to=inode+1;
       inode++;
       if (0) // DEBUG
-	cout << "edge=" << iedge << " from=" << edges[iedge].from << " to="
-	     << edges[iedge].to << endl;
+	std::cout << "edge=" << iedge << " from=" << edges[iedge].from << " to="
+		  << edges[iedge].to << std::endl;
     }
 
   } else {
@@ -414,8 +408,8 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos,
       edges[iedge].to=inode;
       inode--;
       if (0) // DEBUG
-	cout << "edge=" << iedge << " from=" << edges[iedge].from << " to="
-	     << edges[iedge].to << endl;
+	std::cout << "edge=" << iedge << " from=" << edges[iedge].from << " to="
+		  << edges[iedge].to << std::endl;
     }
   }
   // close the domain
@@ -480,18 +474,18 @@ void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos,
   next_edge = 2*nap-1; // number of existing edges: 2*nap-1
   next_point = nap+1;
   if (0) // DEBUG
-    cout << "next point=" << next_point << endl;
+    std::cout << "next point=" << next_point << std::endl;
   //
   if (0) { //DEBUG
     for (int iedge=0;iedge<next_edge; iedge++){
-      cout << "iedge=" << iedge
-	   << " from=" << edges[iedge].from
-	   << " to=" << edges[iedge].to
- 	   << " lef=" << edges[iedge].lef
- 	   << " let=" << edges[iedge].let
- 	   << " ref=" << edges[iedge].ref
- 	   << " ret=" << edges[iedge].ret
-	   << endl;
+      std::cout << "iedge=" << iedge
+		<< " from=" << edges[iedge].from
+		<< " to=" << edges[iedge].to
+		<< " lef=" << edges[iedge].lef
+		<< " let=" << edges[iedge].let
+		<< " ref=" << edges[iedge].ref
+		<< " ret=" << edges[iedge].ret
+		<< std::endl;
     }
   }
 }
@@ -501,8 +495,8 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
   // we assume that all points are unique
 
   if (npoints < 3) {
-    cout << "Less than 3 distinct nodes to triangulate. Bailing out."
-	 << endl;
+    std::cout << "Less than 3 distinct nodes to triangulate. Bailing out."
+	      << std::endl;
     tt_error_handler();
   }
 
@@ -600,8 +594,8 @@ void triangulate(int npoints,const point p[], int *pnedges, edge** edges_ret){
 	  upper_hull_pos=hull.getNextPos(lower_hull_pos);
 	}else{
 	  //or else its an error!
-	  cout << "Triangulate: Can't see the hull from the new point!? "
-	    "number is " << i <<endl;
+	  std::cout << "Triangulate: Can't see the hull from the new point!? "
+	    "number is " << i <<std::endl;
 	  tt_error_handler();
 	}
       }
@@ -716,8 +710,8 @@ void moved_duplicated_points(int npoints, point *p, int &npoints_unique){
     int j=0;
     for(int i=1;i<npoints;++i){
       if (p[j].x() == p[i].x() && p[j].y() == p[i].y()){
-	cout << "Warning: point " << p[j].id() << " and point " << p[i].id()
-	     << " are duplicated." << endl;
+	std::cout << "Warning: point " << p[j].id() << " and point " << p[i].id()
+	     << " are duplicated." << std::endl;
 	++npoints_dup;
       } else {
 	j = i;
@@ -803,21 +797,21 @@ void tt_sort_triangulate(int npoints, point *p,
 #if defined(TIMING)
     time_t t2 = time(NULL);
     clock_t tick2 = clock();
-    cout << "elapsed time (time)= " << difftime(t2,t1) << " s"
+    std::cout << "elapsed time (time)= " << difftime(t2,t1) << " s"
 	 << " (clock)= " << static_cast<double>(tick2-tick1)/CLOCKS_PER_SEC
-	 << " s" << endl;
+	 << " s" << std::endl;
   }
 #endif
   if (0) { // DEBUG
     for (int iedge=0;iedge<*pnedges; iedge++){
-      cout << "iedge=" << iedge
+      std::cout << "iedge=" << iedge
 	   << " from=" << (*edges_ret)[iedge].from
 	   << " to=" << (*edges_ret)[iedge].to
  	   << " lef=" << (*edges_ret)[iedge].lef
  	   << " let=" << (*edges_ret)[iedge].let
  	   << " ref=" << (*edges_ret)[iedge].ref
  	   << " ret=" << (*edges_ret)[iedge].ret
-	   << endl;
+	   << std::endl;
 	}
   }
 }
@@ -1046,14 +1040,14 @@ void tt_build_elem_table(int npoints, const point *p,
 	orient2d(elems[ielem].p2,elems[ielem].p1,elems[ielem].p3,p);
       // points should not be aligned.
       if (v==0.){
-	cout << "These points are aligned: "
+	std::cout << "These points are aligned: "
 	     << elems[ielem].p1 << "(" << p[elems[ielem].p1].x()
 	     << "," << p[elems[ielem].p1].y() << "), "
 	     << elems[ielem].p2 << "(" << p[elems[ielem].p2].x()
 	     << "," << p[elems[ielem].p2].y() << "), "
 	     << elems[ielem].p3 << "(" << p[elems[ielem].p3].x()
 	     << "," << p[elems[ielem].p3].y() << ")"
-	     << endl;
+	     << std::endl;
       }
       assert(v != 0.);
       if (v>0) {
@@ -1086,7 +1080,7 @@ void tt_build_elem_table(int npoints, const point *p,
   }
   if (0) { //DEBUG
     for(int ielem=0;ielem<nelem;ielem++){
-      cout << "elem=" << ielem
+      std::cout << "elem=" << ielem
 	   << " p1=" << elems[ielem].p1
 	   << " (" << p[elems[ielem].p1].x()
 	   <<"," << p[elems[ielem].p1].y() << ")"
@@ -1096,7 +1090,7 @@ void tt_build_elem_table(int npoints, const point *p,
 	   << " p3=" << elems[ielem].p3
 	   << " (" << p[elems[ielem].p3].x()
 	   <<"," << p[elems[ielem].p3].y() << ")"
-	   << endl;
+	   << std::endl;
     }
   }
   delete [] edges_visit;

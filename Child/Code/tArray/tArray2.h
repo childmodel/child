@@ -11,19 +11,14 @@
  **
  **  Arnaud Desitter - April 2004
  **
- **  $Id: tArray2.h,v 1.1 2004-04-14 12:57:37 childcvs Exp $
+ **  $Id: tArray2.h,v 1.2 2004-06-16 13:37:30 childcvs Exp $
  */
 /***************************************************************************/
 
 #ifndef TARRAY2_H
 #define TARRAY2_H
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
+#include <iostream>
 #include "../errors/errors.h"
 
 /***************************************************************************/
@@ -38,7 +33,7 @@ using namespace std;
 template< class T >
 class tArray2
 {
-  void fatalReport( int ) const ATTRIBUTE_NORETURN; // bail out
+  void fatalReport( unsigned int ) const ATTRIBUTE_NORETURN; // bail out
 public:
   inline tArray2();                      // default constructor
   inline tArray2( const tArray2< T > & ); // copy constructor
@@ -63,7 +58,7 @@ private:
 };
 
 template< class T >
-ostream &operator<<( ostream &output, const tArray2< T > &a );
+std::ostream &operator<<( std::ostream &output, const tArray2< T > &a );
 
 
 /**************************************************************************\
@@ -166,16 +161,16 @@ inline const T &tArray2< T >::at( unsigned int subscript ) const
 }
 
 template< class T >
-void tArray2< T >::fatalReport( int subscript ) const
+void tArray2< T >::fatalReport( unsigned int subscript ) const
 {
-  cout << "subscript is " << subscript << " > 2" <<endl;
+  std::cout << "subscript is " << subscript << " > 2" <<std::endl;
   ReportFatalError( "Subscript out of range." );
 }
 
 
 //overloaded left shift operator
 template< class T >
-ostream &operator<<( ostream &output, const tArray2< T > &a )
+std::ostream &operator<<( std::ostream &output, const tArray2< T > &a )
 {
   output << a.avalue[0] << ' ' << a.avalue[1] << ' ';
   return output;

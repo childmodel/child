@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.100 2004-06-14 14:10:19 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.101 2004-06-16 13:37:40 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -25,12 +25,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
+#include <iostream>
 #include "tOutput.h"
 #include "../errors/errors.h"
 #include "../tMeshList/tMeshList.h"
@@ -60,10 +55,10 @@ public:
   tTSOutputImp( tMesh<tSubNode> * meshPtr, const tInputFile &infile );
   void WriteTSOutput();
 private:
-  ofstream volsofs;    // catchment volume
-  ofstream dvolsofs;
-  ofstream tareaofs;   // total voronoi area of catchment
-  ofstream vegcovofs;  // Catchment vegetation cover %
+  std::ofstream volsofs;    // catchment volume
+  std::ofstream dvolsofs;
+  std::ofstream tareaofs;   // total voronoi area of catchment
+  std::ofstream vegcovofs;  // Catchment vegetation cover %
   double mdLastVolume;
 };
 
@@ -96,22 +91,22 @@ private:
   void WritePreservationPotential( double time, int );
   void WriteSingleSection( double time,
 			   int section,
-			   ofstream &xyzofs, ofstream &lay3ofs, ofstream &lay4ofs,
+			   std::ofstream &xyzofs, std::ofstream &lay3ofs, std::ofstream &lay4ofs,
 			   direction_t );
   void Flush();
 
   // stratigraphic sections 1 to 10
   enum{ nIsections = 5, nSections = 10 };
-  ofstream xyzofs[nSections];
-  ofstream layt3ofs[nSections];
-  ofstream layt4ofs[nSections];
+  std::ofstream xyzofs[nSections];
+  std::ofstream layt3ofs[nSections];
+  std::ofstream layt4ofs[nSections];
   direction_t direction[nSections];
 
   // Subsurface gravel bodies
-  ofstream grxyzofs,gravofs;
+  std::ofstream grxyzofs,gravofs;
 
   // Preservation potential files
-  ofstream psurfofs,pssurfofs,pssurf2ofs;
+  std::ofstream psurfofs,pssurfofs,pssurf2ofs;
 
   tStratGrid *stratGrid; // pointer to stratigraphy grid
   tStreamNet *netPtr;
@@ -157,13 +152,13 @@ tOutputBase<tSubNode>::tOutputBase( tMesh<tSubNode> * meshPtr,
  **
 \*************************************************************************/
 template< class tSubNode >
-void tOutputBase<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
+void tOutputBase<tSubNode>::CreateAndOpenFile( std::ofstream *theOFStream,
 					       const char *extension ) const
 {
   char fullName[kMaxNameSize+20];  // name of file to be created
 
   if (strlen(baseName)+strlen(extension) >= sizeof(fullName)) {
-    cout << "While opening " << baseName << extension << endl;
+    std::cout << "While opening " << baseName << extension << std::endl;
     ReportFatalError("tOutputCreateAndOpenFile(): buffer too short.");
   }
 
@@ -184,7 +179,7 @@ void tOutputBase<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
  **  write time and number of elements
 \*************************************************************************/
 template< class tSubNode >
-void tOutputBase<tSubNode>::WriteTimeNumberElements( ofstream &fs,
+void tOutputBase<tSubNode>::WriteTimeNumberElements( std::ofstream &fs,
 						     double time, int n )
 {
   fs << ' ' << time << '\n' << n << '\n';
@@ -246,7 +241,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
   const int ntri = this->m->getTriList()->getSize();     // "    triangles "
 
   if (1)//DEBUG
-    cout << "tOutput::WriteOutput() time=" << time << endl;
+    std::cout << "tOutput::WriteOutput() time=" << time << std::endl;
 
   // Renumber IDs in order by position on list
   if (!CanonicalNumbering)
@@ -294,17 +289,17 @@ void tOutput<tSubNode>::WriteOutput( double time )
     }
   }
 
-  nodeofs << flush;
-  zofs << flush;
-  vaofs << flush;
-  edgofs << flush;
-  triofs << flush;
+  nodeofs << std::flush;
+  zofs << std::flush;
+  vaofs << std::flush;
+  edgofs << std::flush;
+  triofs << std::flush;
 
   // Call virtual function to write any additional data
   WriteNodeData( time );
 
   if (0)//DEBUG
-    cout << "tOutput::WriteOutput() Output done" << endl;
+    std::cout << "tOutput::WriteOutput() Output done" << std::endl;
 }
 
 /*************************************************************************\
@@ -518,18 +513,18 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
     stratOutput->WriteNodeData( time, counter );
   }
 
-  randomofs << flush;
-  drareaofs << flush;
-  netofs << flush;
-  slpofs << flush;
-  qofs << flush;
-  texofs << flush;
-  tauofs << flush;
-  if( vegofs.good() ) vegofs << flush;
-  if( flowdepofs.good() ) flowdepofs << flush;
-  if( chanwidthofs.good() ) chanwidthofs << flush;
-  if( flowpathlenofs.good() ) flowpathlenofs << flush;
-  if( qsofs.good() ) qsofs << flush;
+  randomofs << std::flush;
+  drareaofs << std::flush;
+  netofs << std::flush;
+  slpofs << std::flush;
+  qofs << std::flush;
+  texofs << std::flush;
+  tauofs << std::flush;
+  if( vegofs.good() ) vegofs << std::flush;
+  if( flowdepofs.good() ) flowdepofs << std::flush;
+  if( chanwidthofs.good() ) chanwidthofs << std::flush;
+  if( flowpathlenofs.good() ) flowpathlenofs << std::flush;
+  if( qsofs.good() ) qsofs << std::flush;
 
   layofs.close();
   if( surfofs.good() )
@@ -612,23 +607,23 @@ void tTSOutputImp<tSubNode>::WriteTSOutput()
     cover = 0.;
 
   if (0)//DEBUG
-    cout << "tTSOutputImp::WriteTSOutput()" << endl;
+    std::cout << "tTSOutputImp::WriteTSOutput()" << std::endl;
 
   for( cn=niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() ) {
     volume += cn->getZ()*cn->getVArea();
     area += cn->getVArea();
   }
 
-  volsofs << volume << endl;
+  volsofs << volume << std::endl;
   if( mdLastVolume > 0.0 )
-    dvolsofs << volume - mdLastVolume << endl;
+    dvolsofs << volume - mdLastVolume << std::endl;
   mdLastVolume = volume;
-  //tareaofs << area << endl;
+  //tareaofs << area << std::endl;
 
   if( vegcovofs.good() ) {
     for( cn = niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
       cover += cn->getVegCover().getVeg()*cn->getVArea();
-    vegcovofs << cover/area << endl;
+    vegcovofs << cover/area << std::endl;
   }
 }
 
@@ -719,9 +714,9 @@ void tStratOutputImp<tSubNode>::WriteStratGridSections(double time)
 template< class tSubNode >
 void tStratOutputImp<tSubNode>::WriteSingleSection(double time,
 						   int section,
-						   ofstream &xyzofs,
-						   ofstream &layt3ofs,
-						   ofstream &layt4ofs,
+						   std::ofstream &xyzofs,
+						   std::ofstream &layt3ofs,
+						   std::ofstream &layt4ofs,
 						   direction_t dir)
 {
   const int vmax = dir == DIRI ? stratGrid->getJmax() : stratGrid->getImax();
@@ -780,7 +775,7 @@ void tStratOutputImp<tSubNode>::WriteSingleSection(double time,
     }
   } // end of loop over v
 
-  cout << "Output::Finished writing section line " << section
+  std::cout << "Output::Finished writing section line " << section
        << "..." << '\n';
 }
 
@@ -797,7 +792,7 @@ void tStratOutputImp<tSubNode>::WriteGravelBodies(double time, int counter_)
 {
 
   // Open the file for writing map-view data
-  ofstream gravelmapofs;
+  std::ofstream gravelmapofs;
 
 #define MY_EXT ".gravelmap"
   char ext[sizeof(MY_EXT)+10];  // name of file to be created
@@ -889,7 +884,7 @@ void tStratOutputImp<tSubNode>::WriteGravelBodies(double time, int counter_)
   } //j
 
 
-  cout << "Output::Finished writing gravel bodies subsurface distribution...\n";
+  std::cout << "Output::Finished writing gravel bodies subsurface distribution...\n";
 } // End of function WriteGravelBody
 
 //-------------------------- a new function below --------------------------------------
@@ -1070,7 +1065,7 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
   mbelt_Ybase = 18900.0;   //of width 1200m
 
 
-  ofstream topofs;
+  std::ofstream topofs;
 
 #define MY_EXT ".top"
   char ext[sizeof(MY_EXT)+10];  // name of file to be created
@@ -1087,7 +1082,7 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
   tMatrix<tStratNode> const *StratNodeMatrix = stratGrid->getStratNodeMatrix();
 
   const int current_ts = int( ROUND( time/stratGrid->getnWrite() ) );
-  //cout<<"Current-Ts= " << current_ts << '\n';
+  //std::cout<<"Current-Ts= " << current_ts << '\n';
 
   tArray<double> surface(current_ts+1);
   tArray<double> subsurface(current_ts+1);		// material in the entire floodplain zone
@@ -1151,11 +1146,11 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
 
 	      //DEBUG, trying to track origin of negative values
 	      if(subsurface[ts] < 0.0){
-		cout<<"Error in StratOutput::preservation potential, type 1 "<<endl;
-		cout<<"at ts ="<<ts<< " layer "<< l << "subsurface value = "<<subsurface[ts]<<endl;
-		cout<<"timeslicetop= "<<timeslicetop<<endl;
-		cout<<"timeslicebase= "<<timeslicebase<<endl;
-		cout<<"layerdepth ="<<	thisLayerDepth;
+		std::cout<<"Error in StratOutput::preservation potential, type 1 "<<std::endl;
+		std::cout<<"at ts ="<<ts<< " layer "<< l << "subsurface value = "<<subsurface[ts]<<std::endl;
+		std::cout<<"timeslicetop= "<<timeslicetop<<std::endl;
+		std::cout<<"timeslicebase= "<<timeslicebase<<std::endl;
+		std::cout<<"layerdepth ="<<	thisLayerDepth;
 		exit(1);
 	      }
 
@@ -1178,13 +1173,13 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
 		}
 
 		if(subsurface[ts] < 0.0  ){     // DEBUG
-		  cout<<"Error in StratOutput::write preservation potential, type 2 "<<endl;
-		  cout<<"at ts ="<<ts<< " layer "<< l << "subsurface value = "<<subsurface[ts]<<endl;
-		  cout<<"timeslicetop= "<<timeslicetop<<" timeslicebase= "<<timeslicebase<<endl;
-		  cout<<"layerR time= "<<thisLayerRtime<<" layerC time= "<<thisLayerCtime<<endl;
-		  cout<<"TimeInSlice= "<<TimeInSlice<<endl;
-		  cout<<"layerdepth ="<<	thisLayerDepth;
-		  cout<<"subsurface[ts]= "<<subsurface[ts] <<endl;
+		  std::cout<<"Error in StratOutput::write preservation potential, type 2 "<<std::endl;
+		  std::cout<<"at ts ="<<ts<< " layer "<< l << "subsurface value = "<<subsurface[ts]<<std::endl;
+		  std::cout<<"timeslicetop= "<<timeslicetop<<" timeslicebase= "<<timeslicebase<<std::endl;
+		  std::cout<<"layerR time= "<<thisLayerRtime<<" layerC time= "<<thisLayerCtime<<std::endl;
+		  std::cout<<"TimeInSlice= "<<TimeInSlice<<std::endl;
+		  std::cout<<"layerdepth ="<<	thisLayerDepth;
+		  std::cout<<"subsurface[ts]= "<<subsurface[ts] <<std::endl;
 		  exit(1);
 		}
 
@@ -1204,13 +1199,13 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
 	      }
 
 	      if(subsurface[ts] < 0.0 ){     // DEBUG
-		cout<<"Error in StratOutput::write preservation potential, type 3 "<<endl;
-		cout<<"at ts ="<<ts<< " layer "<< l << "subsurface value = "<<subsurface[ts]<<endl;
-		cout<<"timeslicetop= "<<timeslicetop<<" timeslicebase= "<<timeslicebase<<endl;
-		cout<<"layerR time= "<<thisLayerRtime<<" layerC time= "<<thisLayerCtime<<endl;
-		cout<<"TimeInSlice= "<<TimeInSlice<<endl;
-		cout<<"layerdepth ="<<	thisLayerDepth;
-		cout<<"subsurface[ts]= "<<subsurface[ts] <<endl;
+		std::cout<<"Error in StratOutput::write preservation potential, type 3 "<<std::endl;
+		std::cout<<"at ts ="<<ts<< " layer "<< l << "subsurface value = "<<subsurface[ts]<<std::endl;
+		std::cout<<"timeslicetop= "<<timeslicetop<<" timeslicebase= "<<timeslicebase<<std::endl;
+		std::cout<<"layerR time= "<<thisLayerRtime<<" layerC time= "<<thisLayerCtime<<std::endl;
+		std::cout<<"TimeInSlice= "<<TimeInSlice<<std::endl;
+		std::cout<<"layerdepth ="<<	thisLayerDepth;
+		std::cout<<"subsurface[ts]= "<<subsurface[ts] <<std::endl;
 		exit(1);
 	      }
 	    }
@@ -1341,7 +1336,7 @@ void tStratOutputImp<tSubNode>::WritePreservationPotential(double time,
 
   }
   if (1) //DEBUG
-    cout << "Output::Finished writing Preservation potential of fluvial units..." << '\n';
+    std::cout << "Output::Finished writing Preservation potential of fluvial units..." << '\n';
 } //Presevation potential
 
 /***********************************************************************\
@@ -1365,15 +1360,15 @@ void tStratOutputImp<tSubNode>::SetStratGrid(tStratGrid *s_, tStreamNet *netPtr_
 template< class tSubNode >
 void tStratOutputImp<tSubNode>::Flush() {
   for(int s=0; s<nSections;++s){
-    xyzofs[s] << flush;
-    layt3ofs[s] << flush;
-    layt4ofs[s] << flush;
+    xyzofs[s] << std::flush;
+    layt3ofs[s] << std::flush;
+    layt4ofs[s] << std::flush;
   }
-  grxyzofs << flush;
-  gravofs << flush;
-  psurfofs << flush;
-  pssurfofs << flush;
-  pssurf2ofs << flush;
+  grxyzofs << std::flush;
+  gravofs << std::flush;
+  psurfofs << std::flush;
+  pssurfofs << std::flush;
+  pssurf2ofs << std::flush;
 }
 
 /*************************************************************************\

@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.37 2004-06-02 09:58:14 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.38 2004-06-16 13:37:31 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -22,14 +22,8 @@
 #include "../tList/tList.h"
 #include "../tTimeSeries/tTimeSeries.h"
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-# include <fstream>
-using namespace std;
-#else
-# include <iostream.h>
-# include <fstream.h>
-#endif
+#include <iostream>
+#include <fstream>
 
 #define kCommentMark '#'
 
@@ -121,12 +115,12 @@ void setKeyWordTable(tArray< tKeyPair > &KeyWordTable,
 \****************************************************************************/
 // read a line in headerLine and discards the any remaining characters
 static
-void readLine(char *headerLine, ifstream& infile){
+void readLine(char *headerLine, std::ifstream& infile){
   infile.getline( headerLine, kMaxNameLength );
   // still some characters left on the current line ?
-  if ( !infile.eof() && !infile.bad() && infile.rdstate() & ios::failbit){
+  if ( !infile.eof() && !infile.bad() && infile.rdstate() & std::ios::failbit){
     // clear failbit
-    infile.clear(infile.rdstate() & ~ios::failbit);
+    infile.clear(infile.rdstate() & ~std::ios::failbit);
     // discard characters.
     char c;
     while( infile.get(c) && c != '\n');
@@ -139,7 +133,7 @@ inline bool isComment(const char *headerLine){
 }
 
 static
-void skipCommentsAndReadValue(char *headerLine, ifstream& infile){
+void skipCommentsAndReadValue(char *headerLine, std::ifstream& infile){
   do {
     readLine(headerLine, infile);
   } while( !infile.eof() && !infile.bad() &&
@@ -184,7 +178,7 @@ void stripTrailingBlanks(char *s){
 
 /* Read input file and build a list of key,value pair */
 static
-void readInputFile(ifstream& infile, tList< tKeyPair > &KeyWordList){
+void readInputFile(std::ifstream& infile, tList< tKeyPair > &KeyWordList){
   char headerLine[kMaxNameLength];
   enum{ KEY, VALUE} state = KEY;
   tKeyPair aPair;
@@ -218,9 +212,9 @@ void readInputFile(ifstream& infile, tList< tKeyPair > &KeyWordList){
 
   return;
  fail:
-  cerr
+  std::cerr
     << "I expected to read a parameter or a value"
-    "', but reached EOF first" << endl;
+    "', but reached EOF first" << std::endl;
   ReportFatalError( "Error in input file" );
   /*NOTREACHED*/
 }
@@ -242,14 +236,14 @@ void readInputFile(ifstream& infile, tList< tKeyPair > &KeyWordList){
 \****************************************************************************/
 tInputFile::tInputFile( const char *filename )
 {
-   ifstream infile;     // the input file
+   std::ifstream infile;     // the input file
 
    // Open file
    infile.open( filename );
    if( !infile.good() )
    {
-      cerr << "tInputFile::tInputFile: Unable to open '" << filename
-	   << "'." << endl;
+      std::cerr << "tInputFile::tInputFile: Unable to open '" << filename
+	   << "'." << std::endl;
       ReportFatalError( "The file may not exist or may be mis-named." );
    }
 
@@ -275,7 +269,7 @@ tInputFile::tInputFile( const char *filename )
 \****************************************************************************/
 void tInputFile::writeLogFile() const
 {
-  ofstream inoutfile;  // output file in which items are recorded
+  std::ofstream inoutfile;  // output file in which items are recorded
   char inoutname[kMaxNameLength];
   // Create log file for inputs
   ReadItem( inoutname, sizeof(inoutname), "OUTFILENAME" );
@@ -283,9 +277,9 @@ void tInputFile::writeLogFile() const
   inoutfile.open( inoutname );
   if( !inoutfile.good() )
     {
-      cerr << "Unable to open '" << inoutname << "'.\n"
+      std::cerr << "Unable to open '" << inoutname << "'.\n"
 	"(Error generated in module tInputFile,"
-	" function tInputFile::tInputFile( const char * ) )" << endl;
+	" function tInputFile::tInputFile( const char * ) )" << std::endl;
       ReportFatalError( "The specified path name may not exist.\n" );
     }
   // write header
@@ -293,7 +287,7 @@ void tInputFile::writeLogFile() const
     const time_t now = time(NULL);
     char *p = ctime(&now);
     *strchr(p, '\n') = '\0';
-    inoutfile << "# Created by CHILD on " << p << "." << endl;
+    inoutfile << "# Created by CHILD on " << p << "." << std::endl;
   }
   // dump content of KeyWordTable
   {
@@ -325,9 +319,9 @@ int tInputFile::findKeyWord( const char *key ) const
     const char * const thisKey = KeyWordTable[i].key();
     if (0 == strncmp(key, thisKey, sizeKey)) {
       if (strlen(thisKey) != sizeKey)
-	cout
+	std::cout
 	  << "Warning: `" << thisKey << "' chosen as match for keyword `"
-	  << key << "'." << endl;
+	  << key << "'." << std::endl;
       return i;
     }
   }
@@ -341,9 +335,9 @@ bool tInputFile::Contain(const char *itemCode) const {
 void tInputFile::WarnObsoleteKeyword(const char *ancient,
 				     const char *modern) const {
   if (Contain(ancient))
-    cout
+    std::cout
       << "Warning: `" << ancient << "' is obsolete and is ignored.\n Use `"
-      << modern << "' instead." << endl;
+      << modern << "' instead." << std::endl;
 }
 
 /****************************************************************************\
@@ -373,8 +367,8 @@ void tInputFile::WarnObsoleteKeyword(const char *ancient,
 \****************************************************************************/
 static
 void ReportNonExistingKeyWord(const char *itemCode, bool reqParam ){
-  cerr << "Cannot find  '" << itemCode
-       << "' in the input file." << endl;
+  std::cerr << "Cannot find  '" << itemCode
+       << "' in the input file." << std::endl;
   if( reqParam )
       ReportFatalError( "Missing parameter in input file" );
   else

@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.29 2004-04-27 13:19:30 childcvs Exp $
+**  $Id: tMeshList.h,v 1.30 2004-06-16 13:37:38 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -115,7 +115,7 @@ tMeshList() :
   lastactive(0)
 {
   if (0) //DEBUG
-    cout << "                  from tMeshList()" << this->first << endl;
+    std::cout << "                  from tMeshList()" << this->first << std::endl;
 }
 
 template< class NodeType, class ListNodeType >
@@ -126,8 +126,8 @@ tMeshList( const tMeshList< NodeType, ListNodeType > *original ) :
   lastactive(0)
 {
   if (0) //DEBUG
-    cout << "                  from tMeshList( original )" << this->first
-	 << endl;
+    std::cout << "                  from tMeshList( original )" << this->first
+	 << std::endl;
   if ( nActiveNodes > 0 )
     lastactive = tList< NodeType, ListNodeType >::getIthListNode( nActiveNodes - 1 );
 }
@@ -137,8 +137,8 @@ tMeshList< NodeType, ListNodeType >::
 ~tMeshList()
 {
   if (0) //DEBUG
-    cout << "                  from ~tMeshList()" << this->first
-	 << endl;
+    std::cout << "                  from ~tMeshList()" << this->first
+	 << std::endl;
 }
 
 
@@ -364,7 +364,7 @@ void tMeshList< NodeType, ListNodeType >::
 moveToBack( ListNodeType * mvnode )
 {
    if (0) //DEBUG
-     cout << "moveToBack( ListNodeType )\n";
+     std::cout << "moveToBack( ListNodeType )\n";
 
    assert( mvnode!=0 );
    if( mvnode != this->last )
@@ -606,9 +606,9 @@ CheckConsistency( const char *ListName ){
   int nactive = 0;
   for( cl=Iter.FirstP(); ; cl=Iter.NextP() ){
     if (!Iter.IsActive()){
-      cerr << "Element #" << cl->getID()
-	   << " is not active but within the active part of the "
-	   << ListName << " list.\n";
+      std::cerr << "Element #" << cl->getID()
+		<< " is not active but within the active part of the "
+		<< ListName << " list.\n";
       return 1;
     }
     ++nactive;
@@ -619,16 +619,16 @@ CheckConsistency( const char *ListName ){
     }
   }
   if (nactive != this->getActiveSize()){
-    cerr << "The " << ListName << " list contains " << nactive
-	 << " elements but 'getActiveSize()' gives "
-	 << this->getActiveSize() << ".\n";
+    std::cerr << "The " << ListName << " list contains " << nactive
+	      << " elements but 'getActiveSize()' gives "
+	      << this->getActiveSize() << ".\n";
     return 1;
   }
   for( cl=Iter.FirstBoundaryP(); !(Iter.AtEnd()); cl=Iter.NextP() ){
     if (Iter.IsActive()){
-      cerr << "Element #" << cl->getID()
-	   << " is active but within the boundary part of "
-	   << ListName << " list.\n";
+      std::cerr << "Element #" << cl->getID()
+		<< " is active but within the boundary part of "
+		<< ListName << " list.\n";
       return 1;
     }
   }
@@ -673,7 +673,7 @@ tMeshListIter< NodeType, ListNodeType >::
 tMeshListIter()
 {
   if (0) //DEBUG
-    cout << "    from tMeshListIter()" << endl;
+    std::cout << "    from tMeshListIter()" << std::endl;
 }
 
 template< class NodeType, class ListNodeType >

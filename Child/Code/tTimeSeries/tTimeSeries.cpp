@@ -22,12 +22,7 @@
 #include "../errors/errors.h"
 
 #include <stdio.h>
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
+#include <iostream>
 
 //--------------------------------------------------------------
 // tToklist is a simple class which implements string-to-tokens
@@ -443,7 +438,8 @@ void tDataFile::load(const char *filename)
   // open file, and report error if failure
   fp = fopen(filename, "rt");
   if (fp == NULL) {
-    cout << "Time series file `" << filename << "' does not exist." << endl;
+    std::cout << "Time series file `" << filename << "' does not exist."
+	      << std::endl;
     ReportFatalError("File not found.");
   }
   assert(fp);
@@ -740,7 +736,7 @@ void nr_hunt(const double *xx, int n, double x, int& jlo)
 {
   int jm, jhi, inc;
 
-  const int ascnd = (xx[n] >= xx[1]); // True if ascending order of tables
+  const bool ascnd = (xx[n] >= xx[1]); // True if ascending order of tables
 
   if (jlo<=0 || jlo>n) { // Input use not usefull, go to bissection
     jlo = 0;
@@ -808,7 +804,7 @@ double tConstantTimeSeriesImp::calc(double) const
 
 void tConstantTimeSeriesImp::TellAll() const
 {
-  cout << "TS @constant. value=" << value << endl;
+  std::cout << "TS @constant. value=" << value << std::endl;
 }
 
 /*********************************************************************\
@@ -830,11 +826,11 @@ double tLinearGrowthTimeSeriesImp::calc(double time) const
 
 void tLinearGrowthTimeSeriesImp::TellAll() const
 {
-  cout
+  std::cout
     << "TS @linear."
     << " initialValue=" << initialValue
     << " rate=" << rate
-    << endl;
+    << std::endl;
 }
 /*********************************************************************\
  * tWaveTimeSeriesImp                                                    *
@@ -859,13 +855,13 @@ double tSinwaveTimeSeriesImp::calc(double time) const
 
 void tSinwaveTimeSeriesImp::TellAll() const
 {
-  cout
+  std::cout
     << "TS @sinwave."
     << " mean=" << mean
     << " amp=" << amp
     << " period=" << period
     << " lag=" << lag
-    << endl;
+    << std::endl;
 }
 /*********************************************************************\
  * tBlockwaveTimeSeriesImp                                                    *
@@ -878,13 +874,13 @@ double tBlockwaveTimeSeriesImp::calc(double time) const
 
 void tBlockwaveTimeSeriesImp::TellAll() const
 {
-  cout
+  std::cout
     << "TS @blockwave."
     << " amp=" << amp
     << " mean=" << mean
     << " period=" << period
     << " lag=" << lag
-    << endl;
+    << std::endl;
 }
 /*********************************************************************\
  * tDataTimeSeriesImp                                                    *
@@ -998,8 +994,8 @@ void tFileTimeSeriesImp::configure(const char *s)
     } else if (strcmp(toklist[ntok-1], "interpolate")==0) {
       interpolate = true;
     } else {
-      cerr << "tFileTimeSeriesImp.Configure(): invalid mode specifier: `"
-	   << toklist[ntok-1] << "'." << endl;
+      std::cerr << "tFileTimeSeriesImp.Configure(): invalid mode specifier: `"
+		<< toklist[ntok-1] << "'." << std::endl;
       ReportFatalError("Invalid mode.");
     }
   } else {
@@ -1020,10 +1016,10 @@ void tFileTimeSeriesImp::configure(const char *s)
 
 void tFileTimeSeriesImp::TellAll() const
 {
-  cout
+  std::cout
     << "TS @file."
     << " add details later."
-    << endl;
+    << std::endl;
 }
 /*********************************************************************\
  * tInlineTimeSeriesImp                                                   *
@@ -1056,8 +1052,8 @@ void tInlineTimeSeriesImp::configure(const char *s)
     } else if (strcmp(toklist[ntok-1], "interpolate")==0) {
       interpolate = true;
     } else {
-      cerr << "tInlineTimeSeriesImp.Configure(): invalid mode specifier: `"
-	   << toklist[ntok-1] << "'." << endl;
+      std::cerr << "tInlineTimeSeriesImp.Configure(): invalid mode specifier: `"
+		<< toklist[ntok-1] << "'." << std::endl;
       ReportFatalError("Invalid mode.");
     }
   }
@@ -1082,10 +1078,10 @@ void tInlineTimeSeriesImp::configure(const char *s)
 
 void tInlineTimeSeriesImp::TellAll() const
 {
-  cout
+  std::cout
     << "TS @file."
     << " add details later."
-    << endl;
+    << std::endl;
 }
 
 /*********************************************************************\

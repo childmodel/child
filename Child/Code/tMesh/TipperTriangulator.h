@@ -7,12 +7,7 @@
 */
 /***************************************************************************/
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <fstream>
-using namespace std;
-#else
-# include <fstream.h>
-#endif
+#include <iosfwd>
 
 #ifndef BOOL
 #define BOOL(x) (x)
@@ -53,12 +48,12 @@ public:
   point(double ix,double iy,int iid) : _id(iid) { _XY[0] = ix; _XY[1] = iy; }
   point(const point& p) : _id(p.id()) { _XY[0] = p.x(); _XY[1] = p.y(); }
   const point &operator=( const point &p );
-  int operator < (const point& p) const;
+  bool operator < (const point& p) const;
   double dot(const point& p) const {return (x()*p.x()+y()*p.y());}
 #if defined(DEBUG_PRINT)
   void print () const;
 #endif
-  void write(ofstream& f) const;
+  void write(std::ofstream& f) const;
   double x() const { return _XY[0]; }
   double y() const { return _XY[1]; }
   const double *XY() const { return _XY; }
@@ -83,7 +78,7 @@ public:
 #if defined(DEBUG_PRINT)
   void print(const point p[]) const;
 #endif
-  void write(ofstream& f,const point p[]) const;
+  void write(std::ofstream& f,const point p[]) const;
   bool visible(const point p[],int i) const;
 
   enum { none = -1, end = -2 }; // must be strictly negative

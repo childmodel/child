@@ -14,7 +14,7 @@
  **
  **  (Created 5/2003 by QC, AD and GT)
  **
- **  $Id: tStratGrid.cpp,v 1.15 2004-05-27 17:21:02 childcvs Exp $
+ **  $Id: tStratGrid.cpp,v 1.16 2004-06-16 13:37:42 childcvs Exp $
  */
 /**************************************************************************/
 #include <assert.h>
@@ -24,12 +24,7 @@
 #include "../tLNode/tLNode.h"
 #include "../tMesh/tMesh.h"
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
+#include <iostream>
 
 
 /**************************************************************************\
@@ -96,9 +91,9 @@ tStratGrid::tStratGrid( tInputFile const &infile, tMesh<tLNode> *mp_)
   imax=int(grwidth/griddx);
   jmax=int(grlength/griddx);
 
-  cout<<"     "<<endl;
-  cout <<"StratGrid: number of nodes in x-direction = " << imax <<'\n';
-  cout <<"StratGrid: number of nodes in y-direction = " << jmax <<'\n';
+  std::cout<<"     "<<std::endl;
+  std::cout <<"StratGrid: number of nodes in x-direction = " << imax <<'\n';
+  std::cout <<"StratGrid: number of nodes in y-direction = " << jmax <<'\n';
 
 
   // Call the constructor for the matrix of stratNodes
@@ -132,43 +127,43 @@ tStratGrid::tStratGrid( tInputFile const &infile, tMesh<tLNode> *mp_)
   stepx=int(imax/5.0);
   stepy=int(jmax/5.0);
 
-  cout<< "Locations of the 10 cross-sections are \n";
+  std::cout<< "Locations of the 10 cross-sections are \n";
   section.setSize(10);
   for(k=0;k<5;k++){
     section[k] = int(0.5*stepx + k*stepx);
-    cout <<"X-Section "<<k+1<<" at i= " <<section[k] <<" or X= "<<(*StratNodeMatrix)(section[k],0).getX()<< '\n';
+    std::cout <<"X-Section "<<k+1<<" at i= " <<section[k] <<" or X= "<<(*StratNodeMatrix)(section[k],0).getX()<< '\n';
   }
   for(k=5;k<10;k++){
     section[k] = int(0.5*stepy + (k-5)*stepy);
-    cout <<"Y-Section "<<k+1<<" at j= " <<section[k] <<" or Y= " <<(*StratNodeMatrix)(0,section[k]).getY()<< '\n';
+    std::cout <<"Y-Section "<<k+1<<" at j= " <<section[k] <<" or Y= " <<(*StratNodeMatrix)(0,section[k]).getY()<< '\n';
   }
 
 
   // Build StratConnect
   if (1) { //DEBUG
-    cout
+    std::cout
       <<"   \n"
       <<"Building the StratConnect table of triangles in constructor...."
-      <<endl;
+      <<std::endl;
   }
   updateConnect();
   if (1) { //DEBUG
-    cout
+    std::cout
       <<"Building the StratConnect table of triangles in constructor finished"
-      <<"\n    "<<endl;
+      <<"\n    "<<std::endl;
   }
 
   // Initialize the elevations of the StratNodes by interpolating between the
   // Triangles of the tMesh
   if (1) //DEBUG
-    cout<<" Initializing tStratGrid elevations by interpolation, for the first Time "<<endl;
+    std::cout<<" Initializing tStratGrid elevations by interpolation, for the first Time "<<std::endl;
   InterpolateElevations();
 
   setSectionBase();   // DEBUG FUNCTION, all stratnodes have to know their initial, stratigraphy basis
   if (1) {//DEBUG
-    cout
+    std::cout
       <<" Finished Initializing tStratGrid elevations by interpolation, for the first Time "
-      <<"\n    "<<endl;
+      <<"\n    "<<std::endl;
   }
 } // tStratGrid constructor
 
@@ -306,65 +301,65 @@ void tStratGrid::UpdateStratGrid(tUpdate_t mode, double time)
   switch(mode){
   case k0:
     {
-      cout<<"+++ 0 -UPDATESTRATGRID, START INITIALIZING...."<<endl;
+      std::cout<<"+++ 0 -UPDATESTRATGRID, START INITIALIZING...."<<std::endl;
       updateConnect();
       ResetAccummulatedDh();
       InterpolateErodepFromElevations(time);          // does the same as  the sweep function
       CheckSectionBase(mode);
-      cout<<"   "<<endl;
-      cout<<"+++ 0 -UPDATESTRATGRID, FINISHED INITIALIZING...."<<endl;
-      cout<<"   "<<endl;
+      std::cout<<"   "<<std::endl;
+      std::cout<<"+++ 0 -UPDATESTRATGRID, FINISHED INITIALIZING...."<<std::endl;
+      std::cout<<"   "<<std::endl;
     }
     break;
     // 1 = Update after streampower-type erosion and deposition
   case k1:
     {
-      cout<<"+++ 1 -UPDATESTRATGRID, START STREAMPOWER...."<<endl;
+      std::cout<<"+++ 1 -UPDATESTRATGRID, START STREAMPOWER...."<<std::endl;
       updateConnect();
       InterpolateErodep(time);
       ResetAccummulatedDh();
       CheckSectionBase(mode);
-      cout<<"   "<<endl;
-      cout<<"+++ 1 -UPDATESTRATGRID, FINISHED STREAMPOWER...."<<endl;
-      cout<<"   "<<endl;
+      std::cout<<"   "<<std::endl;
+      std::cout<<"+++ 1 -UPDATESTRATGRID, FINISHED STREAMPOWER...."<<std::endl;
+      std::cout<<"   "<<std::endl;
     }
     break;
     // 2 = Update after meander migration (may decapitate stratNodes)
   case k2:
     {
-      cout<<"+++ 2 -UPDATESTRATGRID, START MIGRATION...."<<endl;
+      std::cout<<"+++ 2 -UPDATESTRATGRID, START MIGRATION...."<<std::endl;
       updateConnect();
       SweepChannelThroughRectGrid(time);  	// does NOT use accumDh
       CheckSectionBase(mode);
       ResetAccummulatedDh();
-      cout<<"   "<<endl;
-      cout<<"+++ 2 -UPDATESTRATGRID, FINISHED  MIGRATION...."<<endl;
-      cout<<"   "<<endl;
+      std::cout<<"   "<<std::endl;
+      std::cout<<"+++ 2 -UPDATESTRATGRID, FINISHED  MIGRATION...."<<std::endl;
+      std::cout<<"   "<<std::endl;
     }
     break;
     // 3 = Update after geometrical meander-related erosion and deposition
   case k3:
     {
-      cout<<"+++ 3-UPDATESTRATGRID, START CHANNEL DRIVER...."<<endl;
+      std::cout<<"+++ 3-UPDATESTRATGRID, START CHANNEL DRIVER...."<<std::endl;
       updateConnect();
       InterpolateErodep(time);
       CheckSectionBase(mode);
       ResetAccummulatedDh();
-      cout<<"    "<<endl;
-      cout<<"+++ 3-UPDATESTRATGRID, FINISHED CHANNEL DRIVER...."<<endl;
-      cout<<"   "<<endl;
+      std::cout<<"    "<<std::endl;
+      std::cout<<"+++ 3-UPDATESTRATGRID, FINISHED CHANNEL DRIVER...."<<std::endl;
+      std::cout<<"   "<<std::endl;
     }
     break;
   case k4:
     {
-      cout<<"+++ 4 -UPDATESTRATGRID, START  FLOODPLAIN...."<<endl;
+      std::cout<<"+++ 4 -UPDATESTRATGRID, START  FLOODPLAIN...."<<std::endl;
       updateConnect();
       InterpolateErodep(time);
       CheckSectionBase(mode);
       ResetAccummulatedDh();
-      cout<<"    "<<endl;
-      cout<<"+++ 4 -UPDATESTRATGRID, FINISHED  FLOODPLAIN...."<<endl;
-      cout<<"   "<<endl;
+      std::cout<<"    "<<std::endl;
+      std::cout<<"+++ 4 -UPDATESTRATGRID, FINISHED  FLOODPLAIN...."<<std::endl;
+      std::cout<<"   "<<std::endl;
     }
     break;
   default:
@@ -427,14 +422,14 @@ void tStratGrid::InterpolateElevations()
 	(*StratNodeMatrix)(i,j).setZ( newz );
 
 	if (0) //DEBUG
-	  cout<<"i= "<<i<<" j= "<<j<<" elev= "
+	  std::cout<<"i= "<<i<<" j= "<<j<<" elev= "
 	      <<newz<<" ,surr 3 nodes have Z "<<lnds[0]->getZ()
-	      <<" "<<lnds[1]->getZ()<<" "<<lnds[2]->getZ()<<endl;
+	      <<" "<<lnds[1]->getZ()<<" "<<lnds[2]->getZ()<<std::endl;
 
       } // node is connected to a triangle
 
       //if(ct==NULL){     //DEBUG:
-      //cout <<"For i,j= "<<i<<" "<<j<<" No triangle - DEBUG"<<endl;
+      //std::cout <<"For i,j= "<<i<<" "<<j<<" No triangle - DEBUG"<<std::endl;
       //}
 
     } //j
@@ -460,18 +455,18 @@ void tStratGrid::CheckSectionBase(int mode)
       double startZ    = sn.getSectionBase();            // the original one
 
       if(currentZ < startZ && startZ-currentZ > 0.001){   // More than 1 cm difference detected ?
-	cout<<"        "<<endl;
-	if(mode==0)     { cout<<"After Initialisation.. "<<endl;}
-	else if(mode==1){ cout<<"After Streampower erodep.. "<<endl;}
-	else if(mode==2){ cout<<"After Migrate.."<<endl;}
-	else if(mode==3){ cout<<"After ChannelDriver.."<<endl;}
-	else if(mode==4){ cout<<"After Floodplain wings"<<endl;}
+	std::cout<<"        "<<std::endl;
+	if(mode==0)     { std::cout<<"After Initialisation.. "<<std::endl;}
+	else if(mode==1){ std::cout<<"After Streampower erodep.. "<<std::endl;}
+	else if(mode==2){ std::cout<<"After Migrate.."<<std::endl;}
+	else if(mode==3){ std::cout<<"After ChannelDriver.."<<std::endl;}
+	else if(mode==4){ std::cout<<"After Floodplain wings"<<std::endl;}
 
-	else { cout<<" UpdateStratGrid Mode not recognized in CheckSectionBase..."<<endl; }
-	cout<<"At i,j "<<i<<", "<<j<<" x,y,z "<<sn.getX()<<" "<<sn.getY()<<" "<<sn.getZ()<<endl;
-	cout<<"WARNING: Stratigraphic column pushed down"<<endl;
-	cout<<"Original Base Z = "<<startZ<<", New Base Z = "<<currentZ<<", DZ= "<<currentZ-startZ<<endl;
-	cout<<"Printing layerlist: "<<endl;
+	else { std::cout<<" UpdateStratGrid Mode not recognized in CheckSectionBase..."<<std::endl; }
+	std::cout<<"At i,j "<<i<<", "<<j<<" x,y,z "<<sn.getX()<<" "<<sn.getY()<<" "<<sn.getZ()<<std::endl;
+	std::cout<<"WARNING: Stratigraphic column pushed down"<<std::endl;
+	std::cout<<"Original Base Z = "<<startZ<<", New Base Z = "<<currentZ<<", DZ= "<<currentZ-startZ<<std::endl;
+	std::cout<<"Printing layerlist: "<<std::endl;
 	int numlayers = sn.getNumLayer();
 	int l=1;
 	double totalthickness = 0.0;
@@ -479,12 +474,12 @@ void tStratGrid::CheckSectionBase(int mode)
 	  const double thickness = sn.getLayerDepth(l);
 	  if(thickness < 100){
 	    totalthickness += thickness;
-	    //cout<<"Layer "<<l<< " has thickness "<<thickness<<endl;
+	    //std::cout<<"Layer "<<l<< " has thickness "<<thickness<<std::endl;
 	  }
-	  cout<<"Layer "<<l<< " has thickness "<<thickness<<endl;
+	  std::cout<<"Layer "<<l<< " has thickness "<<thickness<<std::endl;
 	  l++;
 	}
-	cout<<"Number of layers is "<<numlayers<<", Total thickness is: "<<totalthickness<<endl;
+	std::cout<<"Number of layers is "<<numlayers<<", Total thickness is: "<<totalthickness<<std::endl;
 	if(totalthickness > 0.0){
 	  exit(1);
 	}
@@ -546,20 +541,20 @@ void tStratGrid::InterpolateErodep(double time)
 
 	//DEBUG
 	//if(dhtotal < 0.0){
-	//   cout<<" ERODING "<<i<<" "<<j<<" ,with Dh[0,Dh[1] "<<Dh[0]<< " "<<Dh[1]<<", and total "<<dhtotal<<endl;
+	//   std::cout<<" ERODING "<<i<<" "<<j<<" ,with Dh[0,Dh[1] "<<Dh[0]<< " "<<Dh[1]<<", and total "<<dhtotal<<std::endl;
 	//}
 
 	if(  (Dh[0] > 0.0 && Dh[1] < 0.0) || (Dh[0] < 0.0 && Dh[1] > 0.0) ){
-	  //cout<<"    "<<endl;
-	  //cout<<"Doing both erosion and deposition "<<endl;
-	  //cout<<"For node "<<i<<" "<<j<<" at "<<sx<<" "<<sy<<" "<<(*StratNodeMatrix)(i,j).getZ()<<endl;
-	  //cout<<"Dh[0] = "<<Dh[0]<<"  "<<" Dh[1]= "<<Dh[1]<<endl;
-	  //cout<<"Contributing tMesh nodes are: "<<endl;
+	  //std::cout<<"    "<<std::endl;
+	  //std::cout<<"Doing both erosion and deposition "<<std::endl;
+	  //std::cout<<"For node "<<i<<" "<<j<<" at "<<sx<<" "<<sy<<" "<<(*StratNodeMatrix)(i,j).getZ()<<std::endl;
+	  //std::cout<<"Dh[0] = "<<Dh[0]<<"  "<<" Dh[1]= "<<Dh[1]<<std::endl;
+	  //std::cout<<"Contributing tMesh nodes are: "<<std::endl;
 	  //int c;
 	  //for(c=0; c<=2; c++){
-	  // cout<<" x= "<<lnds[c]->getX()<<" y= "<<lnds[c]->getY()<<" z= "<<lnds[c]->getZ()<<" Coarse= "<<lnds[c]->getAccCoarse()<<" Fine= "<<lnds[c]->getAccFine()<<endl;
+	  // std::cout<<" x= "<<lnds[c]->getX()<<" y= "<<lnds[c]->getY()<<" z= "<<lnds[c]->getZ()<<" Coarse= "<<lnds[c]->getAccCoarse()<<" Fine= "<<lnds[c]->getAccFine()<<std::endl;
 	  //}
-	  //cout<<"    "<<endl;
+	  //std::cout<<"    "<<std::endl;
 
 	  if( dhtotal > 0.0){
 	    if( Dh[0] > Dh[1]) {	      //Gravel is more important, make all deposition gravel
@@ -691,7 +686,7 @@ void tStratGrid::SweepChannelThroughRectGrid(double time)
 	  const tArray< double > erode(dh,0.);
 	  const double current = CalculateMeanderCurrent(ct,sx,sy);
 	  sn.EroDepSimple(0,erode,time,current);
-	  //cout<< "We changed layerlist through depostion \n";
+	  //std::cout<< "We changed layerlist through depostion \n";
 	}
 	else if( dh == 0.0){
 
@@ -754,7 +749,7 @@ void tStratGrid::InterpolateErodepFromElevations(double time)
 	  const tArray< double > erode(dh, 0.);
 	  const double current = CalculateMeanderCurrent(ct,sx,sy);
 	  sn.EroDepSimple(0,erode,time,current);
-	  //cout<< "We changed layerlist through depostion \n";
+	  //std::cout<< "We changed layerlist through depostion \n";
 	}
 	else if( dh == 0.0){
 
@@ -942,7 +937,7 @@ tStratNode::tStratNode( tInputFile const &infile ) :
   tArray<double> dgradehelp;
   tArray<double> dgradebrhelp;
 
-  //cout << "=>STRATNODE( infile )" << endl;
+  //std::cout << "=>STRATNODE( infile )" << std::endl;
   numg = infile.ReadItem( numg, "NUMGRNSIZE" );
 
   // This is a --HACK-- by QUINTIJN !!! Do not use this value
@@ -1099,7 +1094,7 @@ tStratNode::tStratNode( tInputFile const &infile ) :
       layerlist.insertAtBack( layhelp );
     }
 
-    //cout << layerlist.getSize() << "  A Layerlistscreated in STRATNODE constructor " << endl;
+    //std::cout << layerlist.getSize() << "  A Layerlistscreated in STRATNODE constructor " << std::endl;
   }
 
 }
@@ -1140,7 +1135,7 @@ tStratNode &tStratNode::operator=( const tStratNode &right )
 tStratNode::~tStratNode()
 {
   if (0) //DEBUG
-    cout << "    ~STRATNODE()" << endl;
+    std::cout << "    ~STRATNODE()" << std::endl;
 }
 
 
@@ -1232,26 +1227,26 @@ double tStratNode::getAgeAtDepth( double val) const
   else if (totalthickness > val && thickness < 100){
     if(getLayerRtime(l-1) > getLayerCtime(l-1)){
       // DEBUG
-      //cout<<"Depth= "<<getLayerDepth(l-1)<<endl;
-      //cout<<"Ctime= "<<getLayerCtime(l-1)<<endl;
-      //cout<<"Rtime= "<<getLayerRtime(l-1)<<endl;
+      //std::cout<<"Depth= "<<getLayerDepth(l-1)<<std::endl;
+      //std::cout<<"Ctime= "<<getLayerCtime(l-1)<<std::endl;
+      //std::cout<<"Rtime= "<<getLayerRtime(l-1)<<std::endl;
 
       Rsed = getLayerDepth(l-1)/( getLayerRtime(l-1) - getLayerCtime(l-1) );
-      //cout<<"Rsed= "<<Rsed<<endl;
+      //std::cout<<"Rsed= "<<Rsed<<std::endl;
 
       age = getLayerCtime(l-1) + (totalthickness - val)*Rsed;
 
-      //cout<<"age= "<<age<<endl;
+      //std::cout<<"age= "<<age<<std::endl;
 
       // DEBUG
       if(age < 0.0 || age > 1000000){
-	cout<<"in getAgeAtDepth"<<endl;
-	cout<<"l-1= "<<l-1<<" thickness= "<<thickness
-	    <<" totalthick = "<<totalthickness<<endl;
-	cout<<"val = "<<val<<endl;
-	cout<<"l-1= "<<l-1<<" Rtime = "<<getLayerRtime(l-1)
-	    <<"Ctime= "<<getLayerCtime(l-1)<<" "<<endl;
-	cout<<"Rsed = "<<Rsed<<endl;
+	std::cout<<"in getAgeAtDepth"<<std::endl;
+	std::cout<<"l-1= "<<l-1<<" thickness= "<<thickness
+	    <<" totalthick = "<<totalthickness<<std::endl;
+	std::cout<<"val = "<<val<<std::endl;
+	std::cout<<"l-1= "<<l-1<<" Rtime = "<<getLayerRtime(l-1)
+	    <<"Ctime= "<<getLayerCtime(l-1)<<" "<<std::endl;
+	std::cout<<"Rsed = "<<Rsed<<std::endl;
 	exit(1);
       }
 
@@ -1384,8 +1379,8 @@ double tStratNode::getLayerDepth( int l ) const
 {
   if( layerlist.isEmpty() )
     {
-      cout << "** WARNING layer list is empty\n";
-      cout << "  x=" << x << " y=" << y << " z=" << z;
+      std::cout << "** WARNING layer list is empty\n";
+      std::cout << "  x=" << x << " y=" << y << " z=" << z;
 
     }
   return layerlist.getIthDataRef(l).getDepth();
@@ -1515,20 +1510,20 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
   double startdifference = (sectionBase)- (z-columnheight);
   if(z-columnheight != sectionBase && columnheight > 0.0){
     if(startdifference < -0.001 || startdifference > 0.001){
-      cout<<"    "<<endl;
-      cout<<"Entering ErodepSimple, no elevation balance"<<endl;
-      cout<<"at "<<getI()<<" "<<getJ()<<endl;
-      cout<<"z = "<<z<<" alluv= "<<columnheight<<" base= "<<sectionBase<<endl;
-      cout<<"z-columnheight= "<<z-columnheight<<endl;
+      std::cout<<"    "<<std::endl;
+      std::cout<<"Entering ErodepSimple, no elevation balance"<<std::endl;
+      std::cout<<"at "<<getI()<<" "<<getJ()<<std::endl;
+      std::cout<<"z = "<<z<<" alluv= "<<columnheight<<" base= "<<sectionBase<<std::endl;
+      std::cout<<"z-columnheight= "<<z-columnheight<<std::endl;
     }
   }
 
   if( getI()== debugI && getJ()== debugJ && 0 ){
-    cout<<" "<<endl;
-    cout<<"Start erodep for node "<<getI()<<" "<<getJ()<<endl;
-    cout<<"dh[0]= "<<dh[0]<<" dh[1]= "<<dh[1]<<" dhtotaal= "<<dh[0] + dh[1]<<endl;
-    cout<<"Start elev= "<<z<<" startbase= "<< getSectionBase()<<endl;
-    cout<<"Start allu-thickness= "<<AlluvialColumnThickness()<<endl;
+    std::cout<<" "<<std::endl;
+    std::cout<<"Start erodep for node "<<getI()<<" "<<getJ()<<std::endl;
+    std::cout<<"dh[0]= "<<dh[0]<<" dh[1]= "<<dh[1]<<" dhtotaal= "<<dh[0] + dh[1]<<std::endl;
+    std::cout<<"Start elev= "<<z<<" startbase= "<< getSectionBase()<<std::endl;
+    std::cout<<"Start allu-thickness= "<<AlluvialColumnThickness()<<std::endl;
   }
 
 
@@ -1547,7 +1542,7 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
     if(getLayerSed(l) != 0 && getLayerDepth(l) > 0.0){
 
 
-      //cout << "Deposition at  "<< x <<' '<< y <<" dh[0]= " << dh[0] << " dh[1]= " << dh[1] << " dhtotal= " << dhtotal << " time= " <<tt<< '\n';
+      //std::cout << "Deposition at  "<< x <<' '<< y <<" dh[0]= " << dh[0] << " dh[1]= " << dh[1] << " dhtotal= " << dhtotal << " time= " <<tt<< '\n';
 
       if(getLayerDepth(l) >=maxregdep){        // The top layer is already too thick
         if(getLayerDepth(l) >=1000.){         // its the initialisation layer
@@ -1587,8 +1582,8 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
 	    remainder =0.0;
 	  }
 	  else if(remainder <= maxregdep+10.){
-     	    cout<<"Loads of deposition at " << x <<' '<< y <<" time= " <<tt<< '\n';
-     	    cout<<"Make extra layers ??? \n";
+     	    std::cout<<"Loads of deposition at " << x <<' '<< y <<" time= " <<tt<< '\n';
+     	    std::cout<<"Make extra layers ??? \n";
      	    exit(1);
 	  }
 
@@ -1610,15 +1605,15 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
  \************************************************************/
   else if( (dh[0] <= 0.0 && dh[1] <= 0.0) && dhtotal < 0.0){
     // Is there a sediment layer present ?
-    //cout << "Erosion in "<< x <<' '<< y <<" dhtotal= " << dhtotal << " time= "<< tt << '\n';
+    //std::cout << "Erosion in "<< x <<' '<< y <<" dhtotal= " << dhtotal << " time= "<< tt << '\n';
     if( getLayerSed(l)!=0){
 
       if(getLayerDepth(l) >= (-dhtotal) ){            // There is enough to erode in the first layer
 
 
 	if(getI()==debugI && getJ()==debugJ && 0)
-	  {cout<<" erode 1"<<endl;
-	  cout<<" thickness = "<<getLayerDepth(l)<<endl;
+	  {std::cout<<" erode 1"<<std::endl;
+	  std::cout<<" thickness = "<<getLayerDepth(l)<<std::endl;
 	  }
 	// just erode from the top sediment layer
 	addtoLayer(l,dhtotal,tt);
@@ -1627,27 +1622,27 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
 	//if(getLayerDepth(l)<1e-7){
 	//   removeLayer(l);
 	//}
-	if(getI()==debugI && getJ()==debugJ && 0){cout<<" erode 1-finished"<<endl;    }
+	if(getI()==debugI && getJ()==debugJ && 0){std::cout<<" erode 1-finished"<<std::endl;    }
 
       }
       else if(getLayerDepth(l) < (-dhtotal) ){            // we want to erode more than the top one layer
 
-	if(getI()==debugI && getJ()==debugJ){cout<<" erode 2"<<endl;    }
+	if(getI()==debugI && getJ()==debugJ){std::cout<<" erode 2"<<std::endl;    }
 
 	remainder=dhtotal; 				    // negative value, giving the dh we need to erode
 	while(remainder < 0.0 && getLayerSed(l)!=0){
 	  thickness=getLayerDepth(l);
 	  if(-remainder < thickness){                    // remainder is smaller thatn the new layer thickness
 	    if(getI()==debugI && getJ()==debugJ && 0){
-	      cout<<" Want to erode layer thickness= "<<thickness<< " in erode 3"<<endl;
-	      cout<<" With "<<remainder<<endl;
+	      std::cout<<" Want to erode layer thickness= "<<thickness<< " in erode 3"<<std::endl;
+	      std::cout<<" With "<<remainder<<std::endl;
 	    }
 
 	    addtoLayer(l,remainder,tt);                   // just erode the remainder
 	    remainder=0.0;                              // and reset it to zero
 
 	    if(getI()==debugI && getJ()==debugJ && 0){
-	      cout<<" eroded 3, new thickness= "<<getLayerDepth(l)<<endl;
+	      std::cout<<" eroded 3, new thickness= "<<getLayerDepth(l)<<std::endl;
 	    }
 	    if(thickness > 1000){ setSectionBase(z);}
 	  }
@@ -1656,9 +1651,9 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
 	    removeLayer(l);                              // remainder is larger than the layer
 	    remainder+=thickness;                        // remove the entire layer, but decrement the remainder
 	    if(getI()==debugI && getJ()==debugJ && 0){
-	      cout<<" erode 4 removing thickness "<< thickness<<endl;
-	      cout<<" getlayerdepth now returns  "<<getLayerDepth(l)<<endl;
-	      cout<<"and the remainder is "<<remainder<<endl;
+	      std::cout<<" erode 4 removing thickness "<< thickness<<std::endl;
+	      std::cout<<" getlayerdepth now returns  "<<getLayerDepth(l)<<std::endl;
+	      std::cout<<"and the remainder is "<<remainder<<std::endl;
 	    }
 	  }
 	  //l++;
@@ -1673,7 +1668,7 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
     // We are on bedrock and still want to erode
     else if(getLayerSed(l) ==0){
 
-      if(getI()==debugI && getJ()==debugJ){cout<<" erode 5"<<endl;    }
+      if(getI()==debugI && getJ()==debugJ){std::cout<<" erode 5"<<std::endl;    }
       addtoLayer(l,dhtotal,tt);	                // should also only erode bedrock
       setSectionBase(z);                        // adjust the base of the alluvial stratigraphic section
 
@@ -1686,17 +1681,17 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
  \************************************************************/
   if( (dh[0] > 0.0 && dh[1] < 0.0) || (dh[0] < 0.0 && dh[1] > 0.0) ){
 
-    cout<<"WARNING -- SIMULTANEOUS EROSION AN DEPOSITION "<<endl;
+    std::cout<<"WARNING -- SIMULTANEOUS EROSION AN DEPOSITION "<<std::endl;
 
 
   } // **********Deposition & Erosion simultaneously************
 
   if( getI()== debugI && getJ()== debugJ && 0){
-    cout<<" "<<endl;
-    cout<<"finish erodep for node "<<getI()<<" "<<getJ()<<endl;
-    cout<<"dh[0]= "<<dh[0]<<" dh[1]= "<<dh[1]<<" dhtotaal= "<<dh[0] + dh[1]<<endl;
-    cout<<"finish elev= "<<z<<" finish-base= "<< getSectionBase()<<endl;
-    cout<<"finish allu-thickness= "<<AlluvialColumnThickness()<<endl;
+    std::cout<<" "<<std::endl;
+    std::cout<<"finish erodep for node "<<getI()<<" "<<getJ()<<std::endl;
+    std::cout<<"dh[0]= "<<dh[0]<<" dh[1]= "<<dh[1]<<" dhtotaal= "<<dh[0] + dh[1]<<std::endl;
+    std::cout<<"finish elev= "<<z<<" finish-base= "<< getSectionBase()<<std::endl;
+    std::cout<<"finish allu-thickness= "<<AlluvialColumnThickness()<<std::endl;
   }
 
 
@@ -1708,13 +1703,13 @@ void tStratNode::EroDepSimple( int l, tArray<double>dh, double tt,double current
   double difference = (sectionBase_after)- (z-columnheight_after);
   if(z-columnheight_after != sectionBase_after && columnheight_after > 0.0){
     if(difference < -0.001 || difference > 0.001){
-      cout<<"   "<<endl;
-      cout<<"Finished ErodepSimple, no elevation balance"<<endl;
-      cout<<"at "<<getI()<<" "<<getJ()<<" dh was "<<dhtotal<<endl;
-      cout<<"z = "<<z<<" alluv= "<<columnheight_after<<" base= "<<sectionBase_after<<endl;
-      cout<<"z-columnheight= "<<z-columnheight_after<<"diff = "<< (sectionBase_after)- (z-columnheight_after)<<endl;
-      cout<<" "<<endl;
-      cout<<" "<<endl;
+      std::cout<<"   "<<std::endl;
+      std::cout<<"Finished ErodepSimple, no elevation balance"<<std::endl;
+      std::cout<<"at "<<getI()<<" "<<getJ()<<" dh was "<<dhtotal<<std::endl;
+      std::cout<<"z = "<<z<<" alluv= "<<columnheight_after<<" base= "<<sectionBase_after<<std::endl;
+      std::cout<<"z-columnheight= "<<z-columnheight_after<<"diff = "<< (sectionBase_after)- (z-columnheight_after)<<std::endl;
+      std::cout<<" "<<std::endl;
+      std::cout<<" "<<std::endl;
       exit(1);
     }
   }
@@ -1899,15 +1894,15 @@ void tStratNode::removeLayer(int i)
   if(n==0){
   //       n=0;
   //         while(n<layerlist.getSize()){
-  //            cout << "layer " << n+1 << " node ID "<< getID()<< endl;
+  //            std::cout << "layer " << n+1 << " node ID "<< getID()<< std::endl;
   //            niclay = layerlist.getIthData(n);
-  //            cout << "layer creation time is " << getLayerCtime(n) << endl;
-  //            cout << "layer recent time is " << getLayerRtime(n) << endl;
-  //            cout << "layer depth is " << getLayerDepth(n) << endl;
-  //            cout << "layer erodibility is " << getLayerErody(n) << endl;
-  //            cout << "is layer sediment? " << getLayerSed(n) << endl;
-  //            cout << "dgrade 1 is " << getLayerDgrade(n,0) << endl;
-  //            cout << "dgrade 2 is " << getLayerDgrade(n,1) << endl;
+  //            std::cout << "layer creation time is " << getLayerCtime(n) << std::endl;
+  //            std::cout << "layer recent time is " << getLayerRtime(n) << std::endl;
+  //            std::cout << "layer depth is " << getLayerDepth(n) << std::endl;
+  //            std::cout << "layer erodibility is " << getLayerErody(n) << std::endl;
+  //            std::cout << "is layer sediment? " << getLayerSed(n) << std::endl;
+  //            std::cout << "dgrade 1 is " << getLayerDgrade(n,0) << std::endl;
+  //            std::cout << "dgrade 2 is " << getLayerDgrade(n,1) << std::endl;
   //            n++;
   //         }
 
@@ -1935,9 +1930,9 @@ void tStratNode::makeNewLayerBelow(int i, tLayer::tSed_t sd, double erd,
   int n;
 
   // Debug, Quintijn
-  //cout << "In makeNewLayerBelow" << '\n';
-  //cout << "numg = " << numg << '\n';
-  //cout << "i= " << i << "size[0]= " << sz[0] << "tt= " << tt << '\n';
+  //std::cout << "In makeNewLayerBelow" << '\n';
+  //std::cout << "numg = " << numg << '\n';
+  //std::cout << "i= " << i << "size[0]= " << sz[0] << "tt= " << tt << '\n';
   //exit(1);
 
 

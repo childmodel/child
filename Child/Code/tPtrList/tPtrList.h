@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.48 2004-06-14 14:09:56 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.49 2004-06-16 13:37:41 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -46,12 +46,7 @@
 #define TPTRLIST_H
 
 #include <stdlib.h>
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
+#include <iostream>
 #include <assert.h>
 #include "../compiler.h"
 
@@ -85,12 +80,12 @@ template < class NodeType > class tPtrListIter;
   void PtrListDebug::TellAll()
   {
   //debug
-  cout << "IAP " << dbgIAP << endl;
-  cout << "RP " << dbgRP << endl;
-  cout << "MTB " << dbgMTB << endl;
-  cout << "MTF " << dbgMTF << endl;
-  cout << "PRV " << dbgPRV << endl;
-  cout << "PRP " << dbgPRP << endl;
+  std::cout << "IAP " << dbgIAP << std::endl;
+  std::cout << "RP " << dbgRP << std::endl;
+  std::cout << "MTB " << dbgMTB << std::endl;
+  std::cout << "MTF " << dbgMTF << std::endl;
+  std::cout << "PRV " << dbgPRV << std::endl;
+  std::cout << "PRP " << dbgPRP << std::endl;
 
   }*/
 
@@ -416,7 +411,7 @@ tPtrList() :
   nNodes(0), first(0), last(0)
 {
   if (0) //DEBUG
-    cout << "tPtrList() instantiated" << endl;
+    std::cout << "tPtrList() instantiated" << std::endl;
 }
 
 //copy constructor
@@ -999,17 +994,17 @@ print() const
 {
   if( isEmpty() )
     {
-      cout<<"The list is empty"<<endl<<endl;
+      std::cout<<"The list is empty\n"<<std::endl;
       return;
     }
   tPtrListNode< NodeType > * current = first;
-  cout<<"The list is: ";
+  std::cout<<"The list is: ";
   while( current != 0 )
     {
-      cout<<current->Ptr->getID() <<' ';
+      std::cout<<current->Ptr->getID() <<' ';
       current = current->next;
     }
-  cout<<endl<<endl;
+  std::cout << '\n' <<std::endl;
 }
 
 
@@ -1032,7 +1027,7 @@ tPtrListIter() :
   counter(0)
 {
   if (0) //DEBUG
-    cout << "tPtrListIter()" << endl;
+    std::cout << "tPtrListIter()" << std::endl;
 }
 
 template< class NodeType >
@@ -1043,7 +1038,7 @@ tPtrListIter(const tPtrListIter< NodeType >& orig) :
   counter(orig.counter)
 {
   if (0) //DEBUG
-    cout << "tPtrListIter(const tPtrListIter&)" << endl;
+    std::cout << "tPtrListIter(const tPtrListIter&)" << std::endl;
 }
 
 template< class NodeType >
@@ -1054,7 +1049,7 @@ tPtrListIter( tPtrList< NodeType > &ptrlist ) :
   counter(0)
 {
   if (0) //DEBUG
-    cout << "tPtrListIter( ptrlist )" << endl;
+    std::cout << "tPtrListIter( ptrlist )" << std::endl;
 }
 
 template< class NodeType >
@@ -1075,7 +1070,7 @@ inline tPtrListIter< NodeType >::
   ptrlistPtr = 0;
   curptrnode = 0;
   if (0) //DEBUG
-    cout << "    ~tPtrListIter()" << endl;
+    std::cout << "    ~tPtrListIter()" << std::endl;
 }
 
 /**************************************************************************\

@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.25 2004-06-07 23:26:51 childcvs Exp $
+**  $Id: childmain.cpp,v 1.26 2004-06-16 13:37:24 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -90,14 +90,14 @@ int main( int argc, char **argv )
    tRand rand( inputFile );
 
    // Create and initialize objects:
-   cout << "Creating mesh...\n";
+   std::cout << "Creating mesh...\n";
    tMesh<tLNode> mesh( inputFile, option.checkMeshConsistency );
 
-   cout << "Creating output files...\n";
+   std::cout << "Creating output files...\n";
    tLOutput<tLNode> output( &mesh, inputFile, &rand );
 
    tStorm storm( inputFile, &rand );
-   cout << "Creating stream network...\n";
+   std::cout << "Creating stream network...\n";
    tStreamNet strmNet( mesh, storm, inputFile );
    tErosion erosion( &mesh, inputFile );
    tUplift uplift( inputFile );
@@ -136,10 +136,10 @@ int main( int argc, char **argv )
      output.SetStratGrid( stratGrid, &strmNet );
    }
 
-   cout << "Writing data for time zero...\n";
+   std::cout << "Writing data for time zero...\n";
    tRunTimer time( inputFile, !option.silent_mode );
    output.WriteOutput( 0. );
-   cout << "Initialization done.\n";
+   std::cout << "Initialization done.\n";
 
    // Option for time series output (IN PROGRESS)
    /*   switch( optTSOutput ){
@@ -148,9 +148,9 @@ int main( int argc, char **argv )
        output.WriteVolOutput();
      break;
    case 2:   // Volume and vegetation cover output each N years.
-     cout << "here" << endl;
+     std::cout << "here" << std::endl;
      if( time.CheckTSOutputTime() ){
-       cout << "there" << endl;
+       std::cout << "there" << std::endl;
        output.WriteVolVegOutput();}
      break;
    case 3:   // All data at each storm.
@@ -181,20 +181,20 @@ OptTSOutput." );
    **********************************************************************/
    while( !time.IsFinished() )
    {
-      cout << "         " << endl;
+      std::cout << "         " << std::endl;
       time.ReportTimeStatus();
 
       // Do storm...
       storm.GenerateStorm( time.getCurrentTime(),
                            strmNet.getInfilt(), strmNet.getSoilStore() );
-      /*cout
+      /*std::cout
 	<< "Storm: "
 	<< storm.getRainrate() << " " << storm.getStormDuration() << " "
-	<< storm.interstormDur() << endl;*/
+	<< storm.interstormDur() << std::endl;*/
 
       strmNet.UpdateNet( time.getCurrentTime(), storm );
-      if(0) //debug
-		cout << "UpdateNet::Done.." << endl;
+      if(0) //DEBUG
+	std::cout << "UpdateNet::Done.." << std::endl;
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
@@ -206,8 +206,8 @@ OptTSOutput." );
       else
           erosion.DetachErode( storm.getStormDuration(), &strmNet,
                                time.getCurrentTime(), vegetation );
-      if(0) //debug
-		cout << "Erosion::Done.." << endl;
+      if(0) //DEBUG
+	std::cout << "Erosion::Done.." << std::endl;
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
@@ -217,8 +217,8 @@ OptTSOutput." );
       if( optMeander )
 	  strmMeander->Migrate( time.getCurrentTime() );
 
-      if(0) //debug
-		cout << "Meander-Migrate::Done..\n";
+      if(0) //DEBUG
+	std::cout << "Meander-Migrate::Done..\n";
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
@@ -230,7 +230,7 @@ OptTSOutput." );
 	  if( floodplain->OptControlMainChan() )
 	    floodplain->UpdateMainChannelHeight( time.getCurrentTime(),
 						 strmNet.getInletNodePtrNC() );
-	  cout << "UpdateChannelHeight::Done..\n";
+	  std::cout << "UpdateChannelHeight::Done..\n";
 
 	  if( optStratGrid ){
 	    stratGrid->UpdateStratGrid(tStratGrid::k3,time.getCurrentTime());
@@ -239,7 +239,7 @@ OptTSOutput." );
 	  floodplain->DepositOverbank( storm.getRainrate(),
 				       storm.getStormDuration(),
 				       time.getCurrentTime() );
-	  cout << "tFloodplain::Done..\n";
+	  std::cout << "tFloodplain::Done..\n";
 
 	  if( optStratGrid ){
 	    stratGrid->UpdateStratGrid(tStratGrid::k4,time.getCurrentTime());

@@ -15,13 +15,8 @@
 /***************************************************************************/
 
 #include <math.h>
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-# include <fstream>
-using namespace std;
-#else
-# include <fstream.h>
-#endif
+#include <iostream>
+#include <fstream>
 #include <stdlib.h>
 #include <assert.h>
 

@@ -14,18 +14,12 @@
 **  - add functions to set output interval and time status notification
 **    interval
 **
-**  $Id: tRunTimer.cpp,v 1.27 2004-05-27 17:21:01 childcvs Exp $
+**  $Id: tRunTimer.cpp,v 1.28 2004-06-16 13:37:41 childcvs Exp $
 */
 /***************************************************************************/
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-# include <fstream>
-using namespace std;
-#else
-# include <iostream.h>
-# include <fstream.h>
-#endif
+#include <iostream>
+#include <fstream>
 #include <assert.h>
 
 #include "../tInputFile/tInputFile.h"
@@ -161,7 +155,7 @@ double tRunTimer::RemainingTime() const
 // Returns 1 if there is still time
 // remaining, 0 if the time is up.
 //****************************************************
-int tRunTimer::Advance( double dt )
+bool tRunTimer::Advance( double dt )
 {
 	currentTime += dt;
 	return( currentTime < endTime );
@@ -179,16 +173,16 @@ int tRunTimer::Advance( double dt )
 // time (overwriting any previous contents).
 // Regardless of the status of nextNotify, if
 // optPrintEachTime is selected, the current time is
-// reported to cout.
+// reported to std::cout.
 //****************************************************
 void tRunTimer::ReportTimeStatus()
 {
-	if( optPrintEachTime ) cout << currentTime << endl;
+	if( optPrintEachTime ) std::cout << currentTime << std::endl;
 	if( currentTime >= nextNotify )
 	{
 		timeStatusFile.open( "run.time" );
 		assert( timeStatusFile.good() );
-		timeStatusFile << currentTime << endl;
+		timeStatusFile << currentTime << std::endl;
 		timeStatusFile.close();
 		nextNotify += notifyInterval;
 	}

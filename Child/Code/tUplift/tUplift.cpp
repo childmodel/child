@@ -3,20 +3,13 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.29 2004-06-14 11:03:51 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.30 2004-06-16 13:37:48 childcvs Exp $
 */
 /************************************************************************/
 
-#if !defined(HAVE_NO_NAMESPACE)
 # include <iostream>
 # include <sstream>
 # include <string>
-using namespace std;
-#else
-# include <iostream.h>
-# include <sstream.h>
-# include <string>
-#endif
 
 #include "tUplift.h"
 #include "../errors/errors.h"
@@ -39,7 +32,7 @@ using namespace std;
 tUplift::tUplift_t tUplift::DecodeType(int type){
   if( type < 0 || type > 9 )
     {
-      cerr << "I don't recognize the uplift type you asked for ("
+      std::cerr << "I don't recognize the uplift type you asked for ("
            << type << ")\n"
 	"Valid uplift types are:\n"
 	" 0 - none\n"
@@ -130,15 +123,15 @@ tUplift::tUplift( const tInputFile &infile ) :
       if( positionParam1 <=0.0 )
 	ReportFatalError( "Parameter FAULT_PIVOT_DISTANCE must be > 0." );
 
-      stringstream myStringStream;
+      std::stringstream myStringStream;
       myStringStream << "@inline " << 0.0 << ":" << rate2 << " "
-		     << accelTime << ":" << rate << endl;
-      const string myString(myStringStream.str());
-      cout << myString << '\n'
+		     << accelTime << ":" << rate << std::endl;
+      const std::string myString(myStringStream.str());
+      std::cout << myString << '\n'
 	   << "rate 1: " << rate
 	   << " rate2: " << rate2
 	   << " accelTime: " << accelTime << " total throw: "
-	   << rate2*accelTime + rate*(totalTime-accelTime) << endl;
+	   << rate2*accelTime + rate*(totalTime-accelTime) << std::endl;
       rate_ts.configure( myString.c_str() );
     }
     break;
@@ -217,7 +210,7 @@ void tUplift::UpliftUniform( tMesh<tLNode> *mp, double delt )
    const double rise = rate*delt;
 
    if (0) //DEBUG
-     cout << "****UPLIFTUNI: " << rise << endl;
+     std::cout << "****UPLIFTUNI: " << rise << std::endl;
 
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
    {
@@ -285,7 +278,7 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt ) const
    tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
    double slip = slipRate*delt;
 
-   cout << "StrikeSlip by " << slip << endl;
+   std::cout << "StrikeSlip by " << slip << std::endl;
 
    for( cn=ni.FirstP(); !(ni.AtEnd()); cn=ni.NextP() )
    {
@@ -741,11 +734,11 @@ void tUplift::NormalFaultTiltAccel( tMesh<tLNode> *mp, double delt, double curre
    tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
 
    rateOverPivot = rate_ts.calc( currentTime ) / positionParam1;
-   cout << "time " << currentTime << " rateOverPivot " << rateOverPivot << endl;
+   std::cout << "time " << currentTime << " rateOverPivot " << rateOverPivot << std::endl;
    assert( mp!=0 );
 
    if (1) //DEBUG
-     cout << "****UPLIFTNORMALFAULTTILTACCEL: " << rateOverPivot << endl;
+     std::cout << "****UPLIFTNORMALFAULTTILTACCEL: " << rateOverPivot << std::endl;
 
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
    {

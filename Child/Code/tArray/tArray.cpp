@@ -3,16 +3,12 @@
  **  @file tArray.cpp
  **  @brief Functions for template class tArray< T >
  **
- **  $Id: tArray.cpp,v 1.27 2004-05-10 10:52:47 childcvs Exp $
+ **  $Id: tArray.cpp,v 1.28 2004-06-16 13:37:29 childcvs Exp $
  */
 /**************************************************************************/
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <fstream>
-using namespace std;
-#else
-# include <fstream.h>
-#endif
+#include <iostream>
+#include <fstream>
 #include <assert.h>
 #include "tArray.h"
 #include "../compiler.h"
@@ -110,7 +106,7 @@ const tArray< T > &tArray< T >::operator=( const tArray< T > &right )
 template< class T >
 bool tArray< T >::operator==( const tArray< T > &right ) const
 {
-  if( npts != right.npts ) return 0;
+  if( npts != right.npts ) return false;
   for( size_t i = 0; i < npts; i++ )
     if( avalue[i] != right.avalue[i] )
       return false;
@@ -128,23 +124,23 @@ bool tArray< T >::operator!=( const tArray< T > &right ) const
 template< class T >
 void tArray< T >::fatalReport( size_t subscript ) const
 {
-  cout<<"subscript is "<<subscript<<" npts is "<<npts<<endl;
+  std::cout<<"subscript is "<<subscript<<" npts is "<<npts<<std::endl;
   ReportFatalError( "Subscript out of range." );
 }
 
 
 //overloaded left shift operator
 template< class T >
-ostream &operator<<( ostream &output, const tArray< T > &a )
+std::ostream &operator<<( std::ostream &output, const tArray< T > &a )
 {
   size_t i;
 
   for( i = 0; i < a.npts; i++ )
     {
       output << a.avalue[i] << " ";
-      if( (i + 1) %10 == 0 ) output<<endl;
+      if( (i + 1) %10 == 0 ) output<<std::endl;
     }
-  if( i % 10 != 0 ) output<<endl;
+  if( i % 10 != 0 ) output<<std::endl;
   return output;
 }
 

@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.136 2004-05-27 17:20:56 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.137 2004-06-16 13:37:31 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -76,7 +76,7 @@ reachmember(false),
 meander(false)
 {
   if (0) //DEBUG
-    cout << "  tMeander()" << endl;
+    std::cout << "  tMeander()" << std::endl;
 }
 
 tMeander::tMeander( const tMeander &orig )                        //tMeander
@@ -89,7 +89,7 @@ reachmember(orig.reachmember),
 meander(orig.meander)
 {
   if (0) //DEBUG
-    cout << "  tMeander( orig )" << endl;
+    std::cout << "  tMeander( orig )" << std::endl;
 }
 
 tMeander::tMeander( bool state, double x, double y )                //tMeander
@@ -101,13 +101,13 @@ reachmember(false),
 meander(state)
 {
   if (0) //DEBUG
-    cout << "  tMeander( state, x, y )" << endl;
+    std::cout << "  tMeander( state, x, y )" << std::endl;
 }
 
 tMeander::~tMeander()                                             //tMeander
 {
   if (0) //DEBUG
-    cout << "    ~tMeander()" << endl;
+    std::cout << "    ~tMeander()" << std::endl;
 }
 
 //assignment
@@ -134,7 +134,7 @@ tBedrock::tBedrock()                                             //tBedrock
 erodibility(0.)
 {
   if (0) //DEBUG
-    cout << "  tBedrock()" << endl;
+    std::cout << "  tBedrock()" << std::endl;
 }
 
 tBedrock::tBedrock( const tBedrock &orig )                       //tBedrock
@@ -142,13 +142,13 @@ tBedrock::tBedrock( const tBedrock &orig )                       //tBedrock
 erodibility(orig.erodibility)
 {
   if (0) //DEBUG
-    cout << "  tBedrock( orig )" << endl;
+    std::cout << "  tBedrock( orig )" << std::endl;
 }
 
 tBedrock::~tBedrock()                                            //tBedrock
 {
   if (0) //DEBUG
-    cout << "    ~tBedrock()" << endl;
+    std::cout << "    ~tBedrock()" << std::endl;
 }
 
 //assignment
@@ -181,7 +181,7 @@ thickness(0.),
 dgrade()
 {
   if (0) //DEBUG
-    cout << "  tRegolith()" << endl;
+    std::cout << "  tRegolith()" << std::endl;
 }
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
@@ -190,14 +190,14 @@ thickness(orig.thickness),
 dgrade( orig.dgrade )
 {
   if (0) //DEBUG
-    cout << "  tRegolith( orig ) " << thickness << endl;
+    std::cout << "  tRegolith( orig ) " << thickness << std::endl;
 }
 
 
 tRegolith::~tRegolith()                                         //tRegolith
 {
   if (0) //DEBUG
-    cout << "    ~tRegolith()" << endl;
+    std::cout << "    ~tRegolith()" << std::endl;
 }
 
 //assignment
@@ -223,7 +223,7 @@ diam(kVeryHigh),
 migration()
 {
   if (0) //DEBUG
-    cout << "  tChannel()" << endl;
+    std::cout << "  tChannel()" << std::endl;
 }
 
 tChannel::tChannel( const tChannel &orig )                       //tChannel
@@ -238,13 +238,13 @@ diam(orig.diam),
 migration( orig.migration )
 {
   if (0) //DEBUG
-    cout << "  tChannel( orig )" << endl;
+    std::cout << "  tChannel( orig )" << std::endl;
 }
 
 tChannel::~tChannel()                                            //tChannel
 {
   if (0) //DEBUG
-    cout << "    ~tChannel()" << endl;
+    std::cout << "    ~tChannel()" << std::endl;
 }
 //assignment
 const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
@@ -315,7 +315,7 @@ qsubsurf(0.),
 public1(-1)
 {
   if (0) //DEBUG
-    cout << "=>tLNode()" << endl;
+    std::cout << "=>tLNode()" << std::endl;
 }
 
 tLNode::tLNode( const tInputFile &infile )
@@ -339,7 +339,7 @@ public1(-1)
   tArray<double> dgradebrhelp;
 
   if (0) //DEBUG
-    cout << "=>tLNode( infile )" << endl;
+    std::cout << "=>tLNode( infile )" << std::endl;
   tauc = infile.ReadItem( tauc, "TAUC" );
 
   {
@@ -498,7 +498,7 @@ public1(-1)
     }
 
     if (0) //DEBUG
-      cout << layerlist.getSize() << " layers created " << endl;
+      std::cout << layerlist.getSize() << " layers created " << std::endl;
   }
 
 }
@@ -529,13 +529,13 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
 
   layerlist = orig.layerlist;
   if (0) //DEBUG
-    cout << "=>tLNode( orig )" << endl;
+    std::cout << "=>tLNode( orig )" << std::endl;
 }
 
 tLNode::~tLNode()                                                  //tLNode
 {
   if (0) //DEBUG
-    cout << "    ~tLNode()" << endl;
+    std::cout << "    ~tLNode()" << std::endl;
   flowedge = 0;
   stratNode = 0;
 }
@@ -642,19 +642,19 @@ double tLNode::CalcSlopeMeander()
 	  assert( dn != 0 );
 	}
       if(curlen <= 0){
-	cout<<"Error in getSlope() in 1st loop, curlen is "<<curlen<<endl;
-	cout<<"Do you have an obstruction/ pond along the meander channel ? \n";
+	std::cout<<"Error in getSlope() in 1st loop, curlen is "<<curlen<<std::endl;
+	std::cout<<"Do you have an obstruction/ pond along the meander channel ? \n";
 	TellAll();
 	assert(curlen>0.0);
       }
 
       assert( curlen > 0 );
       downz = dn->z;
-      //if( timetrack >= kBugTime ) cout << "GetSlope 1; " << flush;
+      //if( timetrack >= kBugTime ) std::cout << "GetSlope 1; " << flush;
       delz = z - downz;
-      //if( timetrack >= kBugTime ) cout << "GS 2; " << flush;
+      //if( timetrack >= kBugTime ) std::cout << "GS 2; " << flush;
       slp = delz / curlen;
-      //if( timetrack >= kBugTime ) cout << "GS 3; " << flush;
+      //if( timetrack >= kBugTime ) std::cout << "GS 3; " << flush;
       on = dn;
       ctr = 0;
       breakit=false;
@@ -664,9 +664,9 @@ double tLNode::CalcSlopeMeander()
 	  ctr++;
 	  if( ctr > kLargeNumber )
 	    {
-	      cout<<"At node ID,x,y,z "<< getID()<<' ' <<getX()<<' '<<getY()<<' '<<getZ()<<endl;
-	      cout<<"Not able to find a boundary node of type 1 or 2 (Meander cannot find a gridboundary ?)\n";
-	      cout<<"breaking the infinite loop, but this is a bug !			\n";
+	      std::cout<<"At node ID,x,y,z "<< getID()<<' ' <<getX()<<' '<<getY()<<' '<<getZ()<<std::endl;
+	      std::cout<<"Not able to find a boundary node of type 1 or 2 (Meander cannot find a gridboundary ?)\n";
+	      std::cout<<"breaking the infinite loop, but this is a bug !			\n";
 	      //TellAll();
 	      //ReportFatalError("an infinite loop in tLNode::GetSlope(), 2nd loop");
 	      breakit=true;
@@ -677,12 +677,12 @@ double tLNode::CalcSlopeMeander()
 	      counter=0;
 	      cn=this;
 	      while(cn!=NULL && counter <=50){
-	         cout<< "M-Nodes "
+	         std::cout<< "M-Nodes "
 		     <<cn->getID()<<' '
 		     <<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
 		     <<" A= "<<cn->getDrArea()<<" Q= "<<cn->getQ()
 		     <<" W= "<<cn->getChanWidth()<< " Mndr="<<cn->Meanders()
-		     <<"Flood= "<< FloodName(cn->getFloodStatus()) <<endl;
+		     <<"Flood= "<< FloodName(cn->getFloodStatus()) <<std::endl;
 	  	 cn=cn->getDownstrmNbr();
 	  	 counter++;
 	      }
@@ -698,7 +698,7 @@ double tLNode::CalcSlopeMeander()
     slp = (z - getDownstrmNbr()->z ) / flowedge->getLength();
   }
 
-  //if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
+  //if( timetrack >= kBugTime ) std::cout << "GS 4; " << std::endl << flush;
   if( slp>=0.0 ) return slp;
   else return 0.0;
 }
@@ -750,11 +750,11 @@ void tLNode::FindInitFlowDir() // overrides tNode; was tStreamNet::
    {
       flowedg = flowedg->getCCWEdg();
       assert( flowedg != 0 );
-      if( ++ctr > kMaxSpokes ) // Make sure to prevent endless loops
+      if( ++ctr > kMaxSpokes ) // Make sure to prevent std::endless loops
       {
-         cerr << "Mesh error: node " << getID()
+         std::cerr << "Mesh error: node " << getID()
               << " appears to be surrounded by closed boundary nodes"
-              << endl;
+              << std::endl;
          ReportFatalError( "Bailing out of InitFlowDirs()" );
       }
    }
@@ -813,10 +813,10 @@ bool tLNode::FindFlowDir() // was tStreamNet::
       }
       curedg = curedg->getCCWEdg();
       ++ctr;
-      if( unlikely( ctr > kMaxSpokes ) ) // Make sure to prevent endless loops
+      if( unlikely( ctr > kMaxSpokes ) ) // Make sure to prevent std::endless loops
       {
-         cerr << "Mesh error: node " << getID()
-              << " going round and round" << endl;
+         std::cerr << "Mesh error: node " << getID()
+              << " going round and round" << std::endl;
          ReportFatalError( "Bailing out of FlowDirs()" );
       }
    }
@@ -903,10 +903,10 @@ bool tLNode::FindDynamicFlowDir() // overrides tNode; was tStreamNet::
       }
       curedg = curedg->getCCWEdg();
       ++ctr;
-      if( unlikely( ctr > kMaxSpokes ) ) // Make sure to prevent endless loops
+      if( unlikely( ctr > kMaxSpokes ) ) // Make sure to prevent std::endless loops
       {
-         cerr << "Mesh error: node " << getID()
-              << " going round and round" << endl;
+         std::cerr << "Mesh error: node " << getID()
+              << " going round and round" << std::endl;
          ReportFatalError( "Bailing out of FlowDirs()" );
       }
    }
@@ -974,51 +974,51 @@ void tLNode::TellAll() const
 {
   tLNode * nbr;
 
-  cout << " NODE " << id << ":\n";
-  cout << "  x=" << x << " y=" << y << " z=" << z;
+  std::cout << " NODE " << id << ":\n";
+  std::cout << "  x=" << x << " y=" << y << " z=" << z;
   if( getEdg() ) {
-    cout << "  points to edg #" << getEdg()->getID() << endl;
-    cout << "  dr area: " << getDrArea() << "  disch: " << getQ()
+    std::cout << "  points to edg #" << getEdg()->getID() << std::endl;
+    std::cout << "  dr area: " << getDrArea() << "  disch: " << getQ()
 	 << "  boundary: " << BoundName(boundary)
 	 << "  flood: " << FloodName(flood)
-	 << "\n  varea: " << varea << endl;
+	 << "\n  varea: " << varea << std::endl;
 
     if( flowedge ) {
       nbr = static_cast<tLNode *>(flowedge->getDestinationPtrNC());
-      cout << "  Flows along edg " << flowedge->getID() << " to node "
+      std::cout << "  Flows along edg " << flowedge->getID() << " to node "
 	   << nbr->getID() << " at (" << nbr->getX() << ","
 	   << nbr->getY() << "," << nbr->getZ() << ")\n    with vedglen "
-	   << flowedge->getVEdgLen() << endl;
+	   << flowedge->getVEdgLen() << std::endl;
       flowedge->TellCoords();
       if (0) //DEBUG
-	cout<<"  ccwedge of flowedge is "<<flowedge->getCCWEdg()->getID()
+	std::cout<<"  ccwedge of flowedge is "<<flowedge->getCCWEdg()->getID()
 	    <<" originates at "<<flowedge->getCCWEdg()->getOriginPtrNC()->getID()
-	    <<endl;
-      cout << "  qs: " << qs << "  qsin: " << qsin << "  slp: "
-	   << flowedge->getSlope() << "  reg: " << reg.thickness << endl;
+	    <<std::endl;
+      std::cout << "  qs: " << qs << "  qsin: " << qsin << "  slp: "
+	   << flowedge->getSlope() << "  reg: " << reg.thickness << std::endl;
       for(size_t i=0; i<numg; i++)
-	cout<<"  qsi "<<i<<" "<<qsm[i];
-      cout<<endl;
+	std::cout<<"  qsi "<<i<<" "<<qsm[i];
+      std::cout<<std::endl;
       //for(i=0; i<numg; i++)
-      //cout<<"  qsini "<<i<<" "<<qsinm[i];
-      //cout<<endl;
-      cout<<" creation time top "<<getLayerCtime(0);
-      cout<<"numlayers is "<<getNumLayer()<<endl;
+      //std::cout<<"  qsini "<<i<<" "<<qsinm[i];
+      //std::cout<<std::endl;
+      std::cout<<" creation time top "<<getLayerCtime(0);
+      std::cout<<"numlayers is "<<getNumLayer()<<std::endl;
       int j;
       for( j=0; j<getNumLayer(); j++ )
 	for( size_t i=0; i<numg; i++)
-	  cout<<"  dgrade "<<i<<" "<<getLayerDgrade(j,i);
-      cout << "  dzdt: " << dzdt << "  drdt: " << drdt;
-      cout<<" meanders "<< Meanders()<<endl;
-      cout << "  width: " << getHydrWidth() << " tau: " << getTau();
-      cout << " taucrit: " << getTauCrit() << endl;
+	  std::cout<<"  dgrade "<<i<<" "<<getLayerDgrade(j,i);
+      std::cout << "  dzdt: " << dzdt << "  drdt: " << drdt;
+      std::cout<<" meanders "<< Meanders()<<std::endl;
+      std::cout << "  width: " << getHydrWidth() << " tau: " << getTau();
+      std::cout << " taucrit: " << getTauCrit() << std::endl;
     }
-    else cout << "  Flowedg is undefined\n";
+    else std::cout << "  Flowedg is undefined\n";
 
   }
-  else cout << "  edg is undefined!\n";
+  else std::cout << "  edg is undefined!\n";
 
-  cout << "layerlist addresses are:\n";
+  std::cout << "layerlist addresses are:\n";
   layerlist.DebugTellPtrs();
 }
 #endif
@@ -1040,7 +1040,7 @@ void tLNode::EroDep( double dz )
 {
   z += dz;
   if (0) //DEBUG
-    cout << "  eroding " << id << " by " << dz << endl << flush;
+    std::cout << "  eroding " << id << " by " << dz << std::endl;
 
   reg.thickness += dz;
   if( reg.thickness < 0. ) reg.thickness = 0.0;
@@ -1063,8 +1063,8 @@ void tLNode::setQsinErrorHandler( size_t i ) const
   if(i>=numg)
     ReportFatalError( "Trying to index sediment sizes that don't exist ");
   if(i>=qsinm.getSize()){
-    cout<<"trying to set index "<<i<<" but size of array is "
-	<<qsinm.getSize() << endl;
+    std::cout<<"trying to set index "<<i<<" but size of array is "
+	<<qsinm.getSize() << std::endl;
     TellAll();
     ReportFatalError( "Index out of bound");
   }
@@ -1143,10 +1143,10 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
   assert(tri!=0);
 
   if (0) //DEBUG
-    cout<<endl<<"tLNode::LayerInterpolation....";
+    std::cout<<std::endl<<"tLNode::LayerInterpolation....";
   if (0) {//DEBUG
-    cout<<" current x = "<<x<<" current y = "<<y;
-    cout<<" newx= "<<tx<<" newy= "<<ty<<endl;
+    std::cout<<" current x = "<<x<<" current y = "<<y;
+    std::cout<<" newx= "<<tx<<" newy= "<<ty<<std::endl;
   }
 
   tLNode *lnds[3];
@@ -1160,7 +1160,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
     }
   }
   if (0) //DEBUG
-    cout<<"numnodes = "<<numnodes<<" newx= "<<tx<<" newy= "<<ty<<endl;
+    std::cout<<"numnodes = "<<numnodes<<" newx= "<<tx<<" newy= "<<ty<<std::endl;
 
   tList< tLayer > helplist; //Make the layer list first.  When
   //the list is made, then set the nodes layerlist equal to helplist.
@@ -1192,7 +1192,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
     }
 
     if (0) //DEBUG
-      cout<<"Current age is "<<CA<<endl;
+      std::cout<<"Current age is "<<CA<<std::endl;
     //CA now contains the youngest surface layer time of the three nodes.
     //Remember that LayerRtime is the most recent time visited, which
     //implies larger time = younger layer
@@ -1238,7 +1238,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 	  else{
 	    dep[i]=0;
 	    if (0) //DEBUG
-	      cout<<"not in correct range, dep set to 0"<<endl;
+	      std::cout<<"not in correct range, dep set to 0"<<std::endl;
 	  }
 	}
 
@@ -1267,7 +1267,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 	  }
 	}
 	if (0) //DEBUG
-	  cout<<endl<<"after iter, current age is set to "<<CA<<endl;
+	  std::cout<<std::endl<<"after iter, current age is set to "<<CA<<std::endl;
 
       }while(CA>kAncient);
 
@@ -1312,14 +1312,14 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 	if(lnds[i]->getNumLayer()<=layindex[i]){
 	  lnds[i]->TellAll();
 	  for(int j=0; j<lnds[i]->getNumLayer(); j++){
-	    cout << "layer " << j+1<<endl ;
-	    cout << lnds[i]->getLayerCtime(j);
-	    cout << " " << lnds[i]->getLayerRtime(j);
-	    cout << " "<<lnds[i]->getLayerEtime(j)<<endl;
-	    cout << lnds[i]->getLayerDepth(j);
-	    cout << " " << lnds[i]->getLayerErody(j);
-	    cout << " " << lnds[i]->getLayerSed(j) << endl;
-	    cout << lnds[i]->getLayerDgrade(j,0);
+	    std::cout << "layer " << j+1<<std::endl ;
+	    std::cout << lnds[i]->getLayerCtime(j);
+	    std::cout << " " << lnds[i]->getLayerRtime(j);
+	    std::cout << " "<<lnds[i]->getLayerEtime(j)<<std::endl;
+	    std::cout << lnds[i]->getLayerDepth(j);
+	    std::cout << " " << lnds[i]->getLayerErody(j);
+	    std::cout << " " << lnds[i]->getLayerSed(j) << std::endl;
+	    std::cout << lnds[i]->getLayerDgrade(j,0);
 	  }
 	}
       }
@@ -1356,10 +1356,10 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 	       lnds[2]->get2DCoords(), elevs );
     double diff=theoryz-getZ();
 
-    /*cout<<"new z "<<getZ()<<" theoretical z "<<theoryz<<" diff "<<diff<<endl;
-      cout<<"before removal, layer info"<<endl;
-      cout<<"numlayers = "<<helplist.getSize()<<endl;
-      cout<<"depth of first layer = "<<helplist.FirstP()->getDepth()<<endl;*/
+    /*std::cout<<"new z "<<getZ()<<" theoretical z "<<theoryz<<" diff "<<diff<<std::endl;
+      std::cout<<"before removal, layer info"<<std::endl;
+      std::cout<<"numlayers = "<<helplist.getSize()<<std::endl;
+      std::cout<<"depth of first layer = "<<helplist.FirstP()->getDepth()<<std::endl;*/
 
     while(diff>0){
       if(helplist.FirstP()->getDepth()<diff){
@@ -1644,45 +1644,45 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 
   layerlist=helplist;
   //     if(getNumLayer()<=2)
-  //         cout<<"layerinterp made 2 layers at "<<x<<", "<<y<<endl;
+  //         std::cout<<"layerinterp made 2 layers at "<<x<<", "<<y<<std::endl;
 
   //Below  if for debugging purposes
   if(0) { //DEBUG
     /*if(getLayerEtime(0)<0 || (tx>505.0 && tx<506.0 && ty>331.0 && ty<332.0)  ){
      */
     i=0;
-    cout<<"x "<<tx<<" y "<<ty;
+    std::cout<<"x "<<tx<<" y "<<ty;
     while(i<layerlist.getSize()){
-      cout << "layer " << i+1 <<endl;
-      cout << getLayerCtime(i);
-      cout << " " << getLayerRtime(i);
-      cout << " " << getLayerEtime(i)<<endl;
-      cout << getLayerDepth(i);
-      cout << " " << getLayerErody(i);
-      cout << " " << getLayerSed(i) << endl;
-      cout << getLayerDgrade(i,0) ;
-      if( numg>1 ) cout << " " << getLayerDgrade(i,1);
+      std::cout << "layer " << i+1 <<std::endl;
+      std::cout << getLayerCtime(i);
+      std::cout << " " << getLayerRtime(i);
+      std::cout << " " << getLayerEtime(i)<<std::endl;
+      std::cout << getLayerDepth(i);
+      std::cout << " " << getLayerErody(i);
+      std::cout << " " << getLayerSed(i) << std::endl;
+      std::cout << getLayerDgrade(i,0) ;
+      if( numg>1 ) std::cout << " " << getLayerDgrade(i,1);
       i++;
-      cout<<endl;
+      std::cout<<std::endl;
     }
 
     int j;
     for(j=0; j<numnodes; j++){
-      cout<<endl;
-      cout<<"node "<<j<<" x "<<lnds[j]->getX()<<" y "<<lnds[j]->getY();
-      cout<<" boundary "<< BoundName(lnds[j]->getBoundaryFlag())<<endl;
+      std::cout<<std::endl;
+      std::cout<<"node "<<j<<" x "<<lnds[j]->getX()<<" y "<<lnds[j]->getY();
+      std::cout<<" boundary "<< BoundName(lnds[j]->getBoundaryFlag())<<std::endl;
       tLNode * nicn = lnds[j];
       i=0;
       while(i<nicn->getNumLayer()){
-	cout << "layer " << i+1<<endl ;
-	cout << nicn->getLayerCtime(i);
-	cout << " " << nicn->getLayerRtime(i);
-	cout << " "<<nicn->getLayerEtime(i)<<endl;
-	cout << nicn->getLayerDepth(i);
-	cout << " " << nicn->getLayerErody(i);
-	cout << " " << nicn->getLayerSed(i) << endl;
-	cout << nicn->getLayerDgrade(i,0);
-	if( numg>1 ) cout << " " << nicn->getLayerDgrade(i,1) << endl;
+	std::cout << "layer " << i+1<<std::endl ;
+	std::cout << nicn->getLayerCtime(i);
+	std::cout << " " << nicn->getLayerRtime(i);
+	std::cout << " "<<nicn->getLayerEtime(i)<<std::endl;
+	std::cout << nicn->getLayerDepth(i);
+	std::cout << " " << nicn->getLayerErody(i);
+	std::cout << " " << nicn->getLayerSed(i) << std::endl;
+	std::cout << nicn->getLayerDgrade(i,0);
+	if( numg>1 ) std::cout << " " << nicn->getLayerDgrade(i,1) << std::endl;
 	i++;
       }
     }
@@ -1708,7 +1708,7 @@ void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, dou
 void tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
 {
   if (0) //DEBUG
-    cout<<"tLNode::WarnSpokeLeaving..... node #"<<id<<endl;
+    std::cout<<"tLNode::WarnSpokeLeaving..... node #"<<id<<std::endl;
 
   //Make sure that edg pointer in tNode won't be affected
   tNode::WarnSpokeLeaving( edglvingptr );
@@ -1727,7 +1727,7 @@ void tLNode::WarnSpokeLeaving(tEdge * edglvingptr)
     //TODO fix this - probably in tGrid::ExtricateEdge
     //        if(flowedge->getBoundaryFlag()==kClosedBoundary){
     //           boundary = kClosedBoundary;
-    //           cout<<"node "<<getID()<<" x "<<getX()<<" y "<<getY()<<" set to boundary in WarnSpokeLeaving"<<endl<<flush;
+    //           std::cout<<"node "<<getID()<<" x "<<getX()<<" y "<<getY()<<" set to boundary in WarnSpokeLeaving"<<std::endl<<flush;
     //        }
   }
 }
@@ -1764,8 +1764,8 @@ void tLNode::InitializeNode()
   accumdh.setSize(2);
 
   if (0) //DEBUG
-    cout<<"tLNode::InitializeNode node "<< getID()
-	<<" flow edge "<<flowedge->getID()<<endl;
+    std::cout<<"tLNode::InitializeNode node "<< getID()
+	<<" flow edge "<<flowedge->getID()<<std::endl;
 }
 
 /*******************************************************************\
@@ -1793,9 +1793,9 @@ tNode *tLNode::splitFlowEdge() {
   tLNode *nPtr = this->getDownstrmNbr();
 
   if (1) //DEBUG
-    cerr << "tLNode::splitFlowEdge(): split flowedge between node "
+    std::cerr << "tLNode::splitFlowEdge(): split flowedge between node "
 	 << this->getID() << " and node "
-	 << nPtr->getID() << "." << endl;
+	 << nPtr->getID() << "." << std::endl;
 
   tLNode *nn = new tLNode(*this);
   nn->setXYZD( zeroArr ); //and xyzd ('old' coords)
@@ -1905,10 +1905,10 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
   //{
   //if(x<560.418 && x>560.416){
   // nh=1;
-  // cout<<"layer "<<i<<" size 0 "<< getLayerDgrade(i,0)<<" size 1 "<<getLayerDgrade(i,1)<<endl;
+  // std::cout<<"layer "<<i<<" size 0 "<< getLayerDgrade(i,0)<<" size 1 "<<getLayerDgrade(i,1)<<std::endl;
   // if(getNumLayer()==2){
-  //    cout<<"ERODEP x "<<x<<" y "<<y<<" numlayers "<<getNumLayer();
-  //    cout<<" to erode b4 "<<valgrd[0]<< " " <<valgrd[1]<<endl;
+  //    std::cout<<"ERODEP x "<<x<<" y "<<y<<" numlayers "<<getNumLayer();
+  //    std::cout<<" to erode b4 "<<valgrd[0]<< " " <<valgrd[1]<<std::endl;
   // }
   //}
 
@@ -2295,7 +2295,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
   }
 
   //   if(getLayerDepth(0)>1.1*maxregdep){
-  //   cout<<"TOO MUCH SEDIMENT IN TOP LAYER"<<endl;
+  //   std::cout<<"TOO MUCH SEDIMENT IN TOP LAYER"<<std::endl;
   //   TellAll();
   //}
 
@@ -2439,15 +2439,15 @@ void tLNode::removeLayer(int i)
   if(n==0){
   //       n=0;
   //         while(n<layerlist.getSize()){
-  //            cout << "layer " << n+1 << " node ID "<< getID()<< endl;
+  //            std::cout << "layer " << n+1 << " node ID "<< getID()<< std::endl;
   //            niclay = layerlist.getIthData(n);
-  //            cout << "layer creation time is " << getLayerCtime(n) << endl;
-  //            cout << "layer recent time is " << getLayerRtime(n) << endl;
-  //            cout << "layer depth is " << getLayerDepth(n) << endl;
-  //            cout << "layer erodibility is " << getLayerErody(n) << endl;
-  //            cout << "is layer sediment? " << getLayerSed(n) << endl;
-  //            cout << "dgrade 1 is " << getLayerDgrade(n,0) << endl;
-  //            cout << "dgrade 2 is " << getLayerDgrade(n,1) << endl;
+  //            std::cout << "layer creation time is " << getLayerCtime(n) << std::endl;
+  //            std::cout << "layer recent time is " << getLayerRtime(n) << std::endl;
+  //            std::cout << "layer depth is " << getLayerDepth(n) << std::endl;
+  //            std::cout << "layer erodibility is " << getLayerErody(n) << std::endl;
+  //            std::cout << "is layer sediment? " << getLayerSed(n) << std::endl;
+  //            std::cout << "dgrade 1 is " << getLayerDgrade(n,0) << std::endl;
+  //            std::cout << "dgrade 2 is " << getLayerDgrade(n,1) << std::endl;
   //            n++;
   //         }
 

@@ -50,7 +50,6 @@ void heapsort(int n,TYPE array[]){
   if (n<2) return;
 
   TYPE temp;
-    
 
   {
   for (int k=n/2;k>=1;k--){
@@ -78,13 +77,13 @@ int main(){
   int a[n];
 
   for (int i=0;i<n;i++)a[i]=(4-i);
-  cout << "Original array" << endl;
-  for (int i=0;i<n;i++)cout << a[i] << ' ';
-  cout << '\n' << flush;
+  std::cout << "Original array" << std::endl;
+  for (int i=0;i<n;i++)std::cout << a[i] << ' ';
+  std::cout << std::endl;
   heapsort(n,a);
-  cout << "Sorted!" << endl;
-  for (int i=0;i<n;i++)cout << a[i] << ' ';
-  cout << '\n';
+  std::cout << "Sorted!" << std::endl;
+  for (int i=0;i<n;i++)std::cout << a[i] << ' ';
+  std::cout << '\n';
 }
 
 #endif

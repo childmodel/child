@@ -18,7 +18,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.h,v 1.20 2004-04-19 12:53:11 childcvs Exp $
+**  $Id: tFloodplain.h,v 1.21 2004-06-16 13:37:30 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -71,7 +71,7 @@ private:
   double kdb;             // depth-disch coeff (lumped; see tFloodplain.cpp)
   double mqs;             // depth-disch at-a-station exponent
   double mqbmqs;          // bankfull minus at-a-station exponents
-  ofstream meanderfile;   // file in which every timestep some information of the channel is written
+  std::ofstream meanderfile;   // file in which every timestep some information of the channel is written
 };
 
 

@@ -26,7 +26,7 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 MakeMeshFromScratchTipper( const tInputFile &infile, tRand &rand )
 {
-   //cout << "In MGFS, calling node constr w/ infile\n";
+   //std::cout << "In MGFS, calling node constr w/ infile\n";
 
    // Parameters defined in Input File
    ParamMMFS_t Param(infile);
@@ -42,7 +42,7 @@ MakeMeshFromScratchTipper( const tInputFile &infile, tRand &rand )
    // call triangulator based on Tipper's method
    BuildDelaunayMeshTipper();
 
-   cout<<"MakeMeshFromScratchTipper done.\n";
+   std::cout<<"MakeMeshFromScratchTipper done.\n";
 }
 
 /**************************************************************************
@@ -63,20 +63,20 @@ MakeMeshFromPointsTipper( const tInputFile &infile ){
   {
     int numpts;                      // no. of points in mesh
     char pointFilenm[80];            // name of file containing (x,y,z,b) data
-    ifstream pointfile;              // the file (stream) itself
+    std::ifstream pointfile;         // the file (stream) itself
 
     //Read Points
     infile.ReadItem( pointFilenm, sizeof(pointFilenm), "POINTFILENAME" );
     pointfile.open( pointFilenm );
     if( !pointfile.good() ){
-      cerr << "\nPoint file name: '" << pointFilenm << endl;
+      std::cerr << "\nPoint file name: '" << pointFilenm << std::endl;
       ReportFatalError( "I can't find a file by this name." );
     }
 
-    cout<<"\nReading in '"<<pointFilenm<<"' points file..."<<endl;
+    std::cout<<"\nReading in '"<<pointFilenm<<"' points file..."<<std::endl;
     pointfile >> numpts;
     if( !pointfile.good() ) {
-      cerr << "\nPoint file name: '" << pointFilenm << "'\n";;
+      std::cerr << "\nPoint file name: '" << pointFilenm << "'\n";;
       ReportFatalError( "I can't find a file by this name." );
     }
     // temporary node used to create node list (creation is costly)
@@ -86,13 +86,13 @@ MakeMeshFromPointsTipper( const tInputFile &infile ){
       double x, y, z;
       int bnd;
       if( pointfile.eof() ) {
-	cout << "\nReached end-of-file while reading points.\n" ;
+	std::cout << "\nReached end-of-file while reading points.\n" ;
 	ReportFatalError("Invalid point file.");
       }
       pointfile >> x >> y >> z >> bnd;
       if( pointfile.fail() ) {
-	cerr << "\nPoint file name: '" << pointFilenm
-	     << "' - point " << i << endl;
+	std::cerr << "\nPoint file name: '" << pointFilenm
+		  << "' - point " << i << std::endl;
 	ReportFatalError( "I can't read the point above." );
       }
 
@@ -124,7 +124,7 @@ MakeMeshFromPointsTipper( const tInputFile &infile ){
   // call triangulator based on Tipper's method
   BuildDelaunayMeshTipper();
 
-  cout<<"MakeMeshFromPointsTipper done.\n";
+  std::cout<<"MakeMeshFromPointsTipper done.\n";
 }
 
 /**************************************************************************\
@@ -164,13 +164,13 @@ BuildDelaunayMeshTipper()
 
      if (0) { // DEBUG
        for (int i=0; i<nnodes; ++i){
-	 cout << i << " x=" << p[i].x() << " y=" << p[i].y() << endl;
+	 std::cout << i << " x=" << p[i].x() << " y=" << p[i].y() << std::endl;
        }
      }
    }
 
    // call mesh generator based on Tipper's method
-   cout << "Computing triangulation..." << flush;
+   std::cout << "Computing triangulation..." << std::flush;
    int nedgesl;
    int nelem;
    edge* edges(0);
@@ -178,23 +178,23 @@ BuildDelaunayMeshTipper()
    int nnodes_unique;
    tt_sort_triangulate(nnodes, p, &nnodes_unique, &nedgesl, &edges, &nelem, &elems);
    if (nnodes != nnodes_unique){
-      cerr << "\nDuplicated points: '" << endl;
+      std::cerr << "\nDuplicated points: '" << std::endl;
       ReportFatalError( "Please fix your points file." );
    }
 
-   cout << "done.\n";
+   std::cout << "done.\n";
 
    if (0) { // DEBUG
-     cout << "After sort_triangulate:\n";
+     std::cout << "After sort_triangulate:\n";
      for( int iedge=0; iedge < nedgesl; ++iedge) {
-       cout << "edge " << 2*iedge
-	    << " from=" << p[edges[iedge].from].id()
-	    << " (" << p[edges[iedge].from].x() << ","
-	    << p[edges[iedge].from].y() << ")"
-	    << " to=" << p[edges[iedge].to].id()
-	    << " (" << p[edges[iedge].to].x() << ","
-	    << p[edges[iedge].to].y() << ")"
-	    << endl;
+       std::cout << "edge " << 2*iedge
+		 << " from=" << p[edges[iedge].from].id()
+		 << " (" << p[edges[iedge].from].x() << ","
+		 << p[edges[iedge].from].y() << ")"
+		 << " to=" << p[edges[iedge].to].id()
+		 << " (" << p[edges[iedge].to].x() << ","
+		 << p[edges[iedge].to].y() << ")"
+		 << std::endl;
      }
    }
 
@@ -208,7 +208,7 @@ BuildDelaunayMeshTipper()
      // (which are complementary, ie share the same endpoints) and then
      // iteratively assigning values to the pair and inserting them onto the
      // back of the edgeList
-     cout << "Creating edge list..." << flush;
+     std::cout << "Creating edge list..." << std::flush;
      {
        for( int iedge = 0; iedge < nedgesl; ++iedge ) {
 	 tSubNode *nodPtr1 = NodeTable[p[edges[iedge].from].id()];
@@ -223,10 +223,10 @@ BuildDelaunayMeshTipper()
 	 // part of list if flow is allowed, inactive if not
 
 	 if (0) //DEBUG
-	   cout << "Setting edges " << tempedge1.getID() << " and "
-		<< tempedge2.getID() <<
+	   std::cout << "Setting edges " << tempedge1.getID() << " and "
+		     << tempedge2.getID() <<
 	     (tempedge1.FlowAllowed() ? " as OPEN" : " as no-flux")
-		<< endl;
+		     << std::endl;
 	 if ( tempedge1.FlowAllowed() )
 	   {
 	     edgeList.insertAtActiveBack( tempedge1 );
@@ -248,19 +248,19 @@ BuildDelaunayMeshTipper()
        }
      }
      const tIdArrayEdge_t EdgeTable(edgeList); // for fast lookup per ID
-     cout << "done.\n";
+     std::cout << "done.\n";
 
      if (0) { //DEBUG
-       cout << "JUST ADDED EDGES:\n";
+       std::cout << "JUST ADDED EDGES:\n";
        edgeListIter_t ei( edgeList );
        for( tEdge *ce=ei.FirstP(); !(ei.AtEnd()); ce=ei.NextP() ){
 	 ce->TellCoords();
-	 cout << tEdge::EdgeBoundName(ce->FlowAllowed()) << endl;
+	 std::cout << tEdge::EdgeBoundName(ce->FlowAllowed()) << std::endl;
        }
      }
 
      // set up the lists of edges (spokes) connected to each node
-     cout << "Setting up edg pointer..." << flush;
+     std::cout << "Setting up edg pointer..." << std::flush;
      {
        // connectivity point - sorted point
        tArray< int > p2sp(nnodes);
@@ -279,11 +279,11 @@ BuildDelaunayMeshTipper()
        }
        delete [] oedge;
      }
-     cout << "done.\n";
+     std::cout << "done.\n";
 
      // Assign ccwedg connectivity (that is, tell each edge about its neighbor
      // immediately counterclockwise). Likewise for cwedg connectivity.
-     cout << "Setting up CCW and CW edges..." << flush;
+     std::cout << "Setting up CCW and CW edges..." << std::flush;
      {
        for( int iedge=0; iedge<nedgesl; ++iedge){
 	 {
@@ -304,16 +304,16 @@ BuildDelaunayMeshTipper()
 	 }
        }
      }
-     cout << "done.\n";
+     std::cout << "done.\n";
 
-     cout << "Setting up triangle connectivity..." << flush;
+     std::cout << "Setting up triangle connectivity..." << std::flush;
      {
        int ielem;
        for ( ielem=0; ielem<nelem; ++ielem ) {
 	 if (0) // DEBUG
-	   cout << "TRI " << ielem << endl << flush;
+	   std::cout << "TRI " << ielem << std::endl << std::flush;
 	 if (0) { // DEBUG
-	   cout << "p0=" << p[elems[ielem].p1].id() << " "
+	   std::cout << "p0=" << p[elems[ielem].p1].id() << " "
 		<< "(" << p[elems[ielem].p1].x()
 		<< "," << p[elems[ielem].p1].y() << "), "
 		<< "p1=" << p[elems[ielem].p2].id() << " "
@@ -324,7 +324,7 @@ BuildDelaunayMeshTipper()
 		<< "," << p[elems[ielem].p3].y() << "), "
 		<< "e0=" << elems[ielem].e1 << " "
 		<< "e1=" << elems[ielem].e2 << " "
-		<< "e2=" << elems[ielem].e3 << endl;
+		<< "e2=" << elems[ielem].e3 << std::endl;
 	 }
 	 tTriangle newtri( ielem,
 			   NodeTable[p[elems[ielem].p1].id()],
@@ -360,7 +360,7 @@ BuildDelaunayMeshTipper()
 		    );
      }
    }
-   cout << "done.\n";
+   std::cout << "done.\n";
 
    // deallocation of remaining Tipper triangulator data structures
    delete [] elems;

@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.81 2004-05-27 09:37:00 childcvs Exp $
+**  $Id: meshElements.h,v 1.82 2004-06-16 13:37:28 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -52,12 +52,7 @@
 #ifndef MESHELEMENTS_H
 #define MESHELEMENTS_H
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
+#include <iostream>
 #include <math.h>       // for sqrt() used in inlined fn below
 #include "../Definitions.h"
 #include "../tList/tList.h"
@@ -417,8 +412,8 @@ public:
    tEdge* ReportNextP();
    tEdge* ReportPrevP();
 
-   inline int AtEnd();
-   inline int isEmpty();
+   inline bool AtEnd();
+   inline bool isEmpty();
 
    int insertAtPrev( tEdge* );
    int insertAtNext( tEdge* );
@@ -471,7 +466,7 @@ inline tNode::tNode( const tNode &original ) :
 /*X tNode::~tNode()
 {
    if (0)//DEBUG
-     cout << "    ~tNode()" << endl;
+     std::cout << "    ~tNode()" << std::endl;
 }*/
 
 
@@ -508,10 +503,10 @@ inline const tNode &tNode::operator=( const tNode &right )
 }
 
 //right shift
-inline istream &operator>>( istream &input, tNode &node )
+inline std::istream &operator>>( std::istream &input, tNode &node )
 {
    double x, y, z;
-   cout << "x y z:" << endl;
+   std::cout << "x y z:" << std::endl;
    input >> x >> y >> z;
    node.setX(x);
    node.setY(y);
@@ -520,11 +515,11 @@ inline istream &operator>>( istream &input, tNode &node )
 }
 
 //left shift
-inline ostream &operator<<( ostream &output, tNode const &node )
+inline std::ostream &operator<<( std::ostream &output, tNode const &node )
 {
    output << node.getID() << ": " << node.getX() << " " << node.getY() << " "
           << node.getZ()
-	  << endl;
+	  << std::endl;
    return output;
 }
 
@@ -651,8 +646,8 @@ inline void tNode::setEdg( tEdge * theEdg )
 {
    edg = theEdg;
    if (0)//DEBUG
-     cout << "Assigning edge " << theEdg->getID()
-	  << " to node " << getID() << endl;
+     std::cout << "Assigning edge " << theEdg->getID()
+	  << " to node " << getID() << std::endl;
 }
 
 
@@ -734,7 +729,7 @@ inline tEdge::tEdge() :
   compedg(0), tri(0)
 {
    if (0)//DEBUG
-     cout << "tEdge()" << endl;
+     std::cout << "tEdge()" << std::endl;
 }
 
 //copy constructor
@@ -774,7 +769,7 @@ inline tEdge::tEdge(int id_, tNode* n1, tNode* n2) :
   setFlowAllowed( n1, n2 );
 }
 
-//tEdge::~tEdge() {/*cout << "    ~tEdge()" << endl;*/}
+//tEdge::~tEdge() {/*std::cout << "    ~tEdge()" << std::endl;*/}
 
 
 /***********************************************************************\
@@ -809,11 +804,11 @@ inline const tEdge &tEdge::operator=( const tEdge &original )
 }
 
 //left shift
-inline ostream &operator<<( ostream &output, const tEdge &edge )
+inline std::ostream &operator<<( std::ostream &output, const tEdge &edge )
 {
    output << edge.getID() << " " << edge.getLength() << " " << edge.getSlope() << " "
           << edge.getOriginPtr()->getID()
-          << " " << edge.getDestinationPtr()->getID() << endl;
+          << " " << edge.getDestinationPtr()->getID() << std::endl;
    return output;
 }
 
@@ -994,8 +989,8 @@ inline void tEdge::setCWEdg( tEdge * edg )
 inline void tEdge::setRVtx( tArray2< double > const & arr )
 {
    if (0)//DEBUG
-     cout << "setRVtx for edge " << id
-	  << " to x, y, " << arr.at(0) << ", " << arr.at(1) << endl;
+     std::cout << "setRVtx for edge " << id
+	  << " to x, y, " << arr.at(0) << ", " << arr.at(1) << std::endl;
    rvtx = arr;
 }
 
@@ -1136,7 +1131,7 @@ inline tTriangle::tTriangle() :
    }
    SetIndex();
    if (0)//DEBUG
-     cout << "tTriangle()" << endl;
+     std::cout << "tTriangle()" << std::endl;
 }
 
 //copy constructor
@@ -1152,7 +1147,7 @@ inline tTriangle::tTriangle( const tTriangle &init ) :
        index_[i] = init.index_[i];
      }
    if (0)//DEBUG
-     cout << "tTriangle( orig )" << endl;
+     std::cout << "tTriangle( orig )" << std::endl;
 }
 
 // construct with id and 3 vertices
@@ -1220,7 +1215,7 @@ inline const tTriangle &tTriangle::operator=( const tTriangle &init )
 }
 
 //left shift
-inline ostream &operator<<( ostream &output, const tTriangle &tri )
+inline std::ostream &operator<<( std::ostream &output, const tTriangle &tri )
 {
    int i;
    output << tri.getID() << ":";
@@ -1237,14 +1232,14 @@ inline ostream &operator<<( ostream &output, const tTriangle &tri )
       else
 	output << " -1";
    }
-   output << endl;
+   output << std::endl;
    return output;
 }
 
-inline istream &operator>>( istream &input, tTriangle &tri )
+inline std::istream &operator>>( std::istream &input, tTriangle &tri )
 {
    int id, id1, id2, id3;
-   cout << "triangle id, origin id, dest id:";
+   std::cout << "triangle id, origin id, dest id:";
    input >> id >> id1 >> id2 >> id3; //temporarily assign id vals to ptrs
    tri.setID(id);
    return input;
@@ -1531,13 +1526,13 @@ inline tEdge* tSpkIter::ReportPrevP()
    return curedg->getCWEdg();
 }
 
-inline int tSpkIter::AtEnd()
+inline bool tSpkIter::AtEnd()
 {
-   if( isEmpty() ) return 1;
+   if( isEmpty() ) return true;
    return ( curedg == curnode->getEdg() && counter != 0 );
 }
 
-inline int tSpkIter::isEmpty()
+inline bool tSpkIter::isEmpty()
 {
    return( curnode->getEdg() == 0 );
 }

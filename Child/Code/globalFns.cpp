@@ -4,17 +4,12 @@
 **  @brief Global functions used by tGrid and other modules of
 **         CHILD (see globalFns.h).
 **
-**  $Id: globalFns.cpp,v 1.19 2004-04-14 12:57:31 childcvs Exp $
+**  $Id: globalFns.cpp,v 1.20 2004-06-16 13:37:24 childcvs Exp $
 */
 /**************************************************************************/
 
 #include "globalFns.h"
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
+#include <iostream>
 
 /**************************************************************************/
 /**
@@ -107,7 +102,7 @@ int TriPasses( tArray< double > const &ptest,
                tArray< double > const &p2 )
 {
    if (0) //DEBUG
-     cout << "TriPasses? ";
+     std::cout << "TriPasses? ";
 #if 1
    double ans = predicate.incircle( p0.getArrayPtr(), p1.getArrayPtr(),
 				    p2.getArrayPtr(), ptest.getArrayPtr() );
@@ -140,12 +135,12 @@ int TriPasses( tArray< double > const &ptest,
    // Compare and return the result
    if( angle0_2_1 < angle0_test_1 )
    {
-        //cout << "Yes" << endl;
+        //std::cout << "Yes" << std::endl;
       return 0;
    }
    else
    {
-        //cout << "No" << endl;
+        //std::cout << "No" << std::endl;
       return 1;
    }
 #endif
@@ -164,15 +159,15 @@ int TriPasses( tArray< double > const &ptest,
 **
 */
 /***************************************************************************/
-int PointsCCW( tArray< double > const &p0,
-               tArray< double > const &p1,
-               tArray< double > const &p2 )
+bool PointsCCW( tArray< double > const &p0,
+		tArray< double > const &p1,
+		tArray< double > const &p2 )
 {
    if (0) //DEBUG
-     cout << "PointsCCW? ";
+     std::cout << "PointsCCW? ";
 
    if( p0 == p1 || p0 == p2 || p1 == p2 )
-       return 0;
+       return false;
 
    const double* a0 = p0.getArrayPtr();
    const double* a1 = p1.getArrayPtr();
@@ -182,15 +177,15 @@ int PointsCCW( tArray< double > const &p0,
 }
 
 
-int PointsCCW( tArray2< double > const &p0,
-               tArray2< double > const &p1,
-               tArray2< double > const &p2 )
+bool PointsCCW( tArray2< double > const &p0,
+		tArray2< double > const &p1,
+		tArray2< double > const &p2 )
 {
    if (0) //DEBUG
-     cout << "PointsCCW? ";
+     std::cout << "PointsCCW? ";
 
    if( p0 == p1 || p0 == p2 || p1 == p2 )
-     return 0;
+     return false;
 
    const double* a0 = p0.getArrayPtr();
    const double* a1 = p1.getArrayPtr();
@@ -310,18 +305,18 @@ int InNewTri( tArray< double > const &xy, tTriangle const *ct )
 int Intersect( tEdge * ae, tEdge * be )
 {
    if (0) //DEBUG
-     cout << "Intersect(...)..." << endl;
+     std::cout << "Intersect(...)..." << std::endl;
    tLNode * lnode;
    
    if( !ae || !be )
    {
-      cout<<"Intersect: Warning: invalid edge(s)"<<endl<<flush;
+      std::cout<<"Intersect: Warning: invalid edge(s)"<<std::endl;
       return( 0 );
    }
    if( !ae->getOriginPtr() || !ae->getDestinationPtr() ||
        !be->getOriginPtr() || !be->getOriginPtr() )
    {
-      cout<<"Intersect: Warning: invalid org or dest"<<endl<<flush;
+      std::cout<<"Intersect: Warning: invalid org or dest"<<std::endl;
       return( 0 );
    }
    lnode = static_cast<tLNode *>(ae->getOriginPtrNC());
@@ -500,12 +495,12 @@ int Intersect( tEdge * ae, tEdge * be )
 tEdge* IntersectsAnyEdgeInList( tEdge* edge, tPtrList< tEdge >& edglistRef )
 {
    if (0) //DEBUG
-     cout << "IntersectsAnyEdge( tEdge * edge )..." << endl;
+     std::cout << "IntersectsAnyEdge( tEdge * edge )..." << std::endl;
    tEdge * ce;
    tPtrListIter< tEdge > edgIter( edglistRef );
    if( !edge )
    {
-      cout<<"IntersectsAnyEdge: Warning: invalid edge"<<endl<<flush;
+      std::cout<<"IntersectsAnyEdge: Warning: invalid edge"<<std::endl;
       return 0;
    }
    
@@ -643,17 +638,17 @@ double PlaneFit(double x, double y, tArray<double> const &p0,
    z1=zs[1];
    z2=zs[2];
 
-   //cout<<"PlaneFit"<<endl;
-   //cout<<"x0 "<<x0<<" x1 "<<x1<<" x2 "<<x2<<endl;
-   //cout<<"y0 "<<y0<<" y1 "<<y1<<" y2 "<<y2<<endl;
-   //cout<<"z0 "<<z0<<" z1 "<<z1<<" z2 "<<z2<<endl;
+   //std::cout<<"PlaneFit"<<std::endl;
+   //std::cout<<"x0 "<<x0<<" x1 "<<x1<<" x2 "<<x2<<std::endl;
+   //std::cout<<"y0 "<<y0<<" y1 "<<y1<<" y2 "<<y2<<std::endl;
+   //std::cout<<"z0 "<<z0<<" z1 "<<z1<<" z2 "<<z2<<std::endl;
 
    a=(-y1*z2+z2*y0+z1*y2-y2*z0+z0*y1-y0*z1)/(y2*x1-x1*y0-x2*y1+y1*x0-x0*y2+y0*x2);
    b=-(x2*z1-z1*x0-z2*x1+x1*z0-z0*x2+x0*z2)/(y2*x1-x1*y0-x2*y1+y1*x0-x0*y2+y0*x2);
    c=(y2*x1*z0-z0*x2*y1+z2*y1*x0-y2*z1*x0+y0*x2*z1-z2*x1*y0)/(y2*x1-x1*y0-x2*y1+y1*x0-x0*y2+y0*x2);
 
-   //cout<<"interpolated z is "<<a*x+b*y+c<<endl;
-   //cout<<"at x = "<<x<<" y = "<<y<<endl<<flush;
+   //std::cout<<"interpolated z is "<<a*x+b*y+c<<std::endl;
+   //std::cout<<"at x = "<<x<<" y = "<<y<<std::endl;
    return(a*x+b*y+c);
    
 }

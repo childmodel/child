@@ -4,11 +4,13 @@
 **  @brief Special math routines not in math libraries. Most or all
 **         from Numerical Recipes in C by Press et al.
 **
-**  $Id: mathutil.cpp,v 1.6 2003-11-14 17:59:27 childcvs Exp $
+**  $Id: mathutil.cpp,v 1.7 2004-06-16 13:37:26 childcvs Exp $
 */
 /**************************************************************************/
 
 #include "mathutil.h"
+
+#include <fstream>
 
 #include "mt19937ar-cok.cpp"
 
@@ -48,13 +50,13 @@ void tRand::initFromFile( tInputFile const &infile )
   init(seed);
 }
 
-void tRand::dumpToFile( ofstream& outFile ){
+void tRand::dumpToFile( std::ofstream& outFile ){
   for(size_t i=1; i<sizeof(ma)/sizeof(ma[0]); ++i)
     outFile << ma[i] << '\n';
   outFile << inext << '\n' << inextp << '\n';
 }
 
-void tRand::readFromFile( ifstream& inFile ){
+void tRand::readFromFile( std::ifstream& inFile ){
   for(size_t i=1; i<sizeof(ma)/sizeof(ma[0]); ++i)
     inFile >> ma[i];
   inFile >> inext;

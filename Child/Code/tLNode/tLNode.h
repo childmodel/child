@@ -26,21 +26,14 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.94 2004-05-27 09:36:27 childcvs Exp $
+ **  $Id: tLNode.h,v 1.95 2004-06-16 13:37:33 childcvs Exp $
  */
 /************************************************************************/
 
 #ifndef TLNODE_H
 #define TLNODE_H
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-# include <fstream>
-using namespace std;
-#else
-# include <iostream.h>
-# include <fstream.h>
-#endif
+#include <iostream>
 #include <string.h>
 
 #include "../Definitions.h"
@@ -76,7 +69,7 @@ public:
   } tSed_t;
 
   inline tLayer();
-  inline tLayer( int );
+  inline tLayer( size_t );
   inline tLayer( const tLayer & );
   inline const tLayer &operator=( const tLayer & );
   inline void setCtime( double );
@@ -133,16 +126,16 @@ inline tLayer::tLayer () :
   dgrade(), paleocurrent(-1.)
 {
   if (0) //DEBUG
-    cout << "tLayer( )" << endl;
+    std::cout << "tLayer( )" << std::endl;
 }
 
-inline tLayer::tLayer ( int num ) :
+inline tLayer::tLayer ( size_t num ) :
   ctime(0.), rtime(0.), etime(0.),
   depth(0.), erody(0.), sed(kBedRock),
   dgrade( num ), paleocurrent(-1.)
 {
   if (0) //DEBUG
-    cout << "tLayer( num )" << endl;
+    std::cout << "tLayer( num )" << std::endl;
 }
 
 //copy constructor
@@ -152,13 +145,13 @@ inline tLayer::tLayer( const tLayer &orig ) :                        //tLayer
   dgrade( orig.dgrade ), paleocurrent(orig.paleocurrent)
 {
   if (0) //DEBUG
-    cout << "tLayer copy const\n";
+    std::cout << "tLayer copy const\n";
 }
 
 inline const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
 {
   if (0) //DEBUG
-    cout << "tLayer op=\n";
+    std::cout << "tLayer op=\n";
 
   if( &right != this )
     {
@@ -252,14 +245,14 @@ inline void tLayer::addDgrade( size_t i, double size )
    assert(i<dgrade.getSize());
 
    if(dgrade[i] < 0.0){
-     cout <<"before dgrade "<< i <<" < 0., = " << dgrade[i] << " depth= " << depth << '\n';
+     std::cout <<"before dgrade "<< i <<" < 0., = " << dgrade[i] << " depth= " << depth << '\n';
    }
    assert( dgrade[i]>=0.0 );
 
    dgrade[i]+=size;
 
    if(dgrade[i] < 0.0){
-     cout <<"after dgrade "<< i <<" < 0., = " << dgrade[i] << " depth= " << depth
+     std::cout <<"after dgrade "<< i <<" < 0., = " << dgrade[i] << " depth= " << depth
           << " size=" << size << '\n';
    }
    assert( dgrade[i]>=0.0 );
@@ -561,7 +554,7 @@ public:
   inline void setXYZD( tArray< double > const &);
   inline tArray< double > const & getXYZD() const;
   double DistFromOldXY() const;
-  inline int OnBedrock() const;
+  inline bool OnBedrock() const;
   inline double getDzDt() const;
   inline void setDzDt( double );
   inline void addDrDt(double);
@@ -591,7 +584,7 @@ public:
   inline double getLayerDepth(int) const;
   inline double getLayerErody(int) const;
   inline tLayer::tSed_t getLayerSed(int) const;
-  inline double getLayerDgrade(int, int) const;  // first int is layer index
+  inline double getLayerDgrade(int, size_t) const;  // first int is layer index
   // second int is grade index - see note above for indexing directions
   inline int getNumLayer() const;
   inline void setLayerCtime(int, double);
@@ -601,7 +594,7 @@ public:
   inline void setLayerDepth(int, double);
   inline void setLayerErody(int, double);
   inline void setLayerSed(int, tLayer::tSed_t);
-  inline void setLayerDgrade(int, int, double);
+  inline void setLayerDgrade(int, size_t, double);
   void setStratNode(tStratNode *s_) {
     stratNode = s_;
   }
@@ -762,7 +755,7 @@ inline double tLNode::calcSlope()
     CalcSlopeMeander():
     (z - getDownstrmNbr()->z ) / flowedge->getLength();
 
-  //if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
+  //if( timetrack >= kBugTime ) std::cout << "GS 4; " << std::endl;
   return ( slp>=0.0 ) ? slp : 0.0;
 }
 
@@ -1037,7 +1030,7 @@ inline tArray< double > const &
 tLNode::getXYZD() const {return chan.migration.xyzd;}
 
 // Tests whether bedrock is exposed at a node
-inline int tLNode::OnBedrock() const
+inline bool tLNode::OnBedrock() const
 {
   // For multi-size model, criterion might be active layer thickness less
   // than a nominal thickness; here, it's just an arbitrary alluvial depth
@@ -1109,7 +1102,7 @@ inline double tLNode::getLayerDepth( int i ) const
 {
   if( unlikely(layerlist.isEmpty()) )
     {
-      cout << "** WARNING lyr list empty\n"
+      std::cout << "** WARNING lyr list empty\n"
 	   << " NODE " << id << ":\n"
 	   << "  x=" << x << " y=" << y << " z=" << z;
     }
@@ -1126,7 +1119,7 @@ inline tLayer::tSed_t tLNode::getLayerSed( int i ) const
   return layerlist.getIthDataRef(i).getSed();
 }
 
-inline double tLNode::getLayerDgrade( int i, int num ) const
+inline double tLNode::getLayerDgrade( int i, size_t num ) const
 {
    return layerlist.getIthDataRef(i).getDgrade(num);
 }
@@ -1172,7 +1165,7 @@ inline void tLNode::setLayerSed( int i, tLayer::tSed_t s)
   layerlist.getIthDataPtrNC( i )->setSed( s );
 }
 
-inline void tLNode::setLayerDgrade( int i, int g, double val)
+inline void tLNode::setLayerDgrade( int i, size_t g, double val)
 {
   assert( val>=0.0 );
   layerlist.getIthDataPtrNC( i )->setDgrade(g, val );

@@ -4,19 +4,14 @@
 **  @brief Error-handling routines.
 **
 **  Created Dec. 97 from earlier routine embedded in child.cpp
-**  $Id: errors.cpp,v 1.8 2004-05-26 16:24:43 childcvs Exp $
+**  $Id: errors.cpp,v 1.9 2004-06-16 13:37:29 childcvs Exp $
 */
 /******************************************************************/
 
 #include "errors.h"
 
 #include <stdlib.h>
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
+#include <iostream>
 
 #define CHILD_ABORT_ON_ERROR "CHILD_ABORT_ON_ERROR"
 #define CHILD_ABORT_ON_WARNING "CHILD_ABORT_ON_WARNING"
@@ -33,11 +28,12 @@ using namespace std;
 \*****************************************************************************/
 void ReportFatalError( const char *errMsg )
 {
-  cout << errMsg <<endl;
-  cout << "That was a fatal error, my friend!" <<endl;
+  std::cout << errMsg <<std::endl;
+  std::cout << "That was a fatal error, my friend!" <<std::endl;
   if (getenv(CHILD_ABORT_ON_ERROR) != NULL)
     abort();
-  cout << "(Set \"" CHILD_ABORT_ON_ERROR "\" to generate a crash.)" <<endl;
+  std::cout << "(Set \"" CHILD_ABORT_ON_ERROR "\" to generate a crash.)"
+	    <<std::endl;
   exit(1);
 }
 
@@ -56,12 +52,12 @@ void ReportFatalError( const char *errMsg )
 \*****************************************************************************/
 void ReportWarning( const char *errMsg )
 {
-  cout << "WARNING: " << errMsg <<endl;
+  std::cout << "WARNING: " << errMsg <<std::endl;
   if (getenv(CHILD_ABORT_ON_WARNING) != NULL)
     abort();
-  cout <<
+  std::cout <<
     "(Set \"" CHILD_ABORT_ON_WARNING "\" to generate a crash."
     "\n.e.g. \"env " CHILD_ABORT_ON_WARNING "=1 child ...\")"
-       <<endl;
+	    <<std::endl;
 }
 

@@ -16,7 +16,7 @@
  **     to avoid multiple definition errors resulting from mixing
  **     template & non-template classes (1/99)
  **
- **  $Id: tListInputData.h,v 1.27 2004-04-19 12:09:02 childcvs Exp $
+ **  $Id: tListInputData.h,v 1.28 2004-06-16 13:37:35 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -33,12 +33,7 @@
 
 class tRand;
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <fstream>
-using namespace std;
-#else
-# include <fstream.h>
-#endif
+#include <fstream>
 
 #define kTimeLineMark ' '
 
@@ -53,9 +48,9 @@ using namespace std;
 class tListInputDataBase
 {
 protected:
-  static void findRightTime(ifstream &, int &, double,
+  static void findRightTime(std::ifstream &, int &, double,
 			    const char *, const char *, const char *);
-  static void openFile(ifstream &, const char *, const char *);
+  static void openFile(std::ifstream &, const char *, const char *);
   // IO Error handling
   typedef enum {
     IOTime,
@@ -160,10 +155,10 @@ private:
   void GetFileEntry();       // read data from files
 
   int nnodes, nedges, ntri;  // # nodes, edges, & triangles
-  ifstream nodeinfile;   // node input file
-  ifstream edgeinfile;   // edge input file
-  ifstream triinfile;    // triangle input file
-  ifstream zinfile;      // "z" input file
+  std::ifstream nodeinfile;   // node input file
+  std::ifstream edgeinfile;   // edge input file
+  std::ifstream triinfile;    // triangle input file
+  std::ifstream zinfile;      // "z" input file
 
   tArray< double > x;      // node x coords
   tArray< double > y;      // node y coords
@@ -259,10 +254,10 @@ tListInputDataMesh( const tInputFile &infile )
   // Find out which time slice we want to extract
   intime = infile.ReadItem( intime, "INPUTTIME" );
   if (1) //DEBUG
-    cout << "intime = " << intime << endl;
+    std::cout << "intime = " << intime << std::endl;
   if (1) //DEBUG
-   cout << "Is node input file ok? " << nodeinfile.good()
-	<< " Are we at eof? " << nodeinfile.eof() << endl;
+    std::cout << "Is node input file ok? " << nodeinfile.good()
+	      << " Are we at eof? " << nodeinfile.eof() << std::endl;
 
   // Find specified input times in input data files and read # items.
   // First, nodes:

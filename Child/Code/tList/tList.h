@@ -34,7 +34,7 @@
  **    - moved all functions into .h file and inlined them (GT 1/20/00)
  **    - AD - March 2004: tListNode is a template argument.
  **
- **  $Id: tList.h,v 1.56 2004-04-19 13:33:37 childcvs Exp $
+ **  $Id: tList.h,v 1.57 2004-06-16 13:37:33 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -610,7 +610,7 @@ tList( const tList< NodeType, ListNodeType > *original ) :
     }
   assert( nNodes == original->nNodes );
   if (0) //DEBUG
-    cout << "list copy instantiated" << first << endl;
+    std::cout << "list copy instantiated" << first << std::endl;
   current = first;
 
 }
@@ -623,7 +623,7 @@ tList< NodeType, ListNodeType >::
   if( !isEmpty() )
     {
       if (0) //DEBUG
-	cout<<"Destroying nodes ... "<<endl;
+	std::cout<<"Destroying nodes ... "<<std::endl;
       ListNodeType * current = first, * temp;
       while( current != 0 )
 	{
@@ -745,7 +745,7 @@ inline void tList< NodeType, ListNodeType >::
 insertAtFront( const NodeType &value )
 {
   if (0) //DEBUG
-    cout << "ADD NEW NODE TO LIST AT FRONT" << endl;
+    std::cout << "ADD NEW NODE TO LIST AT FRONT" << std::endl;
 
   ListNodeType *newPtr = getNewNode( value );
   if( isEmpty() )
@@ -952,16 +952,16 @@ print() const
 {
   if( isEmpty() )
     {
-      cout<<"The list is empty"<<endl<<endl;
+      std::cout<<"The list is empty\n"<<std::endl;
       return;
     }
   ListNodeType * current = first;
-  cout<<"The list is: ";
+  std::cout<<"The list is: ";
   while( current != 0 )
     {
       current = current->next;
     }
-  cout<<endl<<endl;
+  std::cout<< '\n' <<std::endl;
 }
 
 
@@ -1296,8 +1296,8 @@ template< class NodeType, class ListNodeType >
 void tList< NodeType, ListNodeType >::
 DebugTellPtrs() const
 {
-  cout << "first: " << first << endl;
-  cout << "last: " << last << endl << flush;
+  std::cout << "first: " << first << std::endl;
+  std::cout << "last: " << last << std::endl;
 }
 
 
@@ -1395,7 +1395,7 @@ tListIter() :
   counter(0)
 {
   if (0) //DEBUG
-    cout << "tListIter()" << endl;
+    std::cout << "tListIter()" << std::endl;
 }
 
 template< class NodeType, class ListNodeType >
@@ -1406,7 +1406,7 @@ tListIter(const tListIter& c) :
   counter(c.counter)
 {
   if (0) //DEBUG
-    cout << "tListIter(const tListIter&)" << endl;
+    std::cout << "tListIter(const tListIter&)" << std::endl;
 }
 
 template< class NodeType, class ListNodeType >
@@ -1418,7 +1418,7 @@ tListIter( tList< NodeType, ListNodeType > &list ) :
 {
   //assert( curnode != 0 );
   if (0) //DEBUG
-    cout << "tListIter( list )" << endl;
+    std::cout << "tListIter( list )" << std::endl;
 }
 
 template< class NodeType, class ListNodeType >
@@ -1439,7 +1439,7 @@ inline tListIter< NodeType, ListNodeType >::
   listPtr = 0;
   curnode = 0;
   if (0) //DEBUG
-    cout << "~tListIter()" << endl;
+    std::cout << "~tListIter()" << std::endl;
 }
 
 
@@ -1504,7 +1504,7 @@ int tListIter< NodeType, ListNodeType >::
 Get( int num )
 {
   assert( listPtr != 0 );
-  if( num < 0 ) cout << "tListIter::Get(num): num < 0" << endl;
+  if( num < 0 ) std::cout << "tListIter::Get(num): num < 0" << std::endl;
   ListNodeType *tempnodeptr;
   for( tempnodeptr = listPtr->first, counter = 0;
        counter <= listPtr->nNodes && tempnodeptr != 0;
@@ -1563,7 +1563,8 @@ int tListIter< NodeType, ListNodeType >::
 GetByPtrSlow( NodeType const *dataPtr )
 {
   assert( listPtr != 0 );
-  if( dataPtr == NULL ) cout << "tListIter::GetByPtr(ptr): ptr < 0" << endl;
+  if( dataPtr == NULL )
+    std::cout << "tListIter::GetByPtr(ptr): ptr < 0" << std::endl;
 
   // linear search.
   ListNodeType *tempnodeptr;

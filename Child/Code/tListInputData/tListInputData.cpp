@@ -16,37 +16,32 @@
  **   - Refactoring with multiple classes (AD 11/03)
  **   - Add tVegetation handling (AD 11/03)
  **
- **  $Id: tListInputData.cpp,v 1.24 2003-11-18 15:45:57 childcvs Exp $
+ **  $Id: tListInputData.cpp,v 1.25 2004-06-16 13:37:35 childcvs Exp $
  */
 /**************************************************************************/
 
 #include "tListInputData.h"
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
+#include <iostream>
 
 #include "../Mathutil/mathutil.h"
 
 void tListInputDataBase::
 ReportIOError(IOErrorType t, const char *filename,
 	      const char *suffix, int n) {
-  cerr << "\nFile: '" << filename << suffix << "' "
+  std::cerr << "\nFile: '" << filename << suffix << "' "
        << "- Can't read ";
   switch (t){
   case IOTime:
-    cerr << "time";
+    std::cerr << "time";
     break;
   case IOSize:
-    cerr << "size";
+    std::cerr << "size";
     break;
   case IORecord:
-    cerr << "record " << n;
+    std::cerr << "record " << n;
     break;
   }
-  cerr << "." << endl;
+  std::cerr << "." << std::endl;
   ReportFatalError( "Input/Output Error." );
 }
 
@@ -59,7 +54,7 @@ ReportIOError(IOErrorType t, const char *filename,
  **
 \**************************************************************************/
 void tListInputDataBase::
-openFile( ifstream &infile, const char *basename,
+openFile( std::ifstream &infile, const char *basename,
 	  const char *ext)
 {
   char inname[80];                  // full name of an input file
@@ -71,7 +66,7 @@ openFile( ifstream &infile, const char *basename,
   infile.open(inname);
   if( !infile.good() )
     {
-      cerr << "Error: I can't find the following files:\n"
+      std::cerr << "Error: I can't find the following files:\n"
            << "\t" << basename << ext << "\n";
       ReportFatalError( "Unable to open triangulation input file(s)." );
     }
@@ -85,7 +80,7 @@ openFile( ifstream &infile, const char *basename,
  **
 \**************************************************************************/
 void tListInputDataBase::
-findRightTime( ifstream &infile, int &nn, double intime,
+findRightTime( std::ifstream &infile, int &nn, double intime,
 	       const char *basename, const char *ext, const char *typefile)
 {
   char headerLine[kMaxNameLength]; // header line read from input file
@@ -98,22 +93,22 @@ findRightTime( ifstream &infile, int &nn, double intime,
 	{
 	infile.seekg( -infile.gcount(), ios::cur );
 	infile >> time;
-	cout << "from file, time = " << time << endl;
-	cout << "Read: " << headerLine << endl;
+	std::cout << "from file, time = " << time << std::endl;
+	std::cout << "Read: " << headerLine << std::endl;
 	if( time == intime ) righttime = 1;
 	}*/
       infile >> time;
       if (infile.fail())
 	ReportIOError(IOTime, basename, ext);
       if (0) //DEBUG
-	cout << "Read time: " << time << endl;
+	std::cout << "Read time: " << time << std::endl;
       if( time < intime )
 	{
 	  infile >> nn;
 	  if (infile.fail())
 	    ReportIOError(IOSize, basename, ext);
 	  if (0) //DEBUG
-	    cout << "nn (" << typefile << ")= " << nn << endl;
+	    std::cout << "nn (" << typefile << ")= " << nn << std::endl;
 	  int i;
 	  for( i=1; i<=nn+1; i++ ) {
 	    infile.getline( headerLine, kMaxNameLength );
@@ -121,14 +116,14 @@ findRightTime( ifstream &infile, int &nn, double intime,
 	}
       else righttime = true;
       if (0) //DEBUG
-	cout << " NOW are we at eof? " << infile.eof() << endl;
+	std::cout << " NOW are we at eof? " << infile.eof() << std::endl;
     }
   if( !( infile.eof() ) ) {
     infile >> nn;
     if (infile.fail())
       ReportIOError(IOSize, basename, ext);
   } else {
-    cerr << "Couldn't find the specified input time in the " << typefile
+    std::cerr << "Couldn't find the specified input time in the " << typefile
 	 << " file\n";
     ReportFatalError( "Input error" );
   }
@@ -150,20 +145,20 @@ tListInputDataRand( const tInputFile &inputfile, tRand &rand )
 
   inputfile.ReadItem( basename, sizeof(basename), "INPUTDATAFILE" );
 
-  ifstream dataInfile;
+  std::ifstream dataInfile;
   openFile( dataInfile, basename, SRANDOM);
 
   // Find out which time slice we want to extract
   intime = inputfile.ReadItem( intime, "INPUTTIME" );
   if (1) //DEBUG
-    cout << "intime = " << intime << endl;
+    std::cout << "intime = " << intime << std::endl;
 
   // Find specified input times in input data files and read # items.
   int nn;
   findRightTime( dataInfile, nn, intime,
 		 basename, SRANDOM, "random number generator");
   if ( rand.numberRecords() != nn ) {
-    cerr << "Invalid number of records for the random number generator\n";
+    std::cerr << "Invalid number of records for the random number generator\n";
     ReportFatalError( "Input error" );
   }
 
@@ -187,13 +182,13 @@ tListInputDataVegetation( const tInputFile &inputfile )
   // Read base name for triangulation files from inputfile
   inputfile.ReadItem( basename, sizeof(basename), "INPUTDATAFILE" );
 
-  ifstream dataInfile;
+  std::ifstream dataInfile;
   openFile( dataInfile, basename, SVEG);
 
   // Find out which time slice we want to extract
   intime = inputfile.ReadItem( intime, "INPUTTIME" );
   if (1) //DEBUG
-    cout << "intime = " << intime << endl;
+    std::cout << "intime = " << intime << std::endl;
 
   // Find specified input times in input data files and read # items.
   int nn;

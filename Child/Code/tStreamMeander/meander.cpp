@@ -12,12 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
+#include <iostream>
 
 #include "meander.h"
 #include "../Definitions.h"
@@ -139,7 +134,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.16 2004-04-02 11:24:15 childcvs Exp $ */
+/*     $Id: meander.cpp,v 1.17 2004-06-16 13:37:44 childcvs Exp $ */
 
 void meander_(const integer *stations, const integer *stnserod, 
 	      const doublereal *x, const doublereal *y,
@@ -342,15 +337,15 @@ void channel_(const integer *stnserod, const integer *stations,
     i__1 = *stnserod - 1;
     for (s = 1; s <= i__1; ++s) {
 	if (slope[s] <= 0.) {
-	  cout << "neg. or zero slope:" << slope[s] << " " << s 
-	       << " " << flow[s] << endl;
+	  std::cout << "neg. or zero slope:" << slope[s] << " " << s 
+	       << " " << flow[s] << std::endl;
 	}
 	if (width[s] != 0. && width[s] != depth[s] * -2.) {
 /*          radh = (width(s) * depth(s)) / (width(s) + 2.d0 * depth(s)) */
 /*          go back to H ~= R approx. */
 	    radh = depth[s];
 	    if (depth[s] <= 0.) {
-	      cout << depth[s] << endl;
+	      std::cout << depth[s] << std::endl;
 		return;
 	    }
 	    vel[s] = flow[s] / depth[s] / width[s];
@@ -487,7 +482,7 @@ void getcurv_(const integer *stnserod, const integer * /*stations*/,
 	a = dels[s];
 	b = dels[s - 1];
 	if (a == 0. || b == 0.) {
-	  cout << "dels(s) or dels(s-1) equals zero" << endl;
+	  std::cout << "dels(s) or dels(s-1) equals zero" << std::endl;
 	  exit(1);
 	}
 	c__ = sqrt((delx[s - 1] + delx[s]) * (delx[s - 1] + delx[s]) + (dely[

@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.35 2004-05-27 17:21:02 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.36 2004-06-16 13:37:42 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -18,15 +18,10 @@
 #include <math.h>
 #include <string.h>
 #include "../Mathutil/mathutil.h"
+#include <iostream>
+#include <fstream>
+
 #include "tStorm.h"
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
-
-
 
 /**************************************************************************\
 **
@@ -113,8 +108,8 @@ tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
 #undef THEEXT
       stormfile.open( fname );
       if( !stormfile.good() )
-          cerr << "Warning: unable to create storm data file '"
-               << fname << "'\n";
+          std::cerr << "Warning: unable to create storm data file '"
+		    << fname << "'\n";
    }
 }
 
@@ -170,12 +165,12 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
          istdur += istdurMean*ExpDev() + stdur;
          stdur = stdurMean*ExpDev();
 	 if(0) { // Debug
-	   cout << "P " << p << "  ST " << stdur << "  IST " << istdur
-		<< "  DP " << p*stdur << " minp " << minp << " mind " <<mind <<
-	     endl;
+	   std::cout << "P " << p << "  ST " << stdur << "  IST " << istdur
+		     << "  DP " << p*stdur << " minp " << minp
+		     << " mind " <<mind << std::endl;
 	 }
       } while( (p<=minp || (p*stdur)<=mind) && (tm+istdur+stdur<endtm) );
-      stormfile << istdur << " " << p << " " << stdur << endl;
+      stormfile << istdur << " " << p << " " << stdur << std::endl;
    }
 }
 
@@ -225,8 +220,8 @@ double tStorm::GammaDev(double m) const
       c = 1/m;
       t = 0.07 + 0.75*sqrt(1-m);
       b = 1 + exp(-t)*m/t;
-      int accept = 0;
-      while (accept == 0)
+      bool accept = false;
+      while (!accept)
         {
           u = rand->ran3();
           w = rand->ran3();
@@ -248,8 +243,8 @@ double tStorm::GammaDev(double m) const
     {
       b = m-1;
       c = 3*m - 0.75;
-      int accept = 0;
-      while (accept == 0)
+      bool accept = false;
+      while (!accept)
         {
           u = rand->ran3(); v = rand->ran3();
           w = u* ( 1-u);

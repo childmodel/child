@@ -7,7 +7,7 @@
 **         All or most routines from Numerical Recipes in C by
 **         Press et al.
 **
-**  $Id: mathutil.h,v 1.10 2004-04-16 18:36:16 childcvs Exp $
+**  $Id: mathutil.h,v 1.11 2004-06-16 13:37:27 childcvs Exp $
 */
 /*********************************************************************/
 
@@ -28,12 +28,7 @@ double genrand_res53(void);
 
 // forward declaration
 class tInputFile;
-#if !defined(HAVE_NO_NAMESPACE)
-# include <fstream>
-using namespace std;
-#else
-# include <fstream.h>
-#endif
+#include <iosfwd>
 
 /** @class tRand
 **
@@ -49,8 +44,8 @@ public:
   tRand(tInputFile const &);
   void init(long);
   double ran3();
-  void dumpToFile( ofstream&  );
-  void readFromFile( ifstream& );
+  void dumpToFile( std::ofstream&  );
+  void readFromFile( std::ifstream& );
   int numberRecords() const;
 private:
   void initFromFile(tInputFile const &);

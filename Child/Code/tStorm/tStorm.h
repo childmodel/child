@@ -28,7 +28,7 @@
 **   - added data member "stormfile" to handle file containing history
 **     of storm events
 **
-**  $Id: tStorm.h,v 1.30 2004-01-30 15:00:14 childcvs Exp $
+**  $Id: tStorm.h,v 1.31 2004-06-16 13:37:42 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -38,12 +38,7 @@
 #include "../tInputFile/tInputFile.h"
 #include "../tTimeSeries/tTimeSeries.h"
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <fstream>
-using namespace std;
-#else
-# include <fstream.h>
-#endif
+#include <iosfwd>
 
 class tStorm
 {
@@ -60,7 +55,7 @@ private:
     double ExpDev() const;
     double GammaDev(double) const;
 
-    ofstream stormfile;// File containing history of storm events
+    std::ofstream stormfile;// File containing history of storm events
     tRand *rand;       // Random number generator
     tTimeSeries p_ts;       // Rainfall intensity for the current storm
     tTimeSeries stdur_ts;   // Storm duration

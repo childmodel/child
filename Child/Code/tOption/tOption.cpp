@@ -1,20 +1,15 @@
 /***************************************************************************/
 /**
-**  @file Option.cpp
+**  @File Option.cpp
 **  @brief Functions for class tOption
 **
 **  A. Desitter - March 2004
 **
-**  $Id: tOption.cpp,v 1.4 2004-04-14 11:17:53 childcvs Exp $
+**  $Id: tOption.cpp,v 1.5 2004-06-16 13:37:39 childcvs Exp $
 */
 /***************************************************************************/
 
-#if !defined(HAVE_NO_NAMESPACE)
-# include <iostream>
-using namespace std;
-#else
-# include <iostream.h>
-#endif
+#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 
@@ -64,7 +59,7 @@ int tOption::parseOptions(char const * const argv[]) {
     exit(EXIT_FAILURE);
   }
   if (inputFile != NULL)  {
-    cerr << exeName << ": Several input files given." << endl;
+    std::cerr << exeName << ": Several input files given." << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -73,18 +68,18 @@ int tOption::parseOptions(char const * const argv[]) {
 }
 
 void tOption::usage() const {
-  cerr
+  std::cerr
     << "Usage: " << exeName << " [options] <input file>\n"
     << " --help: display this help message.\n"
     << " --no-check: disable CheckMeshConsistency().\n"
     << " --silent-mode: silent mode.\n"
     << " --version: display version.\n"
-    << endl;
+    << std::endl;
 }
 
 void tOption::version() {
-  cout
+  std::cout
     << "\nThis is CHILD, version " << VERSION
     << " (compiled " __DATE__ " " __TIME__ ")"
-    << '\n' << endl;
+    << '\n' << std::endl;
 }

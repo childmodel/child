@@ -62,7 +62,7 @@
 **
 **  (Created 1/99 by GT)
 **
-**  $Id: tFloodplain.cpp,v 1.28 2004-05-27 17:20:55 childcvs Exp $
+**  $Id: tFloodplain.cpp,v 1.29 2004-06-16 13:37:30 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -105,9 +105,9 @@ tFloodplain::tFloodplain( const tInputFile &infile, tMesh<tLNode> *mp )
    kdb = kdb*pow( event_min, mqbmqs );
 
    if (fpmode==2)
-     cout<<"Floodplain aggradation based on suspension " <<endl;
+     std::cout<<"Floodplain aggradation based on suspension " <<std::endl;
 
-   //cout << "kdb: " << kdb << "  mqbmqs " << mqbmqs << endl;
+   //std::cout << "kdb: " << kdb << "  mqbmqs " << mqbmqs << std::endl;
 
    numg = infile.ReadItem( numg, "NUMGRNSIZE" );
    deparr.setSize(numg); // dimension & init to 0 the deparr array
@@ -185,7 +185,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
        wsh=0.0,          // water surface height
        drarea;           // drainage area at flood node
 
-   //cout << "tFloodplain\n";
+   //std::cout << "tFloodplain\n";
 
    // Make a list of all nodes with a drainage area large enough to be
    // considered "flood generators". Record the highest water surface height.
@@ -197,17 +197,17 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 
       	 // Debug:
 	 if (0) //DEBUG
-	   cout<< "Flood Nodes " <<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
+	   std::cout<< "Flood Nodes " <<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
 	       <<" Slp= "<<cn->calcSlope()<<" Q= "<<cn->getQ()
-	       <<" W= "<<cn->getChanWidth()<< " MStatus="<<cn->Meanders()<<endl;
+	       <<" W= "<<cn->getChanWidth()<< " MStatus="<<cn->Meanders()<<std::endl;
 
 	 tFloodNode floodNode(cn,
 			      kdb*pow( drarea, mqbmqs )
 			      *pow( cn->getQ()/SECPERYEAR, mqs )
 			      + cn->getZ() );
 	 if (0) //DEBUG
-	   cout << "flood depth at " << cn->getX() << ' ' << cn->getY()
-		<<' '<< cn->getZ() << " = " << floodNode.wsh-cn->getZ() << endl;
+	   std::cout << "flood depth at " << cn->getX() << ' ' << cn->getY()
+		<<' '<< cn->getZ() << " = " << floodNode.wsh-cn->getZ() << std::endl;
          if( floodNode.wsh > maxWSH )
              maxWSH = floodNode.wsh;
          floodList.insertAtBack( floodNode );
@@ -232,7 +232,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
          // recording its distance and wsh
          for( fn=floodList.FirstP(); fn!=0; fn=floodList.NextP() )
          {
-            //cout << "  check fn " << fn->nodePtr->getID() << endl << flush;
+            //std::cout << "  check fn " << fn->nodePtr->getID() << std::endl << flush;
             dx = cn->getX() - fn->nodePtr->getX();
             dy = cn->getY() - fn->nodePtr->getY();
             dist = sqrt( dx*dx + dy*dy );
@@ -246,8 +246,8 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
          }
          assert( closestNode!=0 ); // (should always find one)
 	 assert( wsh>0 );   // should always find a closest node & set wsh
-         /*cout << " got it: " << closestNode->getID() << " dist=" << minDist
-           << endl << flush;*/
+         /*std::cout << " got it: " << closestNode->getID() << " dist=" << minDist
+           << std::endl << flush;*/
 
          // If current node is below flood level, do some deposition
          // (note: deposit is assumed to consist of 100% of the finest
@@ -278,13 +278,13 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
                 deparr[0]=0.001*floodDepth*fpmu*delt;           // coarse
               }
 	      if (0) //DEBUG
-		cout<<"FP-Channel: wsh= "<< wsh <<" flooddepth= "<<floodDepth
+		std::cout<<"FP-Channel: wsh= "<< wsh <<" flooddepth= "<<floodDepth
 		    <<" dh_channel= "<<deparrRect[0] << '\n';
             }
             // On the floodplain...
             else{
                if (fpmode ==2) {                // Suspension concentration based, Gross and Small, 1998
-		 //cout<<"Calling FloodplainDh"<<endl;
+		 //std::cout<<"Calling FloodplainDh"<<std::endl;
 		 deparrRect[0] = 0.0;
 		 deparrRect[1] = FloodplainDh2(minDist,floodDepth,delt,fplamda);
                } else {                         // Geometrical, Howard, 1996
@@ -292,18 +292,18 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 		 deparrRect[1] = floodDepth*fpmu*exp( -minDist/fplamda )*delt;
 		 deparr[0]= floodDepth*fpmu*exp( -minDist/fplamda )*delt;
 		 //double suspensiontest = FloodplainDh2(minDist,floodDepth,delt,fplamda);
-		 //cout<<"At dist "<<minDist<<" FP_1= "<<deparrRect[1]<<", FP_2= "<<suspensiontest<<endl;
+		 //std::cout<<"At dist "<<minDist<<" FP_1= "<<deparrRect[1]<<", FP_2= "<<suspensiontest<<std::endl;
                }
 
 	       //if(minDist <=100.){
-	       //  cout<<"FP-Overbank at: " <<minDist<<" wsh=" << wsh
+	       //  std::cout<<"FP-Overbank at: " <<minDist<<" wsh=" << wsh
 	       //      <<" flooddepth= "<<floodDepth <<" dh_overbank= "<<deparrRect[1] << '\n';
 	       //}
 
 	    }
 
             if( deparr[0]>floodDepth)
-	      cout << " *WARNING, deposit thicker than flood depth\n";
+	      std::cout << " *WARNING, deposit thicker than flood depth\n";
 
 	    // Modify heights and communicate to stratigraphy tStratGrid
 	    cn->IncrementAccummulatedDh(deparrRect);           // new version, recieves 2d arry
@@ -313,7 +313,7 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
    }
 
    if (0) //DEBUG
-     cout << "Floodplain:: done Overbanks...\n";
+     std::cout << "Floodplain:: done Overbanks...\n";
 }
 
 /************************************************************\
@@ -324,18 +324,15 @@ void tFloodplain::DepositOverbank( double precip, double delt, double ctime )
 double tFloodplain::FloodplainDh(double minDist, double flooddepth,
 				 tLNode *fpnode) const
 {
-  double C  = 0.0;
-  double dh = 0.0;
-
-  C  = getSuspendedConcentration(minDist);
-  dh = ConcentrationToHeight(flooddepth,fpnode,C);
+  const double C  = getSuspendedConcentration(minDist);
+  double dh = ConcentrationToHeight(flooddepth,fpnode,C);
 
   //DEBUG, what does it produce
   if (0) //DEBUG
-    cout<<"For node" <<fpnode->getX()<<","<<fpnode->getY()
+    std::cout<<"For node" <<fpnode->getX()<<","<<fpnode->getY()
 	<<" at dist "<<minDist
 	<<", with flooddepth "
-	<<flooddepth<<", dh = "<<dh<<endl;
+	<<flooddepth<<", dh = "<<dh<<std::endl;
 
   if(dh > 0.5 * flooddepth){   // never deposit more than 50 % of the local flooddepth!
     dh = 0.5* flooddepth;
@@ -466,8 +463,8 @@ double tFloodplain::ConcentrationToHeight(double flooddepth, tLNode *fpnode,
 
   //DEBUG
   if(sedheight < 0.0 || sedheight > 10.0){
-    cout<<"ERROR in tFloodplain::CalculateSedHeight, very thick dry sediment column "<<endl;
-    cout<<"sedheight = "<<sedheight<<endl;
+    std::cout<<"ERROR in tFloodplain::CalculateSedHeight, very thick dry sediment column "<<std::endl;
+    std::cout<<"sedheight = "<<sedheight<<std::endl;
   }
 
   return sedheight;
@@ -503,7 +500,7 @@ void tMainChannelDriver::RaiseBanks(double future_bed, tLNode *cn, tLNode *upstr
 
   tEdge *ce;
   tSpkIter spokIter( cn );
-  //cout<<"Channel node is: "<<cn->getID()<<' '<<cn->getX() <<' '<<cn->getY()<<' '<<cn->getZ()<<'\n';
+  //std::cout<<"Channel node is: "<<cn->getID()<<' '<<cn->getX() <<' '<<cn->getY()<<' '<<cn->getZ()<<'\n';
 
   for( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
     {
@@ -548,12 +545,12 @@ bool tFloodplain::OptControlMainChan() const { return optControlMainChan; }
 void tFloodplain::UpdateMainChannelHeight( double tm, tLNode * inletNode )
 {
   if (0) //DEBUG
-    cout << "Floodplain:: start Updating Main Channel..."<<endl;
+    std::cout << "Floodplain:: start Updating Main Channel..."<<std::endl;
 
   chanDriver->UpdateMainChannelElevation( tm, inletNode );
 
   if (0) //DEBUG
-    cout << "Floodplain:: Updated Main Channel..."<<endl;
+    std::cout << "Floodplain:: Updated Main Channel..."<<std::endl;
 }
 
 
@@ -593,8 +590,8 @@ tMainChannelDriver::tMainChannelDriver( const tInputFile &infile )
 #undef THEEXT
    meanderfile.open( fname );
    if( !meanderfile.good() )
-     cerr << "Warning: unable to create meander geometry data file '"
-	  << fname << "'\n";
+     std::cerr << "Warning: unable to create meander geometry data file '"
+	       << fname << "'\n";
 }
 
 
@@ -638,9 +635,9 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
   cn = inletNode;
 
   if(cn->getZ() > newInletElevation){
-    cout<<"Channel goes down " <<cn->getZ()-newInletElevation<< " m"<<endl;
+    std::cout<<"Channel goes down " <<cn->getZ()-newInletElevation<< " m"<<std::endl;
   } else if(cn->getZ()< newInletElevation){
-    cout<<"Channel goes up " << newInletElevation-cn->getZ()<< " m"<<endl;
+    std::cout<<"Channel goes up " << newInletElevation-cn->getZ()<< " m"<<std::endl;
   }
 
   counter=0;
@@ -658,11 +655,11 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
 
       //DEBUG
       if( cn->getZ() < cn->getDownstrmNbr()->getZ()  ){
-      	cout<<"  "<<endl;
-      	cout<<"Bump In Floodplain loop "<<endl;
-      	cout<<"for ID "<<cn->getID()<<" z= "<<cn->getZ()<<endl;
-      	cout<<"Its downstream z = "<<cn->getDownstrmNbr()->getZ()<<endl;
-      	cout<<"  "<<endl;
+      	std::cout<<"  "<<std::endl;
+      	std::cout<<"Bump In Floodplain loop "<<std::endl;
+      	std::cout<<"for ID "<<cn->getID()<<" z= "<<cn->getZ()<<std::endl;
+      	std::cout<<"Its downstream z = "<<cn->getDownstrmNbr()->getZ()<<std::endl;
+      	std::cout<<"  "<<std::endl;
       	//exit(1);
       }
       //END DEBUG
@@ -672,25 +669,25 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
       cn = cn->getDownstrmNbr();
       assert( cn );
       if (0) //DEBUG
-	cout<< "Meander Nodes " <<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
+	std::cout<< "Meander Nodes " <<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()
 	    <<" Q= "<<cn->getQ()<<" W= "<<cn->getChanWidth()
-	    << " MStatus="<<cn->Meanders()<<endl;
+	    << " MStatus="<<cn->Meanders()<<std::endl;
 
 
     }
   while( cn->getBoundaryFlag()==kNonBoundary && counter < 1000  );
 
   if(counter == 1000){                                                    //DEBUG
-    cout<<"   \n";
-    cout<<"--------------------------------------------------------------------\n";
-    cout<<" WARNING:Channel does not find a boundary in function               \n";
-    cout<<" tMainChannelDriver::UpdateChannelElevation in floodplain.cpp       \n";
-    cout<<" 								       \n";
-    cout<<" Recursion along meander path ?				       \n";
-    cout<<" When this happens might also have problem in tLNode->getSlope()    \n";
-    cout<<"                                                                    \n";
-    cout<<" Showing the first 100 nodes below:                                 \n";
-    cout<<"--------------------------------------------------------------------\n";
+    std::cout<<"   \n";
+    std::cout<<"--------------------------------------------------------------------\n";
+    std::cout<<" WARNING:Channel does not find a boundary in function               \n";
+    std::cout<<" tMainChannelDriver::UpdateChannelElevation in floodplain.cpp       \n";
+    std::cout<<" 								       \n";
+    std::cout<<" Recursion along meander path ?				       \n";
+    std::cout<<" When this happens might also have problem in tLNode->getSlope()    \n";
+    std::cout<<"                                                                    \n";
+    std::cout<<" Showing the first 100 nodes below:                                 \n";
+    std::cout<<"--------------------------------------------------------------------\n";
 
     int counter2=0;
     cn=inletNode;
@@ -703,7 +700,7 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
 
 	cn = cn->getDownstrmNbr();
 	assert( cn );
-	cout<< "M-Nodes " <<cn->getID()<<' '<<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()<<" Q= "<<cn->getQ()<<" W= "<<cn->getChanWidth()<< " MStatus="<<cn->Meanders()<<endl;
+	std::cout<< "M-Nodes " <<cn->getID()<<' '<<cn->getX()<< ' ' << cn->getY()<<' '<<cn->getZ()<<" Q= "<<cn->getQ()<<" W= "<<cn->getChanWidth()<< " MStatus="<<cn->Meanders()<<std::endl;
 	counter2++;
       }
     while( cn->getBoundaryFlag()==kNonBoundary && counter2 < 100  );
@@ -716,17 +713,17 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
   chanslp = drop / totlen;
 
 
-  cout  << "Channel Belt Geometry:       "<< endl;
-  cout  << "1) Channel length= "<<totlen << " m"<< endl;
-  cout  << "2) Sinuosity = "<<totlen/5000.0 << " - "<< endl;
-  cout  << "3) Channel belt width = "<< maxY - minY<< " m"<< endl;
-  cout  << "4) Chanslope ="<<chanslp<<" - "<< endl;
-  cout  << "5) InletElev ="<<inletNode->getZ()<<endl;
-  cout  << "       "<< endl;
+  std::cout  << "Channel Belt Geometry:       "<< std::endl;
+  std::cout  << "1) Channel length= "<<totlen << " m"<< std::endl;
+  std::cout  << "2) Sinuosity = "<<totlen/5000.0 << " - "<< std::endl;
+  std::cout  << "3) Channel belt width = "<< maxY - minY<< " m"<< std::endl;
+  std::cout  << "4) Chanslope ="<<chanslp<<" - "<< std::endl;
+  std::cout  << "5) InletElev ="<<inletNode->getZ()<<std::endl;
+  std::cout  << "       "<< std::endl;
 
 
   meanderfile<<tm<<" "<<totlen<<" "<<totlen/5000.<<" "<<maxY-minY
-	     <<" "<<chanslp<<inletNode->getZ()<<endl;
+	     <<" "<<chanslp<<inletNode->getZ()<<std::endl;
 
   // Update elevations of all channel points below inlet
   tArray<double> delz( num_grnsize_fractions );           // for the triangular nodes
@@ -734,7 +731,7 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
   elev = newInletElevation;
   cn = inletNode;
   //pn = cn;
-  //cout<< "Inlet Node = " <<cn->getX()<< ' ' << cn->getY()<<endl;
+  //std::cout<< "Inlet Node = " <<cn->getX()<< ' ' << cn->getY()<<std::endl;
 
   do
     {
@@ -756,7 +753,7 @@ void tMainChannelDriver::UpdateMainChannelElevation( double tm,
       	delz[0] = elev - cn->getZ();
       }
 
-      //cout <<" Channeldriver "<< cn->getX() << ' '<< cn->getY()<<"dh0= "<< delzRect[0] << " dh1= " <<delzRect[1] << '\n';
+      //std::cout <<" Channeldriver "<< cn->getX() << ' '<< cn->getY()<<"dh0= "<< delzRect[0] << " dh1= " <<delzRect[1] << '\n';
 
       cn->IncrementAccummulatedDh(delzRect);
       cn->EroDep( 0, delz, tm );
