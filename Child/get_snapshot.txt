@@ -4,11 +4,11 @@ G. Tucker, A. Desitter
 April, 2003
 
 Updated:
-$Date: 2005-01-12 23:35:53 $
+$Date: 2005-02-11 16:56:23 $
 
 This describes the steps you need to take in order to obtain a snapshot
 of the CHILD source code and associated files from the code repository
-held at the Oxford University School of Geography and the Environment.
+held at the University of Colorado.
 
 Requirements: you must have a version of the Secure Shell utility (ssh)
 on your system. These instructions assume you are on a Unix system and have
