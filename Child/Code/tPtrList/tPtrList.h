@@ -38,7 +38,7 @@
  **             tPtrListNode::getPrev(), getPrevNC(), interface is unchanged
  **      9/02: (AD)merge in main Child version
  **
- **  $Id: tPtrList.h,v 1.45 2004-03-24 14:47:02 childcvs Exp $
+ **  $Id: tPtrList.h,v 1.46 2004-04-19 13:02:12 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -191,9 +191,9 @@ public:
   inline tPtrListNode< NodeType > * getLast() const;
   inline void makeCircular();
   inline const NodeType *getIthPtr( int ) const;
-  inline NodeType *getIthPtrNC( int ) const;
-  inline const tPtrListNode< NodeType >* getIth( int ) const;
-  tPtrListNode< NodeType >* getIthNC( int ) const;
+  inline NodeType *getIthPtrNC( int );
+  const tPtrListNode< NodeType >* getIth( int ) const;
+  tPtrListNode< NodeType >* getIthNC( int );
 
 private:
   int nNodes;
@@ -943,22 +943,28 @@ getIthPtr( int num ) const
 
 template< class NodeType >
 inline NodeType *tPtrList< NodeType >::
-getIthPtrNC( int num ) const
+getIthPtrNC( int num )
 {
   return getIthNC( num )->getPtrNC();
 }
 
 template< class NodeType >
-inline const tPtrListNode< NodeType >* tPtrList< NodeType >::
+const tPtrListNode< NodeType >* tPtrList< NodeType >::
 getIth( int num ) const
 {
+  int i;
+  tPtrListNode< NodeType > const * curPtr;
   assert( num >= 0 && num < nNodes );
-  return getIthNC(num);
+  if( num > nNodes / 2 )
+    for( curPtr = last, i = nNodes-1; i>num; curPtr = curPtr->prev, --i );
+  else
+    for( curPtr = first, i = 0; i<num; curPtr = curPtr->next, ++i );
+  return curPtr;
 }
 
 template< class NodeType >
 tPtrListNode< NodeType >* tPtrList< NodeType >::
-getIthNC( int num ) const
+getIthNC( int num )
 {
   int i;
   tPtrListNode< NodeType >* curPtr;
