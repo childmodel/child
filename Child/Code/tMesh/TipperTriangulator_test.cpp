@@ -91,7 +91,7 @@ void write_edge(edge *edges, point* p)
 }
 
 
-//#define WRITE_FILES
+#define WRITE_FILES
 
 void test_sort_triangulate(int npoints, point *p){
   int nedges;
@@ -168,8 +168,7 @@ void test_triangulate_from_file(){
 
 #if defined(USE_MAIN)
 int main(void){
-  //  const int n=100; // makes it fail on Sun
-# if 1
+# if 0
 #   if 0
   int n=3;
   cout << "n= " << n << endl;

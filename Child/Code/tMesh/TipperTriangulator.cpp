@@ -139,67 +139,66 @@ class cyclist{
   //number of elements
   const cyclist &operator=( const cyclist & );  // assignment operator
   cyclist( const cyclist & );
+  void delNext(int list_pos);
+  void add(int ej);
 public:
   cyclist(int s);
   ~cyclist();
   int getEdge(int list_pos) const {
-    assert(list_pos<size);
+    assert(list_pos<size && 0<=list_pos);
     return ejs[list_pos].data;
   }
   int delNextPos(int list_pos);
   int delNextNeg(int list_pos);
   int getNextPos(int list_pos) const {
-    assert(list_pos<size);
+    assert(list_pos<size && 0<=list_pos);
     return ejs[list_pos].next;
   }
   int getNextNeg(int list_pos) const{
-    assert(list_pos<size);
+    assert(list_pos<size && 0<=list_pos);
     return ejs[list_pos].prev;
   }
-  void add(int ej);
   int addBefore(int a, int ej);
-  int addAfter(int a,int ej);
+  int addAfter(int a, int ej);
 #if defined(DEBUG_PRINT)
   void print() const;
 #endif
 private:
   const int size; 
-  int *order,*rev,prev,hole,num;
   struct item{
     int next,prev,data;
   };
-  item* ejs;
+  item* ejs;  // array of size "size"
+  // hole points to the next unfilled location,
+  // prev to the location that was last filled
+  // we keep track of empty bits of the list using hole to point to an empty slot,
+  // and the value ejs[hole] to point to the next empty slot
+  int prev, hole, num;
 };
 
-cyclist::cyclist(int s): size(s),prev(0),hole(0),num(0),ejs(0) {
+cyclist::cyclist(int s): size(s),ejs(0),prev(0),hole(0),num(0) {
   ejs=new item[size];
   //fill ej array with a set of pointers to the next unfilled location
-  for (int i=0;i<size;i++)ejs[i].data=i+1;
-  //hole points to the next unfilled location, prev to the location that was last filled
-  //we keep track of empty bits of the list using hole to point to an empty slot, and the
-  //value ejs[hole] to point to the next empty slot
+  for (int i=0;i<size;i++) ejs[i].data=i+1;
 }
 cyclist::~cyclist(){
   delete [] ejs;
 }
-int cyclist::delNextPos(int list_pos){
-  assert(list_pos<size);
+void cyclist::delNext(int list_pos){
+  assert(list_pos<size && 0<=list_pos);
   assert(num!=0);
   ejs[list_pos].data=hole;
   hole=list_pos;
   ejs[ejs[list_pos].prev].next=ejs[list_pos].next;
   ejs[ejs[list_pos].next].prev=ejs[list_pos].prev;
   num--;
+}
+int cyclist::delNextPos(int list_pos){
+  delNext(list_pos);
   return ejs[list_pos].next;
 }
 int cyclist::delNextNeg(int list_pos){
-  assert(list_pos<size);
-  assert(num!=0);
-  ejs[list_pos].data=hole;
-  hole=list_pos;
-  ejs[ejs[list_pos].prev].next=ejs[list_pos].next;
-  ejs[ejs[list_pos].next].prev=ejs[list_pos].prev;
-  num--;
+  delNext(list_pos);
   return ejs[list_pos].prev;
 }
 void cyclist::add(int ej){
