@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamNet and related class tInlet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.56 1999-03-11 17:38:26 nmgaspar Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.57 1999-03-12 23:12:55 gtucker Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -120,6 +120,7 @@ double DistanceToLine( double x2, double y2, tNode *p0, tNode *p1 )
    cout << "finished" << endl;	
 }*/
 
+#define kYearpersec 3.171e-8 // 1/SecondsPerYear
 tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
                         tInputFile &infile )
     : inlet( &gridRef, infile )
@@ -162,8 +163,19 @@ tStreamNet::tStreamNet( tGrid< tLNode > &gridRef, tStorm &storm,
    // Options related to stream meandering
    int itMeanders = infile.ReadItem( itMeanders, "OPTMNDR" );
    if( itMeanders )
+   {
        mndrDirChngProb = infile.ReadItem( mndrDirChngProb, "CHNGPROB" );
-   else mndrDirChngProb = 1.0;
+       bankfullevent = infile.ReadItem( bankfullevent, "FP_BANKFULLEVENT" );
+       bankfullevent *= kYearpersec;
+       if( bankfullevent<=0.0 )
+           ReportFatalError( 
+               "Input error: FP_BANKFULLEVENT must be greater than zero" );
+   }
+   else 
+   {
+      mndrDirChngProb = 1.0;
+      bankfullevent = 1.0;
+   }
 
    // Read hydraulic geometry parameters
    kwds = infile.ReadItem( kwds, "HYDR_WID_COEFF_DS" );
@@ -1631,26 +1643,41 @@ void tStreamNet::FindHydrGeom()
    //cout << "done tStreamNet::FindHydrGeom" << endl << flush;
 }
 
+
 /*****************************************************************************\
 **
-**       FindChanGeom: goes through reach nodes and calculates/assigns
-**                     values for channel geometry.
-**                
+**  tStreamNet::FindChanGeom
+**
+**  Calculates/assigns values for channel hydraulic geometry (width, depth,
+**  roughness). Originally done only for meandering nodes; now done for
+**  all nodes but only when invoked by the meander routines.
 **
 **		  Parameters: kwds, ewds, ewstn, knds, ends, enstn
 **      Data members updated: tLNode->chan.hydrwidth, hydrnrough, hydrdepth
 **      Called by: FindReaches (needs to know how long to make reach "tails"
 **      Calls: no "major" functions
 **
-**      Created: SL 1/98         
-**
+**      Created: SL 1/98
+**      Modifications:
+**       - 3/99: changed from calculation of bankfull event based on
+**               recurrence interval to simply using an input parameter
+**               that defines bankfull precip event magnitude. This was
+**               done to prevent errors when the interstorm duration
+**               exceeds 1.5 years. The variable _bankfullevent_ is the
+**               magnitude of runoff which, when applied uniformly over
+**               catchment and allowed to come to steady state, will
+**               produce a bankfull event. GT
 **
 \*****************************************************************************/
 #define kSmallNum 0.0000000001
 void tStreamNet::FindChanGeom()
 {
    int i, j, num;
-   double qbf, qbffactor=0, width, depth, rough;
+   double qbf,      // Bankfull discharge in m3/s 
+       /*qbffactor=0,*/
+       width,       // Channel width, m
+       depth,       // Channel depth, m
+       rough;       // Roughness
    double radfactor, hradius, slope;
    double lambda;
    tLNode *cn;
@@ -1659,18 +1686,22 @@ void tStreamNet::FindChanGeom()
    tStorm *sPtr = getStormPtrNC();
    double isdmn = sPtr->getMeanInterstormDur();
    double pmn = sPtr->getMeanPrecip();
-   if (isdmn > 0 )  qbffactor = pmn * log(1.5 / isdmn);
+
+   // the following modification made by gt, 3/99, to avoid hydraulic geom
+   // errors during runs w/ long storms:
+   //gt3/99 if (isdmn > 0 )  qbffactor = pmn * log(1.5 / isdmn);
+
    for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
    {
       //took out an if cn->Meanders() so stuff will be calculated at all nodes
-// qbffactor is now in m^3/s
-      qbf = cn->getDrArea() * qbffactor;
+      //gt3/99 qbf = cn->getDrArea() * qbffactor;
+      qbf = cn->getDrArea()*bankfullevent;
       if( !qbf ) qbf = cn->getQ()/SECPERYEAR;  // q is now in m^3/s
-      //if(cn->getID()==300) cout<<"FCG discharge is (m^3/sec) "<<qbf<<endl;
       width = kwds * pow(qbf, ewds);
       depth = kdds * pow(qbf, edds);      
       rough = knds * pow(qbf, ends);
       lambda = klambda * pow(qbf, elambda);
+      //Xcout << "FindChanGeom: w="<<width<<" d="<<depth<<" r="<<rough<<" lambda="<<lambda<<endl;
       cn->setChanWidth( width );
       cn->setChanDepth( depth );
       cn->setChanRough( rough );
