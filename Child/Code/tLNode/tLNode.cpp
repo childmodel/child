@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.115 2003-08-07 14:37:58 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.116 2003-08-08 10:38:00 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -656,8 +656,9 @@ void tLNode::UpdateCoords()
   }
 }
 
+
 /************************************************************************\
- **  GetSlope: Computes and returns the slope of the node's flowedg, or
+ **  GetSlopeMeander: Computes and returns the slope of the node's flowedg, or
  **  zero if the slope is less than zero.
  **
  **  The name of this function makes NG cringe.
@@ -678,112 +679,83 @@ void tLNode::UpdateCoords()
  **   or the outlet node, it returns a negative number (-1)
 \************************************************************************/
 #define kLargeNumber 1000000
-double tLNode::getSlope()
+double tLNode::getSlopeMeander()
 {
   int ctr;
   double rlen, curlen, slp, delz, downz;
   tLNode *dn, *on;
 
   assert( flowedge != 0 );
-  assert( flowedge->getLength()>0 ); // failure means lengths not init'd
-
-  if( Meanders() )
+  rlen = 10.0 * chan.chanwidth;
+  curlen = 0.0;
+  dn = this;
+  ctr = 0;
+  //built a couple of 'firewalls' in these loops; first, quit loop if
+  //we have a flowedge with zero length; second, if we've somehow gotten
+  //an infinite loop, return a negative number as a flag to the calling
+  //routine that it needs to update the network (tStreamNet::UpdateNet())
+  //and reaches (tStreamMeander::MakeReaches). We've run across this loop
+  //bug in a call from tStreamMeander::InterpChannel, which is called by
+  //tStreamMeander::MakeReaches.
+  while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary &&
+	 dn->flowedge->getLength() > 0 )
     {
-      rlen = 10.0 * chan.chanwidth;
-      curlen = 0.0;
-      dn = this;
-      ctr = 0;
-      //built a couple of 'firewalls' in these loops; first, quit loop if
-      //we have a flowedge with zero length; second, if we've somehow gotten
-      //an infinite loop, return a negative number as a flag to the calling
-      //routine that it needs to update the network (tStreamNet::UpdateNet())
-      //and reaches (tStreamMeander::MakeReaches). We've run across this loop
-      //bug in a call from tStreamMeander::InterpChannel, which is called by
-      //tStreamMeander::MakeReaches.
-      while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary &&
-             dn->flowedge->getLength() > 0 )
+      ctr++;
+      if( ctr > kLargeNumber )
 	{
-	  ctr++;
-	  if( ctr > kLargeNumber )
-	    {
-	      return (-1);
-	      //ReportFatalError("infinite loop in tLNode::GetSlope(), 1st loop");
-	    }
-	  curlen += dn->flowedge->getLength();
-	  dn = dn->getDownstrmNbr();
-	  assert( dn != 0 );
+	  return (-1);
+	  //ReportFatalError("infinite loop in tLNode::GetSlopeMeander(), 1st loop");
 	}
-      if(curlen <= 0){
-	cout<<"going to die in getSlope(), curlen is "<<curlen<<endl;
-	TellAll();
-	assert(curlen>0.0);
-      }
-
-      assert( curlen > 0 );
-      downz = dn->z;
-      //if( timetrack >= kBugTime ) cout << "GetSlope 1; " << flush;
-      delz = z - downz;
-      //if( timetrack >= kBugTime ) cout << "GS 2; " << flush;
-      slp = delz / curlen;
-      //if( timetrack >= kBugTime ) cout << "GS 3; " << flush;
-      on = dn;
-      ctr = 0;
-      while( on->getBoundaryFlag() == kNonBoundary &&
-             on->flowedge->getLength() > 0 )
-	{
-	  ctr++;
-	  if( ctr > kLargeNumber )
-	    {
-	      return (-1);
-	      //ReportFatalError("infinite loop in tLNode::GetSlope(), 2nd loop");
-	    }
-	  on = on->getDownstrmNbr();
-	}
-      if( z - on->z < 0.0 ) slp = 0.0;
+      curlen += dn->flowedge->getLength();
+      dn = dn->getDownstrmNbr();
+      assert( dn != 0 );
     }
-  else{
-    slp = (z - getDownstrmNbr()->z ) / flowedge->getLength();
+  if(curlen <= 0){
+    cout<<"going to die in getSlopeMeander(), curlen is "<<curlen<<endl;
+    TellAll();
+    assert(curlen>0.0);
   }
 
-  //if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
-  if( slp>=0.0 ) return slp;
-  else return 0.0;
+  assert( curlen > 0 );
+  downz = dn->z;
+  //if( timetrack >= kBugTime ) cout << "GetSlope 1; " << flush;
+  delz = z - downz;
+  //if( timetrack >= kBugTime ) cout << "GS 2; " << flush;
+  slp = delz / curlen;
+  //if( timetrack >= kBugTime ) cout << "GS 3; " << flush;
+  on = dn;
+  ctr = 0;
+  while( on->getBoundaryFlag() == kNonBoundary &&
+	 on->flowedge->getLength() > 0 )
+    {
+      ctr++;
+      if( ctr > kLargeNumber )
+	{
+	  return (-1);
+	  //ReportFatalError("infinite loop in tLNode::GetSlopeMeander(), 2nd loop");
+	}
+      on = on->getDownstrmNbr();
+    }
+  if( z - on->z < 0.0 ) slp = 0.0;
+  return slp;
 }
 #undef kLargeNumber
 
-double tLNode::getDSlopeDt()
+tLNode *tLNode::getDSlopeDtMeander( double &curlen )
 {
-  double rlen, curlen, slp;
+  double rlen;
   tLNode *dn;
-  assert( flowedge != 0 );
-  assert( flowedge->getLength()>0 ); // failure means lengths not init'd
-  if( Meanders() )
+  rlen = 10.0 * chan.chanwidth;
+  curlen = 0.0;
+  dn = this;
+  while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary )
     {
-      rlen = 10.0 * chan.chanwidth;
-      curlen = 0.0;
-      dn = this;
-      while( curlen < rlen && dn->getBoundaryFlag() == kNonBoundary )
-	{
-	  curlen += dn->flowedge->getLength();
-	  dn = dn->getDownstrmNbr();
-	}
-      assert( curlen > 0 );
-      //slp = (dzdt - dn->dzdt + uplift - dn->uplift ) / curlen;
+      curlen += dn->flowedge->getLength();
+      dn = dn->getDownstrmNbr();
     }
-
-  else
-    {
-      curlen = flowedge->getLength();
-      assert( curlen > 0.0 );
-      dn = getDownstrmNbr();
-      //slp = (dzdt - dn->dzdt + uplift - dn->uplift ) / curlen;
-    }
-  slp = ( dzdt - dn->dzdt + uplift - dn->uplift ) / curlen;
-  if( slp>=0.0 ) return slp;
-  else return 0.0;
+  assert( curlen > 0 );
+  return dn;
 }
-
-
 
 
 //void tLNode::insertFrontSpokeList( tEdge *eptr )             //tNode
@@ -2469,7 +2441,8 @@ void tLNode::removeLayer(int i)
  ** Creation and recent time set to current time, exposure time updated
  ** in erodep.
  ********************************************************************/
-void tLNode::makeNewLayerBelow(int i, int sd, double erd, tArray<double> sz, double tt)
+void tLNode::makeNewLayerBelow(int i, int sd, double erd,
+			       tArray<double> const &sz, double tt)
 {
   tLayer hlp, niclay;
   int n;

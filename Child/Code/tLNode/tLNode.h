@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.70 2003-08-07 14:38:00 childcvs Exp $
+ **  $Id: tLNode.h,v 1.71 2003-08-08 10:38:02 childcvs Exp $
  */
 /************************************************************************/
 
@@ -71,33 +71,33 @@ class tLayer
   friend class tListNode< tLayer >;
 
 public:
-  tLayer();
-  tLayer( int );
-  tLayer( const tLayer & );
-  const tLayer &operator=( const tLayer & );
-  void setCtime( double );
-  double getCtime() const;
-  void setRtime( double );
-  double getRtime() const;
-  void setEtime( double );
-  void addEtime( double );
-  double getEtime() const;
+  inline tLayer();
+  inline tLayer( int );
+  inline tLayer( const tLayer & );
+  inline const tLayer &operator=( const tLayer & );
+  inline void setCtime( double );
+  inline double getCtime() const;
+  inline void setRtime( double );
+  inline double getRtime() const;
+  inline void setEtime( double );
+  inline void addEtime( double );
+  inline double getEtime() const;
   void setDepth( double );
   // NOTE setDepth will also update the depths in dgrade so that the
   // total depth is consistent and the original texture is kept.
   // If texture needs to also be changed, call setDgrade.  This will
   // also update depth and the texture will change appropriately.
-  double getDepth() const;
-  void setErody( double );
-  double getErody() const;
-  void setSed( int );
-  int getSed() const;
-  void setDgradesize( int );
-  int getDgradesize() const;
+  inline double getDepth() const;
+  inline void setErody( double );
+  inline double getErody() const;
+  inline void setSed( int );
+  inline int getSed() const;
+  inline void setDgradesize( int );
+  inline int getDgradesize() const;
   void setDgrade( int, double );
-  double getDgrade( int );
-  tArray< double > getDgrade() const;
-  void addDgrade(int, double);
+  inline double getDgrade( int );
+  inline tArray< double > getDgrade() const;
+  inline void addDgrade(int, double);
 
 protected:
   double ctime; // time of creation of layer
@@ -412,8 +412,8 @@ public:
   inline tLNode * getDownstrmNbr();
   inline double getQ() const;  // Gets total discharge from embedded chan obj
   // fluvial discharge is in now in m^3/YR
-  double getSlope();    // Computes and returns slope in flow direction
-  double getDSlopeDt();
+  inline double getSlope();    // Computes and returns slope in flow direction
+  inline double getDSlopeDt();
   inline bool Meanders() const;
   inline void setMeanderStatus( bool );
   inline void setHydrWidth( double );
@@ -547,7 +547,7 @@ public:
   // Used if depositing or eroding material to lower layer size by size
   // only called from EroDep because appropriate checking needs
   // to be done first - also used for erosion from the surface layer
-  void makeNewLayerBelow(int, int, double, tArray<double>, double);
+  void makeNewLayerBelow(int, int, double, tArray<double> const &, double);
   void removeLayer(int);
   void InsertLayerBack( tLayer const & );
   void LayerInterpolation( tTriangle const *, double, double, double );
@@ -565,6 +565,9 @@ public:
   void TellAll();
 #endif
 
+protected:
+  double getSlopeMeander(); // specialisation of getSlope()
+  tLNode *getDSlopeDtMeander( double &curlen );  // specialisation of getDSlopeDt()
 protected:
   tVegCover vegCover;  // Vegetation cover properties (see tVegetation.h/.cpp)
   tBedrock rock;
@@ -628,6 +631,49 @@ inline tLNode * tLNode::getDownstrmNbr()
 inline double tLNode::getQ() const
 {
   return chan.q;
+}
+
+/************************************************************************\
+ **  GetSlope: Computes and returns the slope of the node's flowedg, or
+ **  zero if the slope is less than zero.
+ **
+ **  The name of this function makes NG cringe.
+ **  TODO Change to CALCSLOPE!!!!
+ **
+ **  Assumptions: edge lengths up to date and nonzero, flowedg's up to
+ **    date.
+\************************************************************************/
+inline double tLNode::getSlope()
+{
+  assert( flowedge->getLength()>0 ); // failure means lengths not init'd
+
+  const double slp =
+    Meanders() ?
+    getSlopeMeander():
+    (z - getDownstrmNbr()->z ) / flowedge->getLength();
+
+  //if( timetrack >= kBugTime ) cout << "GS 4; " << endl << flush;
+  return ( slp>=0.0 ) ? slp : 0.0;
+}
+
+inline double tLNode::getDSlopeDt()
+{
+  assert( flowedge != 0 );
+  assert( flowedge->getLength()>0 ); // failure means lengths not init'd
+  double curlen, slp;
+  tLNode *dn;
+  if( Meanders() )
+    {
+      dn = getDSlopeDtMeander( curlen );
+    }
+  else
+    {
+      curlen = flowedge->getLength();
+      assert( curlen > 0.0 );
+      dn = getDownstrmNbr();
+    }
+  slp = ( dzdt - dn->dzdt + uplift - dn->uplift ) / curlen;
+  return ( slp>=0.0 ) ? slp : 0.0;
 }
 
 inline bool tLNode::Meanders() const {return chan.migration.meander;}
