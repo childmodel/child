@@ -4,7 +4,7 @@
 **
 **  Functions for derived class tLNode and its member classes
 **
-**  $Id: tLNode.cpp,v 1.27 1998-04-06 19:27:27 nmgaspar Exp $
+**  $Id: tLNode.cpp,v 1.28 1998-04-07 00:18:09 nmgaspar Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -262,43 +262,45 @@ tRegolith::tRegolith( tInputFile &infile )                     //tRegolith
   : dgrade( )
 {
   int i;
-  char name[10];
+  char add, name[20];
+  double help;
 
    cout << "tRegolith(infile)\n";
    thickness = infile.ReadItem( thickness, "REGINIT" );
    numal = 0;
-   //numg = infile.ReadItem( numg, "NUMGRNSIZE" );
-   //actdpth = infile.ReadItem( actdpth, "ACTIVEDEPTH" );
-   //dpth = actdpth;
+   numg = infile.ReadItem( numg, "NUMGRNSIZE" );
+   actdpth = infile.ReadItem( actdpth, "ACTIVEDEPTH" );
+   dpth = infile.ReadItem( dpth, "SURLAYDEPTH" );
    
-   //if( numg>1 )
-   //{
-       //dgrade.setSize( numg+1 );
-       //dgrade[0]=0;
-       //i=1;
-       //while ( i<numg+1 ){
-       //strcpy( name, "PROPORTION");
-	 // strcat( name, 
-	 //infile.ReadItem( grndatname, "OUTFILENAME" );
-	 //strcat( grndatname, ".grndat");
-	 //grnfile.open( grndatname );
-	 //if( !grnfile.good() )
-	 //cerr << "tRegolith::tRegolith: Unable to open '" << grndatname << "'." << endl;
-	 //i=1;
-	 //while ( i<numg+1 ){
-	 //grnfile >> dgrade[i];
-	 //i++;
-	 //}
-	 //if( grade.getSize()<2 ){
-	 //grade.setSize(numg+1);
-	 //grade[0]=0;
-	 //i=1;
-	 //while ( i<numg+1 ){
-	 //  grnfile >> dgrade[i];
-	 // i++;
-	 //}
-	 //}        
-   //}
+   if( numg>1 )
+   {
+     dgrade.setSize( numg+1 );
+     dgrade[0]=0;
+     i=1;
+     add='1'
+       while ( i<=numg ){
+	 strcpy( name, "PROPORTION");
+	 strcat( name, &add ); 
+	 help = infile.ReadItem( help, name);
+	 dgrade[i] = help*dpth;
+	 i++;
+	 add++;
+       }
+     if( grade.getSize()<2 ){
+       grade.setSize( numg+1 );
+       grade[0]=0;
+       i=1;
+       add='1'
+       while ( i<=numg ){
+	 strcpy( name, "GRAINDIAM");
+	 strcat( name, &add ); 
+	 help = infile.ReadItem( help, name);
+	 grade[i] = help;
+	 i++;
+	 add++;
+       }
+     }
+   }
 }
 
 tRegolith::tRegolith( const tRegolith &orig )                   //tRegolith
