@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.53 2003-08-13 13:45:31 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.54 2003-08-13 16:11:07 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -407,10 +407,8 @@ void tStreamNet::UpdateNet( double time, tStorm &storm )
 **  no node drains to a closed boundary; etc. No data are modified.
 **
 **  Modifications:
-**    - added "sink" case to outlet-path test, 8/98 GT
-**    - fixed bug wherein use of a fixed "kLargeNumber" to test for
-**      infinite loop in flow routing resulted in detection of false
-**      loops for very large meshes! 3/02 GT
+**    - disabled O(nnodes^2) loop. 8/03 AD
+**    - some code moved to CheckNetConsistencyFlowPath 8/03 AD
 **
 \**************************************************************************/
 void tStreamNet::CheckNetConsistency()
@@ -464,7 +462,7 @@ void tStreamNet::CheckNetConsistency()
 	}
    }
 
-   if (CheckNetConsistencyFlowPath())
+   if (CheckNetConsistencyFlowPath(&cn))
      goto error;
 
    if (0) //DEBUG
@@ -477,47 +475,98 @@ void tStreamNet::CheckNetConsistency()
    cn->TellAll();
    ReportFatalError( "Error in network consistency." );
 }
-#undef kLargeNumber
 
-int tStreamNet::CheckNetConsistencyFlowPath()
+
+/**************************************************************************\
+**
+**  tStreamNet::CheckNetConsistencyFlowPath
+**
+**  This is a debugging function that tests the integrity of the stream
+**  network. all active nodes drain to an outlet (or a sink);
+**  no node drains to a closed boundary; etc. No data are modified
+**  (Except the tLNode->public1)
+**
+**  Modifications:
+**    - added "sink" case to outlet-path test, 8/98 GT
+**    - fixed bug wherein use of a fixed "kLargeNumber" to test for
+**      infinite loop in flow routing resulted in detection of false
+**      loops for very large meshes! 3/02 GT
+**    - speed-up using tLNode::public1 8/03 AD
+**
+\**************************************************************************/
+int tStreamNet::CheckNetConsistencyFlowPath( tLNode **pcn )
 {
    tLNode *cn;
    tMeshListIter< tLNode > nI( meshPtr->getNodeList() );
    const long nodesInMesh = meshPtr->getNodeList()->getSize();
+   enum{ notdone, valid };
+
+   // mark all active nodes as not done.
+   for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+     cn->public1 = notdone;
    for( cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
    {
-      // Make sure each node has path to outlet (or to a sink):
-      int ctr = 0;
-      tLNode *dn = cn;
-      do {
-	dn = dn->getDownstrmNbr();
-	ctr++;
-	if( ctr > nodesInMesh ) {
-	  dn->TellAll();
-	  if( ctr > nodesInMesh+4 )
-	    {
-	      cerr << "NODE #" << cn->getID()
-		   << " has infinite loop in path downstream\n";
-	      goto error;
-	    }
-	}
-      } while( dn->getBoundaryFlag() == kNonBoundary
-	       && dn->getFloodStatus() != kSink );
+      if (cn->public1 == valid) continue;
 
-      if( dn->getBoundaryFlag() != kOpenBoundary
+      // Make sure each node has path to outlet (or to a sink):
+      bool metExistingFlowPath = false;
+      int ctr = 1;
+      tLNode *dn = cn->getDownstrmNbr();
+      while( dn->getBoundaryFlag() == kNonBoundary
+             && dn->getFloodStatus() != kSink )
+      {
+         dn = dn->getDownstrmNbr();
+         ctr++;
+	 if (dn->public1 == valid ) {
+	   metExistingFlowPath = true;
+	   break;
+	 }
+         if( ctr > nodesInMesh ) {
+             dn->TellAll();
+	     if( ctr > nodesInMesh+4 )
+	       {
+		 cerr << "NODE #" << cn->getID()
+		      << " has infinite loop in path downstream\n";
+		 goto error;
+	       }
+	 }
+      }
+      if( !metExistingFlowPath &&
+	  dn->getBoundaryFlag() != kOpenBoundary
           && dn->getFloodStatus() != kSink )
       {
          cerr << "NODE #" << cn->getID()
-              << " does not flow to outlet\n";
-         cerr << "Flow ends up at the following node:\n";
+              << " does not flow to outlet\n"
+	      << "Flow ends up at the following node:\n";
          dn->TellAll();
          goto error;
       }
+      // no error, mark the path as valid up to the first valid node
+      cn->public1 = valid;
+      dn = cn->getDownstrmNbr();
+      if (metExistingFlowPath) {
+	while( dn->public1 != valid )
+	  {
+	    dn->public1 = valid;
+	    dn = dn->getDownstrmNbr();
+	  }
+      } else {
+	while( dn->getBoundaryFlag() == kNonBoundary
+	       && dn->getFloodStatus() != kSink )
+	  {
+	    dn->public1 = valid;
+	    dn = dn->getDownstrmNbr();
+	  }
+      }
    }
+   *pcn = 0;
    return 0;
  error:
+   *pcn = cn;
    return 1;
 }
+
+
 /****************************************************************************\
 **
 **  CalcSlopes
