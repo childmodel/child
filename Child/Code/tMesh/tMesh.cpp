@@ -3,7 +3,7 @@
 **  tMesh.cpp: Functions for class tMesh (see tMesh.h) plus global
 **             functions used by tMesh methods (formerly tGrid)
 **
-**  $Id: tMesh.cpp,v 1.79 2000-01-12 22:11:49 nmgaspar Exp $
+**  $Id: tMesh.cpp,v 1.80 2000-01-13 00:05:48 nmgaspar Exp $
 \***************************************************************************/
 
 #include "tMesh.h"
@@ -1469,7 +1469,7 @@ MakeMeshFromPoints( tInputFile &infile )
       
    }
    pointfile.close();
-   
+   cout << "finished reading in points"<< endl;
    dx = maxx - minx;
    dy = maxy - miny;
 
@@ -1479,8 +1479,9 @@ MakeMeshFromPoints( tInputFile &infile )
    // width and height, respectively, of the rectangle that encloses the
    // points.) Assigning the IDs allows us to retrieve and delete these
    // nodes when we're done creating the mesh.
-   //cout << "creating supertri: max & min are " << maxx << "," << maxy << endl;
-   tempnode.set3DCoords( minx-3*dx, miny-3*dy, 0.0 );
+   cout << "creating supertri: max & min are " << maxx << "," << maxy << endl;
+   
+tempnode.set3DCoords( minx-3*dx, miny-3*dy, 0.0 );
    tempnode.setBoundaryFlag( kClosedBoundary );
    tempnode.setID( -1 );
    nodeList.insertAtBack( tempnode );
@@ -1522,7 +1523,7 @@ MakeMeshFromPoints( tInputFile &infile )
    // Now add the points one by one to construct the mesh.
    for( i=0; i<numpts; i++ )
    {
-      //cout << "IN MGFP, ADDING NODE " << i << endl;
+      cout << "IN MGFP, ADDING NODE " << i << endl;
       tempnode.setID( i );
       tempnode.set3DCoords( x[i], y[i], z[i] );
       tempnode.setBoundaryFlag( bnd[i] );
