@@ -59,7 +59,7 @@
 **     - Added codes to go along with erosion & transport options, to
 **       enable checking against user-specified options (GT 7/02)
 **
-**  $Id: erosion.h,v 1.43 2002-08-13 17:03:22 arnaud Exp $
+**  $Id: erosion.h,v 1.44 2002-09-12 13:23:41 arnaud Exp $
 \***************************************************************************/
 
 #ifndef EROSION_H
@@ -87,8 +87,15 @@ X(PowerLaw2,"Power-law transport formula, form 2"), \
 X(BridgeDominic,"Bridge-Dominic form of Bagnold bedload formula"), \
 X(Wilcock,"Wilcock sand-gravel formula"), \
 X(PowerLawMulti,"Multi-size power-law formula"), \
-X(MineTailings,"Willgoose/Riley mine tailings formula"), \
-X(NoTransportLaw,"(Invalid transport law)")
+X(MineTailings,"Willgoose/Riley mine tailings formula")
+
+#define TRANSPORT_LAW_TABLE2 \
+X(PowerLaw1,tSedTransPwrLaw) \
+X(PowerLaw2,tSedTransPwrLaw2) \
+X(BridgeDominic,tSedTransBridgeDom) \
+X(Wilcock,tSedTransWilcock) \
+X(PowerLawMulti,tSedTransPwrLawMulti) \
+X(MineTailings,tSedTransMineTailings)
 
 #define X(a,b) a
 enum {
@@ -97,34 +104,22 @@ enum {
 #undef X
 
 #define X(a,b) b
-const char * const TransportLaw[] =
+char const * const TransportLaw[] =
 {
   TRANSPORT_LAW_TABLE
 };
 #undef X
 
 const int NUMBER_OF_TRANSPORT_LAWS = 
-sizeof(TransportLaw)/sizeof(TransportLaw[0]) - 1;
-
-//#define tSedTrans tSedTransPwrLaw
-//#define TRANSPORT_CODE PowerLaw1
-#define tSedTrans tSedTransPwrLaw2
-#define TRANSPORT_CODE PowerLaw2
-//#define tSedTrans tSedTransBridgeDom
-//#define TRANSPORT_CODE BridgeDominic
-//#define tSedTrans tSedTransWilcock
-//#define TRANSPORT_CODE Wilcock
-//#define tSedTrans tSedTransPwrLawMulti
-//#define TRANSPORT_CODE PowerLawMulti
-//#define tSedTrans tSedTransMineTailings
-//#define TRANSPORT_CODE MineTailings
-
-const char * const SEDTRANSOPTION = TransportLaw[ TRANSPORT_CODE ];
+sizeof(TransportLaw)/sizeof(TransportLaw[0]);
 
 #define DETACHMENT_LAW_TABLE \
 X(DetachPwrLaw1,"Power law, form 1"), \
-X(DetachPwrLaw2,"Power law, form 2"), \
-X(NoDetachmentLaw,"(Invalid detachment law)")
+X(DetachPwrLaw2,"Power law, form 2")
+
+#define DETACHMENT_LAW_TABLE2 \
+X(DetachPwrLaw1,tBedErodePwrLaw) \
+X(DetachPwrLaw2,tBedErodePwrLaw2)
 
 #define X(a,b) a
 enum {
@@ -133,19 +128,14 @@ enum {
 #undef X
 
 #define X(a,b) b
-const char * const DetachmentLaw[] =
+char const * const DetachmentLaw[] =
 {
   DETACHMENT_LAW_TABLE
 };
 #undef X
 
 const int NUMBER_OF_DETACHMENT_LAWS =
-sizeof(DetachmentLaw)/sizeof(DetachmentLaw[0]) - 1;
-
-#define tBedErode tBedErodePwrLaw2
-#define DETACHMENT_CODE DetachPwrLaw2
-
-const char * const DETACHMENTOPTION = DetachmentLaw[ DETACHMENT_CODE ];
+sizeof(DetachmentLaw)/sizeof(DetachmentLaw[0]);
 
 /***************************************************************************\
 **  class tEquilibCheck
@@ -192,6 +182,18 @@ private:
     double shortRate;
 };
 
+/***************************************************************************\
+**  class tSedTrans
+**
+**  Abstract Base Class for transport law
+\***************************************************************************/
+class tSedTrans
+{
+  public:
+   virtual ~tSedTrans() {}
+   virtual double TransCapacity( tLNode *n ) = 0;
+   virtual double TransCapacity( tLNode *n, int i, double weight) = 0;
+};
 
 /***************************************************************************\
 **  class tSedTransPwrLaw
@@ -201,7 +203,7 @@ private:
 **  flow depth are implicit in the power-law derivation):
 **    Qs = kf ( tau - tauc ) ^ pf,   tau = kt (Q/W)^mb S^nf
 \***************************************************************************/
-class tSedTransPwrLaw
+class tSedTransPwrLaw : public tSedTrans
 {
   public:
    tSedTransPwrLaw( tInputFile &infile );
@@ -225,7 +227,7 @@ class tSedTransPwrLaw
 **  flow depth are implicit in the power-law derivation):
 **    Qs = kf ( tau^pf - tauc^pf ),  tau = kt (Q/W)^mf S^nf
 \***************************************************************************/
-class tSedTransPwrLaw2
+class tSedTransPwrLaw2 : public tSedTrans
 {
   public:
    tSedTransPwrLaw2( tInputFile &infile );
@@ -250,7 +252,7 @@ class tSedTransPwrLaw2
 **  transport formula.
 **
 \***************************************************************************/
-class tSedTransBridgeDom
+class tSedTransBridgeDom : public tSedTrans
 {
   public:
    tSedTransBridgeDom( tInputFile &infile );
@@ -276,7 +278,7 @@ class tSedTransBridgeDom
 **  function.
 **
 \***************************************************************************/
-class tSedTransPwrLawMulti
+class tSedTransPwrLawMulti : public tSedTrans
 {
   public:
    tSedTransPwrLawMulti( tInputFile &infile );
@@ -303,7 +305,7 @@ class tSedTransPwrLawMulti
 **  of a sand a gravel class (two grain sizes) using the sediment transport
 **  formula and critical shear stress rules developed by P. Wilcock (1997)
 \**************************************************************************/
-class tSedTransWilcock
+class tSedTransWilcock : public tSedTrans
 {
 public:
    tSedTransWilcock( tInputFile &infile );
@@ -338,7 +340,7 @@ private:
  **
  ** added 04/2000 ng
  \************************************************************************/
-class tSedTransMineTailings
+class tSedTransMineTailings : public tSedTrans
 {
 public:
    tSedTransMineTailings( tInputFile &infile );
@@ -364,6 +366,24 @@ private:
 };
 
 /***************************************************************************\
+**  clas tBedErode
+**
+**  Abstract Base Class for detachment law
+\***************************************************************************/
+class tBedErode
+{
+  public:
+   virtual ~tBedErode() {}
+     //Computes depth of potential erosion at node n over time interval dt
+   virtual double DetachCapacity( tLNode * n, double dt ) = 0 ;
+     //Computes rate of potential erosion of layer i at node n 
+   virtual double DetachCapacity( tLNode * n, int i ) = 0 ;
+     //Computes rate of erosion at node n
+   virtual double DetachCapacity( tLNode * n ) = 0 ;
+     //Returns an estimate of maximum stable & accurate time step size
+   virtual double SetTimeStep( tLNode * n ) = 0 ;
+};
+/***************************************************************************\
 **  class tBedErodePwrLaw
 **
 **  Assumes bedrock detachment proportional to a power function of slope
@@ -372,7 +392,7 @@ private:
 **  equal to the thickness of any regolith (alluvium) present plus
 **    Dc = kb Q^mb S^nb dt
 \***************************************************************************/
-class tBedErodePwrLaw
+class tBedErodePwrLaw : public tBedErode
 {
   public:
    tBedErodePwrLaw( tInputFile &infile );
@@ -410,7 +430,7 @@ class tBedErodePwrLaw
 **  Created: April 2002 (GT)
 **
 \***************************************************************************/
-class tBedErodePwrLaw2
+class tBedErodePwrLaw2 : public tBedErode
 {
   public:
    tBedErodePwrLaw2( tInputFile &infile );
@@ -448,6 +468,7 @@ class tErosion
   tErosion& operator=(const tErosion&);
 public:
     tErosion( tMesh< tLNode > *, tInputFile & );
+    ~tErosion();
     void ErodeDetachLim( double dtg, tStreamNet * );
     void ErodeDetachLim( double dtg, tStreamNet *, tUplift * );
     void StreamErode( double dtg, tStreamNet * );
@@ -460,8 +481,8 @@ public:
 
 private:
     tMesh<tLNode> *meshPtr;    // ptr to mesh
-    tBedErode bedErode;        // bed erosion object
-    tSedTrans sedTrans;        // sediment transport object 
+    tBedErode *bedErode;        // bed erosion object
+    tSedTrans *sedTrans;        // sediment transport object 
     double kd;                 // Hillslope transport (diffusion) coef
     double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
 

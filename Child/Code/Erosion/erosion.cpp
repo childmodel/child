@@ -46,7 +46,7 @@
 **       option is used, a crash will result when tLNode::EroDep
 **       attempts to access array indices above 1. TODO (GT 3/00)
 **
-**  $Id: erosion.cpp,v 1.104 2002-08-13 14:16:28 gtucker Exp $
+**  $Id: erosion.cpp,v 1.105 2002-09-12 13:23:40 arnaud Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -1530,10 +1530,9 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
 \***************************************************************************/
 
 //constructor
-tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
-  :
+tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile ) :
   meshPtr(mptr),
-  bedErode( infile ), sedTrans( infile )
+  bedErode(0), sedTrans(0)
 {
    assert( mptr!=0 );
 
@@ -1545,43 +1544,60 @@ tErosion::tErosion( tMesh<tLNode> *mptr, tInputFile &infile )
        mdMeshAdaptMaxFlux = infile.ReadItem( mdMeshAdaptMaxFlux,
                                              "MESHADAPT_MAXNODEFLUX" );
 
-   cout << "SEDIMENT TRANSPORT OPTION: " << SEDTRANSOPTION << endl;
-   cout << "DETACHMENT OPTION: " 
-	<< DETACHMENTOPTION 
-	<< endl;
-
    // Make sure the user wants the detachment and transport options that
    // are compiled in this version
    int optProcessLaw = infile.ReadItem( optProcessLaw,
-					   "DETACHMENT_LAW" );
-   if( optProcessLaw != DETACHMENT_CODE )
+					"DETACHMENT_LAW" );
+   switch(optProcessLaw){
+#define X(a,b) case a: \
+               sedTrans = new b(infile); \
+               break;
+        TRANSPORT_LAW_TABLE2
+#undef X
+   default:
      {
-       optProcessLaw=(optProcessLaw<NUMBER_OF_DETACHMENT_LAWS && 
-		      optProcessLaw>=0) ? optProcessLaw : NoDetachmentLaw;
-       cerr << "Error: You requested the detachment law: " 
-	    << DetachmentLaw[optProcessLaw] << endl
-	    << "but this version is hard-coded with detachment law "
-	    << DETACHMENT_CODE << " (" << DETACHMENTOPTION << ")\n";
-       ReportFatalError( "Requested detachment law not available.\n"
-			 "Either switch options or modify erosion.h "
-			 "and re-compile.\n" );
+       cerr << "\nError: You requested the detachment law '" 
+	    << optProcessLaw << "' which does not exist."  << endl
+	    << "Available options:" << endl;
+       for(int i=0; i!=NUMBER_OF_DETACHMENT_LAWS; ++i ){
+	 cerr << " " << i << ": " << DetachmentLaw[i] << endl;
+       }
+       ReportFatalError( "Requested detachment law not available. "
+			 "Switch options.\n" );
      }
+   }
+
+   cout << "DETACHMENT OPTION: "
+	<< DetachmentLaw[optProcessLaw] << endl;
+
    optProcessLaw = infile.ReadItem( optProcessLaw,
-					   "TRANSPORT_LAW" );
-   if( optProcessLaw != TRANSPORT_CODE )
+				    "TRANSPORT_LAW" );
+   switch(optProcessLaw){
+#define X(a,b) case a: \
+               bedErode = new b(infile); \
+               break;
+        DETACHMENT_LAW_TABLE2
+#undef X
+   default:
      {
-       optProcessLaw = ( optProcessLaw < NUMBER_OF_TRANSPORT_LAWS 
-		      && optProcessLaw >= 0 ) ? optProcessLaw : NoTransportLaw;
-       cerr << "Error: You requested transport law: " 
-	    << TransportLaw[optProcessLaw] << endl
-	    << "but this version is hard-coded with transport law "
-	    << TRANSPORT_CODE << " (" << SEDTRANSOPTION << ")\n";
-       ReportFatalError( "Requested transport law not available.\n" 
-			 "Either switch options or modify erosion.h "
-			 "and re-compile.\n" );
+       cerr << "\nError: You requested the transport law '" 
+	    << optProcessLaw << "' which does not exist."  << endl
+	    << "Available options:" << endl;
+       for(int i=0; i!=NUMBER_OF_TRANSPORT_LAWS; ++i ){
+	 cerr << " " << i << ": " << TransportLaw[i] << endl;
+       }
+       ReportFatalError( "Requested transport law not available. " 
+			 "Switch options.\n" );
      }
+   }
+   cout << "SEDIMENT TRANSPORT OPTION: " 
+	<< TransportLaw[optProcessLaw] << endl;
 }
 
+tErosion::~tErosion(){
+  delete bedErode;
+  delete sedTrans;
+}
 
 /*****************************************************************************\
 **
@@ -1642,7 +1658,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet )
    {
       //first find erosion rate:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->setDzDt( -bedErode.DetachCapacity( cn ) );
+          cn->setDzDt( -bedErode->DetachCapacity( cn ) );
 
       //find max. time step s.t. slope does not reverse:
       dtmax = dtg;
@@ -1711,7 +1727,7 @@ void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet, tUplift *UPtr )
    {
       //first find erosion rate:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-          cn->setDzDt( -bedErode.DetachCapacity( cn ) );
+          cn->setDzDt( -bedErode->DetachCapacity( cn ) );
       dtmax = dtg;
       //find max. time step s.t. slope does not reverse:
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
@@ -1810,7 +1826,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       {
          // Transport capacity and potential erosion/deposition rate
          // (this also sets the node's Qs value)
-         cap = sedTrans.TransCapacity( cn );
+         cap = sedTrans->TransCapacity( cn );
          pedr = (cn->getQsin() - cap ) / cn->getVArea();
         //sediment input:
          if( cn == strmNet->getInletNodePtr() )
@@ -1820,7 +1836,7 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          if( cn->OnBedrock() && pedr<0 )
          {
             // get detachment capacity (this also sets node's drdt)
-            dcap = -bedErode.DetachCapacity( cn );
+            dcap = -bedErode->DetachCapacity( cn );
             if( dcap > pedr )
                 pedr = dcap;
          }
@@ -2049,7 +2065,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
          if(cn->getLayerSed(0)>0)
          {
             // Sediment in first layer so transport cap
-            cap = sedTrans.TransCapacity( cn );
+            cap = sedTrans->TransCapacity( cn );
             pedr = (cn->getQsin() - cap ) / cn->getVArea();
          
             //sediment input:
@@ -2062,7 +2078,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
                // Bedrock right below sediment so erode this
                // Get detachment capacity (this also sets node's drdt)
                // Limit detachment because there is also sediment present
-               dcap = -bedErode.DetachCapacity(cn)*(1-(cn->getLayerDepth(0)/cn->getMaxregdep()));
+               dcap = -bedErode->DetachCapacity(cn)*(1-(cn->getLayerDepth(0)/cn->getMaxregdep()));
                pedr += dcap;
                // if(fabs(dcap)>1){
 //                   cout << "huge bedrock erosion of "<< dcap << " at node " << cn->getID()<<endl;
@@ -2083,7 +2099,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
             //if( pedr<0 )
             //{
                // Get detachment capacity (this also sets node's drdt)
-             dcap = -bedErode.DetachCapacity( cn );
+             dcap = -bedErode->DetachCapacity( cn );
              // if(fabs(dcap)>1){
 //                 cout << "huge bedrock erosion of "<< dcap <<" at node " << cn->getID()<< endl;
 //              }
@@ -2400,10 +2416,10 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
                   //TransportCapacity function should keep running
                   //sum of qs of each grain size.  
                   //qs returned is in m^3/yr; qs stored in tLNode has same units
-                  qs+=sedTrans.TransCapacity(cn,i,cn->getLayerDepth(i)/cn->getChanDepth());
+                  qs+=sedTrans->TransCapacity(cn,i,cn->getLayerDepth(i)/cn->getChanDepth());
                }
                else{
-                  qs+=sedTrans.TransCapacity(cn,i,1-(depck/cn->getChanDepth()));
+                  qs+=sedTrans->TransCapacity(cn,i,1-(depck/cn->getChanDepth()));
                }
                depck+=cn->getLayerDepth(i); //need to keep this here for qs calc
                i++;
@@ -2416,9 +2432,9 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time )
             //using those values!!!
             
             if(depck>cn->getChanDepth()) //which layer are you basing detach on?
-                drdt=-bedErode.DetachCapacity( cn, i-1 );
+                drdt=-bedErode->DetachCapacity( cn, i-1 );
             else
-                drdt=-bedErode.DetachCapacity( cn, i );//[m^3/yr]
+                drdt=-bedErode->DetachCapacity( cn, i );//[m^3/yr]
             
             cn->setDrDt(drdt);
             cn->setDzDt(drdt);
