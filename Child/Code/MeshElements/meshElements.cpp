@@ -17,7 +17,7 @@
 **   - 2/2000 GT added tNode functions getVoronoiVertexList and
 **     getVoronoiVertexXYZList to support dynamic remeshing.
 **
-**  $Id: meshElements.cpp,v 1.53 2003-05-16 14:04:22 childcvs Exp $
+**  $Id: meshElements.cpp,v 1.54 2003-05-16 16:21:05 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -106,7 +106,7 @@ tArray< double > FindIntersectionCoords( tArray< double > const &xy1,
 **      Calls: (none)
 **
 \*****************************************************************************/
-double tNode::Dist( tNode * p0, tNode * p1 ) const
+double tNode::Dist( tNode const * p0, tNode const * p1 ) const
 {
   double a,b,c,res;
 
@@ -127,7 +127,7 @@ double tNode::Dist( tNode * p0, tNode * p1 ) const
 **  or zero if no such spoke is found.
 **
 \*****************************************************************************/
-tEdge *tNode::EdgToNod( tNode * nod )
+tEdge *tNode::EdgToNod( tNode const * nod )
 {
    tSpkIter spokIter( this );
    tEdge * ce;
@@ -696,7 +696,7 @@ tEdge * tEdge::FindComplement()
 // 3/99 SL
 // 4/2003 AD
 //***************************************************************************
-void tEdge::InitializeEdge( tNode* n1, tNode* n2, tNode* n3 )
+void tEdge::InitializeEdge( tNode* n1, tNode* n2, tNode const * n3 )
 {
    assert( n1!=0 && n2!=0 && n3!=0 );
    setOriginPtr( n1 );

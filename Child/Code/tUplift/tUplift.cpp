@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.16 2003-05-16 14:02:15 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.17 2003-05-16 16:18:27 childcvs Exp $
 */
 /************************************************************************/
 
@@ -216,7 +216,7 @@ void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt )
 **           delt -- duration of uplift
 **
 \************************************************************************/
-void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt )
+void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt ) const
 {
    assert( mp!=0 );
    tLNode *cn;
@@ -366,7 +366,7 @@ void tUplift::CosineWarp2D( tMesh<tLNode> *mp, double delt )
 **           delt -- duration of uplift
 **
 \************************************************************************/
-void tUplift::PropagatingFold( tMesh<tLNode> *mp, double delt )
+void tUplift::PropagatingFold( tMesh<tLNode> *mp, double delt ) const
 {
    assert( mp!=0 );
    tLNode *cn;
@@ -436,7 +436,7 @@ void tUplift::PropagatingFold( tMesh<tLNode> *mp, double delt )
 **      rate, rate2, positionParam1
 **
 \************************************************************************/
-void tUplift::TwoSideDifferential( tMesh<tLNode> *mp, double delt )
+void tUplift::TwoSideDifferential( tMesh<tLNode> *mp, double delt ) const
 {
   tMeshListIter<tLNode> ni( mp->getNodeList() );
   tLNode *cn;
@@ -474,10 +474,7 @@ void tUplift::TwoSideDifferential( tMesh<tLNode> *mp, double delt )
 **           delt -- duration of uplift
 **
 \************************************************************************/
-void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt )
-
-
-
+void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt ) const
 {
    assert( mp!=0 );
    tLNode *cn;
@@ -603,7 +600,7 @@ void tUplift::FaultBendFold( tMesh<tLNode> *mp, double delt )
 **           delt -- duration of uplift
 **
 \************************************************************************/
-void tUplift::FaultBendFold2( tMesh<tLNode> *mp, double delt )
+void tUplift::FaultBendFold2( tMesh<tLNode> *mp, double delt ) const
 {
    assert( mp!=0 );
    tLNode *cn;

@@ -44,7 +44,7 @@ void initialize_(const integer *stnserod, doublereal *phi,
 		 const doublereal *x, const doublereal *y,
 		 doublereal *delx, doublereal *dely, 
 		 doublereal *rho, doublereal *grav,
-		 doublereal *width, doublereal *lambda);
+		 const doublereal *width, doublereal *lambda);
 static
 void changeposition_(const integer *stnserod, const integer * /*stations*/, 
 		     const doublereal *lerody, const doublereal *rerody,
@@ -61,7 +61,7 @@ void channel_(const integer *stnserod, const integer *stations,
 	      const doublereal *phi, doublereal *curvature,
 	      const doublereal *dels, 
 	      doublereal *acs, doublereal *deln, doublereal *rightdepth,
-	      doublereal *leftdepth, doublereal *depth, 
+	      doublereal *leftdepth, const doublereal *depth, 
 	      doublereal *vel, const doublereal *delx, const doublereal *dely,
 	      doublereal *transfactor, doublereal *transslope);
 static
@@ -124,7 +124,7 @@ static const doublereal c_b7 = 1.;
 /*     stress calculation */
 /*                 1.7  8/11: debugged version SL */
 
-/*     $Id: meander.cpp,v 1.8 2003-05-13 15:05:01 childcvs Exp $ */
+/*     $Id: meander.cpp,v 1.9 2003-05-16 16:19:31 childcvs Exp $ */
 
 void meander_(const integer *stations, const integer *stnserod, 
 	      const doublereal *x, const doublereal *y,
@@ -229,7 +229,7 @@ void initialize_(const integer *stnserod, doublereal *phi,
 		 const doublereal *x, const doublereal *y,
 		 doublereal *delx, doublereal *dely, 
 		 doublereal *rho, doublereal *grav,
-		 doublereal *width, doublereal *lambda)
+		 const doublereal */*width*/, doublereal */*lambda*/)
 {
     /* System generated locals */
     integer i__1;
@@ -238,8 +238,8 @@ void initialize_(const integer *stnserod, doublereal *phi,
     integer s;
 
     /* Parameter adjustments */
-    --lambda;
-    --width;
+    //--lambda;
+    //--width;
     --dely;
     --delx;
     --y;
@@ -279,7 +279,7 @@ void channel_(const integer *stnserod, const integer *stations,
 	      const doublereal *phi, doublereal *curvature,
 	      const doublereal *dels, 
 	      doublereal *acs, doublereal *deln, doublereal *rightdepth,
-	      doublereal *leftdepth, doublereal *depth, 
+	      doublereal *leftdepth, const doublereal *depth, 
 	      doublereal *vel, const doublereal *delx, const doublereal *dely,
 	      doublereal *transfactor, doublereal *transslope)
 {

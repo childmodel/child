@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.150 2003-05-16 14:04:58 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.151 2003-05-16 16:22:19 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -100,7 +100,7 @@ tMesh()
 //in tMeshList, tList, and tPtrList, which may or not give the desired
 //results! Caveat emptor! -GT
 template< class tSubNode >
-tMesh<tSubNode>::tMesh( tMesh *originalMesh )
+tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
   :
   nnodes(originalMesh->nnodes),
   nedges(originalMesh->nedges),
@@ -2549,7 +2549,7 @@ template <class tSubNode>
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-DeleteNode( tSubNode *node, bool repairFlag )
+DeleteNode( tSubNode const *node, bool repairFlag )
 {
   tMeshListIter< tSubNode > nodIter( nodeList );
   if( nodIter.Get( node->getID() ) )
@@ -2899,7 +2899,7 @@ ExtricateEdge( tEdge * edgePtr )
 //*************************************************************************
 template< class tSubNode >
 int tMesh< tSubNode >::
-ClearEdge( tEdge* ce )
+ClearEdge( tEdge* ce ) const
 {
    tEdge *cce;
    tSpkIter spokIter;
@@ -3109,7 +3109,7 @@ TriWithEdgePtr( tEdge *edgPtr ) const
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-DeleteTriangle( tTriangle * triPtr )
+DeleteTriangle( tTriangle const * triPtr )
 {
    if (0) //DEBUG
      cout << "DeleteTriangle(...) " << triPtr->getID() << endl;
@@ -3138,7 +3138,7 @@ DeleteTriangle( tTriangle * triPtr )
 //*************************************************************************
 template< class tSubNode >
 int tMesh< tSubNode >::
-ClearTriangle( tTriangle *triPtr ) const
+ClearTriangle( tTriangle const *triPtr ) const
 {
   int i, j;
   for( i=0; i<3; i++ )
@@ -3164,7 +3164,7 @@ ClearTriangle( tTriangle *triPtr ) const
 \**************************************************************************/
 template< class tSubNode >
 int tMesh< tSubNode >::
-ExtricateTriangle( tTriangle *triPtr )
+ExtricateTriangle( tTriangle const *triPtr )
 {
    if (0) //DEBUG
      cout << "ExtricateTriangle" << endl;
@@ -3296,7 +3296,7 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
 //TODO: comment/document this fn
 template< class tSubNode >
 int tMesh< tSubNode >::
-AddEdge( tSubNode *node1, tSubNode *node2, tSubNode *node3 )
+AddEdge( tSubNode *node1, tSubNode *node2, tSubNode const *node3 )
 {
    assert( node1 != 0 && node2 != 0 && node3 != 0 );
    if (0) //DEBUG

@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.49 2003-05-16 14:04:23 childcvs Exp $
+**  $Id: meshElements.h,v 1.50 2003-05-16 16:21:05 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -138,8 +138,8 @@ public:
   void setBoundaryFlag( int );    // sets boundary status flag
   void setEdg( tEdge * );         // sets ptr to one spoke
 
-  double Dist( tNode *, tNode * ) const; // distance from node to line (node1,node2)
-  tEdge *EdgToNod( tNode * );      // finds spoke connected to given node
+  double Dist( tNode const *, tNode const * ) const; // distance from node to line (node1,node2)
+  tEdge *EdgToNod( tNode const * );// finds spoke connected to given node
   double ComputeVoronoiArea();     // calculates node's Voronoi area
   void ConvertToClosedBoundary();  // makes node a closed bdy & updates edges
   virtual void WarnSpokeLeaving( tEdge *); // signals node that spoke is being deleted
@@ -209,7 +209,7 @@ public:
   //~tEdge();               // destructor
 
   const tEdge &operator=( const tEdge & );  // assignment operator
-  void InitializeEdge( tNode*, tNode*, tNode* );
+  void InitializeEdge( tNode*, tNode*, tNode const * );
   inline int getID() const;            // returns ID number
   int getBoundaryFlag() const;  // returns boundary status (flow or no flow)
   double getLength() const;     // returns edge's length (projected)
@@ -359,7 +359,7 @@ public:
    tEdge* NextP();
    tEdge* PrevP();
    tEdge* GetP( int );
-   tEdge* GetP( tEdge* );
+   tEdge* GetP( tEdge const * );
    tEdge* ReportNextP();
    tEdge* ReportPrevP();
 
@@ -1341,7 +1341,7 @@ inline int tSpkIter::Get( const tEdge* ePtr )
    return 0;
 }
 
-inline tEdge* tSpkIter::GetP( tEdge* ePtr )
+inline tEdge* tSpkIter::GetP( const tEdge* ePtr )
 {
    if( Get( ePtr ) ) return curedg;
    return 0;

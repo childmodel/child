@@ -25,7 +25,7 @@
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **    - added FaultBendFold function (srm, August 2002)
 **
-**  $Id: tUplift.h,v 1.16 2003-05-16 14:02:16 childcvs Exp $
+**  $Id: tUplift.h,v 1.17 2003-05-16 16:18:27 childcvs Exp $
 */
 /************************************************************************/
 
@@ -52,13 +52,13 @@ public:
 private:
     void UpliftUniform( tMesh<tLNode> *mp, double delt );
     void BlockUplift( tMesh<tLNode> *mp, double delt );
-    void StrikeSlip( tMesh<tLNode> *mp, double delt );
+    void StrikeSlip( tMesh<tLNode> *mp, double delt ) const;
     void FoldPropErf( tMesh<tLNode> *mp, double delt );
     void CosineWarp2D( tMesh<tLNode> *mp, double delt );
-    void PropagatingFold( tMesh<tLNode> *mp, double delt );
-    void TwoSideDifferential( tMesh<tLNode> *mp, double delt );
-    void FaultBendFold( tMesh<tLNode> *mp, double delt );
-    void FaultBendFold2( tMesh<tLNode> *mp, double delt );
+    void PropagatingFold( tMesh<tLNode> *mp, double delt ) const;
+    void TwoSideDifferential( tMesh<tLNode> *mp, double delt ) const;
+    void FaultBendFold( tMesh<tLNode> *mp, double delt ) const;
+    void FaultBendFold2( tMesh<tLNode> *mp, double delt ) const;
 
 private:
     int typeCode;          // Code for the type of uplift desired

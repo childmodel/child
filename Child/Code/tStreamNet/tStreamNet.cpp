@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.31 2003-05-16 15:13:10 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.32 2003-05-16 16:18:48 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -956,7 +956,7 @@ void tStreamNet::RouteFlowHydrographPeak()
 **  the drainage area of the node and each node downstream by _addedArea_.
 **
 \*****************************************************************************/
-void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
+void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea ) const
 {
    if (0) //DEBUG
      cout << "RouteFlowArea()..." << endl << flush;
@@ -1000,7 +1000,7 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
 **
 \*****************************************************************************/
 void tStreamNet::RouteRunoff( tLNode *curnode, double addedArea,
-                              double addedRunoff )
+                              double addedRunoff ) const
 {
    if (0) //DEBUG
      cout << "RouteFlowArea()..." << endl << flush;
@@ -1542,7 +1542,7 @@ void tStreamNet::FillLakes()
 **  Updated: 12/19/97 SL; 1/15/98 gt bug fix (open boundary condition)
 **
 \*****************************************************************************/
-int tStreamNet::FindLakeNodeOutlet( tLNode *node )
+int tStreamNet::FindLakeNodeOutlet( tLNode *node ) const
 {
    double maxslp = 0;  // Maximum slope found so far
    tEdge * ce;        // Current edge

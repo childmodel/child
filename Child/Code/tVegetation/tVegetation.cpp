@@ -13,7 +13,7 @@
 **
 **  Created January, 2000, GT
 **  
-**  $Id: tVegetation.cpp,v 1.8 2003-01-17 17:30:49 childcvs Exp $
+**  $Id: tVegetation.cpp,v 1.9 2003-05-16 16:18:13 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -102,7 +102,7 @@ tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, tInputFile &infile )
 
 void tVegetation::UpdateVegetation( tMesh<class tLNode> *meshPtr,
 				    double stormdur,
-                                    double interstormdur )
+                                    double interstormdur ) const
 {
    tMeshListIter< tLNode > niter( meshPtr->getNodeList() ); // Node iterator
    tLNode * cn;   // Ptr to current node

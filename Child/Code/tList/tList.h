@@ -33,7 +33,7 @@
 **      track position on list w/o an iterator, 1/22/99
 **    - moved all functions into .h file and inlined them (GT 1/20/00)
 **
-**  $Id: tList.h,v 1.36 2003-05-15 16:09:42 childcvs Exp $
+**  $Id: tList.h,v 1.37 2003-05-16 16:20:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1007,8 +1007,8 @@ class tListIter
     int Get( int ); // use only if NodeType has member getID()!!
     int Next();     // advances to next item (or 1st if current undefined)
     int Prev();     // moves to previous item (or last if current undef'd)
-    int Where();    // use only if NodeType has member getID()!!
-    int AtEnd();    // returns 1 if at end of the list
+    int Where() const;  // use only if NodeType has member getID()!!
+    int AtEnd() const;  // returns 1 if at end of the list
     NodeType &DatRef();  // returns ref to current data item
     NodeType *DatPtr();  // returns ptr to current data item
     tListNode< NodeType > *NodePtr();  // returns ptr to current list node
@@ -1317,7 +1317,7 @@ GetP( int num )
 \**************************************************************************/
 template< class NodeType >       //tListIter
 inline int tListIter< NodeType >::
-Where()
+Where() const
 {
    if( curnode == 0 ) return -1;
    return curnode->getDataPtr()->getID();
@@ -1338,7 +1338,7 @@ Where()
 \**************************************************************************/
 template< class NodeType >       //tListIter
 inline int tListIter< NodeType >::
-AtEnd()
+AtEnd() const
 {
    if( listPtr->isEmpty() ) return 1;
    if( listPtr->last->next == 0 ) return ( curnode==0 );

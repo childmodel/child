@@ -13,7 +13,7 @@
 **      simultaneous erosion of one size and deposition of another
 **      (GT, 8/2002)
 ** 
-**  $Id: tLNode.cpp,v 1.101 2003-05-16 14:02:54 childcvs Exp $
+**  $Id: tLNode.cpp,v 1.102 2003-05-16 16:21:40 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -862,7 +862,7 @@ double tLNode::getDSlopeDt()
 **        
 **
 \*****************************************************************************/
-double tLNode::DistNew(tLNode * p0,tLNode * p1 ) const
+double tLNode::DistNew(tLNode const * p0,tLNode const * p1 ) const
 {
   double a,b,c,res, xp, yp, x0, y0, x1, y1;
 
@@ -1364,7 +1364,7 @@ void tLNode::setLayerDgrade( int i, int g, double val)
 \*************************************************************************/
 
 #define kAncient -999
-void tLNode::LayerInterpolation( tTriangle * tri, double tx, double ty, double time )
+void tLNode::LayerInterpolation( tTriangle const* tri, double tx, double ty, double time )
 {
    assert(tri!=0);
    
@@ -2737,7 +2737,7 @@ double tLNode::getUplift() const {return uplift;}
  **  Created:  12/99 GT
  **
  ********************************************************************/
-void tLNode::CopyLayerList( tLNode * fromNode )
+void tLNode::CopyLayerList( tLNode const * fromNode )
 {
    assert( fromNode!=0 );
    layerlist = fromNode->layerlist;

@@ -22,7 +22,7 @@
 **      to have nodes moved w/o interpolation (eg, for tectonic movement)
 **      (GT, 4/00)
 **
-**  $Id: tMesh.h,v 1.52 2003-05-16 14:04:59 childcvs Exp $
+**  $Id: tMesh.h,v 1.53 2003-05-16 16:22:21 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -82,7 +82,7 @@ class tMesh
 public:
    tMesh();
    tMesh( tInputFile & );
-   tMesh( tMesh * );
+   tMesh( tMesh const * );
    ~tMesh();
    void BatchAddNodes(); // quickly adds many nodes when starting w/ dense mesh
    void MakeMeshFromScratch( tInputFile & );   // creates a new mesh
@@ -103,17 +103,17 @@ public:
    tTriangle *TriWithEdgePtr( tEdge * ) const;
    /*only routine needed to delete node; calls ExNode, RepairMesh:*/
    int DeleteNode( tListNode< tSubNode > *, bool repairFlag=true );
-   int DeleteNode( tSubNode *, bool repairFlag=true );
+   int DeleteNode( tSubNode const *, bool repairFlag=true );
    /*deletes spokes, *calls ExEdge, makes nbr ptr list:*/
    int ExtricateNode( tSubNode *, tPtrList< tSubNode > & );
    int DeleteEdge( tEdge * );
    /*calls ExTriangle; deals w/edge and compliment, deletes nbr tri(s):*/
    int ExtricateEdge( tEdge * );
-   int ClearEdge( tEdge* ); // calls ClearTriangle
-   int DeleteTriangle( tTriangle * );
+   int ClearEdge( tEdge* ) const; // calls ClearTriangle
+   int DeleteTriangle( tTriangle const * );
    /*"un-points" nbr triangles:*/
-   int ExtricateTriangle( tTriangle * );
-   int ClearTriangle( tTriangle* ) const;
+   int ExtricateTriangle( tTriangle const * );
+   int ClearTriangle( tTriangle const* ) const;
    /*complicated; fills in (any) hole defined by circular node ptr list:*/
    int RepairMesh( tPtrList< tSubNode > & );
    int AddEdgeAndMakeTriangle( tPtrList< tSubNode > &,
@@ -122,7 +122,7 @@ public:
    int MakeTriangle( tPtrList< tSubNode > &,
                      tPtrListIter< tSubNode > & );
    int MakeTriangle( tSubNode*, tSubNode*, tSubNode* );
-   int AddEdge( tSubNode *, tSubNode *, tSubNode * );
+   int AddEdge( tSubNode *, tSubNode *, tSubNode const * );
    void CheckTrianglesAt( tSubNode * );
    void AddToList( tSubNode& );
    //add a node with referenced value/properties, update mesh connectivity

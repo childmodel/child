@@ -30,7 +30,7 @@
 **   - added "MoveToActiveBack()" function, 12/97 GT
 **   - 09-2002 AD: Merge some of Stephen's bidirectional list patches
 **
-**  $Id: tMeshList.h,v 1.17 2003-05-16 13:04:09 childcvs Exp $
+**  $Id: tMeshList.h,v 1.18 2003-05-16 16:20:25 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -81,10 +81,10 @@ class tMeshList : public tList< NodeType >
    void moveToFront( tListNode< NodeType > * );
    void moveToActiveBack( tListNode< NodeType > * );
    void moveToBoundFront( tListNode< NodeType > * );
-   void moveToBack( NodeType * );
+   void moveToBack( NodeType const * );
    void insertAtFront( const NodeType & );
    int removeFromFront( NodeType & );
-   int InActiveList( tListNode< NodeType > * );
+   int InActiveList( tListNode< NodeType > const * );
    void Flush();
    
   protected:
@@ -395,7 +395,7 @@ moveToBack( tListNode< NodeType > * mvnode )
 \**************************************************************************/
 template< class NodeType >                         //tList
 void tMeshList< NodeType >::
-moveToBack( NodeType * mvnodedata ) 
+moveToBack( NodeType const * mvnodedata ) 
 {
    assert( getListNode( mvnodedata )!=0 );  // failure: null or not on list
    moveToBack( getListNode( mvnodedata ) );
@@ -567,7 +567,7 @@ Flush()
 \**************************************************************************/
 template< class NodeType >                         //tList
 int tMeshList< NodeType >::
-InActiveList( tListNode< NodeType > * theNode )
+InActiveList( tListNode< NodeType > const * theNode )
 {
    tListNode< NodeType > * listnode = this->first;
 
@@ -603,7 +603,7 @@ class tMeshListIter
    ~tMeshListIter();
    int LastActive();
    int FirstBoundary();
-   int IsActive();
+   int IsActive() const;
    NodeType * LastActiveP();
    NodeType * FirstBoundaryP();
 //   NodeType * FirstP();
@@ -737,7 +737,7 @@ LastActiveP()
 \**************************************************************************/
 template< class NodeType >   //tMeshListIter
 int tMeshListIter< NodeType >::
-IsActive()
+IsActive() const
 {
    if( this->curnode!=0 )
    {

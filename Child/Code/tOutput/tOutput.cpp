@@ -11,7 +11,7 @@
 **       If so, channel depths are also output.
 **     - 4/03 AD added canonical output
 **
-**  $Id: tOutput.cpp,v 1.70 2003-05-16 15:17:51 childcvs Exp $
+**  $Id: tOutput.cpp,v 1.71 2003-05-16 16:20:11 childcvs Exp $
 */
 /*************************************************************************/
 
@@ -71,7 +71,7 @@ tOutput<tSubNode>::tOutput( tMesh<tSubNode> * meshPtr, tInputFile &infile ) :
 \*************************************************************************/
 template< class tSubNode >
 void tOutput<tSubNode>::CreateAndOpenFile( ofstream *theOFStream,
-                                           const char *extension )
+                                           const char *extension ) const
 {
    char fullName[kMaxNameSize+6];  // name of file to be created
 

@@ -20,7 +20,7 @@
 **           a single parameter, rockerod, to describe the rate of bank
 **           erosion per unit bank shear stress.
 **
-**  $Id: tStreamMeander.h,v 1.27 2003-01-17 17:30:46 childcvs Exp $
+**  $Id: tStreamMeander.h,v 1.28 2003-05-16 16:19:33 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -88,10 +88,10 @@ public:
    void MakeChanBorder( /*tList< tArray< double > > &*/ );
    void AddChanBorder( /*tList< tArray< double > > &*/ double time);
    //finds the erodibility of each bank, returns an array [right, left]:
-   tArray< double > FindBankErody( tLNode * );
+   tArray< double > FindBankErody( tLNode * ) const;
    //CheckBanksTooClose, CheckFlowedgCross, and CheckBrokenFlowedg are to check
    //for 'violations' peculiar to moving channels.
-   int InChannel( tLNode *, tLNode * ); //called by CheckBanksTooClose()
+   int InChannel( tLNode *, tLNode const * ); //called by CheckBanksTooClose()
     void CheckBndyTooClose();
    void CheckBanksTooClose();
    void CheckFlowedgCross();

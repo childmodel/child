@@ -3,7 +3,7 @@
 **  @file tStreamMeander.cpp
 **  @brief Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.82 2003-05-12 12:07:46 childcvs Exp $
+**  $Id: tStreamMeander.cpp,v 1.83 2003-05-16 16:19:32 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1531,7 +1531,7 @@ void tStreamMeander::AddChanBorder(double time)
 **
 \****************************************************************************/
 tArray< double >
-tStreamMeander::FindBankErody( tLNode *nPtr )
+tStreamMeander::FindBankErody( tLNode *nPtr ) const
 {
   tSpkIter sI(nPtr);
   tArray< double > spD( sI.getNumSpokes() * 2 ),
@@ -2143,7 +2143,7 @@ void tStreamMeander::CheckBrokenFlowedg()
 **       not the current flood width.
 **
 \***************************************************************/
-int tStreamMeander::InChannel( tLNode *mnode, tLNode *bnode )
+int tStreamMeander::InChannel( tLNode *mnode, tLNode const *bnode )
 {
   double L, b, a, d, mindist;
   tArray< double > up, dn, bnk;
