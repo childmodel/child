@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.163 2003-05-30 16:41:03 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.164 2003-06-04 10:15:59 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1334,7 +1334,7 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
                xyz[0] += 0.5 * Param.delGrid * ( ran3( &seed ) - 0.5 );
                xyz[1] += 0.5 * Param.delGrid * ( ran3( &seed ) - 0.5 );
             }
-            xyz[2] = Param.mElev + Param.mElev * ( ran3( &seed ) - 0.5 );
+            xyz[2] = Param.mElev + Param.randElev * ( ran3( &seed ) - 0.5 );
             if( Param.boundType == kOppositeSidesOpen || Param.kSloped)
             {
                slope = Param.upperZ / Param.yGrid;
@@ -1356,7 +1356,7 @@ MakePointInterior( const ParamMMFS_t &Param, tInputFile &infile,
          // Randomize x,y, and z coordinates
          xyz[0] = ran3(&seed) * Param.xGrid;
          xyz[1] = ran3(&seed) * Param.yGrid;
-         xyz[2] = Param.mElev + Param.mElev * ( ran3( &seed ) - 0.5 );
+         xyz[2] = Param.mElev + Param.randElev * ( ran3( &seed ) - 0.5 );
          if( xyz[0] != 0 && xyz[0] != Param.xGrid && xyz[1] != 0 && xyz[1] != Param.yGrid )
          {
             tempnode.set3DCoords( xyz[0], xyz[1], xyz[2] );

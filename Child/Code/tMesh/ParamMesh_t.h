@@ -18,6 +18,7 @@ public:
   int kSloped;
   double upperZ;
   double mElev;
+  double randElev;              // amplitude factor for random var in elev
   int ptPlace;
   double delGrid;               // average spacing between nodes
   double xout, yout;            // coordinates of user-specified outlet

@@ -31,8 +31,9 @@ ParamMMFS_t::ParamMMFS_t(tInputFile &infile) :
       if(kSloped)
           upperZ = infile.ReadItem( upperZ, "UPPER_BOUND_Z" );
    }
-   //read mean elevation (also determines elev variation)
+   //read mean elevation & amplitude for random variation in elevation
    mElev = infile.ReadItem( mElev, "MEAN_ELEV" );
+   randElev = infile.ReadItem( randElev, "RAND_ELEV" );
    //reads method of point placement:
    //  0 = uniform grid;
    //  1 = perturbed grid;

@@ -4,11 +4,11 @@
 **
 **       CHANNEL-HILLSLOPE INTEGRATED LANDSCAPE DEVELOPMENT MODEL
 **
-**                      VERSION 2.2, AUGUST 2002
+**                        OXFORD VERSION 2003
 **
 **  Designed and created by Gregory E. Tucker, Stephen T. Lancaster,
 **      Nicole M. Gasparini, and Rafael L. Bras
-**
+** 
 **
 **  @file   childmain.cpp
 **  @brief  This file contains the main() routine that handles
@@ -31,7 +31,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: childmain.cpp,v 1.8 2003-05-29 17:58:22 childcvs Exp $
+**  $Id: childmain.cpp,v 1.9 2003-06-04 10:15:58 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -154,35 +154,6 @@ int main( int argc, char **argv )
 OptTSOutput." );
    }   */
 
-   // Temporary -- for canyon range stuff
-   /*cout << "Densifying around fold strike ...\n";
-   int optFoldDens = inputFile.ReadItem( optFoldDens, "OPTFOLDDENS" );
-   if( optFoldDens )
-     {
-       double foldDensYmin = inputFile.ReadItem( foldDensYmin, "FOLDDENSYMIN" );
-       double foldDensYmax = inputFile.ReadItem( foldDensYmax, "FOLDDENSYMAX" );
-       double fault = inputFile.ReadItem( fault, "FAULTPOS" );
-       for( int i=1; i<=optFoldDens; i++ )
-	 {
-	   tPtrList<tLNode> foldPoints;
-	   tMeshListIter<tLNode> ni( mesh.getNodeList() );
-	   tLNode *cn;
-	   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
-	     {
-	     if( cn->getY()>=foldDensYmin && cn->getY()<=foldDensYmax &&
-		 cn->getX()>=7500 && cn->getX()<=92500 )
-	       foldPoints.insertAtBack( cn );
-	     if( cn->getY()<fault )
-	       cn->setAlluvThickness( 100000 );
-	     }
-	   tPtrListIter<tLNode> fpi( foldPoints );
-	   for( cn=fpi.FirstP(); !(fpi.AtEnd()); cn=fpi.NextP() )
-	     mesh.AddNodesAround( cn, 0.0 );
-	   foldPoints.Flush();
-	 }
-	 }*/
-
-
    /**************** MAIN LOOP ******************************************\
    **  ALGORITHM
    **    Generate storm
@@ -222,14 +193,19 @@ OptTSOutput." );
       if( optMeander )
 	  strmMeander->Migrate( time.getCurrentTime() );
 
-      if( optVegetation )
-	  vegetation->UpdateVegetation( &mesh, storm.getStormDuration(),
-					storm.interstormDur() );
-
       if( optFloodplainDep )
+	{
+	  if( floodplain->OptControlMainChan() )
+	    floodplain->UpdateMainChannelHeight( time.getCurrentTime(),
+						 strmNet.getInletNodePtr() );
           floodplain->DepositOverbank( storm.getRainrate(),
                                        storm.getStormDuration(),
                                        time.getCurrentTime() );
+	}
+
+      if( optVegetation )
+	  vegetation->UpdateVegetation( &mesh, storm.getStormDuration(),
+					storm.interstormDur() );
 
       // Do interstorm...
       erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
