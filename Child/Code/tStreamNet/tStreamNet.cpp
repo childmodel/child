@@ -140,7 +140,7 @@ void tInlet::setInNodePtr( tLNode *ptr ) {innode = ( ptr > 0 ) ? ptr : 0;}
 **
 **  Functions for class tStreamNet.
 **
-**  $Id: tStreamNet.cpp,v 1.2.1.27 1998-04-16 15:39:46 gtucker Exp $
+**  $Id: tStreamNet.cpp,v 1.2.1.28 1998-04-16 21:46:20 gtucker Exp $
 \**************************************************************************/
 
 
@@ -1095,9 +1095,8 @@ void tStreamNet::FillLakes()
 **  (1) It must be lower than the current node (slope > 0)
 **  (2) It must not be part of the current lake (a lake can't outlet to itself)
 **  (3) It must not be a closed boundary (_flowAllowed_ must be TRUE)
-**  (4) The outlet node must drain to a location lower than the current node 
-**      (but not necessarily lower than itself; it could be a separate lake)
-**      OR the outlet node is an open boundary.
+**  (4) If the outlet is itself part of a different lake, the water surface
+**      elevation of that lake must be lower than the current node.
 **
 **  Returns: TRUE if a valid outlet is found, FALSE otherwise
 **  Calls: (none)
@@ -1111,23 +1110,46 @@ int tStreamNet::FindLakeNodeOutlet( tLNode *node )
    double maxslp = 0;  // Maximum slope found so far
    tEdge * ce;        // Current edge
    //XtPtrListIter< tEdge > spokIter( node->getSpokeListNC() );
-   tLNode *dn;        // Potential outlet
+   tLNode *dn,        // Potential outlet
+       *an;           // Node ptr used to find outlet of a previously
+                      // identified lake
    
    // Check all the neighbors
-      //Xfor( ce = spokIter.FirstP(); !( spokIter.AtEnd() ); ce = spokIter.NextP() )
    ce = node->GetEdg();
    do
    {
-        // If it passes this test, it's a valid outlet
+      // If it passes this test, it's a valid outlet
       dn = (tLNode *) ce->getDestinationPtrNC();
       assert( dn>0 );
-      if( ce->getSlope() > maxslp &&
+/*X      if( ce->getSlope() > maxslp &&
           dn->GetFloodStatus() != kCurrentLake &&
           ce->FlowAllowed() &&
           ( dn->getBoundaryFlag()==kOpenBoundary ||
-            dn->GetDownstrmNbr()->getZ() < node->getZ() ) )
-          //dn->GetDownstrmNbr()->getZ() < node->getZ() )
+            dn->GetDownstrmNbr()->getZ() < node->getZ() ) )*/
+      if( ce->getSlope() > maxslp &&
+          dn->GetFloodStatus() != kCurrentLake &&
+          ce->FlowAllowed() )
       {
+         // Handle a very special and rare case: if the "target" node dn is
+         // part of a previous lake, it's still a valid exit as long as its
+         // water surface elevation is lower than the current lake (whose
+         // wse, assuming an outlet is found, would be equal to _node_'s
+         // elevation). It can sometimes happen that the target lake's wse is
+         // exactly equal in elevation to _node_, in which case
+         // the point is not considered an outlet---if it were, infinite loops
+         // could result. (This fix added 4/98)
+         if( dn->GetFloodStatus()==kFlooded )
+         {
+            // Iterate "downstream" through the "old" lake until reaching the
+            // outlet, then test its elevation. If the elevation is exactly
+            // equal to _node_, skip the rest and go on to the next iteration.
+            an = dn;
+            while( an->GetFloodStatus()!=kNotFlooded )
+                an = an->GetDownstrmNbr();
+            if( an->getZ()==node->getZ() ) continue;
+         }
+
+         // Assign the new max slope and set the flow edge accordingly
          maxslp = ce->getSlope();
          node->SetFlowEdg( ce );
          //cout << "Node " << node->getID() << " flows to "
