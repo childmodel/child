@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.38 1998-05-08 23:40:50 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.39 1998-05-12 22:08:44 gtucker Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -488,6 +488,7 @@ MakeGridFromInputData( tInputFile &infile )
    // Create the node list by creating a temporary node and then iteratively
    // (1) assigning it values from the input data and (2) inserting it onto
    // the back of the node list.
+   cout << "Creating node list...";
    tSubNode tempnode( infile );
    int bound;
    for( i = 0; i< nnodes; i++ )
@@ -508,11 +509,13 @@ MakeGridFromInputData( tInputFile &infile )
       //cout << tempnode.getBoundaryFlag() << " ";
       //cout << nodeList.getLast()->getDataPtr()->getBoundaryFlag() << endl;
    }
+   cout << "done.\n";
    
    // Create and initialize the edge list by creating two temporary edges
    // (which are complementary, ie share the same endpoints) and then
    // iteratively assigning values to the pair and inserting them onto the
    // back of the edgeList
+   cout << "Creating edge list...";
    tGridListIter< tSubNode > nodIter( nodeList );
    tEdge tempedge1, tempedge2;
    int obnd, dbnd;
@@ -563,10 +566,12 @@ MakeGridFromInputData( tInputFile &infile )
          //cout << "EDGFA " << tempedge2.FlowAllowed() << endl;
       }
    }
+   cout << "done.\n";
 
    // Set up the lists of edges (spokes) connected to each node
    // (GT added code to also assign the 1st edge to "edg" as an alternative
    // to spokelist implementation)
+   cout << "Setting up node-edge connectivity...";
    int e1;
    int ne;
    tGridListIter< tEdge >
@@ -622,6 +627,7 @@ MakeGridFromInputData( tInputFile &infile )
            << " " << curedg->getDestinationPtr()->getID() << ") " << endl;*/
       
    }
+   cout << "done.\n";
    
 /*   cout << "doing something else w/ spokes\n" << flush;
    tPtrListIter< tEdge > spokIter;
@@ -641,7 +647,8 @@ MakeGridFromInputData( tInputFile &infile )
       //cout << endl;
    }
    while( nodIter.Next() );*/
-   
+
+   cout << "Setting up triangle connectivity...";
    tTriangle temptri;
    for ( i=0; i<ntri; i++ )
    {
@@ -682,7 +689,7 @@ MakeGridFromInputData( tInputFile &infile )
       i++;
    }
    while( trIter1.Next() );
-   cout<<"set list data values"<<endl;
+   cout<<"done.\n";
 
    UpdateMesh();
    CheckMeshConsistency();
