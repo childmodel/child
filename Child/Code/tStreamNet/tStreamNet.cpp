@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.36 2003-06-23 10:36:26 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.37 2003-07-10 13:57:49 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -1838,7 +1838,7 @@ void tStreamNet::FindHydrGeom()
       kwdspow = kwds;
       widpow = 0.0;
    }
-   if( ends>0.0 )
+   if( ends!=0.0 )
    {
       kndspow = pow(knds, enstn / ends);
       npow = 1.0 - enstn / ends;
