@@ -27,7 +27,7 @@
 **
 **  See also tList, tArray, tMatrix
 **
-**  $Id: tPtrList.h,v 1.9 2000-01-13 23:56:06 gtucker Exp $
+**  $Id: tPtrList.h,v 1.10 2000-01-24 22:49:15 gtucker Exp $
 \**************************************************************************/
 
 #ifndef TPTRLIST_H
@@ -43,7 +43,42 @@ template < class NodeType > class tPtrListIter;
 template < class NodeType > class tMeshList;
 template < class NodeType > class tMeshListIter;
 
+/*
+class PtrListDebug
+{
+  public:
+   static void TellAll();
+   static int dbgPRV;
+   static int dbgPRP;
+   static int dbgIAP;
+   static int dbgRP;
+   static int dbgMTB;
+   static int dbgMTF;
+};
 
+
+int PtrListDebug::dbgIAP = 0;
+int PtrListDebug::dbgRP = 0;
+int PtrListDebug::dbgMTB = 0;
+int PtrListDebug::dbgMTF = 0;
+int PtrListDebug::dbgPRV = 0;
+int PtrListDebug::dbgPRP = 0;
+
+void PtrListDebug::TellAll()
+{
+      //debug
+   cout << "IAP " << dbgIAP << endl;
+   cout << "RP " << dbgRP << endl;
+   cout << "MTB " << dbgMTB << endl;
+   cout << "MTF " << dbgMTF << endl;
+   cout << "PRV " << dbgPRV << endl;
+   cout << "PRP " << dbgPRP << endl;
+   
+}*/
+
+
+
+   
 /**************************************************************************\
 ** class tPtrListNode *****************************************************
 **
@@ -261,7 +296,6 @@ private:
 };
 
 
-
 /**************************************************************************\
 **
 **  tPtrList constructors & destructor:
@@ -463,6 +497,8 @@ template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 insertAtPrev( NodeType *NTPtr, tPtrListNode< NodeType > * node )
 {
+   //PtrListDebug::dbgIAP++;
+   
    tPtrListNode< NodeType > * prev;
    if( node != 0 )
    {
@@ -614,6 +650,8 @@ template< class NodeType >                      //tPtrList
 inline int tPtrList< NodeType >::
 removePrev( NodeType *NTPtr, tPtrListNode< NodeType > * ptr )
 {
+   //PtrListDebug::dbgRP ++;
+   
    if( ptr == 0 ) return 0;
    if( ptr == first && last->next == 0 ) return 0;
    if( ptr == first ) return removeFromBack( NTPtr );
@@ -643,6 +681,8 @@ template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 moveToBack( tPtrListNode< NodeType > * mvnode ) 
 {
+   //PtrListDebug::dbgMTB++;
+   
    tPtrListNode< NodeType > *prev;
    if( mvnode != last )
    {  
@@ -665,6 +705,8 @@ template< class NodeType >                      //tPtrList
 inline void tPtrList< NodeType >::
 moveToFront( tPtrListNode< NodeType > * mvnode ) 
 {
+   //PtrListDebug::dbgMTF++;
+   
    tPtrListNode< NodeType > *prev;
    if( mvnode != first )
    {
@@ -920,6 +962,7 @@ class tPtrListIter
    tPtrList< NodeType > * ptrlistPtr;
    tPtrListNode< NodeType > * curptrnode;
    int counter;
+   
 };
 
 
@@ -1115,6 +1158,8 @@ template< class NodeType >     //tPtrListIter
 inline int tPtrListIter< NodeType >::
 Prev()
 {
+   //PtrListDebug::dbgPRV++;
+   
    assert( ptrlistPtr != 0 );
    if( curptrnode == 0 )
    {
@@ -1256,6 +1301,8 @@ template< class NodeType >       //tPtrListIter
 inline NodeType *tPtrListIter< NodeType >::
 PrevP()
 {
+   //PtrListDebug::dbgPRP++;
+   
    assert( ptrlistPtr != 0 );
    if( curptrnode == 0 )
    {
