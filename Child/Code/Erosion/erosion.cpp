@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.7 1998-03-03 22:27:47 gtucker Exp $
+**  $Id: erosion.cpp,v 1.8 1998-03-09 22:48:30 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -77,7 +77,9 @@ double tBedErodePwrLaw::DetachCapacity( tLNode * n, double dt )
 double tBedErodePwrLaw::DetachCapacity( tLNode * n )
 {
    double slp = n->GetSlope();
-   return( kb*pow( n->GetQ(), mb )*pow( slp, nb ) );
+   double erorate =  kb*pow( n->GetQ(), mb )*pow( slp, nb );
+   n->SetDrDt( -erorate );
+   return erorate;
 }
 
 /***************************************************************************\
@@ -120,7 +122,11 @@ double tBedErodePwrLaw::SetTimeStep( tLNode * n )
 \***************************************************************************/
 double tSedTransPwrLaw::TransCapacity( tLNode *node )
 {
-   return( kf * pow( node->GetQ(), mf ) * pow( node->GetSlope(), nf ) );
+   double cap = 0;
+   if( !node->GetFloodStatus() )
+       cap = kf * pow( node->GetQ(), mf ) * pow( node->GetSlope(), nf );
+   node->SetQs( cap );
+   return cap;
 }
    
 
@@ -269,6 +275,8 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
    // is used up
    do
    {
+      cout << "Remaing time: " << dtg << endl;
+      
       // Zero out sed influx
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
           cn->SetQsin( 0.0 );
@@ -286,32 +294,44 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          if( cn->OnBedrock() && pedr<0 )
          {
             // Get detachment capacity (this also sets node's drdt)
-            dcap = bedErode.DetachCapacity( cn );
+            dcap = -bedErode.DetachCapacity( cn );
             if( dcap > pedr )
                 pedr = dcap;
          }
          // Set the erosion (deposition) rate and send the corresponding
          // sediment influx downstream
          cn->SetDzDt( pedr );
-         cn->GetDownstrmNbr()->AddQsin( cn->GetQsin() + pedr*cn->getVArea() );
+         cn->GetDownstrmNbr()->AddQsin( cn->GetQsin() - pedr*cn->getVArea() );
       }
 
       // Given these rates, figure out how big a time-step we can get away with
-      dtmax = dtg;
+      //  (Note: the division and subsequent multiplication by frac are done
+      //   for performance reasons: we avoid having to multiply every dt value
+      //   by frac)
+      dtmax = dtg/frac;
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
          dn = cn->GetDownstrmNbr();
-         ratediff = dn->GetQs() - cn->GetQs();
-         if( ratediff > 0 && cn->getZ() > dn->getZ() )
-         {
+         ratediff = dn->GetDzDt() - cn->GetDzDt(); // Are the pts converging?
+         if( ratediff > 0 && cn->getZ() > dn->getZ() )  // if yes, get time
+         {                                              //  to zero slope
             dt = ( cn->getZ() - dn->getZ() ) / ratediff;
             if( dt < dtmax ) dtmax = dt;
+            if( dt < 1e-6 )
+            {
+                cout << "Very small dt " << dt << " at:\n";
+                cn->TellAll();
+                dn->TellAll();
+            }
+            
          }
       }
       dtmax *= frac;  // Take a fraction of time-to-flattening
-      if( dtmax < 0.0001 )
-          cerr << "dtmax very small in StreamErode()\n";
-      cout << "In StreamErode, dtmax = " << dtmax << endl;
+
+      // Zero out sed influx again, because depending on bedrock-alluvial
+      // interaction it may be modified
+      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+          cn->SetQsin( 0.0 );
 
       // Now do erosion/deposition by integrating rates over dtmax
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
@@ -321,18 +341,31 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          if( cn->OnBedrock() )
              dzr = cn->GetDrDt()*dtmax;
          dzs = ( (cn->GetQsin() - cn->GetQs() ) / cn->getVArea() ) * dtmax;
-         // don't erode more alluvium than is available
-         if( -dzs > cn->getAlluvThickness() ) 
+         
+         // If potential erosion depth is greater than available depth of
+         // alluvium, limit erosion to alluvium plus bedrock scour, and
+         // adjust sediment outflux accordingly.
+         if( -dzs > cn->getAlluvThickness() )
+         {
+            cout << "(Following node is br-limited)\n";
              dzs = -cn->getAlluvThickness();
-         // update alluvium thickness and node elevation
+             cn->SetQs( cn->GetQsin() - ((dzr+dzs)*cn->getVArea())/dtmax );
+         }
+
+         cout << "** THIS node has dzs " << dzs << " & dzr " << dzr << endl;
+         cn->TellAll();
+
+         // Update alluvium thickness and node elevation
          cn->setAlluvThickness( cn->getAlluvThickness() + dzs );
          cn->setZ( cn->getZ() + dzs + dzr );
+         dn = cn->GetDownstrmNbr();
+         dn->AddQsin( cn->GetQs() );
       }
 
       // Update time remaining
       dtg -= dtmax;
       
-   } while( dtg>0 ); // Keep going until we've used up the whole time intrvl
+   } while( dtg>1e-6 ); // Keep going until we've used up the whole time intrvl
    
 }
 
