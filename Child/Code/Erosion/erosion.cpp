@@ -10,7 +10,7 @@
 **
 **    Created 1/98 gt
 **
-**  $Id: erosion.cpp,v 1.10 1998-03-13 22:23:46 stlancas Exp $
+**  $Id: erosion.cpp,v 1.11 1998-03-16 21:18:47 gtucker Exp $
 \***************************************************************************/
 
 #include <math.h>
@@ -291,8 +291,8 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
        cap,          // Transport capacity
        pedr,         // Potential erosion/deposition rate
        dcap,         // Bedrock detachment capacity
-       dzs,          // Rate of alluvium ero/dep
-       dzr;          // Rate of rock ero/dep
+       dz,           // Depth of deposition/erosion (erosion = negative)
+       dzr;          // Potential depth of bedrock erosion
 
    // Sort so that we always work in upstream to downstream order
    strmNet->SortNodesByNetOrder();
@@ -328,6 +328,8 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
          // sediment influx downstream
          cn->SetDzDt( pedr );
          cn->GetDownstrmNbr()->AddQsin( cn->GetQsin() - pedr*cn->getVArea() );
+         //cout << "RATE STEP:\n";
+         //cn->TellAll();
       }
 
       // Given these rates, figure out how big a time-step we can get away with
@@ -359,33 +361,65 @@ void tErosion::StreamErode( double dtg, tStreamNet *strmNet )
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
           cn->SetQsin( 0.0 );
 
+      // Notes for multi-size adaptation:
+      // qs, qsin, dz, etc could be arrays with dimensions (1..NUMG+1) with
+      // the extra entry storing the total. "on bedrock" might be defined as
+      // active layer depth less than its "normal" depth (even zero).
+      // For bedrock, crit shear might become maximum because of protrusion
+      // over the bed --- how to handle?
+      // Bedrock scour could automatically generate a given distribution of
+      // sizes (specified as a parameter)
+      // The basic rule here, as in golem, is don't erode more bedrock than
+      // you have capacity to carry. but what happens when you have plenty of
+      // surplus capacity in one size and none (or deposition) in another?
+      // Could use total capacity: limit TOTAL br erosion to that allowed by
+      // TOTAL excess capacity. If some material is generated that can't be
+      // carried, just put it in the active layer.
+      // One way to proceed would be to _always_ have scour when the bed is
+      // exposed, and count the scoured material as part of the sediment
+      // influx. If the influx is too large for the avail capacity, just
+      // leave it in the active layer. Probably ok as long as time steps
+      // remain small and br erosion rate isn't too large relative to capacity.
+      // In this case, algo might be:
+      // - if on bedrock, erode br and "inject" resulting sed into Qsin,
+      //   remembering depth of br erosion
+      // - compute surplus/deficit capacity in each size frac. If erosion
+      //   amount in a size exceed AL thickness, limit it.
+      // - do mass balance on each size to get dz for each size and total
+      // - apply br erosion depth
+      // this would mean you could have simultaneous deposition _and_ br
+      // erosion, but that's not totally unreasonable and would be unlikely
+      // to last very long.
+      
       // Now do erosion/deposition by integrating rates over dtmax
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
-         // If we're on bedrock, scour the bedrock and "inject" the resulting
-         // sediment flux into the node's sed influx field (qsin)
-         if( cn->OnBedrock() )
-             dzr = cn->GetDrDt()*dtmax;
-         dzs = ( (cn->GetQsin() - cn->GetQs() ) / cn->getVArea() ) * dtmax;
+         // Depth of potential erosion due to excess transport capacity
+         // Note: for multiple sizes, dz could be an array (1..NUMG),
+         // maybe w/ an extra field for the total dz.
+         dz = ( (cn->GetQsin() - cn->GetQs() ) / cn->getVArea() ) * dtmax;
          
-         // If potential erosion depth is greater than available depth of
-         // alluvium, limit erosion to alluvium plus bedrock scour, and
-         // adjust sediment outflux accordingly.
-         if( -dzs > cn->getAlluvThickness() )
-         {
-            cout << "(Following node is br-limited)\n";
-             dzs = -cn->getAlluvThickness();
-             cn->SetQs( cn->GetQsin() - ((dzr+dzs)*cn->getVArea())/dtmax );
+         // If we're on bedrock, scour the bedrock
+         if( cn->OnBedrock() && dz<0.0 ) {
+            dzr = cn->GetDrDt()*dtmax;  // potential bedrock erosion depth
+            // If excess capacity depth-equivalent is greater than the depth
+            // of sediment available on bed plus eroded from bedrock, limit
+            // depth of erosion to alluvium plus bedrock erosion depth
+            if( -dz > -dzr+cn->getAlluvThickness() )
+               dz = dzr+cn->getAlluvThickness();
          }
-
-         cout << "** THIS node has dzs " << dzs << " & dzr " << dzr << endl;
-         cn->TellAll();
+         
+         //cout << "** THIS node has dzs " << dzs << " & dzr " << dzr
+         //     << " & net change " << dzr+dzs << endl;
+         //cn->TellAll();
 
          // Update alluvium thickness and node elevation
-         cn->setAlluvThickness( cn->getAlluvThickness() + dzs );
-         cn->setZ( cn->getZ() + dzs + dzr );
+         cn->EroDep( dz );
          dn = cn->GetDownstrmNbr();
-         dn->AddQsin( cn->GetQs() );
+
+         // Send sediment downstream: sediment flux is equal to the flux in
+         // plus/minus rate of erosion/deposition times node area
+         dn->AddQsin( cn->GetQsin() - dz*cn->getVArea()/dtmax );
       }
 
       // Update time remaining
