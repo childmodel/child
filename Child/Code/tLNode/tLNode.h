@@ -17,8 +17,10 @@
 **  Changes:
 **    - GT commented out inclusion of run timer, 1/99
 **    - removed obsolete class tErode, GT 4/99
+**    - added data mbr tau to track shear stress (or stream pwr, etc),
+**      inlined most tLayer fns. GT 1/00
 **
-**  $Id: tLNode.h,v 1.44 1999-12-02 22:18:18 gtucker Exp $
+**  $Id: tLNode.h,v 1.45 2000-01-24 22:22:15 gtucker Exp $
 \************************************************************************/
 
 #ifndef TLNODE_H
@@ -48,7 +50,6 @@ class tLayer
    tLayer();
    tLayer( int );
    tLayer( const tLayer & );
-   ~tLayer();
    const tLayer &operator=( const tLayer & );
    void setCtime( double );
    double getCtime() const;
@@ -87,6 +88,160 @@ class tLayer
    // Later sed may be used as a flag for alluvium vs. regolith, etc.
    tArray< double > dgrade; // depth of each size if multi size
 };
+
+
+/*************************************************************************
+ **
+ **  Inlined functions for tLayer
+ **
+ *************************************************************************/
+ 
+/*************************************************************************
+**  tLayer::tLayer : Constructor function for tLayer
+*************************************************************************/
+inline tLayer::tLayer ()
+        : dgrade()
+{
+   ctime=0;
+   rtime=0;
+   etime=0;
+   depth=0;
+   erody=0;
+   sed=0;
+   //cout << "tLayer( num )" << endl;
+}
+
+inline tLayer::tLayer ( int num )
+        : dgrade( num )
+{
+   ctime=0;
+   rtime=0;
+   etime=0;
+   depth=0;
+   erody=0;
+   sed=0;
+   //cout << "tLayer( num )" << endl;
+ }
+
+//copy constructor
+inline tLayer::tLayer( const tLayer &orig )                         //tLayer
+        :dgrade( orig.dgrade )
+{
+   ctime=orig.ctime;
+   rtime=orig.rtime;
+   etime=orig.etime;
+   depth=orig.depth;
+   erody=orig.erody;
+   sed=orig.sed;
+   
+}
+
+inline const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
+{
+   if( &right != this )
+   {
+      dgrade = right.dgrade;
+      ctime=right.ctime;
+      rtime=right.rtime;
+      etime=right.etime;
+      depth=right.depth;
+      erody=right.erody;
+      sed=right.sed;
+   
+   }
+   return *this;
+}
+
+
+inline void tLayer::setCtime( double tt )
+{
+   ctime = tt;
+}
+
+inline double tLayer::getCtime() const 
+{
+   return ctime;
+}
+
+inline void tLayer::setRtime( double tt )
+{
+   rtime = tt;
+}
+
+inline double tLayer::getRtime() const 
+{
+   return rtime;
+}
+
+inline void tLayer::setEtime( double tt )
+{
+   etime = tt;
+}
+
+inline void tLayer::addEtime( double tt )
+{
+   etime += tt;
+}
+
+inline double tLayer::getEtime() const 
+{
+   return etime;
+}
+
+
+inline double tLayer::getDepth() const 
+{
+   return depth;
+}
+
+inline void tLayer::setErody( double ero)
+{
+   erody = ero;
+}
+
+inline double tLayer::getErody() const 
+{
+   return erody;
+}
+
+inline void tLayer::setSed( int rg)
+{
+   sed = rg;
+}
+
+inline int tLayer::getSed() const 
+{
+   return sed;
+}
+
+inline void tLayer::setDgradesize( int i )
+{
+   dgrade.setSize(i);
+}
+
+inline int tLayer::getDgradesize( )
+{
+   return dgrade.getSize();
+}
+
+inline void tLayer::addDgrade( int i, double size )
+{
+   assert(i<dgrade.getSize());
+   dgrade[i]+=size;
+   depth+=size;
+}
+
+inline double tLayer::getDgrade( int i)
+{
+   assert( i<dgrade.getSize() );
+   return dgrade[i];
+}
+
+inline tArray< double >
+tLayer::getDgrade( ) const
+{
+   return dgrade;
+}
 
 /** class tErode ***********************************************************/
 /*class tErode
@@ -316,6 +471,8 @@ public:
    void addDrDt(double);
     double getDrDt();
     void setDrDt( double );
+    double getTau();
+    void setTau( double );
     void setUplift( double );
     double getUplift() const;
    int getNumg() const;
@@ -384,6 +541,7 @@ protected:
    int tracer;       /* Used by network sorting algorithm*/
    double dzdt;      /* Erosion rate */
    double drdt;      /* Rock erosion rate */
+   double tau;       /* Shear stress or equivalent (e.g., unit stream pwr) */
    // NOTE - all sediment transport rates are volume per year
    double qs;           /* Sediment transport rate*/
    tArray< double > qsm; /* multi size; transport rate of each size fraction*/
@@ -400,6 +558,15 @@ protected:
    static double maxregdep;
    static double KRnew;
 };
+
+inline double tLNode::getTau() { return tau; }
+
+inline void tLNode::setTau( double newtau ) 
+{
+   tau = newtau;
+}
+
+
 
 #endif
 
