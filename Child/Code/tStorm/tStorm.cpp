@@ -10,7 +10,7 @@
 **  reading the necessary parameters from a tInputFile, generating a new      
 **  storm, and reporting its various values.
 **
-**  $Id: tStorm.cpp,v 1.33 2004-01-30 15:00:14 childcvs Exp $
+**  $Id: tStorm.cpp,v 1.34 2004-02-27 11:14:22 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -79,13 +79,19 @@ tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
      tmp_ = infile.ReadItem( tmp_, "OPTVAR" );
      optVariable = BOOL(tmp_ != 0);
    }
-   infile.ReadItem( p_ts, "ST_PMEAN");
-   infile.ReadItem( stdur_ts, "ST_STDUR");
-   infile.ReadItem( istdur_ts, "ST_ISTDUR");
-
    infile.WarnObsoleteKeyword("PMEAN", "ST_PMEAN");
    infile.WarnObsoleteKeyword("STDUR", "ST_STDUR");
    infile.WarnObsoleteKeyword("ISTDUR", "ST_ISTDUR");
+   infile.WarnObsoleteKeyword("OPTSINVAR", "ST_PMEAN");
+   infile.WarnObsoleteKeyword("PERIOD", "ST_PMEAN");
+   infile.WarnObsoleteKeyword("START_CYCLE_TIME", "ST_PMEAN");
+   infile.WarnObsoleteKeyword("MAXPMEAN", "ST_PMEAN");
+   infile.WarnObsoleteKeyword("MAXSTDURMN", "ST_STDUR");
+   infile.WarnObsoleteKeyword("MAXISTDURMN", "ST_ISTDUR");
+
+   infile.ReadItem( p_ts, "ST_PMEAN");
+   infile.ReadItem( stdur_ts, "ST_STDUR");
+   infile.ReadItem( istdur_ts, "ST_ISTDUR");
 
    p = p_ts.calc(0.);
    stdur = stdur_ts.calc(0.);
@@ -100,13 +106,6 @@ tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
       endtm += help;
    }
 
-   infile.WarnObsoleteKeyword("OPTSINVAR", "ST_PMEAN");
-   infile.WarnObsoleteKeyword("PERIOD", "ST_PMEAN");
-   infile.WarnObsoleteKeyword("START_CYCLE_TIME", "ST_PMEAN");
-   infile.WarnObsoleteKeyword("MAXPMEAN", "ST_PMEAN");
-   infile.WarnObsoleteKeyword("MAXSTDURMN", "ST_STDUR");
-   infile.WarnObsoleteKeyword("MAXISTDURMN", "ST_ISTDUR");
-
    // If variable storms used, create a file for writing them
    if( optVariable )
    {
@@ -117,7 +116,7 @@ tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
 #undef THEEXT
       stormfile.open( fname );
       if( !stormfile.good() )
-          cerr << "Warning: unable to create storm data file '" 
+          cerr << "Warning: unable to create storm data file '"
                << fname << "'\n";
    }
 }
