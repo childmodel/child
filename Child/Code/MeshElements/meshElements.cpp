@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.17 1998-05-08 16:39:42 stlancas Exp $
+**  $Id: meshElements.cpp,v 1.18 1998-05-08 23:42:05 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -542,28 +542,29 @@ double tNode::ComputeVoronoiArea()
       for( ce = vtxIter.FirstP(); !(vtxIter.AtEnd()); ce = vtxIter.NextP() )
       {
          ne = ce->GetCCWEdg();
-         bn0 = ce->getDestinationPtrNC();
-         bn1 = ne->getDestinationPtrNC();
          xy1 = ne->getRVtx();
-         xy2 = bn0->get2DCoords();
-         xy3 = bn1->get2DCoords();
          //checking polygon edge is on boundary and ccw edge's RVtx is on
          //wrong side of bndy edge...
-         if( ce->getBoundaryFlag() && ne->getBoundaryFlag() &&
-             !PointsCCW( xy1, xy2, xy3 ) )
+         if( ce->getBoundaryFlag() && ne->getBoundaryFlag() )
          {
-            //"cut off" portion of V. area outside bndy by finding intersections
-            //of V. edges and bndy edge:
-            xy = FindIntersectionCoords( ce->getRVtx(), xy1, xy2, xy3 );
-            vcL.insertAtBack( xy );
-            nne = ne->GetCCWEdg();
-            xy = FindIntersectionCoords( xy1, nne->getRVtx(), xy2, xy3 );
-            vcL.insertAtBack( xy );
+            
+            bn0 = ce->getDestinationPtrNC();
+            bn1 = ne->getDestinationPtrNC();
+            xy2 = bn0->get2DCoords();
+            xy3 = bn1->get2DCoords();
+            if( !PointsCCW( xy1, xy2, xy3 ) )
+            {
+               //"cut off" portion of V. area outside bndy by finding intersections
+               //of V. edges and bndy edge:
+               xy = FindIntersectionCoords( ce->getRVtx(), xy1, xy2, xy3 );
+               vcL.insertAtBack( xy );
+               nne = ne->GetCCWEdg();
+               xy = FindIntersectionCoords( xy1, nne->getRVtx(), xy2, xy3 );
+               vcL.insertAtBack( xy );
+            }
+            else vcL.insertAtBack( xy1 );
          }
-         else
-         {
-            vcL.insertAtBack( xy1 );
-         }
+         else vcL.insertAtBack( xy1 );
       }
       
       // Now that we've found the correct vertices, make triangles to

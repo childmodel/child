@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.37 1998-05-07 22:07:21 gtucker Exp $
+**  $Id: tMesh.cpp,v 1.38 1998-05-08 23:40:50 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1103,7 +1103,7 @@ MakeGridFromScratch( tInputFile &infile )
    }
    MakeCCWEdges();
    UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
-     //CheckMeshConsistency();                     remove CMC call from UM
+   CheckMeshConsistency();                     //remove CMC call from UM
 }
 
 
@@ -1246,7 +1246,7 @@ MakeGridFromPoints( tInputFile &infile )
    // Update Voronoi areas, edge lengths, etc., and test the consistency
    // of the new mesh.
    UpdateMesh();
-   //CheckMeshConsistency( );
+   CheckMeshConsistency( );
 
    // Clean up (probably not strictly necessary bcs destructors do the work)
    supertriptlist.Flush();
@@ -1423,7 +1423,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
          goto error;
       }
         //make sure node coords are consistent with edge endpoint coords:
-      sIter.Reset( cn->getSpokeListNC() );
+      /*sIter.Reset( cn->getSpokeListNC() );
       for( ce = sIter.FirstP(); !(sIter.AtEnd()); ce = sIter.NextP() )
       {
          if( ce->getOriginPtrNC()->getX() != cn->getX() ||
@@ -1433,7 +1433,7 @@ CheckMeshConsistency( int boundaryCheckFlag ) /* default: TRUE */
                  << " coords don't match spoke origin coords\n";
             goto error;
          }
-      }
+      }*/
    }
      //cout << "NODES PASSED\n";
    
@@ -2210,7 +2210,7 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    
    while( nbrList.getSize() > 3 )
    {
-        cout << "in loop, nbr size = " << nbrList.getSize() << endl;
+      //cout << "in loop, nbr size = " << nbrList.getSize() << endl;
       
       flowflag = 1;
       if( Next3Delaunay( nbrList, nbrIter ) ) //checks for ccw and Del.
@@ -3776,6 +3776,7 @@ MoveNodes()
    //resolve any remaining problems after points moved
    CheckLocallyDelaunay();
    UpdateMesh();
+   CheckMeshConsistency();
    //cout << "MoveNodes() finished" << endl;
 }
 

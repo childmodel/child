@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.38 1998-04-23 16:24:05 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.39 1998-05-08 23:40:31 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -333,7 +333,7 @@ void tStreamMeander::FindChanGeom()
 
 int tStreamMeander::InterpChannel()
 {
-   if( timetrack >= kBugTime ) cout << "InterpChannel" << endl;
+   //if( timetrack >= kBugTime ) cout << "InterpChannel" << endl;
    int i, j, npts, num;
    double curwidth;
    double curseglen, defseglen, maxseglen, bigseglen;
@@ -344,24 +344,24 @@ int tStreamMeander::InterpChannel()
    tLNode *crn, nn, *nPtr;
    int change = 0; //haven't added any nodes yet
    //loop through reaches:
-   if( timetrack >= kBugTime ) cout << "loop through reaches" << endl;
+   //if( timetrack >= kBugTime ) cout << "loop through reaches" << endl;
    for( creach = rlIter.FirstP(), i=0; !(rlIter.AtEnd());
         creach = rlIter.NextP(), i++ )
    {
       rnIter.Reset( *creach );
       num = nrnodes[i];
       //loop through reach nodes:
-      if( timetrack >= kBugTime ) cout << "loop through reach nodes" << endl << flush;
+      //if( timetrack >= kBugTime ) cout << "loop through reach nodes" << endl << flush;
       for( crn = rnIter.FirstP(), j=0; j<num;
            crn = rnIter.NextP(), j++ )
       {
-         if( timetrack >= kBugTime ) cout << "node " << crn->getID() << endl << flush;
+         //if( timetrack >= kBugTime ) cout << "node " << crn->getID() << endl << flush;
          curwidth = crn->getHydrWidth();
-         if( timetrack >= kBugTime ) cout << "found width" << endl << flush;
+         //if( timetrack >= kBugTime ) cout << "found width" << endl << flush;
          nPtr = crn->GetDownstrmNbr();
-         if( timetrack >= kBugTime ) cout << "found dnstrm nbr" << endl << flush;         
+         //if( timetrack >= kBugTime ) cout << "found dnstrm nbr" << endl << flush;         
          curseglen = crn->GetFlowEdg()->getLength();
-         if( timetrack >= kBugTime ) cout << "found flowedge length" << endl << flush;
+         //if( timetrack >= kBugTime ) cout << "found flowedge length" << endl << flush;
          assert( curseglen > 0 );
          //ran into an infinite loop in tLNode::GetSlope; now, if it runs into
          //an infinite loop, it returns a negative number (-1) as an alarm
@@ -373,7 +373,7 @@ int tStreamMeander::InterpChannel()
             change = 1;
             break;
          }
-         if( timetrack >= kBugTime ) cout << "found slope" << endl << flush;
+         //if( timetrack >= kBugTime ) cout << "found slope" << endl << flush;
          defseglen = dscrtwids * curwidth;
          maxseglen = 2.0 * defseglen;
          //if current flowedg length is greater than
@@ -406,7 +406,7 @@ int tStreamMeander::InterpChannel()
                    2.0 + 0.01 * val * defseglen;//pow(defseglen, 2.0); 
                z = z0 - curseglen / 2.0 * slope;
                nn.set3DCoords( x, y, z );
-               if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
+               //if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
                gridPtr->AddNode( nn );
             }
             //otherwise, if we need to add more than one point,
@@ -435,7 +435,7 @@ int tStreamMeander::InterpChannel()
                   z = z0 - zp[i];
                   //cout<<"InterpChannel: call AddNode"<<endl<<flush;
                   nn.set3DCoords( x, y, z );
-                  if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
+                  //if( timetrack >= kBugTime ) cout << "add a node" << endl << flush;
                   gridPtr->AddNode( nn );
                }
                delete arrPtr;
@@ -446,17 +446,17 @@ int tStreamMeander::InterpChannel()
    }
    if( change )
    {
-      if( timetrack >= kBugTime ) cout << "update network" << endl << flush;
+      //if( timetrack >= kBugTime ) cout << "update network" << endl << flush;
         //gridPtr->UpdateMesh();
         //netPtr->InitFlowDirs();
       netPtr->UpdateNet();
-      if( timetrack >= kBugTime ) cout << "added nodes(s), InterpChannel finished"
-                                    << endl << flush;
+      //if( timetrack >= kBugTime ) cout << "added nodes(s), InterpChannel finished"
+      //                              << endl << flush;
       return 1;
    }
    else
    {
-      if( timetrack >= kBugTime ) cout << "InterpChannel finished" << endl << flush;
+      //if( timetrack >= kBugTime ) cout << "InterpChannel finished" << endl << flush;
       return 0;
    }
    
@@ -1008,7 +1008,7 @@ void tStreamMeander::Migrate()
 \*****************************************************************************/
 void tStreamMeander::MakeChanBorder()
 {
-   cout << "MakeChanBorder()" << endl;
+   //cout << "MakeChanBorder()" << endl;
    int i, j, num, pccw;
    double x0, y0, x1, y1, x, y, z, delx, dely, phi, width, xdisp, ydisp;
    double val;
@@ -1167,7 +1167,7 @@ void tStreamMeander::MakeChanBorder( tList< tArray< double > > &bList )
 \*****************************************************************************/
 void tStreamMeander::AddChanBorder()
 {
-   cout << "AddChanBorder()" << endl;
+   //cout << "AddChanBorder()" << endl;
    int i, inchan, pccw, sameside;
    double lvdist, width;
    tArray< double > xy, xyd, oldpos, zeroArr(4), xyz(3);
@@ -1558,7 +1558,7 @@ tStreamMeander::FindBankErody( tLNode *nPtr )
 \*****************************************************************************/
 void tStreamMeander::CheckBanksTooClose()
 {
-   cout << "CheckBanksTooClose()..." << flush << endl;
+   //cout << "CheckBanksTooClose()..." << flush << endl;
    int tooclose, i, j, num, onlist;
    tPtrList< tLNode > delPtrList;
    tPtrListIter< tEdge > spokIter;
@@ -1646,7 +1646,7 @@ void tStreamMeander::CheckBanksTooClose()
 \*****************************************************************************/
 void tStreamMeander::CheckFlowedgCross()
 {
-   cout << "CheckFlowedgCross()..." << flush << endl;
+   //cout << "CheckFlowedgCross()..." << flush << endl;
    int i, j, nv, nvopp, id0, id1;
    int ft;
    int flipped;
@@ -1793,7 +1793,7 @@ void tStreamMeander::CheckFlowedgCross()
 #define MAXLOOPS 10
 void tStreamMeander::CheckBrokenFlowedg()
 {
-   cout << "CheckBrokenFlowedg()..." << flush << endl;
+   //cout << "CheckBrokenFlowedg()..." << flush << endl;
    int nrn, nln, breakedge = 1;
    int nloops = 0;
    double area;
@@ -1820,7 +1820,7 @@ void tStreamMeander::CheckBrokenFlowedg()
    {
       nloops++;
       breakedge = 0;
-      cout << "checking..." << endl << flush;
+      //cout << "checking..." << endl << flush;
         //look through meandering nodes:
       for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
       {
@@ -1835,13 +1835,13 @@ void tStreamMeander::CheckBrokenFlowedg()
             {
                fedg = cn->GetFlowEdg();
                assert( fedg != 0 );
-               //now getting a bug: assertion in getEdgeCompliment that fedg is in
+               //now getting a bug: assertion in getEdgeComplement that fedg is in
                //the edgeList failed; so I guess I need to add another firewall here
                //to make sure it's in the list; if not, just bail 'cos we don't need
                //to worry about breaking it if it doesn't really exist:
                if( eIter.Get( fedg->getID() ) )
                {
-                  cedg = gridPtr->getEdgeCompliment( fedg );
+                  cedg = gridPtr->getEdgeComplement( fedg );
                   assert( cedg != 0 );
                   ltri = gridPtr->TriWithEdgePtr( fedg );
                   rtri = gridPtr->TriWithEdgePtr( cedg );
@@ -1893,7 +1893,7 @@ void tStreamMeander::CheckBrokenFlowedg()
       }
         //repeat
    } while( breakedge && nloops < MAXLOOPS );
-   cout << "finished" << endl << flush;
+   //cout << "finished" << endl << flush;
 }
 #undef MAXLOOPS
 

@@ -2,7 +2,7 @@
 **
 **  tGrid.h: Header file for class tGrid
 **
-**  $Id: tMesh.h,v 1.8 1998-04-29 21:46:29 gtucker Exp $
+**  $Id: tMesh.h,v 1.9 1998-05-08 23:42:52 stlancas Exp $
 \***************************************************************************/
 
 #ifndef TGRID_H
@@ -12,15 +12,17 @@
 #include <math.h>
 #include "../Classes.h"
 #include "../Definitions.h"
-#include "../tLNode/tLNode.h"
+#include "../tArray/tArray.h"
 #include "../Mathutil/mathutil.h"
 #include "../errors/errors.h"
+#include "../tPtrList/tPtrList.h"
 #include "../tList/tList.h"
 #include "../tGridList/tGridList.h"
 #include "../GridElements/gridElements.h"
-#include "../tPtrList/tPtrList.h"
+#include "../tLNode/tLNode.h"
 #include "../tListInputData/tListInputData.h"
 #include "../tListOutputData/tListOutputData.h"
+#include "../GlobalFns.h"
 
 
 /***************************/
