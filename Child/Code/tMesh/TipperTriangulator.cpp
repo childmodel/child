@@ -285,7 +285,7 @@ void cyclist::print() const {
 }
 #endif
 
-// if the first points are aligned, then we built "by hand" the triangulation.
+// if the first points are aligned, then we build "by hand" the triangulation.
 // Draw a picture to find out. Not that difficult.
 void start_aligned_point(int &lower_hull_pos, int &upper_hull_pos, int &next_edge,
 			 int &next_point,
@@ -833,9 +833,9 @@ void tt_build_elem_table(int npoints, const point *p,
     {
       // build vertices per element
 #define SWAP_E(EI,EJ) \
-          { int etemp = elems[ielem].EI; \
+          do { int etemp = elems[ielem].EI; \
 	  elems[ielem].EI = elems[ielem].EJ; \
-	  elems[ielem].EJ = etemp; }
+	  elems[ielem].EJ = etemp; } while(0)
       
       elems[ielem].p1 = edges[elems[ielem].e2].to;
       elems[ielem].p2 = edges[elems[ielem].e2].from;
@@ -870,8 +870,8 @@ void tt_build_elem_table(int npoints, const point *p,
       }
       assert(v != 0.);
       if (v>0) {
-	SWAP_E(p1,p3)
-	  SWAP_E(e2,e3);
+	SWAP_E(p1,p3);
+	SWAP_E(e2,e3);
       }
       // edges orientations
       elems[ielem].eo2 = ((edges[elems[ielem].e2].from == elems[ielem].p2) ? true:false);
