@@ -9,7 +9,7 @@
 **   - previously separate tNode, tEdge, and tTriangle files grouped into
 **     "gridElements", 1/20/98 gt
 **
-**  $Id: meshElements.cpp,v 1.6 1998-02-03 00:48:01 stlancas Exp $
+**  $Id: meshElements.cpp,v 1.7 1998-02-04 00:34:25 stlancas Exp $
 \**************************************************************************/
 
 #include <assert.h>
@@ -167,7 +167,7 @@ void tNode::SetEdg( tEdge * theEdg )
 {
    assert( theEdg > 0 );
    edg = theEdg;
-   cout << "Assigning edge " << theEdg->getID() << " to node " << getID() << endl;
+   //cout << "Assigning edge " << theEdg->getID() << " to node " << getID() << endl;
 }
 
 void tNode::ChangeZ( double delz ) { z += delz; }                    //tNode
@@ -304,7 +304,7 @@ double tNode::ComputeVoronoiArea()
      //polygon into triangles, and calc'ing the area of each triangle, sum of
      //tri areas is v. area.
 //#if DEBUG
-   cout<<"VoronoiArea(...)...";
+   //cout<<"VoronoiArea(...)...";
 //#endif
    int cw;
    double area = 0;

@@ -2,7 +2,7 @@
 **
 **  tGrid.cpp: Functions for class tGrid
 **
-**  $Id: tMesh.cpp,v 1.11 1998-02-03 00:48:39 stlancas Exp $
+**  $Id: tMesh.cpp,v 1.12 1998-02-04 00:35:09 stlancas Exp $
 \***************************************************************************/
 
 #include "tGrid.h"
@@ -1583,7 +1583,7 @@ LocateTriangle( double x, double y )
          DumpNodes();
       }*/
       //cout << flush;
-      assert( n < ntri + 20 );
+      assert( n < ntri + 200 );
    }
    return(lt);
 }
@@ -2352,7 +2352,7 @@ AddNodeAt( tArray< double > &xyz )
    }
    //node2->makeCCWEdges();
    UpdateMesh();
-   cout << "AddNodeAt finished" << endl;
+   cout << "AddNodeAt finished, " << nnodes << endl;
    return node2;
 }
 
@@ -2474,7 +2474,7 @@ CheckForFlip( tTriangle * tri, int nv, int flip )
    if( flip )                     //and make sure there isn't already an edge?
    {
       if( !PointsCCW( p0, p1, ptest ) || !PointsCCW( p0, ptest, p2 ) )return 0;
-      cout << "Flip edge" << endl;
+      //cout << "Flip edge" << endl;
       FlipEdge( tri, triop, nv, nvop );
         /*
       assert( DeleteEdge( tri->ePtr( (nv+1)%3 ) ) );
@@ -2890,7 +2890,7 @@ CheckTriEdgeIntersect()
       cout << "end of CTEI tri " << ct->getID() << " with nbrs "
            << id0 << ", " << id1 << ", and " << id2 << endl;
    }
-   cout << "finished" << endl;
+   cout << "finished, " << nnodes << endl;
 }
 
                

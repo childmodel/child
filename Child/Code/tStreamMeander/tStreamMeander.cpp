@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.11 1998-02-03 00:46:03 stlancas Exp $
+**  $Id: tStreamMeander.cpp,v 1.12 1998-02-04 00:33:48 stlancas Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -206,6 +206,7 @@ void tStreamMeander::FindHydrGeom()
 **
 **
 \*****************************************************************************/
+#define kSmallNum 0.0000000001
 void tStreamMeander::FindChanGeom()
 {
    int i, j, num;
@@ -242,12 +243,13 @@ void tStreamMeander::FindChanGeom()
             {
                slope = usn->GetSlope();
             }*/
-            for( usn = cn; slope <= 0; usn = usn->GetDownstrmNbr() )
+            for( usn = cn; slope <= kSmallNum; usn = usn->GetDownstrmNbr() )
             {
                slope = usn->GetSlope();
             }
          }
-         assert( slope > 0 );
+         assert( slope > kSmallNum );
+         cout << "in FindChanGeom, slope = " << slope << endl << flush;
          cn->setChanWidth( width );
          cn->setChanRough( rough );
          radfactor = qbf * rough / width / sqrt(slope);
@@ -257,7 +259,7 @@ void tStreamMeander::FindChanGeom()
       }
    }
 }
-
+#undef kSmallNum
 
 /****************************************************************\
 **
