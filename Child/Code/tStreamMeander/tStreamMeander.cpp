@@ -4,7 +4,7 @@
 **
 **  Functions for class tStreamMeander.
 **
-**  $Id: tStreamMeander.cpp,v 1.60 1999-04-05 15:14:20 gtucker Exp $
+**  $Id: tStreamMeander.cpp,v 1.61 1999-04-09 14:52:58 nmgaspar Exp $
 \**************************************************************************/
 
 #include "tStreamMeander.h"
@@ -1152,7 +1152,7 @@ void tStreamMeander::CalcMigration( double &time, double &duration,
 \**********************************************************************/
 void tStreamMeander::Migrate( double ctime )
 {
-   cout<<"Migrate"<<endl;
+   //cout<<"Migrate"<<endl;
    double duration = netPtr->getStormPtrNC()->getStormDuration();
    duration += ctime;
    double cummvmt = 0.0;
@@ -1176,7 +1176,7 @@ void tStreamMeander::Migrate( double ctime )
       else ctime=duration; // If no reaches, end here (GT added 3/12/99)
       //MakeReaches(); had called from main routine and here
    }
-   cout<<"end migrate"<<endl;
+   //cout<<"end migrate"<<endl;
 }
 
 
