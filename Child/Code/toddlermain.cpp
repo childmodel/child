@@ -34,7 +34,7 @@
 **       Mansfield Road
 **       Oxford OX1 3TB United Kingdom
 **
-**  $Id: toddlermain.cpp,v 1.5 2002-04-11 09:55:38 arnaud Exp $
+**  $Id: toddlermain.cpp,v 1.6 2002-04-11 10:55:00 arnaud Exp $
 \**************************************************************************/
 
 
@@ -53,9 +53,9 @@ int main( int argc, char **argv )
        optLoessDep,       // Option for eolian deposition
        optVegetation,     // Option for dynamic vegetation cover
        optDiffuseDepo;    // Option for deposition / no deposition by diff'n
-   tVegetation *vegetation;  // -> vegetation object
-   tFloodplain *floodplain;  // -> floodplain object
-   tEolian *loess;           // -> eolian deposition object
+   tVegetation *vegetation(0);  // -> vegetation object
+   tFloodplain *floodplain(0);  // -> floodplain object
+   tEolian *loess(0);           // -> eolian deposition object
    
    /****************** INITIALIZATION *************************************\
    **  ALGORITHM
