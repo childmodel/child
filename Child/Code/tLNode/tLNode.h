@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.95 2004-06-16 13:37:33 childcvs Exp $
+ **  $Id: tLNode.h,v 1.96 2005-06-08 18:57:03 childcvs Exp $
  */
 /************************************************************************/
 
@@ -535,7 +535,9 @@ public:
   inline double getQs() const;
   inline double getQs( size_t );
   inline tArray< double > const & getQsm( ) const;
-  inline void setQsin( double );
+  
+   //NIC just adding a comment to see if I can check back in this code
+   inline void setQsin( double );
   inline void setQsin( size_t, double );
   inline void setQsin( tArray< double > const & );
   void setQsinErrorHandler( size_t ) const ATTRIBUTE_NORETURN;
