@@ -32,7 +32,7 @@
 **     2200 Colorado Avenue, Campus Box 399
 **     Boulder, CO 80309-0399
 **
-**  $Id: childmain.cpp,v 1.28 2005-03-15 17:17:29 childcvs Exp $
+**  $Id: childmain.cpp,v 1.29 2005-07-21 19:26:30 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -191,15 +191,15 @@ OptTSOutput." );
       // Do storm...
       storm.GenerateStorm( time.getCurrentTime(),
                            strmNet.getInfilt(), strmNet.getSoilStore() );
-      if(1) //DEBUG
+      if(0) //DEBUG
 	     std::cout<< "Storm: "<< storm.getRainrate() << " " << storm.getStormDuration() << " "
 	          << storm.interstormDur() << std::endl;
 
       strmNet.UpdateNet( time.getCurrentTime(), storm );
-      if(1) //DEBUG
+      if(0) //DEBUG
 	     std::cout << "UpdateNet::Done.." << std::endl;
 
-      if(1) //DEBUG
+      if(0) //DEBUG
 	  {
          tMesh< tLNode >::nodeListIter_t mli( mesh.getNodeList() );  // gets nodes from the list
 		 tLNode * cn;
@@ -220,7 +220,7 @@ OptTSOutput." );
       if( optStratGrid )
       	  stratGrid->UpdateStratGrid(tStratGrid::k0, time.getCurrentTime());
 
-      if(1) //DEBUG
+      if(0) //DEBUG
 	  {
          tMesh< tLNode >::nodeListIter_t mli( mesh.getNodeList() );  // gets nodes from the list
 		 tLNode * cn;
@@ -237,20 +237,31 @@ OptTSOutput." );
 
 	  }
 
+      //Diffusion is now before fluvial erosion in case the tools
+      //detachment laws are being used.
+      erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
+                       optDiffuseDepo );
+
       if( optDetachLim )
           erosion.ErodeDetachLim( storm.getStormDuration(), &strmNet,
 				  vegetation );
-      else
-          erosion.DetachErode( storm.getStormDuration(), &strmNet,
-                               time.getCurrentTime(), vegetation );
-      if(1) //DEBUG
+      else{
+         erosion.DetachErode( storm.getStormDuration(), &strmNet,
+                             time.getCurrentTime(), vegetation );
+          // To use tools rules, you must use DetachErode2 NMG 07/05
+         //erosion.DetachErode2( storm.getStormDuration(), &strmNet,
+         //                      time.getCurrentTime(), vegetation );
+      }
+      
+
+      if(0) //DEBUG
 	     std::cout << "Erosion::Done.." << std::endl;
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
 	     stratGrid->UpdateStratGrid(tStratGrid::k1,time.getCurrentTime() );
 
-      if(1) //DEBUG
+      if(0) //DEBUG
 	  {
          tMesh< tLNode >::nodeListIter_t mli( mesh.getNodeList() );  // gets nodes from the list
 		 tLNode * cn;
@@ -270,7 +281,7 @@ OptTSOutput." );
       if( optMeander )
 	     strmMeander->Migrate( time.getCurrentTime() );
 
-      if(1) //DEBUG
+      if(0) //DEBUG
 	     std::cout << "Meander-Migrate::Done..\n";
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
@@ -312,8 +323,9 @@ OptTSOutput." );
 #undef NEWVEG
 
       // Do interstorm...
-      erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
-		       optDiffuseDepo );
+      //Diffusion has now been moved to before fluvial erosion NMG 07/05
+      // erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
+// 		       optDiffuseDepo );
 
       erosion.UpdateExposureTime( storm.getStormDuration() +
                                       storm.interstormDur() );
