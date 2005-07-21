@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.55 2004-06-16 13:37:41 childcvs Exp $
+ **  $Id: tOutput.h,v 1.56 2005-07-21 19:34:44 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -181,30 +181,34 @@ class tLOutput : public tOutput<tSubNode>
   tLOutput& operator=(const tLOutput&);
   tLOutput();
 public:
-  tLOutput( tMesh<tSubNode> * meshPtr, const tInputFile &infile, tRand *);
-  virtual ~tLOutput();
-  void WriteTSOutput();
-  bool OptTSOutput() const;
-  void SetStratGrid(tStratGrid *, tStreamNet *);
-  void SetFloodplain(tFloodplain *);
-
+   tLOutput( tMesh<tSubNode> * meshPtr, const tInputFile &infile, tRand *);
+   virtual ~tLOutput();
+   void WriteTSOutput();
+   bool OptTSOutput() const;
+   void SetStratGrid(tStratGrid *, tStreamNet *);
+   void SetFloodplain(tFloodplain *);
+   
 protected:
-  virtual void WriteNodeData( double time );
+   virtual void WriteNodeData( double time );
 private:
-  std::ofstream randomofs;  // Random number generator state
-  std::ofstream drareaofs;  // Drainage areas
-  std::ofstream netofs;     // Downstream neighbor IDs
-  std::ofstream slpofs;     // Slopes in the direction of flow
-  std::ofstream qofs;       // Discharge
-  std::ofstream layofs;     // Layer info
-  std::ofstream surfofs;    // Surfer style x,y,z file with top layer properties in columns of triangular nodes
-  std::ofstream texofs;     // Texture info
-  std::ofstream vegofs;     // Vegetation cover %
-  std::ofstream flowdepofs; // Flow depth
-  std::ofstream chanwidthofs; // Channel width
-  std::ofstream flowpathlenofs;  // Flow path length
-  std::ofstream tauofs;     // Shear stress
-  std::ofstream qsofs;      // Sed flux
+   std::ofstream randomofs;  // Random number generator state
+   std::ofstream drareaofs;  // Drainage areas
+   std::ofstream netofs;     // Downstream neighbor IDs
+   std::ofstream slpofs;     // Slopes in the direction of flow
+   std::ofstream qofs;       // Discharge
+   std::ofstream layofs;     // Layer info
+   std::ofstream surfofs;    // Surfer style x,y,z file with top layer properties in columns of triangular nodes
+   std::ofstream texofs;     // Texture info
+   std::ofstream vegofs;     // Vegetation cover %
+   std::ofstream flowdepofs; // Flow depth
+   std::ofstream chanwidthofs; // Channel width
+   std::ofstream flowpathlenofs;  // Flow path length
+   std::ofstream tauofs;     // Shear stress
+   std::ofstream qsofs;      // Sed flux
+   std::ofstream upofs;      // Uplift rate
+   std::ofstream qsinofs;   // incoming sediment flux
+   std::ofstream qsdinofs;   // incoming sediment flux
+   std::ofstream dzdtofs;    // fluvial erosion rate at a point 
 
   tTSOutputImp<tSubNode> *TSOutput;  // Time Series output
   tStratOutputImp<tSubNode> *stratOutput;
@@ -271,6 +275,10 @@ inline void tLOutput<tSubNode>::WriteAllNodeData( tSubNode *cn )
     flowpathlenofs << cn->getFlowPathLength() << '\n';
   tauofs << cn->getTau() << '\n';
   if( qsofs.good() ) qsofs << cn->getQs() << '\n';
+  if( qsinofs.good() ) qsinofs << cn->getQsin() << '\n';
+  if( qsdinofs.good() ) qsdinofs << cn->getQsdin() << '\n';
+  if( dzdtofs.good() ) dzdtofs << cn->getDzDt() << '\n';
+  if( upofs.good() ) upofs << cn->getUplift() << '\n';
 }
 
 
