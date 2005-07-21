@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.138 2005-03-15 17:17:29 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.139 2005-07-21 19:28:00 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -308,6 +308,8 @@ dzdt(0.), drdt(0.), tau(0.), tauc(0.), qs(0.),
 qsm(),
 qsin(0.),
 qsinm(),
+qsdin(0.),
+qsdinm(),
 uplift(0.),
 layerlist(),
 stratNode(0),
@@ -326,6 +328,8 @@ dzdt(0.), drdt(0.), tau(0.), tauc(0.), qs(0.),
 qsm(),
 qsin(0.),
 qsinm(),
+qsdin(0.),
+qsdinm(),
 uplift(0.),
 layerlist(),
 stratNode(0),
@@ -512,6 +516,8 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
     qsm(orig.qsm),
     qsin(orig.qsin),
     qsinm(orig.qsinm ),
+    qsdin(orig.qsdin),
+    qsdinm(orig.qsdinm ),
     uplift(orig.uplift),
     layerlist(),
     stratNode(orig.stratNode),
@@ -559,11 +565,13 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
       drdt = right.drdt;
       qs = right.qs;
       qsin = right.qsin;
+      qsdin = right.qsdin;
       tau = right.tau;
       tauc = right.tauc;
       uplift = right.uplift;
       qsm = right.qsm;
       qsinm = right.qsinm;
+      qsdinm = right.qsdinm;
       layerlist = right.layerlist;
       stratNode = right.stratNode;
       accumdh = right.accumdh;
@@ -1079,6 +1087,30 @@ void tLNode::addQsin( tArray< double > const &val )
   for(i=0; i<n; i++){
     qsin +=  val[i];
     qsinm[i] += val[i];
+  }
+
+}
+
+void tLNode::setQsdinErrorHandler( size_t i ) const
+{
+  if(i>=numg)
+    ReportFatalError( "Trying to index sediment sizes that don't exist ");
+  if(i>=qsdinm.getSize()){
+    std::cout<<"trying to set index "<<i<<" but size of array is "
+	<<qsdinm.getSize() << std::endl;
+    TellAll();
+    ReportFatalError( "Index out of bound");
+  }
+  ReportFatalError("setQsdinErrorHandler(): bail out.");
+}
+
+void tLNode::addQsdin( tArray< double > const &val )
+{
+  int i;
+  const int n = val.getSize();
+  for(i=0; i<n; i++){
+    qsdin +=  val[i];
+    qsdinm[i] += val[i];
   }
 
 }
@@ -1760,6 +1792,7 @@ void tLNode::InitializeNode()
   if( qsm.getSize()!=numg ) {
     qsm.setSize( numg );
     qsinm.setSize( numg );
+    qsdinm.setSize( numg );
   }
 
   accumdh.setSize(2);
