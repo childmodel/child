@@ -3,7 +3,7 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.30 2004-06-16 13:37:48 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.31 2005-07-21 19:23:24 childcvs Exp $
 */
 /************************************************************************/
 
@@ -30,112 +30,129 @@
 **
 \************************************************************************/
 tUplift::tUplift_t tUplift::DecodeType(int type){
-  if( type < 0 || type > 9 )
-    {
+   if( type < 0 || type > 11 )
+   {
       std::cerr << "I don't recognize the uplift type you asked for ("
-           << type << ")\n"
-	"Valid uplift types are:\n"
-	" 0 - none\n"
-	" 1 - Spatially and temporally uniform uplift\n"
-	" 2 - Uniform uplift at Y >= fault location, zero elsewhere\n"
-	" 3 - Block uplift with strike-slip motion along given Y coord\n"
-	" 4 - Propagating fold modeled w/ simple error function curve\n"
-	" 5 - 2D cosine-based uplift-subsidence pattern\n"
-	" 6 - Block, fault, and foreland sinusoidal fold\n"
-	" 7 - Two-sided differential uplift\n"
-	" 8 - Fault bend fold\n"
-	" 9 - Back-tilting normal fault block\n";
+                << type << ")\n"
+          "Valid uplift types are:\n"
+          " 0 - none\n"
+          " 1 - Spatially and temporally uniform uplift\n"
+          " 2 - Uniform uplift at Y >= fault location, zero elsewhere\n"
+          " 3 - Block uplift with strike-slip motion along given Y coord\n"
+          " 4 - Propagating fold modeled w/ simple error function curve\n"
+          " 5 - 2D cosine-based uplift-subsidence pattern\n"
+          " 6 - Block, fault, and foreland sinusoidal fold\n"
+          " 7 - Two-sided differential uplift\n"
+          " 8 - Fault bend fold\n"
+          " 9 - Back-tilting normal fault block\n"
+          " 10 - Linear change in uplift rate\n"
+          " 11 - Power law change in uplift rate in the y-direction\n";
       ReportFatalError( "Please specify a valid uplift type and try again." );
-    }
-  return static_cast<tUplift_t>(type);
+   }
+   return static_cast<tUplift_t>(type);
 }
 
 tUplift::tUplift( const tInputFile &infile ) :
-  duration(0.)
+        duration(0.)
 {
-  int typeCode_;
-  // Find out what kind of uplift the user wants
-  typeCode_ = infile.ReadItem( typeCode_, "UPTYPE" );
-  typeCode = DecodeType(typeCode_);
-
-  if( typeCode==kNoUplift ) return;
-
-  // get the parameters relevant to that type
-  duration = infile.ReadItem( duration, "UPDUR" );
-  rate = infile.ReadItem( rate, "UPRATE" );
-  switch( typeCode ) {
-  case kNoUplift:
-  case k1:
-    break;
-  case k2:
-    faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
-    rate2 = infile.ReadItem( rate2, "SUBSRATE" );
-    break;
-  case k3:
-    faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
-    slipRate = infile.ReadItem( slipRate, "SLIPRATE" );
-    break;
-  case k4:
-    faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
-    slipRate = infile.ReadItem( slipRate, "FOLDPROPRATE" );
-    foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
-    foldParam = 4.0/foldParam;
-    break;
-  case k5:
-    foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
-    slipRate = infile.ReadItem( slipRate, "TIGHTENINGRATE" );
-    faultPosition = infile.ReadItem( faultPosition, "ANTICLINEYCOORD" );
-    positionParam1 = infile.ReadItem( positionParam1, "ANTICLINEXCOORD");
-    deformStartTime1 =
-      infile.ReadItem( deformStartTime1, "YFOLDINGSTART" );
-    foldParam2 = infile.ReadItem( foldParam2, "UPSUBRATIO" );
-    break;
-  case k6:
-    foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
-    slipRate = infile.ReadItem( slipRate, "FOLDLATRATE" );
-    faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
-    rate2 = infile.ReadItem( rate2, "FOLDUPRATE" );
-    foldParam2 = infile.ReadItem( foldParam2, "FOLDPOSITION" );
-    break;
-  case k7:
-    rate2 = infile.ReadItem( rate2, "BLFALL_UPPER" );
-    positionParam1 = infile.ReadItem( positionParam1, "BLDIVIDINGLINE" );
-    break;
-  case k8:
-    slipRate = infile.ReadItem( slipRate, "SLIPRATE" );
-    faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
-    flatDepth = infile.ReadItem( flatDepth, "FLATDEPTH" );
-    rampDip = infile.ReadItem( rampDip, "RAMPDIP" );
-    kinkDip = infile.ReadItem( kinkDip, "KINKDIP" );
-    upperKinkDip = infile.ReadItem( upperKinkDip, "UPPERKINKDIP" );
-    meanElevation = infile.ReadItem( meanElevation, "MEAN_ELEV" );
-    break;
-  case k9:
-    {
-      double accelTime = infile.ReadDouble( "ACCEL_REL_UPTIME" );
-      if( accelTime<=0.0 )
-	ReportFatalError( "Parameter ACCEL_REL_UPTIME must be greater than zero." );
-      const double totalTime = infile.ReadDouble( "RUNTIME" );
-      accelTime *= totalTime;  // Convert from fraction of total time to a time in years
-      const double verticalThrow = infile.ReadDouble( "VERTICAL_THROW" );
-      rate2 = (verticalThrow - rate*(totalTime-accelTime) ) / accelTime;
-      positionParam1 = infile.ReadDouble( "FAULT_PIVOT_DISTANCE" );
-      if( positionParam1 <=0.0 )
-	ReportFatalError( "Parameter FAULT_PIVOT_DISTANCE must be > 0." );
-
-      std::stringstream myStringStream;
-      myStringStream << "@inline " << 0.0 << ":" << rate2 << " "
-		     << accelTime << ":" << rate << std::endl;
-      const std::string myString(myStringStream.str());
-      std::cout << myString << '\n'
-	   << "rate 1: " << rate
-	   << " rate2: " << rate2
-	   << " accelTime: " << accelTime << " total throw: "
-	   << rate2*accelTime + rate*(totalTime-accelTime) << std::endl;
-      rate_ts.configure( myString.c_str() );
-    }
-    break;
-  }
+   int typeCode_;
+   // Find out what kind of uplift the user wants
+   typeCode_ = infile.ReadItem( typeCode_, "UPTYPE" );
+   typeCode = DecodeType(typeCode_);
+   
+   if( typeCode==kNoUplift ) return;
+   
+   // get the parameters relevant to that type
+   duration = infile.ReadItem( duration, "UPDUR" );
+   rate = infile.ReadItem( rate, "UPRATE" );
+   switch( typeCode ) {
+      case kNoUplift:
+      case k1:
+          break;
+      case k2:
+          faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
+          rate2 = infile.ReadItem( rate2, "SUBSRATE" );
+          break;
+      case k3:
+          faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
+          slipRate = infile.ReadItem( slipRate, "SLIPRATE" );
+          break;
+      case k4:
+          faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
+          slipRate = infile.ReadItem( slipRate, "FOLDPROPRATE" );
+          foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
+          foldParam = 4.0/foldParam;
+          break;
+      case k5:
+          foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
+          slipRate = infile.ReadItem( slipRate, "TIGHTENINGRATE" );
+          faultPosition = infile.ReadItem( faultPosition, "ANTICLINEYCOORD" );
+          positionParam1 = infile.ReadItem( positionParam1, "ANTICLINEXCOORD");
+          deformStartTime1 =
+              infile.ReadItem( deformStartTime1, "YFOLDINGSTART" );
+          foldParam2 = infile.ReadItem( foldParam2, "UPSUBRATIO" );
+          break;
+      case k6:
+          foldParam = infile.ReadItem( foldParam, "FOLDWAVELEN" );
+          slipRate = infile.ReadItem( slipRate, "FOLDLATRATE" );
+          faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
+          rate2 = infile.ReadItem( rate2, "FOLDUPRATE" );
+          foldParam2 = infile.ReadItem( foldParam2, "FOLDPOSITION" );
+          break;
+      case k7:
+          rate2 = infile.ReadItem( rate2, "BLFALL_UPPER" );
+          positionParam1 = infile.ReadItem( positionParam1, "BLDIVIDINGLINE" );
+          break;
+      case k8:
+          slipRate = infile.ReadItem( slipRate, "SLIPRATE" );
+          faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
+          flatDepth = infile.ReadItem( flatDepth, "FLATDEPTH" );
+          rampDip = infile.ReadItem( rampDip, "RAMPDIP" );
+          kinkDip = infile.ReadItem( kinkDip, "KINKDIP" );
+          upperKinkDip = infile.ReadItem( upperKinkDip, "UPPERKINKDIP" );
+          meanElevation = infile.ReadItem( meanElevation, "MEAN_ELEV" );
+          break;
+      case k9:
+      {
+         double accelTime = infile.ReadDouble( "ACCEL_REL_UPTIME" );
+         if( accelTime<=0.0 )
+             ReportFatalError( "Parameter ACCEL_REL_UPTIME must be greater than zero." );
+         const double totalTime = infile.ReadDouble( "RUNTIME" );
+         accelTime *= totalTime;  // Convert from fraction of total time to a time in years
+         const double verticalThrow = infile.ReadDouble( "VERTICAL_THROW" );
+         rate2 = (verticalThrow - rate*(totalTime-accelTime) ) / accelTime;
+         positionParam1 = infile.ReadDouble( "FAULT_PIVOT_DISTANCE" );
+         if( positionParam1 <=0.0 )
+             ReportFatalError( "Parameter FAULT_PIVOT_DISTANCE must be > 0." );
+         
+         std::stringstream myStringStream;
+         myStringStream << "@inline " << 0.0 << ":" << rate2 << " "
+                        << accelTime << ":" << rate << std::endl;
+         const std::string myString(myStringStream.str());
+         std::cout << myString << '\n'
+                   << "rate 1: " << rate
+                   << " rate2: " << rate2
+                   << " accelTime: " << accelTime << " total throw: "
+                   << rate2*accelTime + rate*(totalTime-accelTime) << std::endl;
+         rate_ts.configure( myString.c_str() );
+      }
+      break;
+      case k10:
+          rate2 = infile.ReadItem( rate2, "MINIMUM_UPRATE" );
+          width = infile.ReadItem( width, "Y_GRID_SIZE" );
+          optincrease = infile.ReadItem( optincrease, "OPT_INCREASE_TO_FRONT" );
+          dupdy = (rate - rate2)/width;
+          if(optincrease){
+             dupdy = -1*dupdy;
+             rate2=rate;
+          }
+          break;
+      case k11:
+          decayParam = infile.ReadItem( decayParam, "DECAY_PARAM_UPLIFT" );
+          width = infile.ReadItem( width, "Y_GRID_SIZE" );
+          break;
+   }
+   
 }
 
 
@@ -183,11 +200,17 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
           FaultBendFold( mp, delt );
           FaultBendFold2( mp, delt );
           break;
-	  case k9:
-	      NormalFaultTiltAccel( mp, delt, currentTime );
-		  break;
+      case k9:
+          NormalFaultTiltAccel( mp, delt, currentTime );
+          break;
+      case k10:
+          LinearUplift( mp, delt );
+          break;
+      case k11:
+          PowerLawUplift( mp, delt );
+          break;
    }
-
+   
 }
 
 
@@ -748,6 +771,56 @@ void tUplift::NormalFaultTiltAccel( tMesh<tLNode> *mp, double delt, double curre
    }
 }
 
+/************************************************************************\
+**
+**  tUplift::PowerLawUplift
+**
+**  Uplift varies as an exponential function of Y 
+**
+**  Inputs:  mp -- pointer to the mesh
+**           delt -- duration of uplift
+**
+\************************************************************************/
+void tUplift::PowerLawUplift( tMesh<tLNode> *mp, double delt ) 
+{
+   assert( mp!=0 );
+   tLNode *cn;
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+   double uprate;
+
+   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+   {
+      uprate = rate * pow( width-cn->getY(), decayParam);
+         cn->setUplift( uprate );
+         cn->ChangeZ( uprate*delt );
+         //cout<<"Y "<<cn->getY()<<" uprate "<<uprate<<endl;
+   }
+}
+
+/************************************************************************\
+**
+**  tUplift::LinearUplift
+**
+**  Uplift varies as an linear function of Y
+**
+**  Inputs:  mp -- pointer to the mesh
+**           delt -- duration of uplift
+**
+\************************************************************************/
+void tUplift::LinearUplift( tMesh<tLNode> *mp, double delt ) 
+{
+   assert( mp!=0 );
+   tLNode *cn;
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+   double uprate;
+
+   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+   {
+      uprate = rate2 + ( cn->getY() * dupdy);
+         cn->setUplift( uprate );
+         cn->ChangeZ( uprate*delt );
+   }
+}
 
 
 /************************************************************************\
