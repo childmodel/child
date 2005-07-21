@@ -25,7 +25,7 @@
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **    - added FaultBendFold function (srm, August 2002)
 **
-**  $Id: tUplift.h,v 1.22 2004-06-03 15:29:29 childcvs Exp $
+**  $Id: tUplift.h,v 1.23 2005-07-21 19:21:49 childcvs Exp $
 */
 /************************************************************************/
 
@@ -44,55 +44,64 @@ public:
     double getDuration() const;
     double getRate() const;
 private:
-    void UpliftUniform( tMesh<tLNode> *mp, double delt );
-    void BlockUplift( tMesh<tLNode> *mp, double delt );
-    void StrikeSlip( tMesh<tLNode> *mp, double delt ) const;
-    void FoldPropErf( tMesh<tLNode> *mp, double delt );
-    void CosineWarp2D( tMesh<tLNode> *mp, double delt );
-    void PropagatingFold( tMesh<tLNode> *mp, double delt ) const;
-    void TwoSideDifferential( tMesh<tLNode> *mp, double delt ) const;
-    void FaultBendFold( tMesh<tLNode> *mp, double delt ) const;
-    void FaultBendFold2( tMesh<tLNode> *mp, double delt ) const;
-	void NormalFaultTiltAccel( tMesh<tLNode> *mp, double delt, double currentTime ) const;
-
+   void UpliftUniform( tMesh<tLNode> *mp, double delt );
+   void BlockUplift( tMesh<tLNode> *mp, double delt );
+   void StrikeSlip( tMesh<tLNode> *mp, double delt ) const;
+   void FoldPropErf( tMesh<tLNode> *mp, double delt );
+   void CosineWarp2D( tMesh<tLNode> *mp, double delt );
+   void PropagatingFold( tMesh<tLNode> *mp, double delt ) const;
+   void TwoSideDifferential( tMesh<tLNode> *mp, double delt ) const;
+   void FaultBendFold( tMesh<tLNode> *mp, double delt ) const;
+   void FaultBendFold2( tMesh<tLNode> *mp, double delt ) const;
+   void NormalFaultTiltAccel( tMesh<tLNode> *mp, double delt, double currentTime ) const;
+   void LinearUplift( tMesh<tLNode> *mp, double delt );
+   void PowerLawUplift( tMesh<tLNode> *mp, double delt );
+   
 private:
-    typedef enum {
-      kNoUplift = 0,
-      k1,
-      k2,
-      k3,
-      k4,
-      k5,
-      k6,
-      k7,
-      k8,
-	  k9
-    } tUplift_t;
-
-    static tUplift_t DecodeType(int);
-
-    tUplift_t typeCode;    // Code for the type of uplift desired
-    double duration;       // Duration of uplift
-    double rate;           // Rate of uplift
-    double rate2;          // Second rate (e.g., second structure)
-	tTimeSeries rate_ts;   // Rate of uplift as a time series
-    double faultPosition;  // Position of fault (y-location)
-    double positionParam1; // Another position parameter
-    double slipRate;       // Slip rate for strike-slip motion and fault prop
-    double foldParam;      // Parameter used in folding calculation
-    double foldParam2;     // Another one
-    double deformStartTime1; // Parameter for onset of uplift/deformation
-    double flatDepth;      // Depth below surface (at faultPos) of thrust flat
-    double rampDip;	   // Dip of thrust ramp (in degrees)
-    double kinkDip;	   // Dip of axial surface in hangingwall that
-    			   //	initiates at lower end of ramp.
-    double upperKinkDip;   // Dip of axial surface that initiates at upper
-    			   //	end of ramp.
-    double meanElevation;  // Mean elevation of surface at t0.
-	double timeParam1;     // Timing parameter
-
+   typedef enum {
+       kNoUplift = 0,
+       k1,
+       k2,
+       k3,
+       k4,
+       k5,
+       k6,
+       k7,
+       k8,
+       k9,
+       k10,
+       k11
+   } tUplift_t;
+   
+   static tUplift_t DecodeType(int);
+   
+   tUplift_t typeCode;    // Code for the type of uplift desired
+   double duration;       // Duration of uplift
+   double rate;           // Rate of uplift
+   double rate2;          // Second rate (e.g., second structure)
+   tTimeSeries rate_ts;   // Rate of uplift as a time series
+   double faultPosition;  // Position of fault (y-location)
+   double positionParam1; // Another position parameter
+   double slipRate;       // Slip rate for strike-slip motion and fault prop
+   double foldParam;      // Parameter used in folding calculation
+   double foldParam2;     // Another one
+   double deformStartTime1; // Parameter for onset of uplift/deformation
+   double flatDepth;      // Depth below surface (at faultPos) of thrust flat
+   double rampDip;	   // Dip of thrust ramp (in degrees)
+   double kinkDip;	   // Dip of axial surface in hangingwall that
+   //	initiates at lower end of ramp.
+   double upperKinkDip;   // Dip of axial surface that initiates at upper
+   //	end of ramp.
+   double meanElevation;  // Mean elevation of surface at t0.
+   double decayParam;  //decay rate for powerlaw
+   double timeParam1;     // Timing parameter
+   double width;  //y-size of mesh, needed for setting up linear uplift change
+   double dupdy;  //change in uplift with y for linear uplift change
+   int optincrease; //for linear uplift change - 0=>dec to mtn frnt, 1=>inc to mtn frnt
+   
+   
 private:
-    tUplift();
+   tUplift();
 };
 
 #endif
