@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.96 2005-06-08 18:57:03 childcvs Exp $
+ **  $Id: tLNode.h,v 1.97 2005-07-21 19:28:40 childcvs Exp $
  */
 /************************************************************************/
 
@@ -530,26 +530,38 @@ public:
   inline bool getReachMember() const;
   // NOTE - For the get and set functions which involve arrays of size numg,
   // the arrays go from 0 to (numg-1) and must be indexed in this manner
+   //Qs functions for transport rate
   inline void setQs( double );
   inline void setQs( size_t, double );
   inline double getQs() const;
   inline double getQs( size_t );
   inline tArray< double > const & getQsm( ) const;
-  
-   //NIC just adding a comment to see if I can check back in this code
-   inline void setQsin( double );
+  inline void addQs( double );
+  inline void addQs( size_t, double );
+  void addQs( tArray< double > const &);
+   //Qsin functions for incoming fluvial sediment flux
+  inline void setQsin( double );
   inline void setQsin( size_t, double );
   inline void setQsin( tArray< double > const & );
   void setQsinErrorHandler( size_t ) const ATTRIBUTE_NORETURN;
-  void addQs( double );
-  void addQs( size_t, double );
-  void addQs( tArray< double > const &);
   inline void addQsin( double );
   inline void addQsin( size_t, double );
   void addQsin( tArray< double > const &);
   inline double getQsin() const;
   inline double getQsin( size_t );
   inline tArray< double > const & getQsinm( ) const;
+   //Qsdin functions for incoming diffusive sediment flux
+  inline void setQsdin( double );
+  inline void setQsdin( size_t, double );
+  inline void setQsdin( tArray< double > const & );
+  void setQsdinErrorHandler( size_t ) const ATTRIBUTE_NORETURN;
+  inline void addQsdin( double );
+  inline void addQsdin( size_t, double );
+  void addQsdin( tArray< double > const &);
+  inline double getQsdin() const;
+  inline double getQsdin( size_t );
+  inline tArray< double > const & getQsdinm( ) const;
+
   inline void setGrade( size_t, double ) const;
   inline double getGrade( size_t ) const;
   inline tArray< double > const & getGrade( ) const;
@@ -673,6 +685,8 @@ protected:
   tArray< double > qsm;             /* multi size; transport rate of each size fraction*/
   double qsin;                      /* Sediment influx rate*/
   tArray< double > qsinm;           /* multi size; influx rate of each size fraction*/
+  double qsdin;                      /* Sediment influx rate from diffusion*/
+  tArray< double > qsdinm;           /* multi size; influx rate of each size fraction*/
   double uplift;                    /* uplift rate*/
   tList< tLayer > layerlist;        /* list of the different layers */
   tStratNode *stratNode;            /* Pointer to rectangular grid node. */
@@ -936,6 +950,20 @@ tLNode::getQsm( ) const
   return qsm;
 }
 
+inline void tLNode::addQs( double val )
+{
+  qs += val;
+}
+
+inline void tLNode::addQs( size_t i, double val )
+{
+  if(unlikely(i>=numg))
+    ReportFatalError( "Trying to index sediment sizes that don't exist ");
+  qsm[i] += val;
+  qs += val;
+
+}
+
 inline void tLNode::setQsin( double val ) {qsin = val;}
 
 inline void tLNode::setQsin( size_t i, double val )
@@ -962,6 +990,32 @@ inline void tLNode::setQsin( tArray< double > const & q_ )
   qsin = tot;
 }
 
+inline void tLNode::setQsdin( double val ) {qsdin = val;}
+
+inline void tLNode::setQsdin( size_t i, double val )
+{
+  if(unlikely( (i>=numg) || (i>=qsdinm.getSize()) )) {
+    setQsdinErrorHandler( i );
+  }
+  qsdinm[i]=val;
+  double tot=0.;
+  for(size_t j=0; j<numg; j++)
+    tot+=qsdinm[j];
+  qsdin=tot;
+}
+
+inline void tLNode::setQsdin( tArray< double > const & q_ )
+{
+  assert( qsdinm.getSize() == q_.getSize() );
+
+  double tot = 0.;
+  for(size_t j=0; j<numg; j++) {
+    qsdinm[j] = q_[j];
+    tot += q_[j];
+  }
+  qsdin = tot;
+}
+
 inline void tLNode::addQsin( double val )
 {
   qsin += val;
@@ -976,17 +1030,17 @@ inline void tLNode::addQsin( size_t i, double val )
 
 }
 
-inline void tLNode::addQs( double val )
+inline void tLNode::addQsdin( double val )
 {
-  qs += val;
+  qsdin += val;
 }
 
-inline void tLNode::addQs( size_t i, double val )
+inline void tLNode::addQsdin( size_t i, double val )
 {
   if(unlikely(i>=numg))
     ReportFatalError( "Trying to index sediment sizes that don't exist ");
-  qsm[i] += val;
-  qs += val;
+  qsdinm[i] += val;
+  qsdin += val;
 
 }
 
@@ -1003,6 +1057,21 @@ inline tArray< double > const &
 tLNode::getQsinm( ) const
 {
   return qsinm;
+}
+
+inline double tLNode::getQsdin() const {return qsdin;}
+
+inline double tLNode::getQsdin( size_t i )
+{
+  if(unlikely(i>=numg))
+    ReportFatalError( "Trying to index sediment sizes that don't exist ");
+  return qsdinm[i];
+}
+
+inline tArray< double > const &
+tLNode::getQsdinm( ) const
+{
+  return qsdinm;
 }
 
 inline void tLNode::setGrade( size_t i, double size ) const
