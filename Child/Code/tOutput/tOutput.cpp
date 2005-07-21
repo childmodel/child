@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.102 2005-02-17 16:28:58 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.103 2005-07-21 19:33:54 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -390,8 +390,14 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
     this->CreateAndOpenFile( &flowpathlenofs, ".fplen" );
 
   // Sediment flux: if not using detachment-limited option
-  if( (opOpt = infile.ReadItem( opOpt, "OPTDETACHLIM" ) ) == 0)
-    this->CreateAndOpenFile( &qsofs, ".qs" );
+  if( (opOpt = infile.ReadItem( opOpt, "OPTDETACHLIM" ) ) == 0){
+     this->CreateAndOpenFile( &qsofs, ".qs" );
+     this->CreateAndOpenFile( &qsinofs, ".qsin" );
+     this->CreateAndOpenFile( &qsdinofs, ".qsdin" );
+     this->CreateAndOpenFile( &dzdtofs, ".dzdt" );
+  }  
+
+  this->CreateAndOpenFile( &upofs, ".up" );
 
   // If Rectangular Stratigraphy Grid, open several files
   // for writing the stratigraphy at fixed positions
@@ -492,6 +498,12 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
     this->WriteTimeNumberElements( flowpathlenofs, time, nnodes);
   if( qsofs.good() )
     this->WriteTimeNumberElements( qsofs, time, nnodes);
+  if( qsinofs.good() )
+    this->WriteTimeNumberElements( qsinofs, time, nnodes);
+  if( dzdtofs.good() )
+    this->WriteTimeNumberElements( dzdtofs, time, nnodes);
+  if( upofs.good() )
+    this->WriteTimeNumberElements( upofs, time, nnodes);
 
   // Write Random number generator state
   rand->dumpToFile( randomofs );
@@ -530,6 +542,10 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   if( chanwidthofs.good() ) chanwidthofs << std::flush;
   if( flowpathlenofs.good() ) flowpathlenofs << std::flush;
   if( qsofs.good() ) qsofs << std::flush;
+  if( qsinofs.good() ) qsinofs << std::flush;
+  if( qsdinofs.good() ) qsdinofs << std::flush;
+  if( upofs.good() ) upofs << std::flush;
+  if( dzdtofs.good() ) dzdtofs << std::flush;
 
   layofs.close();
   if( surfofs.good() )
