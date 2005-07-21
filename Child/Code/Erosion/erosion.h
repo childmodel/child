@@ -57,7 +57,7 @@
  **     - Added codes to go along with erosion & transport options, to
  **       enable checking against user-specified options (GT 7/02)
  **
- **  $Id: erosion.h,v 1.55 2004-04-27 10:40:20 childcvs Exp $
+ **  $Id: erosion.h,v 1.56 2005-07-21 19:30:24 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -189,6 +189,30 @@ private:
   double nf;  // Exponent on slope
   double pf;  // Excess shear exponent
   double tauc; // Entrainment threshold
+};
+
+/***************************************************************************/
+/**
+ **  @class tSedTransPwrLawSimp
+ **
+ **  Manages data and routines to compute sediment transport capacity as a
+ **  simple power function of slope and total discharge 
+ **  This is the ultra simple version put in for use with the sediment-flux
+ **  detachment models.
+ **    Qc = kf Q^mf S^nf
+ */
+/***************************************************************************/
+class tSedTransPwrLawSimp : public tSedTrans
+{
+public:
+  tSedTransPwrLawSimp( const tInputFile &infile );
+  double TransCapacity( tLNode * n );
+  double TransCapacity( tLNode *n, int i, double weight);
+
+private:
+  double kf;  // Transport capacity coefficient
+  double mf;  // Exponent on total discharge
+  double nf;  // Exponent on slope
 };
 
 
@@ -422,6 +446,85 @@ private:
   double taucd;  // Erosion threshold
 };
 
+/***************************************************************************/
+/**
+ **  @class tBedErodeAParabolic1
+ **
+ **  This function considers a variable erodibility as a function of the
+ **  ratio of incoming sediment load to transport capacity.
+ **  fqs = variable erodibility = f(Qs/Qc) following the function described
+ **  by Whipple and Tucker 2002, with a linear beginning to account for the 
+ **  case when there is no incoming sediment load, but there still may be
+ **  erosion.
+ **
+ **    tBedErodeAParabolic1:  erorate ~ K fqs tau 
+ **
+ **  Simplifications -> not using a threshold term - ever.
+ **  Assume that -> sediment transport capacity is already calculated.
+ **              -> sediment routing is properly taken care of.
+ **                  
+  **  Created: FEB 2004 NG
+ **
+ */
+/***************************************************************************/
+class tBedErodeAParabolic1 : public tBedErode
+{
+public:
+  tBedErodeAParabolic1( const tInputFile &infile );
+  //Computes depth of potential erosion at node n over time interval dt
+  double DetachCapacity( tLNode * n, double dt );
+  //Computes rate of potential erosion of layer i at node n
+  double DetachCapacity( tLNode * n, int i );
+  //Computes rate of erosion at node n
+  double DetachCapacity( tLNode * n );
+  //Returns an estimate of maximum stable & accurate time step size
+  double SetTimeStep( tLNode * n );
+
+private:
+  double kb;  // Erosion coefficient - get this from layer, but used for ts
+  double mb;  // Exponent on total discharge
+  double nb;  // Exponent on slope
+  double beta;  // fraction of sediment which is bedload
+
+};
+
+/***************************************************************************\
+ **  class tBedErodeGeneralFQS
+ **
+ **  E=K Qs/W (1- Qs/Qc ) A^m S^n
+ **
+ **  This function will never erode unless there is some source of sediment,
+ **  other than fluvial, to start up erosion.  This sediment comes from
+ **  diffusion and in order for proper accounting to take place, this function
+ **  should be used along with detachErode2.
+ **
+ **  ASSUMPTIONS - incoming sediment load from a different process in upper 
+ **                reaches - diffusion.
+ **              - transport capacity is set elsewhere.
+ **              - use hydraulic width => W = kb Q^b - calculated elsewhere.
+ **
+ **  created 01-2005 NMG
+ ***************************************************************************/
+class tBedErodeGeneralFQS : public tBedErode
+{
+public:
+   tBedErodeGeneralFQS( const tInputFile &infile );
+     //Computes depth of potential erosion at node n over time interval dt
+   double DetachCapacity( tLNode * nd, double dt );
+   //Computes rate of potential erosion of layer i at node n 
+   double DetachCapacity( tLNode * nd, int i );
+     //Computes rate of erosion at node n
+   double DetachCapacity( tLNode * nd );
+     //Does nothing but included in just in case it's needed in the future.
+   double SetTimeStep( tLNode * nd );
+
+  private:
+   double m;
+   double n;
+   double K;
+   double beta;
+   
+};
 
 /***************************************************************************/
 /**
@@ -435,28 +538,30 @@ private:
 /***************************************************************************/
 class tErosion
 {
-  tErosion(const tErosion&);
-  tErosion& operator=(const tErosion&);
-  tErosion();
+   tErosion(const tErosion&);
+   tErosion& operator=(const tErosion&);
+   tErosion();
 public:
-  tErosion( tMesh< tLNode > *, const tInputFile & );
-  ~tErosion();
-  void ErodeDetachLim( double dtg, tStreamNet *, tVegetation * );
-  void ErodeDetachLim( double dtg, tStreamNet *, tUplift const * );
-  void StreamErode( double dtg, tStreamNet * );
-  void StreamErodeMulti( double dtg, tStreamNet *, double time);
-  void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
-  void Diffuse( double dtg, bool detach );
-  void UpdateExposureTime( double dtg);
-  void DensifyMesh( double time );
-
+   tErosion( tMesh< tLNode > *, const tInputFile & );
+   ~tErosion();
+   void ErodeDetachLim( double dtg, tStreamNet *, tVegetation * );
+   void ErodeDetachLim( double dtg, tStreamNet *, tUplift const * );
+   void StreamErode( double dtg, tStreamNet * );
+   void StreamErodeMulti( double dtg, tStreamNet *, double time);
+   void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
+   void DetachErode2( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
+   void Diffuse( double dtg, bool detach );
+   void UpdateExposureTime( double dtg);
+   void DensifyMesh( double time );
+   
 private:
-  tMesh<tLNode> *meshPtr;    // ptr to mesh
-  tBedErode *bedErode;        // bed erosion object
-  tSedTrans *sedTrans;        // sediment transport object
-  double kd;                 // Hillslope transport (diffusion) coef
-  double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
-
+   tMesh<tLNode> *meshPtr;    // ptr to mesh
+   tBedErode *bedErode;        // bed erosion object
+   tSedTrans *sedTrans;        // sediment transport object
+   double kd;                 // Hillslope transport (diffusion) coef
+   double difThresh;          // Diffusion occurs only at areas < difThresh
+   double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
+   
 };
 
 
