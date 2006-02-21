@@ -48,7 +48,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.140 2005-07-21 19:32:22 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.141 2006-02-21 19:58:37 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -2187,7 +2187,7 @@ tErosion::~tErosion(){
 void tErosion::ErodeDetachLim( double dtg, tStreamNet *strmNet,
 			       tVegetation * /*pVegetation*/ )
 {
-  if(1) //DEBUG
+  if(0) //DEBUG
     std::cout<<"ErodeDetachLim...";
   double dt,
     dtmax; // time increment

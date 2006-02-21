@@ -32,7 +32,7 @@
 **     2200 Colorado Avenue, Campus Box 399
 **     Boulder, CO 80309-0399
 **
-**  $Id: childmain.cpp,v 1.29 2005-07-21 19:26:30 childcvs Exp $
+**  $Id: childmain.cpp,v 1.30 2006-02-21 19:58:37 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -248,7 +248,7 @@ OptTSOutput." );
       else{
          erosion.DetachErode( storm.getStormDuration(), &strmNet,
                              time.getCurrentTime(), vegetation );
-          // To use tools rules, you must use DetachErode2 NMG 07/05
+		 // To use tools rules, you must use DetachErode2 NMG 07/05
          //erosion.DetachErode2( storm.getStormDuration(), &strmNet,
          //                      time.getCurrentTime(), vegetation );
       }
