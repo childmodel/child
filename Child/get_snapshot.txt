@@ -1,10 +1,10 @@
 HOW TO DOWNLOAD A SNAPSHOT OF CHILD FROM THE BOULDER REPOSITORY
 
 G. Tucker, A. Desitter
-April, 2003
+February, 2005
 
 Updated:
-$Date: 2005-02-11 16:56:23 $
+$Date: 2006-04-24 23:08:42 $
 
 This describes the steps you need to take in order to obtain a snapshot
 of the CHILD source code and associated files from the code repository

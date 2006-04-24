@@ -20,11 +20,11 @@ WARNINGFLAGS += -Wold-style-cast
 #ARCH := -mcpu=G5 -mtune=G5 -mpowerpc64 -mpowerpc-gpopt
 ARCH :=
 # optimise
-#CFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH) -c
-#LDFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH)
+CFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH) -c
+LDFLAGS = $(WARNINGFLAGS) -g -O2 $(ARCH)
 # no optimisation, build is faster
-CFLAGS = $(WARNINGFLAGS) -g $(ARCH) -c
-LDFLAGS = $(WARNINGFLAGS) -g $(ARCH)
+#CFLAGS = $(WARNINGFLAGS) -g $(ARCH) -c
+#LDFLAGS = $(WARNINGFLAGS) -g $(ARCH)
 LIBS =
 
 LDFLAGS += -o $@
