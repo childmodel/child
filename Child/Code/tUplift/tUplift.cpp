@@ -3,7 +3,10 @@
 **  @file tUplift.cpp
 **  @brief Functions for class tUplift (see tUplift.h).
 **
-**  $Id: tUplift.cpp,v 1.31 2005-07-21 19:23:24 childcvs Exp $
+**  Major modifications:
+**   - GT added UpliftRateMap functions, June 2006.
+**
+**  $Id: tUplift.cpp,v 1.32 2006-07-06 15:14:15 childcvs Exp $
 */
 /************************************************************************/
 
@@ -30,7 +33,7 @@
 **
 \************************************************************************/
 tUplift::tUplift_t tUplift::DecodeType(int type){
-   if( type < 0 || type > 11 )
+   if( type < 0 || type > 12 )
    {
       std::cerr << "I don't recognize the uplift type you asked for ("
                 << type << ")\n"
@@ -46,7 +49,8 @@ tUplift::tUplift_t tUplift::DecodeType(int type){
           " 8 - Fault bend fold\n"
           " 9 - Back-tilting normal fault block\n"
           " 10 - Linear change in uplift rate\n"
-          " 11 - Power law change in uplift rate in the y-direction\n";
+          " 11 - Power law change in uplift rate in the y-direction\n"
+	  " 12 - Uplift rate maps in separate files\n";
       ReportFatalError( "Please specify a valid uplift type and try again." );
    }
    return static_cast<tUplift_t>(type);
@@ -151,6 +155,22 @@ tUplift::tUplift( const tInputFile &infile ) :
           decayParam = infile.ReadItem( decayParam, "DECAY_PARAM_UPLIFT" );
           width = infile.ReadItem( width, "Y_GRID_SIZE" );
           break;
+      case k12:
+	char timesFileName[120];
+	std::ifstream upliftTimeFile;
+	miNumUpliftMaps = infile.ReadItem( miNumUpliftMaps, "NUMUPLIFTMAPS" );
+	infile.ReadItem( mUpliftMapFilename, sizeof(mUpliftMapFilename), "UPMAPFILENAME" );
+	infile.ReadItem( timesFileName, sizeof(timesFileName), "UPTIMEFILENAME" );
+	upliftTimeFile.open( timesFileName );
+	if( !upliftTimeFile.good() )
+	  ReportFatalError("Unable to open file containing uplift map times.");
+	mUpliftMapTimes.setSize( miNumUpliftMaps );
+	mdNextUpliftMapTime = 0.0;
+	miCurUpliftMapNum = 0;
+	for( int i=0; i<miNumUpliftMaps; i++ )
+	  upliftTimeFile >> mUpliftMapTimes[i];
+	upliftTimeFile.close();
+	break;
    }
    
 }
@@ -209,6 +229,9 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
       case k11:
           PowerLawUplift( mp, delt );
           break;
+      case k12:
+          UpliftRateMap( mp, delt, currentTime );
+	  break;
    }
    
 }
@@ -821,6 +844,81 @@ void tUplift::LinearUplift( tMesh<tLNode> *mp, double delt )
          cn->ChangeZ( uprate*delt );
    }
 }
+
+
+/************************************************************************\
+**
+**  tUplift::UpliftRateMap
+**
+**  Uplift rate field is given in a separate file for each of a series
+**  of one or more time intervals.
+**
+**  Inputs:  mp -- pointer to the mesh
+**           delt -- duration of uplift
+**           currentTime -- current time in simulation
+**
+\************************************************************************/
+void tUplift::UpliftRateMap( tMesh<tLNode> *mp, double delt, double currentTime )
+{
+  if(1) std::cout << "Greetings from tUplift::UpliftRateMap" << std::endl;
+
+  // Is it time to read in a new uplift rate map? If so, do so.
+  if( currentTime>=mdNextUpliftMapTime && miCurUpliftMapNum<miNumUpliftMaps )
+  {
+    if(1) std::cout << "It's " << currentTime << " and time for a new rate map" << std::endl;
+    
+    // Remember the current map number and time at which we read the next one
+    mdNextUpliftMapTime = mUpliftMapTimes[miCurUpliftMapNum];
+    miCurUpliftMapNum++;
+    if(1) std::cout << "The next read will be at " << mdNextUpliftMapTime << std::endl;
+
+    // Put together the name of the file containing the new uplift rate map,
+    // and open it for reading. (This operation assumes 3 digit file extn.
+    // It also assumes int cast acts as "floor" function.)
+    std::ifstream upliftRateMapFile;
+    char myfilename[120];
+    const char* const nums("0123456789");
+    strcpy( myfilename, mUpliftMapFilename );  // start w/ base name...
+    strncat(myfilename, &nums[static_cast<int>( static_cast<double>(miCurUpliftMapNum/100.0) )], 1);
+    strncat(myfilename, &nums[static_cast<int>( fmod(static_cast<double>(miCurUpliftMapNum),100.0)/10.0 )], 1);
+    strncat(myfilename, &nums[static_cast<int>( fmod(static_cast<double>(miCurUpliftMapNum),10.0) )], 1);
+    upliftRateMapFile.open( myfilename );
+    if( !upliftRateMapFile.good() )
+      ReportFatalError("Unable to open uplift rate map file.");
+
+    if(0) std::cout << "The name we want to read is <" << myfilename << ">" << std::endl;
+
+    // Read the contents of the file and store uplift rate for each node.
+    // But first we renumber node IDs "canonically", meaning ordered by 
+    // coordinate. This is handled using Arnaud's method, in which an object
+    // of type tIdArrayNode_t contains a list of nodes arranged according to
+    // ID number.
+    const int nnodes = mp->getNodeList()->getSize();  // # of nodes on list
+    mp->RenumberIDCanonically();
+    const tMesh< tLNode >::tIdArrayNode_t  RNode(*(mp->getNodeList()));
+    for( int j=0; j<nnodes; j++ )
+    {
+      tLNode *cn;
+      double local_uplift_rate;
+      cn = RNode[j];
+      upliftRateMapFile >> local_uplift_rate;
+      cn->setUplift( local_uplift_rate );
+    }
+    
+  } // end if
+
+
+  // Now, let's do some uplift ...
+  tLNode *cn;
+  tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+  double uprate;
+  for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+  {
+    uprate = cn->getUplift();
+    cn->ChangeZ( uprate*delt );
+  }
+
+} // end of tUplift::UpliftRateMap
 
 
 /************************************************************************\

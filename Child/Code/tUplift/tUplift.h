@@ -24,8 +24,9 @@
 **  Major modifications:
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **    - added FaultBendFold function (srm, August 2002)
+**    - added UpliftRateMap functions (GT, June 2006)
 **
-**  $Id: tUplift.h,v 1.23 2005-07-21 19:21:49 childcvs Exp $
+**  $Id: tUplift.h,v 1.24 2006-07-06 15:14:15 childcvs Exp $
 */
 /************************************************************************/
 
@@ -56,6 +57,7 @@ private:
    void NormalFaultTiltAccel( tMesh<tLNode> *mp, double delt, double currentTime ) const;
    void LinearUplift( tMesh<tLNode> *mp, double delt );
    void PowerLawUplift( tMesh<tLNode> *mp, double delt );
+   void UpliftRateMap( tMesh<tLNode> *mp, double delt, double currentTime );
    
 private:
    typedef enum {
@@ -70,7 +72,8 @@ private:
        k8,
        k9,
        k10,
-       k11
+       k11,
+       k12
    } tUplift_t;
    
    static tUplift_t DecodeType(int);
@@ -98,7 +101,11 @@ private:
    double width;  //y-size of mesh, needed for setting up linear uplift change
    double dupdy;  //change in uplift with y for linear uplift change
    int optincrease; //for linear uplift change - 0=>dec to mtn frnt, 1=>inc to mtn frnt
-   
+   char mUpliftMapFilename[120]; // Name for files containing uplift maps
+   int miNumUpliftMaps;     // Number of uplift maps
+   tArray<double> mUpliftMapTimes; // Time corresponding to each uplift map
+   int miCurUpliftMapNum;  // Current uplift map number
+   double mdNextUpliftMapTime; // Time at which to read next map
    
 private:
    tUplift();
