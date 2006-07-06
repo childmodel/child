@@ -48,7 +48,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.141 2006-02-21 19:58:37 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.142 2006-07-06 15:17:22 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -2923,19 +2923,34 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
     tLNode * inletNode = strmNet->getInletNodePtrNC();
     double insedloadtotal = strmNet->getInSedLoad();
 	int debugCount = 0;
-
+        
     cn = ni.FirstP();
 
     tArray <double> ret( cn->getNumg() ); //amt actually ero'd/dep'd
     tArray <double> erolist( cn->getNumg() );
     const tArray <double> sedzero( cn->getNumg() );
     tArray <double> insed( strmNet->getInSedLoadm() );
+    tArray <double> inletBedSizeFraction( strmNet->getInletSedSizeFraction() );  // TEMP 6/06: stores desired bed sed proportions at inlet
+                                                    // fractions must sum to 1 in input file (INSED1, INSED2, etc)
+    double inletSlope = strmNet->getInletSlope();
+    
+    //DEBUGGING 
+    if( 0 ) {
+        std::cout<<"inletSlope = "<< inletSlope <<std::endl;
+        for( size_t i=0; i<cn->getNumg(); i++ )
+            std::cout<<"sedfrac "<<i<<"="<<inletBedSizeFraction[i]<<std::endl;
+        }
 
+    // New stuff in progress for dynamic calculation of sed influx at inlet, 5/06
+    // Here's what we need: modify tStreamNet to add a function that returns a ref or ptr to the inlet.
+    // Use this to access sed influx info for the inlet.
+    // Modify code to set erodibility of inlet node to zero, and compute sed influx before loop using call to 
+    // TransCapacity. Assign these fluxes to insed ... etc.
+    
     // Sort so that we always work in upstream to downstream order
     strmNet->SortNodesByNetOrder();
     strmNet->FindChanGeom();
     strmNet->FindHydrGeom();
-
 
     // Compute erosion and/or deposition until all of the elapsed time (dtg)
     // is used up
@@ -2944,6 +2959,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 	// Zero out sed influx of all sizes
 	for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
 	  {
+            if(0 && cn==inletNode ) std::cout<<"top loop ID="<<cn->getID()<<std::endl;
             cn->setQs(0.0);
             if( cn!=inletNode )
 	      {
@@ -2953,14 +2969,73 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
                   cn->setQs(i,0.0);
 		}
 	      }
-            else
+            else  // TEMPORARY MODIFICATIONS FOR TEST, 5/06:  
+                // AND SET SLOPE TO A FIXED VALUE
 	      {
-		cn->setQsin(insedloadtotal); //totals are for ts calculation
-		cn->setQsin( insed );
-		for( size_t i=0; i<cn->getNumg(); i++ ){
-                  cn->setQs(i,0.0);
-		  //std::cout << "inlet qsin size " << i << "=" << insed[i] << std::endl;
-		}
+		// We set the inlet node's erodibility values (for each layer) to zero so it can't be eroded.
+                // Also set the grain-size distribution in the upper layers to the values specified in the input 		// file by INSED1, 2, etc. Variable inletBedSizeFraction contains INSED1, 2, etc, which are
+                // assumed to be fractions that sum to 1.0 (the user can screw this up ... it isn't checked!)	
+                size_t numLayersInlet = cn->getNumLayer();
+                if(0) std::cout<<numLayersInlet<<" lay inlt\n";
+                for( size_t i=0; i<numLayersInlet; i++ ) {
+                    cn->setLayerErody( i, 0.0 );
+                    double layThick = cn->getLayerDepth(i);
+                    for( size_t j=0; j<cn->getNumg(); j++ ) {
+                        if(0) std::cout<<"set lay "<<i<<", with thickness " << layThick <<", size "<<j<<" to "<< layThick*inletBedSizeFraction[j] << std::endl;
+                        cn->setLayerDgrade(i,j,layThick*inletBedSizeFraction[j] );
+                    }
+                }
+                
+                // zero out Qs for each size class
+                for( size_t i=0; i<cn->getNumg(); i++ ) {
+                  cn->setQs(i,0.0);  
+                }
+                
+                // Now we adjust the elevation of the inlet node so that it has the user-defined slope
+                double zdown = cn->getDownstrmNbr()->getZ(); //TEMP TEST
+                double len = cn->getFlowEdg()->getLength();   // TEMP TEST
+                
+                //Xdouble temporary_myslope = 0.05;  // Ultimately, read this from input file
+                cn->ChangeZ( (zdown+len*inletSlope)-cn->getZ() );
+                                  
+                // Next, we call TransCapacity, which automatically sets Qs in each size class
+                insedloadtotal = sedTrans->TransCapacity( cn, 0, 1.0 );
+                if(0) std::cout<<"inlet capacity="<<insedloadtotal<<std::endl;
+                
+                // Store Qs for each size class in the "insed" array so we can assign these to Qsin
+                for( size_t i=0; i<cn->getNumg(); i++ ) {
+                    insed[i] = cn->getQs(i);   // Capacity for i-th size fraction
+                    if(0) std::cout<<" insed["<<i<<"]="<<insed[i]<<std::endl;
+                }
+                
+                // Now, we set the influxes at the inlet node, both total and per-size, to the capacity values we		// just calculated and stored
+                cn->setQsin( insedloadtotal ); // here's the total influx
+		cn->setQsin( insed );  // ... and the per-size influx
+                
+                //double zdown = cn->getDownstrmNbr()->getZ(); //TEMP TEST
+                //double len = cn->getFlowEdg()->getLength();   // TEMP TEST
+                //double myslope = 0.025; //TEMP TEST
+                //tArray <double> testdz(cn->getNumg() );  //TEMP TEST
+                //double testdztotal = zdown+myslope*len - cn->getZ(); //TEMp TEST
+                //if( 1 ) std::cout<<"adj inlt "<<testdztotal;
+                //for( size_t kk=0; kk<cn->getNumg(); kk++ ) //TEMP TEST
+                //{
+                  //  testdz[kk] = testdztotal*(insed[kk]/insedloadtotal ); //TEMP TEST
+                    //std::cout<<" kk="<<kk<< "testdz="<<testdz[kk];
+                //}
+                //if( 1 ) std::cout<<std::endl;
+                //cn->EroDep( 0, testdz, timegb );  //TEMP TEST
+                //if( 1 ) std::cout<<"nl="<<cn->getNumLayer()<<" thick="<<cn->getLayerDepth(0)<<std::endl;
+                //cn->setLayerDepth( nl, 100000.0 ); //TEMP TEST
+                //cn->setLayerErody( 0, 1e6 ); //TEMP TEST
+                //cn->setLayerErody( 1, 1e6 ); //TEMP TEST
+                //if(1) std::cout << "inletnode elev " << cn->getZ() << " dsnbr " << zdown << " len " << len << " slp " << (cn->getZ()-zdown)/len << std::endl;
+		//for( size_t i=0; i<cn->getNumg(); i++ ){
+                  //cn->setQs(i,0.0);
+                  //cn->setLayerDgrade(0,i,cn->getLayerDepth(0)*(insed[i]/insedloadtotal) ); //TEMP TEST
+                  //if( cn->getNumLayer()>1) cn->setLayerDgrade(1,i,cn->getLayerDepth(1)*(insed[i]/insedloadtotal) ); //TEMP TEST 
+		  //std::cout << "inlet size " << i << "=" << cn->getLayerDgrade(0,i) << std::endl;
+		//}
 	      }
 	  }
 
@@ -2988,9 +3063,11 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
                   //sum of qs of each grain size.
                   //qs returned is in m^3/yr; qs stored in tLNode has same units
                   qs+=sedTrans->TransCapacity(cn,i,cn->getLayerDepth(i)/cn->getChanDepth());
+                  if(0&&cn==inletNode) std::cout<<"1depck="<<depck<<" qs="<<qs<<"wt="<<cn->getLayerDepth(i)/cn->getChanDepth()<<" qs/wt="<<qs/(cn->getLayerDepth(i)/cn->getChanDepth())<<std::endl;
 		}
 		else{
                   qs+=sedTrans->TransCapacity(cn,i,1-(depck/cn->getChanDepth()));
+                  if(0&&cn==inletNode) std::cout<<"2depck="<<depck<<" qs="<<qs<<" wt="<< 1-(depck/cn->getChanDepth())<< " qs/wt="<<qs/(depck/cn->getChanDepth())<<std::endl;
 		}
 		depck+=cn->getLayerDepth(i); //need to keep this here for qs calc
 		i++;
@@ -3006,15 +3083,11 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 	      drdt=-bedErode->DetachCapacity( cn, i-1 );
             else
 	      drdt=-bedErode->DetachCapacity( cn, i );//[m^3/yr]
+              
+            //if( cn==inletNode ) drdt = -1e6;  // TEMP TEST
 
             cn->setDrDt(drdt);
             cn->setDzDt(drdt);
-
-	    /*std::cout << "*** EROSION ***\n";
-	      if( cn->getID()==342 ) {
-	      std::cout << "**** Trans Cap 342 = " << qs << std::endl;
-	      cn->TellAll();
-	      }*/
 
             excap=(qs - cn->getQsin())/cn->getVArea();//[m/yr]
             //excap negative = deposition; positive = erosion
@@ -3025,6 +3098,13 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 	      cn->setDzDt(-excap);
             }
             cn->getDownstrmNbr()->addQsin(cn->getQsin()-cn->getDzDt()*cn->getVArea());
+            
+	    //std::cout << "*** EROSION ***\n";
+            if( 0 && cn==inletNode ) {
+	      std::cout << "Trans Cap inlet = " << qs << "excap=" << excap << " drdt=" << drdt<< "DzDt=" << cn->getDzDt() << std::endl;
+	      //cn->TellAll();
+	      }
+
 	  }//ends for( cn = ni.FirstP...
 
 	//Find local time-step based on dzdt
@@ -3041,6 +3121,11 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
             else
 	      {
 		cn->setQsin( insed );
+                if(0) {
+                    std::cout<<"Inlet qsin set to:\n";
+                    for( size_t i=0; i<cn->getNumg(); i++ )
+                        std::cout<< " "<<i<<"="<<insed[i]<<std::endl;
+                }
 	      }
 
             dn = cn->getDownstrmNbr();
@@ -3120,10 +3205,15 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
               l0 = cn->getLayerDgrade(0,0);
               l1 = cn->getLayerDgrade(0,1);
               }*/
+            if( 0 && cn==inletNode ) {
+	      std::cout << "dz inlet = " << dz << " dz/dt=" << dz/dtmax << std::endl;
+	      //cn->TellAll();
+	      }
 
             if( dz<0 ) //total erosion
 	      {
 		if(!flag){ // detach-lim
+                  if(0 && cn==inletNode) std::cout << "dlim\n" << std::endl;
                   int i=0;
                   depck=0.;
                   while(dz<-0.000000001&&depck<cn->getChanDepth()&&i<cn->getNumLayer()){
@@ -3138,10 +3228,14 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 			  cn->setQs(j,0.0);
 			}
 		      }
-		      ret=cn->EroDep(i,erolist,timegb);
-		      for(size_t j=0;j<cn->getNumg();j++){
-			cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
-		      }
+                      if( 0 && cn==inletNode ) std::cout<<"NO ero "<<dz<<" from lyr "<<i<<std::endl;
+                      if( cn!=inletNode )  //TEMP 6/06
+                      { 
+                        ret=cn->EroDep(i,erolist,timegb); //ORIGINAL
+		        for(size_t j=0;j<cn->getNumg();j++){ //ORIGINAL
+			  cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax); //ORIGINAL
+		        } //ORIGINAL
+                      } //TEMP 6/06
 		      dz=0.;
 		    }
 		    else{//top layer is not deep enough, need to erode more layers
@@ -3161,10 +3255,14 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 			}
 			dz-=erolist[j];
 		      }
-		      ret=cn->EroDep(i,erolist,timegb);
-		      for(size_t j=0;j<cn->getNumg();j++){
-			//if * operator was overloaded for arrays, no loop necessary
-			cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+                      if( 0 && cn==inletNode ) std::cout<<"NO Ero "<<erolist[0]<<"+"<<erolist[1]<<"="<<erolist[0]+erolist[1]<<" from lyr "<<i<<std::endl;
+                      if( cn!=inletNode ) //TEMP 6/06
+                      {
+		        ret=cn->EroDep(i,erolist,timegb);
+                        for(size_t j=0;j<cn->getNumg();j++){
+			 //if * operator was overloaded for arrays, no loop necessary
+			 cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+                        }
 		      }
 		      if(flag){
 			i++;
@@ -3173,30 +3271,37 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
                   }
 		}
 		else{//trans-lim
-                  //std::cout<<"X "<<cn->getX()<<" Y "<<cn->getY();
+                  if( 0 && cn==inletNode ) std::cout<<"Inlet X "<<cn->getX()<<" Y "<<cn->getY() <<" tlim\n";
                   for(size_t j=0;j<cn->getNumg();j++){
 		    erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
-		    // std::cout<<" j "<<j<<" "<<erolist[j];
+		    if( 0 && cn==inletNode ) std::cout<<" j "<<j<<" "<<erolist[j];
                   }
-                  //std::cout<<std::endl;
+                  if( 0 && cn==inletNode ) std::cout<<"."<<std::endl;
 
                   int i=0;
                   depck=0.;
                   while(depck<cn->getChanDepth()){
 		    depck+=cn->getLayerDepth(i);
 		    int flag=cn->getNumLayer();
-		    ret=cn->EroDep(i,erolist,timegb);
-		    double sum=0.;
-		    for(size_t j=0;j<cn->getNumg();j++){
-		      cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
-		      erolist[j]-=ret[j];
-		      sum+=erolist[j];
-		    }
-		    if(sum>-0.0000001)
-		      depck=cn->getChanDepth();
-		    if(flag==cn->getNumLayer())
-		      i++;
-                  }
+                    if( 0 && cn==inletNode ) std::cout<<"NO depck="<<depck<<" numLayer="<<flag<<" i="<<i<<std::endl;
+		    if( cn!=inletNode)  // JUNE 06 TEMP HACK: DON"T ERODE INLET!
+                    {
+                      ret=cn->EroDep(i,erolist,timegb);
+                      //if( 1 && cn==inletNode ) std::cout<<"ret0="<<ret[0]<<" ret1="<<ret[1]<<std::endl;
+		      double sum=0.;
+		      for(size_t j=0;j<cn->getNumg();j++){
+		        cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+		        erolist[j]-=ret[j];
+		        sum+=erolist[j];
+		      }
+                      if( 0 && cn==inletNode ) std::cout<<"end for loop"<<std::endl;
+		      if(sum>-0.0000001)
+		        depck=cn->getChanDepth();
+		      if(flag==cn->getNumLayer())
+		        i++;
+                    } // END TEMP HACK BRACKETS (INTERIOR IS ORIGINAL)
+                    if( 0 && cn==inletNode ) std::cout<<"end while loop"<<std::endl;
+                  } //end while
 		}//end if( trans-limited )
 	      }//ends(if dz<0)
             else if(dz>0) //total deposition -> need if cause erodep chokes with 0
@@ -3204,12 +3309,17 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 		//Get texture of stuff to be deposited
 		for(size_t j=0;j<cn->getNumg();j++)
 		  erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
-		ret=cn->EroDep(0,erolist,timegb);
-		for(size_t j=0;j<cn->getNumg();j++){
-                  cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
-		}
-
+                if(0 && cn==inletNode ) std::cout<<"NOT about to erodep inlet\n";
+                if( cn!=inletNode ) //CLAUSE ADDED TEMP 6/06 (INTERIOR IS ORIGINAL)
+                {
+                  ret=cn->EroDep(0,erolist,timegb);
+		  for(size_t j=0;j<cn->getNumg();j++){
+                    cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+		  }
+                }
 	      }
+              
+              if( 0 && cn==inletNode ) std::cout<<"end of node FOR loop\n";
 
 	  } // Ends for( cn = ni.FirstP()...
 
@@ -3235,7 +3345,8 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
   }//end if rainrate-infilt>0
 
 
-   //std::cout<<"ending detach erode"<<std::endl;
+   if(0) std::cout<<"ending detach erode"<<std::endl;
+   
 }// End erosion algorithm
 
 /***********************************************************************\
