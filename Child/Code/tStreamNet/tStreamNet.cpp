@@ -11,7 +11,7 @@
 **       channel model GT
 **     - 2/02 changes to tParkerChannels, tInlet GT
 **
-**  $Id: tStreamNet.cpp,v 1.83 2005-02-20 20:24:07 childcvs Exp $
+**  $Id: tStreamNet.cpp,v 1.84 2006-11-12 23:39:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -310,6 +310,10 @@ tArray< double > tStreamNet::getInSedLoadm( ) const {return inlet.inSedLoadm;}
 
 tLNode const *tStreamNet::getInletNodePtr() const {return inlet.innode;}
 tLNode *tStreamNet::getInletNodePtrNC() {   return inlet.innode;}
+
+double tStreamNet::getInletSlope() const { return inlet.inletSlope; }
+
+tArray< double > tStreamNet::getInletSedSizeFraction() const {return inlet.inletSedSizeFraction; }
 
 //double tStreamNet::getMndrDirChngProb() const {return mndrDirChngProb;}
 
@@ -3020,11 +3024,15 @@ void tStreamNet::DensifyMeshDrArea( double time )
 **      ,and not interpolating using the nodes of the surrounding triangles
 **      because this may lead to a resultant elevation of the inlet which
 **      is lower than its direct surroundings, making it a pond. (QC)
+**    - 5/06 added code to tInlet to handle option of having sediment
+**      influx computed for each storm based on prescribed slope and
+**      bed grain-size distribution at the inlet (GT)
 **
 \**************************************************************************/
 
 tInlet::tInlet() :
-  innode(0), inDrArea(0.), inSedLoad(0.), inSedLoadm(), meshPtr(0)
+  innode(0), inDrArea(0.), inSedLoad(0.), inSedLoadm(), meshPtr(0),
+  optCalcSedFeed(false), inletSlope(0.), inletSedSizeFraction(0)
 {}
 
 #define LARGE_DISTANCE 1e9
@@ -3065,10 +3073,26 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
      strcpy( tagline, "INSEDLOAD0" );
      lastdigit = '0';
       inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
+      
+      // Stuff related to option for dynamic calculation of sediment influx at inlet
+      optCalcSedFeed = infile.ReadItem( optCalcSedFeed, "INLET_OPTCALCSEDFEED" );
+      if( optCalcSedFeed ) 
+      {
+        inletSlope = infile.ReadItem( inletSlope, "INLET_SLOPE" );
+        inletSedSizeFraction.setSize(numg);
+      }
+      else
+      {
+        inletSlope = 0;
+        inletSedSizeFraction.setSize(0);
+      }
+      
+      // Read parameters related to sediment influx (either option)
       if(numg <= 1)
 	{
           inSedLoad = infile.ReadItem( inSedLoad, "INSEDLOAD" );
 	  inSedLoadm[0] = inSedLoad;
+          if( optCalcSedFeed ) inletSedSizeFraction[0] = 1.0;
 	}
       else{
          inSedLoadm.setSize(numg);
@@ -3092,6 +3116,8 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
 	      std::cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i]<<std::endl;
             //i++;
             //end++;
+            if( optCalcSedFeed )
+                inletSedSizeFraction[i] = inSedLoadm[i];
          }
       }
 

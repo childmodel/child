@@ -25,8 +25,11 @@
 **  Modifications:
 **   - added new class tParkerChannels to implement Parker-Paola
 **     channel geometry model (GT 6/01)
+**   - added option to tInlet to have sediment influx calculated for each
+**     storm, based on a prescribed slope and bed grain-size distribution.
+**     (GT 5/06)
 **
-**  $Id: tStreamNet.h,v 1.64 2005-03-15 17:17:30 childcvs Exp $
+**  $Id: tStreamNet.h,v 1.65 2006-11-12 23:39:46 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -84,6 +87,11 @@ private:
     double inSedLoad; // total sediment load
     tArray< double > inSedLoadm; // incoming sediment load if multi-sizes
     tMesh< tLNode > *meshPtr;  // ptr to mesh
+    
+    // IN PROGRESS: ALTERNATIVE HANDLING OF SED FEED, MAY 06
+    bool optCalcSedFeed;  // Option to calculate sediment influx based on prescribed gradient & bed grain sizes
+    double inletSlope;    // Fixed slope for inlet, if used
+    tArray<double> inletSedSizeFraction;  // Proportion of each sediment class on bed at inlet
     
 };
 
@@ -215,6 +223,8 @@ public:
     tArray< double > getInSedLoadm() const;
     tLNode const *getInletNodePtr() const;
     tLNode *getInletNodePtrNC();
+    double getInletSlope() const;   // Returns slope of inlet node if fixed slope option is used
+    tArray< double > getInletSedSizeFraction() const;  // Returns sed size fractions on bed of inlet node if appl.
     void setFlowGenOpt( kFlowGen_t );
     void setFillLakesOpt( bool );
     void setRainRate( double );
