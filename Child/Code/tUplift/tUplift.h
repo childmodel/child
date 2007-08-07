@@ -25,8 +25,9 @@
 **    - added StrikeSlip and FoldPropErf functions (gt, May 2000)
 **    - added FaultBendFold function (srm, August 2002)
 **    - added UpliftRateMap functions (GT, June 2006)
+**    - added PropagatingFront function (GT & BY, Julu 2007)
 **
-**  $Id: tUplift.h,v 1.24 2006-07-06 15:14:15 childcvs Exp $
+**  $Id: tUplift.h,v 1.25 2007-08-07 15:20:47 childcvs Exp $
 */
 /************************************************************************/
 
@@ -58,6 +59,7 @@ private:
    void LinearUplift( tMesh<tLNode> *mp, double delt );
    void PowerLawUplift( tMesh<tLNode> *mp, double delt );
    void UpliftRateMap( tMesh<tLNode> *mp, double delt, double currentTime );
+   void PropagatingFront( tMesh<tLNode> *mp, double delt, double currentTime );
    
 private:
    typedef enum {
@@ -73,7 +75,8 @@ private:
        k9,
        k10,
        k11,
-       k12
+       k12,
+	   k13
    } tUplift_t;
    
    static tUplift_t DecodeType(int);
@@ -106,6 +109,7 @@ private:
    tArray<double> mUpliftMapTimes; // Time corresponding to each uplift map
    int miCurUpliftMapNum;  // Current uplift map number
    double mdNextUpliftMapTime; // Time at which to read next map
+   double mdUpliftFrontGradient; // Horizontal gradient (dy/dx) of propagating uplift front
    
 private:
    tUplift();

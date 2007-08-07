@@ -5,8 +5,9 @@
 **
 **  Major modifications:
 **   - GT added UpliftRateMap functions, June 2006.
+**  - added PropagatingFront function (GT & BY, Julu 2007)
 **
-**  $Id: tUplift.cpp,v 1.32 2006-07-06 15:14:15 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.33 2007-08-07 15:20:47 childcvs Exp $
 */
 /************************************************************************/
 
@@ -33,7 +34,7 @@
 **
 \************************************************************************/
 tUplift::tUplift_t tUplift::DecodeType(int type){
-   if( type < 0 || type > 12 )
+   if( type < 0 || type > 13 )
    {
       std::cerr << "I don't recognize the uplift type you asked for ("
                 << type << ")\n"
@@ -50,7 +51,8 @@ tUplift::tUplift_t tUplift::DecodeType(int type){
           " 9 - Back-tilting normal fault block\n"
           " 10 - Linear change in uplift rate\n"
           " 11 - Power law change in uplift rate in the y-direction\n"
-	  " 12 - Uplift rate maps in separate files\n";
+	      " 12 - Uplift rate maps in separate files\n"
+		  " 13 - Propagating horizontal front\n";
       ReportFatalError( "Please specify a valid uplift type and try again." );
    }
    return static_cast<tUplift_t>(type);
@@ -155,8 +157,9 @@ tUplift::tUplift( const tInputFile &infile ) :
           decayParam = infile.ReadItem( decayParam, "DECAY_PARAM_UPLIFT" );
           width = infile.ReadItem( width, "Y_GRID_SIZE" );
           break;
-      case k12:
-	char timesFileName[120];
+      /*CASE k12 in progress -- commented out for now!
+	  case k12:
+		  char timesFileName[120];
 	std::ifstream upliftTimeFile;
 	miNumUpliftMaps = infile.ReadItem( miNumUpliftMaps, "NUMUPLIFTMAPS" );
 	infile.ReadItem( mUpliftMapFilename, sizeof(mUpliftMapFilename), "UPMAPFILENAME" );
@@ -170,7 +173,12 @@ tUplift::tUplift( const tInputFile &infile ) :
 	for( int i=0; i<miNumUpliftMaps; i++ )
 	  upliftTimeFile >> mUpliftMapTimes[i];
 	upliftTimeFile.close();
-	break;
+	break;*/
+		case k13:
+			rate2 = infile.ReadItem( rate2, "FRONT_PROP_RATE" );
+			mdUpliftFrontGradient = infile.ReadItem( mdUpliftFrontGradient, "UPLIFT_FRONT_GRADIENT" );
+			width = infile.ReadItem( width, "STARTING_YCOORD" );
+			break;
    }
    
 }
@@ -231,7 +239,10 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
           break;
       case k12:
           UpliftRateMap( mp, delt, currentTime );
-	  break;
+		  break;
+	  case k13:
+		  PropagatingFront( mp, delt, currentTime );
+	      break;
    }
    
 }
@@ -919,6 +930,55 @@ void tUplift::UpliftRateMap( tMesh<tLNode> *mp, double delt, double currentTime 
   }
 
 } // end of tUplift::UpliftRateMap
+
+
+/************************************************************************\
+**
+**  tUplift::PropagatingFront
+**
+**  This function defines a region of constant uplift rate separated from
+**  a non-uplifting region by a front that propagates in the +x, -y
+**  direction through time at a specified rate.
+**
+**  Created by GT and BY to act as an idealized model for Taiwan.
+**
+**  Internal parameters in tUplift:
+**    rate = the uplift rate within the region of active uplift
+**    rate2 = the rate of front propagation in the -y direction
+**    width = the starting y-coordinate (normally this will be the edge
+**            of the mesh)
+**    mdUpliftFrontGradient = this defines the azimuth of the uplift
+**            front. If zero, the front is parallel to the x-axis. If
+**            positive, it angles away from the open boundary (if there
+**            is one). The idea is that this captures (crudely) the
+**            north-to-south propagation of wedge growth in Taiwan.
+**
+**  Inputs:  mp -- pointer to the mesh
+**           delt -- duration of uplift
+**           currentTime -- current time in simulation
+**
+\************************************************************************/
+void tUplift::PropagatingFront( tMesh<tLNode> *mp, double delt, double currentTime )
+{
+   assert( mp!=0 );
+   tLNode *cn;
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+   const double rise = rate*delt;
+
+   if (0) //DEBUG
+     std::cout << "****Prop_front: " << rise << std::endl;
+
+   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+   {
+	  if( cn->getY() > (width-rate2*currentTime)+mdUpliftFrontGradient*cn->getX() )
+	  {
+         cn->ChangeZ( rise );
+         cn->setUplift( rate );
+	  }
+   }
+
+}
+
 
 
 /************************************************************************\
