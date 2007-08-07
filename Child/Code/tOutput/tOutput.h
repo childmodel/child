@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.56 2005-07-21 19:34:44 childcvs Exp $
+ **  $Id: tOutput.h,v 1.57 2007-08-07 15:15:19 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -246,12 +246,20 @@ inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
 	   << cn->getLayerEtime(i) << '\n'
 	   << cn->getLayerDepth(i) << ' ' << cn->getLayerErody(i) << ' '
 	   << cn->getLayerSed(i) << '\n';
-    size_t j=0;
-    while(j<cn->getNumg()){
-      layofs << cn->getLayerDgrade(i,j) << ' ';
-      j++;
-    }
-    layofs << '\n';
+	
+	// Grain size data: write "dgrade" info for sizes 2 to NUMG (the 1st can then be
+	// retrieved as 1 minus the sum of the others). GT introduced this change
+	// in April 2007, to save disk space.
+	size_t numGrainSizeClasses = cn->getNumg();
+	if( numGrainSizeClasses>1 )
+	{
+      size_t j=1;
+      while(j < (numGrainSizeClasses-1) ){
+        layofs << cn->getLayerDgrade(i,j) << ' ';
+        j++;
+	  }
+      layofs << cn->getLayerDgrade(i,j) << '\n';
+	}
     i++;
   }
 }
