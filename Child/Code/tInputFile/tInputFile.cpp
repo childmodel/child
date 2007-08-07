@@ -8,7 +8,7 @@
 **  Greg Tucker, November 1997
 **  Re-written, AD, July 2003
 **
-**  $Id: tInputFile.cpp,v 1.38 2004-06-16 13:37:31 childcvs Exp $
+**  $Id: tInputFile.cpp,v 1.39 2007-08-07 15:12:53 childcvs Exp $
 */
 /****************************************************************************/
 
@@ -427,7 +427,7 @@ bool tInputFile::ReadBool( const char *itemCode, bool reqParam ) const
       && (v[1] == 'A' || v[1] == 'a' )
       && (v[2] == 'L' || v[2] == 'l' )
       && (v[3] == 'S' || v[3] == 's' )
-      && (v[4] == 'S' || v[4] == 'e' )
+      && (v[4] == 'E' || v[4] == 'e' )
       ) return false;
   return 0 != atoi(KeyWordTable[i].value());
 }
