@@ -41,6 +41,7 @@
  **     - fixed obscure bug in EroDep in which erosion was being double-
  **       counted when both ero and dep of different sizes was happening
  **       simultaneously. Also added assertions. (GT 8/02)
+ **     - added nonlinear creep function DiffuseNonlinear (GT 8/07)
  **
  **    Known bugs:
  **     - ErodeDetachLim assumes 1 grain size. If multiple grain sizes
@@ -48,13 +49,15 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.142 2006-07-06 15:17:22 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.143 2007-08-07 02:25:43 childcvs Exp $
  */
 /***************************************************************************/
 
 #include <math.h>
 #include <assert.h>
 # include <iomanip>
+#include <vector>  // first added for DiffuseNonlinear()
+using namespace std;   // also added for DiffuseNonlinear() to use vector class from STL
 //#include <string>
 #include "erosion.h"
 
@@ -335,6 +338,11 @@ double tEquilibCheck::FindLongTermChngRate( double newtime )
  **     where Tau is shear stress or power or whatever, depending on
  **     dimensions, and Uconv = SPY^-mb where SPY = # secs in a year
  **     (GT 6/01)
+ **   - Changed critical shear stress so that one now sets different 
+ **     thresholds for bedrock and regolith. This involved changes here
+ **     and in tLNode.h/.cpp. The bed erosion functions read TAUCB (bedrock)
+ **     and the sediment transport functions read TAUCR (regolith).
+ **     GT, apr 07
  **
 \***************************************************************************/
 //constructor: reads and sets the parameters
@@ -351,7 +359,7 @@ tBedErodePwrLaw::tBedErodePwrLaw( const tInputFile &infile )
   //mb = mb*(1-ws);   // Convert mb to total-discharge exponent
   nb = infile.ReadItem( nb, "NB" );
   pb = infile.ReadItem( pb, "PB" );
-  taucd = infile.ReadItem( taucd, "TAUCD" );
+  taucd = infile.ReadItem( taucd, "TAUCB" ); // tag changed from TAUCD to TAUCB apr 07 gt
 
   // Add unit conversion factor for kt -- this is required to convert
   // the quantity (Q/W)^mb from units of years to units of seconds.
@@ -550,7 +558,7 @@ tBedErodePwrLaw2::tBedErodePwrLaw2( const tInputFile &infile )
   //mb = mb*(1-ws);   // Convert mb to total-discharge exponent
   nb = infile.ReadItem( nb, "NB" );
   pb = infile.ReadItem( pb, "PB" );
-  taucd = infile.ReadItem( taucd, "TAUCD" );
+  taucd = infile.ReadItem( taucd, "TAUCB" );
 
   // Add unit conversion factor for kt -- this is required to convert
   // the quantity (Q/W)^mb from units of years to units of seconds.
@@ -1134,7 +1142,7 @@ tSedTransPwrLaw::tSedTransPwrLaw( const tInputFile &infile )
   mf = infile.ReadItem( mf, "MF" );
   nf = infile.ReadItem( nf, "NF" );
   pf = infile.ReadItem( pf, "PF" );
-  tauc = infile.ReadItem( tauc, "TAUCD" );
+  tauc = infile.ReadItem( tauc, "TAUCR" );  // to TAUCR apr 07 gt
 
   // Add unit conversion factor for kt -- this is required to convert
   // the quantity (Q/W)^mb from units of years to units of seconds.
@@ -1235,7 +1243,7 @@ tSedTransPwrLaw2::tSedTransPwrLaw2( const tInputFile &infile )
   mf = infile.ReadItem( mf, "MF" );
   nf = infile.ReadItem( nf, "NF" );
   pf = infile.ReadItem( pf, "PF" );
-  tauc = infile.ReadItem( tauc, "TAUCD" );
+  tauc = infile.ReadItem( tauc, "TAUCR" );  // to TAUCR apr 07 gt
 
   // Add unit conversion factor for kt -- this is required to convert
   // the quantity (Q/W)^mb from units of years to units of seconds.
@@ -1417,7 +1425,7 @@ tSedTransBridgeDom::tSedTransBridgeDom( const tInputFile &infile )
   kt = infile.ReadItem( kt, "KT" );
   mf = infile.ReadItem( mf, "MF" );
   nf = infile.ReadItem( nf, "NF" );
-  tauc = infile.ReadItem( tauc, "TAUCD" );
+  tauc = infile.ReadItem( tauc, "TAUCR" );  // to TAUCR apr 07 gt
   sqrtTauc = sqrt( tauc );
 
   // Add unit conversion factor for kt -- this is required to convert
@@ -2091,6 +2099,9 @@ tErosion::tErosion( tMesh<tLNode> *mptr, const tInputFile &infile ) :
   // Read parameters needed from input file
   kd = infile.ReadItem( kd, "KD" );  // Hillslope diffusivity coefficient
   difThresh = infile.ReadItem( difThresh, "DIFFUSIONTHRESHOLD");
+  bool optNonlinearDiffusion = infile.ReadBool( "OPT_NONLINEAR_DIFFUSION", false );
+  if( optNonlinearDiffusion )
+     mdSc = infile.ReadItem( mdSc, "CRITICAL_SLOPE" );
 
   int optAdaptMesh = infile.ReadItem( optAdaptMesh, "OPTMESHADAPTDZ" );
   if( optAdaptMesh )
@@ -3793,7 +3804,7 @@ void tErosion::Diffuse( double rt, bool noDepoFlag )
         volout = kd*ce->CalcSlope()*ce->getVEdgLen()*dtmax;
         // Record outgoing flux from origin
         cn = static_cast<tLNode *>(ce->getOriginPtrNC());
-        if(cn->getDrArea()>difThresh)
+        if( difThresh>0.0 && cn->getDrArea()>difThresh )
             volout=0;
         cn->addQsin( -volout );
         // Record incoming flux to dest'n
@@ -3805,6 +3816,7 @@ void tErosion::Diffuse( double rt, bool noDepoFlag )
                      << " to "
                      << ce->getDestinationPtr()->getID()
                      << " on slp " << ce->getSlope() << " ve " << ce->getVEdgLen()
+					 << " kd=" << kd << " dtmax=" << dtmax
                      << "\nvp " << ce->getRVtx().at(0)
                      << " " << ce->getRVtx().at(1) << std::endl;
            static_cast<tLNode *>(ce->getOriginPtrNC())->TellAll();
@@ -3843,6 +3855,185 @@ void tErosion::Diffuse( double rt, bool noDepoFlag )
 
   
 }
+
+
+/*****************************************************************************\
+ **
+ **  tErosion::DiffuseNonlinear
+ **
+ **  This function implements the nonlinear creep transport function of
+ **  Howard (1994), which was also studied by Roering et al. (1999, 2002).
+ **  The sediment flux per unit slope width is:
+ **
+ **                 Dz
+ **    qs = Kd -------------
+ **            1 - (Dz/Sc)^2
+ **
+ **  where Dz is the land surface gradient in 2D, Kd is a creep coefficient
+ **  (L^2/T), and Sc is a threshold slope.
+ **
+ **  The numerical implementation on a Voronoi grid uses the same approach
+ **  as used by Diffuse(), with the following differences:
+ **
+ **  1. The estimated Courant condition includes the denominator in the 
+ **     above equation, and because this contains local slope, it must be
+ **     re-evaluated for every time step, so it is now inside the time loop.
+ **     (The additional square root of [1-(Dz/Sc)^2] is based on experiments with
+ **     a 1D version of this solver, which shows improved stability when you
+ **     factor this in; otherwise, instabilities appear as f grows small).
+ **  2. The equation becomes invalid when Dz/Sc>=1.0. Therefore a safety
+ **     feature is used: Dz/Sc is not allowed to go above an arbitrary value
+ **     that is very close to unity. Because of this, it's possible that the
+ **     slope angle at the base of a slope with a very high flux may exceed
+ **     Sc. In a 1D steady-state profile, this shows up as a linear increase in
+ **     gradient with distance, above Sc, near the base of the slope.
+ **  3. To improve performance (or so I hope), both slope and f (the 
+ **     denominator in the above equation) are stored in temporary arrays
+ **     during the time step calculation loop.
+ **  4. For the first time, I depart from previous practice by using
+ **     the vector class from the standard template library, instead of our
+ **     custom-built tArray class.
+ **  5. The time step calculation loop skips complementary edges (that's 
+ **     why slope and f only need N/2 elements).
+ **
+ **  Inputs:  rt -- time duration over which to compute diffusion
+ **           noDepoFlag -- if true, material is only eroded, never
+ **                             deposited
+ **  Created: August 2007, GT
+ **  Modifications:
+ ** 
+\*****************************************************************************/
+//#define kVerySmall 1e-6
+#define kEpsOver2 0.1
+#define kBeta 0.999    // Dz/Sc isn't allowed to go higher than this
+void tErosion::DiffuseNonlinear( double rt, bool noDepoFlag )
+{
+  tLNode * cn;
+  tEdge * ce;
+  double volout,  // Sediment volume output from a node (neg=input)
+    delt,       // Max local step size
+    dtmax;      // Max global step size (initially equal to total time rt)
+  tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
+  tMesh< tLNode >::edgeListIter_t edgIter( meshPtr->getEdgeList() );
+  int numActiveEdges = meshPtr->getEdgeList()->getActiveSize();
+  vector<double> slope;   // Slope of each edge
+  vector<double> f;       // = 1 - (slope/Sc)^2
+  int k;      // Counter for edges
+  double slopeRatio;   // Ratio of slope to critical slope
+
+#ifdef TRACKFNS
+  std::cout << "tErosion::DiffuseNonlinear()" << std::endl;
+#endif
+
+  if( kd==0 ) return;
+  
+  // Set the size of the vectors
+  slope.resize( numActiveEdges/2 );
+  f.resize( numActiveEdges/2 );
+  
+  //initialize Qsd, which will record the total amount of diffused material
+  //fluxing into a node for the entire time-step.
+  //if Qsd is negative, then material was deposited in that node.
+  for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+      cn->setQsdin( 0. );
+
+  // Loop until we've used up the entire time interval rt
+  do
+  {
+	// Compute maximum stable time-step size based on modified Courant condition
+	// for FTCS (here used as an approximation).
+	dtmax = rt;  // Initialize dtmax to total time rt
+	k=0;
+	for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
+    {
+      if( 0 ) //DEBUG
+	  {
+		std::cout << "In Diffuse(), large vedglen detected: " << ce->getVEdgLen() << std::endl;
+		ce->TellCoords();
+	  }
+		
+	  // Evaluate DT <= DX^2 f^2 / Kd
+	  slope[k] = ce->CalcSlope();            // compute and store slope for this edge
+	  slopeRatio = fabs( slope[k] / mdSc );  // calculate slope ratio
+	  if( slopeRatio > kBeta ) slopeRatio = kBeta;  // don't let it reach 1 or higher
+	  f[k] = 1.0 - slopeRatio*slopeRatio;           // compute and store the nonlinear factor
+	  delt = kEpsOver2 * ce->getLength()*ce->getLength()*f[k]*sqrt(f[k]) / kd;  // max. time step this edge
+	  if( delt < dtmax )
+	  {
+		dtmax = delt;  // remember the smallest delt
+		if(0) { //DEBUG
+			std::cout << "TIME STEP CONSTRAINED TO " << dtmax << " AT EDGE:\n";
+			ce->TellCoords(); }
+       }
+	   edgIter.NextP();  // Skip complementary edge
+	   k++;   // increment edge counter
+     }
+	 assert( k==numActiveEdges/2 );
+  
+     // Reset sed input for each node for the new iteration
+     for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+         cn->setQsin( 0. );
+     
+     // Compute sediment volume transfer along each edge
+	 k=0;  // reset edge counter
+     for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
+     {
+        volout = kd*(slope[k]/f[k])*ce->getVEdgLen()*dtmax;  // specific flux times width times time step
+        // Record outgoing flux from origin
+        cn = static_cast<tLNode *>(ce->getOriginPtrNC());
+        if( difThresh>0. && cn->getDrArea()>difThresh )
+            volout=0;
+        cn->addQsin( -volout );
+        // Record incoming flux to dest'n
+        cn = static_cast<tLNode *>(ce->getDestinationPtrNC());
+        cn->addQsin( volout );
+        
+        if( 0 ) { //DEBUG
+           std::cout << volout << " mass exch. from " << ce->getOriginPtr()->getID()
+                     << " to "
+                     << ce->getDestinationPtr()->getID()
+                     << " on slp " << ce->getSlope() << " ve " << ce->getVEdgLen()
+					 << " kd=" << kd << " dtmax=" << dtmax
+                     << "\nvp " << ce->getRVtx().at(0)
+                     << " " << ce->getRVtx().at(1) << std::endl;
+           static_cast<tLNode *>(ce->getOriginPtrNC())->TellAll();
+           static_cast<tLNode *>(ce->getDestinationPtrNC())->TellAll();
+           std::cout << std::endl;
+        }
+        
+        edgIter.NextP();  // Skip complementary edge
+		k++;  // reset edge counter
+     }
+	 assert( k==numActiveEdges/2 );
+     
+     // Compute erosion/deposition for each node
+     for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+     {
+        if( 0 ) //DEBUG
+            std::cout << "Node " << cn->getID() << " Qsin: " << cn->getQsin()
+                      << " dz: " << cn->getQsin() / cn->getVArea() << std::endl;
+        if( noDepoFlag && cn->getQsin() > 0.0 )
+            cn->setQsin( 0.0 );
+        cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area    
+        cn->getDownstrmNbr()->addQsdin(-1 * cn->getQsin()/dtmax);
+        //this won't work if time steps are varying, because you are adding fluxes
+
+        if( 0 ) //DEBUG
+            std::cout<<cn->getZ()<<" Q: "<<cn->getQ()
+                     <<" dz "<<cn->getQsin() / cn->getVArea()
+                     <<" dt "<<dtmax<<std::endl;
+        /*if( cn->id==700 ) {
+          cn->TellAll();
+          }*/
+     }
+     
+     rt -= dtmax;
+     if( dtmax>rt ) dtmax=rt;
+     
+  } while( rt>0.0 );
+
+}
+
 
 
 /***********************************************************************\

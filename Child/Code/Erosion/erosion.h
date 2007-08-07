@@ -57,7 +57,7 @@
  **     - Added codes to go along with erosion & transport options, to
  **       enable checking against user-specified options (GT 7/02)
  **
- **  $Id: erosion.h,v 1.56 2005-07-21 19:30:24 childcvs Exp $
+ **  $Id: erosion.h,v 1.57 2007-08-07 02:25:43 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -551,6 +551,7 @@ public:
    void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
    void DetachErode2( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
    void Diffuse( double dtg, bool detach );
+   void DiffuseNonlinear( double dtg, bool detach );
    void UpdateExposureTime( double dtg);
    void DensifyMesh( double time );
    
@@ -561,6 +562,7 @@ private:
    double kd;                 // Hillslope transport (diffusion) coef
    double difThresh;          // Diffusion occurs only at areas < difThresh
    double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
+   double mdSc;				  // Threshold slope for nonlinear diffusion
    
 };
 
