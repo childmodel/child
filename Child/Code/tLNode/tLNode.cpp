@@ -13,7 +13,7 @@
  **      simultaneous erosion of one size and deposition of another
  **      (GT, 8/2002)
  **
- **  $Id: tLNode.cpp,v 1.139 2005-07-21 19:28:00 childcvs Exp $
+ **  $Id: tLNode.cpp,v 1.140 2007-08-07 02:23:56 childcvs Exp $
  */
 /**************************************************************************/
 
@@ -304,7 +304,7 @@ tLNode::tLNode()                                                   //tLNode
   :
 tNode(), vegCover(), rock(), reg(), chan(),
 flood(kNotFlooded), flowedge(0), tracer(0),
-dzdt(0.), drdt(0.), tau(0.), tauc(0.), qs(0.),
+dzdt(0.), drdt(0.), tau(0.), taucb(0.), taucr(0.), qs(0.),
 qsm(),
 qsin(0.),
 qsinm(),
@@ -324,7 +324,7 @@ tLNode::tLNode( const tInputFile &infile )
   :
 tNode(), vegCover(), rock(), reg(), chan(),
 flood(kNotFlooded), flowedge(0), tracer(0),
-dzdt(0.), drdt(0.), tau(0.), tauc(0.), qs(0.),
+dzdt(0.), drdt(0.), tau(0.), taucb(0.), taucr(0.), qs(0.),
 qsm(),
 qsin(0.),
 qsinm(),
@@ -344,7 +344,10 @@ public1(-1)
 
   if (0) //DEBUG
     std::cout << "=>tLNode( infile )" << std::endl;
-  tauc = infile.ReadItem( tauc, "TAUC" );
+	
+  // Modified to read TAUC for both bedrock, TAUCB, and regolith, TAUCR
+  taucb = infile.ReadItem( taucb, "TAUCB" );
+  taucr = infile.ReadItem( taucr, "TAUCR" );
 
   {
     int tmp_;
@@ -442,6 +445,14 @@ public1(-1)
       }
 
       layerlist.insertAtBack( layhelp );
+      
+      if(0) //DEBUG
+      {
+        std::cout<<"Just made BR layer thick=" << layhelp.getDepth()
+            << " and dgrades:\n";
+        for( i=0; i<numg; i++ )
+            std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
+      }
 
       // Regolith layer items read in and set
       layhelp.setSed(tLayer::kSed);
@@ -463,6 +474,15 @@ public1(-1)
 	if(extra>10000) //TODO, bettter criteria for setting deep sed. flag
 	  layhelp.setRtime(-1.);
 	layerlist.insertAtFront( layhelp );
+        
+        if(0) //DEBUG
+        {
+          std::cout<<"1Just made ALLUV layer thick=" << layhelp.getDepth()
+              << " and dgrades:\n";
+          for( i=0; i<numg; i++ )
+              std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
+        }
+
 	// the top regolith layer is now made
 	layhelp.setRtime(0.);
 	i=0;
@@ -471,6 +491,15 @@ public1(-1)
 	  i++;
 	}
 	layerlist.insertAtFront( layhelp );
+        
+        if(0) //DEBUG
+        {
+          std::cout<<"2Just made ALLUV layer thick=" << layhelp.getDepth()
+              << " and dgrades:\n";
+          for( i=0; i<numg; i++ )
+              std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
+        }
+
       }
       else{
 	// create only one regolith layer
@@ -481,6 +510,15 @@ public1(-1)
 	}
 
 	layerlist.insertAtFront( layhelp );
+        
+        if(0) //DEBUG
+        {
+          std::cout<<"3Just made ALLUV layer thick=" << layhelp.getDepth()
+              << " and dgrades:\n";
+          for( i=0; i<numg; i++ )
+              std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
+        }
+
       }
     }
 
@@ -512,7 +550,7 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
   : tNode( orig ), vegCover( orig.vegCover ), rock( orig.rock ),
     reg( orig.reg ), chan( orig.chan ),
     flood(orig.flood), flowedge(orig.flowedge), tracer(orig.tracer),
-    dzdt(orig.dzdt), drdt(orig.drdt), tau(orig.tau), tauc(orig.tauc), qs(orig.qs),
+    dzdt(orig.dzdt), drdt(orig.drdt), tau(orig.tau), taucb(orig.taucb), taucr(orig.taucr), qs(orig.qs),
     qsm(orig.qsm),
     qsin(orig.qsin),
     qsinm(orig.qsinm ),
@@ -567,7 +605,8 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
       qsin = right.qsin;
       qsdin = right.qsdin;
       tau = right.tau;
-      tauc = right.tauc;
+      taucb = right.taucb;
+	  taucr = right.taucr;
       uplift = right.uplift;
       qsm = right.qsm;
       qsinm = right.qsinm;

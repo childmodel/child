@@ -26,7 +26,7 @@
  **        - added embedded tVegCover object and retrieval fn
  **          (Jan 2000)
  **
- **  $Id: tLNode.h,v 1.97 2005-07-21 19:28:40 childcvs Exp $
+ **  $Id: tLNode.h,v 1.98 2007-08-07 02:23:56 childcvs Exp $
  */
 /************************************************************************/
 
@@ -679,7 +679,9 @@ protected:
   double dzdt;                      /* Erosion rate */
   double drdt;                      /* Rock erosion rate */
   double tau;                       // Shear stress or equivalent (e.g., unit stream pwr)
-  double tauc;                      // Critical (threshold) shear stress or equiv.
+  //070427 double tauc;                      // Critical (threshold) shear stress or equiv.
+  double taucb;                      // Critical (threshold) shear stress or equiv. for bedrock 070427
+  double taucr;                      // For regolith
   // NOTE - all sediment transport rates are volume per year
   double qs;                        /* Sediment transport rate*/
   tArray< double > qsm;             /* multi size; transport rate of each size fraction*/
@@ -1128,11 +1130,20 @@ inline void tLNode::setTau( double newtau )
   tau = newtau;
 }
 
-inline double tLNode::getTauCrit() const { return tauc; }
+// Modified to return either tauc for bedrock or regolith, whichever is top layer, Apr 07 gt
+inline double tLNode::getTauCrit() const 
+{
+	if( getLayerSed(0)==0 )
+		return taucb;
+    else
+		return taucr;
+}
 
+// Modified to set BOTH bedrock and regolith taucrit -- beware! Apr 07, gt
 inline void tLNode::setTauCrit( double newtauc )
 {
-  tauc = newtauc;
+  taucb = newtauc;
+  taucr = newtauc;
 }
 
 void tLNode::setUplift( double val ) {uplift = val;}
