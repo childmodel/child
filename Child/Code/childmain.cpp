@@ -32,7 +32,7 @@
 **     2200 Colorado Avenue, Campus Box 399
 **     Boulder, CO 80309-0399
 **
-**  $Id: childmain.cpp,v 1.30 2006-02-21 19:58:37 childcvs Exp $
+**  $Id: childmain.cpp,v 1.31 2007-08-07 15:11:02 childcvs Exp $
 */
 /**************************************************************************/
 
@@ -56,7 +56,8 @@ int main( int argc, char **argv )
         optVegetation,     // Option for dynamic vegetation cover
         optMeander,        // Option for stream meandering
         optDiffuseDepo,    // Option for deposition / no deposition by diff'n
-        optStratGrid;      // Option to enable stratigraphy grid
+        optStratGrid,      // Option to enable stratigraphy grid
+		optNonlinearDiffusion; // Option for nonlinear creep transport
    tVegetation *vegetation(0);  // -> vegetation object
    tFloodplain *floodplain(0);  // -> floodplain object
    tStratGrid *stratGrid(0);     // -> Stratigraphy Grid object
@@ -113,7 +114,8 @@ int main( int argc, char **argv )
    optLoessDep = inputFile.ReadBool( "OPTLOESSDEP" );
    optMeander = inputFile.ReadBool( "OPTMEANDER" );
    optStratGrid = inputFile.ReadBool( "OPTSTRATGRID" ,false);
-
+   optNonlinearDiffusion = inputFile.ReadBool( "OPT_NONLINEAR_DIFFUSION", false );
+   
    // If applicable, create Vegetation object
    if( optVegetation )
        vegetation = new tVegetation( &mesh, inputFile );
@@ -239,8 +241,13 @@ OptTSOutput." );
 
       //Diffusion is now before fluvial erosion in case the tools
       //detachment laws are being used.
-      erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
+	  if( optNonlinearDiffusion )
+	     erosion.DiffuseNonlinear( storm.getStormDuration() + storm.interstormDur(),
                        optDiffuseDepo );
+	  else
+         erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
+                       optDiffuseDepo );
+					   
 
       if( optDetachLim )
           erosion.ErodeDetachLim( storm.getStormDuration(), &strmNet,
