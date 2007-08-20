@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.103 2005-07-21 19:33:54 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.104 2007-08-20 23:12:19 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -352,6 +352,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
   rand(rand_),
   counter(0),
   Surfer(false)
+  
 {
   int opOpt;  // Optional modules: only output stuff when needed
   this->CreateAndOpenFile( &randomofs, SRANDOM );
@@ -361,6 +362,9 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
   this->CreateAndOpenFile( &qofs, ".q" );
   this->CreateAndOpenFile( &texofs, ".tx" );
   this->CreateAndOpenFile( &tauofs, ".tau" );
+
+  //Layer output: only write layer information if user selects to write it
+  OptLayOutput = infile.ReadBool( "OPTLAYEROUTPUT" );
 
   // Vegetation cover: if dynamic vegetation option selected
   if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) != 0)
@@ -454,16 +458,19 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   const int nActiveNodes = this->m->getNodeList()->getActiveSize(); // # active nodes
   const int nnodes = this->m->getNodeList()->getSize(); // total # nodes
 
-  //taking care of layer and x,y,z file, since new one each time step
-  char ext[7];
-  strcpy( ext, ".lay");
-  if(counter<10)
-    strncat( ext, &nums[counter], 1);
-  else {
-    strncat(ext, &nums[counter/10], 1);
-    strncat(ext, &nums[static_cast<int>( fmod(static_cast<double>(counter),10.0) )], 1);
+  if(OptLayOutput){
+    //taking care of layer and x,y,z file, since new one each time step
+    char ext[7];
+    strcpy( ext, ".lay");
+    if(counter<10)
+      strncat( ext, &nums[counter], 1);
+    else {
+      strncat(ext, &nums[counter/10], 1);
+      strncat(ext, &nums[static_cast<int>( fmod(static_cast<double>(counter),10.0) )], 1);
+    }
+    this->CreateAndOpenFile( &layofs, ext );
   }
-  this->CreateAndOpenFile( &layofs, ext );
+
 #define MY_EXT ".surf"
   char extt[sizeof(MY_EXT)+10];  // name of file to be created
 
@@ -482,7 +489,8 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   this->WriteTimeNumberElements( netofs, time, nActiveNodes);
   this->WriteTimeNumberElements( slpofs, time, nnodes);
   this->WriteTimeNumberElements( qofs, time, nnodes);
-  this->WriteTimeNumberElements( layofs, time, nActiveNodes);
+  if(OptLayOutput)
+    this->WriteTimeNumberElements( layofs, time, nActiveNodes);
   this->WriteTimeNumberElements( texofs, time, nnodes);
   if( surfofs.good() )
     this->WriteTimeNumberElements( surfofs, time, nActiveNodes);
@@ -500,6 +508,8 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
     this->WriteTimeNumberElements( qsofs, time, nnodes);
   if( qsinofs.good() )
     this->WriteTimeNumberElements( qsinofs, time, nnodes);
+  if( qsdinofs.good() )
+    this->WriteTimeNumberElements( qsdinofs, time, nnodes);
   if( dzdtofs.good() )
     this->WriteTimeNumberElements( dzdtofs, time, nnodes);
   if( upofs.good() )
@@ -547,7 +557,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   if( upofs.good() ) upofs << std::flush;
   if( dzdtofs.good() ) dzdtofs << std::flush;
 
-  layofs.close();
+  if(OptLayOutput) layofs.close();
   if( surfofs.good() )
     surfofs.close();
 }
