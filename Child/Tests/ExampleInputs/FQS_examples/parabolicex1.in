@@ -6,6 +6,10 @@
 # i.e. KD>0.  
 # Note that in your main you must be using detacherode2.
 #
+#This run took less than five minutes on a mac with a 3GHz dual-core intel chip
+#
+#File updated Aug 2007
+#
 OUTFILENAME: name of the run
 parabolicex1
 RUNTIME: Duration of run (years)
@@ -155,8 +159,10 @@ NB: bedrock erodibility slope exponent
 1
 PB: Exponent on excess erosion capacity (e.g., excess shear stress)
 1
-TAUCD: critical shear stress for detachment-limited-erosion (kg/m/s^2)
+TAUCB: critical shear stress for bedrock (kg/m/s^2)
 0
+TAUCR: critical shear stress for regolith
+0 
 BETA:  for erosion models that include sediment flux
 1
 KD: diffusivity coef (m2/yr)
@@ -293,16 +299,8 @@ OPTMESHADAPTAREA: dynamic adaptive meshing based on drainage area
 0
 OPTFOLDDENS: Option for mesh densification around a growing fold
 0
-OPTLAYER: Option for writing out layer information
+OPTLAYEROUTPUT: Option for writing out layer information
 0 
+OPT_NONLINEAR_DIFFUSION: Option for using non-linear diffusion
+0
 Comments here:
-
-
-
-
-
-
-
-
-
-
