@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.57 2007-08-07 15:15:19 childcvs Exp $
+ **  $Id: tOutput.h,v 1.58 2007-08-21 00:17:02 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -185,6 +185,7 @@ public:
    virtual ~tLOutput();
    void WriteTSOutput();
    bool OptTSOutput() const;
+  bool OptLayOutput; //nmg added 11/06, for writing layer information
    void SetStratGrid(tStratGrid *, tStreamNet *);
    void SetFloodplain(tFloodplain *);
    
@@ -239,28 +240,23 @@ inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
   drareaofs << cn->getDrArea() << '\n';
   if( cn->getDownstrmNbr() )
     netofs << cn->getDownstrmNbr()->getID() << '\n';
-  layofs << ' ' << cn->getNumLayer() << '\n';
-  int i=0;
-  while(i<cn->getNumLayer()){
-    layofs << cn->getLayerCtime(i) << ' ' << cn->getLayerRtime(i) << ' '
-	   << cn->getLayerEtime(i) << '\n'
-	   << cn->getLayerDepth(i) << ' ' << cn->getLayerErody(i) << ' '
-	   << cn->getLayerSed(i) << '\n';
-	
-	// Grain size data: write "dgrade" info for sizes 2 to NUMG (the 1st can then be
-	// retrieved as 1 minus the sum of the others). GT introduced this change
-	// in April 2007, to save disk space.
-	size_t numGrainSizeClasses = cn->getNumg();
-	if( numGrainSizeClasses>1 )
-	{
-      size_t j=1;
-      while(j < (numGrainSizeClasses-1) ){
-        layofs << cn->getLayerDgrade(i,j) << ' ';
-        j++;
-	  }
-      layofs << cn->getLayerDgrade(i,j) << '\n';
-	}
-    i++;
+
+  if(OptLayOutput){
+    layofs << ' ' << cn->getNumLayer() << '\n';
+    int i=0;
+    while(i<cn->getNumLayer()){
+      layofs << cn->getLayerCtime(i) << ' ' << cn->getLayerRtime(i) << ' '
+	     << cn->getLayerEtime(i) << '\n'
+	     << cn->getLayerDepth(i) << ' ' << cn->getLayerErody(i) << ' '
+	     << cn->getLayerSed(i) << '\n';
+      size_t j=0;
+      while(j<cn->getNumg()){
+	layofs << cn->getLayerDgrade(i,j) << ' ';
+	j++;
+      }
+      layofs << '\n';
+      i++;
+    }
   }
 }
 
