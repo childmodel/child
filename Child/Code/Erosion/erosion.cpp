@@ -49,7 +49,7 @@
  **       option is used, a crash will result when tLNode::EroDep
  **       attempts to access array indices above 1. TODO (GT 3/00)
  **
- **  $Id: erosion.cpp,v 1.143 2007-08-07 02:25:43 childcvs Exp $
+ **  $Id: erosion.cpp,v 1.144 2007-08-21 00:13:46 childcvs Exp $
  */
 /***************************************************************************/
 
@@ -979,7 +979,8 @@ tBedErodeGeneralFQS::tBedErodeGeneralFQS( const tInputFile &infile )
 \***************************************************************************/
 double tBedErodeGeneralFQS::DetachCapacity( tLNode * nd, double dt )
 {
-   double slp = nd->calcSlope(), Qs, Qc, W, erorate;
+  double slp = sin(atan(nd->calcSlope())), Qs, Qc, W, erorate;
+  // calcSlope() returns tan alpha, use sin alpha instead.
    
    if( nd->getFloodStatus() != tLNode::kNotFlooded) return 0.0;
    if( slp < 0.0 )
@@ -1026,7 +1027,9 @@ double tBedErodeGeneralFQS::DetachCapacity( tLNode * nd, double dt )
 \***************************************************************************/
 double tBedErodeGeneralFQS::DetachCapacity( tLNode * nd )
 {
-   double slp = nd->calcSlope(), Qs, Qc, W, erorate;
+  double slp = sin(atan(nd->calcSlope())), Qs, Qc, W, erorate;
+  // calcSlope() returns tan alpha, use sin alpha instead.
+
    if( nd->getFloodStatus() != tLNode::kNotFlooded) return 0.0;
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodeGeneralFQS::DetachCapacity(tLNode*,double)");
@@ -1071,7 +1074,9 @@ double tBedErodeGeneralFQS::DetachCapacity( tLNode * nd )
 \***************************************************************************/
 double tBedErodeGeneralFQS::DetachCapacity( tLNode * nd, int i )
 {
-   double slp = nd->calcSlope(), Qs, Qc, W, K, erorate;
+  double slp = sin(atan(nd->calcSlope())), Qs, Qc, W, K, erorate;
+  // calcSlope() returns tan alpha, use sin alpha instead.
+
    if( nd->getFloodStatus() != tLNode::kNotFlooded) return 0.0;
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodeGeneralFQS::DetachCapacity(tLNode*,double)");
@@ -1347,7 +1352,9 @@ tSedTransPwrLawSimp::tSedTransPwrLawSimp( const tInputFile &infile )
 \***************************************************************************/
 double tSedTransPwrLawSimp::TransCapacity( tLNode *node )
 {
-   const double slp = node->calcSlope();
+  const double slp = sin(atan(node->calcSlope()));
+  //NMG added this 01/07 to use sin alpha rather than tan alpha,
+  //which is returned by caclSlope()
    if( slp < 0.0 )
        ReportFatalError("neg. slope in tBedErodePwrLaw::TransCapacity(tLNode*)");
    double tau=0;
@@ -1378,7 +1385,10 @@ double tSedTransPwrLawSimp::TransCapacity( tLNode *node )
 \***************************************************************************/
 double tSedTransPwrLawSimp::TransCapacity( tLNode *node, int lyr, double weight )
 {
-  const double slp = node->calcSlope();
+  const double slp = sin(atan(node->calcSlope()));
+  //NMG added this 01/07 to use sin alpha rather than tan alpha,
+  //which is returned by caclSlope()
+
   if( slp < 0.0 )
     ReportFatalError("neg. slope in tSedTransPwrLaw::TransCapacity(tLNode*)");
   double tau=0;
@@ -2102,6 +2112,7 @@ tErosion::tErosion( tMesh<tLNode> *mptr, const tInputFile &infile ) :
   bool optNonlinearDiffusion = infile.ReadBool( "OPT_NONLINEAR_DIFFUSION", false );
   if( optNonlinearDiffusion )
      mdSc = infile.ReadItem( mdSc, "CRITICAL_SLOPE" );
+  beta=infile.ReadItem( beta, "BETA"); //For Sediment-Flux Detach Rules
 
   int optAdaptMesh = infile.ReadItem( optAdaptMesh, "OPTMESHADAPTDZ" );
   if( optAdaptMesh )
@@ -3374,6 +3385,11 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
  **  diffusion of multiple grain size should be developed before using with 
  **  multiple grain-sizes.  (NMG June 2005)
  **
+ **  Now beta is included in calculating the transport-limited rate of erosion.
+ **  That is, beta *(Qsin+Qsdin) is the bedload flux in.  This assumes that
+ **  Qs only contains bedload, which is reasonable for all coded transport
+ **  algorithms at this point.  (NMG Nov 2006)
+ **
 \************************************************************************/
 void tErosion::DetachErode2(double dtg, tStreamNet *strmNet, double time,
 			   tVegetation * /*pVegetation*/ )
@@ -3483,7 +3499,7 @@ void tErosion::DetachErode2(double dtg, tStreamNet *strmNet, double time,
             
             //nmg now including Qsdin
             //excap=(qs - cn->getQsin())/cn->getVArea();//[m/yr]
-            excap=(qs - cn->getQsin() - cn->getQsdin())/cn->getVArea();//[m/yr]
+            excap=(qs - beta*(cn->getQsin()+cn->getQsdin()))/cn->getVArea();//[m/yr]
             
             //excap negative = deposition; positive = erosion
             //Note that signs are opposite to what one
@@ -3493,6 +3509,7 @@ void tErosion::DetachErode2(double dtg, tStreamNet *strmNet, double time,
                cn->setDzDt(-excap);
             }
             //adding Qsdin for the sed-flux rules
+	    //Don't use beta here because the tracking the total load.
             //cn->getDownstrmNbr()->addQsin(cn->getQsin()-cn->getDzDt()*cn->getVArea());
             cn->getDownstrmNbr()->addQsin(cn->getQsin()+cn->getQsdin()-cn->getDzDt()*cn->getVArea());
             
@@ -3556,7 +3573,7 @@ void tErosion::DetachErode2(double dtg, tStreamNet *strmNet, double time,
          {
             //need to recalculate cause qsin may change due to time step calc
             //excap=(cn->getQs() - cn->getQsin())/cn->getVArea();
-            excap=(cn->getQs() - cn->getQsin() - cn->getQsdin())/cn->getVArea();//[m/yr]
+	   excap=(cn->getQs() - beta*(cn->getQsin()+cn->getQsdin()))/cn->getVArea();//[m/yr]
             //excap pos if eroding, neg if depositing
             drdt=-bedErode->DetachCapacity( cn, 0 );
             cn->setDrDt(drdt);
@@ -3591,10 +3608,10 @@ void tErosion::DetachErode2(double dtg, tStreamNet *strmNet, double time,
                         for(size_t j=0;j<cn->getNumg();j++){
                            //below distributes erosion based on prop of each grain size
                            erolist[j]=dz*cn->getLayerDgrade(i,j)/cn->getLayerDepth(i);
-                           if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
+                           if(erolist[j]<(beta*(cn->getQsin(j)+cn->getQsdin(j))-cn->getQs(j))*dtmax/cn->getVArea()){
                               //decrease total dz because of capacity limitations for grain size
                               //SHOULD ONLY ENTER IF MULTIPLE GRAIN SIZES ARE BEING USED
-                              erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+                              erolist[j]=(beta*(cn->getQsin(j)+cn->getQsdin(j))-cn->getQs(j))*dtmax/cn->getVArea();
                               //WHY ARE Qsin and Qs SET TO ZERO?
                               cn->setQsin(j,0.0);
                               cn->setQs(j,0.0);
@@ -3610,9 +3627,10 @@ void tErosion::DetachErode2(double dtg, tStreamNet *strmNet, double time,
                         flag=0;
                         for(size_t j=0;j<cn->getNumg();j++){
                            erolist[j]=-cn->getLayerDgrade(i,j);
-                           if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
+			   if(erolist[j]<(beta*(cn->getQsin(j)+cn->getQsdin(j))-cn->getQs(j))*dtmax/cn->getVArea()){
+
                               //decrease total dz because of capacity limitations
-                              erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+			     erolist[j]=(beta*(cn->getQsin(j)+cn->getQsdin(j))-cn->getQs(j))*dtmax/cn->getVArea();
                               cn->setQsin(j,0.0);
                               cn->setQs(j,0.0);
                               //WHY ARE Qsin and Qs SET TO ZERO?
@@ -3672,7 +3690,7 @@ void tErosion::DetachErode2(double dtg, tStreamNet *strmNet, double time,
             {
                //Get texture of stuff to be deposited
                for(size_t j=0;j<cn->getNumg();j++)
-                   erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+                   erolist[j]=(beta*(cn->getQsin(j))-cn->getQs(j))*dtmax/cn->getVArea();
                ret=cn->EroDep(0,erolist,timegb);
                for(size_t j=0;j<cn->getNumg();j++){
                   //send upstream material down, minus the amount that was deposited
