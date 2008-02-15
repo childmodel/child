@@ -6,8 +6,11 @@
 **  Major modifications:
 **   - GT added UpliftRateMap functions, June 2006.
 **  - added PropagatingFront function (GT & BY, Julu 2007)
+**   - fixed minor error in the TwoSideDifferential uplift function:
+**     relative BL rise on the 2nd boundary should be rate1-rate2, 
+**     not rate2.
 **
-**  $Id: tUplift.cpp,v 1.33 2007-08-07 15:20:47 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.34 2008-02-15 02:33:37 childcvs Exp $
 */
 /************************************************************************/
 
@@ -62,6 +65,7 @@ tUplift::tUplift( const tInputFile &infile ) :
         duration(0.)
 {
    int typeCode_;
+
    // Find out what kind of uplift the user wants
    typeCode_ = infile.ReadItem( typeCode_, "UPTYPE" );
    typeCode = DecodeType(typeCode_);
@@ -157,30 +161,31 @@ tUplift::tUplift( const tInputFile &infile ) :
           decayParam = infile.ReadItem( decayParam, "DECAY_PARAM_UPLIFT" );
           width = infile.ReadItem( width, "Y_GRID_SIZE" );
           break;
-      /*CASE k12 in progress -- commented out for now!
+      // CASE k12 is under construction!
 	  case k12:
+	      {
 		  char timesFileName[120];
-	std::ifstream upliftTimeFile;
-	miNumUpliftMaps = infile.ReadItem( miNumUpliftMaps, "NUMUPLIFTMAPS" );
-	infile.ReadItem( mUpliftMapFilename, sizeof(mUpliftMapFilename), "UPMAPFILENAME" );
-	infile.ReadItem( timesFileName, sizeof(timesFileName), "UPTIMEFILENAME" );
-	upliftTimeFile.open( timesFileName );
-	if( !upliftTimeFile.good() )
-	  ReportFatalError("Unable to open file containing uplift map times.");
-	mUpliftMapTimes.setSize( miNumUpliftMaps );
-	mdNextUpliftMapTime = 0.0;
-	miCurUpliftMapNum = 0;
-	for( int i=0; i<miNumUpliftMaps; i++ )
-	  upliftTimeFile >> mUpliftMapTimes[i];
-	upliftTimeFile.close();
-	break;*/
+          std::ifstream upliftTimeFile;
+	      miNumUpliftMaps = infile.ReadItem( miNumUpliftMaps, "NUMUPLIFTMAPS" );
+	      infile.ReadItem( mUpliftMapFilename, sizeof(mUpliftMapFilename), "UPMAPFILENAME" );
+	      infile.ReadItem( timesFileName, sizeof(timesFileName), "UPTIMEFILENAME" );
+	      if( !upliftTimeFile.good() )
+	      ReportFatalError("Unable to open file containing uplift map times.");
+	      mUpliftMapTimes.setSize( miNumUpliftMaps );
+	      mdNextUpliftMapTime = 0.0;
+	      miCurUpliftMapNum = 0;
+	      for( int i=0; i<miNumUpliftMaps; i++ )
+	        upliftTimeFile >> mUpliftMapTimes[i];
+	      upliftTimeFile.close();
+		  }
+	      break;
 		case k13:
 			rate2 = infile.ReadItem( rate2, "FRONT_PROP_RATE" );
 			mdUpliftFrontGradient = infile.ReadItem( mdUpliftFrontGradient, "UPLIFT_FRONT_GRADIENT" );
 			width = infile.ReadItem( width, "STARTING_YCOORD" );
 			break;
    }
-   
+
 }
 
 
@@ -552,7 +557,7 @@ void tUplift::TwoSideDifferential( tMesh<tLNode> *mp, double delt ) const
   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
   tLNode *cn;
   double landraise = rate*delt,
-    boundaryupdown = rate2*delt;
+    boundaryupdown = (rate-rate2)*delt;
 
   // Raise the landscape
   for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
@@ -895,7 +900,10 @@ void tUplift::UpliftRateMap( tMesh<tLNode> *mp, double delt, double currentTime 
     strncat(myfilename, &nums[static_cast<int>( fmod(static_cast<double>(miCurUpliftMapNum),10.0) )], 1);
     upliftRateMapFile.open( myfilename );
     if( !upliftRateMapFile.good() )
+	{
+	  std::cout << "Failed to find uplift rate map file '" << myfilename << "'\n";
       ReportFatalError("Unable to open uplift rate map file.");
+	}
 
     if(0) std::cout << "The name we want to read is <" << myfilename << ">" << std::endl;
 
