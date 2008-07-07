@@ -43,7 +43,7 @@
 **   - 2/2/00: GT transferred get/set, constructors, and other small
 **     functions from .cpp file to inline them
 **
-**  $Id: meshElements.h,v 1.82 2004-06-16 13:37:28 childcvs Exp $
+**  $Id: meshElements.h,v 1.83 2008-07-07 16:18:58 childcvs Exp $
 **  (file consolidated from earlier separate tNode, tEdge, & tTriangle
 **  files, 1/20/98 gt)
 */
@@ -114,6 +114,7 @@ public:
   void get2DCoords( tArray< double >& ) const;
   void get2DCoords( tArray2< double >& ) const;
   inline int getID() const;                         // returns ID number
+  inline int getPermID() const;                     // returns permanent ID number
   inline double getX() const;                       // returns x coord
   inline double getY() const;                       // returns y coord
   inline double getZ() const;                       // returns z value
@@ -127,6 +128,7 @@ public:
   void getVoronoiVertexXYZList( tList<Point3D> * ); // As above plus interp z
 
   void setID( int );              // sets ID number
+  void setPermID( int );          // sets Permanent ID
   inline void setX( double );            // sets x coord
   inline void setY( double );            // sets y coord
   inline void setZ( double );            // sets z value
@@ -166,6 +168,7 @@ public:
 protected:
   tListable        listObj;
   int id;           // ID number
+  int permid;       // Permanent ID number (no renumbering!)
   double x;         // x coordinate
   double y;         // y coordinate
   double z;         // z value (representing height or any other variable)
@@ -575,6 +578,7 @@ inline void tNode::get2DCoords( tArray2< double >& xy ) const
 }
 
 inline int tNode::getID() const {return id;}
+inline int tNode::getPermID() const {return permid;}
 inline double tNode::getX() const {return x;}
 inline double tNode::getY() const {return y;}
 inline double tNode::getZ() const {return z;}
@@ -606,6 +610,7 @@ inline tEdge const * tNode::getEdg() const {return edg;}
 \***********************************************************************/
 
 inline void tNode::setID( int val ) {id = val;}
+inline void tNode::setPermID( int val ) {permid=val;}
 inline void tNode::setX( double val ) {x = val;}
 inline void tNode::setY( double val ) {y = val;}
 inline void tNode::setZ( double val ) {z = val;}

@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.218 2005-02-17 15:50:07 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.219 2008-07-07 16:18:58 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -133,6 +133,7 @@ tMesh( const tInputFile &infile, bool checkMeshConsistency  )
   nedges(0),
   ntri(0),
   miNextNodeID(0),
+  miNextPermNodeID(0),
   miNextEdgID(0),
   miNextTriID(0),
   layerflag(false),
@@ -455,7 +456,7 @@ MeshDensification( const tInputFile &infile )
 	 for( int i=0; i<nnewpoints; i++ )
 	   {
 	     tempnode.set3DCoords( newx[i], newy[i], newz[i] );  // assign them
-	     miNextNodeID = nnodes+i;
+	     miNextNodeID = nnodes+i;      // TODO: shouldn't this be nnodes+1??
 	     tempnode.setID( miNextNodeID );
 	     AddNode( tempnode );        // Add the new node
 	   }
@@ -3677,6 +3678,8 @@ AddNode( tSubNode &nodeRef, kUpdateMesh_t updatemesh, double time,
    // portion (if it is)
    nodeRef.setID( miNextNodeID );
    miNextNodeID++;
+   nodeRef.setPermID( miNextPermNodeID );
+   miNextPermNodeID++;
 
    if (0) //DEBUG
      std::cout << "call InsertNode" << std::endl;
@@ -4154,6 +4157,7 @@ AddNodeAt( tArray< double > &xyz, double time )
    // Assign ID to the new node and insert it at the back of the active
    // portion of the node list.
    tempNode.setID( miNextNodeID );
+   tempNode.setPermID( miNextNodeID );
    miNextNodeID++;
    tSubNode *cn = AddToList( tempNode );
 

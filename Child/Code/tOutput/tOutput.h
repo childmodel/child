@@ -31,7 +31,7 @@
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.h,v 1.58 2007-08-21 00:17:02 childcvs Exp $
+ **  $Id: tOutput.h,v 1.59 2008-07-07 16:18:58 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -210,6 +210,7 @@ private:
    std::ofstream qsinofs;   // incoming sediment flux
    std::ofstream qsdinofs;   // incoming sediment flux
    std::ofstream dzdtofs;    // fluvial erosion rate at a point 
+   std::ofstream permIDofs;  // File with permanent ID numbers
 
   tTSOutputImp<tSubNode> *TSOutput;  // Time Series output
   tStratOutputImp<tSubNode> *stratOutput;
@@ -283,6 +284,7 @@ inline void tLOutput<tSubNode>::WriteAllNodeData( tSubNode *cn )
   if( qsdinofs.good() ) qsdinofs << cn->getQsdin() << '\n';
   if( dzdtofs.good() ) dzdtofs << cn->getDzDt() << '\n';
   if( upofs.good() ) upofs << cn->getUplift() << '\n';
+  if( permIDofs.good() ) permIDofs << cn->getPermID() << '\n';
 }
 
 

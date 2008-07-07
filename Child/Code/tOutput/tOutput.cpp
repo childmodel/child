@@ -15,7 +15,7 @@
  **     - 7/03 AD added tOutputBase and tTSOutputImp
  **     - 8/03: AD Random number generator handling
  **
- **  $Id: tOutput.cpp,v 1.104 2007-08-20 23:12:19 childcvs Exp $
+ **  $Id: tOutput.cpp,v 1.105 2008-07-07 16:18:58 childcvs Exp $
  */
 /*************************************************************************/
 
@@ -362,6 +362,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
   this->CreateAndOpenFile( &qofs, ".q" );
   this->CreateAndOpenFile( &texofs, ".tx" );
   this->CreateAndOpenFile( &tauofs, ".tau" );
+  this->CreateAndOpenFile( &permIDofs, ".id" );
 
   //Layer output: only write layer information if user selects to write it
   OptLayOutput = infile.ReadBool( "OPTLAYEROUTPUT" );
@@ -514,6 +515,8 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
     this->WriteTimeNumberElements( dzdtofs, time, nnodes);
   if( upofs.good() )
     this->WriteTimeNumberElements( upofs, time, nnodes);
+  if( permIDofs.good() )
+    this->WriteTimeNumberElements( permIDofs, time, nnodes );
 
   // Write Random number generator state
   rand->dumpToFile( randomofs );
