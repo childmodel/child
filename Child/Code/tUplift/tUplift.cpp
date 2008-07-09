@@ -5,12 +5,13 @@
 **
 **  Major modifications:
 **   - GT added UpliftRateMap functions, June 2006.
-**  - added PropagatingFront function (GT & BY, Julu 2007)
+**   - added PropagatingFront function (GT & BY, Julu 2007)
 **   - fixed minor error in the TwoSideDifferential uplift function:
 **     relative BL rise on the 2nd boundary should be rate1-rate2, 
 **     not rate2.
+**   - added time series uplift rate to Uniform and Block uplift fns
 **
-**  $Id: tUplift.cpp,v 1.34 2008-02-15 02:33:37 childcvs Exp $
+**  $Id: tUplift.cpp,v 1.35 2008-07-09 16:35:34 childcvs Exp $
 */
 /************************************************************************/
 
@@ -74,7 +75,8 @@ tUplift::tUplift( const tInputFile &infile ) :
    
    // get the parameters relevant to that type
    duration = infile.ReadItem( duration, "UPDUR" );
-   rate = infile.ReadItem( rate, "UPRATE" );
+   infile.ReadItem( rate_ts, "UPRATE" );  // Read uplift rate as a time-series variable
+   rate = rate_ts.calc( 0.0 );      // For fns that don't use time series, set rate to rate at time zero
    switch( typeCode ) {
       case kNoUplift:
       case k1:
@@ -207,13 +209,13 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
       case kNoUplift:
           break;
       case k1:
-          UpliftUniform( mp, delt );
+          UpliftUniform( mp, delt, currentTime );
           break;
       case k2:
-          BlockUplift( mp, delt );
+          BlockUplift( mp, delt, currentTime );
           break;
       case k3:
-          BlockUplift( mp, delt );
+          BlockUplift( mp, delt, currentTime );
           StrikeSlip( mp, delt );
           break;
       case k4:
@@ -223,7 +225,7 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
           CosineWarp2D( mp, delt );
           break;
       case k6:
-	      BlockUplift( mp, delt );
+	      BlockUplift( mp, delt, currentTime );
 	      PropagatingFold( mp, delt );
 	      break;
       case k7:
@@ -264,11 +266,12 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
 **           delt -- duration of uplift
 **
 \************************************************************************/
-void tUplift::UpliftUniform( tMesh<tLNode> *mp, double delt )
+void tUplift::UpliftUniform( tMesh<tLNode> *mp, double delt, double currentTime )
 {
    assert( mp!=0 );
    tLNode *cn;
    tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+   rate = rate_ts.calc( currentTime );
    const double rise = rate*delt;
 
    if (0) //DEBUG
@@ -297,11 +300,12 @@ void tUplift::UpliftUniform( tMesh<tLNode> *mp, double delt )
 **     parameter 'rate2' (GT, June 2003)
 **
 \************************************************************************/
-void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt )
+void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt, double currentTime )
 {
    assert( mp!=0 );
    tLNode *cn;
    tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+   rate = rate_ts.calc( currentTime );
    const double rise = rate*delt,
      sink = rate2*delt;
 

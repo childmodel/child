@@ -26,8 +26,11 @@
 **    - added FaultBendFold function (srm, August 2002)
 **    - added UpliftRateMap functions (GT, June 2006)
 **    - added PropagatingFront function (GT & BY, Julu 2007)
+**    - added time series rate variable rate_ts, and implemented it
+**      for two uplift functions (which now take current time as a
+**      parameter)
 **
-**  $Id: tUplift.h,v 1.25 2007-08-07 15:20:47 childcvs Exp $
+**  $Id: tUplift.h,v 1.26 2008-07-09 16:35:34 childcvs Exp $
 */
 /************************************************************************/
 
@@ -46,8 +49,8 @@ public:
     double getDuration() const;
     double getRate() const;
 private:
-   void UpliftUniform( tMesh<tLNode> *mp, double delt );
-   void BlockUplift( tMesh<tLNode> *mp, double delt );
+   void UpliftUniform( tMesh<tLNode> *mp, double delt, double currentTime );
+   void BlockUplift( tMesh<tLNode> *mp, double delt, double currentTime );
    void StrikeSlip( tMesh<tLNode> *mp, double delt ) const;
    void FoldPropErf( tMesh<tLNode> *mp, double delt );
    void CosineWarp2D( tMesh<tLNode> *mp, double delt );
