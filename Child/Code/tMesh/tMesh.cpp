@@ -11,7 +11,7 @@
 **      to avoid dangling ptr. GT, 1/2000
 **    - added initial densification functionality, GT Sept 2000
 **
-**  $Id: tMesh.cpp,v 1.219 2008-07-07 16:18:58 childcvs Exp $
+**  $Id: tMesh.cpp,v 1.220 2008-07-11 20:07:28 childcvs Exp $
 */
 /***************************************************************************/
 
@@ -1045,316 +1045,331 @@ MakePointBoundary( const ParamMMFS_t &Param, const tInputFile &infile,
    nodeListIter_t nodIter( nodeList );
 
    //MAKE BOUNDARY
-   switch( Param.boundType ) {
-   case ParamMMFS_t::kCornerOutlet:
-     {
-       miNextNodeID = 0;
-       tempnode.setBoundaryFlag( kOpenBoundary );
-       tempnode.set3DCoords( 0., 0., 0. );
-       tempnode.setID( miNextNodeID );
-       n = ROUND( Param.xGrid / Param.delGrid );
-       tempnode.setBoundaryFlag( kOpenBoundary );
-       nodeList.insertAtBack( tempnode );
-       bndList.insertAtBack( nodIter.LastP() );
-       tempnode.setBoundaryFlag( kClosedBoundary );
-       for( i=1, miNextNodeID++; i<n; i++, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, 0., 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=0; i<n; i++, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( Param.xGrid, dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       n = ROUND( Param.xGrid / Param.delGrid );
-       for( i=n; i>0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, Param.yGrid, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=n; i>0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( 0., dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-     }
-     break;
-   case ParamMMFS_t::kOpenSide:
-     {
-       std::cout << "OPEN SIDE boundary\n";
-       n = ROUND( Param.xGrid / Param.delGrid );
-       tempnode.setBoundaryFlag( kOpenBoundary );
-       for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, 0., 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       tempnode.setBoundaryFlag( kClosedBoundary );
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=0; i<n; i++, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( Param.xGrid, dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       n = ROUND( Param.xGrid / Param.delGrid );
-       for( i=n; i>0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, Param.yGrid, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=n; i>=0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( 0., dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-     }
-     break;
-   case ParamMMFS_t::kOppositeSidesOpen:
-     {
-       n = ROUND( Param.xGrid / Param.delGrid );
-       tempnode.setBoundaryFlag( kOpenBoundary );
-       for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, 0., 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       tempnode.setBoundaryFlag( kClosedBoundary );
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=0; i<=n; i++, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( Param.xGrid, dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       tempnode.setBoundaryFlag( kOpenBoundary );
-       n = ROUND( Param.xGrid / Param.delGrid );
-       for( i=n-1; i>0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, Param.yGrid, Param.upperZ );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBoundFront( tempnode );
-	   bndList.insertAtBack( nodIter.FirstBoundaryP() );
-	 }
-       tempnode.setBoundaryFlag( kClosedBoundary );
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=n; i>=0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( 0., dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-     }
-     break;
-   case ParamMMFS_t::kAllSidesOpen:
-     {
-       miNextNodeID = 0;
-       n = ROUND( Param.xGrid / Param.delGrid );
-       tempnode.setBoundaryFlag( kOpenBoundary );
-       for( i=0; i<n; i++, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, 0., 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=0; i<n; i++, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( Param.xGrid, dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       n = ROUND( Param.xGrid / Param.delGrid );
-       for( i=n; i>0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, Param.yGrid, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=n; i>0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( 0., dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-     }
-   case ParamMMFS_t::kSpecifyOutlet:
-     {
-       // Create nodes for bottom (Y=0) boundary and place them on list
-       n = ROUND( Param.xGrid / Param.delGrid );
-       tempnode.setBoundaryFlag( kClosedBoundary );
-       for( i=0, miNextNodeID=0; i<n; i++, miNextNodeID++ )
-	 {
-	   // Assign node coords to tempnode and add tempnode to list
-	   dist = i * Param.delGrid + 0.01 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, 0., 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-
-	   // If user wants outlet on this side between this and the next pt,
-	   // create the outlet now
-	   if( Param.yout == 0 && Param.xout > dist && Param.xout < dist + Param.delGrid )
-	     {
-	       tempnode.set3DCoords( Param.xout, Param.yout, 0. );
-	       tempnode.setBoundaryFlag( kOpenBoundary );
-	       miNextNodeID++;
-	       tempnode.setID( miNextNodeID );
-	       nodeList.insertAtBoundFront( tempnode );
-	       bndList.insertAtBack( nodIter.FirstBoundaryP() );
-	       tempnode.setBoundaryFlag( kClosedBoundary );
-	     }
-	 }
-
-       // Create nodes for right (X=Param.xGrid) boundary and place them on list
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=0; i<n; i++, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( Param.xGrid, dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	   if( Param.xout == Param.xGrid && Param.yout > dist && Param.yout < dist + Param.delGrid )
-	     {
-	       tempnode.set3DCoords( Param.xout, Param.yout, 0. );
-	       tempnode.setBoundaryFlag( kOpenBoundary );
-	       miNextNodeID++;
-	       tempnode.setID( miNextNodeID );
-	       nodeList.insertAtBoundFront( tempnode );
-	       bndList.insertAtBack( nodIter.FirstBoundaryP() );
-	       tempnode.setBoundaryFlag( kClosedBoundary );
-	     }
-	 }
-
-       // Create nodes for top (Y=Param.yGrid) boundary and place them on list
-       n = ROUND( Param.xGrid / Param.delGrid );
-       for( i=n; i>0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, Param.yGrid, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	   if( Param.yout == Param.yGrid && Param.xout < dist && Param.xout > dist - Param.delGrid )
-	     {
-	       tempnode.set3DCoords( Param.xout, Param.yout, 0. );
-	       tempnode.setBoundaryFlag( kOpenBoundary );
-	       miNextNodeID++;
-	       tempnode.setID( miNextNodeID );
-	       nodeList.insertAtBoundFront( tempnode );
-	       bndList.insertAtBack( nodIter.FirstBoundaryP() );
-	       tempnode.setBoundaryFlag( kClosedBoundary );
-	     }
-	 }
-
-       // Create nodes for left (X=0) boundary and place them on list
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=n; i>0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( 0., dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	   if( Param.xout == 0 && Param.yout < dist && Param.yout > dist - Param.delGrid )
-	     {
-	       tempnode.set3DCoords( Param.xout, Param.yout, 0. );
-	       tempnode.setBoundaryFlag( kOpenBoundary );
-	       miNextNodeID++;
-	       tempnode.setID( miNextNodeID );
-	       nodeList.insertAtBoundFront( tempnode );
-	       bndList.insertAtBack( nodIter.FirstBoundaryP() );
-	       tempnode.setBoundaryFlag( kClosedBoundary );
-	     }
-	 }
-     }
-     break;
-   case ParamMMFS_t::kAllSideClosed:
-     {
-       n = ROUND( Param.xGrid / Param.delGrid );
-       tempnode.setBoundaryFlag( kClosedBoundary );
-       for( i=0, miNextNodeID=0; i<n; i++, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, 0., 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=0; i<n; i++, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( Param.xGrid, dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       n = ROUND( Param.xGrid / Param.delGrid );
-       for( i=n; i>0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( dist, Param.yGrid, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-       n = ROUND( Param.yGrid / Param.delGrid );
-       for( i=n; i>0; i--, miNextNodeID++ )
-	 {
-	   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
-	   tempnode.set3DCoords( 0., dist, 0. );
-	   tempnode.setID( miNextNodeID );
-	   nodeList.insertAtBack( tempnode );
-	   bndList.insertAtBack( nodIter.LastP() );
-	 }
-     }
-     break;
+   switch( Param.boundType ) 
+   {
+	   case ParamMMFS_t::kCornerOutlet:
+	   {
+		   miNextNodeID = 0;
+		   tempnode.setBoundaryFlag( kOpenBoundary );
+		   tempnode.set3DCoords( 0., 0., 0. );
+		   tempnode.setID( miNextNodeID );
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   tempnode.setBoundaryFlag( kOpenBoundary );
+		   nodeList.insertAtBack( tempnode );
+		   bndList.insertAtBack( nodIter.LastP() );
+		   tempnode.setBoundaryFlag( kClosedBoundary );
+		   for( i=1, miNextNodeID++; i<n; i++, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, 0., 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=0; i<n; i++, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( Param.xGrid, dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   for( i=n; i>0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, Param.yGrid, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=n; i>0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( 0., dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+	   }
+		   break;
+		   
+	   case ParamMMFS_t::kOpenSide:
+	   {
+		   std::cout << "OPEN SIDE boundary\n";
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   tempnode.setBoundaryFlag( kOpenBoundary );
+		   for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, 0., 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   tempnode.setBoundaryFlag( kClosedBoundary );
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=0; i<n; i++, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( Param.xGrid, dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   for( i=n; i>0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, Param.yGrid, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=n; i>=0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( 0., dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+	   }
+		   break;
+		   
+	   case ParamMMFS_t::kOppositeSidesOpen:
+	   {
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   tempnode.setBoundaryFlag( kOpenBoundary );
+		   for( i=1, miNextNodeID=0; i<n; i++, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, 0., 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   tempnode.setBoundaryFlag( kClosedBoundary );
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=0; i<=n; i++, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( Param.xGrid, dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   tempnode.setBoundaryFlag( kOpenBoundary );
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   for( i=n-1; i>0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, Param.yGrid, Param.upperZ );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBoundFront( tempnode );
+			   bndList.insertAtBack( nodIter.FirstBoundaryP() );
+		   }
+		   tempnode.setBoundaryFlag( kClosedBoundary );
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=n; i>=0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( 0., dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+	   }
+		   break;
+		   
+	   case ParamMMFS_t::kAllSidesOpen:
+	   {
+		   miNextNodeID = 0;
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   tempnode.setBoundaryFlag( kOpenBoundary );
+		   
+		   // y=0 edge ("bottom")
+		   for( i=0; i<n; i++, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, 0., 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   
+		   // x=xGrid edge ("right")
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=0; i<n; i++, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( Param.xGrid, dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   
+		   // y=yGrid edge ("top")
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   for( i=n; i>0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, Param.yGrid, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   
+		   // x=0 edge ("left")
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=n; i>0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( 0., dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+	   }
+		   break;
+	   
+	   case ParamMMFS_t::kSpecifyOutlet:
+	   {
+		   // Create nodes for bottom (Y=0) boundary and place them on list
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   tempnode.setBoundaryFlag( kClosedBoundary );
+		   for( i=0, miNextNodeID=0; i<n; i++, miNextNodeID++ )
+		   {
+			   // Assign node coords to tempnode and add tempnode to list
+			   dist = i * Param.delGrid + 0.01 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, 0., 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+			   
+			   // If user wants outlet on this side between this and the next pt,
+			   // create the outlet now
+			   if( Param.yout == 0 && Param.xout > dist && Param.xout < dist + Param.delGrid )
+			   {
+				   tempnode.set3DCoords( Param.xout, Param.yout, 0. );
+				   tempnode.setBoundaryFlag( kOpenBoundary );
+				   miNextNodeID++;
+				   tempnode.setID( miNextNodeID );
+				   nodeList.insertAtBoundFront( tempnode );
+				   bndList.insertAtBack( nodIter.FirstBoundaryP() );
+				   tempnode.setBoundaryFlag( kClosedBoundary );
+			   }
+		   }
+		   
+		   // Create nodes for right (X=Param.xGrid) boundary and place them on list
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=0; i<n; i++, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( Param.xGrid, dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+			   if( Param.xout == Param.xGrid && Param.yout > dist && Param.yout < dist + Param.delGrid )
+			   {
+				   tempnode.set3DCoords( Param.xout, Param.yout, 0. );
+				   tempnode.setBoundaryFlag( kOpenBoundary );
+				   miNextNodeID++;
+				   tempnode.setID( miNextNodeID );
+				   nodeList.insertAtBoundFront( tempnode );
+				   bndList.insertAtBack( nodIter.FirstBoundaryP() );
+				   tempnode.setBoundaryFlag( kClosedBoundary );
+			   }
+		   }
+		   
+		   // Create nodes for top (Y=Param.yGrid) boundary and place them on list
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   for( i=n; i>0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, Param.yGrid, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+			   if( Param.yout == Param.yGrid && Param.xout < dist && Param.xout > dist - Param.delGrid )
+			   {
+				   tempnode.set3DCoords( Param.xout, Param.yout, 0. );
+				   tempnode.setBoundaryFlag( kOpenBoundary );
+				   miNextNodeID++;
+				   tempnode.setID( miNextNodeID );
+				   nodeList.insertAtBoundFront( tempnode );
+				   bndList.insertAtBack( nodIter.FirstBoundaryP() );
+				   tempnode.setBoundaryFlag( kClosedBoundary );
+			   }
+		   }
+		   
+		   // Create nodes for left (X=0) boundary and place them on list
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=n; i>0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( 0., dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+			   if( Param.xout == 0 && Param.yout < dist && Param.yout > dist - Param.delGrid )
+			   {
+				   tempnode.set3DCoords( Param.xout, Param.yout, 0. );
+				   tempnode.setBoundaryFlag( kOpenBoundary );
+				   miNextNodeID++;
+				   tempnode.setID( miNextNodeID );
+				   nodeList.insertAtBoundFront( tempnode );
+				   bndList.insertAtBack( nodIter.FirstBoundaryP() );
+				   tempnode.setBoundaryFlag( kClosedBoundary );
+			   }
+		   }
+	   }
+		   break;
+		   
+	   case ParamMMFS_t::kAllSideClosed:
+	   {
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   tempnode.setBoundaryFlag( kClosedBoundary );
+		   for( i=0, miNextNodeID=0; i<n; i++, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, 0., 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=0; i<n; i++, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( Param.xGrid, dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   n = ROUND( Param.xGrid / Param.delGrid );
+		   for( i=n; i>0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( dist, Param.yGrid, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+		   n = ROUND( Param.yGrid / Param.delGrid );
+		   for( i=n; i>0; i--, miNextNodeID++ )
+		   {
+			   dist = i * Param.delGrid + 0.0001 * Param.delGrid * ( rand.ran3() - 0.5 );
+			   tempnode.set3DCoords( 0., dist, 0. );
+			   tempnode.setID( miNextNodeID );
+			   nodeList.insertAtBack( tempnode );
+			   bndList.insertAtBack( nodIter.LastP() );
+		   }
+	   }
+		   break;
    }
 }
 
