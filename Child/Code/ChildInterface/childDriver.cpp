@@ -1,7 +1,9 @@
 /**************************************************************************/
 /**
-**  ChildDriver.cpp: This provides a test and example of the CHILD
+**  childDriver.cpp: This provides a test and example of the CHILD
 **  interface.
+**
+**  July 2008
 **
 **  For information regarding this program, please contact Greg Tucker at:
 **
@@ -21,8 +23,28 @@ int main( int argc, char **argv )
 	childInterface myChildInterface;
 	
 	myChildInterface.Initialize( argc, argv );
-	myChildInterface.RunOneStorm();
-	myChildInterface.CleanUp();
 
+	if(1) // make this zero to use "example 2" below
+	{
+		// Example 1: using "Run" method, and setting run duration to zero so model reads duration from input file
+		myChildInterface.Run( 0 );
+	}
+	else
+	{
+		// Example 2: using "RunOneStorm" 
+		double mytime = 0;
+		double myrunduration = 100000;
+		
+		while( mytime<myrunduration )
+		{
+			mytime = myChildInterface.RunOneStorm();
+		}
+	}
+	
+	// Note that calling CleanUp() isn't strictly necessary, as the destructor will automatically clean it
+	// up when myChildInterface is deleted ... but it's nice to be able to do this at will (and free up
+	// memory)
+	myChildInterface.CleanUp();
+	
 	return 0;
 }

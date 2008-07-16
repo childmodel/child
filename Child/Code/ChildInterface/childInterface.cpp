@@ -21,6 +21,43 @@
 
 Predicates predicate;
 
+/**************************************************************************/
+/**
+**  Default constructor for childInterface
+**
+**  Sets pointers to NULL and initialized flag to false.
+*/
+/**************************************************************************/
+childInterface::
+childInterface()
+{
+	initialized = false;
+	
+	rand = NULL;
+	mesh  = NULL;
+	output = NULL;
+	storm = NULL;
+	strmNet = NULL;
+	erosion = NULL;
+	uplift = NULL;
+	time = NULL;
+	vegetation = NULL;
+	floodplain = NULL;
+	stratGrid = NULL;
+	loess = NULL;
+	strmMeander = NULL;
+}
+
+
+/**************************************************************************/
+/**
+**  Initialize
+**
+**  This method accesses the input file given on the command line (and
+**  passed via the parameters argc and argv), and creates the necessary
+**  objects.
+*/
+/**************************************************************************/
 void childInterface::
 Initialize( int argc, char **argv )
 {
@@ -106,13 +143,22 @@ Initialize( int argc, char **argv )
    std::cout << "Writing data for time zero...\n";
    time = new tRunTimer( inputFile, !option.silent_mode );
    output->WriteOutput( 0. );
+   initialized = true;
    std::cout << "Initialization done.\n";
 
 }
 
 
+/**************************************************************************/
+/**
+**  RunOneStorm
+**
+**  This method executes the model for one storm, calling each of several
+**  subroutines in turn. It returns the updated simulation time.
+*/
+/**************************************************************************/
 
-void childInterface::
+double childInterface::
 RunOneStorm()
 {
 	
@@ -300,25 +346,102 @@ RunOneStorm()
 	
 	if( output->OptTSOutput() ) output->WriteTSOutput();
 		
+	return( time->getCurrentTime() );
 }
+
+
+
+/**************************************************************************/
+/**
+**  Run
+**
+**  This method runs CHILD for a duration specified on the command line or,
+**  if that duration is <=0, for the duration specified in the previously
+**  read input file.
+*/
+/**************************************************************************/
+
+void childInterface::
+Run( double run_duration )
+{
+	if( initialized==false )
+		ReportFatalError( "childInterface must be initialized (with Initialize() method) before Run() method is called." );
+
+	if( run_duration>0.0 )
+		time->Start( time->getCurrentTime(), time->getCurrentTime()+run_duration );
+
+   while( !time->IsFinished() )
+		RunOneStorm();
+
+}
+
+
+/**************************************************************************/
+/**
+**  CleanUp
+**
+**  This method deletes the various objects created. Note that this 
+**  function is called by the destructor, so if a user function calls it
+**  explicitly, it will end up being called twice. 
+*/
+/**************************************************************************/
 
 void childInterface::
 CleanUp()
 {
-	delete rand;
-	delete mesh;
-	delete output;
-	delete storm;
-	delete strmNet;
-	delete erosion;
-	delete uplift;
-	delete time;
-	delete vegetation;
-	delete floodplain;
-	delete loess;
-	delete strmMeander;
-	delete stratGrid;
-	
+	if( rand ) {
+		delete rand;
+		rand = NULL;
+	}
+	if( mesh ) {
+		delete mesh;
+		mesh = NULL;
+	}
+	if( output ) {
+		delete output;
+		output = NULL;
+	}
+	if( storm ) {
+		delete storm;
+		storm = NULL;
+	}
+	if( strmNet ) {
+		delete strmNet;
+		strmNet = NULL;
+	}
+	if( erosion ) {
+		delete erosion;
+		erosion = NULL;
+	}
+	if( uplift ) {
+		delete uplift;
+		uplift = NULL;
+	}
+	if( time ) {
+		delete time;
+		time = NULL;
+	}
+	if( optVegetation && vegetation ) {
+		delete vegetation;
+		vegetation = NULL;
+	}
+	if( optFloodplainDep && floodplain ) {
+		delete floodplain;
+		floodplain = NULL;
+	}
+	if( optLoessDep && loess ) {
+		delete loess;
+		loess = NULL;
+	}
+	if( optMeander && strmMeander ) {
+		delete strmMeander;
+		strmMeander = NULL;
+	}
+	if( optStratGrid && stratGrid ) {
+		delete stratGrid;
+		stratGrid = NULL;
+	}
+	initialized = false;
 }
 
 

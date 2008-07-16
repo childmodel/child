@@ -37,18 +37,29 @@
 
 //Predicates predicate;
 
+/**************************************************************************/
+/**
+**  Class childInterface
+**
+**  The class childInterface acts as a copy of CHILD, providing access
+**  to it via methods to Initialize, RunOneStorm, Run (for a given
+**  duration as given as an argument or in an input file), and CleanUp.
+*/
+/**************************************************************************/
 class childInterface
 {
 public:
 	// Public methods
+	childInterface();
 	void Initialize( int argc, char **argv );
-	void RunOneStorm();
-	void Run();
+	double RunOneStorm();
+	void Run( double run_duration );
 	void CleanUp();
 	~childInterface();
 	
 private:
 	// Private data
+	bool initialized;      // Flag indicated whether model has been initialized
 	bool optDetachLim,      // Option for detachment-limited erosion only
         optFloodplainDep,  // Option for floodplain (overbank) deposition
         optLoessDep,       // Option for eolian deposition
@@ -57,7 +68,6 @@ private:
         optDiffuseDepo,    // Option for deposition / no deposition by diff'n
         optStratGrid,      // Option to enable stratigraphy grid
 		optNonlinearDiffusion; // Option for nonlinear creep transport
-	double frog;
 	tRand *rand;             // -> random number generator
 	tMesh<tLNode> *mesh;        // -> mesh object
 	tLOutput<tLNode> *output;   // -> output handler
