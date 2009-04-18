@@ -23,5 +23,7 @@ for i=1:ts
   z=fscanf(zfid,'%f',[1,nn]);
 end
 m = [ rot90(n(1,:),3) rot90(n(2,:),3) rot90(z,3) rot90(n(4,:),3) ];
+fclose(nfid);
+fclose(zfid);
 
 

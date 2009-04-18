@@ -1,0 +1,265 @@
+%! program = pdflatex
+
+\documentclass[12pt]{article}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+%\geometry{letter} % or letter or a5paper or ... etc
+% \geometry{landscape} % rotated page geometry
+
+% See the ``Article customise'' template for come common customisations
+
+\title{Overview of the CHILD Source-Code Structure}
+\author{Greg Tucker}
+\date{June 2008} % delete this line to display the current date
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+
+\subsection{About CHILD}
+
+CHILD is a numerical landscape evolution model that was originally developed at MIT in the mid to late 1990s by members of Rafael Bras' geomorphology group (Rafael Bras, Nicole Gasparini, Stephen Lancaster, and Greg Tucker). Since then, the code has continued to grow, with new capabilities and contributions from researchers around the world. The main version of the code is currently maintained in a networked source-code repository at the University of Colorado. An executable release version is available on the web via MIT. The full package is scheduled for release through CSDMS any day now (translation: ``as soon as I can get my act together to make a web page for it'').
+
+\subsection{Source-Code Structure}
+
+The CHILD (version 2008) source code is divided among a number of different 
+source files. These source files represent, more or less, the various modules 
+and utility classes that together make up CHILD. This document gives a brief 
+overview of the module and file structure. It is intended for developers who 
+wish to add capabilities, create linking software, or couple CHILD with other 
+models. I assume you are basically familiar with C++. File names and file sets 
+are given in {\bf bold} and class names are given in {\em italics}. By 
+``file set'' I mean a group of related files that reside in the same folder 
+(for example, {\bf tUplift.h} and {\bf tUplift.cpp}).
+
+The code consists of several different file sets, most of which reside in their own sub-folders and usually consist of a header (.h) and source (.cpp) file. Sometimes there will be only a header file, and sometimes more than one header and/or source file.
+
+The high-level structure, including initialization and the implementation of a time loop, is handled by a relatively small ``main'' routine contained in the files {\bf childmain.cpp} (for the development version) and {\bf childrmain.cpp} (for the general release version). 
+(Note though that coming soon is a ``ChildInterface'' code that provides a
+simple interface by which CHILD can be invoked by another application, with
+methods that will initialize the model, run one storm, run for a specified
+amount of time, etc.)
+Most of the main modules, which handle processes such as water routing, erosion, and tectonic uplift, are implemented as classes (such as the tStreamNet, tErosion, and tUplift classes). (The file {\bf toddlermain.cpp} implemented a now-obsolete release version).
+
+\section{General Header Files: Classes, compiler, Definitions, Inclusions, Template\_Model, and trapfpe}
+
+The header files handle various things. {\bf Classes.h} tells the compiler 
+what classes to expect. {\bf Template\_model.h} and {\bf compiler.h} are meant 
+to handle differences between compilers (they aren't foolproof). 
+{\bf Definitions.h} provides a list of defined constants and macros. 
+{\bf trapfpe.h}, which I think was written by Arnaud Desitter, enables 
+floating-point-exception traps in Linux.
+
+\section{Basic Utilities}
+
+\subsection{Error Handling: errors}
+
+The small {\bf errors} file set takes care of reporting errors and warnings.
+
+\subsection{Command-Line Options: tOption}
+
+The {\bf tOption} file set parses and handles command-line options.
+
+\subsection{Mathematics: Geometry, Mathutil, and Predicates}
+
+The {\bf mathutil} file set handles random-number generation through the 
+{\em tRand} class. Thanks to Arnaud Desitter, it includes an implementation of 
+a Mersenne Twister pseudorandom number generator. The {\bf geometry.h} file 
+defines classes for 2D and 3D points with constructors and assignment 
+operators. The {\bf Predicates} file set handles arbitrary precision 
+floating-point arithmetic, using a subset of a public domain code modified by 
+Stephen Lancaster.
+
+\subsection{Vectors and Matrices: tArray and tMatrix}
+
+The first version of CHILD was written before the Standard Template Library 
+was created, so it uses its own array (vector) handling routines in the 
+{\bf tArray} file set. This implements the {\em tArray} class, which handles 
+1D arrays with bounds-checking, constructors, etc. It is widely used 
+throughout the code. The {\bf tMatrix} file set implements 2D arrays, or 
+matrices, using the {\em tMatrix} class. It is not used especially frequently 
+in the code, however.
+
+\subsection{Linked List Management: tList, tPtrList, and tMeshList}
+
+CHILD makes heavy use of linked lists, which come in several flavors. Basic 
+two-way linked lists of objects are handled by the {\bf tList} file set. It 
+includes several classes: {\em tList} implements the list itself, 
+{\em tListNodeBasic}, {\em tListable} and {\em tListNodeListable} implement 
+the nodes that make up the list, and {\em tListIter} implements iterators that 
+move up and down a list to access its nodes. Lists of pointers to objects, as 
+opposed to lists of the objects themselves, have to be handled a little 
+differently, and are implemented by the {\bf tPtrList} file set.
+
+In addition to these, {\bf tMeshList} handles a derived type of list designed 
+specifically for handling lists of mesh elements (nodes and edges; triangles
+don't need special handling). A 
+{\em tMeshList} is a {\em tList} that is divided into two sections: an 
+``active'' section (at the ``top'' of the list) representing nodes and edges 
+that fall inside the mesh boundaries. In other words, nodes that are part of 
+the computed domain and whose elevations change, etc., are placed in the 
+{\em active} portion of the list. Boundary nodes (whether open or closed to 
+water and sediment) are placed in the {\em inactive} (``bottom'') portion of 
+the list. This makes it easy to access a list of active nodes. Edges are 
+handled in a similar fashion. The {\em tMeshListIter} class provides 
+iterators to access a {\em tMeshList}.
+
+\subsection{Time Management: tRunTimer}
+
+{\em tRunTimer} is a small class that keeps track of the current time in the 
+simulation.
+
+\section{Mesh Construction and Management: tMesh, tLNode and MeshElements}
+
+CHILD includes a large and fairly complex body of code to generate, maintain, 
+and update the Delaunay triangulation and related Voronoi diagram. The 
+{\em tMesh} class manages the overall mesh, and includes lists of three basic 
+objects that make up the mesh: nodes ({\em tNode} and {\em tLNode} classes), 
+directed edges ({\em tEdge} class), and triangles ({\em tTriangle} class). The 
+{\em tNode}, {\em tEdge}, and {\em tTriangle} classes are defined in the 
+{\bf MeshElements} fileset. The {\em tNode} class is designed to be generic 
+and adaptable; its data include 3D coordinates and a pointer to one of the 
+edges (``spokes'') connected to it, but little else. The {\em tLNode} class, 
+which is inherited from {\em tNode}, contains most of the data related to 
+landscape evolution (drainage area, shear stress, etc.). Data structures are 
+described in Tucker et al. (2001 {\em Computers and Geosciences}).
+
+\section{Parameter and Data Input: tInput and tTimeSeries}
+
+Input of parameters and options is handled by the {\em tInputFile} class, which opens and reads a specified file, and delivers the necessary parameters to the parts of the code that request them. The class is generic and self-contained, and can easily be used by other codes (I have used it so). It implements a simple ``two-line'' format in which each parameter is represented by a unique tag on one line of the input file and the value is specified on the next line. The order of parameters is arbitrary, and comments can be included in the input file by placing a hash mark at the beginning of the line.
+
+Initial topography data, if desired, is not handled by {\bf tInputFile} but rather by the mesh routines (in the {\bf tMesh} fileset). Some parameters can vary through time, and the time variation is handled using the {\em tTimeSeries} class written by Patrick Bogaart (currently at Wageningen University, Netherlands).
+
+\section{Output: tOutput, tLOutput}
+
+Output of data is handled by two related classes (and some helpers): 
+{\em tOutput} and {\em tLOutput}. 
+  The {\em tOutput} class handles output of triangulated mesh data to
+   files. The class handles only output of mesh data (nodes,
+   edges, and triangles); output of additional data (e.g., water or
+   sediment flow) is handled by the derived class {\em tLOutput}.
+ 
+   {\em tOutput} provides functions to open and initialize output files and
+   write output at a specified time in a simulation. The class is
+   templated in order to allow for a pointer to a templated
+   {\em tMesh} object.
+ 
+ To handle output of application-specific data, one can create a
+ class inherited from {\em tOutput} and overload its virtual
+ WriteNodeData function to output the additional data.
+In the present version of CHILD, the files {\bf tOutput.h/.cpp}
+contain the inherited class {\em tLOutput}, which handles output for
+the CHILD model. In the future, such inherited classes could be
+kept in separate files to preserve the generality of {\em tOutput}.
+
+\section{Rainfall and Runoff: tStorm and tStreamNet}
+
+The {\bf tStorm} module generates storm events and interstorm periods
+using pseudorandom numbers (or with constant intensity and duration,
+if the user desires). The {\bf tStreamNet} turns this into stream flow
+by computing drainage directions, infiltration, and discharge. It also
+computes channel geometry and sorts the node list according to network
+position. 
+
+The stochastic rainfall model is discussed in Tucker and Bras (2000
+{\em Water Resources Research}) and Tucker (2004 {\em Earth
+Surface Processes and Landforms}). Runoff and drainage routing algorithms are
+described in Tucker et al. (2001a {\em Computers and Geosciences} and
+2001b Chapter in {\em Landscape Erosion and Evolution Modeling} by
+R. Harmon and W. Doe).
+
+
+\section{Erosion and Transport: Erosion}
+
+The {\bf Erosion} module is the geomorphic workhorse. It implements
+various options for sediment transport capacity and ``bedrock''
+detachment. It includes the DetachErode function (and its counterpart,
+DetachErode2, written by Nicole Gasparini for the sediment-flux-dependent bedrock erosion laws). This module also includes
+hillslope transport. The erosion and transport algorithms are discussed in Tucker et al. (2001b),
+Gasparini et al. (2004 {\em Earth
+Surface Processes and Landforms}), and Gasparini et al. (2006 in {\em Tectonics, climate and landscape evolution}). As of this writing, DetachErode2 isn't fully integrated; one has to hack {\bf childmain.cpp} to make it call DetachErode2 instead of DetachErode.
+
+
+\section{Stratigraphy}
+
+\subsection{Layers beneath Nodes}
+
+Stratigraphy is normally handled using a stack of ``layers'' beneath each node.
+A layer is implemented using class {\em tLayer}, which was created by Nicole Gasparini and is defined in
+{\bf tLNode}. Layer input (when a run is re-started) is handled in
+{\bf tMesh}, while output is handled in {\bf tOutput}. For discussion of implementation and an example application, see Gasparini et al. (2004).
+
+
+\subsection{High-Resolution Gridded Stratigraphy: tStratGrid}
+
+Handling layers as stacks beneath individual nodes can introduce problems when
+the nodes are moving significantly, as in the case of channel meandering
+simulations (see Clevis et al., 2006a {\em Computers and Geosciences} and Clevis et al., 2006b
+{\em Geoarchaeology}).
+). To deal with this problem, Quintijn
+Clevis developed an alternative method for handling stratigraphy based on a 
+static raster grid that underlies the landscape. The approach is implemented
+in {\bf tStratGrid}. As of this writing, it has only been used for a project
+on fluvial stratigraphy and geoarchaeology described by Clevis et al. (2006b).
+
+\section{Uplift, Subsidence and Baselevel Change: tUplift}
+
+Vertical motion of the landscape relative to a baselevel are handled by
+{\bf tUplift}. The {\em tUplift} class provides a variety of different 
+``uplift'' geometries and methods (including some that have lateral motion).
+
+\section{Special Processes: Channel Meandering, Floodplain Deposition, Eolian Deposition, Vegetation}
+
+\subsection{Stream Meandering: tStreamMeander}
+
+Stephen Lancaster developed a module for stream meandering in which nodes 
+representing ``large'' streams (those with drainage area larger than some
+threshold) undergo meandering, using a model described by Lancaster and
+Bras (2002 {\em Hydrological Processes}). As channel nodes migrate, the mesh is constantly updated, with
+some nodes being added (representing point-bar deposits) and others deleted
+(representing bank erosion). The code to implement this, in
+ {\bf tStreamMeander}, is quite tricky, and
+has gone through a number of iterations and bug fixes. As of this writing, the
+most recent published implementation is Clevis et al. (2006b) on geoarchaeology
+simulation. Nate Bradley is also using the meander module to examine 
+floodplain sediment residence-time distributions (Bradley and Tucker, 2007
+AGU abstract). Applications that use the meander module have so far focused on 
+a domain
+consisting of an idealized segment of a large river valley, rather than an
+entire drainage basin.
+
+\subsection{Floodplain Deposition: tFloodplain}
+
+For the floodplain evolution and geoarchaeology projects, a {\bf tFloodplain}
+module was created that deposits ``overbank'' sediment on a landscape based on
+a modified version of Howard's (1992) floodplain-sedimentation model. So far,
+this module has only been used in the context of the geoarchaeology simulation
+project (Clevis et al., 2006b).
+
+\subsection{Vegetation Dynamics: tVegetation}
+
+Around 1997, stimulated in part by simplifications used in climate-response
+modeling by Tucker and Slingerland (1997 {\em Water Resources Research}), we started thinking about the role
+of vegetation in controling channel network extent. The result was a simple
+dynamic model of vegetation growth and erosion, which is implemented in
+{\bf tVegetation}. Daniel Collins explored this model for his MS thesis, 
+and the results appear in Collins et al. (2004 {\em Journal of Geophysical Research}). A zero-dimensional version
+is presented (not coupled in CHILD) in Tucker et al. (2006 {\em GSA Bulletin}). Lee Arnold also
+used the {\bf tVegetation} model in a chapter of his D.Phil. thesis
+(Arnold, 2006 Oxford D.Phil.), which I hope will see the light of publication some day.
+
+\subsection{Dust Accumulation: tEolian}
+
+When the development team in Rafael Bras' geomorphology group (Bras, Gasparini, Lancaster and Tucker) began building CHILD at MIT in the mid to late 1990s, 
+the effort was supported by a Corps of Engineers grant that was geared in part toward
+geoarchaeology modeling at Fort Riley, Kansas (see Zeidler et al., 1999 CEMML Technical Report).
+Because the geomorphology of that setting includes a strong component of 
+glacial loess, we wrote a very simple {\bf tEolian} module to drape dust on
+the landscape at a specified rate. To the best of my knowledge, it has 
+never been published outside of technical reports.
+
+
+\end{document} 

@@ -32,6 +32,7 @@ for i=1:2:ne
   %line( [n(1,e(1,i)) n(1,e(2,i))], [n(2,e(1,i)) n(2,e(2,i))], 'color', 'k' ) 
 %     set(h(1),'linewidth',[0.1])
 end
+drawnow
 nx=rot90(n(1,:));
 nx=rot90(nx);
 nx=rot90(nx);
