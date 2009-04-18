@@ -63,6 +63,7 @@ private:
    void PowerLawUplift( tMesh<tLNode> *mp, double delt );
    void UpliftRateMap( tMesh<tLNode> *mp, double delt, double currentTime );
    void PropagatingFront( tMesh<tLNode> *mp, double delt, double currentTime );
+   void BaselevelFallAtOpenBoundaries( tMesh<tLNode> *mp, double delt, double currentTime );
    
 private:
    typedef enum {
@@ -79,7 +80,8 @@ private:
        k10,
        k11,
        k12,
-	   k13
+	   k13,
+	   k14
    } tUplift_t;
    
    static tUplift_t DecodeType(int);

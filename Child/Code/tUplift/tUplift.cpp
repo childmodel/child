@@ -38,7 +38,7 @@
 **
 \************************************************************************/
 tUplift::tUplift_t tUplift::DecodeType(int type){
-   if( type < 0 || type > 13 )
+   if( type < 0 || type > 14 )
    {
       std::cerr << "I don't recognize the uplift type you asked for ("
                 << type << ")\n"
@@ -56,7 +56,8 @@ tUplift::tUplift_t tUplift::DecodeType(int type){
           " 10 - Linear change in uplift rate\n"
           " 11 - Power law change in uplift rate in the y-direction\n"
 	      " 12 - Uplift rate maps in separate files\n"
-		  " 13 - Propagating horizontal front\n";
+		  " 13 - Propagating horizontal front\n"
+		  " 14 - Baselevel fall at open boundaries\n";
       ReportFatalError( "Please specify a valid uplift type and try again." );
    }
    return static_cast<tUplift_t>(type);
@@ -186,6 +187,8 @@ tUplift::tUplift( const tInputFile &infile ) :
 			mdUpliftFrontGradient = infile.ReadItem( mdUpliftFrontGradient, "UPLIFT_FRONT_GRADIENT" );
 			width = infile.ReadItem( width, "STARTING_YCOORD" );
 			break;
+		case k14:
+		    break;
    }
 
 }
@@ -250,6 +253,9 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
 	  case k13:
 		  PropagatingFront( mp, delt, currentTime );
 	      break;
+      case k14:
+	      BaselevelFallAtOpenBoundaries( mp, delt, currentTime );
+		  break;
    }
    
 }
@@ -990,6 +996,40 @@ void tUplift::PropagatingFront( tMesh<tLNode> *mp, double delt, double currentTi
    }
 
 }
+
+
+/************************************************************************\
+**
+**  tUplift::BaselevelFallAtOpenBoundaries
+**
+**  Elevation of open-bounary nodes declines over time at a rate 
+**  specified by "rate".
+**
+**  Inputs:  mp -- pointer to the mesh
+**           delt -- duration of uplift
+**
+\************************************************************************/
+void tUplift::BaselevelFallAtOpenBoundaries( tMesh<tLNode> *mp, double delt, double currentTime )
+{
+   assert( mp!=0 );
+   tLNode *cn;
+   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+   rate = rate_ts.calc( currentTime );
+   const double fall = rate*delt;
+
+   if (0) //DEBUG
+     std::cout << "****BASELEVELFALL: " << fall << std::endl;
+
+   for( cn=ni.FirstBoundaryP(); !ni.AtEnd(); cn=ni.NextP() )
+   {
+      if( cn->getBoundaryFlag()==kOpenBoundary )
+	  {
+	     cn->ChangeZ( -fall );
+         cn->setUplift( -fall );
+      }
+   }
+}
+
 
 
 
