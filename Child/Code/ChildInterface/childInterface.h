@@ -26,6 +26,7 @@
 #ifndef CHILDINTERFACE_H
 #define CHILDINTERFACE_H
 
+#include <string>
 #include "../trapfpe.h"
 #include "../Inclusions.h"
 #include "../tFloodplain/tFloodplain.h"
@@ -34,6 +35,23 @@
 #include "../tOption/tOption.h"
 
 #include "../tMeshList/tMeshList.h"
+
+using namespace std;
+
+// A type definition to implement OpenMI IElement interface
+enum ElementType
+{
+	IDBased,
+	XYPoint,
+	XYLine,
+	XYPolyLine,
+	XYPolygon,
+	XYZPoint,
+	XYZLine,
+	XYZPolyLine,
+	XYZPolygon,
+	XYZPolyhedron
+};
 
 //Predicates predicate;
 
@@ -56,6 +74,14 @@ public:
 	void Run( double run_duration );
 	void CleanUp();
 	~childInterface();
+	
+	// Public methods that implement the OpenMI IElement interface
+	string getID();
+	string getDescription();
+	//Question: how to handle ISpatialReference? what type is it? do I define such a class?
+	ElementType getElementType();
+	int getElementCount();
+	int getVersion();
 	
 private:
 	// Private data
@@ -83,6 +109,12 @@ private:
 	tEolian *loess;           // -> eolian deposition object
 	tStreamMeander *strmMeander; // -> stream meander object
 	//Predicates predicate;   // Math-related stuff
+	
+	// Private data for implementing OpenMI IElement interface
+	string element_set_id;
+	string element_set_description;
+	int version;
+	
 	
 	
 };

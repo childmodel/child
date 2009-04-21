@@ -19,6 +19,8 @@
 
 #include "childInterface.h"
 
+using namespace std;
+
 Predicates predicate;
 
 /**************************************************************************/
@@ -29,7 +31,9 @@ Predicates predicate;
 */
 /**************************************************************************/
 childInterface::
-childInterface()
+childInterface() : element_set_id("CHILD_node_element_set"), 
+                   element_set_description( "Element set interface for CHILD's voronoi nodes" ),
+				   version(0)
 {
 	initialized = false;
 	
@@ -450,3 +454,44 @@ childInterface::
 {
 	CleanUp();
 }
+
+
+/**************************************************************************/
+/**
+**  Functions that implement the OpenMI IElement interface
+*/
+/**************************************************************************/
+
+string childInterface::
+getID()
+{
+    return element_set_id;
+}
+
+string childInterface::
+getDescription()
+{
+    return element_set_description;
+}
+
+ElementType childInterface::
+getElementType()
+{
+    return XYPolygon;
+}
+
+int childInterface::
+getElementCount()
+{
+    if( mesh!=NULL )
+	    return mesh->getNodeList()->getSize();
+    else
+	    return(0);
+}
+
+int childInterface::
+getVersion()
+{
+    return version;
+}
+
