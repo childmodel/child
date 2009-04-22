@@ -11,7 +11,7 @@
  
  % See the ``Article customise'' template for come common customisations
  
- \title{CHILD Users Guide, version R9.4.0}
+ \title{CHILD Users Guide, version R9.4.1}
  \author{Gregory E. Tucker \and Cooperative Institute for Research in Environmental Sciences (CIRES) \and and Department of Geological Sciences \and University of Colorado, Boulder, CO 80309 USA}
  \date{April, 2009} % delete this line to display the current date
  
@@ -542,11 +542,21 @@ where $K_d$ is a transport coefficient with dimensions of [L$^2$/T]. The nonline
 \end{equation}
 where $S_c$ is a threshold slope gradient at which transport rate tends to infinity. The parameter OPT\_NONLINEAR\_DIFFUSION switches between these two forms. If it is  set to 1, you must also specify $S_c$ through the parameter CRITICAL\_SLOPE. In either case, enter $K_d$ using the tag KD, in square meters per year.
 
-The parameter OPTDIFFDEP, is an option that controls whether diffusive transport contributes to both erosion and deposition, or to erosion only. In some cases, there may be reason to apply diffusion only to convex (erosional) elements of topography, with any deposited sediment assumed to be removed rapidly by water erosion (see, e.g., Moglen and Bras, 1994). Set OPTDIFFDEP to 1 to deactive the deposition component hillslope diffusion.
+The parameter OPTDIFFDEP, is an option that controls whether diffusive transport contributes to both erosion and deposition, or to erosion only. In some cases, there may be reason to apply diffusion only to convex (erosional) elements of topography, with any deposited sediment assumed to be removed rapidly by water erosion (see, e.g., Moglen and Bras, 1994). Set OPTDIFFDEP to 1 to deactive the deposition component of hillslope diffusion.
+
+\section{Working with Multiple Grain Size Classes}
+
+Three of the sediment-transport models, the Wilcock sand-gravel formula (4), the generic power-law multi-size formula (5), and the Willgoose-Riley sand-gravel formula (6), can handle transport of multiple grain size fractions. The two sand-gravel formulas require two size fractions (sand and gravel). The generic power-law formula is designed to handle an arbitrary number of size-fractions. Note that the number of grain size fractions specified in NUMGRNSIZE must match the transport formula used. It must be 2 for the sand-gravel formulas. It can be any number (within constraints of memory availability and computing speed) for the generic multi-size formula. It must be set to 1 for all other transport formulas. Be careful with this: the model does not check every circumstance to make sure you have done it correctly!
+
+When using multiple grain sizes, you can control the proportion of each size in regolith layers and in bedrock layers (the latter represents the size distribution into which the material erodes). This is done using the parameters REGPROPORTION$i$, for the proportion of size fraction $i$ in regolith layers, and BRPROPORTION$i$, for bedrock layers. A value of each parameter must be set for each size fraction; for example, when using the Wilcock sand-gravel formula, you must specify a value for REGPROPORTION1, REGPROPORTION2, BRPROPORTION1, and BRPROPORTION2. The characteristic diameter of each size fraction is set with the GRAINDIAM$i$ parameters. For more information about the multiple grain-size transport algorithms, see Gasparini et al.\ (1999, 2004, 2008).
+ 
 
 \section{Working with Stratigraphy}
 
 In general, each model node may include any number of layers of variable thickness and sediment composition. By default, the model initializes with a simple, spatially uniform stratigra-phy that consists of a column of bedrock overlain by a column of regolith. The initial regolith thickness may be zero. The total column thickness must be deeper than the maximum potential erosion depth. The initial thickness of the bedrock and regolith columns are set by the parameters BEDROCKDEPTH and REGINIT, respectively, and their erodibility factors are KB and KR. Alternatively, the model can be initialized with a variable sequence of layers of different thickness, composition, and erodibility at each node. This is the method used to restart a run in which stratigraphy matters, and it simply involves setting the OPTREADLAYER parameter to 1. Layer data are then read from a file having the name specified in INPUTDATAFILE followed by the extension {\tt .lay}{\em i}, where $i$ is the time-slice number. (This file must have the format as the layer output file; typically it is a layer output file from a previous run).
+
+
+
 
 
 \section{Tectonics and Baselevel Control}

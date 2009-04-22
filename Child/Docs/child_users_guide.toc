@@ -1,6 +1,6 @@
-\contentsline {section}{\numberline {1}Overview}{2}
+\contentsline {section}{\numberline {1}Overview}{3}
 \contentsline {section}{\numberline {2}Terms of Use}{3}
-\contentsline {section}{\numberline {3}Installing and Compiling CHILD}{3}
+\contentsline {section}{\numberline {3}Installing and Compiling CHILD}{4}
 \contentsline {section}{\numberline {4}An Example Run}{4}
 \contentsline {subsection}{\numberline {4.1}Starting the Run}{4}
 \contentsline {subsection}{\numberline {4.2}Output Files}{6}
@@ -15,26 +15,27 @@
 \contentsline {subsection}{\numberline {6.4}Generating a Mesh from an ArcInfo Grid DEM}{15}
 \contentsline {section}{\numberline {7}Run Control Parameters: Name, Duration, Output, and Options}{15}
 \contentsline {section}{\numberline {8}Climate Parameters}{17}
-\contentsline {section}{\numberline {9}Runoff Generation and Flow Routing}{17}
+\contentsline {section}{\numberline {9}Runoff Generation and Flow Routing}{18}
 \contentsline {subsection}{\numberline {9.1}Lakes and Sinks}{18}
-\contentsline {subsection}{\numberline {9.2}Adding an Inlet}{18}
+\contentsline {subsection}{\numberline {9.2}Adding an Inlet}{19}
 \contentsline {section}{\numberline {10}Hydraulic Geometry}{19}
-\contentsline {section}{\numberline {11}Erosion and Sediment Transport Parameters}{20}
-\contentsline {subsection}{\numberline {11.1}Rock and Regolith}{20}
+\contentsline {section}{\numberline {11}Erosion and Sediment Transport Parameters}{21}
+\contentsline {subsection}{\numberline {11.1}Rock and Regolith}{21}
 \contentsline {subsection}{\numberline {11.2}Overview of Transport, Erosion, and Deposition by Running Water}{21}
 \contentsline {subsubsection}{\numberline {11.2.1}Detachment-Limited Mode}{22}
-\contentsline {subsection}{\numberline {11.3}Choosing Detachment and Transport Laws}{22}
-\contentsline {subsubsection}{\numberline {11.3.1}Detachment-Capacity Laws}{22}
-\contentsline {subsubsection}{\numberline {11.3.2}Transport Capacity Laws}{23}
+\contentsline {subsection}{\numberline {11.3}Choosing Detachment and Transport Laws}{23}
+\contentsline {subsubsection}{\numberline {11.3.1}Detachment-Capacity Laws}{23}
+\contentsline {subsubsection}{\numberline {11.3.2}Transport Capacity Laws}{24}
 \contentsline {subsection}{\numberline {11.4}Soil Creep}{26}
-\contentsline {section}{\numberline {12}Working with Stratigraphy}{26}
-\contentsline {section}{\numberline {13}Tectonics and Baselevel Control}{27}
-\contentsline {section}{\numberline {14}Parameters that Vary in Time}{28}
-\contentsline {subsection}{\numberline {14.1}How to Create {\em tTimeSeries}-Compatible Parameter Files}{28}
-\contentsline {subsubsection}{\numberline {14.1.1}Wave-Form Parameters}{29}
-\contentsline {subsubsection}{\numberline {14.1.2}Parameter Values Read from a File}{29}
-\contentsline {subsubsection}{\numberline {14.1.3}In-Line Parameter Definition}{31}
-\contentsline {section}{\numberline {15}Output Files}{32}
-\contentsline {section}{\numberline {16}Error Messages}{34}
-\contentsline {section}{\numberline {17}Alphabetical List of Parameters}{34}
-\contentsline {section}{\numberline {18}Release Notes}{43}
+\contentsline {section}{\numberline {12}Working with Multiple Grain Size Classes}{27}
+\contentsline {section}{\numberline {13}Working with Stratigraphy}{27}
+\contentsline {section}{\numberline {14}Tectonics and Baselevel Control}{28}
+\contentsline {section}{\numberline {15}Parameters that Vary in Time}{29}
+\contentsline {subsection}{\numberline {15.1}How to Create {\em tTimeSeries}-Compatible Parameter Files}{29}
+\contentsline {subsubsection}{\numberline {15.1.1}Wave-Form Parameters}{30}
+\contentsline {subsubsection}{\numberline {15.1.2}Parameter Values Read from a File}{31}
+\contentsline {subsubsection}{\numberline {15.1.3}In-Line Parameter Definition}{32}
+\contentsline {section}{\numberline {16}Output Files}{33}
+\contentsline {section}{\numberline {17}Error Messages}{34}
+\contentsline {section}{\numberline {18}Alphabetical List of Parameters}{35}
+\contentsline {section}{\numberline {19}Release Notes}{44}
