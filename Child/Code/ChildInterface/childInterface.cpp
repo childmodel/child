@@ -495,3 +495,12 @@ getVersion()
     return version;
 }
 
+int childInterface::
+GetElementIndex( string elementID )
+{
+    int my_index;
+	std::istringstream my_buffer( elementID );
+    my_buffer >> my_index;
+    return my_index;
+}
+

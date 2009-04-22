@@ -27,6 +27,7 @@
 #define CHILDINTERFACE_H
 
 #include <string>
+#include <sstream>
 #include "../trapfpe.h"
 #include "../Inclusions.h"
 #include "../tFloodplain/tFloodplain.h"
@@ -82,6 +83,7 @@ public:
 	ElementType getElementType();
 	int getElementCount();
 	int getVersion();
+	int GetElementIndex( string elementID );
 	
 private:
 	// Private data
