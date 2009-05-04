@@ -311,38 +311,49 @@ MakeLayersFromInputData( const tInputFile &infile )
 
    for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
    {
-      layerinfile >> numl;
-      for(i = 1; i<=numl; i++){
-         layerinfile >> ditem;
-         layhelp.setCtime(ditem);
-         layerinfile >> ditem;
-         layhelp.setRtime(ditem);
-         layerinfile >> ditem;
-         layhelp.setEtime(ditem);
-         layerinfile >> ditem;
-		 if( ditem <= 0. )
-		 {
-			std::cout << "MakeLayersFromInputData: Layer " << i << " at node " << cn->getID()
-				<< " has thickness " << ditem << std::endl;
-			ReportFatalError("Layers must have positive thickness.");
-		 }
-         layhelp.setDepth(ditem);
-         layerinfile >> ditem;
-         layhelp.setErody(ditem);
-         layerinfile >> item;
-	 {
-	   tLayer::tSed_t item_ = static_cast<tLayer::tSed_t>(item);
-	   layhelp.setSed(item_);
-	 }
-         for(g=0; g<numg; g++){
-            layerinfile >> ditem;
-            layhelp.setDgrade(g, ditem);
-         }
-         cn->InsertLayerBack( layhelp );
-      }
-
+	   layerinfile >> numl;
+	   if( numl<1 )
+	   {
+		   std::cout << "In MakeLayersFromInputData: node " << cn->getPermID() << " has " << numl << " layers." << std::endl;
+		   ReportFatalError( "Each interior point must have at least one layer." );
+	   }
+	   for(i = 1; i<=numl; i++){
+		   layerinfile >> ditem;
+		   layhelp.setCtime(ditem);
+		   layerinfile >> ditem;
+		   layhelp.setRtime(ditem);
+		   layerinfile >> ditem;
+		   layhelp.setEtime(ditem);
+		   layerinfile >> ditem;
+		   if( ditem <= 0. )
+		   {
+			   std::cout << "MakeLayersFromInputData: Layer " << i << " at node " << cn->getID()
+			   << " has thickness " << ditem << std::endl;
+			   ReportFatalError("Layers must have positive thickness.");
+		   }
+		   layhelp.setDepth(ditem);
+		   layerinfile >> ditem;
+		   layhelp.setErody(ditem);
+		   layerinfile >> item;
+		   if( item<0 || item>1 )
+		   {
+			   std::cout << "MakeLayersFromInputData: Layer " << i << " at node " << cn->getID()
+			   << " has flag value " << item << std::endl;
+			   ReportFatalError("Flag value must be either zero or one.");
+		   }
+		   {
+			   tLayer::tSed_t item_ = static_cast<tLayer::tSed_t>(item);
+			   layhelp.setSed(item_);
+		   }
+		   for(g=0; g<numg; g++){
+			   layerinfile >> ditem;
+			   layhelp.setDgrade(g, ditem);
+		   }
+		   cn->InsertLayerBack( layhelp );
+	   }
+	   
    }
-
+   
    tArray<double> dgradebrhelp( numg );
    double sumbr = 0.;
    i=0;
