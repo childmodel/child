@@ -12,6 +12,9 @@ function m=creadxyzb(basenm,ts)
 filesys=[''];
 filenm= [filesys basenm '.nodes' ];
 nfid=fopen(filenm,'r');
+if nfid<1
+    error(['In creadxyzb.m, unable to open ' basenm '.nodes'])
+end
 filenm= [filesys basenm '.z' ];
 zfid=fopen(filenm,'r');
 for i=1:ts
