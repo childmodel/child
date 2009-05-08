@@ -26,8 +26,12 @@
 #ifndef CHILDINTERFACE_H
 #define CHILDINTERFACE_H
 
+<<<<<<< .mine
+#include <string>
+=======
 #include <string>
 #include <sstream>
+>>>>>>> .r1636
 #include "../trapfpe.h"
 #include "../Inclusions.h"
 #include "../tFloodplain/tFloodplain.h"
@@ -76,6 +80,16 @@ public:
 	void CleanUp();
 	~childInterface();
 	
+<<<<<<< .mine
+	// Public methods that implement the OpenMI IElement interface
+	string getID();
+	string getDescription();
+	//Question: how to handle ISpatialReference? what type is it? do I define such a class?
+	ElementType getElementType();
+	int getElementCount();
+	int getVersion();
+	
+=======
 	// Public methods that implement the OpenMI IElement interface
 	string getID();
 	string getDescription();
@@ -85,6 +99,7 @@ public:
 	int getVersion();
 	int GetElementIndex( string elementID );
 	
+>>>>>>> .r1636
 private:
 	// Private data
 	bool initialized;      // Flag indicated whether model has been initialized
