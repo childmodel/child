@@ -1336,6 +1336,7 @@ public:
   inline int First();    // sets position to 1st list item (rtns 0 on failure)
   inline int Last();     // sets position to last "    "     "
   int Get( int ); // use only if NodeType has member getID()!!
+  int GetByPermID( int );  // use only if NodeType has member getPermID()!!
   inline int GetByPtr( NodeType const * );
   int GetByPtrSlow( NodeType const * );
   inline NodeType * GetByPtrP( NodeType const * );
@@ -1352,6 +1353,7 @@ public:
   inline NodeType * NextP();   // moves to next  "   "
   inline NodeType * PrevP();   // moves to previous " "
   inline NodeType * GetP( int num ); //use only if NodeType has member getID()!!
+  inline NodeType * GetPByPermID( int num ); //use only if NodeType has member getPermID()!!
 
 protected:
   ListNodeType * curnode;  // ptr to current list node
@@ -1514,6 +1516,34 @@ Get( int num )
     }
   if( tempnodeptr == 0 ) return 0;
   if( tempnodeptr->getDataPtr()->getID() != num ) return 0;
+  curnode = tempnodeptr;
+  return 1;
+}
+
+
+/**************************************************************************\
+ **
+ **  tListIter::GetByPermID
+ **
+ **  Move to list item with permID number _num_. Note: assumes that list items
+ **  have a member function getPermID()! Returns 1 if found, 0 if not.
+ **
+\**************************************************************************/
+template< class NodeType, class ListNodeType >
+int tListIter< NodeType, ListNodeType >::
+GetByPermID( int num )
+{
+  assert( listPtr != 0 );
+  if( num < 0 ) std::cout << "tListIter::Get(num): num < 0" << std::endl;
+  ListNodeType *tempnodeptr;
+  for( tempnodeptr = listPtr->first, counter = 0;
+       counter <= listPtr->nNodes && tempnodeptr != 0;
+       tempnodeptr = tempnodeptr->next, ++counter )
+    {
+      if( tempnodeptr->getDataPtr()->getPermID() == num ) break;
+    }
+  if( tempnodeptr == 0 ) return 0;
+  if( tempnodeptr->getDataPtr()->getPermID() != num ) return 0;
   curnode = tempnodeptr;
   return 1;
 }
@@ -1720,6 +1750,23 @@ inline NodeType * tListIter< NodeType, ListNodeType >::
 GetP( int num )
 {
   return ( Get( num ) ) ?
+    curnode->getDataPtrNC() : 0;
+}
+
+
+/**************************************************************************\
+ **
+ **  tListIter::GetPByPermID
+ **
+ **  Similar to GetByPermID, but returns a pointer to the current data item (or
+ **  0 if undefined).
+ **
+\**************************************************************************/
+template< class NodeType, class ListNodeType >
+inline NodeType * tListIter< NodeType, ListNodeType >::
+GetPByPermID( int num )
+{
+  return ( GetByPermID( num ) ) ?
     curnode->getDataPtrNC() : 0;
 }
 
