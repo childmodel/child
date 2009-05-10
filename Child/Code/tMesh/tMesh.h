@@ -47,6 +47,7 @@
 //#include "../tListOutputData/tListOutputData.h"
 #include "../globalFns.h"
 #include "../Predicates/predicates.h"
+#include "../tIDGenerator/tIDGenerator.h"
 
 /** @class tIdArray
     @brief Lookup table per Id for a tList
@@ -272,6 +273,7 @@ protected:
    int miNextTriID;                    // next ID for added triangle
    bool layerflag;                 // flag indicating whether nodes have layers
    bool runCheckMeshConsistency;    // shall we run the tests ?
+   tIDGenerator node_ID_generator;  // generates permanent IDs for nodes
 };
 
 /*

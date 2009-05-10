@@ -459,7 +459,7 @@ inline tNode::tNode() :
 //copy constructor
 inline tNode::tNode( const tNode &original ) :
   listObj(original.listObj),
-  id(original.id),
+  id(original.id), permid(original.id),
   x(original.x), y(original.y), z(original.z),
   varea(original.varea), varea_rcp(original.varea_rcp),
   boundary(original.boundary), edg(original.edg),
@@ -493,6 +493,7 @@ inline const tNode &tNode::operator=( const tNode &right )
    {
       listObj = right.listObj,
       id = right.id;
+	  permid = right.permid;
       x = right.x;
       y = right.y;
       z = right.z;
@@ -610,7 +611,7 @@ inline tEdge const * tNode::getEdg() const {return edg;}
 \***********************************************************************/
 
 inline void tNode::setID( int val ) {id = val;}
-inline void tNode::setPermID( int val ) {permid=val;}
+inline void tNode::setPermID( int val ) {permid = val;}
 inline void tNode::setX( double val ) {x = val;}
 inline void tNode::setY( double val ) {y = val;}
 inline void tNode::setZ( double val ) {z = val;}

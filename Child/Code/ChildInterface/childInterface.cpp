@@ -203,6 +203,8 @@ RunOneStorm()
 		tLNode * cn;
 		for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
 		{
+		    if( cn->getX()>64 && cn->getX()<65 )
+			    std::cout << "In main loop 1, node at " << cn->getX() << "," << cn->getY() << " has plain id " << cn->getID() << " and perm ID " << cn->getPermID() << std::endl;
 		    if( cn->getID()==8121 || cn->getID()==8122 ) 
 			{
 				tEdge * debugedg = cn->getFlowEdg();
@@ -224,6 +226,8 @@ RunOneStorm()
 		tLNode * cn;
 		for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
 		{
+		    if( cn->getX()>64 && cn->getX()<65 )
+			    std::cout << "In main loop 2, node at " << cn->getX() << "," << cn->getY() << " has plain id " << cn->getID() << " and perm ID " << cn->getPermID() << std::endl;
 		    if( cn->getID()==8121 || cn->getID()==8122 ) 
 			{
 				tEdge * debugedg = cn->getFlowEdg();
@@ -270,6 +274,8 @@ RunOneStorm()
 		tLNode * cn;
 		for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
 		{
+		    if( cn->getX()>64 && cn->getX()<65 )
+			    std::cout << "In main loop 3, node at " << cn->getX() << "," << cn->getY() << " has plain id " << cn->getID() << " and perm ID " << cn->getPermID() << std::endl;
 		    if( cn->getID()==8121 || cn->getID()==8122 ) 
 			{
 				tEdge * debugedg = cn->getFlowEdg();
