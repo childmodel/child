@@ -84,6 +84,8 @@ public:
 	int getElementCount();
 	int getVersion();
 	int GetElementIndex( string elementID );
+	string GetElementID( int element_index );
+	int GetVertexCount( int element_index );
 	
 private:
 	// Private data

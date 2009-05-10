@@ -510,3 +510,35 @@ GetElementIndex( string elementID )
     return my_index;
 }
 
+string childInterface::
+GetElementID( int element_index )
+{
+    std::string my_ID_string;
+	std::stringstream my_buffer;
+    my_buffer << element_index;
+	my_ID_string = my_buffer.str();
+    return my_ID_string;
+}
+
+int childInterface::
+GetVertexCount( int element_index )
+{
+   tLNode *my_node;
+   tMesh< tLNode >::nodeListIter_t ni( mesh->getNodeList() );
+   tEdge * firstedg(0);   // ptr to first edg
+   tEdge * curedg;     // pointer to current edge
+   int num_vertices;   // Number of vertices
+	
+   my_node = ni.GetPByPermID( element_index );
+   firstedg = my_node->getEdg();
+   if( !firstedg ) return( 0 );
+   curedg = firstedg->getCCWEdg();
+   num_vertices = 1;
+   while( curedg!=firstedg ) {
+      curedg = curedg->getCCWEdg();
+	  num_vertices++;
+   }
+   
+   return( num_vertices );
+   
+}
