@@ -28,6 +28,7 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 #include "../trapfpe.h"
 #include "../Inclusions.h"
 #include "../tFloodplain/tFloodplain.h"
@@ -86,7 +87,13 @@ public:
 	int GetElementIndex( string elementID );
 	string GetElementID( int element_index );
 	int GetVertexCount( int element_index );
+	int GetFaceCount( int element_index );
+	vector<int> GetFaceVertexIndices( int element_index, int face_index );
+	double GetXCoordinate( int element_index, int vertex_index );
+	double GetYCoordinate( int element_index, int vertex_index );
+	double GetZCoordinate( int element_index, int vertex_index );
 	
+		
 private:
 	// Private data
 	bool initialized;      // Flag indicated whether model has been initialized

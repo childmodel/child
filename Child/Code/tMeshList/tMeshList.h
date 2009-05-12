@@ -662,6 +662,7 @@ class tMeshListIter
    inline bool IsActive() const;
    NodeType * LastActiveP();
    NodeType * FirstBoundaryP();
+   NodeType * GetNodePtrByPermID( int pid );
 };
 
 /**************************************************************************\
@@ -799,5 +800,6 @@ IsActive() const
    }
    return false;
 }
+
 
 #endif

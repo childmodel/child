@@ -542,3 +542,146 @@ GetVertexCount( int element_index )
    return( num_vertices );
    
 }
+
+// Note: with Voronoi polygons, # faces always = # of vertices
+int childInterface::
+GetFaceCount( int element_index )
+{
+   return( GetVertexCount( element_index ) );
+}
+
+
+// Numbering works like this:
+//
+// - each spoke (directed edge) corresponds to one face of the voronoi polygon
+// - spokes and corresponding faces are considered to be numbered counter-clockwise,
+//   starting from 0 at the first one (whichever getEdg() returns)
+// - the vertex to the RIGHT of each spoke/face has the same index as that spoke/face
+// - so, we return the index of the right-hand vertex in face_vertex_indices[0]
+// - we return the index of the left-hand vertex, which is associated with the next
+//   spoke and face counter-clockwise, in face_vertex_indices[1]
+// - because numbers increase counter-clockwise, the left-hand is always equal to
+//   either one more than the right (if the right isn't already at the highest index
+//   number, which is num_faces-1), or zero.
+//
+std::vector<int> childInterface::
+GetFaceVertexIndices( int element_index, int face_index )
+{
+   std::vector<int> face_vertex_indices(2);
+   int num_faces = GetVertexCount( element_index );
+   
+   if( face_index>=num_faces ) 
+   {
+      face_vertex_indices[0] = -1;
+	  face_vertex_indices[1] = -1;
+   }
+   else
+   {
+      face_vertex_indices[0] = face_index;   // This is the right-hand one
+      face_vertex_indices[1] = ( face_index==(num_faces-1) ) ? 0 : face_index+1;
+   }
+   return( face_vertex_indices );
+
+}
+
+
+// Returns the right-hand voronoi vertex x-coordinate
+double childInterface::
+GetXCoordinate( int element_index, int vertex_index )
+{
+   int i;
+   tLNode *my_node;
+   tEdge *current_edge;
+   tMesh< tLNode >::nodeListIter_t ni( mesh->getNodeList() );
+   tArray2<double> right_hand_voronoi_vertex_coords;
+   
+   my_node = ni.GetPByPermID( element_index );
+   if( my_node<=0 ) return( -9999 );   // Temporary hacked NODATA code
+   
+   current_edge = my_node->getEdg();
+   if( !current_edge ) return( -9999 );
+   
+   for( i=0; i<vertex_index; i++ )
+      current_edge = current_edge->getCCWEdg();
+	  
+   current_edge->getRVtx( right_hand_voronoi_vertex_coords );
+   
+   return( right_hand_voronoi_vertex_coords.at(0) );
+
+}
+
+
+// Returns the right-hand voronoi vertex y-coordinate
+double childInterface::
+GetYCoordinate( int element_index, int vertex_index )
+{
+   int i;
+   tLNode *my_node;
+   tEdge *current_edge;
+   tMesh< tLNode >::nodeListIter_t ni( mesh->getNodeList() );
+   tArray2<double> right_hand_voronoi_vertex_coords;
+   
+   my_node = ni.GetPByPermID( element_index );
+   if( my_node<=0 ) return( -9999 );   // Temporary hacked NODATA code
+   
+   current_edge = my_node->getEdg();
+   if( !current_edge ) return( -9999 );
+   
+   for( i=0; i<vertex_index; i++ )
+      current_edge = current_edge->getCCWEdg();
+	  
+   current_edge->getRVtx( right_hand_voronoi_vertex_coords );
+   
+   return( right_hand_voronoi_vertex_coords.at(1) );
+
+}
+
+
+double childInterface::
+GetZCoordinate( int element_index, int vertex_index )
+{
+   int i;
+   tLNode *my_node;
+   tEdge *current_edge;
+   tMesh< tLNode >::nodeListIter_t ni( mesh->getNodeList() );
+   tArray2<double> right_hand_voronoi_vertex_coords;
+   double z_coord;
+   tTriangle *my_triangle;
+   tArray<double> p0, p1, p2;
+   tNode * triangle_vertex_node;
+   tArray<double> zs;
+   
+   // Get the node
+   my_node = ni.GetPByPermID( element_index );
+   if( my_node<=0 ) return( -9999 );   // Temporary hacked NODATA code
+   
+   // Get the right edge
+   current_edge = my_node->getEdg();
+   if( !current_edge ) return( -9999 );
+   for( i=0; i<vertex_index; i++ )
+      current_edge = current_edge->getCCWEdg();
+
+   // Get the vertex coordinates for the right-hand voronoi vertex
+   current_edge->getRVtx( right_hand_voronoi_vertex_coords );
+	  
+   // Get the triangle for which the Voronoi vertex is the circumcenter
+   my_triangle = current_edge->TriWithEdgePtr();
+   if( !my_triangle ) return( -9999 );
+   
+   // Find the z-coordinate by interpolation around the 3 points of the triangle
+   zs.setSize(3);
+   triangle_vertex_node = my_triangle->pPtr(0);
+   triangle_vertex_node->get2DCoords( p0 );
+   zs[0] = triangle_vertex_node->getZ();
+   triangle_vertex_node = my_triangle->pPtr(1);
+   triangle_vertex_node->get2DCoords( p1 );
+   zs[1] = triangle_vertex_node->getZ();
+   triangle_vertex_node = my_triangle->pPtr(2);
+   triangle_vertex_node->get2DCoords( p2 );
+   zs[2] = triangle_vertex_node->getZ();
+   z_coord = PlaneFit( right_hand_voronoi_vertex_coords.at(0), right_hand_voronoi_vertex_coords.at(1),
+                       p0, p1, p2, zs);
+
+   return( z_coord );
+
+}
