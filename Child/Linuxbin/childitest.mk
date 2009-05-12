@@ -6,10 +6,11 @@ include gccmac.mk
 #include bcc.mk
 #include PC-lint/pclint.mk
 
-EXENAME = child$(EXEEXT)
+EXENAME = childDriver$(EXEEXT)
 
 OBJECTS = \
- childmain.$(OBJEXT) erosion.$(OBJEXT) \
+ childDriver_test_ielement.$(OBJEXT) \
+ childInterface.$(OBJEXT) erosion.$(OBJEXT) \
  meshElements.$(OBJEXT) mathutil.$(OBJEXT) tIDGenerator.$(OBJEXT) \
  tInputFile.$(OBJEXT) tLNode.$(OBJEXT) tRunTimer.$(OBJEXT) \
  tStreamMeander.$(OBJEXT) meander.$(OBJEXT) \
@@ -101,8 +102,11 @@ tStreamMeander.$(OBJEXT): $(PT)/tStreamMeander/tStreamMeander.cpp
 meander.$(OBJEXT): $(PT)/tStreamMeander/meander.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/meander.cpp
 
-childmain.$(OBJEXT): $(PT)/childmain.cpp
-	$(CXX) $(CFLAGS) $(PT)/childmain.cpp
+childInterface.$(OBJEXT): $(PT)/ChildInterface/childInterface.cpp
+	$(CXX) $(CFLAGS) $(PT)/ChildInterface/childInterface.cpp
+
+childDriver_test_ielement.$(OBJEXT): $(PT)/ChildInterface/childDriver_test_ielement.cpp
+	$(CXX) $(CFLAGS) $(PT)/ChildInterface/childDriver_test_ielement.cpp
 
 clean::
 	rm -f $(EXENAME)
@@ -112,6 +116,7 @@ clean::
 # use, for instance:
 # find ${CHILDCODE} -name '*.h' | xargs grep -n -e include | grep '\.cpp'
 HFILES = \
+	$(PT)/ChildInterface/childInterface.h \
 	$(PT)/Classes.h \
 	$(PT)/Definitions.h \
 	$(PT)/Erosion/erosion.h \
@@ -160,7 +165,8 @@ HFILES = \
 ParamMesh_t.$(OBJEXT): $(HFILES)
 TipperTriangulator.$(OBJEXT) : $(HFILES)
 TipperTriangulatorError.$(OBJEXT) : $(HFILES)
-childmain.$(OBJEXT) : $(HFILES)
+childInterface.$(OBJEXT) : $(HFILES)
+childInterfaceDriver.$(OBJEXT) : $(HFILES)
 erosion.$(OBJEXT): $(HFILES)
 errors.$(OBJEXT): $(HFILES)
 globalFns.$(OBJEXT): $(HFILES)

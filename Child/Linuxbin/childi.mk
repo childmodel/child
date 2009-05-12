@@ -11,7 +11,7 @@ EXENAME = childDriver$(EXEEXT)
 OBJECTS = \
  childDriver.$(OBJEXT) \
  childInterface.$(OBJEXT) erosion.$(OBJEXT) \
- meshElements.$(OBJEXT) mathutil.$(OBJEXT) \
+ meshElements.$(OBJEXT) mathutil.$(OBJEXT) tIDGenerator.$(OBJEXT) \
  tInputFile.$(OBJEXT) tLNode.$(OBJEXT) tRunTimer.$(OBJEXT) \
  tStreamMeander.$(OBJEXT) meander.$(OBJEXT) \
  tStorm.$(OBJEXT) tStreamNet.$(OBJEXT) tUplift.$(OBJEXT) errors.$(OBJEXT) \
@@ -35,6 +35,9 @@ meshElements.$(OBJEXT): $(PT)/MeshElements/meshElements.cpp
 
 mathutil.$(OBJEXT): $(PT)/Mathutil/mathutil.cpp
 	$(CXX) $(CFLAGS) $(PT)/Mathutil/mathutil.cpp
+
+tIDGenerator.$(OBJEXT): $(PT)/tIDGenerator/tIDGenerator.cpp
+	$(CXX) $(CFLAGS) $(PT)/tIDGenerator/tIDGenerator.cpp
 
 tInputFile.$(OBJEXT): $(PT)/tInputFile/tInputFile.cpp
 	$(CXX) $(CFLAGS) $(PT)/tInputFile/tInputFile.cpp
@@ -120,6 +123,7 @@ HFILES = \
 	$(PT)/Geometry/geometry.h \
 	$(PT)/Inclusions.h \
 	$(PT)/Mathutil/mathutil.h \
+	$(PT)/tIDGenerator/tIDGenerator.h \
 	$(PT)/MeshElements/meshElements.h \
 	$(PT)/Predicates/predicates.h \
 	$(PT)/compiler.h \
