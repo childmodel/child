@@ -26,6 +26,7 @@
 #ifndef CHILDRINTERFACE_H
 #define CHILDRINTERFACE_H
 
+#include <vector>
 #include "../trapfpe.h"
 #include "../Inclusions.h"
 #include "../tStratGrid/tStratGrid.h"
@@ -33,6 +34,8 @@
 #include "../tOption/tOption.h"
 
 #include "../tMeshList/tMeshList.h"
+
+using namespace std;
 
 //Predicates predicate;
 
@@ -55,6 +58,7 @@ public:
 	void Run( double run_duration );
 	void CleanUp();
 	~childRInterface();
+  void ExternalErosionAndDeposition( vector< double > dz );
 	
 private:
 	// Private data

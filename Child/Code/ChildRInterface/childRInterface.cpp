@@ -327,3 +327,29 @@ childRInterface::
 {
 	CleanUp();
 }
+
+/**************************************************************************/
+/**
+**  childInterface::ExternalErosionAndDeposition
+**
+**  This function allows a calling program to tell CHILD to perform a
+**  given depth of erosion and/or sedimentation at each node.
+**
+**  Presently, it is set up without any grain-size information. A future
+**  version could also pass grain-size information.
+**
+**  GT, June 09 
+*/
+/**************************************************************************/
+
+void childRInterface::ExternalErosionAndDeposition( vector<double> dz )
+{
+  tMesh< tLNode >::nodeListIter_t mli( mesh->getNodeList() );  // gets nodes from the list
+  tLNode * cn;
+  for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+  {
+    int current_id = cn->getPermID();
+    cn->EroDep( dz[current_id] );
+  }
+}
+

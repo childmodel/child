@@ -76,6 +76,7 @@ public:
 	void Run( double run_duration );
 	void CleanUp();
 	~childInterface();
+  void ExternalErosionAndDeposition( vector<double> dz );
 	
 	// Public methods that implement the OpenMI IElement interface
 	string getID();
