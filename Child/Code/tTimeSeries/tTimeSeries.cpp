@@ -1139,6 +1139,13 @@ void tTimeSeries::configure(const char *s)
   ts->configure(p);
 }
 
+void tTimeSeries::reconfigure(const char * s)
+{
+  delete ts;
+  ts = NULL;
+  configure(s);
+}
+
 double tTimeSeries::calc(double time) const
 {
   assert(ts != NULL);

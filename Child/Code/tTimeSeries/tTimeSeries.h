@@ -26,6 +26,7 @@ public:
   tTimeSeries();
   ~tTimeSeries();
   void configure(const char *s);
+  void reconfigure(const char *s);  // GT added June 09
   double calc(double time) const;
   void TellAll() const;
 private:

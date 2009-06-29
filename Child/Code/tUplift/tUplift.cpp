@@ -147,7 +147,7 @@ tUplift::tUplift( const tInputFile &infile ) :
                    << " rate2: " << rate2
                    << " accelTime: " << accelTime << " total throw: "
                    << rate2*accelTime + rate*(totalTime-accelTime) << std::endl;
-         rate_ts.configure( myString.c_str() );
+         rate_ts.reconfigure( myString.c_str() );
       }
       break;
       case k10:

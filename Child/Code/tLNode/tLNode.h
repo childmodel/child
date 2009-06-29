@@ -80,6 +80,11 @@ public:
   inline void addEtime( double );
   inline double getEtime() const;
   void setDepth( double );
+  
+  //added by nate 9-25-06
+  inline void setID(int layerID);
+  inline int getID();
+  
   // NOTE setDepth will also update the depths in dgrade so that the
   // total depth is consistent and the original texture is kept.
   // If texture needs to also be changed, call setDgrade.  This will
@@ -100,6 +105,7 @@ public:
   inline double getPaleoCurrent() const;
 
 protected:
+  int layerID;
   double ctime; // time of creation of layer
   double rtime; // most recent time (time steps) that there was erosion/depo.
   double etime; // exposure time, i.e. time material spent at surface
@@ -121,7 +127,7 @@ protected:
  **  tLayer::tLayer : Constructor function for tLayer
  *************************************************************************/
 inline tLayer::tLayer () :
-  ctime(0.), rtime(0.), etime(0.),
+  layerID(-1), ctime(0.), rtime(0.), etime(0.),
   depth(0.), erody(0.), sed(kBedRock),
   dgrade(), paleocurrent(-1.)
 {
@@ -130,7 +136,7 @@ inline tLayer::tLayer () :
 }
 
 inline tLayer::tLayer ( size_t num ) :
-  ctime(0.), rtime(0.), etime(0.),
+  layerID(-1), ctime(0.), rtime(0.), etime(0.),
   depth(0.), erody(0.), sed(kBedRock),
   dgrade( num ), paleocurrent(-1.)
 {
@@ -140,7 +146,7 @@ inline tLayer::tLayer ( size_t num ) :
 
 //copy constructor
 inline tLayer::tLayer( const tLayer &orig ) :                        //tLayer
-  ctime(orig.ctime), rtime(orig.rtime), etime(orig.etime),
+  layerID(orig.layerID), ctime(orig.ctime), rtime(orig.rtime), etime(orig.etime),
   depth(orig.depth), erody(orig.erody), sed(orig.sed),
   dgrade( orig.dgrade ), paleocurrent(orig.paleocurrent)
 {
@@ -163,11 +169,20 @@ inline const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
       erody=right.erody;
       sed=right.sed;
       paleocurrent = right.paleocurrent;
+	  layerID=right.layerID;
 
     }
   return *this;
 }
 
+inline void tLayer::setID(int newID)
+{
+	layerID = newID;
+}
+inline int tLayer::getID()
+{
+	return layerID;
+}
 
 inline void tLayer::setCtime( double tt )
 {
