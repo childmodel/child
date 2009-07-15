@@ -1,24 +1,26 @@
-function [tri,meanElev]=ctrisurf(basenm,ts,c)
+function [tri,meanElev]=ctrisurf(basenm,ts,c,nodebasenm)
 % CTRISURF: Trisurf from Child triangulation
 %  filenm -- name of output file
 %  ts -- time slice to plot
 %  c -- field to color (optional; default = color by elevation)
+%  nodebasenm -- (optional) name of file containing nodes & tri
 %    Usage: [t,z]=ctrisurf(filenm,ts,{c}), where t=triangles, z=mean 
 %                   elevations
 %    Note: if you want to color by something other than elevation, read 
 %         that data field in (for the same time step) using CREAD and give 
 %         it in parameter 'c'. 
-%    G. Tucker, 1998; 2008
+%    G. Tucker, 1998; 2008; 2009
 
-%a=rand(3)
-filesys='';
-filenm= [filesys basenm '.nodes' ];
+if nargin<4
+    nodebasenm = basenm;
+end
+filenm= [nodebasenm '.nodes' ];
 nfid=fopen(filenm,'r');
 if nfid<=0, error('Unable to open node file'),end
-filenm= [filesys basenm '.tri' ];
+filenm= [nodebasenm '.tri' ];
 tfid=fopen(filenm,'r');
 if tfid<=0, fclose(nfid); error('Unable to open triangle file'),end
-filenm= [filesys basenm '.z' ];
+filenm= [basenm '.z' ];
 zfid=fopen(filenm,'r');
 if zfid<=0, fclose(nfid); fclose(tfid); error('Unable to open elevation file'),end
 meanElev=[];
