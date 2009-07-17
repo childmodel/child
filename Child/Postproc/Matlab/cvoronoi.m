@@ -1,7 +1,14 @@
 function [V,C] = cvoronoi( filenm, ts, c, color_range )
 % CVORNOI: Plots a Voronoi diagram from CHILD output.
 %
-% GT (prototype), March 2009
+% Usage: [V,C] = cvoronoi( filenm, ts, c, color_range )
+%
+% Inputs:  filenm -- base name of run file
+%          ts -- time slice #
+%          c (optional) -- vector field for color (defaults to elevation)
+%          color_range (optional) -- 2-element vector with color max & min
+%
+% GT, March 2009
 %
 
 % Read x,y,z coordinates for desired time step
