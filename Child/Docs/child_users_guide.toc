@@ -36,6 +36,7 @@
 \contentsline {subsubsection}{\numberline {15.1.2}Parameter Values Read from a File}{33}
 \contentsline {subsubsection}{\numberline {15.1.3}In-Line Parameter Definition}{34}
 \contentsline {section}{\numberline {16}Output Files}{35}
-\contentsline {section}{\numberline {17}Error Messages}{36}
+\contentsline {subsection}{\numberline {16.1}Surfer-Compatible Output}{36}
+\contentsline {section}{\numberline {17}Error Messages}{37}
 \contentsline {section}{\numberline {18}Alphabetical List of Parameters}{37}
-\contentsline {section}{\numberline {19}Release Notes}{46}
+\contentsline {section}{\numberline {19}Release Notes}{47}

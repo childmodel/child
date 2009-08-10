@@ -13,7 +13,7 @@
  
  \title{CHILD Users Guide, version R9.4.1}
  \author{Gregory E. Tucker \and Cooperative Institute for Research in Environmental Sciences (CIRES) \and and Department of Geological Sciences \and University of Colorado, Boulder, CO 80309 USA}
- \date{April, 2009} % delete this line to display the current date
+ \date{August, 2009} % delete this line to display the current date
  
  %%% BEGIN DOCUMENT
  \begin{document}
@@ -568,7 +568,22 @@ where {\tt basenm} is the base file name (without extension), {\tt ts} is the ti
 Here's an example of the first few lines from a layer file:
 \small
 \begin{Verbatim}[numbers=left]
- 0.0028323 20.00 0.00 0.001.50 10000.000000 11.500.00 0.00 0.0010000000.00 0.001 010000000.00 20.00 0.00 0.001.50 10000.000000 11.500.00 0.00 0.0010000000.00 0.001 010000000.00
+ 0.00
+28323
+ 2
+0.00 0.00 0.00
+1.50 10000.000000 1
+1.50
+0.00 0.00 0.00
+10000000.00 0.001 0
+10000000.00
+ 2
+0.00 0.00 0.00
+1.50 10000.000000 1
+1.50
+0.00 0.00 0.00
+10000000.00 0.001 0
+10000000.00
  \end{Verbatim}
  \normalsize
 The first line has the time, and the second has the number of {\em interior} nodes (if you want to see what this is, look at the second line of the {\tt .area} file in your one-time-step run). Following this is a record for each node. The record starts with the number of layers at that node. For example, line 3 says that layer 0 has 2 layers. For each layer, if a single grain-size class is used, there are 7 numbers that follow, on three lines. The first line gives layer's creation time, its recent activity time (the most recent time it was influenced by erosion/sedimentation), its exposure time (duration of surface exposure). These are all zeros in the example above. The second line gives the layer's thickness, it's erodibility coefficient ($K_b$ value), and its alluvium-bedrock flag. For example, line 5 says that layer 0 at node 0 is 1.5 meters thick, has a $K_b$ of 10,000, and contains alluvium (regolith). The third line then gives the total thickness in each grain-size class (here, the same as the layer thickness, since there is only one grain-size class). In the example above, layer 1 (beneath layer 0) is enormously thick, has a $K_b$ of 0.001, and consists of bedrock.
@@ -811,6 +826,9 @@ Note that data elements are always listed in order by ID number, starting from z
 \end{center}
 \end{table}
 
+\subsection{Surfer-Compatible Output}
+
+Quintijn Clevis (now at Royal Dutch Shell) developed an option for Surfer-compatible output. If the SURFER option is switched on, the model will generate an ascii output file that can be imported into Surfer for plotting. The file format has the time on the first line and the number of nodes on the second line, followed by one row for each node that contains the $x$, $y$, and $z$ coordinates, the drainage area divided by 10,000, the thickness of the topmost layer, the creation time of the topmost layer, and the recent activity time of the topmost layer.
 
 \section{Error Messages}
 
