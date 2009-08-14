@@ -76,8 +76,8 @@ MakeMeshFromPointsTipper( const tInputFile &infile ){
     std::cout<<"\nReading in '"<<pointFilenm<<"' points file..."<<std::endl;
     pointfile >> numpts;
     if( !pointfile.good() ) {
-      std::cerr << "\nPoint file name: '" << pointFilenm << "'\n";;
-      ReportFatalError( "I can't find a file by this name." );
+      std::cerr << "\nPoint file name: '" << pointFilenm << "'\n";
+      ReportFatalError( "Error reading points file: check the file format." );
     }
     // temporary node used to create node list (creation is costly)
     const tSubNode aNode( infile );
