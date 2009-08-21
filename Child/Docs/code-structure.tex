@@ -9,7 +9,7 @@
 
 \title{Overview of the CHILD Source-Code Structure}
 \author{Greg Tucker}
-\date{June 2008} % delete this line to display the current date
+\date{June 2008 (Last updated August 2009)} % delete this line to display the current date
 
 %%% BEGIN DOCUMENT
 \begin{document}
@@ -21,7 +21,7 @@
 
 \subsection{About CHILD}
 
-CHILD is a numerical landscape evolution model that was originally developed at MIT in the mid to late 1990s by members of Rafael Bras' geomorphology group (Rafael Bras, Nicole Gasparini, Stephen Lancaster, and Greg Tucker). Since then, the code has continued to grow, with new capabilities and contributions from researchers around the world. The main version of the code is currently maintained in a networked source-code repository at the University of Colorado. An executable release version is available on the web via MIT. The full package is scheduled for release through CSDMS any day now (translation: ``as soon as I can get my act together to make a web page for it'').
+CHILD is a numerical landscape evolution model that was originally developed at MIT in the mid to late 1990s by members of Rafael Bras' geomorphology group (Rafael Bras, Nicole Gasparini, Stephen Lancaster, and Greg Tucker). Since then, the code has continued to grow, with new capabilities and contributions from researchers around the world. The main version of the code is currently maintained in a networked source-code repository at the University of Colorado. A release version is available through the Community Surface Dynamics Modeling System (CSDMS): http://csdms.colorado.edu.
 
 \subsection{Source-Code Structure}
 
@@ -37,11 +37,11 @@ are given in {\bf bold} and class names are given in {\em italics}. By
 
 The code consists of several different file sets, most of which reside in their own sub-folders and usually consist of a header (.h) and source (.cpp) file. Sometimes there will be only a header file, and sometimes more than one header and/or source file.
 
-The high-level structure, including initialization and the implementation of a time loop, is handled by a relatively small ``main'' routine contained in the files {\bf childmain.cpp} (for the development version) and {\bf childrmain.cpp} (for the general release version). 
-(Note though that coming soon is a ``ChildInterface'' code that provides a
-simple interface by which CHILD can be invoked by another application, with
-methods that will initialize the model, run one storm, run for a specified
-amount of time, etc.)
+The high-level structure, including initialization and the implementation of a time loop, is handled by ``Child Interface'' code. This provides a
+simple interface through which CHILD can be invoked by another application, with
+methods that initialize the model, run one storm, run for a specified
+amount of time, and finalize. The main driver is found in {\bf childDriver.cpp}, which calls the Initialize, Run, and CleanUp functions in the interface. The interface routines for the development version are found in childInterface; for the release version, the corresponding code lives in the childRInterface folder.
+
 Most of the main modules, which handle processes such as water routing, erosion, and tectonic uplift, are implemented as classes (such as the tStreamNet, tErosion, and tUplift classes). (The file {\bf toddlermain.cpp} implemented a now-obsolete release version).
 
 \section{General Header Files: Classes, compiler, Definitions, Inclusions, Template\_Model, and trapfpe}
