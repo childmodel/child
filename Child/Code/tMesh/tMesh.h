@@ -32,6 +32,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "../Classes.h"
 #include "../Definitions.h"
 #include "../tArray/tArray.h"
