@@ -73,7 +73,7 @@ main( int argc, char **argv )
    silent_mode = ( argc>2 && argv[2][1]=='s' );
    
    // Say hello
-   cout << "\nThis is CHILD, version " << VERSION << endl << 
+   cout << "\nThis is CHILD, version " << CHILD_VERSION << endl << 
        "Geoarchaeology special version 1.0" << endl << endl;
    
    // Open main input file

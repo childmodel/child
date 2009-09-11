@@ -88,7 +88,7 @@ int main( int argc, char **argv )
    silent_mode = BOOL( argc>2 && argv[2][1]=='s' );
    
    // Say hello
-   cout << "\nThis is TODDLER, version " << VERSION 
+   cout << "\nThis is TODDLER, version " << CHILD_VERSION 
 	<< " (compiled " __DATE__ " " __TIME__ ")"
 	<< endl << endl;
    

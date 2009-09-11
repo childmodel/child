@@ -79,7 +79,7 @@ void tOption::usage() const {
 
 void tOption::version() {
   std::cout
-    << "\nThis is CHILD, version " << VERSION
+    << "\nThis is CHILD, version " << CHILD_VERSION
     << " (compiled " __DATE__ " " __TIME__ ")"
     << '\n' << std::endl;
 }
