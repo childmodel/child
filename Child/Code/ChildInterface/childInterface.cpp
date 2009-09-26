@@ -712,3 +712,34 @@ GetZCoordinate( int element_index, int vertex_index )
    return( z_coord );
 
 }
+
+
+
+std::vector<double> childInterface::
+GetValueSet( string var_name )
+{
+  if( var_name.compare( "elevation" ) )
+    return GetNodeElevationVector();
+  else
+  {
+    std::vector<double> empty_vector;
+    return empty_vector;
+  };
+}
+
+
+
+std::vector<double> childInterface::GetNodeElevationVector()
+{
+   tLNode *current_node;
+   tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+   std::vector<double> elevations( mesh->getNodeList()->getSize() );
+   
+   for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
+   {
+      elevations[current_node->getPermID()] = current_node->getZ();
+   }
+   
+   return elevations;
+
+}

@@ -93,9 +93,14 @@ public:
 	double GetXCoordinate( int element_index, int vertex_index );
 	double GetYCoordinate( int element_index, int vertex_index );
 	double GetZCoordinate( int element_index, int vertex_index );
+  std::vector<double> GetValueSet( string var_name );
 	
 		
 private:
+
+  // Private methods
+  std::vector<double> GetNodeElevationVector();  // Creates and returns vector of elevs
+  
 	// Private data
 	bool initialized;      // Flag indicated whether model has been initialized
 	bool optDetachLim,      // Option for detachment-limited erosion only
