@@ -784,7 +784,11 @@ std::vector<double> childInterface::GetNodeErosionVector()
    tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
    std::vector<double> dz( mesh->getNodeList()->getSize() );
       
-   // EMPTY FOR NOW -- TO BE FILLED IN!
+   for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
+   {
+      dz[current_node->getPermID()] = current_node->getCumulativeEroDep();
+      current_node->ResetCumulativeEroDep();
+   }
 
    return dz;
 

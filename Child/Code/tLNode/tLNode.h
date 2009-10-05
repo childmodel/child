@@ -647,6 +647,9 @@ public:
   inline double getAccCoarse() const;	             	       // returns gravel thickness, accummulated during an other function
   inline double getAccFine() const;                            // returns fines thickness, accummulated in a
   // end new functions added 28-10-2003
+  
+  inline void ResetCumulativeEroDep() { cumulative_ero_dep_ = 0.0; }
+  inline double getCumulativeEroDep() { return cumulative_ero_dep_; }
 
   tArray<double> addtoLayer(int, double);
   // Used if removing material from lower layers -
@@ -717,6 +720,7 @@ protected:
   static double maxregdep;
   static double KRnew;
   double qsubsurf;   // Subsurface discharge
+  double cumulative_ero_dep_;    // Keeps track of ero/dep since last update (for external reporting)
 public:
   int public1; // a "public" member that can be used for various purpose
 };

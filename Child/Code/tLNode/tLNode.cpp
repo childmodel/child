@@ -1087,6 +1087,7 @@ void tLNode::TellAll() const
 void tLNode::EroDep( double dz )
 {
   z += dz;
+  cumulative_ero_dep_ += dz;
   if (0) //DEBUG
     std::cout << "  eroding " << id << " by " << dz << std::endl;
 
@@ -1967,13 +1968,13 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
   double amt, val, olddep;
   tArray<double> update(numg);
   tArray<double> hupdate(numg);
-
+  
   //NIC these are for testing
   //Xbefore=getLayerDepth(i);
   // int numlay=getNumLayer();
   //Xint h;
   //int nh = 0;
-
+  
   //if(getLayerDgrade(i,0)/getLayerDepth(i)>0.99)
   //{
   //if(x<560.418 && x>560.416){
@@ -1984,7 +1985,7 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
   //    std::cout<<" to erode b4 "<<valgrd[0]<< " " <<valgrd[1]<<std::endl;
   // }
   //}
-
+    
   size_t g=0;
   val=0;
   double max, min;
@@ -1999,21 +2000,23 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
     val+=valgrd[g];
     g++;
   }
-
+  
   // val is now set to the total amount of erosion or deposition
   z += val;
   // total elevation has now been changed
-
+  cumulative_ero_dep_ += val;
+  // elevation change has been added to cumulative (for coupling with other models)
+  
   double sume, sumd, olde; //used for calculation of exposure time
-
+  
   // Branch according to whether there is:
   // (1) erosion of all size-classes
   // (2) deposition of all size-classes
   // (3) erosion of some, deposition of others
   if(max <= 0 && min < -0.0000000001)
-    {
-      // CASE OF EROSION IN ALL SIZE CLASSES
-      if(getLayerSed(i) != tLayer::kBedRock &&
+  {
+    // CASE OF EROSION IN ALL SIZE CLASSES
+    if(getLayerSed(i) != tLayer::kBedRock &&
 	     getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i)+val<=maxregdep)
 	  {
 	     // Updating will also be done if entering this statement
@@ -2030,330 +2033,330 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 	        size_t g=0;
 	        sumd=0;
 	        while(g<numg)
-		    {
-		       sumd-=hupdate[g];
-		       val-=hupdate[g];//hupdate stores texture of material that will
-		       //refil the top layer
-		       update[g] += hupdate[g];//need update cause might need
-		       //to get material from more than one layer
-		       g++;
-		    }
+          {
+            sumd-=hupdate[g];
+            val-=hupdate[g];//hupdate stores texture of material that will
+                            //refil the top layer
+              update[g] += hupdate[g];//need update cause might need
+                                      //to get material from more than one layer
+                g++;
+          }
 	        sume+=sumd*olde;
-	    }
-	    size_t g=0;
-		while(g<numg){
-            addtoLayer(i, g, valgrd[g], -1.); // Erosion
-            addtoLayer(i,g,-1*update[g],-1.);//Updating with material from below
-            g++;
-	    }
-	    setLayerEtime(i, sume/getLayerDepth(i));
+       }
+       size_t g=0;
+       while(g<numg){
+         addtoLayer(i, g, valgrd[g], -1.); // Erosion
+         addtoLayer(i,g,-1*update[g],-1.);//Updating with material from below
+           g++;
+       }
+       setLayerEtime(i, sume/getLayerDepth(i));
 	  }
-      else
+    else
 	  {
 	     // No updating, just eroding, don't need to change exposure time
 	     //Do this if you have only bedrock below, or if layer you are eroding
 	     //from is >maxregdepth-val (could be if lots of deposition)
 	     size_t g=0;
 	     while(g<numg){
-            addtoLayer(i, g, valgrd[g], -1.); // Erosion done on this line
-            g++;
+         addtoLayer(i, g, valgrd[g], -1.); // Erosion done on this line
+         g++;
 	     }
-      }
-      if(getLayerDepth(i)<1e-7)
-	     removeLayer(i);
-      assert( getLayerDepth(i)>0.0 );
     }
+    if(getLayerDepth(i)<1e-7)
+	     removeLayer(i);
+    assert( getLayerDepth(i)>0.0 );
+  }
   else if(min >= 0.0 && max > 0.0000000001)
-    {
-      // CASE OF DEPOSITION IN ALL SIZE CLASSES
-      // method seems to make good sense for surface layers
-      // but may not be as appropriate for lower layers.
-      // You may want to either make a provision for lower layers
-      // or else write a new algorithm for them (will you ever deposit
-      // into lower layers?  I don't know)
-      // Also, no test done to make sure that you are depositing the right
-      // material into the layer, would need to pass the flag for this.
-      // For now assume that the test will be done in another place.
-      if(getLayerSed(i) != tLayer::kBedRock && val < maxregdep){
-	// top layer is sediment, so no issues
-	// depositing less than an entire layer of stuff
-	olde=getLayerEtime(i);
-	if(getLayerDepth(i)+val>maxregdep){
-	  // Need to move stuff out of top layer to make room for deposited material
-	  if(getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i+1)+val<maxregdep)
-            {
-	      // The layer below is of the appropriate material and has space
-	      amt = getLayerDepth(i)+val-maxregdep;//how much to move out
-	      setLayerEtime(i+1, (1/(getLayerDepth(i+1)+amt))*
-			    (olde*amt + getLayerDepth(i+1)*getLayerEtime(i+1)));//lower layer's etime is now properly set.
-	      setLayerEtime(i, (1/maxregdep)*(olde*(getLayerDepth(i)-amt)));
-	      //now etime is set in the layer you are depositing into
-	      //note deposited material has an etime of 0
-	      olddep = getLayerDepth(i);
-	      size_t g=0;
-	      while(g<numg){
-		addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, -1.);
-		// putting material from top layer to layer below
-		// nic, at this point you have decided not to change
-		// the recent time on the lower layer when you move
-		// stuff down into it.  Might think about this.
-		addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
-		// changing top layer composition by depositing and removing
-		g++;
-	      }
-	      assert( getLayerDepth(i)>0.0 );
-	      assert( getLayerDepth(i+1)>0.0 );
-            }
-	  else
-            {
-	      // Need to create new layer
-	      amt = getLayerDepth(i)+val-maxregdep;
-	      assert( amt>=0.0 ); //GT
-	      setLayerEtime(i, (1/maxregdep)*(olde*(getLayerDepth(i)-amt)));
-	      //now etime is set in the layer you are depositing into
-	      //note deposited material has an etime of 0
-	      olddep = getLayerDepth(i);
-	      assert( olddep>0.0 ); // if not true, we get div by zero
-	      size_t g=0;
-	      while(g<numg){
-		update[g]=amt*getLayerDgrade(i,g)/olddep;
-		// material which will be moved from top layer
-		assert( update[g]>=0.0 ); //GT
-		addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
-		// changing top layer composition by depositing
-		g++;
-	      }
-	      assert( getLayerDepth(i)>0.0 );
-	      makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt);
-
-	      //When new layer is created then you change the recent time.
-	      // put material into a new layer which is made below
-	      setLayerEtime(i+1, olde); //now layer below has the proper etime
-            }
-	}
-
-	else
-	  {
-            // No need to move stuff out of top layer, just deposit
-            setLayerEtime(i, (1/(getLayerDepth(i)+val))*olde*getLayerDepth(i));
-            //set top layers etime
+  {
+    // CASE OF DEPOSITION IN ALL SIZE CLASSES
+    // method seems to make good sense for surface layers
+    // but may not be as appropriate for lower layers.
+    // You may want to either make a provision for lower layers
+    // or else write a new algorithm for them (will you ever deposit
+    // into lower layers?  I don't know)
+    // Also, no test done to make sure that you are depositing the right
+    // material into the layer, would need to pass the flag for this.
+    // For now assume that the test will be done in another place.
+    if(getLayerSed(i) != tLayer::kBedRock && val < maxregdep){
+      // top layer is sediment, so no issues
+      // depositing less than an entire layer of stuff
+      olde=getLayerEtime(i);
+      if(getLayerDepth(i)+val>maxregdep){
+        // Need to move stuff out of top layer to make room for deposited material
+        if(getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i+1)+val<maxregdep)
+        {
+          // The layer below is of the appropriate material and has space
+          amt = getLayerDepth(i)+val-maxregdep;//how much to move out
+          setLayerEtime(i+1, (1/(getLayerDepth(i+1)+amt))*
+                        (olde*amt + getLayerDepth(i+1)*getLayerEtime(i+1)));//lower layer's etime is now properly set.
+            setLayerEtime(i, (1/maxregdep)*(olde*(getLayerDepth(i)-amt)));
+            //now etime is set in the layer you are depositing into
+            //note deposited material has an etime of 0
+            olddep = getLayerDepth(i);
             size_t g=0;
             while(g<numg){
-	      addtoLayer(i,g,valgrd[g],tt);
-	      g++;
+              addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, -1.);
+              // putting material from top layer to layer below
+              // nic, at this point you have decided not to change
+              // the recent time on the lower layer when you move
+              // stuff down into it.  Might think about this.
+              addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
+              // changing top layer composition by depositing and removing
+              g++;
             }
-	    assert( getLayerDepth(i)>0.0 );
-	  }
+            assert( getLayerDepth(i)>0.0 );
+            assert( getLayerDepth(i+1)>0.0 );
+        }
+        else
+        {
+          // Need to create new layer
+          amt = getLayerDepth(i)+val-maxregdep;
+          assert( amt>=0.0 ); //GT
+          setLayerEtime(i, (1/maxregdep)*(olde*(getLayerDepth(i)-amt)));
+          //now etime is set in the layer you are depositing into
+          //note deposited material has an etime of 0
+          olddep = getLayerDepth(i);
+          assert( olddep>0.0 ); // if not true, we get div by zero
+          size_t g=0;
+          while(g<numg){
+            update[g]=amt*getLayerDgrade(i,g)/olddep;
+            // material which will be moved from top layer
+            assert( update[g]>=0.0 ); //GT
+            addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
+            // changing top layer composition by depositing
+            g++;
+          }
+          assert( getLayerDepth(i)>0.0 );
+          makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt);
+          
+          //When new layer is created then you change the recent time.
+          // put material into a new layer which is made below
+          setLayerEtime(i+1, olde); //now layer below has the proper etime
+        }
       }
-      else{
-	// depositing sediment on top of br - create a new surface layer baby.
-	// setting all new sediment layers to have erodibility of KRnew,
-	// value read in at begining
-	// Also use this if the amount of material deposited is
-	// greater than maxregdep
-	makeNewLayerBelow(-1, tLayer::kSed, KRnew, valgrd, tt);
+      
+      else
+      {
+        // No need to move stuff out of top layer, just deposit
+        setLayerEtime(i, (1/(getLayerDepth(i)+val))*olde*getLayerDepth(i));
+        //set top layers etime
+        size_t g=0;
+        while(g<numg){
+          addtoLayer(i,g,valgrd[g],tt);
+          g++;
+        }
+        assert( getLayerDepth(i)>0.0 );
       }
     }
+    else{
+      // depositing sediment on top of br - create a new surface layer baby.
+      // setting all new sediment layers to have erodibility of KRnew,
+      // value read in at begining
+      // Also use this if the amount of material deposited is
+      // greater than maxregdep
+      makeNewLayerBelow(-1, tLayer::kSed, KRnew, valgrd, tt);
+    }
+  }
   else if(max>0.0000000001 && min<-0.0000000001)
+  {
+    // CASE OFSIMULTANEOUS EROSION AND DEPOSITION:
+    // Erosion of one or more sizes, deposition of other(s).
+    // First, test whether the net effect is erosion or deposition.
+    //Need if for the zero erosion case, in which nothing is done.
+    if(val < 0)
     {
-      // CASE OFSIMULTANEOUS EROSION AND DEPOSITION:
-      // Erosion of one or more sizes, deposition of other(s).
-      // First, test whether the net effect is erosion or deposition.
-      //Need if for the zero erosion case, in which nothing is done.
-      if(val < 0)
-	{
-	  // Case of net erosion
-	  if(getLayerSed(i) != tLayer::kBedRock)
+      // Case of net erosion
+      if(getLayerSed(i) != tLayer::kBedRock)
 	    {
 	      //layer is sediment
 	      if(getLayerSed(i) == getLayerSed(i+1))
-		{
-		  sume=(getLayerDepth(i)+val)*getLayerEtime(i); //for averaging
-		  //of the exposure time.
-		  olde=getLayerEtime(i+1);
-		  //There is material below to update with
-		  while(val<-0.000000001 && getLayerSed(i) == getLayerSed(i+1))
-		    {
-		      // keep getting material from below  until you
-		      // either get all the material you
-		      // need to refill the top layer, or you run out of material
-		      hupdate = addtoLayer(i+1, val);//remove stuff from
-		      //lower layer, hupdate stores texture of material that will
-		      //refil the top layer
-		      size_t g=0;
-		      sumd=0;
-		      while(g<numg)
-			{
-			  sumd-=hupdate[g];
-			  val-=hupdate[g];
-			  update[g] += hupdate[g];
-			  g++;
-			}
-		      sume+=sumd*olde;
-		    }
-		  size_t g=0;
-		  while(g<numg){
-		    addtoLayer(i, g, valgrd[g], tt); // Erosion and deposition
-		    addtoLayer(i,g,-1*update[g], tt);//Updating with material from below
-		    //Set layer recent time because some deposition was done
-		    g++;
-		  }
-		  assert( getLayerDepth(i)>0.0 );
-		  setLayerEtime(i, sume/getLayerDepth(i));
-		}
+        {
+          sume=(getLayerDepth(i)+val)*getLayerEtime(i); //for averaging
+                                                        //of the exposure time.
+          olde=getLayerEtime(i+1);
+          //There is material below to update with
+          while(val<-0.000000001 && getLayerSed(i) == getLayerSed(i+1))
+          {
+            // keep getting material from below  until you
+            // either get all the material you
+            // need to refill the top layer, or you run out of material
+            hupdate = addtoLayer(i+1, val);//remove stuff from
+                                           //lower layer, hupdate stores texture of material that will
+                                           //refil the top layer
+            size_t g=0;
+            sumd=0;
+            while(g<numg)
+            {
+              sumd-=hupdate[g];
+              val-=hupdate[g];
+              update[g] += hupdate[g];
+              g++;
+            }
+            sume+=sumd*olde;
+          }
+          size_t g=0;
+          while(g<numg){
+            addtoLayer(i, g, valgrd[g], tt); // Erosion and deposition
+            addtoLayer(i,g,-1*update[g], tt);//Updating with material from below
+                                             //Set layer recent time because some deposition was done
+              g++;
+          }
+          assert( getLayerDepth(i)>0.0 );
+          setLayerEtime(i, sume/getLayerDepth(i));
+        }
 	      else
-		{
-		  //No updating will be done, but can put the
-		  //deposited material into the surface layer
-		  size_t g=0;
-		  sumd=0;
-		  while(g<numg){
-		    if(valgrd[g]>0)
-                      sumd+=valgrd[g];
-		    addtoLayer(i, g, valgrd[g], tt); // Erosion/Deposition
-		    //Set layer recent time because some deposition was done
-		    g++;
-		  }
-		  assert( getLayerDepth(i)>0.0 );
-		  setLayerEtime(i, getLayerEtime(i)*(getLayerDepth(i)-sumd)/
-				getLayerDepth(i));
-		}
+        {
+          //No updating will be done, but can put the
+          //deposited material into the surface layer
+          size_t g=0;
+          sumd=0;
+          while(g<numg){
+            if(valgrd[g]>0)
+              sumd+=valgrd[g];
+            addtoLayer(i, g, valgrd[g], tt); // Erosion/Deposition
+                                             //Set layer recent time because some deposition was done
+            g++;
+          }
+          assert( getLayerDepth(i)>0.0 );
+          setLayerEtime(i, getLayerEtime(i)*(getLayerDepth(i)-sumd)/
+                        getLayerDepth(i));
+        }
 	    }
-	  else
+      else
 	    {
 	      //Layer is bedrock
 	      //First remove material from bedrock, then create a new layer
 	      //for the deposited material.
 	      for(size_t g=0; g<numg; g++){
-		update[g]=valgrd[g];//update stores the composition of new layer
-		if(valgrd[g]<0){
-                  addtoLayer(i, g, valgrd[g], -1.);
-                  update[g]=0.0;
-		}
+          update[g]=valgrd[g];//update stores the composition of new layer
+          if(valgrd[g]<0){
+            addtoLayer(i, g, valgrd[g], -1.);
+            update[g]=0.0;
+          }
 	      }
 	      assert( getLayerDepth(i)>0.0 );
 	      makeNewLayerBelow(i-1, tLayer::kSed, KRnew, update, tt);
 	      //New layer made with deposited material
 	    }
-	  assert( getLayerDepth(i) > -1e-7 ); // can't be much < 0
-	  if(getLayerDepth(i)<1e-7) // If we've eroded through a layer
-	    removeLayer(i);
-	}
-      else
-	{
-	  // Case of net deposition (simultaneous ero & dep)
-	  // First, we loop over all size-fractions. If erosion in a given
-	  // fraction is occurring, remove the material from the top layer;
-	  // if deposition, add it to val, which at the end of the loop
-	  // will record the total depth to be deposited.
-	  val=0; //val will now contain total amt to deposit
-	  for(size_t g=0; g<numg; g++) {
-            if(valgrd[g]<0) {
-	      // Here, we erode material in size fraction g
-	      update[g]=0;//If new layer needs to be made on top of BR
-	      //update will be composition.
-	      //Not necessarily used unles on bedrock, but I threw it
-	      //here anyway since you one should rarely enter this
-	      //neck of the woods.
-	      addtoLayer(i, g, valgrd[g], -1.);
+      assert( getLayerDepth(i) > -1e-7 ); // can't be much < 0
+      if(getLayerDepth(i)<1e-7) // If we've eroded through a layer
+        removeLayer(i);
+    }
+    else
+    {
+      // Case of net deposition (simultaneous ero & dep)
+      // First, we loop over all size-fractions. If erosion in a given
+      // fraction is occurring, remove the material from the top layer;
+      // if deposition, add it to val, which at the end of the loop
+      // will record the total depth to be deposited.
+      val=0; //val will now contain total amt to deposit
+      for(size_t g=0; g<numg; g++) {
+        if(valgrd[g]<0) {
+          // Here, we erode material in size fraction g
+          update[g]=0;//If new layer needs to be made on top of BR
+                      //update will be composition.
+                      //Not necessarily used unles on bedrock, but I threw it
+                      //here anyway since you one should rarely enter this
+                      //neck of the woods.
+          addtoLayer(i, g, valgrd[g], -1.);
+        }
+        else {
+          // Size fraction g is going to be deposited, so add it to the
+          // total amount deposited (val)
+          update[g]=valgrd[g];
+          val+=valgrd[g];
+        }
+      }
+      // If we've eroded all of layer, remove it (avoid division by zero
+      // below) GT 8/02
+      if( getLayerDepth(i)<1e-7 ) removeLayer(i);
+      assert( getLayerDepth(i)>0.0 );  // replacement should be ok
+      if(getLayerSed(i) != tLayer::kBedRock && val<maxregdep) {
+        // Case in which top layer is "sediment" and depth to be
+        // deposited is less than nominal layer thickness.
+        // top layer is sediment, so no issues
+        amt = (getLayerDepth(i)+val)-maxregdep; // excess (if pos)
+                                                //if((getLayerDepth(i)+val)>maxregdep){
+        if( amt>0.0 ){
+          // Need to move stuff out of top layer to make room for deposited mat
+          //if(getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i+1)+val<maxregdep)
+          if(getLayerSed(i) == getLayerSed(i+1) && (getLayerDepth(i+1)+amt)<maxregdep)
+          {
+            // The layer below is of the appropriate material and has space
+            //amt = getLayerDepth(i)+val-maxregdep;//how much to move out
+            olddep = getLayerDepth(i);
+            olde=getLayerEtime(i);
+            setLayerEtime(i, (1/maxregdep)*olde*(getLayerDepth(i)-amt));
+            //exposure time of layer which is getting ero'd/dep'd is set
+            setLayerEtime(i+1, (1/(amt+getLayerDepth(i+1)))*
+                          (amt*olde+getLayerDepth(i+1)*getLayerEtime(i+1)));//now exposure time of lower layer is set
+              size_t g=0;
+              while(g<numg){
+                addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, -1.);
+                // putting material from top layer to layer below
+                // nic, at this point you have decided not to change
+                // the recent time on the lower layer when you move
+                // stuff down into it.  Might think about this.
+                //addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
+                addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+update[g], tt);
+                // changing top layer composition by depositing and removing
+                g++;
+              }
+              assert( getLayerDepth(i)>0.0 );
+          }
+          else
+          {
+            // Need to create new layer
+            //amt = getLayerDepth(i)+val-maxregdep;
+            olddep = getLayerDepth(i);
+            assert( olddep>0.0 ); // otherwise div by zero below
+            olde=getLayerEtime(i);
+            setLayerEtime(i, (1/maxregdep)*olde*(getLayerDepth(i)-amt));
+            size_t g=0;
+            while(g<numg){
+              update[g]=amt*(getLayerDgrade(i,g)/olddep);
+              // update = material which will be moved from top layer
+              assert( update[g]>=0.0 );
+              // GT added the following Aug 2002 -- previously, erosion
+              // was being double-counted
+              if( valgrd[g]>0.0 ) // If depositing in this size
+                addtoLayer(i,g,valgrd[g]-update[g], tt);
+              // changing top layer composition by depositing
+              else // eroding in this size: erosion already done above
+                addtoLayer(i,g,-update[g],tt);
+              g++;
             }
-            else {
-	      // Size fraction g is going to be deposited, so add it to the
-	      // total amount deposited (val)
-	      update[g]=valgrd[g];
-	      val+=valgrd[g];
-            }
-	  }
-	  // If we've eroded all of layer, remove it (avoid division by zero
-	  // below) GT 8/02
-	  if( getLayerDepth(i)<1e-7 ) removeLayer(i);
-	  assert( getLayerDepth(i)>0.0 );  // replacement should be ok
-	  if(getLayerSed(i) != tLayer::kBedRock && val<maxregdep) {
-            // Case in which top layer is "sediment" and depth to be
-            // deposited is less than nominal layer thickness.
-            // top layer is sediment, so no issues
-	    amt = (getLayerDepth(i)+val)-maxregdep; // excess (if pos)
-            //if((getLayerDepth(i)+val)>maxregdep){
-            if( amt>0.0 ){
-	      // Need to move stuff out of top layer to make room for deposited mat
-	      //if(getLayerSed(i) == getLayerSed(i+1) && getLayerDepth(i+1)+val<maxregdep)
-	      if(getLayerSed(i) == getLayerSed(i+1) && (getLayerDepth(i+1)+amt)<maxregdep)
-		{
-                  // The layer below is of the appropriate material and has space
-		  //amt = getLayerDepth(i)+val-maxregdep;//how much to move out
-                  olddep = getLayerDepth(i);
-                  olde=getLayerEtime(i);
-                  setLayerEtime(i, (1/maxregdep)*olde*(getLayerDepth(i)-amt));
-                  //exposure time of layer which is getting ero'd/dep'd is set
-                  setLayerEtime(i+1, (1/(amt+getLayerDepth(i+1)))*
-                                (amt*olde+getLayerDepth(i+1)*getLayerEtime(i+1)));//now exposure time of lower layer is set
-                  size_t g=0;
-                  while(g<numg){
-		    addtoLayer(i+1,g,amt*getLayerDgrade(i,g)/olddep, -1.);
-		    // putting material from top layer to layer below
-		    // nic, at this point you have decided not to change
-		    // the recent time on the lower layer when you move
-		    // stuff down into it.  Might think about this.
-		    //addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+valgrd[g], tt);
-		    addtoLayer(i,g,-1*amt*getLayerDgrade(i,g)/olddep+update[g], tt);
-		    // changing top layer composition by depositing and removing
-		    g++;
-                  }
-		  assert( getLayerDepth(i)>0.0 );
-		}
-	      else
-		{
-                  // Need to create new layer
-		  //amt = getLayerDepth(i)+val-maxregdep;
-                  olddep = getLayerDepth(i);
-		  assert( olddep>0.0 ); // otherwise div by zero below
-                  olde=getLayerEtime(i);
-                  setLayerEtime(i, (1/maxregdep)*olde*(getLayerDepth(i)-amt));
-                  size_t g=0;
-                  while(g<numg){
-		    update[g]=amt*(getLayerDgrade(i,g)/olddep);
-		    // update = material which will be moved from top layer
-		    assert( update[g]>=0.0 );
-		    // GT added the following Aug 2002 -- previously, erosion
-		    // was being double-counted
-		    if( valgrd[g]>0.0 ) // If depositing in this size
-		      addtoLayer(i,g,valgrd[g]-update[g], tt);
-		    // changing top layer composition by depositing
-		    else // eroding in this size: erosion already done above
-		      addtoLayer(i,g,-update[g],tt);
-		    g++;
-                  }
-		  assert( getLayerDepth(i)>0.0 );
-                  makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt);
-                  setLayerEtime(i+1, olde);
-                  //When new layer is created then you change the time.
-                  // put material into a new layer which is made below
-		}
-            }
-            else
+            assert( getLayerDepth(i)>0.0 );
+            makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt);
+            setLayerEtime(i+1, olde);
+            //When new layer is created then you change the time.
+            // put material into a new layer which is made below
+          }
+        }
+        else
 	      {
-		// No need to move stuff out of top layer, just deposit
-		setLayerEtime(i, (1/(getLayerDepth(i)+val))*getLayerDepth(i)*
-			      getLayerEtime(i));
-		//now exposure time of top layer is properly set
-		size_t g=0;
-		while(g<numg){
-                  if(valgrd[g]>0)
-		    addtoLayer(i,g,valgrd[g],tt);
-                  g++;
-		}
-		assert( getLayerDepth(i)>0.0 );
+          // No need to move stuff out of top layer, just deposit
+          setLayerEtime(i, (1/(getLayerDepth(i)+val))*getLayerDepth(i)*
+                        getLayerEtime(i));
+          //now exposure time of top layer is properly set
+          size_t g=0;
+          while(g<numg){
+            if(valgrd[g]>0)
+              addtoLayer(i,g,valgrd[g],tt);
+            g++;
+          }
+          assert( getLayerDepth(i)>0.0 );
 	      }
-	  }
-	  else
+                                                }
+      else
 	    {
 	      //Layer is bedrock, so make a new layer on top to deposit into
 	      //or, depositing more than maxregdep
 	      makeNewLayerBelow(i-1, tLayer::kSed, KRnew, update, tt);
 	    }
-	}
+      }
     }
-
+  
   //Check to make sure that top layer is not too deep
   if(getLayerDepth(i)>1.1*maxregdep && getLayerSed(i) != tLayer::kBedRock ){
     //Make a top layer that is maxregdep deep so that further erosion
@@ -2366,14 +2369,14 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
     makeNewLayerBelow(-1, tLayer::kSed, getLayerErody(i), hupdate, tt);
     setLayerRtime(i,0.);
   }
-
+  
   //   if(getLayerDepth(0)>1.1*maxregdep){
   //   std::cout<<"TOO MUCH SEDIMENT IN TOP LAYER"<<std::endl;
   //   TellAll();
   //}
-
-  return valgrd;
-}
+  
+return valgrd;
+  }
 
 /**************************************************************
  ** tLNode::addtoLayer(int i, int g, double val, double tt)
