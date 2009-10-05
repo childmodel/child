@@ -714,12 +714,25 @@ GetZCoordinate( int element_index, int vertex_index )
 }
 
 
-
+/**************************************************************************/
+/**
+**  childInterface::GetValueSet
+**
+**  This method finds and returns a set of values on nodes. It does this
+**  by parsing its string argument to discover which quantity the caller
+**  wants, and calling the appropriate helper function to get and return
+**  the result.
+**
+**  GT, Sep/Oct 2009
+*/
+/**************************************************************************/
 std::vector<double> childInterface::
 GetValueSet( string var_name )
 {
   if( var_name.compare( "elevation" ) )
     return GetNodeElevationVector();
+  else if( var_name.compare( "dz" ) || var_name.compare( "erosion" ) )
+    return GetNodeErosionVector();
   else
   {
     std::vector<double> empty_vector;
@@ -729,6 +742,16 @@ GetValueSet( string var_name )
 
 
 
+/**************************************************************************/
+/**
+**  childInterface::GetNodeElevationVector
+**
+**  This private method is used to create and return a vector of elevation
+**  values for the nodes. The vector is in order by permanent node ID.
+**
+**  GT, Sep/Oct 2009
+*/
+/**************************************************************************/
 std::vector<double> childInterface::GetNodeElevationVector()
 {
    tLNode *current_node;
@@ -741,5 +764,28 @@ std::vector<double> childInterface::GetNodeElevationVector()
    }
    
    return elevations;
+
+}
+
+/**************************************************************************/
+/**
+**  childInterface::GetNodeErosionVector
+**
+**  This private method is used to create and return a vector of 
+**  cumulative erosion/deposition depths since the last time the function
+**  was invoked.
+**
+**  GT, Oct 2009
+*/
+/**************************************************************************/
+std::vector<double> childInterface::GetNodeErosionVector()
+{
+   tLNode *current_node;
+   tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+   std::vector<double> dz( mesh->getNodeList()->getSize() );
+      
+   // EMPTY FOR NOW -- TO BE FILLED IN!
+
+   return dz;
 
 }

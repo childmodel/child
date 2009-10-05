@@ -100,6 +100,7 @@ private:
 
   // Private methods
   std::vector<double> GetNodeElevationVector();  // Creates and returns vector of elevs
+  std::vector<double> GetNodeErosionVector();  // Creates and returns vector of ero/dep
   
 	// Private data
 	bool initialized;      // Flag indicated whether model has been initialized
