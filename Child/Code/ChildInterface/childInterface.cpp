@@ -713,6 +713,19 @@ GetZCoordinate( int element_index, int vertex_index )
 
 }
 
+// Returns TRUE if the node is an interior node (non-boundary), FALSE otherwise
+bool childInterface::
+IsInteriorNode( int element_index )
+{
+   tMesh< tLNode >::nodeListIter_t ni( mesh->getNodeList() );
+   tLNode *my_node;
+   
+   my_node = ni.GetPByPermID( element_index );
+   return( my_node->getBoundaryFlag()==kNonBoundary );
+}
+
+
+
 
 /**************************************************************************/
 /**

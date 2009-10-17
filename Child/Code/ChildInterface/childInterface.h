@@ -95,6 +95,8 @@ public:
 	double GetZCoordinate( int element_index, int vertex_index );
   std::vector<double> GetValueSet( string var_name );
 	
+  // Additional custom functions to accompany IElement interface
+  bool IsInteriorNode( int element_index );
 		
 private:
 

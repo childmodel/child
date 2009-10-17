@@ -6,7 +6,7 @@ include gccmac.mk
 #include bcc.mk
 #include PC-lint/pclint.mk
 
-EXENAME = childDriver$(EXEEXT)
+EXENAME = child$(EXEEXT)
 
 OBJECTS = \
  childDriver.$(OBJEXT) \
