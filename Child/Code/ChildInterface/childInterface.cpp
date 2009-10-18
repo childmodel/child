@@ -118,6 +118,7 @@ Initialize( int argc, char **argv )
    optMeander = inputFile.ReadBool( "OPTMEANDER" );
    optStratGrid = inputFile.ReadBool( "OPTSTRATGRID" ,false);
    optNonlinearDiffusion = inputFile.ReadBool( "OPT_NONLINEAR_DIFFUSION", false );
+   optTrackWaterSedTimeSeries = inputFile.ReadBool( "OPT_TRACK_WATER_SED_TIMESERIES", false );
    
    // If applicable, create Vegetation object
    if( optVegetation )
@@ -143,6 +144,10 @@ Initialize( int argc, char **argv )
      stratGrid = new tStratGrid (inputFile, mesh);
      output->SetStratGrid( stratGrid, strmNet );
    }
+   
+   // If applicable, set up tracking of water and sediment flux
+   if( optTrackWaterSedTimeSeries )
+     water_sed_tracker_.InitializeFromInputFile( inputFile, mesh, erosion );
 
    std::cout << "Writing data for time zero...\n";
    time = new tRunTimer( inputFile, !option.silent_mode );
@@ -355,6 +360,9 @@ RunOneStorm()
 		output->WriteOutput( time->getCurrentTime() );
 	
 	if( output->OptTSOutput() ) output->WriteTSOutput();
+  
+  if( optTrackWaterSedTimeSeries )
+    water_sed_tracker_.WriteAndResetWaterSedTimeseriesData();
 		
 	return( time->getCurrentTime() );
 }
@@ -806,3 +814,27 @@ std::vector<double> childInterface::GetNodeErosionVector()
    return dz;
 
 }
+
+
+/**************************************************************************/
+/**
+**  childInterface::TrackWaterAndSedFluxAtNodes
+**
+**  This method tells CHILD to track and record water and sediment flux
+**  time series at specified nodes. The method switches on tracking if it
+**  is not already on. It uses the tWaterSedTracker interface functions to
+**  reset the list of nodes to track.
+**
+**  GT, Oct 2009
+*/
+/**************************************************************************/
+void childInterface::
+TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track )
+{
+  if( !optTrackWaterSedTimeSeries )
+    optTrackWaterSedTimeSeries = true;
+    
+  water_sed_tracker_.ResetListOfNodesToTrack( ids_of_nodes_to_track );
+}
+
+

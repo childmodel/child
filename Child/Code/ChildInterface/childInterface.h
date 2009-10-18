@@ -35,7 +35,7 @@
 #include "../tStratGrid/tStratGrid.h"
 #include "../tEolian/tEolian.h"
 #include "../tOption/tOption.h"
-
+#include "../tWaterSedTracker/tWaterSedTracker.h"
 #include "../tMeshList/tMeshList.h"
 
 using namespace std;
@@ -77,6 +77,7 @@ public:
 	void CleanUp();
 	~childInterface();
   void ExternalErosionAndDeposition( vector<double> dz );
+  void TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track );
 	
 	// Public methods that implement the OpenMI IElement interface
 	string getID();
@@ -113,6 +114,7 @@ private:
         optMeander,        // Option for stream meandering
         optDiffuseDepo,    // Option for deposition / no deposition by diff'n
         optStratGrid,      // Option to enable stratigraphy grid
+        optTrackWaterSedTimeSeries,  // Option to record timeseries Q and Qs
 		optNonlinearDiffusion; // Option for nonlinear creep transport
 	tRand *rand;             // -> random number generator
 	tMesh<tLNode> *mesh;        // -> mesh object
@@ -122,6 +124,7 @@ private:
 	tErosion *erosion;          // -> erosion module
 	tUplift *uplift;            // -> uplift/baselevel module
 	tRunTimer *time;             // -> run timer
+  tWaterSedTracker water_sed_tracker_;   // Water and sediment tracker
 	
 	tVegetation *vegetation;  // -> vegetation object
 	tFloodplain *floodplain;  // -> floodplain object
