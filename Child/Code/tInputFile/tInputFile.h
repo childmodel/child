@@ -52,6 +52,10 @@
 #define kMaxNameLength 128
 #include "../Definitions.h"
 #include <stddef.h>
+#include <string>
+
+using namespace std;
+
 class tTimeSeries;
 
 /** @class tKeyPair
@@ -99,6 +103,7 @@ public:
   void ReadItem( char *, size_t len, const char *, bool reqParam = true ) const;// reads a string
   void ReadItem(tTimeSeries &, const char *,
 		bool reqParam = true ) const; // reads a time series
+  string ReadString( const char *, bool reqParam = true ) const;               // reads an STL string
 
   // similar overrides could be added for other data types
 
