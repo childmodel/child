@@ -406,6 +406,23 @@ void tInputFile::ReadItem( char * theString, size_t len,
   theString[len-1] = '\0';
 }
 
+string tInputFile::ReadString( const char *itemCode, bool reqParam ) const
+{
+  string theString;
+
+  const int i = findKeyWord( itemCode );
+  if (i == notFound)
+  {
+     ReportNonExistingKeyWord( itemCode, reqParam );
+  }
+  else
+  {
+    theString.assign( KeyWordTable[i].value() );
+  }
+  return theString;
+}
+
+
 bool tInputFile::ReadBool( const char *itemCode, bool reqParam ) const
 {
   const int i = findKeyWord( itemCode );

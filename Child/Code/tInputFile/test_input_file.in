@@ -1,0 +1,37 @@
+#
+# test_input_file.in
+#
+# This is a template for a generic input file.
+#
+# Its purpose is to test the tInputFile class. It contains examples of each of the main
+# input types, as well as comment lines.
+#
+# Created by GT, Oct 09
+#
+OUTFILENAME: need this so the tInputFile knows how to write an output log
+my_test_input_file
+MY_TRUE_BOOL
+1
+MY_FALSE_BOOL
+0
+#MY_MISSING_BOOL
+#1
+#because "MY_MISSING_BOOL" is commented out, it shouldn't be read
+MY_INTEGER
+12345
+# random comment line here ...
+MY_LONG
+123456789
+MY_DOUBLE
+3.1415926
+MY_STRING
+To be or not to be: is that the question?
+# some other missing things:
+# MY_MISSING_INTEGER
+# 54321
+# MY_MISSING_DOUBLE
+# 0.54321
+# MY_MISSING_STRING
+# Is that a dagger before me?
+
+
