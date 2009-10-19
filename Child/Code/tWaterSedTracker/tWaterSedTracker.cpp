@@ -32,6 +32,7 @@
 /**************************************************************************/
 
 #include <vector>
+#include <sstream>
 #include "tWaterSedTracker.h"
 
 using namespace std;
@@ -46,6 +47,24 @@ using namespace std;
 tWaterSedTracker::
 tWaterSedTracker()
 {}
+
+
+/**************************************************************************/
+/**
+**  Destructor
+**
+**  Closes and deletes any remaining ofstream objects.
+*/
+/**************************************************************************/
+tWaterSedTracker::
+~tWaterSedTracker()
+{
+  for( unsigned i=0; i<output_file_list_.size(); i++ )
+  {
+    output_file_list_[i]->close();
+    delete output_file_list_[i];
+  }
+}
   
 
 /**************************************************************************/
@@ -57,15 +76,82 @@ tWaterSedTracker()
 **  check to determine that the user wants to track some nodes.
 */
 /**************************************************************************/
+#define kBigNumber 1e10
 void tWaterSedTracker::
-InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh, tErosion *erosion )
+InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh /*, tErosion *erosion*/ )
 {
   int number_of_nodes_to_track;
+  string input_string;
+  stringstream input_stringstream;
   
+  // Read in the number of nodes to track and their approximate (x,y) coordinates
   number_of_nodes_to_track = inputFile.ReadInt( "NUMBER_OF_NODES_TO_TRACK_WATER_AND_SED" );
+  tracking_node_list_.resize( number_of_nodes_to_track, NULL );
+  vector<double> x( number_of_nodes_to_track );   // List of tracking node x-coords
+  vector<double> y( number_of_nodes_to_track );   // List of tracking node y-coords
+  input_string = inputFile.ReadString( "COORDS_OF_NODES_TO_TRACK" );
+  input_stringstream.str( input_string );   // use the stringstream to get #s from the input line
+  for( int i=0; i<number_of_nodes_to_track; i++ )
+  {
+    if( input_stringstream.eof() )
+      ReportFatalError( "Reached end of line in reading COORDS_OF_NODES_TO_TRACK:\n make sure there is at least one x and y value for each tracking node." );
+    input_stringstream >> x[i];
+    if( input_stringstream.eof() )
+      ReportFatalError( "Reached end of line in reading COORDS_OF_NODES_TO_TRACK:\n make sure there is at least one x and y value for each tracking node." );    
+    input_stringstream >> y[i];
+  }
   
+  // Find the closest node to each (x,y) pair and put it on the tracking list.
+  // We do this by sweeping through all interior nodes, checking the square of
+  // the distance, and remembering which node has the smallest for each (x,y)
+  // pair.
+  vector<double> min_distance_squared( number_of_nodes_to_track, kBigNumber );   // Min dist^2 found so far
+  tLNode *current_node;
+  tMesh< tLNode >::nodeListIter_t ni( mesh->getNodeList() );
+  for( current_node=ni.FirstP(); ni.IsActive(); current_node=ni.NextP() )
+  {
+    for( int i=0; i<number_of_nodes_to_track; i++ )
+    {
+      double dist_squared = pow(x[i]-current_node->getX(),2)+pow(y[i]-current_node->getY(),2);
+      if( dist_squared < min_distance_squared[i] )
+      {
+        min_distance_squared[i] = dist_squared;  // if the distance is closer, remember it ...
+        tracking_node_list_[i] = current_node;   // ... and set this as the closest node.
+      }
+    }
+  }
+  
+  // Remember the base name for the sed/water flux output files
+  output_file_base_name_ = inputFile.ReadString( "OUTFILENAME" );
+  
+  // Create and open the output files
+  output_file_list_.resize( number_of_nodes_to_track, NULL );
+  for( int i=0; i<number_of_nodes_to_track; i++ )
+  {
+    stringstream ss;
+    ss << output_file_base_name_;
+    ss << "_node" << tracking_node_list_[i]->getPermID();
+    ss << "_t0.water_sed";
+    output_file_list_.push_back( new ofstream( ss.str().c_str() ) );
+    /*output_file_list_[i].open( ss.str() );
+    if( !output_file_list_[i].good() )
+    {
+      cout << "When trying to create output file '" << ss.str() << endl;
+      ReportFatalError( "Unable to create file." );
+    }
+    output_file_list_[i] << "frog number " << i << endl;*/
+  }
+  
+  // Debugging error trap!
+  cout << "Tracking node list:" << endl;
+  for( int i=0; i<number_of_nodes_to_track; i++ )
+  {
+    assert( tracking_node_list_[i] != NULL );
+    cout << i << " " << x[i] << " " << y[i] << " " << tracking_node_list_[i]->getPermID();
+    cout << " " << tracking_node_list_[i]->getX() << " " << tracking_node_list_[i]->getY() << endl;
+  }
 }
-
+#undef kBigNumber
 
 
 /**************************************************************************/
@@ -83,5 +169,19 @@ ResetListOfNodesToTrack( vector<int> ids_of_nodes_to_track )
 /**************************************************************************/
 void tWaterSedTracker::
 WriteAndResetWaterSedTimeseriesData()
-{}
+{
+}
+
+/**************************************************************************/
+/**
+*/
+/**************************************************************************/
+void tWaterSedTracker::
+AddSedVolumesAtTrackingNodes( double flux_duration )
+{
+  for( unsigned i=0; i<tracking_node_list_.size(); i++ )
+  {
+    tracking_node_list_[i]->AddInfluxToCumulativeSedXportVolume( flux_duration );
+  }
+}
 

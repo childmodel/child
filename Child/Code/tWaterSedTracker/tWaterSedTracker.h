@@ -35,11 +35,11 @@
 #define TWATERSEDTRACKER_H
 
 #include <vector>
+#include <string>
 #include "../tInputFile/tInputFile.h"
 #include "../tMesh/tMesh.h"
-#include "../Erosion/erosion.h"
+#include "../tLNode/tLNode.h"
 
-using namespace std;
 
 
 class tWaterSedTracker
@@ -49,17 +49,25 @@ public:
   // Constructor for basic initialization
   tWaterSedTracker();
   
+  // Destructor
+  ~tWaterSedTracker();
+  
   // Initialize nodes to track using data from input file
-  void InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh, tErosion *erosion );
+  void InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh );
   
   // Reset the list of nodes to track
-  void ResetListOfNodesToTrack( vector<int> ids_of_nodes_to_track );
+  void ResetListOfNodesToTrack( std::vector<int> ids_of_nodes_to_track );
   
   // Write data to file, and zero out the cumulative flux records within tLNode objects
   void WriteAndResetWaterSedTimeseriesData();
+  
+  // Add to the total cumulative volume at each node
+  void AddSedVolumesAtTrackingNodes( double flux_duration );
 
 private:
-
+  std::vector<tLNode *> tracking_node_list_;
+  std::vector<ofstream *> output_file_list_;
+  std::string output_file_base_name_;
 };
 
 
