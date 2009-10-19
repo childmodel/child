@@ -10,6 +10,9 @@
 
 #include "globalFns.h"
 #include <iostream>
+#include <algorithm>  // added Oct 09 to replace max and min macros
+  using std::max;  // ditto
+  using std::min;  // ditto
 
 /**************************************************************************/
 /**

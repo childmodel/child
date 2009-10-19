@@ -29,10 +29,10 @@
 #include "tMatrix/tMatrix.h"
 
 // Macros for max, min
-#undef max
+/*#undef max
 #undef min
 #define max(a, b)               ((a) < (b) ? (b) : (a))
-#define min(a, b)               ((a) > (b) ? (b) : (a))
+#define min(a, b)               ((a) > (b) ? (b) : (a))*/ // commented out Oct 09 to avoid macro conflict with <vector>
 
 
 extern Predicates predicate; // object should be declared elsewhere, e.g. main
