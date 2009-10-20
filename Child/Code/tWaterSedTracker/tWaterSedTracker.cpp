@@ -46,7 +46,9 @@ using namespace std;
 /**************************************************************************/
 tWaterSedTracker::
 tWaterSedTracker()
-{}
+{
+  if(1) cout << "tWaterSedTracker constructor" << endl;
+}
 
 
 /**************************************************************************/
@@ -59,6 +61,8 @@ tWaterSedTracker()
 tWaterSedTracker::
 ~tWaterSedTracker()
 {
+  if(1) cout << "tWaterSedTracker destructor" << endl;
+  
   for( unsigned i=0; i<output_file_list_.size(); i++ )
   {
     output_file_list_[i]->close();
@@ -83,6 +87,8 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh /*, tErosion
   int number_of_nodes_to_track;
   string input_string;
   stringstream input_stringstream;
+  
+  if(1) cout << "tWaterSedTracker::InitializeFromInputFile" << endl;
   
   // Read in the number of nodes to track and their approximate (x,y) coordinates
   number_of_nodes_to_track = inputFile.ReadInt( "NUMBER_OF_NODES_TO_TRACK_WATER_AND_SED" );
@@ -125,7 +131,6 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh /*, tErosion
   output_file_base_name_ = inputFile.ReadString( "OUTFILENAME" );
   
   // Create and open the output files
-  output_file_list_.resize( number_of_nodes_to_track, NULL );
   for( int i=0; i<number_of_nodes_to_track; i++ )
   {
     stringstream ss;
@@ -133,13 +138,17 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh /*, tErosion
     ss << "_node" << tracking_node_list_[i]->getPermID();
     ss << "_t0.water_sed";
     output_file_list_.push_back( new ofstream( ss.str().c_str() ) );
-    /*output_file_list_[i].open( ss.str() );
-    if( !output_file_list_[i].good() )
+    /*if( output_file_list_[i]->good() ) cout << "little froglet" << endl;
+    cout << "the size of ofl is " << output_file_list_.size() << endl;*/
+    if( !output_file_list_[i]->good() )
     {
       cout << "When trying to create output file '" << ss.str() << endl;
       ReportFatalError( "Unable to create file." );
     }
-    output_file_list_[i] << "frog number " << i << endl;*/
+    *output_file_list_[i] << "NODE " << tracking_node_list_[i]->getPermID() << endl
+        << "X " << tracking_node_list_[i]->getX() << endl
+        << "Y " << tracking_node_list_[i]->getY() << endl;
+    *output_file_list_[i] << "Time_start Duration Discharge(m3/yr) Sedflux(m3/yr)" << endl;
   }
   
   // Debugging error trap!
@@ -160,7 +169,11 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh /*, tErosion
 /**************************************************************************/
 void tWaterSedTracker::
 ResetListOfNodesToTrack( vector<int> ids_of_nodes_to_track )
-{}
+{
+  if(1) cout << "tWaterSedTracker::ResetListOfNodesToTrack" << endl;
+  
+
+}
 
 
 /**************************************************************************/
@@ -168,8 +181,22 @@ ResetListOfNodesToTrack( vector<int> ids_of_nodes_to_track )
 */
 /**************************************************************************/
 void tWaterSedTracker::
-WriteAndResetWaterSedTimeseriesData()
+WriteAndResetWaterSedTimeseriesData( double period_starting_time, 
+                                     double period_duration )
 {
+  if(1) cout << "tWaterSedTracker::WriteAndResetWaterSedTimeseriesData" << endl;
+  
+  for( unsigned i=0; i<tracking_node_list_.size(); i++ )
+  {
+    assert( tracking_node_list_[i] != NULL );
+    assert( output_file_list_[i]->good() );
+    tLNode * cn = tracking_node_list_[i];
+    *output_file_list_[i] << period_starting_time << " " << period_duration
+        << " " << cn->getQ()
+        << " " << cn->getCumulativeSedXportVolume()/period_duration << endl;
+    cn->ResetCumulativeSedXportVolume();
+  }
+
 }
 
 /**************************************************************************/
@@ -179,6 +206,8 @@ WriteAndResetWaterSedTimeseriesData()
 void tWaterSedTracker::
 AddSedVolumesAtTrackingNodes( double flux_duration )
 {
+  if(1) cout << "tWaterSedTracker::AddSedVolumesAtTrackingNodes" << endl;
+
   for( unsigned i=0; i<tracking_node_list_.size(); i++ )
   {
     tracking_node_list_[i]->AddInfluxToCumulativeSedXportVolume( flux_duration );

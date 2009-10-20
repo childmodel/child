@@ -59,7 +59,8 @@ public:
   void ResetListOfNodesToTrack( std::vector<int> ids_of_nodes_to_track );
   
   // Write data to file, and zero out the cumulative flux records within tLNode objects
-  void WriteAndResetWaterSedTimeseriesData();
+  void WriteAndResetWaterSedTimeseriesData( double period_starting_time,
+                                            double period_duration );
   
   // Add to the total cumulative volume at each node
   void AddSedVolumesAtTrackingNodes( double flux_duration );
