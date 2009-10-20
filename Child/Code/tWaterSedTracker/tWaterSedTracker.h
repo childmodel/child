@@ -56,7 +56,8 @@ public:
   void InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh );
   
   // Reset the list of nodes to track
-  void ResetListOfNodesToTrack( std::vector<int> ids_of_nodes_to_track );
+  void ResetListOfNodesToTrack( std::vector<tLNode *> list_of_nodes_to_track, 
+                                double current_time );
   
   // Write data to file, and zero out the cumulative flux records within tLNode objects
   void WriteAndResetWaterSedTimeseriesData( double period_starting_time,
@@ -66,9 +67,13 @@ public:
   void AddSedVolumesAtTrackingNodes( double flux_duration );
 
 private:
-  std::vector<tLNode *> tracking_node_list_;
-  std::vector<ofstream *> output_file_list_;
-  std::string output_file_base_name_;
+
+  void CreateAndOpenWaterAndSedimentOutputFiles( int number_of_nodes_to_track,
+                                                 double current_time );
+
+  std::vector<tLNode *> tracking_node_list_;  // List of ptrs to nodes to track
+  std::vector<ofstream *> output_file_list_;  // List of ptrs to file I/O
+  std::string output_file_base_name_;         // Base name for output files
 };
 
 

@@ -15,6 +15,7 @@
 
 #include "tInputFile.h"
 #include <iostream>
+#include <sstream>  // just for testing stringstream functions
 
 using namespace std;
 
@@ -69,6 +70,17 @@ int main( int argc, char** argv )
   cout << "MY_STRING='" << mystring << "'" << endl;
   mystring = inputFile.ReadString( "MY_MISSING_STRING", false );
   cout << "MY_MISSING_STRING='" << mystring << "'" << endl;
+  
+  mystring = inputFile.ReadString( "TEST_STRINGSTREAM" );
+  stringstream ss;
+  ss.str( mystring );
+  for( int i=0; i<8; i++ )
+  {
+    if( ss.eof() )
+      cout << "Warning: we've hit the end of the string" << endl;
+    ss >> mydouble;
+    cout << "mydouble=" << mydouble << endl;
+  }
   
   exit(0);
 

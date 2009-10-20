@@ -33,5 +33,6 @@ To be or not to be: is that the question?
 # 0.54321
 # MY_MISSING_STRING
 # Is that a dagger before me?
-
+TEST_STRINGSTREAM
+1.1 2.2 3.3 4.4 5.5 6.6
 

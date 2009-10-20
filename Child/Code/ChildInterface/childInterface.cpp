@@ -147,7 +147,10 @@ Initialize( int argc, char **argv )
    
    // If applicable, set up tracking of water and sediment flux
    if( optTrackWaterSedTimeSeries )
-     water_sed_tracker_.InitializeFromInputFile( inputFile, mesh, erosion );
+   {
+     water_sed_tracker_.InitializeFromInputFile( inputFile, mesh );
+     erosion->ActivateSedVolumeTracking( &water_sed_tracker_ );
+   }
 
    std::cout << "Writing data for time zero...\n";
    time = new tRunTimer( inputFile, !option.silent_mode );
@@ -354,6 +357,10 @@ RunOneStorm()
 						  storm->getStormDuration() + storm->interstormDur(), 
 						  time->getCurrentTime() );
 	
+  if( optTrackWaterSedTimeSeries )
+    water_sed_tracker_.WriteAndResetWaterSedTimeseriesData( time->getCurrentTime(),
+                       storm->getStormDuration() + storm->interstormDur() );
+		
 	time->Advance( storm->getStormDuration() + storm->interstormDur() );
 	
 	if( time->CheckOutputTime() )
@@ -361,9 +368,6 @@ RunOneStorm()
 	
 	if( output->OptTSOutput() ) output->WriteTSOutput();
   
-  if( optTrackWaterSedTimeSeries )
-    water_sed_tracker_.WriteAndResetWaterSedTimeseriesData();
-		
 	return( time->getCurrentTime() );
 }
 
@@ -829,12 +833,25 @@ std::vector<double> childInterface::GetNodeErosionVector()
 */
 /**************************************************************************/
 void childInterface::
-TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track )
+TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track,
+                             double current_time )
 {
+  // Set tracking option on, and make sure Erosion knows about it too
   if( !optTrackWaterSedTimeSeries )
     optTrackWaterSedTimeSeries = true;
-    
-  water_sed_tracker_.ResetListOfNodesToTrack( ids_of_nodes_to_track );
+  erosion->ActivateSedVolumeTracking( &water_sed_tracker_ );
+  
+  // Compose a list of pointers to tracking nodes
+  tMesh< tLNode >::nodeListIter_t ni( mesh->getNodeList() );
+  vector<tLNode *> list_of_nodes_to_track;
+  for( unsigned i=0; i<ids_of_nodes_to_track.size(); i++ )
+  {
+    list_of_nodes_to_track.push_back( ni.GetPByPermID( ids_of_nodes_to_track[i] ) );
+  }
+
+  // Tell the WaterSedTracker to reset its list
+  water_sed_tracker_.ResetListOfNodesToTrack( list_of_nodes_to_track,
+                                              current_time );
 }
 
 

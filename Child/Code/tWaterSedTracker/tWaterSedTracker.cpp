@@ -131,25 +131,7 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh /*, tErosion
   output_file_base_name_ = inputFile.ReadString( "OUTFILENAME" );
   
   // Create and open the output files
-  for( int i=0; i<number_of_nodes_to_track; i++ )
-  {
-    stringstream ss;
-    ss << output_file_base_name_;
-    ss << "_node" << tracking_node_list_[i]->getPermID();
-    ss << "_t0.water_sed";
-    output_file_list_.push_back( new ofstream( ss.str().c_str() ) );
-    /*if( output_file_list_[i]->good() ) cout << "little froglet" << endl;
-    cout << "the size of ofl is " << output_file_list_.size() << endl;*/
-    if( !output_file_list_[i]->good() )
-    {
-      cout << "When trying to create output file '" << ss.str() << endl;
-      ReportFatalError( "Unable to create file." );
-    }
-    *output_file_list_[i] << "NODE " << tracking_node_list_[i]->getPermID() << endl
-        << "X " << tracking_node_list_[i]->getX() << endl
-        << "Y " << tracking_node_list_[i]->getY() << endl;
-    *output_file_list_[i] << "Time_start Duration Discharge(m3/yr) Sedflux(m3/yr)" << endl;
-  }
+  CreateAndOpenWaterAndSedimentOutputFiles( number_of_nodes_to_track, 0.0 );
   
   // Debugging error trap!
   cout << "Tracking node list:" << endl;
@@ -168,10 +150,27 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh /*, tErosion
 */
 /**************************************************************************/
 void tWaterSedTracker::
-ResetListOfNodesToTrack( vector<int> ids_of_nodes_to_track )
+ResetListOfNodesToTrack( vector<tLNode *> list_of_nodes_to_track,
+                         double current_time )
 {
   if(1) cout << "tWaterSedTracker::ResetListOfNodesToTrack" << endl;
   
+  // Store a copy of the tracking list (uses vector's overloaded assignment operator)
+  tracking_node_list_ = list_of_nodes_to_track;
+  
+  // Release memory used to store ofstreams
+  for( unsigned i=0; i<output_file_list_.size(); i++ )
+  {
+    output_file_list_[i]->close();
+    delete output_file_list_[i];
+  }
+    
+  // Reset output file list
+  output_file_base_name_.resize( 0 );
+  
+  // Create and open output files
+  CreateAndOpenWaterAndSedimentOutputFiles( list_of_nodes_to_track.size(),
+                                            current_time );
 
 }
 
@@ -211,6 +210,35 @@ AddSedVolumesAtTrackingNodes( double flux_duration )
   for( unsigned i=0; i<tracking_node_list_.size(); i++ )
   {
     tracking_node_list_[i]->AddInfluxToCumulativeSedXportVolume( flux_duration );
+  }
+}
+
+/**************************************************************************/
+/**
+*/
+/**************************************************************************/
+void tWaterSedTracker::
+CreateAndOpenWaterAndSedimentOutputFiles( int number_of_nodes_to_track,
+                                          double current_time )
+{
+  for( int i=0; i<number_of_nodes_to_track; i++ )
+  {
+    stringstream ss;
+    ss << output_file_base_name_;
+    ss << "_node" << tracking_node_list_[i]->getPermID();
+    ss << "_t" << current_time << ".water_sed";
+    output_file_list_.push_back( new ofstream( ss.str().c_str() ) );
+    /*if( output_file_list_[i]->good() ) cout << "little froglet" << endl;
+    cout << "the size of ofl is " << output_file_list_.size() << endl;*/
+    if( !output_file_list_[i]->good() )
+    {
+      cout << "When trying to create output file '" << ss.str() << endl;
+      ReportFatalError( "Unable to create file." );
+    }
+    *output_file_list_[i] << "NODE " << tracking_node_list_[i]->getPermID() << endl
+        << "X " << tracking_node_list_[i]->getX() << endl
+        << "Y " << tracking_node_list_[i]->getY() << endl;
+    *output_file_list_[i] << "Time_start Duration Discharge(m3/yr) Sedflux(m3/yr)" << endl;
   }
 }
 

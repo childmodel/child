@@ -650,6 +650,10 @@ public:
   
   inline void ResetCumulativeEroDep() { cumulative_ero_dep_ = 0.0; }
   inline double getCumulativeEroDep() { return cumulative_ero_dep_; }
+  inline void ResetCumulativeSedXportVolume() { cumulative_sed_xport_volume_ = 0.0; }
+  inline double getCumulativeSedXportVolume() { return cumulative_sed_xport_volume_; }
+  inline void AddInfluxToCumulativeSedXportVolume( double flux_duration ) 
+    { cumulative_sed_xport_volume_ += qsin*flux_duration; }
 
   tArray<double> addtoLayer(int, double);
   // Used if removing material from lower layers -
@@ -721,6 +725,7 @@ protected:
   static double KRnew;
   double qsubsurf;   // Subsurface discharge
   double cumulative_ero_dep_;    // Keeps track of ero/dep since last update (for external reporting)
+  double cumulative_sed_xport_volume_;  // Keeps track of flux since last reset; qty is a volume (for external reporting)
 public:
   int public1; // a "public" member that can be used for various purpose
 };

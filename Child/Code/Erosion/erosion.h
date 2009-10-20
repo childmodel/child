@@ -74,6 +74,7 @@
 #include "../tStreamNet/tStreamNet.h"
 #include "../tRunTimer/tRunTimer.h"
 #include "../tVegetation/tVegetation.h"
+#include "../tWaterSedTracker/tWaterSedTracker.h"
 
 /***************************************************************************/
 /*
@@ -554,6 +555,8 @@ public:
    void DiffuseNonlinear( double dtg, bool detach );
    void UpdateExposureTime( double dtg);
    void DensifyMesh( double time );
+   void ActivateSedVolumeTracking( tWaterSedTracker *water_sed_tracker_ptr )
+     { track_sed_flux_at_nodes_ =true;  water_sed_tracker_ptr_ = water_sed_tracker_ptr; }
    
 private:
    tMesh<tLNode> *meshPtr;    // ptr to mesh
@@ -564,6 +567,8 @@ private:
    double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
    double mdSc;				  // Threshold slope for nonlinear diffusion
    double beta; // proportion of sediment flux contributing to bedload
+   bool track_sed_flux_at_nodes_; // option for tracking sed flux at nodes
+   tWaterSedTracker *water_sed_tracker_ptr_;  // -> water&sed tracker object
    
 };
 

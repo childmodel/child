@@ -77,7 +77,8 @@ public:
 	void CleanUp();
 	~childInterface();
   void ExternalErosionAndDeposition( vector<double> dz );
-  void TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track );
+  void TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track,
+                                    double current_time );
 	
 	// Public methods that implement the OpenMI IElement interface
 	string getID();
