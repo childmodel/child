@@ -26,6 +26,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/tVegetation
   ${CMAKE_CURRENT_SOURCE_DIR}/tStreamMeander
   ${CMAKE_CURRENT_SOURCE_DIR}/tStreamMeander
+  ${CMAKE_CURRENT_SOURCE_DIR}/tWaterSedTracker
 )
 
 set (child_LIB_SRCS
@@ -56,6 +57,7 @@ set (child_LIB_SRCS
   tVegetation/tVegetation.cpp
   tStreamMeander/tStreamMeander.cpp
   tStreamMeander/meander.cpp
+  tWaterSedTracker/tWaterSedTracker.cpp
 )
 
 add_library (child-devel ${child_LIB_SRCS})
@@ -166,6 +168,9 @@ install (FILES
 install (FILES
   tVegetation/tVegetation.h
   DESTINATION include/child/tVegetation COMPONENT child)
+install (FILES
+  tWaterSedTracker/tWaterSedTracker.h
+  DESTINATION include/child/tWaterSedTracker COMPONENT child)
 install (FILES
   Classes.h
   Definitions.h
