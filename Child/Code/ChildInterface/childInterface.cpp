@@ -754,9 +754,9 @@ IsInteriorNode( int element_index )
 std::vector<double> childInterface::
 GetValueSet( string var_name )
 {
-  if( var_name.compare( "elevation" ) )
+  if( var_name.compare( "elevation" ) == 0 )
     return GetNodeElevationVector();
-  else if( var_name.compare( "dz" ) || var_name.compare( "erosion" ) )
+  else if( var_name.compare( "dz" ) == 0 || var_name.compare( "erosion" ) == 0 )
     return GetNodeErosionVector();
   else
   {
