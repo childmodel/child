@@ -11,9 +11,9 @@
  
  % See the ``Article customise'' template for come common customisations
  
- \title{CHILD Users Guide, version R9.4.1}
+ \title{CHILD Users Guide for version R9.4.1}
  \author{Gregory E. Tucker \and Cooperative Institute for Research in Environmental Sciences (CIRES) \and and Department of Geological Sciences \and University of Colorado, Boulder, CO 80309 USA}
- \date{August, 2009} % delete this line to display the current date
+ \date{March, 2010} % delete this line to display the current date
  
  %%% BEGIN DOCUMENT
  \begin{document}
@@ -371,14 +371,14 @@ where $R_b$ is bankfull runoff rate (m/yr), $A$ is drainage area, and the subscr
 Parameters relating to hydraulic geometry must always be provided in the input file; their use in the model depends on which process options are used. For simulations that do not use the 
 detachment-limited option, channel depth is computed and used as the effective vertical depth over which sediment layers are ``seen'' by flowing water. This will have an influence on erosion and transport only when the material is vertically heterogeneous. 
 
-The stream meander module makes use of all of the hydraulic geometry parameters, and the floodplain deposition module uses bankfull depth and flood depth to compute water surface elevations. Bankfull parameters (width, depth, and roughness) are scaled to a bankfull event size (expressed as an bankfull-event-producing runoff rate in meters per year) which is specified in the parameter BANKFULLEVENT. Additional hydraulic geometry parameters are shown in Table~\ref{}.
+The stream meander module makes use of all of the hydraulic geometry parameters, and the floodplain deposition module uses bankfull depth and flood depth to compute water surface elevations. Bankfull parameters (width, depth, and roughness) are scaled to a bankfull event size (expressed as an bankfull-event-producing runoff rate in meters per year) which is specified in the parameter BANKFULLEVENT. Additional hydraulic geometry parameters are shown in Table~\ref{tab:hydr}.
 
 
 \begin{center}
 \begin{table}
 \caption{Hydraulic geometry parameters.}
+  \label{tab:hydr}
  \begin{tabular}{ l c }
-  %\label{mytable}
    \hline
 Parameter key & Symbol \\
    \hline
@@ -609,7 +609,7 @@ Requires FOLDWAVELEN, TIGHTENINGRATE, ANTICLINEYCOORD, ANTICLINEXCOORD, YFOLDING
 \item[9: Back-tilting normal-fault block] Requires ACCEL\_REL\_UPTIME, VERTICAL\_THROW, FAULT\_PIVOT\_DISTANCE.
 \item[10: Uplift rate gradient] Linear gradient in uplift rate in $y$ direction. Requires MINIMUM\_UPRATE, Y\_GRID\_SIZE, and OPT\_INCREASE\_TO\_FRONT.
 \item[11: Power-law pattern] Power-law change in uplift rate in the $y$-direction. Requires DECAY\_PARAM\_UPLIFT and Y\_GRID\_SIZE.
-\item[12: Uplift rate maps] Reads map(s) of uplift rate from separate file. Requires NUMUPLIFTMAPS, UPMAPFILENAME, and UPTIMEFILENAME.
+\item[12: Uplift rate maps] Reads map(s) of uplift rate from separate file(s). This option allows you to vary the uplift rate in both space and (if desired) time. For any particular period of simulation time, you record the uplift rate pattern in a separate file. This file is called an ``uplift rate map.'' If you want the uplift rate to vary in space but not in time, you only need one uplift rate map. If you want the uplift rates to change over time, you use multiple uplift rate maps. In either case, add the parameter NUMUPLIFTMAPS to the main input file. This tells CHILD how many uplift rate maps to read. You also need to create a separate file to record the starting time for each of the uplift rate maps. This is just an ascii text file with the start time of each map given on a separate line. If you only want one map that starts at time zero, the file just contains one line with a zero. Whatever the case, tell CHILD the name of this ``uplift time file'' by adding a parameter called UPTIMEFILENAME to the main input file. Finally, you have to tell CHILD the base name for the uplift rate map files using the parameter UPMAPFILENAME. Each uplift rate map file has this base name followed by a three-digit sequence that indicates the file number. For example, if your UPMAPFILENAME is {\tt myupmap}, and NUMUPLIFTMAPS is 3, then you will need to create three uplift map files named {\tt myupmap000}, {\tt myupmap001}, and {\tt myupmap002}. The format of these text files is simply a list of rates, one on each line, in canonical node order (that is, ordered by x and y coordinates --- the same order as in CHILD's standard output format).
 \item[13: Propagating front] Fault position migrates in $x$ and $y$ directions. Requires FRONT\_PROP\_RATE, UPLIFT\_FRONT\_GRADIENT, and STARTING\_YCOORD.
 \item[14: Baselevel fall] The elevation at all open-boundary nodes decreases through time at a rate specifed by the UPRATE parameter.
 \end{description}

@@ -261,5 +261,42 @@ glacial loess, we wrote a very simple {\bf tEolian} module to drape dust on
 the landscape at a specified rate. To the best of my knowledge, it has 
 never been published outside of technical reports.
 
+\section{Notes on the CHILD Interface Routines}
+
+As of academic year 2009-2010, CHILD has a set of interface functions. These interface functions make it possible for CHILD to be treated as a callable component by other code, so that it can be coupled with other models or simply driven from an external program. This interface is motivated by the CSDMS project. As of this writing (April 2010), most of the interface functions are only available in the Development version; the Release version has a more limited set of interface routines. The plan is to incorporate the full interface routines into the Release version once they are mature.
+
+The interface routines are declared in {\tt childInterface.h} (note that the Release version uses a different file, {\tt childRInterface.h}).
+
+\subsection{How to Tell CHILD to Erode or Deposit Sediment}
+
+Sometimes it might be useful for an external program or module to modify CHILD's topography and deposits. For example, if CHILD is coupled to SedFlux, that model might calculate a certain amount of erosion or sedimentation. The interface function {\tt ExternalErosionAndDeposition} supports this. It takes as an argument a vector of nodes indicating the depth. Depths are positive for deposition and negative for erosion. The vector must be in order by permanent ID number. As of now, this function does not handle multiple grain-size fractions, and will probably fail if it is used in a run with multiple sizes. Fixing this is on the ``to do'' list. Note also that this function should not be used to implement external tectonics, because it alters the layering (that is, deposition can actually add new layers rather than simply raising the elevation, and likewise erosion can remove layers).
+
+\subsection{How to Track Water and Sediment Fluxes}
+
+Coupling CHILD with other process models, like SedFlux, will often require information about CHILD's fluxes of water and sediment. One might think that this would simply involve querying CHILD's current values of water and sediment discharge at each node. However, in the most general case, it is not quite so straightforward. Imagine for example that one wants to run CHILD for 1000 years, then use its water and sediment fluxes over that time interval as input to another model. At the end of 1000 years, each CHILD node will have a value for water and sediment flux, but these values do not necessarily represent the average flux over the 1000-year period. Suppose the run in question was configured to use CHILD's stochastic rainfall module. In that case, the discharge could fluctuate widely over the course of the 1000-year period, so that the value at $t=1000$ does not necessarily reflect the values at any other time during the 1000-year period. Likewise, the sediment fluxes will vary widely in concert with the discharges.
+
+This means that in order to properly record CHILD's water and sediment fluxes over a given period of time, another approach is needed. To that end, an interface function called {\tt TrackWaterAndSedFluxAtNodes} is provided. This function is used to activate tracking of water and sediment flux at specified nodes (if it is not already activated), or to re-set the list of nodes to track. The water and sediment fluxes at the tracked nodes is recorded in 
+a set of files. Each node has one file.
+
+Tracking of fluxes is implemented with help from the {\em tWaterSedTracker} class, which is defined in a pair of files {\tt tWaterSedTracker.h} and {\tt tWaterSedTracker.cpp}. The sequence of events works like this:
+\begin{enumerate}
+\item
+When the CHILD interface is instantiated at the beginning of a run, it automatically creates a {\em tWaterSedTracker}.
+\item
+When the interface's {\tt Initialize} method is called, it checks the main input file to see whether the user wants to tracker water and sediment fluxes (via the tag {\tt OPT\_TRACK\_WATER\_SED\_TIMESERIES}). If yes, then the {\em WaterSedTracker's} {\tt InitializeFromInputFile} method is called to set things up.
+\item
+The {\tt InitializeFromInputFile} method reads in the number of nodes to track and their $(x,y)$ coordinates, and sets up an internal list of tracking nodes. It also creates a set of output files for water and sediment fluxes, one per node. The name for a typical flux output file looks like:
+
+{\tt myrun\_node23\_t0.water\_sed}
+
+Here, ``myrun'' is the base name, the node is 23, and the ``t0'' indicates that the records begin from time 0. (The start time is included because the list of nodes can change, and when that happens new files are created).
+\item
+The {\em Erosion} module is told to activate tracking. This simply sets a flag inside {\em Erosion} and hands it a pointer to the {\em tWaterSedTracker}.
+\item
+When tracking is switched on, the cumulative sediment volume at each tracking node is recorded at the end of each sub-time step. This is implemented in {\em Erosion's} {\tt DetachErode} method via a call to the {\em tWaterSedTracker's} method {\tt AddSedVolumeAtTrackingNodes}. Caveats: this only works when (1) detachment-limited mode is OFF (otherwise there are no defined sediment fluxes), and (2) {\tt DetachErode}, rather than Nicole's {\tt DetachErode2} (which implements the ``$f(Q_s)$'' algorithms), is used.
+\item
+At the end of each storm, the {\em tWaterSedTracker's} {\tt WriteAndReset...} method is called. This records the average flux of sediment (volume divided by elapsed time) at each of the tracking nodes, along with the fluvial discharge (which is constant during each storm).
+\end{enumerate}
+To make use of the flux data, the output files need to be opened and read. An advantage is that the full time-series is provided (i.e., one data point per node per storm). A disadvantage is that file I/O is required. 
 
 \end{document} 
