@@ -123,7 +123,7 @@ void readLine(char *headerLine, std::ifstream& infile){
     infile.clear(infile.rdstate() & ~std::ios::failbit);
     // discard characters.
     char c;
-    while( infile.get(c) && c != '\n');
+    while( infile.get(c) && c != '\n') ;
   }
 }
 
