@@ -949,9 +949,9 @@ getIth( int num ) const
   tPtrListNode< NodeType > const * curPtr;
   assert( num >= 0 && num < nNodes );
   if( num > nNodes / 2 )
-    for( curPtr = last, i = nNodes-1; i>num; curPtr = curPtr->prev, --i );
+    for( curPtr = last, i = nNodes-1; i>num; curPtr = curPtr->prev, --i ) ;
   else
-    for( curPtr = first, i = 0; i<num; curPtr = curPtr->next, ++i );
+    for( curPtr = first, i = 0; i<num; curPtr = curPtr->next, ++i ) ;
   return curPtr;
 }
 
@@ -963,9 +963,9 @@ getIthNC( int num )
   tPtrListNode< NodeType >* curPtr;
   assert( num >= 0 && num < nNodes );
   if( num > nNodes / 2 )
-    for( curPtr = last, i = nNodes-1; i>num; curPtr = curPtr->prev, --i );
+    for( curPtr = last, i = nNodes-1; i>num; curPtr = curPtr->prev, --i ) ;
   else
-    for( curPtr = first, i = 0; i<num; curPtr = curPtr->next, ++i );
+    for( curPtr = first, i = 0; i<num; curPtr = curPtr->next, ++i ) ;
   return curPtr;
 }
 
