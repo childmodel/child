@@ -3467,7 +3467,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode const *node3 )
    {
       for( ce = spokIter.FirstP();
            ce->getDestinationPtr() != node3 && !( spokIter.AtEnd() );
-           ce = spokIter.NextP() );
+           ce = spokIter.NextP() ) ;
       //make sure we found the right spoke; if not:
       if( spokIter.AtEnd() )
           for( ce = spokIter.FirstP();
@@ -3490,7 +3490,7 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode const *node3 )
    {
       for( ce = spokIter.FirstP();
            ce->getDestinationPtr() != node3 && !( spokIter.AtEnd() );
-           ce = spokIter.NextP() );
+           ce = spokIter.NextP() ) ;
       //make sure we found the right spoke; if not:
       if( spokIter.AtEnd() )
           for( ce = spokIter.FirstP();
@@ -4734,7 +4734,7 @@ CheckTriEdgeIntersect()
                               useFuturePosn = true;
                               for( tpIter.First();
                                    tpIter.ReportNextP() != ctop && !(tpIter.AtEnd());
-                                   tpIter.Next() );
+                                   tpIter.Next() ) ;
                               if( !(tpIter.AtEnd()) ) //ctop is in tri ptrlist
                               {
                                  tpListNode = tpIter.NodePtr();
@@ -4776,7 +4776,7 @@ CheckTriEdgeIntersect()
                            for( tpIter.First();
                                 tpIter.ReportNextP() != rmtri &&
                                     !(tpIter.AtEnd());
-                                tpIter.Next() );
+                                tpIter.Next() ) ;
                            if( !(tpIter.AtEnd()) ) //rmtri is in tri ptrlist
                            {
                               tpListNode = tpIter.NodePtr();
