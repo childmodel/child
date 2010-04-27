@@ -76,9 +76,9 @@ public:
 	void Run( double run_duration );
 	void CleanUp();
 	~childInterface();
-  void ExternalErosionAndDeposition( vector<double> dz );
-  void TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track,
-                                    double current_time );
+    void ExternalErosionAndDeposition( vector<double> dz );
+    void TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track,
+                                      double current_time );
 	
 	// Public methods that implement the OpenMI IElement interface
 	string getID();
@@ -95,16 +95,22 @@ public:
 	double GetXCoordinate( int element_index, int vertex_index );
 	double GetYCoordinate( int element_index, int vertex_index );
 	double GetZCoordinate( int element_index, int vertex_index );
-  std::vector<double> GetValueSet( string var_name );
+    std::vector<double> GetValueSet( string var_name );
 	
-  // Additional custom functions to accompany IElement interface
-  bool IsInteriorNode( int element_index );
+    // Additional custom functions to accompany IElement interface
+    bool IsInteriorNode( int element_index );
+    long GetNodeCount();
+    std::vector<double> GetNodeCoords();
+    long GetTriangleCount();
+    std::vector<long> GetTriangleVertexIDs();
 		
 private:
 
   // Private methods
   std::vector<double> GetNodeElevationVector();  // Creates and returns vector of elevs
   std::vector<double> GetNodeErosionVector();  // Creates and returns vector of ero/dep
+  std::vector<double> GetNodeDischargeVector();  // Creates and returns vector of Q
+  std::vector<double> GetNodeSedimentFluxVector();  // Creates and returns vector of Qs
   
 	// Private data
 	bool initialized;      // Flag indicated whether model has been initialized
@@ -125,7 +131,7 @@ private:
 	tErosion *erosion;          // -> erosion module
 	tUplift *uplift;            // -> uplift/baselevel module
 	tRunTimer *time;             // -> run timer
-  tWaterSedTracker water_sed_tracker_;   // Water and sediment tracker
+    tWaterSedTracker water_sed_tracker_;   // Water and sediment tracker
 	
 	tVegetation *vegetation;  // -> vegetation object
 	tFloodplain *floodplain;  // -> floodplain object

@@ -737,7 +737,97 @@ IsInteriorNode( int element_index )
 }
 
 
+/**************************************************************************/
+/**
+**  childInterface::GetNodeCount
+**
+**  Returns the total number of nodes (including boundaries).
+**
+**  GT, Apr 2010
+*/
+/**************************************************************************/
+long childInterface::GetNodeCount()
+{
+   return mesh->getNodeList()->getSize();
+}
 
+/**************************************************************************/
+/**
+**  childInterface::GetNodeCoords
+**
+**  Returns the (x,y,z) coordinates of each node in the form
+**  x0,y0,z0,x1,y1,z1, ... xN-1,yN-1,zN-1
+**
+**  GT, Apr 2010
+*/
+/**************************************************************************/
+std::vector<double> childInterface::GetNodeCoords()
+{
+   tLNode *current_node;
+   tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+   std::vector<double> coords( 3*mesh->getNodeList()->getSize() );
+   
+   for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
+   {
+      coords[3*current_node->getPermID()+0] = current_node->getX();
+      coords[3*current_node->getPermID()+1] = current_node->getY();
+      coords[3*current_node->getPermID()+2] = current_node->getZ();
+      if(1) std::cout << "Node " << current_node->getPermID()
+                      << " x=" << current_node->getX()
+                      << " y=" << current_node->getY()
+                      << " z=" << current_node->getZ() << std::endl;
+   }
+   
+   return coords;
+
+}
+
+/**************************************************************************/
+/**
+**  childInterface::GetTriangleCount
+**
+**  Returns the total number of triangles.
+**
+**  GT, Apr 2010
+*/
+/**************************************************************************/
+long childInterface::GetTriangleCount()
+{
+   return mesh->getTriList()->getSize();
+}
+
+/**************************************************************************/
+/**
+**  childInterface::GetTriangleVertexIDs
+**
+**  Returns the ID numbers of the 3 triangle vertex nodes, in
+**  counter-clockwise order.
+**
+**  Format of the list is p0_0,p0_1,p0_2,p1_0,p1_1,... etc., where the
+**  first number is triangle position in list (not necessarily ID), and
+**  the second is vertex number.
+**
+**  GT, Apr 2010
+*/
+/**************************************************************************/
+std::vector<long> childInterface::GetTriangleVertexIDs()
+{
+   tTriangle *current_tri;
+   tMesh<tLNode>::triListIter_t ti( mesh->getTriList() );
+   std::vector<long> vertex_ids( 3*mesh->getTriList()->getSize() );
+   
+   long k=0;
+   for( current_tri=ti.FirstP(); !ti.AtEnd(); current_tri=ti.NextP() )
+   {
+      vertex_ids[k+0] = current_tri->pPtr(0)->getPermID();
+      vertex_ids[k+1] = current_tri->pPtr(1)->getPermID();
+      vertex_ids[k+2] = current_tri->pPtr(2)->getPermID();
+      k += 3;
+   }
+   
+   return vertex_ids;
+
+}
 
 /**************************************************************************/
 /**
@@ -754,12 +844,31 @@ IsInteriorNode( int element_index )
 std::vector<double> childInterface::
 GetValueSet( string var_name )
 {
-  if( var_name.compare( "elevation" ) == 0 )
+  if(1) std::cout << "childInterface::GetValueSet() here with request '"
+                  << var_name << "'\n";
+  if( var_name.compare( 0,4,"elev" )==0 )
+  {
+    if(1) std::cout << "request for elevs\n";
     return GetNodeElevationVector();
-  else if( var_name.compare( "dz" ) == 0 || var_name.compare( "erosion" ) == 0 )
+  }
+  else if( var_name.compare( 0,2,"dz" )==0 || var_name.compare( 0,3,"ero" )==0 )
+  {
+    if(1) std::cout << "request for dz\n";
     return GetNodeErosionVector();
+  }
+  else if( var_name.compare( 0,5,"disch" )==0 || var_name.compare( 0,5,"water" )==0 )
+  {
+    if(1) std::cout << "request for Q\n";
+    return GetNodeDischargeVector();
+  }
+  else if( var_name.compare( 0,3,"sed" )==0 )
+  {
+    if(1) std::cout << "request for Qs\n";
+    return GetNodeSedimentFluxVector();
+  }
   else
   {
+    if(1) std::cout << "request for NOTHING!\n";
     std::vector<double> empty_vector;
     return empty_vector;
   };
@@ -777,7 +886,8 @@ GetValueSet( string var_name )
 **  GT, Sep/Oct 2009
 */
 /**************************************************************************/
-std::vector<double> childInterface::GetNodeElevationVector()
+std::vector<double> childInterface::
+GetNodeElevationVector()
 {
    tLNode *current_node;
    tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
@@ -785,6 +895,8 @@ std::vector<double> childInterface::GetNodeElevationVector()
    
    for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
    {
+      if(1) std::cout << "node " << current_node->getPermID()
+                      << " z=" << current_node->getZ() << std::endl;
       elevations[current_node->getPermID()] = current_node->getZ();
    }
    
@@ -803,7 +915,8 @@ std::vector<double> childInterface::GetNodeElevationVector()
 **  GT, Oct 2009
 */
 /**************************************************************************/
-std::vector<double> childInterface::GetNodeErosionVector()
+std::vector<double> childInterface::
+GetNodeErosionVector()
 {
    tLNode *current_node;
    tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
@@ -819,6 +932,67 @@ std::vector<double> childInterface::GetNodeErosionVector()
 
 }
 
+
+/**************************************************************************/
+/**
+**  childInterface::GetNodeDischargeVector
+**
+**  This private method is used to create and return a vector of discharge
+**  values for the nodes. The vector is in order by permanent node ID.
+**  Warning: it is the discharge of the most recent storm, not necessarily
+**  an average or steady value.
+**
+**  GT, Apr 2010
+*/
+/**************************************************************************/
+std::vector<double> childInterface::
+GetNodeDischargeVector()
+{
+   tLNode *current_node;
+   tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+   std::vector<double> discharge( mesh->getNodeList()->getSize() );
+   
+   for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
+   {
+      if(1) std::cout << "NOde " << current_node->getPermID()
+                      << " Q=" << current_node->getQ() << std::endl;
+      discharge[current_node->getPermID()] = current_node->getQ();
+   }
+   
+   return discharge;
+
+}
+
+/**************************************************************************/
+/**
+**  childInterface::GetNodeSedimentFluxVector
+**
+**  This private method is used to create and return a vector of sed flux
+**  values for the nodes. The vector is in order by permanent node ID.
+**  Warning: it is the most recent instantaneous value, not necessarily
+**  an average or steady value. It is also just the water-borne flux,
+**  not the hillslope mass flux.
+**
+**  GT, Apr 2010
+*/
+/**************************************************************************/
+std::vector<double> childInterface::
+GetNodeSedimentFluxVector()
+{
+   tLNode *current_node;
+   tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+   std::vector<double> sedflux( mesh->getNodeList()->getSize() );
+   
+   for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
+   {
+      if(1) std::cout << "noDE " << current_node->getPermID()
+                      << " Qs=" << current_node->getQs() << std::endl;
+      sedflux[current_node->getPermID()] = current_node->getQs();
+   }
+   
+   return sedflux;
+
+}
 
 /**************************************************************************/
 /**
