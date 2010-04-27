@@ -764,7 +764,7 @@ void tEdge::InitializeEdge( tNode* n1, tNode* n2, tNode const * n3, bool useFutu
       tEdge* ce;
       for( ce = sI.FirstP();
            ce->getDestinationPtr() != n3 && !( sI.AtEnd() );
-           ce = sI.NextP() );
+           ce = sI.NextP() ) ;
       //make sure we found the right spoke; if not:
       if( sI.AtEnd() )
       {
