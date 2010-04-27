@@ -6,10 +6,10 @@ include gccmac.mk
 #include bcc.mk
 #include PC-lint/pclint.mk
 
-EXENAME = childDriver$(EXEEXT)
+EXENAME = child_test$(EXEEXT)
 
 OBJECTS = \
- childDriver_test_ielement.$(OBJEXT) \
+ childTestDriver.$(OBJEXT) \
  childInterface.$(OBJEXT) erosion.$(OBJEXT) \
  meshElements.$(OBJEXT) mathutil.$(OBJEXT) tIDGenerator.$(OBJEXT) \
  tInputFile.$(OBJEXT) tLNode.$(OBJEXT) tRunTimer.$(OBJEXT) \
@@ -19,7 +19,7 @@ OBJECTS = \
  predicates.$(OBJEXT) tVegetation.$(OBJEXT) tListInputData.$(OBJEXT) \
  tStratGrid.$(OBJEXT) tOption.$(OBJEXT) \
  tTimeSeries.$(OBJEXT) ParamMesh_t.$(OBJEXT) TipperTriangulator.$(OBJEXT) \
- TipperTriangulatorError.$(OBJEXT)
+ TipperTriangulatorError.$(OBJEXT) tWaterSedTracker.$(OBJEXT)
 
 all : $(EXENAME)
 .PHONY : all clean
@@ -96,6 +96,9 @@ predicates.$(OBJEXT): $(PT)/Predicates/predicates.cpp
 tVegetation.$(OBJEXT): $(PT)/tVegetation/tVegetation.cpp
 	$(CXX) $(CFLAGS) $(PT)/tVegetation/tVegetation.cpp
 
+tWaterSedTracker.$(OBJEXT): $(PT)/tWaterSedTracker/tWaterSedTracker.cpp
+	$(CXX) $(CFLAGS) $(PT)/tWaterSedTracker/tWaterSedTracker.cpp
+
 tStreamMeander.$(OBJEXT): $(PT)/tStreamMeander/tStreamMeander.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/tStreamMeander.cpp
 
@@ -105,8 +108,8 @@ meander.$(OBJEXT): $(PT)/tStreamMeander/meander.cpp
 childInterface.$(OBJEXT): $(PT)/ChildInterface/childInterface.cpp
 	$(CXX) $(CFLAGS) $(PT)/ChildInterface/childInterface.cpp
 
-childDriver_test_ielement.$(OBJEXT): $(PT)/ChildInterface/childDriver_test_ielement.cpp
-	$(CXX) $(CFLAGS) $(PT)/ChildInterface/childDriver_test_ielement.cpp
+childTestDriver.$(OBJEXT): $(PT)/ChildInterface/childTestDriver.cpp
+	$(CXX) $(CFLAGS) $(PT)/ChildInterface/childTestDriver.cpp
 
 clean::
 	rm -f $(EXENAME)
@@ -160,13 +163,14 @@ HFILES = \
 	$(PT)/tTimeSeries/tTimeSeries.h \
 	$(PT)/tUplift/tUplift.h \
 	$(PT)/tVegetation/tVegetation.h \
+	$(PT)/tWaterSedTracker/tWaterSedTracker.h \
 	$(PT)/trapfpe.h
 
 ParamMesh_t.$(OBJEXT): $(HFILES)
 TipperTriangulator.$(OBJEXT) : $(HFILES)
 TipperTriangulatorError.$(OBJEXT) : $(HFILES)
 childInterface.$(OBJEXT) : $(HFILES)
-childInterfaceDriver.$(OBJEXT) : $(HFILES)
+childTestDriver.$(OBJEXT) : $(HFILES)
 erosion.$(OBJEXT): $(HFILES)
 errors.$(OBJEXT): $(HFILES)
 globalFns.$(OBJEXT): $(HFILES)
@@ -188,3 +192,4 @@ tStreamNet.$(OBJEXT): $(HFILES)
 tTimeSeries.$(OBJEXT) : $(HFILES)
 tUplift.$(OBJEXT): $(HFILES)
 tVegetation.$(OBJEXT): $(HFILES)
+tWaterSedTracker.$(OBJEXT): $(HFILES)
