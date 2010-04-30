@@ -831,6 +831,38 @@ std::vector<long> childInterface::GetTriangleVertexIDs()
 
 /**************************************************************************/
 /**
+**  childInterface::GetCurrentTime
+**
+**  Returns the current time in the simulation.
+**
+**  GT, Apr 2010
+*/
+/**************************************************************************/
+double childInterface::
+GetCurrentTime()
+{
+   assert( time != NULL );
+   return time->getCurrentTime();
+}
+
+/**************************************************************************/
+/**
+**  childInterface::GetRemainingRunTime()
+**
+**  Returns the remaining simulation time before the end of the run.
+**
+**  GT, Apr 2010
+*/
+/**************************************************************************/
+double childInterface::
+GetRemainingRunTime()
+{
+   assert( time != NULL );
+   return time->RemainingTime();
+}
+
+/**************************************************************************/
+/**
 **  childInterface::GetValueSet
 **
 **  This method finds and returns a set of values on nodes. It does this

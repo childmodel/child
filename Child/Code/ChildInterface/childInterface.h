@@ -103,6 +103,8 @@ public:
     std::vector<double> GetNodeCoords();
     long GetTriangleCount();
     std::vector<long> GetTriangleVertexIDs();
+    double GetCurrentTime();  // Returns current time in simulation
+    double GetRemainingRunTime();   // Returns the ending time for the run
 		
 private:
 
