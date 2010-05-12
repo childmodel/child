@@ -13,7 +13,7 @@
  
  \title{CHILD Users Guide for version R9.4.1}
  \author{Gregory E. Tucker \and Cooperative Institute for Research in Environmental Sciences (CIRES) \and and Department of Geological Sciences \and University of Colorado, Boulder, CO 80309 USA}
- \date{March, 2010} % delete this line to display the current date
+ \date{Last modified: May, 2010} % delete this line to display the current date
  
  %%% BEGIN DOCUMENT
  \begin{document}
@@ -215,6 +215,7 @@ Generate a mesh from a digital elevation grid stored in ArcInfo ascii format (no
 The following sections describe how to use these various options.
 
 \subsection{Creating a Mesh from Scratch}
+\label{sec:creatingMeshFromScratch}
 
 If desired, CHILD can create a starting mesh with a rectangular domain. Three examples of CHILD-generated starting meshes are shown in Figure~\ref{hexmesh}. Points within the rectangular domain can be regularly spaced in a hexagonal lattice (Figure~\ref{hexmesh}, left), regularly spaced with random offsets in their $(x,y)$ positions (Figure~\ref{hexmesh}, center), or randomly placed within the rectangular domain (Figure~\ref{hexmesh}, right). In the case of a random-offset mesh, the maximum offset amount is equal to $\pm$ 25\% of the nominal point spacing. In all of these cases, there are five possible boundary options (Figure~\ref{boundaries}): (1) a single outlet (open boundary point) in one corner; (2) an open boundary along one side (corresponding to $y=0$); (3) open boundaries along the $y=0$ and $y=y_{max}$ sides; (4) open boundaries along all four sides; and (5) a single outlet point at a specified location. In each case except \#3, the initial elevation is equal to a specified mean elevation plus or minus a random variable (uniformly distributed), the maximum amplitude of which is set by the parameter RAND\_ELEV. In case \#3 (open boundaries on two opposite sides), the elevation of the upper ($y=y_{max}$) boundary is specified ({\tt UPPER\_BOUND\_Z}), and the elevations of the points are set so as to create a uniform gradient between the two boundaries, plus random vertical offsets.
 
@@ -282,6 +283,7 @@ The node elevations file has the same header format as the others (time followed
 Note: CHILD includes a consistency checking routine to make sure the mesh format is valid, but this is not guaranteed to be foolproof. In particular, the model does not test whether the input triangulation is Delaunay.
 
 \subsection{Creating a Mesh from a Set of Points}
+\label{sec:createMeshFromPoints}
 
 CHILD can construct a mesh from an input set of $(x,y,z,b)$ points, where $x$ and $y$ are horizontal coordinates, $z$ is elevation, and $b$ is a boundary code. Such points might be obtained from a field survey, a GIS point coverage, a sampled DEM, etc. To create a mesh from a set of points, set the OPTREADINPUT option to 12. You will then need to specify the name of an ascii file (parameter {\tt POINTFILENAME}) containing the point data. The format for the point data file consists of a header line that gives the number of points, followed by a series of rows that contain the $x$ and $y$ coordinates, the elevation, and a boundary code for each point, as in the following example:
 \small
@@ -833,6 +835,17 @@ Quintijn Clevis (now at Royal Dutch Shell) developed an option for Surfer-compat
 \section{Error Messages}
 
 Being a research tool, CHILD does relatively little error checking. The burden is on you the user to make sure that the format of your inputs is correct and that the parameter settings are reasonable. However, a limited amount of error handling is provided, and it is common to see error messages when a parameter is missing in the input file, the input mesh contains an error, etc. If you should happen to receive an ``assertion failed'' message, please report it on the Wiki or to Greg Tucker (gtucker@colorado.edu).
+
+\section{FAQ and Common Errors}
+
+\subsection{``Error in Lake Filling algorithm: Unable to find a drainage outlet''}
+
+This error commonly occurs in two circumstances: when you are initializing CHILD from a set of $(x,y,z,b)$ points (see Section~\ref{sec:createMeshFromPoints}), or when CHILD is creating its own mesh with a single water-outlet point (see Section~\ref{sec:creatingMeshFromScratch}). In either case, the the problem arises because there are one or more interior points that are isolated from any open-boundary points. In CHILD, when the Lake Fill algorithm is used, water that rains onto each need must ultimately be able to reach an open boundary node. If, for example, you have an interior node that is surrounded by closed-boundary nodes, the water is trapped and it will generate this error message. Or, if you have a single open-boundary (outlet) node and it is surrounded by closed-boundary nodes, the same problem will occur.
+
+If you are generating a mesh from a user-specified set of points, the easiest way to diagnose the problem is to plot on screen the $(x,y)$ positions of the nodes listed in your points file. Color the points according to their boundary status: for example, blue for interior, red for closed-boundary, and green for open-boundary. Check to see whether the green (open boundary) nodes are all surrounded by red (closed boundary) nodes. Check also for blue nodes that are surrounded by red nodes. Normally, the solution is to edit the boundary status of nodes until you are sure that every blue node can reach a green node without having to cross any red nodes. One thing to watch out for is that blue nodes are not allowed on the mesh perimeter---an error message will result if this occurs.
+
+If CHILD is generating its own mesh with a single outlet, the most practical solution is to nudge the position of the outlet node toward the mesh interior until it gets close enough to connect to one or more of the interior nodes. An alternative solution (which applies only if using a perturbed or random mesh; see Section~\ref{sec:creatingMeshFromScratch}) is to change the value of the random seed parameter ``SEED.'' This will change the positions of the mesh nodes, possibly enough to connect the outlet node to one or more interior nodes. Typically you need to try several different seed values before finding a configuration that works.
+
 
 \section{Alphabetical List of Parameters}
 

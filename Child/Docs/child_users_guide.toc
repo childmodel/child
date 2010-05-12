@@ -38,5 +38,7 @@
 \contentsline {section}{\numberline {16}Output Files}{35}
 \contentsline {subsection}{\numberline {16.1}Surfer-Compatible Output}{36}
 \contentsline {section}{\numberline {17}Error Messages}{38}
-\contentsline {section}{\numberline {18}Alphabetical List of Parameters}{38}
-\contentsline {section}{\numberline {19}Release Notes}{48}
+\contentsline {section}{\numberline {18}FAQ and Common Errors}{38}
+\contentsline {subsection}{\numberline {18.1}``Error in Lake Filling algorithm: Unable to find a drainage outlet''}{38}
+\contentsline {section}{\numberline {19}Alphabetical List of Parameters}{39}
+\contentsline {section}{\numberline {20}Release Notes}{49}
