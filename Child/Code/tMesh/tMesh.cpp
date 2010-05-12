@@ -1630,8 +1630,9 @@ MakeMeshFromPoints( const tInputFile &infile )
    }
    pointfile >> numpts;
    if( !pointfile.good() ){
-     std::cerr << "\nPoint file name: '" << pointFilenm << "'\n";;
-     ReportFatalError( "I can't find a file by this name." );
+     std::cerr << "\nPoint file name: '" << pointFilenm << std::endl;
+     std::cerr << "\nNumber of points in file: " << numpts << std::endl;
+     ReportFatalError( "There seems to be a problem with the point file header." );
    }
    x.setSize( numpts );
    y.setSize( numpts );
