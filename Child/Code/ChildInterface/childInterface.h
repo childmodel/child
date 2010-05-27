@@ -106,6 +106,8 @@ public:
     std::vector<long> GetTriangleVertexIDs();
     double GetCurrentTime();  // Returns current time in simulation
     double GetRemainingRunTime();   // Returns the ending time for the run
+    void AdjustElevations( std::vector<double> dz );  // changes elevs
+    void AdjustInteriorElevations( std::vector<double> dz );  // changes elevs
 		
 private:
 

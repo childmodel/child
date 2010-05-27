@@ -97,14 +97,35 @@ int main( int argc, char **argv )
 		std::cout << "ID\tX\tY\tZ\tZ from GetValueSet\n";
 		for( i=0; i<num_nodes; i++ )
 		{
-		    std::cout << i << "\t" << node_coords[3*i] << "\t"
-		              << node_coords[3*i+1] << "\t"
-		              << node_coords[3*i+2] << "\t"
-		              << elevations[i] << "\n";
+      std::cout << i << "\t" << node_coords[3*i] << "\t"
+      << node_coords[3*i+1] << "\t"
+      << node_coords[3*i+2] << "\t"
+      << elevations[i] << "\n";
 		}
-
+    
+    std::cout << "\nTest of AdjustElevations() and AdjustInteriorElevations:\n\n";
+    std::vector<double> dz( nn, 1.0 );
+    myChildInterface.AdjustInteriorElevations( dz );
+    std::vector<double> new_elevs = myChildInterface.GetValueSet( "elevation" );
+    std::cout << "The interior nodes should now be 1m higher, but not the boundary nodes:\n";
+    std::cout << "ID\tOld z\tNew z:\n";
+    for( long i=0; i<nt; i++ )
+    {
+      std::cout << i << "\t";
+      std::cout << elevs[i] << "\t" << new_elevs[i] << std::endl;
+    }
+    myChildInterface.AdjustElevations( dz );
+    new_elevs = myChildInterface.GetValueSet( "elevation" );
+    std::cout << "Now all nodes should be another 1m higher:\n";
+    std::cout << "ID\tOriginal z\tNew z:\n";
+    for( long i=0; i<nt; i++ )
+    {
+      std::cout << i << "\t";
+      std::cout << elevs[i] << "\t" << new_elevs[i] << std::endl;
+    }
+    
 		
-
+    
 	}
 	else
 	{

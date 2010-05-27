@@ -1095,6 +1095,75 @@ SetNodeElevations( std::vector<double> elevations )
 
 /**************************************************************************/
 /**
+**  childInterface::AdjustElevations
+**
+**  This public function adjusts the elevations of the nodes, without
+**  changing layers/stratigraphy, by amounts specified in "dz".
+**  It is intended to be used, for example, when a tectonic model 
+**  calculates a pattern of uplift and/or subsidence over a particular
+**  time interval.
+**  The nodes are assumed to be in order by permanent ID, starting from 0.
+**  The caller MUST specify an elevation value for every node.
+**
+**  GT, May 2010
+*/
+/**************************************************************************/
+void childInterface::
+AdjustElevations( std::vector<double> dz )
+{
+   tLNode *current_node;
+   tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+   
+   for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
+   {
+      if(1) std::cout << "Adjust elevations: node " << current_node->getPermID()
+                      << " changing z from " << current_node->getZ() 
+                      << " to " 
+                      << current_node->getZ() + dz[current_node->getPermID()] 
+                      << std::endl;
+      current_node->ChangeZ( dz[current_node->getPermID()] );
+   }
+   
+}
+
+/**************************************************************************/
+/**
+**  childInterface::AdjustInteriorElevations
+**
+**  This public function adjusts the elevations of the nodes, without
+**  changing layers/stratigraphy, by amounts specified in "dz".
+**  It is intended to be used, for example, when a tectonic model 
+**  calculates a pattern of uplift and/or subsidence over a particular
+**  time interval.
+**  The nodes are assumed to be in order by permanent ID, starting from 0.
+**  The caller MUST specify an elevation value for every node, but only
+**  the interior (non-boundary) nodes are actually modified.
+**
+**  GT, May 2010
+*/
+/**************************************************************************/
+void childInterface::
+AdjustInteriorElevations( std::vector<double> dz )
+{
+   tLNode *current_node;
+   tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+   
+   for( current_node=ni.FirstP(); ni.IsActive(); current_node=ni.NextP() )
+   {
+      if(1) std::cout << "AdjustInteriorElevations: node " 
+                      << current_node->getPermID()
+                      << " changing z from " << current_node->getZ() 
+                      << " to " 
+                      << current_node->getZ() + dz[current_node->getPermID()] 
+                      << std::endl;
+      current_node->ChangeZ( dz[current_node->getPermID()] );
+   }
+   
+}
+
+
+/**************************************************************************/
+/**
 **  childInterface::TrackWaterAndSedFluxAtNodes
 **
 **  This method tells CHILD to track and record water and sediment flux
