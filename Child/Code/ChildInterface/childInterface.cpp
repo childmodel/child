@@ -173,6 +173,7 @@ Initialize( int argc, char **argv )
 double childInterface::
 RunOneStorm()
 {
+    double stormDuration, stormPlusDryDuration;
 	
 	/**************** Run 1 storm ****************************************\
 	**  ALGORITHM
@@ -197,10 +198,18 @@ RunOneStorm()
 	// Do storm...
 	storm->GenerateStorm( time->getCurrentTime(),
 						  strmNet->getInfilt(), strmNet->getSoilStore() );
-	if(0) //DEBUG
-		std::cout<< "Storm: "<< storm->getRainrate() << " " << storm->getStormDuration() << " "
-			<< storm->interstormDur() << std::endl;
+    stormDuration = min( storm->getStormDuration(), time->RemainingTime() );
+    stormPlusDryDuration = min( storm->getStormDuration() + storm->interstormDur(),
+                                time->RemainingTime() );
+                                
+    if(1) // DEBUG
+        std::cout << "Remaining time: " << time->RemainingTime() << std::endl;
 	
+	if(1) //DEBUG
+		std::cout<< "Storm: "<< storm->getRainrate() << " " << storm->getStormDuration() << " "
+			<< stormDuration << " " << storm->interstormDur() << " " << stormPlusDryDuration 
+			<< std::endl;
+			
 	strmNet->UpdateNet( time->getCurrentTime(), *storm );
 	if(0) //DEBUG
 		std::cout << "UpdateNet::Done.." << std::endl;
@@ -250,21 +259,20 @@ RunOneStorm()
 	//Diffusion is now before fluvial erosion in case the tools
 	//detachment laws are being used.
 	if( optNonlinearDiffusion )
-		erosion->DiffuseNonlinear( storm->getStormDuration() + storm->interstormDur(),
-								   optDiffuseDepo );
+		erosion->DiffuseNonlinear( stormPlusDryDuration, optDiffuseDepo );
 	else
-		erosion->Diffuse( storm->getStormDuration() + storm->interstormDur(),
-						  optDiffuseDepo );
+		erosion->Diffuse( stormPlusDryDuration, optDiffuseDepo );
 	
 	
 	if( optDetachLim )
-		erosion->ErodeDetachLim( storm->getStormDuration(), strmNet,
+		erosion->ErodeDetachLim( stormDuration, strmNet,
 								 vegetation );
-	else{
-		erosion->DetachErode( storm->getStormDuration(), strmNet,
+	else
+	{
+		erosion->DetachErode( stormDuration, strmNet,
 							  time->getCurrentTime(), vegetation );
 		// To use tools rules, you must use DetachErode2 NMG 07/05
-		//erosion.DetachErode2( storm.getStormDuration(), &strmNet,
+		//erosion.DetachErode2( stormDuration, &strmNet,
 		//                      time.getCurrentTime(), vegetation );
 	}
 	
@@ -295,6 +303,7 @@ RunOneStorm()
 		
 	}
 	
+	// TODO: how does Migrate know how long to migrate??
 	if( optMeander )
 		strmMeander->Migrate( time->getCurrentTime() );
 	
@@ -332,10 +341,10 @@ RunOneStorm()
 #define NEWVEG 1
 	if( optVegetation ) {
 		if( NEWVEG )
-			vegetation->GrowVegetation( mesh, storm->interstormDur() );
+			vegetation->GrowVegetation( mesh, stormPlusDryDuration - stormDuration );
 		else
-			vegetation->UpdateVegetation( mesh, storm->getStormDuration(),
-										  storm->interstormDur() );
+			vegetation->UpdateVegetation( mesh, stormDuration,
+										  stormPlusDryDuration - stormDuration );
 	}
 #undef NEWVEG
 	
@@ -344,24 +353,23 @@ RunOneStorm()
 	// erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
 	// 		       optDiffuseDepo );
 	
-	erosion->UpdateExposureTime( storm->getStormDuration() +
-								 storm->interstormDur() );
+	erosion->UpdateExposureTime( stormPlusDryDuration );
 	
 	if( optLoessDep )
 		loess->DepositLoess( mesh,
-							 storm->getStormDuration()+storm->interstormDur(),
+							 stormPlusDryDuration,
 							 time->getCurrentTime() );
 	
 	if( time->getCurrentTime() < uplift->getDuration() )
 		uplift->DoUplift( mesh,
-						  storm->getStormDuration() + storm->interstormDur(), 
+						  stormPlusDryDuration, 
 						  time->getCurrentTime() );
 	
   if( optTrackWaterSedTimeSeries )
     water_sed_tracker_.WriteAndResetWaterSedTimeseriesData( time->getCurrentTime(),
-                       storm->getStormDuration() + storm->interstormDur() );
+                       stormPlusDryDuration );
 		
-	time->Advance( storm->getStormDuration() + storm->interstormDur() );
+	time->Advance( stormPlusDryDuration );
 	
 	if( time->CheckOutputTime() )
 		output->WriteOutput( time->getCurrentTime() );
@@ -1025,6 +1033,65 @@ GetNodeSedimentFluxVector()
    return sedflux;
 
 }
+
+/**************************************************************************/
+/**
+**  childInterface::SetValueSet
+**
+**  This method sets values of a CHILD variable at each node.
+**  The variable to be changed is passed as a string, while the new values
+**  are passed as a vector of doubles. Use with caution!
+**  The nodes are assumed to be in order by permanent ID, starting from 0.
+**  The caller MUST specify an elevation value for every node.
+**
+**  GT, May 2010
+*/
+/**************************************************************************/
+void childInterface::
+SetValueSet( string var_name, std::vector<double> value_set )
+{
+  if(1) std::cout << "childInterface::SetValueSet() here with request '"
+                  << var_name << "'\n";
+  if( var_name.compare( 0,4,"elev" )==0 )
+  {
+    if(1) std::cout << "request for elevs\n";
+    return SetNodeElevations( value_set );
+  }
+  else
+  {
+    std::cout << "Warning: unrecognized value set '" << var_name << "'\n";
+    std::cout << "Request to set values ignored\n";
+  }
+}
+
+
+/**************************************************************************/
+/**
+**  childInterface::SetNodeElevations
+**
+**  Sets the elevations of nodes to the values specified in "elevations".
+**  The nodes are assumed to be in order by permanent ID, starting from 0.
+**  The caller MUST specify an elevation value for every node.
+**
+**  GT, May 2010
+*/
+/**************************************************************************/
+void childInterface::
+SetNodeElevations( std::vector<double> elevations )
+{
+   tLNode *current_node;
+   tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+   
+   for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
+   {
+      if(1) std::cout << "node " << current_node->getPermID()
+                      << " changing z from " << current_node->getZ() 
+                      << " to " << elevations[current_node->getPermID()] << std::endl;
+      current_node->setZ( elevations[current_node->getPermID()] );
+   }
+   
+}
+
 
 /**************************************************************************/
 /**

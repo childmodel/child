@@ -26,9 +26,17 @@ int main( int argc, char **argv )
 
 	if(1) // make this zero to use "example 2" below
 	{
+        std::cout << "\nInitialization done. The time remaining for the run is: ";
+        std::cout << myChildInterface.GetRemainingRunTime() << std::endl;
+        std::cout << "This number should be the same as RUNTIME in the input file.\n";
+
 		// Example 1: using "Run" method, and setting run duration to zero so model reads duration from input file
 		myChildInterface.Run( 0 );
 		
+        std::cout << "Run done. The time remaining for the run is: ";
+        std::cout << myChildInterface.GetRemainingRunTime() << std::endl;
+        std::cout << "This number should be zero.\n";
+
 		int num_nodes;
 		int i, j;
 		string result_string;
@@ -58,6 +66,44 @@ int main( int argc, char **argv )
 			   std::cout << " z=" << myChildInterface.GetZCoordinate( i, j ) << std::endl;
 		    }
 		}
+		
+		// Next we test the custom interface function "GetNodeCoords"
+		std::vector<double> node_coords;
+		std::vector<double> elevations;
+		node_coords = myChildInterface.GetNodeCoords();
+		elevations = myChildInterface.GetValueSet( "elevations" );
+		std::cout << "\nThe coordinates of the nodes are as follows:\n";
+		std::cout << "ID\tX\tY\tZ\tZ from GetValueSet\n";
+		for( i=0; i<num_nodes; i++ )
+		{
+		    std::cout << i << "\t" << node_coords[3*i] << "\t"
+		              << node_coords[3*i+1] << "\t"
+		              << node_coords[3*i+2] << "\t"
+		              << elevations[i] << "\n";
+		}
+		
+		// Now we'll use SetValueSet to re-set the elevations according 
+		// to their x,y position
+		for( i=0; i<num_nodes; i++ )
+		{
+		    elevations[i] = 0.01*node_coords[i+num_nodes] + 0.02*node_coords[i+2*num_nodes];
+		}
+		myChildInterface.SetValueSet( "elevations", elevations );
+		
+		// Ask CHILD what its new coords are and display
+		node_coords = myChildInterface.GetNodeCoords();
+		elevations = myChildInterface.GetValueSet( "elevations" );
+		std::cout << "\nThe NEW coordinates of the nodes are as follows:\n";
+		std::cout << "ID\tX\tY\tZ\tZ from GetValueSet\n";
+		for( i=0; i<num_nodes; i++ )
+		{
+		    std::cout << i << "\t" << node_coords[3*i] << "\t"
+		              << node_coords[3*i+1] << "\t"
+		              << node_coords[3*i+2] << "\t"
+		              << elevations[i] << "\n";
+		}
+
+		
 
 	}
 	else

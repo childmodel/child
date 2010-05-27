@@ -96,6 +96,7 @@ public:
 	double GetYCoordinate( int element_index, int vertex_index );
 	double GetZCoordinate( int element_index, int vertex_index );
     std::vector<double> GetValueSet( string var_name );
+    void SetValueSet( string var_name, std::vector<double> values );
 	
     // Additional custom functions to accompany IElement interface
     bool IsInteriorNode( int element_index );
@@ -113,6 +114,7 @@ private:
   std::vector<double> GetNodeErosionVector();  // Creates and returns vector of ero/dep
   std::vector<double> GetNodeDischargeVector();  // Creates and returns vector of Q
   std::vector<double> GetNodeSedimentFluxVector();  // Creates and returns vector of Qs
+  void SetNodeElevations( std::vector<double> elevations );
   
 	// Private data
 	bool initialized;      // Flag indicated whether model has been initialized
