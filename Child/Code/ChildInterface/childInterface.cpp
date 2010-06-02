@@ -202,10 +202,10 @@ RunOneStorm()
     stormPlusDryDuration = min( storm->getStormDuration() + storm->interstormDur(),
                                 time->RemainingTime() );
                                 
-    if(1) // DEBUG
+    if(0) // DEBUG
         std::cout << "Remaining time: " << time->RemainingTime() << std::endl;
 	
-	if(1) //DEBUG
+	if(0) //DEBUG
 		std::cout<< "Storm: "<< storm->getRainrate() << " " << storm->getStormDuration() << " "
 			<< stormDuration << " " << storm->interstormDur() << " " << stormPlusDryDuration 
 			<< std::endl;
