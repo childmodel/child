@@ -3350,11 +3350,11 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
       
       if( track_sed_flux_at_nodes_ )
       {
-        std::cout << "WE'RE GOIN ALL THE WAY" << endl;
+        if(0) std::cout << "WE'RE GOIN ALL THE WAY" << endl;
         water_sed_tracker_ptr_->AddSedVolumesAtTrackingNodes( dtmax );
       }
       else
-        std::cout << "NO WAY JOSE!" << endl;
+        if(0) std::cout << "NO WAY JOSE!" << endl;
       
       // Erode vegetation
 #if 0
