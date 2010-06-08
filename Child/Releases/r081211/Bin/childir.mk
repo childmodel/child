@@ -4,20 +4,22 @@ include gccmac.mk
 #include gcc.mk
 #include icc.mk
 #include bcc.mk
+#include PC-lint/pclint.mk
 
 EXENAME = child$(EXEEXT)
 
 OBJECTS = \
  childRDriver.$(OBJEXT) \
  childRInterface.$(OBJEXT) erosion.$(OBJEXT) \
- meshElements.$(OBJEXT) mathutil.$(OBJEXT) \
+ meshElements.$(OBJEXT) mathutil.$(OBJEXT) tIDGenerator.$(OBJEXT) \
  tInputFile.$(OBJEXT) tLNode.$(OBJEXT) tRunTimer.$(OBJEXT) \
+ tStreamMeander.$(OBJEXT) meander.$(OBJEXT) \
  tStorm.$(OBJEXT) tStreamNet.$(OBJEXT) tUplift.$(OBJEXT) errors.$(OBJEXT) \
- tEolian.$(OBJEXT) globalFns.$(OBJEXT) \
+ tFloodplain.$(OBJEXT) tEolian.$(OBJEXT) globalFns.$(OBJEXT) \
  predicates.$(OBJEXT) tVegetation.$(OBJEXT) tListInputData.$(OBJEXT) \
  tStratGrid.$(OBJEXT) tOption.$(OBJEXT) \
  tTimeSeries.$(OBJEXT) ParamMesh_t.$(OBJEXT) TipperTriangulator.$(OBJEXT) \
- TipperTriangulatorError.$(OBJEXT)
+ TipperTriangulatorError.$(OBJEXT)  tWaterSedTracker.$(OBJEXT)
 
 all : $(EXENAME)
 .PHONY : all clean
@@ -33,6 +35,9 @@ meshElements.$(OBJEXT): $(PT)/MeshElements/meshElements.cpp
 
 mathutil.$(OBJEXT): $(PT)/Mathutil/mathutil.cpp
 	$(CXX) $(CFLAGS) $(PT)/Mathutil/mathutil.cpp
+
+tIDGenerator.$(OBJEXT): $(PT)/tIDGenerator/tIDGenerator.cpp
+	$(CXX) $(CFLAGS) $(PT)/tIDGenerator/tIDGenerator.cpp
 
 tInputFile.$(OBJEXT): $(PT)/tInputFile/tInputFile.cpp
 	$(CXX) $(CFLAGS) $(PT)/tInputFile/tInputFile.cpp
@@ -67,6 +72,9 @@ tUplift.$(OBJEXT): $(PT)/tUplift/tUplift.cpp
 errors.$(OBJEXT): $(PT)/errors/errors.cpp
 	$(CXX) $(CFLAGS) $(PT)/errors/errors.cpp
 
+tFloodplain.$(OBJEXT): $(PT)/tFloodplain/tFloodplain.cpp
+	$(CXX) $(CFLAGS) $(PT)/tFloodplain/tFloodplain.cpp
+
 tEolian.$(OBJEXT): $(PT)/tEolian/tEolian.cpp
 	$(CXX) $(CFLAGS) $(PT)/tEolian/tEolian.cpp
 
@@ -87,6 +95,15 @@ predicates.$(OBJEXT): $(PT)/Predicates/predicates.cpp
 
 tVegetation.$(OBJEXT): $(PT)/tVegetation/tVegetation.cpp
 	$(CXX) $(CFLAGS) $(PT)/tVegetation/tVegetation.cpp
+
+tWaterSedTracker.$(OBJEXT): $(PT)/tWaterSedTracker/tWaterSedTracker.cpp
+	$(CXX) $(CFLAGS) $(PT)/tWaterSedTracker/tWaterSedTracker.cpp
+
+tStreamMeander.$(OBJEXT): $(PT)/tStreamMeander/tStreamMeander.cpp
+	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/tStreamMeander.cpp
+
+meander.$(OBJEXT): $(PT)/tStreamMeander/meander.cpp
+	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/meander.cpp
 
 childRInterface.$(OBJEXT): $(PT)/ChildRInterface/childRInterface.cpp
 	$(CXX) $(CFLAGS) $(PT)/ChildRInterface/childRInterface.cpp
@@ -109,6 +126,7 @@ HFILES = \
 	$(PT)/Geometry/geometry.h \
 	$(PT)/Inclusions.h \
 	$(PT)/Mathutil/mathutil.h \
+	$(PT)/tIDGenerator/tIDGenerator.h \
 	$(PT)/MeshElements/meshElements.h \
 	$(PT)/Predicates/predicates.h \
 	$(PT)/compiler.h \
@@ -118,6 +136,7 @@ HFILES = \
 	$(PT)/tArray/tArray.h \
 	$(PT)/tArray/tArray2.h \
 	$(PT)/tEolian/tEolian.h \
+	$(PT)/tFloodplain/tFloodplain.h \
 	$(PT)/tInputFile/tInputFile.h \
 	$(PT)/tLNode/tLNode.h \
 	$(PT)/tList/tList.h \
@@ -138,24 +157,29 @@ HFILES = \
 	$(PT)/tRunTimer/tRunTimer.h \
 	$(PT)/tStorm/tStorm.h \
 	$(PT)/tStratGrid/tStratGrid.h \
+	$(PT)/tStreamMeander/meander.h \
+	$(PT)/tStreamMeander/tStreamMeander.h \
 	$(PT)/tStreamNet/tStreamNet.h \
 	$(PT)/tTimeSeries/tTimeSeries.h \
 	$(PT)/tUplift/tUplift.h \
 	$(PT)/tVegetation/tVegetation.h \
+	$(PT)/tWaterSedTracker/tWaterSedTracker.h \
 	$(PT)/trapfpe.h
 
 ParamMesh_t.$(OBJEXT): $(HFILES)
 TipperTriangulator.$(OBJEXT) : $(HFILES)
 TipperTriangulatorError.$(OBJEXT) : $(HFILES)
 childRInterface.$(OBJEXT) : $(HFILES)
-childRInterfaceDriver.$(OBJEXT) : $(HFILES)
+childRDriver.$(OBJEXT) : $(HFILES)
 erosion.$(OBJEXT): $(HFILES)
 errors.$(OBJEXT): $(HFILES)
 globalFns.$(OBJEXT): $(HFILES)
 mathutil.$(OBJEXT): $(HFILES)
+meander.$(OBJEXT): $(HFILES)
 meshElements.$(OBJEXT): $(HFILES)
 predicates.$(OBJEXT): $(HFILES)
 tEolian.$(OBJEXT): $(HFILES)
+tFloodplain.$(OBJEXT): $(HFILES)
 tInputFile.$(OBJEXT): $(HFILES)
 tLNode.$(OBJEXT): $(HFILES)
 tListInputData.$(OBJEXT): $(HFILES)
@@ -163,7 +187,9 @@ tOption.$(OBJEXT): $(HFILES)
 tRunTimer.$(OBJEXT): $(HFILES)
 tStorm.$(OBJEXT) : $(HFILES)
 tStratGrid.$(OBJEXT) : $(HFILES)
+tStreamMeander.$(OBJEXT): $(HFILES)
 tStreamNet.$(OBJEXT): $(HFILES)
 tTimeSeries.$(OBJEXT) : $(HFILES)
 tUplift.$(OBJEXT): $(HFILES)
 tVegetation.$(OBJEXT): $(HFILES)
+tWaterSedTracker.$(OBJEXT): $(HFILES)
