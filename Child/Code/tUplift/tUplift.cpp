@@ -170,16 +170,28 @@ tUplift::tUplift( const tInputFile &infile ) :
 		  char timesFileName[120];
           std::ifstream upliftTimeFile;
 	      miNumUpliftMaps = infile.ReadItem( miNumUpliftMaps, "NUMUPLIFTMAPS" );
-	      infile.ReadItem( mUpliftMapFilename, sizeof(mUpliftMapFilename), "UPMAPFILENAME" );
-	      infile.ReadItem( timesFileName, sizeof(timesFileName), "UPTIMEFILENAME" );
-	      if( !upliftTimeFile.good() )
-	      ReportFatalError("Unable to open file containing uplift map times.");
+	      if( miNumUpliftMaps<1 || miNumUpliftMaps>=10000 )
+	      {
+	          ReportFatalError( "NUMUPLIFTMAPS must be >0 and <10,000" );
+	      }
 	      mUpliftMapTimes.setSize( miNumUpliftMaps );
-	      mdNextUpliftMapTime = 0.0;
+	      mUpliftMapTimes[0] = 0.0;
+	      infile.ReadItem( mUpliftMapFilename, sizeof(mUpliftMapFilename), "UPMAPFILENAME" );
+          if( miNumUpliftMaps>1 )
+          {
+	          infile.ReadItem( timesFileName, sizeof(timesFileName), "UPTIMEFILENAME" );
+	          upliftTimeFile.open( timesFileName );
+	          if( !upliftTimeFile.good() )
+	              ReportFatalError("Unable to open file containing uplift map times.");
+	          for( int i=1; i<miNumUpliftMaps; i++ )
+	          {
+	              upliftTimeFile >> mUpliftMapTimes[i];
+	              if(0) std::cout << "Map time " << i << " is " << mUpliftMapTimes[i] << std::endl;
+	          }
+	          upliftTimeFile.close();
+	      }
+	      mdNextUpliftMapTime = 0.0;;
 	      miCurUpliftMapNum = 0;
-	      for( int i=0; i<miNumUpliftMaps; i++ )
-	        upliftTimeFile >> mUpliftMapTimes[i];
-	      upliftTimeFile.close();
 		  }
 	      break;
 		case k13:
@@ -886,18 +898,23 @@ void tUplift::LinearUplift( tMesh<tLNode> *mp, double delt )
 \************************************************************************/
 void tUplift::UpliftRateMap( tMesh<tLNode> *mp, double delt, double currentTime )
 {
-  if(1) std::cout << "Greetings from tUplift::UpliftRateMap" << std::endl;
+  if(0) std::cout << "Greetings from tUplift::UpliftRateMap" << std::endl;
 
   // Is it time to read in a new uplift rate map? If so, do so.
   if( currentTime>=mdNextUpliftMapTime && miCurUpliftMapNum<miNumUpliftMaps )
   {
-    if(1) std::cout << "It's " << currentTime << " and time for a new rate map" << std::endl;
+    if(0) std::cout << "It's " << currentTime << " and time for a new rate map" << std::endl;
     
     // Remember the current map number and time at which we read the next one
-    mdNextUpliftMapTime = mUpliftMapTimes[miCurUpliftMapNum];
     miCurUpliftMapNum++;
-    if(1) std::cout << "The next read will be at " << mdNextUpliftMapTime << std::endl;
-
+    if( miCurUpliftMapNum < miNumUpliftMaps )
+    { 
+      mdNextUpliftMapTime = mUpliftMapTimes[miCurUpliftMapNum];
+      if(0) std::cout << "The next read will be at " << mdNextUpliftMapTime << std::endl;
+    }
+    else
+      if(0) std::cout << "Reading the last uplift rate map\n";
+      
     // Put together the name of the file containing the new uplift rate map,
     // and open it for reading. (This operation assumes 3 digit file extn.
     // It also assumes int cast acts as "floor" function.)
