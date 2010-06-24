@@ -32,11 +32,11 @@
 \contentsline {section}{\numberline {14}Tectonics and Baselevel Control}{30}
 \contentsline {section}{\numberline {15}Parameters that Vary in Time}{32}
 \contentsline {subsection}{\numberline {15.1}How to Create {\em tTimeSeries}-Compatible Parameter Files}{32}
-\contentsline {subsubsection}{\numberline {15.1.1}Wave-Form Parameters}{32}
+\contentsline {subsubsection}{\numberline {15.1.1}Wave-Form Parameters}{33}
 \contentsline {subsubsection}{\numberline {15.1.2}Parameter Values Read from a File}{33}
 \contentsline {subsubsection}{\numberline {15.1.3}In-Line Parameter Definition}{35}
-\contentsline {section}{\numberline {16}Output Files}{35}
-\contentsline {subsection}{\numberline {16.1}Surfer-Compatible Output}{36}
+\contentsline {section}{\numberline {16}Output Files}{36}
+\contentsline {subsection}{\numberline {16.1}Surfer-Compatible Output}{38}
 \contentsline {section}{\numberline {17}Error Messages}{38}
 \contentsline {section}{\numberline {18}FAQ and Common Errors}{38}
 \contentsline {subsection}{\numberline {18.1}``Error in Lake Filling algorithm: Unable to find a drainage outlet''}{38}
