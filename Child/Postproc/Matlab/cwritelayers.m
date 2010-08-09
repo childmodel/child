@@ -1,4 +1,5 @@
-function result=cwritelayers(laydat, nlay, basenm, ts, erody, numg, time)
+function result=cwritelayers(laydat, nlay, basenm, ts, erody, ...
+                             alluvial_erodibility, numg, time)
 %  CREADLAYERS: Reads layer data (thickness, "age", and exposure time) from
 %              CHILD simulation. Returns an NxLx3+ array, where N is the 
 %              number of nodes, L is the maximum number of layers at any
@@ -38,13 +39,12 @@ function result=cwritelayers(laydat, nlay, basenm, ts, erody, numg, time)
 fprintf('CWRITELAYERS: Reading data (please be patient) ...');
 
 % Check parameters and set defaults
-if nargin<5
+if nargin<6
     time=0.0;
 end
-if nargin<4
+if nargin<5
     numg=1;
 end
-result = -1;
 
 % Set erodibility vector for nodes
 if size(erody,1)==1 && size(erody,2)==1
@@ -64,6 +64,8 @@ if lfid<1
     error('Unable to create layer file.\n');
 end
 
+ALLUVIUM_FLAG=1;
+
 % Write header information
 fprintf(lfid,' %.2f\n',time);
 fprintf(lfid,'%d\n',size(laydat,1));
@@ -80,7 +82,12 @@ for j=1:length(nlay)
         % Basic properties: creation time, recent activity time, exposure
         % time, thickness, erodibility, and regolith/bedrock flag
         fprintf(lfid,'%.2f %.2f %.2f\n',laydat(j,i,2),laydat(j,i,2),laydat(j,i,3));
-        fprintf(lfid,'%.2f %f %.0f\n',laydat(j,i,1),erody(j),laydat(j,i,4));
+        if laydat(j,i,4)==ALLUVIUM_FLAG
+            my_erodibility = alluvial_erodibility;
+        else
+            my_erodibility = erody(j);
+        end
+        fprintf(lfid,'%.2f %f %.0f\n',laydat(j,i,1),my_erodibility,laydat(j,i,4));
         
         % Grain size information
         if numg==1
@@ -94,7 +101,8 @@ for j=1:length(nlay)
         end
         
     end
-    keepgoing = 0;
+    
 end
  
 result = 1;
+fclose(fid);
