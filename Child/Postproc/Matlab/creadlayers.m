@@ -38,6 +38,10 @@ maxlayers=600;
 keepgoing = 1;
 while keepgoing
    lfid=fopen(filenm,'r');
+   if lfid<=0
+       my_err = ['Unable to find or open ' filenm];
+       error( my_err )
+   end
    today = fscanf(lfid,'%f',1);
    lnn=fscanf(lfid,'%d',1);
    layerdata = zeros(lnn,maxlayers,4+numg-1);
