@@ -36,7 +36,7 @@ function result=cwritelayers(laydat, nlay, basenm, ts, erody, ...
 % GT edited this 9/07 to revert to "old" format, which CHILD still reads...
 % (but doesn't write)
 
-fprintf('CWRITELAYERS: Reading data (please be patient) ...');
+%fprintf('CWRITELAYERS: Reading data (please be patient) ...');
 
 % Check parameters and set defaults
 if nargin<6
