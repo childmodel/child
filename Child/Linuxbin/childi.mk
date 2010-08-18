@@ -19,7 +19,7 @@ OBJECTS = \
  predicates.$(OBJEXT) tVegetation.$(OBJEXT) tListInputData.$(OBJEXT) \
  tStratGrid.$(OBJEXT) tOption.$(OBJEXT) \
  tTimeSeries.$(OBJEXT) ParamMesh_t.$(OBJEXT) TipperTriangulator.$(OBJEXT) \
- TipperTriangulatorError.$(OBJEXT)
+ TipperTriangulatorError.$(OBJEXT) tWaterSedTracker.$(OBJEXT)
 
 all : $(EXENAME)
 .PHONY : all clean
@@ -96,6 +96,9 @@ predicates.$(OBJEXT): $(PT)/Predicates/predicates.cpp
 tVegetation.$(OBJEXT): $(PT)/tVegetation/tVegetation.cpp
 	$(CXX) $(CFLAGS) $(PT)/tVegetation/tVegetation.cpp
 
+tWaterSedTracker.$(OBJEXT): $(PT)/tWaterSedTracker/tWaterSedTracker.cpp
+	$(CXX) $(CFLAGS) $(PT)/tWaterSedTracker/tWaterSedTracker.cpp
+
 tStreamMeander.$(OBJEXT): $(PT)/tStreamMeander/tStreamMeander.cpp
 	$(CXX) $(CFLAGS) $(PT)/tStreamMeander/tStreamMeander.cpp
 
@@ -160,6 +163,7 @@ HFILES = \
 	$(PT)/tTimeSeries/tTimeSeries.h \
 	$(PT)/tUplift/tUplift.h \
 	$(PT)/tVegetation/tVegetation.h \
+	$(PT)/tWaterSedTracker/tWaterSedTracker.h \
 	$(PT)/trapfpe.h
 
 ParamMesh_t.$(OBJEXT): $(HFILES)
@@ -188,3 +192,4 @@ tStreamNet.$(OBJEXT): $(HFILES)
 tTimeSeries.$(OBJEXT) : $(HFILES)
 tUplift.$(OBJEXT): $(HFILES)
 tVegetation.$(OBJEXT): $(HFILES)
+tWaterSedTracker.$(OBJEXT): $(HFILES)

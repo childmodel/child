@@ -118,6 +118,8 @@ Initialize( int argc, char **argv )
    optMeander = inputFile.ReadBool( "OPTMEANDER" );
    optStratGrid = inputFile.ReadBool( "OPTSTRATGRID" ,false);
    optNonlinearDiffusion = inputFile.ReadBool( "OPT_NONLINEAR_DIFFUSION", false );
+   optDepthDependentDiffusion = 
+     inputFile.ReadBool( "OPT_DEPTH_DEPENDENT_DIFFUSION", false );
    optTrackWaterSedTimeSeries = inputFile.ReadBool( "OPT_TRACK_WATER_SED_TIMESERIES", false );
    
    // If applicable, create Vegetation object
@@ -173,210 +175,228 @@ Initialize( int argc, char **argv )
 double childInterface::
 RunOneStorm()
 {
-    double stormDuration, stormPlusDryDuration;
+  double stormDuration, stormPlusDryDuration;
 	
-	/**************** Run 1 storm ****************************************\
-	**  ALGORITHM
-	**    Generate storm
-	**    Do storm...
-	**      Update network (flow directions, drainage area, runoff)
-	**      Water erosion/deposition (vertical)
-	**      Meandering (if applicable)
-	**      Floodplain deposition (if applicable)
-	**    Do interstorm...
-	**      Hillslope transport
-	**      Vegetation (if applicable)
-	**      Exposure history
-	**      Mesh densification (if applicable)
-	**      Eolian (loess) deposition (if applicable)
-	**      Uplift (or baselevel change)
-	**********************************************************************/
-	if(0) //debug
-      	std::cout << "         " << std::endl;
-	time->ReportTimeStatus();
+  /**************** Run 1 storm ****************************************\
+   **  ALGORITHM
+   **    Generate storm
+   **    Do storm...
+   **      Update network (flow directions, drainage area, runoff)
+   **      Water erosion/deposition (vertical)
+   **      Meandering (if applicable)
+   **      Floodplain deposition (if applicable)
+   **    Do interstorm...
+   **      Hillslope transport
+   **      Vegetation (if applicable)
+   **      Exposure history
+   **      Mesh densification (if applicable)
+   **      Eolian (loess) deposition (if applicable)
+   **      Uplift (or baselevel change)
+   **********************************************************************/
+  if(0) //debug
+    std::cout << "         " << std::endl;
+  time->ReportTimeStatus();
 	
-	// Do storm...
-	storm->GenerateStorm( time->getCurrentTime(),
-						  strmNet->getInfilt(), strmNet->getSoilStore() );
-    stormDuration = min( storm->getStormDuration(), time->RemainingTime() );
-    stormPlusDryDuration = min( storm->getStormDuration() + storm->interstormDur(),
-                                time->RemainingTime() );
+  // Do storm...
+  storm->GenerateStorm( time->getCurrentTime(),
+			strmNet->getInfilt(), strmNet->getSoilStore() );
+  stormDuration = min( storm->getStormDuration(), time->RemainingTime() );
+  stormPlusDryDuration = min( storm->getStormDuration() + storm->interstormDur(),
+			      time->RemainingTime() );
                                 
-    if(0) // DEBUG
-        std::cout << "Remaining time: " << time->RemainingTime() << std::endl;
+  if(0) // DEBUG
+    std::cout << "Remaining time: " << time->RemainingTime() << std::endl;
 	
-	if(0) //DEBUG
-		std::cout<< "Storm: "<< storm->getRainrate() << " " << storm->getStormDuration() << " "
-			<< stormDuration << " " << storm->interstormDur() << " " << stormPlusDryDuration 
-			<< std::endl;
+  if(0) //DEBUG
+    std::cout<< "Storm: "<< storm->getRainrate() << " " << storm->getStormDuration() << " "
+	     << stormDuration << " " << storm->interstormDur() << " " << stormPlusDryDuration 
+	     << std::endl;
 			
-	strmNet->UpdateNet( time->getCurrentTime(), *storm );
-	if(0) //DEBUG
-		std::cout << "UpdateNet::Done.." << std::endl;
+  strmNet->UpdateNet( time->getCurrentTime(), *storm );
+  if(0) //DEBUG
+    std::cout << "UpdateNet::Done.." << std::endl;
 	
-	if(0) //DEBUG
+  if(0) //DEBUG
+    {
+      tMesh< tLNode >::nodeListIter_t mli( mesh->getNodeList() );  // gets nodes from the list
+      tLNode * cn;
+      for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
 	{
-		tMesh< tLNode >::nodeListIter_t mli( mesh->getNodeList() );  // gets nodes from the list
-		tLNode * cn;
-		for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
-		{
-		    if( cn->getX()>64 && cn->getX()<65 )
-			    std::cout << "In main loop 1, node at " << cn->getX() << "," << cn->getY() << " has plain id " << cn->getID() << " and perm ID " << cn->getPermID() << std::endl;
-		    if( cn->getID()==8121 || cn->getID()==8122 ) 
-			{
-				tEdge * debugedg = cn->getFlowEdg();
-				tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
-				std::cout<<"Childmain 1: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
-				std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ()<<std::endl;
-			}
-		}
-		
+	  if( cn->getX()>64 && cn->getX()<65 )
+	    std::cout << "In main loop 1, node at " << cn->getX() << "," << cn->getY() << " has plain id " << cn->getID() << " and perm ID " << cn->getPermID() << std::endl;
+	  if( cn->getID()==8121 || cn->getID()==8122 ) 
+	    {
+	      tEdge * debugedg = cn->getFlowEdg();
+	      tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+	      std::cout<<"Childmain 1: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+	      std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ()<<std::endl;
+	    }
 	}
+    }
 	
-	// Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
-	if( optStratGrid )
-		stratGrid->UpdateStratGrid(tStratGrid::k0, time->getCurrentTime());
+  // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
+  if( optStratGrid )
+    stratGrid->UpdateStratGrid(tStratGrid::k0, time->getCurrentTime());
 	
-	if(0) //DEBUG
+  if(0) //DEBUG
+    {
+      tMesh< tLNode >::nodeListIter_t mli( mesh->getNodeList() );  // gets nodes from the list
+      tLNode * cn;
+      for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
 	{
-		tMesh< tLNode >::nodeListIter_t mli( mesh->getNodeList() );  // gets nodes from the list
-		tLNode * cn;
-		for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
-		{
-		    if( cn->getX()>64 && cn->getX()<65 )
-			    std::cout << "In main loop 2, node at " << cn->getX() << "," << cn->getY() << " has plain id " << cn->getID() << " and perm ID " << cn->getPermID() << std::endl;
-		    if( cn->getID()==8121 || cn->getID()==8122 ) 
-			{
-				tEdge * debugedg = cn->getFlowEdg();
-				tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
-				std::cout<<"Childmain 2: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
-				std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ()<<std::endl;
-			}
-		}
-		
+	  if( cn->getX()>64 && cn->getX()<65 )
+	    std::cout << "In main loop 2, node at " << cn->getX() << "," << cn->getY() << " has plain id " << cn->getID() << " and perm ID " << cn->getPermID() << std::endl;
+	  if( cn->getID()==8121 || cn->getID()==8122 ) 
+	    {
+	      tEdge * debugedg = cn->getFlowEdg();
+	      tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+	      std::cout<<"Childmain 2: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+	      std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ()<<std::endl;
+	    }
 	}
+    }
+
+  // Do chemical weathering before physical weathering, which may be dependent on
+  // the degree of chemical weathering 
+  // what this does, whether it does anything,
+  // is determined by the chemical weathering option, one of which is "None."
+  // this option is read in the tErosion constructor:
+  erosion->WeatherBedrock( stormPlusDryDuration );
+
+  // Do physical weathering before diffusion, which may be dependent on thickness
+  // and availability
+  // what this does, whether it does anything,
+  // is determined by the physical weathering option, one of which is "None."
+  // this option is read in the tErosion constructor:
+  erosion->ProduceRegolith( stormPlusDryDuration, time->getCurrentTime() );
+
+  //Diffusion is now before fluvial erosion in case the tools
+  //detachment laws are being used.
+  if( optNonlinearDiffusion )
+    {
+      if( optDepthDependentDiffusion )
+	// note: currently only nonlinear version of depth-dependent diffusion,
+	// and this function does not allow non-deposition (optDiffuseDepo)
+	erosion->DiffuseNonlinearDepthDep( stormPlusDryDuration,
+					   time->getCurrentTime() );
+      else
+	erosion->DiffuseNonlinear( stormPlusDryDuration, optDiffuseDepo );
+    }
+  else
+    erosion->Diffuse( stormPlusDryDuration, optDiffuseDepo );
 	
-	//Diffusion is now before fluvial erosion in case the tools
-	//detachment laws are being used.
-	if( optNonlinearDiffusion )
-		erosion->DiffuseNonlinear( stormPlusDryDuration, optDiffuseDepo );
-	else
-		erosion->Diffuse( stormPlusDryDuration, optDiffuseDepo );
+	
+  if( optDetachLim )
+    erosion->ErodeDetachLim( stormDuration, strmNet,
+			     vegetation );
+  else
+    {
+      erosion->DetachErode( stormDuration, strmNet,
+			    time->getCurrentTime(), vegetation );
+      // To use tools rules, you must use DetachErode2 NMG 07/05
+      //erosion.DetachErode2( stormDuration, &strmNet,
+      //                      time.getCurrentTime(), vegetation );
+    }
 	
 	
-	if( optDetachLim )
-		erosion->ErodeDetachLim( stormDuration, strmNet,
-								 vegetation );
-	else
+  if(0) //DEBUG
+    std::cout << "Erosion::Done.." << std::endl;
+	
+  // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
+  if( optStratGrid )
+    stratGrid->UpdateStratGrid(tStratGrid::k1,time->getCurrentTime() );
+	
+  if(0) //DEBUG
+    {
+      tMesh< tLNode >::nodeListIter_t mli( mesh->getNodeList() );  // gets nodes from the list
+      tLNode * cn;
+      for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
 	{
-		erosion->DetachErode( stormDuration, strmNet,
-							  time->getCurrentTime(), vegetation );
-		// To use tools rules, you must use DetachErode2 NMG 07/05
-		//erosion.DetachErode2( stormDuration, &strmNet,
-		//                      time.getCurrentTime(), vegetation );
-	}
+	  if( cn->getX()>64 && cn->getX()<65 )
+	    std::cout << "In main loop 3, node at " << cn->getX() << "," << cn->getY() << " has plain id " << cn->getID() << " and perm ID " << cn->getPermID() << std::endl;
+	  if( cn->getID()==8121 || cn->getID()==8122 ) 
+	    {
+	      tEdge * debugedg = cn->getFlowEdg();
+	      tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+	      std::cout<<"Childmain 3: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+	      std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ()<<std::endl;
+	    }
+	}	
+    }
 	
+  // TODO: how does Migrate know how long to migrate??
+  if( optMeander )
+    strmMeander->Migrate( time->getCurrentTime() );
 	
-	if(0) //DEBUG
-		std::cout << "Erosion::Done.." << std::endl;
+  if(0) //DEBUG
+    std::cout << "Meander-Migrate::Done..\n";
 	
-	// Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
-	if( optStratGrid )
-		stratGrid->UpdateStratGrid(tStratGrid::k1,time->getCurrentTime() );
+  // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
+  if( optStratGrid )
+    stratGrid->UpdateStratGrid(tStratGrid::k2,time->getCurrentTime());
 	
-	if(0) //DEBUG
-	{
-		tMesh< tLNode >::nodeListIter_t mli( mesh->getNodeList() );  // gets nodes from the list
-		tLNode * cn;
-		for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
-		{
-		    if( cn->getX()>64 && cn->getX()<65 )
-			    std::cout << "In main loop 3, node at " << cn->getX() << "," << cn->getY() << " has plain id " << cn->getID() << " and perm ID " << cn->getPermID() << std::endl;
-		    if( cn->getID()==8121 || cn->getID()==8122 ) 
-			{
-				tEdge * debugedg = cn->getFlowEdg();
-				tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
-				std::cout<<"Childmain 3: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
-				std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ()<<std::endl;
-			}
-		}
+  //----------------FLOODPLAIN---------------------------------
+  if( optFloodplainDep )
+    {
+      if( floodplain->OptControlMainChan() )
+	floodplain->UpdateMainChannelHeight( time->getCurrentTime(), strmNet->getInletNodePtrNC() );
+      std::cout << "UpdateChannelHeight::Done..\n";
 		
-	}
-	
-	// TODO: how does Migrate know how long to migrate??
-	if( optMeander )
-		strmMeander->Migrate( time->getCurrentTime() );
-	
-	if(0) //DEBUG
-		std::cout << "Meander-Migrate::Done..\n";
-	
-	// Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
-	if( optStratGrid )
-		stratGrid->UpdateStratGrid(tStratGrid::k2,time->getCurrentTime());
-	
-	//----------------FLOODPLAIN---------------------------------
-	if( optFloodplainDep )
-	{
-		if( floodplain->OptControlMainChan() )
-	        floodplain->UpdateMainChannelHeight( time->getCurrentTime(),
-												 strmNet->getInletNodePtrNC() );
-		std::cout << "UpdateChannelHeight::Done..\n";
+      if( optStratGrid ){
+	stratGrid->UpdateStratGrid(tStratGrid::k3,time->getCurrentTime());
+      }
 		
-		if( optStratGrid ){
-	        stratGrid->UpdateStratGrid(tStratGrid::k3,time->getCurrentTime());
-		}
+      floodplain->DepositOverbank( storm->getRainrate(),
+				   storm->getStormDuration(),
+				   time->getCurrentTime() );
+      std::cout << "tFloodplain::Done..\n";
 		
-		floodplain->DepositOverbank( storm->getRainrate(),
-									 storm->getStormDuration(),
-									 time->getCurrentTime() );
-		std::cout << "tFloodplain::Done..\n";
+      if( optStratGrid ){
+	stratGrid->UpdateStratGrid(tStratGrid::k4,time->getCurrentTime());
+      }
 		
-		if( optStratGrid ){
-			stratGrid->UpdateStratGrid(tStratGrid::k4,time->getCurrentTime());
-		}
-		
-	} // end of floodplain stuff
+    } // end of floodplain stuff
 	
 	
 #define NEWVEG 1
-	if( optVegetation ) {
-		if( NEWVEG )
-			vegetation->GrowVegetation( mesh, stormPlusDryDuration - stormDuration );
-		else
-			vegetation->UpdateVegetation( mesh, stormDuration,
-										  stormPlusDryDuration - stormDuration );
-	}
+  if( optVegetation ) {
+    if( NEWVEG )
+      vegetation->GrowVegetation( mesh, stormPlusDryDuration - stormDuration );
+    else
+      vegetation->UpdateVegetation( mesh, stormDuration,
+				    stormPlusDryDuration - stormDuration );
+  }
 #undef NEWVEG
 	
-	// Do interstorm...
-	//Diffusion has now been moved to before fluvial erosion NMG 07/05
-	// erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
-	// 		       optDiffuseDepo );
+  // Do interstorm...
+  //Diffusion has now been moved to before fluvial erosion NMG 07/05
+  // erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
+  // 		       optDiffuseDepo );
 	
-	erosion->UpdateExposureTime( stormPlusDryDuration );
+  erosion->UpdateExposureTime( stormPlusDryDuration );
 	
-	if( optLoessDep )
-		loess->DepositLoess( mesh,
-							 stormPlusDryDuration,
-							 time->getCurrentTime() );
+  if( optLoessDep )
+    loess->DepositLoess( mesh,
+			 stormPlusDryDuration,
+			 time->getCurrentTime() );
 	
-	if( time->getCurrentTime() < uplift->getDuration() )
-		uplift->DoUplift( mesh,
-						  stormPlusDryDuration, 
-						  time->getCurrentTime() );
+  if( time->getCurrentTime() < uplift->getDuration() )
+    uplift->DoUplift( mesh,
+		      stormPlusDryDuration, 
+		      time->getCurrentTime() );
 	
   if( optTrackWaterSedTimeSeries )
     water_sed_tracker_.WriteAndResetWaterSedTimeseriesData( time->getCurrentTime(),
-                       stormPlusDryDuration );
+							    stormPlusDryDuration );
 		
-	time->Advance( stormPlusDryDuration );
+  time->Advance( stormPlusDryDuration );
 	
-	if( time->CheckOutputTime() )
-		output->WriteOutput( time->getCurrentTime() );
+  if( time->CheckOutputTime() )
+    output->WriteOutput( time->getCurrentTime() );
 	
-	if( output->OptTSOutput() ) output->WriteTSOutput();
+  if( output->OptTSOutput() ) output->WriteTSOutput();
   
-	return( time->getCurrentTime() );
+  return( time->getCurrentTime() );
 }
 
 

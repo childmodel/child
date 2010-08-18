@@ -656,6 +656,7 @@ double PlaneFit(double x, double y, tArray<double> const &p0,
    
 }
 
+
 double LineFit(double x1, double y1, double x2, double y2, double nx)
 {
    const double slope = (y2-y1)/(x2-x1);
@@ -666,3 +667,72 @@ double DistanceBW2Points(double x1, double y1, double x2, double y2)
 {
    return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
 }
+
+/*****************************************************************************\
+**
+**      DistanceToLine: given x,y coords, finds distance to the line
+**              defined by given a, b, and c (ax + by + c = 0)
+**      Global function.
+**
+**      Data members updated:
+**      Called by:
+**      Calls:
+**
+\*****************************************************************************/
+double DistanceToLine( double x2, double y2, double a, double b, double c )
+{
+   double x, y;
+   double f = -b;
+   double g = a;
+   double h = b * x2 - a * y2;
+   if( fabs(b) > 0 && fabs(a) > 0 )
+   {
+      x = (g * c / b - h) / (f - g * a / b);
+      y = (-c - a * x) / b;
+   }
+   else
+   {
+      if( fabs(a) == 0.0 )
+      {
+         y = -c / b;
+         x = -h / f;
+      }
+      else
+      {
+         y = -h / g;
+         x = -c / a;
+      }
+   }
+   double d = sqrt( (x2 - x) * (x2 - x) + (y2 - y) * (y2 - y) );
+   return d;
+}
+
+
+/*****************************************************************************\
+**
+**      DistanceToLine: given x,y coords, finds distance to the line
+**              formed by points  p0->(x, y) and p1->(x, y)
+**      Global function.
+**
+**      Data members updated:
+**      Called by:
+**      Calls:
+**
+\*****************************************************************************/
+double DistanceToLine( double x2, double y2, tNode const *p0, tNode const *p1 )
+{
+   double a, b, c, x0, y0, x1, y1, d;
+
+   x0 = p0->getX();
+   y0 = p0->getY();
+   x1 = p1->getX();
+   y1 = p1->getY();
+   a = y1 - y0;
+   b = x0 - x1;
+   c = -( a * x0 + b * y0 );
+
+   d = DistanceToLine( x2, y2, a, b, c );
+   return d;
+}
+
+

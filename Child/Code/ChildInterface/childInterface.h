@@ -69,45 +69,45 @@ enum ElementType
 class childInterface
 {
 public:
-	// Public methods
-	childInterface();
-	void Initialize( int argc, char **argv );
-	double RunOneStorm();
-	void Run( double run_duration );
-	void CleanUp();
-	~childInterface();
-    void ExternalErosionAndDeposition( vector<double> dz );
-    void TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track,
-                                      double current_time );
+  // Public methods
+  childInterface();
+  void Initialize( int argc, char **argv );
+  double RunOneStorm();
+  void Run( double run_duration );
+  void CleanUp();
+  ~childInterface();
+  void ExternalErosionAndDeposition( vector<double> dz );
+  void TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track,
+				    double current_time );
 	
-	// Public methods that implement the OpenMI IElement interface
-	string getID();
-	string getDescription();
-	//Question: how to handle ISpatialReference? what type is it? do I define such a class?
-	ElementType getElementType();
-	int getElementCount();
-	int getVersion();
-	int GetElementIndex( string elementID );
-	string GetElementID( int element_index );
-	int GetVertexCount( int element_index );
-	int GetFaceCount( int element_index );
-	vector<int> GetFaceVertexIndices( int element_index, int face_index );
-	double GetXCoordinate( int element_index, int vertex_index );
-	double GetYCoordinate( int element_index, int vertex_index );
-	double GetZCoordinate( int element_index, int vertex_index );
-    std::vector<double> GetValueSet( string var_name );
-    void SetValueSet( string var_name, std::vector<double> values );
+  // Public methods that implement the OpenMI IElement interface
+  string getID();
+  string getDescription();
+  //Question: how to handle ISpatialReference? what type is it? do I define such a class?
+  ElementType getElementType();
+  int getElementCount();
+  int getVersion();
+  int GetElementIndex( string elementID );
+  string GetElementID( int element_index );
+  int GetVertexCount( int element_index );
+  int GetFaceCount( int element_index );
+  vector<int> GetFaceVertexIndices( int element_index, int face_index );
+  double GetXCoordinate( int element_index, int vertex_index );
+  double GetYCoordinate( int element_index, int vertex_index );
+  double GetZCoordinate( int element_index, int vertex_index );
+  std::vector<double> GetValueSet( string var_name );
+  void SetValueSet( string var_name, std::vector<double> values );
 	
-    // Additional custom functions to accompany IElement interface
-    bool IsInteriorNode( int element_index );
-    long GetNodeCount();
-    std::vector<double> GetNodeCoords();
-    long GetTriangleCount();
-    std::vector<long> GetTriangleVertexIDs();
-    double GetCurrentTime();  // Returns current time in simulation
-    double GetRemainingRunTime();   // Returns the ending time for the run
-    void AdjustElevations( std::vector<double> dz );  // changes elevs
-    void AdjustInteriorElevations( std::vector<double> dz );  // changes elevs
+  // Additional custom functions to accompany IElement interface
+  bool IsInteriorNode( int element_index );
+  long GetNodeCount();
+  std::vector<double> GetNodeCoords();
+  long GetTriangleCount();
+  std::vector<long> GetTriangleVertexIDs();
+  double GetCurrentTime();  // Returns current time in simulation
+  double GetRemainingRunTime();   // Returns the ending time for the run
+  void AdjustElevations( std::vector<double> dz );  // changes elevs
+  void AdjustInteriorElevations( std::vector<double> dz );  // changes elevs
 		
 private:
 
@@ -118,41 +118,39 @@ private:
   std::vector<double> GetNodeSedimentFluxVector();  // Creates and returns vector of Qs
   void SetNodeElevations( std::vector<double> elevations );
   
-	// Private data
-	bool initialized;      // Flag indicated whether model has been initialized
-	bool optDetachLim,      // Option for detachment-limited erosion only
-        optFloodplainDep,  // Option for floodplain (overbank) deposition
-        optLoessDep,       // Option for eolian deposition
-        optVegetation,     // Option for dynamic vegetation cover
-        optMeander,        // Option for stream meandering
-        optDiffuseDepo,    // Option for deposition / no deposition by diff'n
-        optStratGrid,      // Option to enable stratigraphy grid
-        optTrackWaterSedTimeSeries,  // Option to record timeseries Q and Qs
-		optNonlinearDiffusion; // Option for nonlinear creep transport
-	tRand *rand;             // -> random number generator
-	tMesh<tLNode> *mesh;        // -> mesh object
-	tLOutput<tLNode> *output;   // -> output handler
-	tStorm *storm;              // -> storm generator
-	tStreamNet *strmNet;	    // -> stream network module
-	tErosion *erosion;          // -> erosion module
-	tUplift *uplift;            // -> uplift/baselevel module
-	tRunTimer *time;             // -> run timer
-    tWaterSedTracker water_sed_tracker_;   // Water and sediment tracker
+  // Private data
+  bool initialized;      // Flag indicated whether model has been initialized
+  bool optDetachLim,      // Option for detachment-limited erosion only
+    optFloodplainDep,  // Option for floodplain (overbank) deposition
+    optLoessDep,       // Option for eolian deposition
+    optVegetation,     // Option for dynamic vegetation cover
+    optMeander,        // Option for stream meandering
+    optDiffuseDepo,    // Option for deposition / no deposition by diff'n
+    optStratGrid,      // Option to enable stratigraphy grid
+    optTrackWaterSedTimeSeries,  // Option to record timeseries Q and Qs
+    optNonlinearDiffusion, // Option for nonlinear creep transport
+    optDepthDependentDiffusion; // Option for depth dependent creep transport
+  tRand *rand;             // -> random number generator
+  tMesh<tLNode> *mesh;        // -> mesh object
+  tLOutput<tLNode> *output;   // -> output handler
+  tStorm *storm;              // -> storm generator
+  tStreamNet *strmNet;	    // -> stream network module
+  tErosion *erosion;          // -> erosion module
+  tUplift *uplift;            // -> uplift/baselevel module
+  tRunTimer *time;             // -> run timer
+  tWaterSedTracker water_sed_tracker_;   // Water and sediment tracker
 	
-	tVegetation *vegetation;  // -> vegetation object
-	tFloodplain *floodplain;  // -> floodplain object
-	tStratGrid *stratGrid;     // -> Stratigraphy Grid object
-	tEolian *loess;           // -> eolian deposition object
-	tStreamMeander *strmMeander; // -> stream meander object
-	//Predicates predicate;   // Math-related stuff
+  tVegetation *vegetation;  // -> vegetation object
+  tFloodplain *floodplain;  // -> floodplain object
+  tStratGrid *stratGrid;     // -> Stratigraphy Grid object
+  tEolian *loess;           // -> eolian deposition object
+  tStreamMeander *strmMeander; // -> stream meander object
+  //Predicates predicate;   // Math-related stuff
 	
-	// Private data for implementing OpenMI IElement interface
-	string element_set_id;
-	string element_set_description;
-	int version;
-	
-	
-	
+  // Private data for implementing OpenMI IElement interface
+  string element_set_id;
+  string element_set_description;
+  int version;
 };
 
 

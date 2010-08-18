@@ -352,6 +352,23 @@ private:
 
 /***************************************************************************/
 /**
+ **  @class tSedTransNone
+ **
+ **  Dummy class for no fluvial sediment transport
+ */
+/***************************************************************************/
+class tSedTransNone : public tSedTrans
+{
+  tSedTransNone();
+public:
+  tSedTransNone( const tInputFile & ) {}
+  double TransCapacity( tLNode * ) {return 0.0;}
+  double TransCapacity( tLNode *, int, double ) {return 0.0;}
+};
+
+
+/***************************************************************************/
+/**
  **  @class tBedErode
  **
  **  Abstract Base Class for detachment law
@@ -529,6 +546,286 @@ public:
 
 /***************************************************************************/
 /**
+ **  @class tBedErodeNone
+ **
+ **  Dummy class for no fluvial erosion
+ */
+/***************************************************************************/
+class tBedErodeNone : public tBedErode
+{
+  tBedErodeNone();
+public:
+  tBedErodeNone( const tInputFile & ) {}
+  //Computes depth of potential erosion at node n over time interval dt
+  double DetachCapacity( tLNode *, double ) {return 0.0;}
+  //Computes rate of potential erosion of layer i at node n
+  double DetachCapacity( tLNode * , int ) {return 0.0;}
+  //Computes rate of erosion at node n
+  double DetachCapacity( tLNode * ) {return 0.0;}
+  //Returns an estimate of maximum stable & accurate time step size
+  double SetTimeStep( tLNode * ) {return 0.0;}
+};
+
+/***************************************************************************/
+/**
+ **  @class tPhysicalWeathering
+ **
+ **  Abstract Base Class for physical weathering, or soil production
+ **  STL, 2010
+ */
+/***************************************************************************/
+class tPhysicalWeathering
+{
+public:
+  virtual ~tPhysicalWeathering() {}
+  //Computes depth of physical weathering at node n over time interval dt
+  virtual double SoilProduction( tLNode * n, double dt, double time ) = 0 ;
+  //Computes rate of physical weathering of layer i at node n
+  virtual double SoilProduction( tLNode * n, int i ) = 0 ;
+  //Computes rate of physical weathering at node n
+  virtual double SoilProduction( tLNode * n ) = 0 ;
+
+  // CSDMS IRF interface:
+  virtual void Initialize( const tInputFile &infile ) = 0;
+  virtual double Run_Step( tLNode * n, double dt, double time ) = 0;
+  virtual double Run_Step( tLNode * n, int i ) = 0;
+  virtual double Run_Step( tLNode * n ) = 0;
+  virtual void Finalize() = 0;
+};
+
+/***************************************************************************/
+/**
+ **  @class tPhysicalWeatheringNone
+ **
+ **  "Dummy" physical weathering object for when you don't want to have any!
+ **
+ **  STL, 2010
+ */
+/***************************************************************************/
+class tPhysicalWeatheringNone : public tPhysicalWeathering
+{
+  tPhysicalWeatheringNone();
+public:
+  tPhysicalWeatheringNone( const tInputFile & ) {}
+  //Computes depth of physical weathering at node n over time interval dt
+  double SoilProduction( tLNode *, double, double ) {return 0.0;}
+  //Computes rate of physical weathering of layer i at node n
+  double SoilProduction( tLNode *, int ) {return 0.0;}
+  //Computes rate of physical weathering at node n
+  double SoilProduction( tLNode * ) {return 0.0;}
+
+  // CSDMS IRF interface:
+  void Initialize( const tInputFile & ) {}
+  double Run_Step( tLNode *, double, double ) {return 0.0;}
+  double Run_Step( tLNode *, int ) {return 0.0;}
+  double Run_Step( tLNode * ) {return 0.0;}
+  void Finalize() {}
+
+private:
+};
+
+/***************************************************************************/
+/**
+ **  @class tPhysicalWeatheringExpLaw
+ **
+ **  Simple Ahnert/Heimsath soil production function: production rate
+ **  decreasing exponentially with increasing soil depth; spatially uniform
+ **  maximum (zero-depth) production rate, independent of local rock 
+ **  density
+ **
+ **  STL, 2010
+ */
+/***************************************************************************/
+class tPhysicalWeatheringExpLaw : public tPhysicalWeathering
+{
+  tPhysicalWeatheringExpLaw();
+public:
+  tPhysicalWeatheringExpLaw( const tInputFile &infile );
+  //Computes depth of physical weathering at node n over time interval dt
+  double SoilProduction( tLNode * n, double dt, double time );
+  //Computes rate of physical weathering of layer i at node n
+  double SoilProduction( tLNode * n, int i );
+  //Computes rate of physical weathering at node n
+  double SoilProduction( tLNode * n );
+
+  // CSDMS IRF interface:
+  void Initialize( const tInputFile &infile );
+  double Run_Step( tLNode * n, double dt, double time );
+  double Run_Step( tLNode * n, int i );
+  double Run_Step( tLNode * n );
+  void Finalize();
+
+private:
+  double soilprodK; // production rate at zero soil depth (m/yr)
+  double soilprodH; // soil depth scale for soil production (m)
+};
+
+/***************************************************************************/
+/**
+ **  @class tPhysicalWeatheringDensityDependent
+ **
+ **  Density-dependent Ahnert/Heimsath soil production function: production 
+ **  rate decreasing exponentially with increasing soil depth; varying
+ **  maximum (zero-depth) production rate, dependent on local rock 
+ **  density
+ **
+ **  STL, 2010
+ */
+/***************************************************************************/
+class tPhysicalWeatheringDensityDependent : public tPhysicalWeathering
+{
+  tPhysicalWeatheringDensityDependent();
+public:
+  tPhysicalWeatheringDensityDependent( const tInputFile &infile );
+  //Computes depth of physical weathering at node n over time interval dt
+  double SoilProduction( tLNode * n, double dt, double time );
+  //Computes rate of physical weathering of layer i at node n
+  double SoilProduction( tLNode * n, int i );
+  //Computes rate of physical weathering at node n
+  double SoilProduction( tLNode * n );
+
+  // CSDMS IRF interface:
+  void Initialize( const tInputFile &infile );
+  double Run_Step( tLNode * n, double dt, double time );
+  double Run_Step( tLNode * n, int i );
+  double Run_Step( tLNode * n );
+  void Finalize();
+
+private:
+  double soilprodK0; // prod'n rate at zero soil depth & zero density (m/yr)
+  double soilprodK1; // rate of prod'n rate decrease w/ increasing density 
+                     // ( (m/yr)/(kg/m3) )
+  double soilprodH; // soil depth scale for soil production (m)
+};
+
+/***************************************************************************/
+/**
+ **  @class tChemicalWeathering
+ **
+ **  Abstract Base Class for chemical weathering, or soil production
+ **
+ **  The need for bedrock layers and their characteristics are dependent 
+ **  on the particular weathering law and its parameters, so the bedrock
+ **  layers are made in the tChemicalWeathering constructor and updated in
+ **  the SoluteFlux function.
+ **
+ **  STL, 2010
+ */
+/***************************************************************************/
+class tChemicalWeathering
+{
+public:
+  virtual ~tChemicalWeathering() {}
+  //Computes dissolution at node n over time interval dt
+  virtual double SoluteFlux( tLNode * n, double dt ) = 0 ;
+  //Computes solute flux rate from layer i at node n
+  virtual double SoluteFlux( tLNode * n, int i ) = 0 ;
+  //Computes solute flux rate at node n
+  virtual double SoluteFlux( tLNode * n ) = 0 ;
+  //Computes strain accumulation at node n over time interval dt
+  virtual double StrainRate( tLNode * n, double dt ) = 0 ;
+  //Computes strain accumulation rate in layer i at node n
+  virtual double StrainRate( tLNode * n, int i ) = 0 ;
+  //Computes strain accumulation rate at node n
+  virtual double StrainRate( tLNode * n ) = 0 ;
+
+  // CSDMS IRF interface:
+  virtual void Initialize( const tInputFile &infile, 
+			   tMesh<tLNode> *meshPtr ) = 0;
+  virtual double Run_Step( tLNode * n, double dt ) = 0;
+  virtual double Run_Step( tLNode * n, int i ) = 0;
+  virtual double Run_Step( tLNode * n ) = 0;
+  virtual void Finalize() = 0;
+};
+
+/***************************************************************************/
+/**
+ **  @class tChemicalWeatheringNone
+ **
+ **  "Dummy" chemical weathering object for when you don't want to have any!
+ **
+ **  STL, 2010
+ */
+/***************************************************************************/
+class tChemicalWeatheringNone : public tChemicalWeathering
+{
+  tChemicalWeatheringNone();
+public:
+  tChemicalWeatheringNone( const tInputFile &, 
+			   tMesh<tLNode> * ) {}
+  //Computes dissolution at node n over time interval dt
+  double SoluteFlux( tLNode *, double ) {return 0.0;}
+  //Computes solute flux rate from layer i at node n
+  double SoluteFlux( tLNode *, int ) {return 0.0;}
+  //Computes solute flux rate at node n
+  double SoluteFlux( tLNode * ) {return 0.0;}
+  //Computes strain accumulation at node n over time interval dt
+  double StrainRate( tLNode *, double ) {return 0.0;}
+  //Computes strain accumulation rate in layer i at node n
+  double StrainRate( tLNode *, int ) {return 0.0;}
+  //Computes strain accumulation rate at node n
+  double StrainRate( tLNode * ) {return 0.0;}
+
+  // CSDMS IRF interface:
+  void Initialize( const tInputFile &, tMesh<tLNode> * ) {}
+  double Run_Step( tLNode *, double ) {return 0.0;}
+  double Run_Step( tLNode *, int ) {return 0.0;}
+  double Run_Step( tLNode * ) {return 0.0;}
+  void Finalize() {}
+
+private:
+};
+
+/***************************************************************************/
+/**
+ **  @class tChemicalWeatheringDissolution
+ **
+ **  Depth dependent chemical weathering that decreases rock density without
+ **  strain accumulation: matrix dissolution rate
+ **  decreasing exponentially with increasing depth below bedrock surface; 
+ **  spatially uniform maximum (zero-depth) dissolution rate, independent 
+ **  of local rock hydraulic conductivity. Dissolution occurs without 
+ **  mineral alteration or strain.
+ **
+ **  STL, 2010
+ */
+/***************************************************************************/
+class tChemicalWeatheringDissolution : public tChemicalWeathering
+{
+  tChemicalWeatheringDissolution();
+public:
+  tChemicalWeatheringDissolution( const tInputFile &infile, 
+				  tMesh<tLNode> *meshPtr );
+  //Computes dissolution at node n over time interval dt
+  double SoluteFlux( tLNode * n, double dt );
+  //Computes solute flux rate from layer i at node n
+  double SoluteFlux( tLNode * n, int i );
+  //Computes solute flux rate at node n
+  double SoluteFlux( tLNode * n );
+  //Computes strain accumulation at node n over time interval dt
+  double StrainRate( tLNode *, double ) {return 0.0;}
+  //Computes strain accumulation rate in layer i at node n
+  double StrainRate( tLNode *, int ) {return 0.0;}
+  //Computes strain accumulation rate at node n
+  double StrainRate( tLNode * ) {return 0.0;}
+
+  // CSDMS IRF interface:
+  void Initialize( const tInputFile &infile, tMesh<tLNode> *meshPtr );
+  double Run_Step( tLNode * n, double dt );
+  double Run_Step( tLNode * n, int i );
+  double Run_Step( tLNode * n );
+  void Finalize();
+
+private:
+  double maxDissolution; // dissolution rate at bedrock surface (kg/m3/yr)
+  double chemDepth; // bedrock depth scale for dissolution (m)
+  double rockBulkDensity_0; // initial unweathered rock density (kg/m3)
+  double rockLayerDepth; // thickness of new rock layers (m)
+  int numThinLayers;  // number of new rock layers
+};
+
+/***************************************************************************/
+/**
  **  @class tErosion
  **
  **  Manages data and routines related to various aspects of erosion.
@@ -553,6 +850,9 @@ public:
    void DetachErode2( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
    void Diffuse( double dtg, bool detach );
    void DiffuseNonlinear( double dtg, bool detach );
+  void DiffuseNonlinearDepthDep( double dtg, double time );
+  void ProduceRegolith( double dtg, double time );
+  void WeatherBedrock( double dtg );
    void UpdateExposureTime( double dtg);
    void DensifyMesh( double time );
    void ActivateSedVolumeTracking( tWaterSedTracker *water_sed_tracker_ptr )
@@ -562,14 +862,18 @@ private:
    tMesh<tLNode> *meshPtr;    // ptr to mesh
    tBedErode *bedErode;        // bed erosion object
    tSedTrans *sedTrans;        // sediment transport object
+  tPhysicalWeathering *physWeath; // physical weathering object
+  tChemicalWeathering *chemWeath; // chemical weathering object
    double kd;                 // Hillslope transport (diffusion) coef
    double difThresh;          // Diffusion occurs only at areas < difThresh
    double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
    double mdSc;				  // Threshold slope for nonlinear diffusion
+  double diffusionH; // depth scale for depth-dependent diffusion
    double beta; // proportion of sediment flux contributing to bedload
    bool track_sed_flux_at_nodes_; // option for tracking sed flux at nodes
    tWaterSedTracker *water_sed_tracker_ptr_;  // -> water&sed tracker object
-   
+  double soilBulkDensity; // bulk density of soil, when made from rock (kg/m3)
+  //int optDebrisFlowRule; // option for debris flows, used in Landslides()
 };
 
 

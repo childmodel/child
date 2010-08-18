@@ -2,7 +2,7 @@ function m=cplotmesh(basenm,ts)
 % CPLOTMESH: Plots Child triangulation.
 %  filenm -- name of edge file
 %  ts -- time slice to plot
-filesys='';
+filesys='/Users/lancasts/Models/Child_CU_copy_2010/child/Child/Tests/WeatheringLandsliding/';
 filenm= [filesys basenm '.nodes' ]
 nfid=fopen(filenm,'r');
 filenm= [filesys basenm '.edges' ]

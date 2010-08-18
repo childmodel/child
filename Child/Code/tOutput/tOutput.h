@@ -224,6 +224,15 @@ private:
 };
 
 // Write data, including layer info
+// Modified by SL, 7/2010: 
+// - Accessing layers by index may be convenient, but it means  
+//   paging through the list for each item from the beginning or end; 
+//   that's one thing when there are only a few layers, but with chemical
+//   weathering, there will be about 200 layers; replaced with list iterator,
+//   accessed through the recently added tLNode::getLayersRefNC().
+// - Added output of new tLayer::bulkDensity; just put it on the line
+//   after erodibility; hope that doesn't screw up too many Matlab functions.
+
 template< class tSubNode >
 inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
 {
@@ -244,20 +253,31 @@ inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
 
   if(OptLayOutput){
     layofs << ' ' << cn->getNumLayer() << '\n';
-    int i=0;
-    while(i<cn->getNumLayer()){
-      layofs << cn->getLayerCtime(i) << ' ' << cn->getLayerRtime(i) << ' '
-	     << cn->getLayerEtime(i) << '\n'
-	     << cn->getLayerDepth(i) << ' ' << cn->getLayerErody(i) << ' '
-	     << cn->getLayerSed(i) << '\n';
-      size_t j=0;
-      while(j<cn->getNumg()){
-	layofs << cn->getLayerDgrade(i,j) << ' ';
-	j++;
+    // write out data for each layer:
+    tListIter< tLayer > lI( cn->getLayersRefNC() );
+    for( tLayer *lP=lI.FirstP(); !lI.AtEnd(); lP=lI.NextP() )
+      {
+	layofs << lP->getCtime() << ' ' << lP->getRtime() << ' '
+	       << lP->getEtime() << '\n'
+	       << lP->getDepth() << ' ' << lP->getErody() << ' '
+	       << lP->getBulkDensity() << ' ' << lP->getSed() << '\n';
+	for( size_t j=0; j<lP->getDgrade().getSize(); ++j )
+	  layofs << lP->getDgrade(j) << ' ';
+	layofs << '\n';
       }
-      layofs << '\n';
-      i++;
-    }
+//     while(i<cn->getNumLayer()){
+//       layofs << cn->getLayerCtime(i) << ' ' << cn->getLayerRtime(i) << ' '
+// 	     << cn->getLayerEtime(i) << '\n'
+// 	     << cn->getLayerDepth(i) << ' ' << cn->getLayerErody(i) << ' '
+// 	     << cn->getLayerSed(i) << '\n';
+//       size_t j=0;
+//       while(j<cn->getNumg()){
+// 	layofs << cn->getLayerDgrade(i,j) << ' ';
+// 	j++;
+//       }
+//       layofs << '\n';
+//       i++;
+//     }
   }
 }
 

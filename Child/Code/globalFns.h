@@ -86,4 +86,8 @@ double LineFit(double x1, double y1, double x2, double y2, double nx);
 
 double DistanceBW2Points(double x1, double y1, double x2, double y2 );
 
+double DistanceToLine( double x2, double y2, double a, double b, double c );
+
+double DistanceToLine( double x2, double y2, tNode const *p0, tNode const *p1 );
+
 #endif

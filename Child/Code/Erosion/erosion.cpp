@@ -1,8 +1,9 @@
 /***************************************************************************/
 /**
  **  @file erosion.cpp
- **  @brief Functions for equilibrium checking, sediment transport and
- **          bed erosion(detachment) objects.
+ **  @brief Functions for equilibrium checking, sediment transport,
+ **          bed erosion(detachment), and physical and chemical 
+ **          weathering objects.
  **
  **    tEquilibCheck
  **  Transport objects:
@@ -17,6 +18,13 @@
  **    tBedErodePwrLaw2
  **    tBedErodeAParabolic1
  **    tBedErodeGeneralFQS
+ **  Physical weathering objects (added 6/2010 sl):
+ **    tPhysicalWeatheringNone
+ **    tPhysicalWeatheringExpLaw
+ **    tPhysicalWeatheringDensityDependent
+ **  Chemical weathering objects (added 6/2010 sl):
+ **    tChemicalWeatheringNone
+ **    tChemicalWeatheringDissolution
  **
  **    Created 1/98 gt; add tEqChk 5/98 sl
  **
@@ -42,6 +50,11 @@
  **       counted when both ero and dep of different sizes was happening
  **       simultaneously. Also added assertions. (GT 8/02)
  **     - added nonlinear creep function DiffuseNonlinear (GT 8/07)
+ **     - Weathering: Added chemical and physical weathering; choice of 
+ **       laws, determined at run time as with tBedErode and tSedTrans
+ **       (SL, 7/10)
+ **     - Added "dummy" tBedErode and tSedTrans versions to provide a 
+ **       way to turn off fluvial erosion and transport completely (SL 7/10)
  **
  **    Known bugs:
  **     - ErodeDetachLim assumes 1 grain size. If multiple grain sizes
@@ -57,17 +70,22 @@
 #include <assert.h>
 # include <iomanip>
 #include <vector>  // first added for DiffuseNonlinear()
+#include <queue> // first added for Landslides()
 using namespace std;   // also added for DiffuseNonlinear() to use vector class from STL
 //#include <string>
 #include "erosion.h"
 
-// Here follows a table for transport and detachment laws, which are
-// chosen at compile time using #define switches.
+// Here follows a table for transport, detachment, and physical and chemical
+// weathering laws, which are chosen at run time via "X()" trick in 
+// tErosion constructor.
+// (No longer:
+// chosen at compile time using #define switches.)
 //
 // ("X()" trick exposed in:
 // The New C: X Macros, Randy Meyers, C/C++ Users Journal,
 // 19(5), May 2001)
 
+// Transport laws:
 #define TRANSPORT_LAW_TABLE \
 X(PowerLaw1,"Power-law transport formula"), \
 X(PowerLaw2,"Power-law transport formula, form 2"), \
@@ -75,7 +93,8 @@ X(BridgeDominic,"Bridge-Dominic form of Bagnold bedload formula"), \
 X(Wilcock,"Wilcock sand-gravel formula"), \
 X(PowerLawMulti,"Multi-size power-law formula"), \
 X(MineTailings,"Willgoose/Riley mine tailings formula"), \
-X(PowerLaw3, "Ultra-Simplified power-law transport formula")
+X(PowerLaw3, "Ultra-Simplified power-law transport formula"), \
+X(NoSedTrans, "Dummy law for no fluvial transport")
 
 #define TRANSPORT_LAW_TABLE2 \
 X(PowerLaw1,tSedTransPwrLaw) \
@@ -84,7 +103,8 @@ X(BridgeDominic,tSedTransBridgeDom) \
 X(Wilcock,tSedTransWilcock) \
 X(PowerLawMulti,tSedTransPwrLawMulti) \
 X(MineTailings,tSedTransMineTailings) \
-X(PowerLaw3,tSedTransPwrLawSimp)
+X(PowerLaw3,tSedTransPwrLawSimp) \
+X(NoSedTrans,tSedTransNone)
 
 #define X(a,b) a
 enum {
@@ -102,17 +122,20 @@ char const * const TransportLaw[] =
 const int NUMBER_OF_TRANSPORT_LAWS =
 sizeof(TransportLaw)/sizeof(TransportLaw[0]);
 
+// Detachment laws:
 #define DETACHMENT_LAW_TABLE \
 X(DetachPwrLaw1,"Power law, form 1"), \
 X(DetachPwrLaw2,"Power law, form 2"), \
 X(DetachAParabolic1, "Almost Parabolic Law"), \
-X(DetachGeneralFQS,"Generalized f(Qs) Detachment-rule")
+X(DetachGeneralFQS,"Generalized f(Qs) Detachment-rule"), \
+X(DetachNone, "Dummy law for no fluvial erosion")
 
 #define DETACHMENT_LAW_TABLE2 \
 X(DetachPwrLaw1,tBedErodePwrLaw) \
 X(DetachPwrLaw2,tBedErodePwrLaw2) \
 X(DetachAParabolic1, tBedErodeAParabolic1) \
-X(DetachGeneralFQS,tBedErodeGeneralFQS) 
+X(DetachGeneralFQS,tBedErodeGeneralFQS) \
+X(DetachNone,tBedErodeNone)
 
 #define X(a,b) a
 enum {
@@ -129,6 +152,58 @@ char const * const DetachmentLaw[] =
 
 const int NUMBER_OF_DETACHMENT_LAWS =
 sizeof(DetachmentLaw)/sizeof(DetachmentLaw[0]);
+
+// Physical weathering (production) laws:
+#define PRODUCTION_LAW_TABLE \
+X(NoPhysWeath,"No soil production"), \
+X(ExpLaw,"Simple exponential production law"), \
+X(DensityDependent,"Density-dependent exponential production law")
+
+#define PRODUCTION_LAW_TABLE2 \
+X(NoPhysWeath,tPhysicalWeatheringNone) \
+X(ExpLaw,tPhysicalWeatheringExpLaw) \
+X(DensityDependent,tPhysicalWeatheringDensityDependent)
+
+#define X(a,b) a
+enum {
+  PRODUCTION_LAW_TABLE
+};
+#undef X
+
+#define X(a,b) b
+char const * const ProductionLaw[] =
+  {
+    PRODUCTION_LAW_TABLE
+  };
+#undef X
+
+const int NUMBER_OF_PRODUCTION_LAWS =
+sizeof(ProductionLaw)/sizeof(ProductionLaw[0]);
+
+// Chemical weathering:
+#define CHEM_WEATHERING_TABLE \
+X(NoChemWeath,"No chemical weathering"), \
+X(Dissolution,"Simple dissolution law")
+
+#define CHEM_WEATHERING_TABLE2 \
+X(NoChemWeath,tChemicalWeatheringNone) \
+X(Dissolution,tChemicalWeatheringDissolution)
+
+#define X(a,b) a
+enum {
+  CHEM_WEATHERING_TABLE
+};
+#undef X
+
+#define X(a,b) b
+char const * const ChemWeathering[] =
+  {
+    CHEM_WEATHERING_TABLE
+  };
+#undef X
+
+const int NUMBER_OF_CHEM_WEATHERINGS =
+sizeof(ChemWeathering)/sizeof(ChemWeathering[0]);
 
 /***************************************************************************\
  **  FUNCTIONS FOR CLASS tEquilibCheck
@@ -2096,13 +2171,437 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
 }
 
 /***************************************************************************\
+ **  FUNCTIONS FOR CLASS tPhysicalWeatheringExpLaw
+\***************************************************************************/
+
+/***************************************************************************\
+ **  tPhysicalWeatheringExpLaw Constructor
+ **
+ **  Reads in parameters for the simple soil production function.
+ **  "soilprodK" is the uniform and constant soil production rate for 
+ **  zero soil depth; "soilprodH" is the uniform and constant soil depth
+ **  scale controlling the rate of decline of soil production rate with
+ **  increasing soil depth.
+ **     (STL 6/10)
+ **
+\***************************************************************************/
+//constructor: reads and sets the parameters
+tPhysicalWeatheringExpLaw::
+tPhysicalWeatheringExpLaw( const tInputFile &infile )
+{
+  soilprodK = infile.ReadItem( soilprodK, "SOILPRODRATE" );
+  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH" );
+}
+
+// Initialize() for CSDMS IRF interface:
+void tPhysicalWeatheringExpLaw::Initialize( const tInputFile &infile )
+{
+  soilprodK = infile.ReadItem( soilprodK, "SOILPRODRATE" );
+  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH" );
+}
+
+
+/***************************************************************************\
+ **  tPhysicalWeatheringExpLaw::SoilProduction (1 of 3)
+ **
+ **  Computes the depth of weathering over a time interval dt.
+ **  Simply calls 3rd SoilProduction below and multiplies result by dt.
+\***************************************************************************/
+double tPhysicalWeatheringExpLaw::
+SoilProduction( tLNode * n, double dt, double )
+{
+  return( SoilProduction( n ) * dt );
+}
+
+double tPhysicalWeatheringExpLaw::Run_Step( tLNode * n, double dt, double time ) 
+{
+  return SoilProduction( n, dt, time );
+}
+
+/***************************************************************************\
+ **  tPhysicalWeatheringExpLaw::SoilProduction (2 of 3)
+ **
+ **  Computes the rate of weathering for a layer, i.e., rate of bedrock 
+ **  lowering.
+ **  Uses Ahnert/Heimsath soil production function.
+\***************************************************************************/
+double tPhysicalWeatheringExpLaw::SoilProduction( tLNode * n, int i )
+{
+  // don't do physical weathering if layer is sediment
+  if( n->getLayerSed(i) == tLayer::kSed ) return 0.0;
+  // find soil/sediment thickness above bedrock:
+  tListIter< tLayer > lI( n->getLayersRefNC() );
+  double soilThickness(0.0);
+  tLayer *lP=0;
+  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() )
+    soilThickness += lP->getDepth();
+  for( ; lP->getID() < i; lP=lI.NextP() );
+  // calculate rate of bedrock lowering (hence negative sign):
+  double rate = -soilprodK * exp( -soilThickness / soilprodH );
+  return rate;
+}
+
+double tPhysicalWeatheringExpLaw::Run_Step( tLNode * n, int i ) 
+{
+  return SoilProduction( n, i );
+}
+
+/***************************************************************************\
+ **  tPhysicalWeatheringExpLaw::SoilProduction (3 of 3)
+ **
+ **  Computes the rate of weathering for the topmost rock layer.
+ **  Simply calls 3rd SoilProduction below and multiplies result by dt.
+\***************************************************************************/
+double tPhysicalWeatheringExpLaw::SoilProduction( tLNode * n )
+{
+  // find top bedrock layer and depth of soil above it:
+  tListIter< tLayer > lI( n->getLayersRefNC() );
+  double soilThickness(0.0);
+  tLayer *lP=0;
+  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() )
+    soilThickness += lP->getDepth();
+  // calculate rate of bedrock lowering (hence negative sign):
+  double rate = -soilprodK * exp( -soilThickness / soilprodH );
+  return rate;
+}
+
+double tPhysicalWeatheringExpLaw::Run_Step( tLNode * n ) 
+{
+  return SoilProduction(n);
+}
+
+
+void tPhysicalWeatheringExpLaw::Finalize() {}
+
+/***************************************************************************\
+ **  FUNCTIONS FOR CLASS tPhysicalWeatheringDensityDependent
+\***************************************************************************/
+
+/***************************************************************************\
+ **  tPhysicalWeatheringDensityDependent Constructor
+ **
+ **  Reads in parameters for the simple soil production function.
+ **  "soilprodK" is the uniform and constant soil production rate for 
+ **  zero soil depth; "soilprodH" is the uniform and constant soil depth
+ **  scale controlling the rate of decline of soil production rate with
+ **  increasing soil depth.
+ **     (STL 6/10)
+ **
+\***************************************************************************/
+//constructor: reads and sets the parameters
+tPhysicalWeatheringDensityDependent::
+tPhysicalWeatheringDensityDependent( const tInputFile &infile )
+{
+  soilprodK0 = infile.ReadItem( soilprodK0, "SOILPRODRATEINTERCEPT" );
+  soilprodK1 = infile.ReadItem( soilprodK1, "SOILPRODRATESLOPE" );
+  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH" );
+}
+
+// Initialize() for CSDMS IRF interface:
+void tPhysicalWeatheringDensityDependent::Initialize( const tInputFile &infile )
+{
+  soilprodK0 = infile.ReadItem( soilprodK0, "SOILPRODRATEINTERCEPT" );
+  soilprodK1 = infile.ReadItem( soilprodK1, "SOILPRODRATESLOPE" );
+  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH" );
+}
+
+
+/***************************************************************************\
+ **  tPhysicalWeatheringDensityDependent::SoilProduction (1 of 3)
+ **
+ **  Computes the depth of weathering over a time interval dt.
+ **  Simply calls 3rd SoilProduction below and multiplies result by dt.
+\***************************************************************************/
+double tPhysicalWeatheringDensityDependent::
+SoilProduction( tLNode * n, double dt, double )
+{
+  return( SoilProduction( n ) * dt );
+}
+
+double tPhysicalWeatheringDensityDependent::Run_Step( tLNode * n, double dt, double time ) 
+{
+  return SoilProduction( n, dt, time );
+}
+
+
+/***************************************************************************\
+ **  tPhysicalWeatheringDensityDependent::SoilProduction (2 of 3)
+ **
+ **  Computes the rate of weathering for a layer.
+ **  Uses Ahnert/Heimsath soil production function.
+ **  Preferred function only if you need to find rate for a layer other
+ **  than the topmost bedrock (and for that it is a bit suspect).
+\***************************************************************************/
+double tPhysicalWeatheringDensityDependent::SoilProduction( tLNode * n, int i )
+{
+  // don't do physical weathering if layer is sediment
+  if( n->getLayerSed(i) == tLayer::kSed ) return 0.0;
+  // find soil/sediment thickness above bedrock:
+  tListIter< tLayer > lI( n->getLayersRefNC() );
+  double soilThickness(0.0);
+  tLayer *lP=0;
+  int j=0;
+  for( lP=lI.FirstP(), j=0; lP->getSed() == tLayer::kSed; lP=lI.NextP(), ++j )
+    soilThickness += lP->getDepth();
+  // keep adding thickness below bedrock surface 
+  // (is this the right way to do this? maybe):
+  for( ; j < i; lP=lI.NextP(), ++j )
+    soilThickness += lP->getDepth();
+  // calculate rate of bedrock lowering (hence negative sign):
+  double rate = -( soilprodK0 - soilprodK1 * lP->getBulkDensity() ) 
+    * exp( -soilThickness / soilprodH );
+  return rate;
+}
+
+double tPhysicalWeatheringDensityDependent::Run_Step( tLNode * n, int i ) 
+{
+  return SoilProduction( n, i );
+}
+
+/***************************************************************************\
+ **  tPhysicalWeatheringDensityDependent::SoilProduction (3 of 3)
+ **
+ **  Computes the rate of weathering for the topmost rock layer.
+ **  Uses Ahnert/Heimsath soil production function.
+ **  Preferred function because it automatically calculates rate at top of
+ **  bedrock.
+\***************************************************************************/
+double tPhysicalWeatheringDensityDependent::SoilProduction( tLNode * n )
+{
+  // find top bedrock layer and depth of soil above it:
+  tListIter< tLayer > lI( n->getLayersRefNC() );
+  double soilThickness(0.0);
+  tLayer *lP=0;
+  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() )
+    soilThickness += lP->getDepth();
+  // get bedrock surface bulk density:
+  double rockDensity = lP->getBulkDensity();
+  // calculate rate of bedrock lowering (hence negative sign):
+  double rate = -( soilprodK0 - soilprodK1 * rockDensity ) 
+    * exp( -soilThickness / soilprodH );
+  return rate;
+}
+
+double tPhysicalWeatheringDensityDependent::Run_Step( tLNode * n ) 
+{
+  return SoilProduction(n);
+}
+
+
+void tPhysicalWeatheringDensityDependent::Finalize() {}
+
+/***************************************************************************\
+ **  FUNCTIONS FOR CLASS tChemicalWeatheringDissolution
+\***************************************************************************/
+
+/***************************************************************************\
+ **  tChemicalWeatheringDissolution Constructor
+ **
+ **  Reads in parameters for the simple dissolution chemical weathering.
+ **  "maxDissolution" is the uniform and constant dissolution rate at the
+ **  bedrock surface; "chemDepth" is the uniform and constant bedrock depth
+ **  scale controlling the rate of decline of dissolution rate with
+ **  increasing depth below the bedrock surface.
+ **     (STL 6/10)
+ **
+\***************************************************************************/
+//constructor: reads and sets the parameters
+tChemicalWeatheringDissolution::
+tChemicalWeatheringDissolution( const tInputFile &infile, 
+				tMesh<tLNode> *meshPtr )
+{
+  Initialize( infile, meshPtr );
+}
+
+// Initialize() for CSDMS IRF interface:
+void tChemicalWeatheringDissolution::Initialize( const tInputFile &infile, 
+						 tMesh<tLNode> *meshPtr )
+{
+  maxDissolution = infile.ReadItem( maxDissolution, "MAXDISSOLUTIONRATE" );
+  chemDepth = infile.ReadItem( chemDepth, "CHEMDEPTH" );
+  rockBulkDensity_0 = infile.ReadItem( rockBulkDensity_0, "ROCKDENSITYINIT" );
+  const double weatheringDepth = 10.0 * chemDepth; // >>chemDepth
+  rockLayerDepth = chemDepth / 20; // <<chemDepth
+  numThinLayers = ROUND( weatheringDepth / rockLayerDepth );
+  tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() ); // node iter.
+  // make bedrock layers for each active node:
+  for( tLNode* n = ni.FirstP(); ni.IsActive(); n = ni.NextP() )
+    {
+      // currently one very thick bedrock layer; set its bulk density,
+      // and then make copies of that layer; number and thickness are
+      // dependent on the chemical weathering depth scale, chemDepth:
+      tListIter< tLayer > lI( n->getLayersRefNC() ); // layer iterator
+      tLayer *lP=0; // current layer pointer
+      // find top bedrock layer and bottom soil layer:
+      for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() );
+      lP->setBulkDensity( rockBulkDensity_0 );
+      // insert copies at bottom of layer list:
+      for( int i=0; i<numThinLayers; ++i )
+	n->getLayersRefNC().insertAtBack( *lP );
+      // now have a bunch of thick layers;
+      // reset depth for all rock layers but the thick bottom layer:
+      {
+	int i;
+	for( lP=lI.FirstP(), i=0; 
+	     lP->getSed() == tLayer::kSed; 
+	     lP=lI.NextP(), ++i );
+	const int numLayers = n->getNumLayer();
+	for( ; i<numLayers-1; ++i, lP=lI.NextP() )
+	  lP->setDepth( rockLayerDepth );
+      }
+    }
+}
+
+
+/***************************************************************************\
+ **  tChemicalWeatheringDissolution::SoluteFlux (1 of 3)
+ **
+ **  Computes the chemical weathering for the whole rock column 
+ **  over a time interval dt.
+ **  Calculates density change (kg/m3) with exponential decay with depth.
+ **  Updates density of each rock layer.
+ **  Returns total mass flux (kg), typically negative.
+ **  Preferred function for doing chemical weathering at a point.
+\***************************************************************************/
+double tChemicalWeatheringDissolution::SoluteFlux( tLNode * n, double dt )
+{
+  // find top of bedrock:
+  tListIter< tLayer > lI( n->getLayersRefNC() );
+  tLayer *lP=0;
+  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() );
+  // find bedrock depth and calculate solute flux rate at each layer:
+  double bedrockDepth(0.0);
+  double flux(0.0);
+  for( int i=0; i<numThinLayers; ++i, lP=lI.NextP() )
+    {
+      // check layer depth; if thick, insert a copy and make it thin 
+      // (compare to initial rockLayerDepth, but allow for thickening
+      // due to strain associated with weathering):
+      if( lP->getDepth() > rockLayerDepth * 20.0 )
+	{
+	  n->getLayersRefNC().insertAtPrev( *lP, lI.NodePtr() );
+	  lP = lI.PrevP();
+	  lP->setDepth( rockLayerDepth );
+	}
+      // calculate bedrock density change (dissolution,  
+      // hence negative sign); use depth at top of layer:
+      double deltaRho = 
+	-maxDissolution * exp( -bedrockDepth / chemDepth ) * dt;
+      // update layer bulk density:
+      lP->addBulkDensity( deltaRho );
+      // and increment total mass flux per unit area:
+      flux += deltaRho * lP->getDepth();
+      if( lP->getBulkDensity() > 0.0 )
+	// increment depth:
+	bedrockDepth += lP->getDepth();
+      else
+	{
+	  // don't expect this to happen, but if density drops to zero,
+	  // remove layer and change elevation:
+	  n->ChangeZ( -lP->getDepth() );
+	  lP = lI.PrevP();
+	  tLayer lay;
+	  n->getLayersRefNC().removeNext( lay, lI.NodePtr() );
+	  assert( n>0 );
+	}
+    }
+  // multiply by area for total mass flux:
+  flux *=  n->getVArea();
+  return flux;
+}
+
+double tChemicalWeatheringDissolution::Run_Step( tLNode * n, double dt ) 
+{
+  return SoluteFlux( n, dt );
+}
+
+/***************************************************************************\
+ **  tChemicalWeatheringDissolution::SoluteFlux (2 of 3)
+ **
+ **  Computes the rate of weathering for a layer, i.e., rate of bedrock 
+ **  density decrease.
+ **  Uses exponential decay with depth function.
+ **  Returns rate of density change (kg/m3/yr), typically negative.
+ **  Preferred function for updating rock density at one layer.
+\***************************************************************************/
+double tChemicalWeatheringDissolution::SoluteFlux( tLNode * n, int i )
+{
+  // don't do chemical weathering if layer is sediment
+  if( n->getLayerSed(i) == tLayer::kSed ) return 0.0;
+  // find top of bedrock:
+  tListIter< tLayer > lI( n->getLayersRefNC() );
+  tLayer *lP=0;
+  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() );
+  // find bedrock depth at layer:
+  double bedrockDepth(0.0);
+  for( int j=0; j < i; ++j, lP=lI.NextP() )
+    bedrockDepth += lP->getDepth();
+  // calculate rate of bedrock density change (dissolution, hence negative sign):
+  double rate = -maxDissolution * exp( -bedrockDepth / chemDepth );
+  return rate;
+}
+
+double tChemicalWeatheringDissolution::Run_Step( tLNode * n, int i ) 
+{
+  return SoluteFlux( n, i );
+}
+
+/***************************************************************************\
+ **  tChemicalWeatheringDissolution::SoluteFlux (3 of 3)
+ **
+ **  Computes the rate of weathering for the whole rock column.
+ **  Uses exponential decay with depth function.
+ **  Does not update rock density, since no dt.
+ **  Returns rate of density change (kg/m3/yr), typically negative.
+ **  Preferred function only for finding total solute flux at a node.
+\***************************************************************************/
+double tChemicalWeatheringDissolution::SoluteFlux( tLNode * n )
+{
+  // find top of bedrock:
+  tListIter< tLayer > lI( n->getLayersRefNC() );
+  tLayer *lP=0;
+  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() );
+  // find bedrock depth and calculate solute flux rate at each layer:
+  double bedrockDepth(0.0);
+  double rate(0.0);
+  for( int i=0; i<numThinLayers; ++i, lP=lI.NextP() )
+    {
+      // check layer depth; if thick, insert a copy and make it thin 
+      // (compare to initial rockLayerDepth, but allow for thickening
+      // due to strain associated with weathering):
+      if( lP->getDepth() > rockLayerDepth * 20.0 )
+	{
+	  n->getLayersRefNC().insertAtPrev( *lP, lI.NodePtr() );
+	  lP = lI.PrevP();
+	  lP->setDepth( rockLayerDepth );
+	}
+      // calculate and increment flux rate per unit area (dissolution,  
+      // hence negative sign); use depth at top of layer:
+      rate += -maxDissolution * exp( -bedrockDepth / chemDepth )
+	* lP->getDepth();
+      // increment depth:
+      bedrockDepth += lP->getDepth();
+    }
+  // multiply rate by area:
+  rate *= n->getVArea();
+  return rate;
+}
+
+double tChemicalWeatheringDissolution::Run_Step( tLNode * n ) 
+{
+  return SoluteFlux(n);
+}
+
+void tChemicalWeatheringDissolution::Finalize() {}
+
+/***************************************************************************\
  **  FUNCTIONS FOR CLASS tErosion
  \***************************************************************************/
 
 //constructor
 tErosion::tErosion( tMesh<tLNode> *mptr, const tInputFile &infile ) :
 meshPtr(mptr),
-bedErode(0), sedTrans(0),
+bedErode(0), sedTrans(0), physWeath(0), chemWeath(0),
 track_sed_flux_at_nodes_( false ), water_sed_tracker_ptr_(NULL)
 {
   assert( mptr!=0 );
@@ -2114,7 +2613,11 @@ track_sed_flux_at_nodes_( false ), water_sed_tracker_ptr_(NULL)
   if( optNonlinearDiffusion )
     mdSc = infile.ReadItem( mdSc, "CRITICAL_SLOPE" );
   beta=infile.ReadItem( beta, "BETA"); //For Sediment-Flux Detach Rules
-  
+  bool optDepthDependentDiffusion = 
+    infile.ReadBool( "OPT_DEPTH_DEPENDENT_DIFFUSION", false );
+  if( optDepthDependentDiffusion)
+    diffusionH = infile.ReadItem( diffusionH, "DIFFDEPTHSCALE", 1.0 );
+  soilBulkDensity=infile.ReadItem( soilBulkDensity, "SOILBULKDENSITY", 1000. );
   int optAdaptMesh = infile.ReadItem( optAdaptMesh, "OPTMESHADAPTDZ" );
   if( optAdaptMesh )
     mdMeshAdaptMaxFlux = infile.ReadItem( mdMeshAdaptMaxFlux,
@@ -2122,6 +2625,8 @@ track_sed_flux_at_nodes_( false ), water_sed_tracker_ptr_(NULL)
   
   // Make sure the user wants the detachment and transport options that
   // are compiled in this version
+
+  // set bedrock detachment law:
   int optProcessLaw = infile.ReadItem( optProcessLaw,
                                       "DETACHMENT_LAW" );
   switch(optProcessLaw){
@@ -2146,6 +2651,7 @@ break;
   std::cout << "DETACHMENT OPTION: "
   << DetachmentLaw[optProcessLaw] << std::endl;
   
+  // set sediment transport law:
   optProcessLaw = infile.ReadItem( optProcessLaw,
                                   "TRANSPORT_LAW" );
   switch(optProcessLaw){
@@ -2168,12 +2674,67 @@ break;
   }
   std::cout << "SEDIMENT TRANSPORT OPTION: "
   << TransportLaw[optProcessLaw] << std::endl;
+
+  // set soil production law:
+  optProcessLaw = infile.ReadItem( optProcessLaw,
+				   "PRODUCTION_LAW" );
+
+  switch(optProcessLaw)
+    {
+#define X(a,b) case a: \
+physWeath = new b(infile); \
+break;
+      PRODUCTION_LAW_TABLE2
+#undef X
+    default:
+      {
+	std::cerr << "\nError: You requested the soil production law '"
+		  << optProcessLaw << "' which does not exist."  << std::endl
+		  << "Available options:" << std::endl;
+	for(int i=0; i!=NUMBER_OF_PRODUCTION_LAWS; ++i ){
+	  std::cerr << " " << i << ": " << ProductionLaw[i] << std::endl;
+	}
+	ReportFatalError( "Requested soil production law not available. "
+			  "Switch options.\n" );
+      }
+    }
+  std::cout << "SOIL PRODUCTION OPTION: "
+	    << ProductionLaw[optProcessLaw] << std::endl;
+  
+  // set chemical weathering law:
+  optProcessLaw = infile.ReadItem( optProcessLaw,
+				   "CHEM_WEATHERING_LAW" );
+
+  switch(optProcessLaw)
+    {
+#define X(a,b) case a: \
+      chemWeath = new b(infile, mptr);		\
+break;
+      CHEM_WEATHERING_TABLE2
+#undef X
+    default:
+      {
+	std::cerr << "\nError: You requested the chemical weathering law '"
+		  << optProcessLaw << "' which does not exist."  << std::endl
+		  << "Available options:" << std::endl;
+	for(int i=0; i!=NUMBER_OF_CHEM_WEATHERINGS; ++i ){
+	  std::cerr << " " << i << ": " << ChemWeathering[i] << std::endl;
+	}
+	ReportFatalError( "Requested chemical weathering law not available. "
+			  "Switch options.\n" );
+      }
+    }
+  std::cout << "CHEMICAL WEATHERING OPTION: "
+	    << ChemWeathering[optProcessLaw] << std::endl;
+      
 }
 
 tErosion::~tErosion(){
   meshPtr = 0;
   delete bedErode;
   delete sedTrans;
+  delete physWeath;
+  delete chemWeath;
 }
 
 /*****************************************************************************\
@@ -2938,11 +3499,11 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
     // int nActNodes = meshPtr->getNodeList()->getActiveSize();
     tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() );
     double ratediff,  // Difference in ero/dep rate btwn node & its downstrm nbr
-    drdt,
-    dz,
-    depck,
-    qs,
-    excap;
+      drdt,
+      dz,
+      depck,
+      qs,
+      excap;
     tLNode * inletNode = strmNet->getInletNodePtrNC();
     double insedloadtotal = strmNet->getInSedLoad();
     int debugCount = 0;
@@ -2978,403 +3539,419 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
     // Compute erosion and/or deposition until all of the elapsed time (dtg)
     // is used up
     do
-    {
-      // Zero out sed influx of all sizes
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
-        if(0 && cn==inletNode ) std::cout<<"top loop ID="<<cn->getID()<<std::endl;
-        cn->setQs(0.0);
-        if( cn!=inletNode )
+	// Zero out sed influx of all sizes
+	for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+	  {
+	    if(0 && cn==inletNode ) std::cout<<"top loop ID="<<cn->getID()<<std::endl;
+	    cn->setQs(0.0);
+	    if( cn!=inletNode )
 	      {
-          cn->setQsin(0.0); //totals are for ts calculation
-          cn->setQsin( sedzero );
-          for( size_t i=0; i<cn->getNumg(); i++ ){
-            cn->setQs(i,0.0);
-          }
+		cn->setQsin(0.0); //totals are for ts calculation
+		cn->setQsin( sedzero );
+		for( size_t i=0; i<cn->getNumg(); i++ ){
+		  cn->setQs(i,0.0);
+		}
 	      }
-        else  // TEMPORARY MODIFICATIONS FOR TEST, 5/06:  
-          // AND SET SLOPE TO A FIXED VALUE
+	    else  // TEMPORARY MODIFICATIONS FOR TEST, 5/06:  
+	      // AND SET SLOPE TO A FIXED VALUE
 	      {
-          // We set the inlet node's erodibility values (for each layer) to zero so it can't be eroded.
-          // Also set the grain-size distribution in the upper layers to the values specified in the input 		// file by INSED1, 2, etc. Variable inletBedSizeFraction contains INSED1, 2, etc, which are
-          // assumed to be fractions that sum to 1.0 (the user can screw this up ... it isn't checked!)	
-          size_t numLayersInlet = cn->getNumLayer();
-          if(0) std::cout<<numLayersInlet<<" lay inlt\n";
-          for( size_t i=0; i<numLayersInlet; i++ ) {
-            cn->setLayerErody( i, 0.0 );
-            double layThick = cn->getLayerDepth(i);
-            for( size_t j=0; j<cn->getNumg(); j++ ) {
-              if(0) std::cout<<"set lay "<<i<<", with thickness " << layThick <<", size "<<j<<" to "<< layThick*inletBedSizeFraction[j] << std::endl;
-              cn->setLayerDgrade(i,j,layThick*inletBedSizeFraction[j] );
-            }
-          }
+		// We set the inlet node's erodibility values (for each layer) to zero so it can't be eroded.
+		// Also set the grain-size distribution in the upper layers to the values specified in the input 		// file by INSED1, 2, etc. Variable inletBedSizeFraction contains INSED1, 2, etc, which are
+		// assumed to be fractions that sum to 1.0 (the user can screw this up ... it isn't checked!)	
+		size_t numLayersInlet = cn->getNumLayer();
+		if(0) std::cout<<numLayersInlet<<" lay inlt\n";
+		for( size_t i=0; i<numLayersInlet; i++ ) {
+		  cn->setLayerErody( i, 0.0 );
+		  double layThick = cn->getLayerDepth(i);
+		  for( size_t j=0; j<cn->getNumg(); j++ ) {
+		    if(0) 
+		      std::cout<<"set lay "<<i<<", with thickness " << layThick 
+			       <<", size "<<j
+			       <<" to "<< layThick*inletBedSizeFraction[j] << std::endl;
+		    cn->setLayerDgrade(i,j,layThick*inletBedSizeFraction[j] );
+		  }
+		}
           
-          // zero out Qs for each size class
-          for( size_t i=0; i<cn->getNumg(); i++ ) {
-            cn->setQs(i,0.0);  
-          }
+		// zero out Qs for each size class
+		for( size_t i=0; i<cn->getNumg(); i++ ) {
+		  cn->setQs(i,0.0);  
+		}
           
-          // Now we adjust the elevation of the inlet node so that it has the user-defined slope
-          double zdown = cn->getDownstrmNbr()->getZ(); //TEMP TEST
-          double len = cn->getFlowEdg()->getLength();   // TEMP TEST
+		// Now we adjust the elevation of the inlet node so that 
+		// it has the user-defined slope
+		double zdown = cn->getDownstrmNbr()->getZ(); //TEMP TEST
+		double len = cn->getFlowEdg()->getLength();   // TEMP TEST
           
-          //Xdouble temporary_myslope = 0.05;  // Ultimately, read this from input file
-          cn->ChangeZ( (zdown+len*inletSlope)-cn->getZ() );
+		//Xdouble temporary_myslope = 0.05;  // Ultimately, read this from input file
+		cn->ChangeZ( (zdown+len*inletSlope)-cn->getZ() );
           
-          // Next, we call TransCapacity, which automatically sets Qs in each size class
-          insedloadtotal = sedTrans->TransCapacity( cn, 0, 1.0 );
-          if(0) std::cout<<"inlet capacity="<<insedloadtotal<<std::endl;
+		// Next, we call TransCapacity, which automatically sets Qs in each size class
+		insedloadtotal = sedTrans->TransCapacity( cn, 0, 1.0 );
+		if(0) std::cout<<"inlet capacity="<<insedloadtotal<<std::endl;
           
-          // Store Qs for each size class in the "insed" array so we can assign these to Qsin
-          for( size_t i=0; i<cn->getNumg(); i++ ) {
-            insed[i] = cn->getQs(i);   // Capacity for i-th size fraction
-            if(0) std::cout<<" insed["<<i<<"]="<<insed[i]<<std::endl;
-          }
+		// Store Qs for each size class in the "insed" array so we can 
+		// assign these to Qsin
+		for( size_t i=0; i<cn->getNumg(); i++ ) {
+		  insed[i] = cn->getQs(i);   // Capacity for i-th size fraction
+		  if(0) std::cout<<" insed["<<i<<"]="<<insed[i]<<std::endl;
+		}
           
-          // Now, we set the influxes at the inlet node, both total and per-size, to the capacity values we		// just calculated and stored
-          cn->setQsin( insedloadtotal ); // here's the total influx
-          cn->setQsin( insed );  // ... and the per-size influx
+		// Now, we set the influxes at the inlet node, both total and per-size, 
+		//to the capacity values we just calculated and stored
+		cn->setQsin( insedloadtotal ); // here's the total influx
+		cn->setQsin( insed );  // ... and the per-size influx
           
-          //double zdown = cn->getDownstrmNbr()->getZ(); //TEMP TEST
-          //double len = cn->getFlowEdg()->getLength();   // TEMP TEST
-          //double myslope = 0.025; //TEMP TEST
-          //tArray <double> testdz(cn->getNumg() );  //TEMP TEST
-          //double testdztotal = zdown+myslope*len - cn->getZ(); //TEMp TEST
-          //if( 1 ) std::cout<<"adj inlt "<<testdztotal;
-          //for( size_t kk=0; kk<cn->getNumg(); kk++ ) //TEMP TEST
-          //{
-          //  testdz[kk] = testdztotal*(insed[kk]/insedloadtotal ); //TEMP TEST
-          //std::cout<<" kk="<<kk<< "testdz="<<testdz[kk];
-          //}
-          //if( 1 ) std::cout<<std::endl;
-          //cn->EroDep( 0, testdz, timegb );  //TEMP TEST
-          //if( 1 ) std::cout<<"nl="<<cn->getNumLayer()<<" thick="<<cn->getLayerDepth(0)<<std::endl;
-          //cn->setLayerDepth( nl, 100000.0 ); //TEMP TEST
-          //cn->setLayerErody( 0, 1e6 ); //TEMP TEST
-          //cn->setLayerErody( 1, 1e6 ); //TEMP TEST
-          //if(1) std::cout << "inletnode elev " << cn->getZ() << " dsnbr " << zdown << " len " << len << " slp " << (cn->getZ()-zdown)/len << std::endl;
-          //for( size_t i=0; i<cn->getNumg(); i++ ){
-          //cn->setQs(i,0.0);
-          //cn->setLayerDgrade(0,i,cn->getLayerDepth(0)*(insed[i]/insedloadtotal) ); //TEMP TEST
-          //if( cn->getNumLayer()>1) cn->setLayerDgrade(1,i,cn->getLayerDepth(1)*(insed[i]/insedloadtotal) ); //TEMP TEST 
-          //std::cout << "inlet size " << i << "=" << cn->getLayerDgrade(0,i) << std::endl;
-          //}
+		//double zdown = cn->getDownstrmNbr()->getZ(); //TEMP TEST
+		//double len = cn->getFlowEdg()->getLength();   // TEMP TEST
+		//double myslope = 0.025; //TEMP TEST
+		//tArray <double> testdz(cn->getNumg() );  //TEMP TEST
+		//double testdztotal = zdown+myslope*len - cn->getZ(); //TEMp TEST
+		//if( 1 ) std::cout<<"adj inlt "<<testdztotal;
+		//for( size_t kk=0; kk<cn->getNumg(); kk++ ) //TEMP TEST
+		//{
+		//  testdz[kk] = testdztotal*(insed[kk]/insedloadtotal ); //TEMP TEST
+		//std::cout<<" kk="<<kk<< "testdz="<<testdz[kk];
+		//}
+		//if( 1 ) std::cout<<std::endl;
+		//cn->EroDep( 0, testdz, timegb );  //TEMP TEST
+		//if( 1 ) std::cout<<"nl="<<cn->getNumLayer()<<" thick="<<cn->getLayerDepth(0)<<std::endl;
+		//cn->setLayerDepth( nl, 100000.0 ); //TEMP TEST
+		//cn->setLayerErody( 0, 1e6 ); //TEMP TEST
+		//cn->setLayerErody( 1, 1e6 ); //TEMP TEST
+		//if(1) std::cout << "inletnode elev " << cn->getZ() << " dsnbr " << zdown << " len " << len << " slp " << (cn->getZ()-zdown)/len << std::endl;
+		//for( size_t i=0; i<cn->getNumg(); i++ ){
+		//cn->setQs(i,0.0);
+		//cn->setLayerDgrade(0,i,cn->getLayerDepth(0)*(insed[i]/insedloadtotal) ); //TEMP TEST
+		//if( cn->getNumLayer()>1) cn->setLayerDgrade(1,i,cn->getLayerDepth(1)*(insed[i]/insedloadtotal) ); //TEMP TEST 
+		//std::cout << "inlet size " << i << "=" << cn->getLayerDgrade(0,i) << std::endl;
+		//}
 	      }
-      }
+	  }
       
-      // Estimate erosion rates and time-step size
-      // NOTE - in this first loop we are only dealing with
-      // totals for time-step calculations, however transport
-      // rates for each size are also set within the function call.
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-      {
-        depck=0.;
-        int i=0;
-        qs=0.;
+	// Estimate erosion rates and time-step size
+	// NOTE - in this first loop we are only dealing with
+	// totals for time-step calculations, however transport
+	// rates for each size are also set within the function call.
+	for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+	  {
+	    depck=0.;
+	    int i=0;
+	    qs=0.;
         
-        assert(cn->getChanDepth()<1000);
+	    assert(cn->getChanDepth()<1000);
         
-        while((cn->getChanDepth()-depck)>0.0001)
+	    while((cn->getChanDepth()-depck)>0.0001)
 	      {
-          // Total transport capacity is a weighted average
-          // of the transport capacity calculated from each
-          // layer within the channel depth.
-          // sediment and bedrock treated the same
-          // units on qs are l^3/t
-          if((depck+cn->getLayerDepth(i))<=cn->getChanDepth()){
-            //TransportCapacity function should keep running
-            //sum of qs of each grain size.
-            //qs returned is in m^3/yr; qs stored in tLNode has same units
-            qs+=sedTrans->TransCapacity(cn,i,cn->getLayerDepth(i)/cn->getChanDepth());
-            if(0&&cn==inletNode) std::cout<<"1depck="<<depck<<" qs="<<qs<<"wt="<<cn->getLayerDepth(i)/cn->getChanDepth()<<" qs/wt="<<qs/(cn->getLayerDepth(i)/cn->getChanDepth())<<std::endl;
-          }
-          else{
-            qs+=sedTrans->TransCapacity(cn,i,1-(depck/cn->getChanDepth()));
-            if(0&&cn==inletNode) std::cout<<"2depck="<<depck<<" qs="<<qs<<" wt="<< 1-(depck/cn->getChanDepth())<< " qs/wt="<<qs/(depck/cn->getChanDepth())<<std::endl;
-          }
-          depck+=cn->getLayerDepth(i); //need to keep this here for qs calc
-          i++;
+		// Total transport capacity is a weighted average
+		// of the transport capacity calculated from each
+		// layer within the channel depth.
+		// sediment and bedrock treated the same
+		// units on qs are l^3/t
+		if((depck+cn->getLayerDepth(i))<=cn->getChanDepth()){
+		  //TransportCapacity function should keep running
+		  //sum of qs of each grain size.
+		  //qs returned is in m^3/yr; qs stored in tLNode has same units
+		  qs += 
+		    sedTrans->TransCapacity(cn,i,cn->getLayerDepth(i)
+					    /cn->getChanDepth());
+		  if(0&&cn==inletNode) 
+		    std::cout<<"1depck="<<depck<<" qs="<<qs
+			     <<"wt="<<cn->getLayerDepth(i)/cn->getChanDepth()
+			     <<" qs/wt="<<qs/(cn->getLayerDepth(i)/cn->getChanDepth())
+			     <<std::endl;
+		}
+		else{
+		  qs += sedTrans->TransCapacity(cn,i,1-(depck/cn->getChanDepth()));
+		  if(0&&cn==inletNode) 
+		    std::cout<<"2depck="<<depck<<" qs="<<qs
+			     <<" wt="<< 1-(depck/cn->getChanDepth())
+			     << " qs/wt="<<qs/(depck/cn->getChanDepth())<<std::endl;
+		}
+		depck+=cn->getLayerDepth(i); //need to keep this here for qs calc
+		i++;
 	      }
         
-        //NIC this detachcapacity returns the correct thing, but
-        //it also sets within the layer the drdt of each size.
-        //You don't want to use detach capacity this way, so
-        //I don't think that will affect anything, just be careful of
-        //using those values!!!
+	    //NIC this detachcapacity returns the correct thing, but
+	    //it also sets within the layer the drdt of each size.
+	    //You don't want to use detach capacity this way, so
+	    //I don't think that will affect anything, just be careful of
+	    //using those values!!!
         
-        if(depck>cn->getChanDepth()) //which layer are you basing detach on?
-          drdt=-bedErode->DetachCapacity( cn, i-1 );
-        else
-          drdt=-bedErode->DetachCapacity( cn, i );//[m^3/yr]
+	    if(depck>cn->getChanDepth()) //which layer are you basing detach on?
+	      drdt=-bedErode->DetachCapacity( cn, i-1 );
+	    else
+	      drdt=-bedErode->DetachCapacity( cn, i );//[m^3/yr]
         
-        //if( cn==inletNode ) drdt = -1e6;  // TEMP TEST
+	    //if( cn==inletNode ) drdt = -1e6;  // TEMP TEST
         
-        cn->setDrDt(drdt);
-        cn->setDzDt(drdt);
+	    cn->setDrDt(drdt);
+	    cn->setDzDt(drdt);
         
-        excap=(qs - cn->getQsin())/cn->getVArea();//[m/yr]
-        //excap negative = deposition; positive = erosion
-        //Note that signs are opposite to what one
-        //might expect.  This works out for Qsin addition.
-        //Limit erosion to capacity of flow or deposition
-        if( -drdt > excap ){
-          cn->setDzDt(-excap);
-        }
-        cn->getDownstrmNbr()->addQsin(cn->getQsin()-cn->getDzDt()*cn->getVArea());
+	    excap=(qs - cn->getQsin())/cn->getVArea();//[m/yr]
+	    //excap negative = deposition; positive = erosion
+	    //Note that signs are opposite to what one
+	    //might expect.  This works out for Qsin addition.
+	    //Limit erosion to capacity of flow or deposition
+	    if( -drdt > excap ){
+	      cn->setDzDt(-excap);
+	    }
+	    cn->getDownstrmNbr()->addQsin(cn->getQsin()-cn->getDzDt()*cn->getVArea());
         
-        //std::cout << "*** EROSION ***\n";
-        if( 0 && cn==inletNode ) {
-          std::cout << "Trans Cap inlet = " << qs << "excap=" << excap << " drdt=" << drdt<< "DzDt=" << cn->getDzDt() << std::endl;
-          //cn->TellAll();
-	      }
+	    //std::cout << "*** EROSION ***\n";
+	    if( 0 && cn==inletNode ) {
+	      std::cout << "Trans Cap inlet = " << qs << "excap=" << excap 
+			<< " drdt=" << drdt<< "DzDt=" << cn->getDzDt() << std::endl;
+	      //cn->TellAll();
+	    }
         
-      }//ends for( cn = ni.FirstP...
+	  }//ends for( cn = ni.FirstP...
       
-      //Find local time-step based on dzdt
-      dtmax = dtg/frac;
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-      {
-        //Not for time step calculations, just utilizing loop
-        if( cn!=inletNode )
+	//Find local time-step based on dzdt
+	dtmax = dtg/frac;
+	for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+	  {
+	    //Not for time step calculations, just utilizing loop
+	    if( cn!=inletNode )
 	      {
-          //Note-seting qsini for each size should automatically
-          //properly set qstotal to be the sum of all qsini
-          cn->setQsin( sedzero );
+		//Note-seting qsini for each size should automatically
+		//properly set qstotal to be the sum of all qsini
+		cn->setQsin( sedzero );
 	      }
-        else
+	    else
 	      {
-          cn->setQsin( insed );
-          if(0) {
-            std::cout<<"Inlet qsin set to:\n";
-            for( size_t i=0; i<cn->getNumg(); i++ )
-              std::cout<< " "<<i<<"="<<insed[i]<<std::endl;
-          }
+		cn->setQsin( insed );
+		if(0) {
+		  std::cout<<"Inlet qsin set to:\n";
+		  for( size_t i=0; i<cn->getNumg(); i++ )
+		    std::cout<< " "<<i<<"="<<insed[i]<<std::endl;
+		}
 	      }
         
-        dn = cn->getDownstrmNbr();
-        ratediff = dn->getDzDt() - cn->getDzDt(); //Are the pts converging?
-        if( ratediff > 0. && (cn->calcSlope()) > 1e-7 )  // if yes, get time
-        {                                              //  to zero slope
-          if(0) {
-            double dt;
-            dt = ( cn->getZ() - dn->getZ() ) / ratediff;
-            if( dt < dtmax ) dtmax = dt;
-          }
-          if( ratediff*dtmax > (cn->getZ() - dn->getZ() ) )
-          {
-            dtmax = ( cn->getZ() - dn->getZ() ) / ratediff;
-            assert( dtmax > 0.0 );
-            if( dtmax < 0.0001 && dtmax < dtg )
-            {
-              if(0) { // debug
-                std::cout << "Very small dtmax " << dtmax <<  std::endl;
-                std::cout << "rate dif is " << ratediff << std::endl;
-                std::cout << "elev dif is " << cn->getZ()-dn->getZ() << std::endl;
-                std::cout << "dzdt upstream is " << cn->getDzDt() << std::endl;
-                std::cout << "dzdt downstream is " << dn->getDzDt() << std::endl;
-                cn->TellAll();
-                dn->TellAll();
-              }
-              dtmax=0.0001; //GREG I added this just because things
-              // were taking forever.  I kept it for now just for
-              // testing stuff.  Maybe we should discuss this.
-            }
-          }
-        }
-      }// End for( cn = ni.FirstP()..
-      dtmax *= frac;  // Take a fraction of time-to-flattening
-      timegb+=dtmax;
+	    dn = cn->getDownstrmNbr();
+	    ratediff = dn->getDzDt() - cn->getDzDt(); //Are the pts converging?
+	    if( ratediff > 0. && (cn->calcSlope()) > 1e-7 )  // if yes, get time
+	      {                                              //  to zero slope
+		if(0) {
+		  double dt;
+		  dt = ( cn->getZ() - dn->getZ() ) / ratediff;
+		  if( dt < dtmax ) dtmax = dt;
+		}
+		if( ratediff*dtmax > (cn->getZ() - dn->getZ() ) )
+		  {
+		    dtmax = ( cn->getZ() - dn->getZ() ) / ratediff;
+		    assert( dtmax > 0.0 );
+		    if( dtmax < 0.0001 && dtmax < dtg )
+		      {
+			if(0) { // debug
+			  std::cout << "Very small dtmax " << dtmax <<  std::endl;
+			  std::cout << "rate dif is " << ratediff << std::endl;
+			  std::cout << "elev dif is " << cn->getZ()-dn->getZ() << std::endl;
+			  std::cout << "dzdt upstream is " << cn->getDzDt() << std::endl;
+			  std::cout << "dzdt downstream is " << dn->getDzDt() << std::endl;
+			  cn->TellAll();
+			  dn->TellAll();
+			}
+			dtmax=0.0001; //GREG I added this just because things
+			// were taking forever.  I kept it for now just for
+			// testing stuff.  Maybe we should discuss this.
+		      }
+		  }
+	      }
+	  }// End for( cn = ni.FirstP()..
+	dtmax *= frac;  // Take a fraction of time-to-flattening
+	timegb+=dtmax;
       
-      //At this point: we have drdt and qs for each node, plus dtmax
+	//At this point: we have drdt and qs for each node, plus dtmax
       
-      // Do erosion/deposition
-      for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-      {
-        //need to recalculate cause qsin may change due to time step calc
-        excap=(cn->getQs() - cn->getQsin())/cn->getVArea();
+	// Do erosion/deposition
+	for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+	  {
+	    //need to recalculate cause qsin may change due to time step calc
+	    excap=(cn->getQs() - cn->getQsin())/cn->getVArea();
         
-        //std::cout<<"actual erosion excap = "<<excap<<std::endl;
-        //std::cout<<"drdt is "<<cn->getDrDt()<<std::endl;
-        //again, excap pos if eroding, neg if depositing
-        //nic here is where drdt comes in again
-        //flag is used to determine the texture of what should be eroded.
-        //If detach limited, just erode what is there, but always limit
-        //it by what flow has capacity to transport.  If transport limited,
-        //the texture of what erode is determined by the calculated values
-        //of qs.
-        if( -cn->getDrDt() < excap ){
-          dz = cn->getDrDt()*dtmax; // detach-lim
-          flag = false;
-        }
-        else{
-          dz = -excap*dtmax; // trans-lim
-          flag = true;
-        }
+	    //std::cout<<"actual erosion excap = "<<excap<<std::endl;
+	    //std::cout<<"drdt is "<<cn->getDrDt()<<std::endl;
+	    //again, excap pos if eroding, neg if depositing
+	    //nic here is where drdt comes in again
+	    //flag is used to determine the texture of what should be eroded.
+	    //If detach limited, just erode what is there, but always limit
+	    //it by what flow has capacity to transport.  If transport limited,
+	    //the texture of what erode is determined by the calculated values
+	    //of qs.
+	    if( -cn->getDrDt() < excap ){
+	      dz = cn->getDrDt()*dtmax; // detach-lim
+	      flag = false;
+	    }
+	    else{
+	      dz = -excap*dtmax; // trans-lim
+	      flag = true;
+	    }
         
-        for(size_t i=0; i<cn->getNumg(); i++)
-          cn->getDownstrmNbr()->addQsin(i,cn->getQsin(i));
-        //What goes downstream will be what comes in + what gets ero'd/dep'd
-        //This should always be negative or zero since max amt
-        //to deposit is what goes in.
-        //i.e. send (qsin[i]-ret[i]*varea/dtmax) downstream
-        //Note: I think need to do the add in here and possibly take out later
-        //because of looping through layers for the same erosion pass.
+	    for(size_t i=0; i<cn->getNumg(); i++)
+	      cn->getDownstrmNbr()->addQsin(i,cn->getQsin(i));
+	    //What goes downstream will be what comes in + what gets ero'd/dep'd
+	    //This should always be negative or zero since max amt
+	    //to deposit is what goes in.
+	    //i.e. send (qsin[i]-ret[i]*varea/dtmax) downstream
+	    //Note: I think need to do the add in here and possibly take out later
+	    //because of looping through layers for the same erosion pass.
         
-        /*DEBUG double l0, l1;
-         if( cn->getX()>50.0 && cn->getX()<51.0
-         && cn->getY()>29.0 && cn->getY()<30.0 )
-         {
-         std::cout << "f (" << cn->getID() << " ld = " << cn->getLayerDepth(0) << std::endl;
-         l0 = cn->getLayerDgrade(0,0);
-         l1 = cn->getLayerDgrade(0,1);
-         }*/
-        if( 0 && cn==inletNode ) {
-          std::cout << "dz inlet = " << dz << " dz/dt=" << dz/dtmax << std::endl;
-          //cn->TellAll();
-	      }
-        
-        if( dz<0 ) //total erosion
+	    /*DEBUG double l0, l1;
+	      if( cn->getX()>50.0 && cn->getX()<51.0
+	      && cn->getY()>29.0 && cn->getY()<30.0 )
 	      {
-          if(!flag){ // detach-lim
-            if(0 && cn==inletNode) std::cout << "dlim\n" << std::endl;
-            int i=0;
-            depck=0.;
-            while(dz<-0.000000001&&depck<cn->getChanDepth()&&i<cn->getNumLayer()){
-              depck+=cn->getLayerDepth(i);
-              if(-dz<=cn->getLayerDepth(i)){//top layer can supply total depth
-                for(size_t j=0;j<cn->getNumg();j++){
-                  // Figure out how much of size j is liberated by erosion to depth dz
-                  erolist[j]=dz*cn->getLayerDgrade(i,j)/cn->getLayerDepth(i);
-                  // Check whether there's enough extra capacity to carry this much of size j
-                  if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
-                    //decrease total dz because of capacity limitations
-                    erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
-                    cn->setQsin(j,0.0); // ??
-                    cn->setQs(j,0.0);   // ??
-                  }
-                }
-                if( 0 && cn==inletNode ) std::cout<<"NO ero "<<dz<<" from lyr "<<i<<std::endl;
-                if( cn!=inletNode )  //TEMP 6/06
-                { 
-                  ret=cn->EroDep(i,erolist,timegb); //ORIGINAL
-                  for(size_t j=0;j<cn->getNumg();j++){ //ORIGINAL
-                    cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax); //ORIGINAL
-                  } //ORIGINAL
-                } //TEMP 6/06
-                dz=0.;
-              }
-              else{//top layer is not deep enough, need to erode more layers
-                flag=false;
-                for(size_t j=0;j<cn->getNumg();j++){
-                  erolist[j]=-cn->getLayerDgrade(i,j);
-                  if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
-                    //decrease total dz because of capacity limitations
-                    erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
-                    cn->setQsin(j,0.0); // ??
-                    cn->setQs(j,0.0);   // ??
-                    //need to set these to zero since the capacity has
-                    //now been filled by the stuff in this layer
-                    flag=true;
-                    //Since not taking all of the material from the
-                    //surface, surface layer won't be removed-must inc i
-                  }
-                  dz-=erolist[j];
-                }
-                if( 0 && cn==inletNode ) std::cout<<"NO Ero "<<erolist[0]<<"+"<<erolist[1]<<"="<<erolist[0]+erolist[1]<<" from lyr "<<i<<std::endl;
-                if( cn!=inletNode ) //TEMP 6/06
-                {
-                  ret=cn->EroDep(i,erolist,timegb);
-                  for(size_t j=0;j<cn->getNumg();j++){
-                    //if * operator was overloaded for arrays, no loop necessary
-                    cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
-                  }
-                }
-                if(flag){
-                  i++;
-                }
-              }
-            }
-          }
-          else{//trans-lim
-            if( 0 && cn==inletNode ) std::cout<<"Inlet X "<<cn->getX()<<" Y "<<cn->getY() <<" tlim\n";
-            for(size_t j=0;j<cn->getNumg();j++){
-              erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
-              if( 0 && cn==inletNode ) std::cout<<" j "<<j<<" "<<erolist[j];
-            }
-            if( 0 && cn==inletNode ) std::cout<<"."<<std::endl;
+	      std::cout << "f (" << cn->getID() << " ld = " << cn->getLayerDepth(0) << std::endl;
+	      l0 = cn->getLayerDgrade(0,0);
+	      l1 = cn->getLayerDgrade(0,1);
+	      }*/
+	    if( 0 && cn==inletNode ) {
+	      std::cout << "dz inlet = " << dz << " dz/dt=" << dz/dtmax << std::endl;
+	      //cn->TellAll();
+	    }
+        
+	    if( dz<0 ) //total erosion
+	      {
+		if(!flag){ // detach-lim
+		  if(0 && cn==inletNode) std::cout << "dlim\n" << std::endl;
+		  int i=0;
+		  depck=0.;
+		  while(dz<-0.000000001&&depck<cn->getChanDepth()&&i<cn->getNumLayer()){
+		    depck+=cn->getLayerDepth(i);
+		    if(-dz<=cn->getLayerDepth(i)){//top layer can supply total depth
+		      for(size_t j=0;j<cn->getNumg();j++){
+			// Figure out how much of size j is liberated by erosion to depth dz
+			erolist[j]=dz*cn->getLayerDgrade(i,j)/cn->getLayerDepth(i);
+			// Check whether there's enough extra capacity to carry this much of size j
+			if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
+			  //decrease total dz because of capacity limitations
+			  erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+			  cn->setQsin(j,0.0); // ??
+			  cn->setQs(j,0.0);   // ??
+			}
+		      }
+		      if( 0 && cn==inletNode ) std::cout<<"NO ero "<<dz<<" from lyr "<<i<<std::endl;
+		      if( cn!=inletNode )  //TEMP 6/06
+			{ 
+			  ret=cn->EroDep(i,erolist,timegb); //ORIGINAL
+			  for(size_t j=0;j<cn->getNumg();j++){ //ORIGINAL
+			    cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax); //ORIGINAL
+			  } //ORIGINAL
+			} //TEMP 6/06
+		      dz=0.;
+		    }
+		    else{//top layer is not deep enough, need to erode more layers
+		      flag=false;
+		      for(size_t j=0;j<cn->getNumg();j++){
+			erolist[j]=-cn->getLayerDgrade(i,j);
+			if(erolist[j]<(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea()){
+			  //decrease total dz because of capacity limitations
+			  erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+			  cn->setQsin(j,0.0); // ??
+			  cn->setQs(j,0.0);   // ??
+			  //need to set these to zero since the capacity has
+			  //now been filled by the stuff in this layer
+			  flag=true;
+			  //Since not taking all of the material from the
+			  //surface, surface layer won't be removed-must inc i
+			}
+			dz-=erolist[j];
+		      }
+		      if( 0 && cn==inletNode ) std::cout<<"NO Ero "<<erolist[0]<<"+"<<erolist[1]<<"="<<erolist[0]+erolist[1]<<" from lyr "<<i<<std::endl;
+		      if( cn!=inletNode ) //TEMP 6/06
+			{
+			  ret=cn->EroDep(i,erolist,timegb);
+			  for(size_t j=0;j<cn->getNumg();j++){
+			    //if * operator was overloaded for arrays, no loop necessary
+			    cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+			  }
+			}
+		      if(flag){
+			i++;
+		      }
+		    }
+		  }
+		}
+		else{//trans-lim
+		  if( 0 && cn==inletNode ) std::cout<<"Inlet X "<<cn->getX()<<" Y "<<cn->getY() <<" tlim\n";
+		  for(size_t j=0;j<cn->getNumg();j++){
+		    erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+		    if( 0 && cn==inletNode ) std::cout<<" j "<<j<<" "<<erolist[j];
+		  }
+		  if( 0 && cn==inletNode ) std::cout<<"."<<std::endl;
             
-            int i=0;
-            depck=0.;
-            while(depck<cn->getChanDepth()){
-              depck+=cn->getLayerDepth(i);
-              int flag=cn->getNumLayer();
-              if( 0 && cn==inletNode ) std::cout<<"NO depck="<<depck<<" numLayer="<<flag<<" i="<<i<<std::endl;
-              if( cn!=inletNode)  // JUNE 06 TEMP HACK: DON"T ERODE INLET!
-              {
-                ret=cn->EroDep(i,erolist,timegb);
-                //if( 1 && cn==inletNode ) std::cout<<"ret0="<<ret[0]<<" ret1="<<ret[1]<<std::endl;
-                double sum=0.;
-                for(size_t j=0;j<cn->getNumg();j++){
-                  cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
-                  erolist[j]-=ret[j];
-                  sum+=erolist[j];
-                }
-                if( 0 && cn==inletNode ) std::cout<<"end for loop"<<std::endl;
-                if(sum>-0.0000001)
-                  depck=cn->getChanDepth();
-                if(flag==cn->getNumLayer())
-                  i++;
-              } // END TEMP HACK BRACKETS (INTERIOR IS ORIGINAL)
-              if( 0 && cn==inletNode ) std::cout<<"end while loop"<<std::endl;
-            } //end while
-          }//end if( trans-limited )
+		  int i=0;
+		  depck=0.;
+		  while(depck<cn->getChanDepth()){
+		    depck+=cn->getLayerDepth(i);
+		    int flag=cn->getNumLayer();
+		    if( 0 && cn==inletNode ) std::cout<<"NO depck="<<depck<<" numLayer="<<flag<<" i="<<i<<std::endl;
+		    if( cn!=inletNode)  // JUNE 06 TEMP HACK: DON"T ERODE INLET!
+		      {
+			ret=cn->EroDep(i,erolist,timegb);
+			//if( 1 && cn==inletNode ) std::cout<<"ret0="<<ret[0]<<" ret1="<<ret[1]<<std::endl;
+			double sum=0.;
+			for(size_t j=0;j<cn->getNumg();j++){
+			  cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+			  erolist[j]-=ret[j];
+			  sum+=erolist[j];
+			}
+			if( 0 && cn==inletNode ) std::cout<<"end for loop"<<std::endl;
+			if(sum>-0.0000001)
+			  depck=cn->getChanDepth();
+			if(flag==cn->getNumLayer())
+			  i++;
+		      } // END TEMP HACK BRACKETS (INTERIOR IS ORIGINAL)
+		    if( 0 && cn==inletNode ) std::cout<<"end while loop"<<std::endl;
+		  } //end while
+		}//end if( trans-limited )
 	      }//ends(if dz<0)
-        else if(dz>0) //total deposition -> need if cause erodep chokes with 0
+	    else if(dz>0) //total deposition -> need if cause erodep chokes with 0
 	      {
-          //Get texture of stuff to be deposited
-          for(size_t j=0;j<cn->getNumg();j++)
-            erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
-          if(0 && cn==inletNode ) std::cout<<"NOT about to erodep inlet\n";
-          if( cn!=inletNode ) //CLAUSE ADDED TEMP 6/06 (INTERIOR IS ORIGINAL)
-          {
-            ret=cn->EroDep(0,erolist,timegb);
-            for(size_t j=0;j<cn->getNumg();j++){
-              cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
-            }
-          }
+		//Get texture of stuff to be deposited
+		for(size_t j=0;j<cn->getNumg();j++)
+		  erolist[j]=(cn->getQsin(j)-cn->getQs(j))*dtmax/cn->getVArea();
+		if(0 && cn==inletNode ) std::cout<<"NOT about to erodep inlet\n";
+		if( cn!=inletNode ) //CLAUSE ADDED TEMP 6/06 (INTERIOR IS ORIGINAL)
+		  {
+		    ret=cn->EroDep(0,erolist,timegb);
+		    for(size_t j=0;j<cn->getNumg();j++){
+		      cn->getDownstrmNbr()->addQsin(j,-ret[j]*cn->getVArea()/dtmax);
+		    }
+		  }
 	      }
         
-        if( 0 && cn==inletNode ) std::cout<<"end of node FOR loop\n";
+	    if( 0 && cn==inletNode ) std::cout<<"end of node FOR loop\n";
         
-      } // Ends for( cn = ni.FirstP()...
+	  } // Ends for( cn = ni.FirstP()...
       
-      if( track_sed_flux_at_nodes_ )
-      {
-        if(0) std::cout << "WE'RE GOIN ALL THE WAY" << endl;
-        water_sed_tracker_ptr_->AddSedVolumesAtTrackingNodes( dtmax );
-      }
-      else
-        if(0) std::cout << "NO WAY JOSE!" << endl;
+	if( track_sed_flux_at_nodes_ )
+	  {
+	    if(0) std::cout << "WE'RE GOIN ALL THE WAY" << endl;
+	    water_sed_tracker_ptr_->AddSedVolumesAtTrackingNodes( dtmax );
+	  }
+	else
+	  if(0) std::cout << "NO WAY JOSE!" << endl;
       
-      // Erode vegetation
+	// Erode vegetation
 #if 0
 #define NEWVEG 0
-      if( pVegetation && NEWVEG ) pVegetation->ErodeVegetation( meshPtr, dtmax );
+	if( pVegetation && NEWVEG ) pVegetation->ErodeVegetation( meshPtr, dtmax );
 #undef NEWVEG
 #endif
       
-      // Update time remainig
-      dtg -= dtmax;
+	// Update time remainig
+	dtg -= dtmax;
       
-		  if(1) //DEBUG
-      {
-        debugCount++;
-        if( debugCount > 1e6 )
-          ReportFatalError("More than 1e6 iterations in ErodeDetachLim()" );
-      }
+	if(1) //DEBUG
+	  {
+	    debugCount++;
+	    if( debugCount > 1e6 )
+	      ReportFatalError("More than 1e6 iterations in ErodeDetachLim()" );
+	  }
       
-      //std::cout<<"Time remaining now "<<dtg<<std::endl;
-    } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
+	//std::cout<<"Time remaining now "<<dtg<<std::endl;
+      } while( dtg>1e-6 );  //Keep going until we've used up the whole time intrvl
   }//end if rainrate-infilt>0
   
   
@@ -3884,6 +4461,7 @@ void tErosion::Diffuse( double rt, bool noDepoFlag )
   
   
 }
+#undef kEpsOver2
 
 
 /*****************************************************************************\
@@ -4062,7 +4640,398 @@ void tErosion::DiffuseNonlinear( double rt, bool noDepoFlag )
   } while( rt>0.0 );
   
 }
+#undef kEpsOver2
+#undef kBeta
 
+/*****************************************************************************\
+ **
+ **  tErosion::DiffuseNonlinearDepthDep
+ **
+ **  This function implements the nonlinear creep transport function of
+ **  Howard (1994), which was also studied by Roering et al. (1999, 2002)
+ **  and modified to be depth-dependent by Roering (2008).
+ **  The sediment flux per unit slope width is:
+ **
+ **                 Dz
+ **    qs = Kd -------------
+ **            1 - (Dz/Sc)^2
+ **
+ **  where Dz is the land surface gradient in 2D, Kd is a creep coefficient
+ **  (L^2/T), and Sc is a threshold slope. In this version, Kd is dependent
+ **  on soil depth: Kd = eta * (1 - exp( h*cos(theta)/H_0 )). And outflux
+ **  at each node is limited to supply of soil.
+ **
+ **  The numerical implementation on a Voronoi grid uses the same approach
+ **  as used by Diffuse(), with the following differences:
+ **
+ **  1. The estimated Courant condition includes the denominator in the 
+ **     above equation, and because this contains local slope, it must be
+ **     re-evaluated for every time step, so it is now inside the time loop.
+ **     (The additional square root of [1-(Dz/Sc)^2] is based on experiments with
+ **     a 1D version of this solver, which shows improved stability when you
+ **     factor this in; otherwise, instabilities appear as f grows small).
+ **  2. The equation becomes invalid when Dz/Sc>=1.0. Therefore a safety
+ **     feature is used: Dz/Sc is not allowed to go above an arbitrary value
+ **     that is very close to unity. Because of this, it's possible that the
+ **     slope angle at the base of a slope with a very high flux may exceed
+ **     Sc. In a 1D steady-state profile, this shows up as a linear increase in
+ **     gradient with distance, above Sc, near the base of the slope.
+ **  3. To improve performance (or so I hope), both slope and f (the 
+ **     denominator in the above equation) are stored in temporary arrays
+ **     during the time step calculation loop.
+ **  4. For the first time, I depart from previous practice by using
+ **     the vector class from the standard template library, instead of our
+ **     custom-built tArray class.
+ **  5. The time step calculation loop skips complementary edges (that's 
+ **     why slope and f only need N/2 elements).
+ **
+ **  Inputs:  rt -- time duration over which to compute diffusion
+ **           time -- runtime, for updating layers (needed by EroDep)
+ **
+ **  Created: July, 2010, SL
+ **  Modifications:
+ ** 
+ \*****************************************************************************/
+#define kEpsOver2 0.1
+#define kBeta 0.999    // Dz/Sc isn't allowed to go higher than this
+void tErosion::DiffuseNonlinearDepthDep( double rt, double time )
+{
+#ifdef TRACKFNS
+  std::cout << "tErosion::DiffuseNonlinear()" << std::endl;
+#endif
+  
+  if( kd==0 ) return;
+
+  tLNode * cn;
+  tEdge * ce;
+  double delt;       // Max local step size
+  double dtmax;      // Max global step size (initially equal to total time rt)
+  tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
+  tMesh< tLNode >::edgeListIter_t edgIter( meshPtr->getEdgeList() );
+  int numActiveEdges = meshPtr->getEdgeList()->getActiveSize();
+  int numEdges = meshPtr->getEdgeList()->getSize();
+  
+  int k;      // Counter for edges
+  double slopeRatio;   // Ratio of slope to critical slope
+  
+  // Set the size of the vectors
+  vector<double> slope( numActiveEdges/2 );   // Slope of each edge
+  vector<double> f( numActiveEdges/2 );       // = 1 - (slope/Sc)^2
+  vector<double> edgeH( numActiveEdges/2 ); // average soil depth for edge
+  vector<double> edgeKd( numActiveEdges/2 ); // depth-dependent param.
+  vector<double> edgeFlux( numActiveEdges/2 ); // store fluxes along edges
+  vector<int> tempArrayIndex( numEdges ); // indexes to above arrays
+  
+  //initialize Qsd, which will record the total amount of diffused material
+  //fluxing into a node for the entire time-step.
+  //if Qsd is negative, then material was deposited in that node.
+  for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+    cn->setQsdin( 0. );
+  
+  // Loop until we've used up the entire time interval rt
+  do
+    {
+      // Compute maximum stable time-step size based on modified Courant condition
+      // for FTCS (here used as an approximation).
+      dtmax = rt;  // Initialize dtmax to total time rt
+      k=0;
+      for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
+	{
+	  // Evaluate DT <= DX^2 f^2 / Kd
+	  slope[k] = ce->CalcSlope(); // compute and store slope for this edge
+	  slopeRatio = fabs( slope[k] / mdSc );  // calculate slope ratio
+	  if( slopeRatio > kBeta ) slopeRatio = kBeta; // don't let it reach 1 or higher
+	  f[k] = 1.0 - slopeRatio*slopeRatio; // compute and store the nonlinear factor
+	  // determine depth-dependent transport coefficient:
+	  // use regolith depth of upslope endpoint:
+	  if( ce->getOriginPtr()->getZ() > ce->getDestinationPtr()->getZ() )
+	    cn = static_cast<tLNode *>(ce->getOriginPtrNC());
+	  else
+	    cn = static_cast<tLNode *>(ce->getDestinationPtrNC());
+	  // soil thickness:
+	  double nodeSoilThickness(0.0);
+	  tListIter< tLayer > lI( cn->getLayersRefNC() );
+	  for( tLayer *lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() )
+	    nodeSoilThickness += lP->getDepth();
+	  edgeH[k] = nodeSoilThickness;    
+	  edgeKd[k] = 
+	    kd * ( 1 - exp( -edgeH[k] * cos( atan( slope[k] ) ) / diffusionH ) );
+	  // max. time step this edge:
+	  delt = 
+	    kEpsOver2 * ce->getLength()*ce->getLength()*f[k]*sqrt(f[k]) / edgeKd[k];  
+	  if( delt < dtmax ) dtmax = delt;  // remember the smallest delt
+	  tempArrayIndex[ce->getID()] = k; // store index for this edge
+	  ce = edgIter.NextP();  // Skip complementary edge
+	  tempArrayIndex[ce->getID()] = k; // store index for complementary edge
+	  k++;   // increment edge counter
+	}
+      assert( k==numActiveEdges/2 );
+    
+      // Reset sed input and output for each node for the new iteration
+      for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+	{
+	  cn->setQsin( 0. );
+	  cn->setQs( 0. );
+	}
+
+      // Compute and store sediment volume transfer along each edge
+      k=0;  // reset edge counter
+      for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
+	{
+	  // specific flux times width times time step:
+	  edgeFlux[k] = edgeKd[k] * ( slope[k] / f[k]) * ce->getVEdgLen() * dtmax;
+	  // Record fluxes at origin and destination:
+	  tLNode *on = static_cast<tLNode *>(ce->getOriginPtrNC());
+	  tLNode *dn = static_cast<tLNode *>(ce->getDestinationPtrNC());
+	  if( difThresh > 0. && on->getDrArea() > difThresh ) edgeFlux[k]=0;
+	  // account fluxes in and out separately in order to enforce
+	  // supply limitation:
+	  if( edgeFlux[k] > 0.0 )
+	    {
+	      on->addQs( -edgeFlux[k] );
+	      dn->addQsin( edgeFlux[k] );
+	    }
+	  else
+	    {
+	      on->addQsin( -edgeFlux[k] );
+	      dn->addQs( edgeFlux[k] );
+	    }      
+	  edgIter.NextP();  // Skip complementary edge
+	  k++;  // reset edge counter
+	}
+      assert( k==numActiveEdges/2 );
+    
+      // enforce supply limitation: outflux no greater than soil depth:
+      for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+	{
+	  // if any transport out, compare to soil depth:
+	  if( cn->getQs() < 0.0 )
+	    {
+	      // for soil thickness at node, find thickness associated with
+	      // flowedge; unless node is flooded, then find first edge
+	      // pointing downhill (and all nodes within these brackets will
+	      // have a downhill neighbor because they have qs<0.0):
+	      if( cn->getFloodStatus() == tLNode::kNotFlooded )
+		k = tempArrayIndex[ cn->getFlowEdg()->getID() ];
+	      else
+		{
+		  tSpkIter sI( cn );
+		  for( ce = sI.FirstP(); !sI.AtEnd(); ce = sI.NextP() )
+		    if( ce->getOriginPtr()->getZ() > ce->getDestinationPtr()->getZ() 
+			&& ce->FlowAllowed() )
+		      break;
+		  k = tempArrayIndex[ ce->getID() ];
+		}
+	      double nodeSoilThickness = edgeH[k];
+	      if( -cn->getQs() / cn->getVArea() > nodeSoilThickness )
+		{
+		  // if flux out more than soil depth, 
+		  // multiply fluxes out by the factor:
+		  const double reducFactor = 
+		    ( -nodeSoilThickness * cn->getVArea() - cn->getQsin() )
+		    / cn->getQs();
+		  // go through node's edges:
+		  tSpkIter sI( cn );
+		  for( ce = sI.FirstP(); !sI.AtEnd(); ce = sI.NextP() )
+		    {
+		      // check that edge is not connected to a closed boundary: 
+		      if( likely( ce->FlowAllowed() ) )
+			{
+			  double thisEdgeFlux = 
+			    edgeFlux[ tempArrayIndex[ce->getID()] ];
+			  if( ce->getID()%2 == 0 ) thisEdgeFlux *= -1.0;
+			  if( thisEdgeFlux < 0.0 )
+			    {
+			      // if flux is out along this edge, reduce influx
+			      // at destination:
+			      tLNode *dn = 
+				static_cast<tLNode *>(ce->getDestinationPtrNC());
+			      dn->addQsin( -thisEdgeFlux * ( reducFactor - 1.0 ) );
+			    }
+			}
+		    }
+		  // change sediment outflux for node:
+		  cn->setQs( -nodeSoilThickness * cn->getVArea() );
+		}
+	    }
+	}
+
+      // change elevations, etc., in a separate loop, after done adjusting fluxes:
+      for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+	{
+	  tArray<double> erolist( cn->getNumg() );
+	  // elevation change is net flux per area:
+	  double deltaZ = ( cn->getQs() + cn->getQsin() ) / cn->getVArea();
+	  // add elevation change, and mind the layers:
+	  if( deltaZ > 0.0 )
+	    {
+	      for( size_t j=0; j<cn->getNumg(); ++j )
+		erolist[j] = deltaZ * cn->getLayerDgrade(0,j)/cn->getLayerDepth(0);
+	      cn->EroDep( 0, erolist, time );  // add or subtract net flux/area    
+	    }
+	  else if( deltaZ < 0.0 )
+	    while( deltaZ < 0.0 )
+	      {
+		if( -deltaZ <= cn->getLayerDepth(0) )
+		  {
+		    for( size_t j=0; j<cn->getNumg(); ++j )
+		      erolist[j] = 
+			deltaZ * cn->getLayerDgrade(0,j) / cn->getLayerDepth(0);
+		    deltaZ = 0.0;
+		  }
+		else
+		  {
+		    for( size_t j=0; j<cn->getNumg(); ++j )
+		      erolist[j] = cn->getLayerDgrade(0,j);
+		    deltaZ += cn->getLayerDepth(0);
+		  }
+		cn->EroDep( 0, erolist, time );
+	      }
+	  cn->getDownstrmNbr()->addQsdin(-1 * cn->getQs()/dtmax);
+	  //this won't work if time steps are varying, because you are adding fluxes     
+	}
+      rt -= dtmax;
+      if( dtmax>rt ) dtmax=rt;
+    } while( rt>0.0 );
+}
+#undef kEpsOver2
+#undef kBeta
+
+/***************************************************************************\
+ **  tErosion::ProduceRegolith( double dtg, double time )
+ **
+ **  Converts rock into soil.
+ **  Called by: main routine.
+ **  Takes: time step, runtime.
+ **  Calls: 
+ **    - tPhysicalWeathering::SoilProduction( tLNode* );
+ **    - tLNode::EroDep for adding soil to regolith layers;
+ **    - lower-level tLayer and tLNode functions for making and changing
+ **      layers and changing elevation since many of the contingencies and 
+ **      checks in EroDep are unnecessary in the special case of eroding 
+ **      bedrock.
+ **  Changes: Elevations and layers for active tLNodes.
+ **
+ **  - STL, 6/2010
+\***************************************************************************/
+void tErosion::ProduceRegolith( double dtg, double time )
+{
+  tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() ); // node iter.
+  // do physical weathering for each active node:
+  for( tLNode* n = ni.FirstP(); ni.IsActive(); n = ni.NextP() )
+    {
+      // find rate of bedrock lowering:
+      double rate = physWeath->SoilProduction( n );
+      if( rate < 0.0 ) // skip it all if no soil production
+	{
+	  double rockDeltaZ = rate * dtg; // bedrock lowering
+	  tListIter< tLayer > lI( n->getLayersRefNC() ); // layer iterator
+	  tLayer *lP=0; // current layer pointer
+	  tLayer *soilP=0; // pointer to bottom soil layer
+	  int i=0; // index to layer, ends up set to top bedrock layer
+	  // find top bedrock layer and bottom soil layer:
+	  for( lP=lI.FirstP(), i=0; 
+	       lP->getSed() == tLayer::kSed; 
+	       lP=lI.NextP(), ++i )
+	    soilP = lP;
+	  tLayer *rockP=lP; // pointer to top bedrock layer
+	  // soil thickening corresponding to rock lowering; note that rock  
+	  // density is variable, dependent on chemical weathering, but we're
+	  // using a constant soil bulk density as a parameter in 
+	  // tPhysicalWeathering,and there may not be a soil layer from which 
+	  // to get a value:
+	  double soilDeltaH = -rockDeltaZ * rockP->getBulkDensity() 
+	    / soilBulkDensity;
+	  // change elevation for bedrock lowering:
+	  n->ChangeZ( rockDeltaZ );
+	  // do bedrock lowering:
+	  tArray< double > erolist( n->getNumg() ); // erosion for each grainsize
+	  // remove rock from top rock layer or layers; decrement rockDeltaZ as
+	  // we go until none left; most of the time, this amount will be small,
+	  // and top bedrock layer will accommodate all rock lowering:
+	  while( rockDeltaZ < 0.0 )
+	    {
+	      // check to see whether change will deplete top bedrock layer:
+	      if( -rockDeltaZ < rockP->getDepth() )
+		{
+		  // simply remove material from top bedrock layer 
+		  // (use low-level function):
+		  for( size_t j=0; j<n->getNumg(); ++j ) 
+		    rockP->addDgrade( j, 
+				      rockDeltaZ * rockP->getDgrade(j) 
+				      / rockP->getDepth() );
+		  // all erosion in this layer, so rockDeltaZ goes to zero:
+		  rockDeltaZ=0.0;
+		  // should I worry about removing very thin layers here?
+		}
+	      else
+		{
+		  // erode entire layer; decrement rockDeltaZ by layer depth:
+		  rockDeltaZ += rockP->getDepth();
+		  // if it's the last layer, then make a new one here:
+		  if( unlikely( i == n->getNumLayer()-1 ) )
+		    {
+		      // insert copy of rock layer:
+		      n->getLayersRefNC().insertAtBack( *rockP );
+		      // reset its depth:
+		      n->setLayerDepth( n->getNumLayer()-1, n->getMaxregdep() );
+		    }	  
+		  n->removeLayer(i);
+		  // just removed layer pointed to by rockP; 
+		  // re-find soil and rock layers:
+		  for( lP=lI.FirstP(), i=0; 
+		       lP->getSed() == tLayer::kSed; 
+		       lP=lI.NextP(), ++i )
+		    soilP = lP;
+		  rockP = lP;
+		}
+	    } // rock lowering loop
+	  // add material to bottom soil layer (elevation changed in EroDep):
+	  for( size_t j=0; j<n->getNumg(); ++j ) 
+	    erolist[j] = soilDeltaH * rockP->getDgrade(j)/rockP->getDepth();
+	  // is there a soil layer?
+	  if( soilP > 0 )
+	    // yes; add material to layer above top rock layer:
+	    n->EroDep( i-1, erolist, time );
+	  else
+	    {
+	      // no; call EroDep such that it will make a new layer:
+	      n->EroDep( 0, erolist, time );
+	      soilP = lI.FirstP(); // set soil layer pointer
+	      // need to set soil bulk density (necessary?):
+	      soilP->setBulkDensity( soilBulkDensity );
+	    }
+	} // end if( rate < 0.0 ) 
+    } // nodeList loop
+} // void tErosion::ProduceRegolith( double dtg, double time )
+
+/***************************************************************************\
+ **  tErosion::WeatherBedrock( double dtg )
+ **
+ **  Changes bedrock (e.g., reduces its density and/or changes its volume.
+ **  Called by: main routine.
+ **  Takes: time step.
+ **  Calls: 
+ **    - tChemicalWeathering::SoluteFlux( tLNode*, timestep );
+ **    - tChemicalWeathering::StrainRate( tLNode*, timestep );
+ **  Changes: Bulk densities and thicknesses of layers.
+ **
+ **  - STL, 6/2010
+\***************************************************************************/
+void tErosion::WeatherBedrock( double dtg )
+{
+  tMesh< tLNode >::nodeListIter_t ni( meshPtr->getNodeList() ); // node iter.
+  // do chemical weathering for each active node:
+  double totalFlux=0.0;
+  double totalStrain=0.0;
+  for( tLNode* n = ni.FirstP(); ni.IsActive(); n = ni.NextP() )
+    {
+      // find flux; this version updates bulk density of each bedrock layer:
+      totalFlux += chemWeath->SoluteFlux( n, dtg );
+      // find strain; as of 6/2010, does nothing:
+      totalStrain += chemWeath->StrainRate( n, dtg );
+    }
+}
 
 
 /***********************************************************************\

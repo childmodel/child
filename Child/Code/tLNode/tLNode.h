@@ -104,6 +104,10 @@ public:
   inline void setPaleoCurrent( double );
   inline double getPaleoCurrent() const;
 
+  inline double getBulkDensity() const {return bulkDensity;}
+  inline void setBulkDensity( double val ) {bulkDensity = val;}
+  inline void addBulkDensity( double val ) {bulkDensity += val;}
+
 protected:
   int layerID;
   double ctime; // time of creation of layer
@@ -114,6 +118,7 @@ protected:
   tSed_t sed;   // type of sediment
   tArray< double > dgrade; // depth of each size if multi size
   double paleocurrent;
+  double bulkDensity; // bulk density of layer (kg/m3)
 };
 
 
@@ -129,7 +134,7 @@ protected:
 inline tLayer::tLayer () :
   layerID(-1), ctime(0.), rtime(0.), etime(0.),
   depth(0.), erody(0.), sed(kBedRock),
-  dgrade(), paleocurrent(-1.)
+  dgrade(), paleocurrent(-1.), bulkDensity(0.)
 {
   if (0) //DEBUG
     std::cout << "tLayer( )" << std::endl;
@@ -138,7 +143,7 @@ inline tLayer::tLayer () :
 inline tLayer::tLayer ( size_t num ) :
   layerID(-1), ctime(0.), rtime(0.), etime(0.),
   depth(0.), erody(0.), sed(kBedRock),
-  dgrade( num ), paleocurrent(-1.)
+  dgrade( num ), paleocurrent(-1.), bulkDensity(0.)
 {
   if (0) //DEBUG
     std::cout << "tLayer( num )" << std::endl;
@@ -148,7 +153,8 @@ inline tLayer::tLayer ( size_t num ) :
 inline tLayer::tLayer( const tLayer &orig ) :                        //tLayer
   layerID(orig.layerID), ctime(orig.ctime), rtime(orig.rtime), etime(orig.etime),
   depth(orig.depth), erody(orig.erody), sed(orig.sed),
-  dgrade( orig.dgrade ), paleocurrent(orig.paleocurrent)
+  dgrade( orig.dgrade ), paleocurrent(orig.paleocurrent), 
+  bulkDensity(orig.bulkDensity)
 {
   if (0) //DEBUG
     std::cout << "tLayer copy const\n";
@@ -169,8 +175,8 @@ inline const tLayer &tLayer::operator=( const tLayer &right )     //tLayer
       erody=right.erody;
       sed=right.sed;
       paleocurrent = right.paleocurrent;
-	  layerID=right.layerID;
-
+      layerID=right.layerID;
+      bulkDensity=right.bulkDensity;
     }
   return *this;
 }
@@ -616,6 +622,7 @@ public:
   inline double getLayerDgrade(int, size_t) const;  // first int is layer index
   // second int is grade index - see note above for indexing directions
   inline int getNumLayer() const;
+  inline tList< tLayer > &getLayersRefNC(); // returns pointer to layerlist
   inline void setLayerCtime(int, double);
   inline void setLayerRtime(int, double);
   inline void setLayerEtime(int, double);
@@ -726,6 +733,7 @@ protected:
   double qsubsurf;   // Subsurface discharge
   double cumulative_ero_dep_;    // Keeps track of ero/dep since last update (for external reporting)
   double cumulative_sed_xport_volume_;  // Keeps track of flux since last reset; qty is a volume (for external reporting)
+  //double safetyFactor; // Factor of safety for node (landsliding)
 public:
   int public1; // a "public" member that can be used for various purpose
 };
@@ -1233,6 +1241,11 @@ inline double tLNode::getLayerDgrade( int i, size_t num ) const
 inline int tLNode::getNumLayer() const
 {
   return layerlist.getSize();
+}
+
+inline tList< tLayer > &tLNode::getLayersRefNC()
+{
+  return layerlist;
 }
 
 inline void tLNode::setLayerCtime( int i, double tt)

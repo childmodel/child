@@ -45,9 +45,8 @@
 #include "../tLNode/tLNode.h"
 #include "../tInputFile/tInputFile.h"
 #include "../tStorm/tStorm.h"
+#include "../globalFns.h"
 
-double DistanceToLine( double x2, double y2, double a, double b, double c );
-double DistanceToLine( double x2, double y2, tNode const *p0, tNode const *p1 );
 
 
 /**************************************************************************/
