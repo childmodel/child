@@ -542,9 +542,9 @@ public:
   inline void AddTracer();
   bool NoMoreTracers() const;
   void EroDep( double dz );
-  inline void setAlluvThickness( double );
-  inline double getAlluvThickness() const;
-  inline tArray< double > const & getAlluvThicknessm( ) const;
+  inline void setAlluvThickness( double ); // deprecated
+  inline double getAlluvThickness() const; // deprecated
+  inline tArray< double > const & getAlluvThicknessm( ) const; // deprecated
   inline void setBedErody( double );
   inline double getBedErody() const;
   inline void setReachMember( bool );
@@ -690,6 +690,8 @@ public:
   void CopyLayerList( tLNode const * ); // Copy layerlist from another node (gt 12/99)
 
    virtual void ChangeZ( double ); // overrides tNode::ChangeZ
+  // add new function to find regolith/sediment depth from layers (sl, 8/10)
+  double getRegolithDepth();
 #ifndef NDEBUG
   void TellAll() const;
 #endif
@@ -1448,5 +1450,7 @@ inline void tLNode::ChangeZ( double val )
       }
    }
 }
+
+
 
 #endif

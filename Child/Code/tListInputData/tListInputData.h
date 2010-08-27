@@ -209,6 +209,26 @@ public:
   tArray< double > vegCov;
 };
 
+/**************************************************************************/
+/**
+ **  @class tListInputDataForest
+ **
+ **  tListInputData reads an established random number generator state.
+ */
+/**************************************************************************/
+class tListInputDataForest : private tListInputDataBase
+{
+  tListInputDataForest();
+public:
+  tListInputDataForest( const tInputFile &);
+  tArray< double > rootstrength;
+  tArray< double > maxrootstrength; // root strength at time of death
+  tArray< double > maxheightstand;
+  tArray< double > biomassstand; // mass or volume per unit area
+  tArray< double > biomassdown; // mass or volume per unit area
+  tArray< double > standdeathtime;
+};
+
 
 
 /**************************************************************************\

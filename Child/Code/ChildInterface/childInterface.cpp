@@ -113,6 +113,8 @@ Initialize( int argc, char **argv )
    optDetachLim = inputFile.ReadBool( "OPTDETACHLIM" );
    optDiffuseDepo = inputFile.ReadBool( "OPTDIFFDEP" );
    optVegetation = inputFile.ReadBool( "OPTVEG" );
+   optForest = inputFile.ReadBool( "OPTFOREST" );
+   optFire = inputFile.ReadBool( "OPTFIRE" );
    optFloodplainDep = inputFile.ReadBool( "OPTFLOODPLAIN" );
    optLoessDep = inputFile.ReadBool( "OPTLOESSDEP" );
    optMeander = inputFile.ReadBool( "OPTMEANDER" );
@@ -122,10 +124,23 @@ Initialize( int argc, char **argv )
      inputFile.ReadBool( "OPT_DEPTH_DEPENDENT_DIFFUSION", false );
    optTrackWaterSedTimeSeries = inputFile.ReadBool( "OPT_TRACK_WATER_SED_TIMESERIES", false );
    
+   // create run timer object:
+   time = new tRunTimer( inputFile, !option.silent_mode );
+
    // If applicable, create Vegetation object
    if( optVegetation )
-       vegetation = new tVegetation( mesh, inputFile );
-
+     {
+       if( optFire )
+	 {
+	   if( optForest )
+	     vegetation = new tVegetation( mesh, inputFile, time, storm );
+	   else
+	     vegetation = new tVegetation( mesh, inputFile, time );
+	 }
+       else
+	 vegetation = new tVegetation( mesh, inputFile );
+     }
+   
    // If applicable, create floodplain object
    if( optFloodplainDep )
        floodplain = new tFloodplain( inputFile, mesh );
@@ -155,7 +170,6 @@ Initialize( int argc, char **argv )
    }
 
    std::cout << "Writing data for time zero...\n";
-   time = new tRunTimer( inputFile, !option.silent_mode );
    output->WriteOutput( 0. );
    initialized = true;
    std::cout << "Initialization done.\n";
@@ -361,7 +375,9 @@ RunOneStorm()
 #define NEWVEG 1
   if( optVegetation ) {
     if( NEWVEG )
-      vegetation->GrowVegetation( mesh, stormPlusDryDuration - stormDuration );
+       vegetation->GrowVegetation( mesh, stormPlusDryDuration );
+    // previously only grew during interstorm:
+//       vegetation->GrowVegetation( mesh, stormPlusDryDuration - stormDuration );
     else
       vegetation->UpdateVegetation( mesh, stormDuration,
 				    stormPlusDryDuration - stormDuration );

@@ -90,4 +90,11 @@ double DistanceToLine( double x2, double y2, double a, double b, double c );
 
 double DistanceToLine( double x2, double y2, tNode const *p0, tNode const *p1 );
 
+// global function to be used with veg. growth stuff:
+// added by SL, 8/10
+double Richards_Chapman_equ( const double t, const double Smax, 
+			     const double decay, const double shape );
+
+
+
 #endif

@@ -30,6 +30,7 @@
  **      (only when non-regime hydraulic geometry model used)
  **    - 7/03: AD added tOutputBase and tTSOutputImp
  **    - 8/03: AD Random number generator handling
+ **    - 8/10: SL added forestofs for output of forest/trees
  **
  **  $Id: tOutput.h,v 1.59 2008-07-07 16:18:58 childcvs Exp $
  */
@@ -186,6 +187,7 @@ public:
    void WriteTSOutput();
    bool OptTSOutput() const;
   bool OptLayOutput; //nmg added 11/06, for writing layer information
+  bool OptNewLayOutput; // stl added 8/10 for writing bulk density
    void SetStratGrid(tStratGrid *, tStreamNet *);
    void SetFloodplain(tFloodplain *);
    
@@ -201,6 +203,7 @@ private:
    std::ofstream surfofs;    // Surfer style x,y,z file with top layer properties in columns of triangular nodes
    std::ofstream texofs;     // Texture info
    std::ofstream vegofs;     // Vegetation cover %
+  std::ofstream forestofs;  // forest variables
    std::ofstream flowdepofs; // Flow depth
    std::ofstream chanwidthofs; // Channel width
    std::ofstream flowpathlenofs;  // Flow path length
@@ -259,8 +262,10 @@ inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
       {
 	layofs << lP->getCtime() << ' ' << lP->getRtime() << ' '
 	       << lP->getEtime() << '\n'
-	       << lP->getDepth() << ' ' << lP->getErody() << ' '
-	       << lP->getBulkDensity() << ' ' << lP->getSed() << '\n';
+	       << lP->getDepth() << ' ' << lP->getErody() << ' ';
+	if( OptNewLayOutput )
+	  layofs << lP->getBulkDensity() << ' ';
+	layofs << lP->getSed() << '\n';
 	for( size_t j=0; j<lP->getDgrade().getSize(); ++j )
 	  layofs << lP->getDgrade(j) << ' ';
 	layofs << '\n';
@@ -288,6 +293,16 @@ inline void tLOutput<tSubNode>::WriteAllNodeData( tSubNode *cn )
   slpofs << (cn->getBoundaryFlag() == kNonBoundary ? cn->calcSlope():0.) << '\n';
   qofs << cn->getQ() << '\n';
   if( vegofs.good() ) vegofs << cn->getVegCover().getVeg() << '\n';
+  if( forestofs.good() ) 
+    {
+      tTrees *tPtr = cn->getVegCover().getTrees();
+      forestofs << tPtr->getRootStrength() << ' ' 
+		<< tPtr->getMaxRootStrength() << ' ' 
+		<< tPtr->getMaxHeightStand() << ' ' 
+		<< tPtr->getBioMassStand() << ' ' 
+		<< tPtr->getBioMassDown() << ' ' 
+		<< tPtr->getStandDeathTime() << '\n';
+    }
   if( flowdepofs.good() )
     flowdepofs << cn->getHydrDepth() << '\n';
   if( chanwidthofs.good() )

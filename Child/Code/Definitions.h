@@ -83,6 +83,7 @@ typedef enum { false=0, true } bool;
 #define SRANDOM ".random"
 #define SVAREA ".varea"
 #define SVEG ".veg"
+#define SFOREST ".for"
 
 #define OPTREADINPUT_PREVIOUS 1
 

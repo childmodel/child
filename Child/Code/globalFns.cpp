@@ -736,3 +736,13 @@ double DistanceToLine( double x2, double y2, tNode const *p0, tNode const *p1 )
 }
 
 
+// global function to be used with veg. growth stuff:
+  /*
+   * this equation was called Richard's Chapman equation (in the Ecological
+   * world ?). Here I used the form as introduced by Mark Harmon.
+   * -Duan
+   */
+// added by SL, 8/10
+double Richards_Chapman_equ( const double t, const double Smax, 
+			     const double decay, const double shape )
+{return Smax * pow( ( 1.0 - exp( -decay * t ) ), shape );}

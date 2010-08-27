@@ -404,7 +404,7 @@ public1(-1)
       sum += help;
       strcpy( name, "BRPROPORTION");
       strcat( name, add );
-	  std::cout<<"In tLNode, reading '"<<name<<std::endl;
+      std::cout<<"In tLNode, reading '"<<name<<std::endl;
       help = infile.ReadItem( help, name);
       dgradebrhelp[i]=help;
       sumbr += help;
@@ -447,12 +447,12 @@ public1(-1)
       layerlist.insertAtBack( layhelp );
       
       if(0) //DEBUG
-      {
-        std::cout<<"Just made BR layer thick=" << layhelp.getDepth()
-            << " and dgrades:\n";
-        for( i=0; i<numg; i++ )
+	{
+	  std::cout<<"Just made BR layer thick=" << layhelp.getDepth()
+		   << " and dgrades:\n";
+	  for( i=0; i<numg; i++ )
             std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
-      }
+	}
 
       // Regolith layer items read in and set
       layhelp.setSed(tLayer::kSed);
@@ -476,12 +476,12 @@ public1(-1)
 	layerlist.insertAtFront( layhelp );
         
         if(0) //DEBUG
-        {
-          std::cout<<"1Just made ALLUV layer thick=" << layhelp.getDepth()
-              << " and dgrades:\n";
-          for( i=0; i<numg; i++ )
+	  {
+	    std::cout<<"1Just made ALLUV layer thick=" << layhelp.getDepth()
+		     << " and dgrades:\n";
+	    for( i=0; i<numg; i++ )
               std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
-        }
+	  }
 
 	// the top regolith layer is now made
 	layhelp.setRtime(0.);
@@ -493,12 +493,12 @@ public1(-1)
 	layerlist.insertAtFront( layhelp );
         
         if(0) //DEBUG
-        {
-          std::cout<<"2Just made ALLUV layer thick=" << layhelp.getDepth()
-              << " and dgrades:\n";
-          for( i=0; i<numg; i++ )
+	  {
+	    std::cout<<"2Just made ALLUV layer thick=" << layhelp.getDepth()
+		     << " and dgrades:\n";
+	    for( i=0; i<numg; i++ )
               std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
-        }
+	  }
 
       }
       else{
@@ -512,12 +512,12 @@ public1(-1)
 	layerlist.insertAtFront( layhelp );
         
         if(0) //DEBUG
-        {
-          std::cout<<"3Just made ALLUV layer thick=" << layhelp.getDepth()
-              << " and dgrades:\n";
-          for( i=0; i<numg; i++ )
+	  {
+	    std::cout<<"3Just made ALLUV layer thick=" << layhelp.getDepth()
+		     << " and dgrades:\n";
+	    for( i=0; i<numg; i++ )
               std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
-        }
+	  }
 
       }
     }
@@ -2627,3 +2627,17 @@ void tLNode::CopyLayerList( tLNode const * fromNode )
   assert( fromNode!=0 );
   layerlist = fromNode->layerlist;
 }
+
+// SL, 8/2010: New function to find total depth of regolith/sediment
+// above bedrock with layers (so no need to separately keep track of 
+// alluvial thickness).
+double tLNode::getRegolithDepth()
+{
+  tListIter< tLayer > lI( layerlist );
+  double soilThickness(0.0);
+  for( tLayer *lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() )
+    soilThickness += lP->getDepth();
+  return soilThickness;
+}
+
+

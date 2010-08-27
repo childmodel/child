@@ -110,3 +110,12 @@ double tRand::ran3()
 #undef MSEED
 #undef MZ
 #undef FAC
+
+double tRand::ExpDev()
+{
+  double dum;
+  do
+    dum = ran3();
+  while( dum == 0.0 );
+  return -log( dum );
+}

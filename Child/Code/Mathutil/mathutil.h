@@ -7,6 +7,9 @@
 **         All or most routines from Numerical Recipes in C by
 **         Press et al.
 **
+**  SL, 8/10: Added ExpDev as member function for use by other
+**  objects (other than tStorm) that need it (tFire, tForest).
+**
 **  $Id: mathutil.h,v 1.11 2004-06-16 13:37:27 childcvs Exp $
 */
 /*********************************************************************/
@@ -29,6 +32,7 @@ double genrand_res53(void);
 // forward declaration
 class tInputFile;
 #include <iosfwd>
+#include <math.h>
 
 /** @class tRand
 **
@@ -36,14 +40,15 @@ class tInputFile;
 */
 class tRand
 {
+public:
   tRand(tRand const &);
   tRand& operator=(tRand const &);
   tRand();
-public:
   tRand(long);
   tRand(tInputFile const &);
   void init(long);
   double ran3();
+  double ExpDev();
   void dumpToFile( std::ofstream&  );
   void readFromFile( std::ifstream& );
   int numberRecords() const;

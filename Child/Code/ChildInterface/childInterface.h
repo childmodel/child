@@ -124,6 +124,8 @@ private:
     optFloodplainDep,  // Option for floodplain (overbank) deposition
     optLoessDep,       // Option for eolian deposition
     optVegetation,     // Option for dynamic vegetation cover
+    optFire,           // Option for fire object within tVegetation
+    optForest,         // Option for forest object within tVegetation
     optMeander,        // Option for stream meandering
     optDiffuseDepo,    // Option for deposition / no deposition by diff'n
     optStratGrid,      // Option to enable stratigraphy grid

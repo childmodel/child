@@ -254,142 +254,156 @@ template< class tSubNode >
 void tMesh< tSubNode >::
 MakeLayersFromInputData( const tInputFile &infile )
 {
-   int i, item, numl;
-   int righttime;
-   double time, intime;
-   double ditem;
-   char thestring[80], inname[80];
-   char headerLine[kMaxNameLength];
-   std::ifstream layerinfile;
-   infile.ReadItem( thestring, sizeof(thestring), "INPUTDATAFILE" );
+  int i, item, numl;
+  int righttime;
+  double time, intime;
+  double ditem;
+  char thestring[80], inname[80];
+  char headerLine[kMaxNameLength];
+  std::ifstream layerinfile;
+  infile.ReadItem( thestring, sizeof(thestring), "INPUTDATAFILE" );
 
-   if (0) //DEBUG
-     std::cout<<"in MakeLayersFromInputData..."<<std::endl;
+  if (0) //DEBUG
+    std::cout<<"in MakeLayersFromInputData..."<<std::endl;
 
-   strcpy( inname, thestring );
-   strcat( inname, ".lay" );
-   layerinfile.open(inname); /* Layer input file pointer */
-   assert( layerinfile.good() );
+  strcpy( inname, thestring );
+  strcat( inname, ".lay" );
+  layerinfile.open(inname); /* Layer input file pointer */
+  assert( layerinfile.good() );
 
-   intime = infile.ReadItem( intime, "INPUTTIME" );
-   //find specified input times in input data files and read no. items.
-   //nodes:
-   righttime = 0;
-   while( !( layerinfile.eof() ) && !righttime )
-   {
+  intime = infile.ReadItem( intime, "INPUTTIME" );
+  //find specified input times in input data files and read no. items.
+  //nodes:
+  righttime = 0;
+  while( !( layerinfile.eof() ) && !righttime )
+    {
       layerinfile.getline( headerLine, kMaxNameLength );
       if( headerLine[0] == kTimeLineMark )
-      {
-         layerinfile.seekg( -layerinfile.gcount(), std::ios::cur );
-         layerinfile >> time;
-         //std::cout << "from file, time = " << time << std::endl;
-         if( time >= intime ) righttime = 1;
-      }
-   }
-   if(1) //DEBUG
-     std::cout<<"MakeLayersFromInputData: nnodes before="<<nnodes<<std::endl;
-   int temp_nintnodes;  // Temporary variable used to read number of interior nodes
-   if( !( layerinfile.eof() ) ) layerinfile >> temp_nintnodes;
-   else
-   {
+	{
+	  layerinfile.seekg( -layerinfile.gcount(), std::ios::cur );
+	  layerinfile >> time;
+	  //std::cout << "from file, time = " << time << std::endl;
+	  if( time >= intime ) righttime = 1;
+	}
+    }
+  if(1) //DEBUG
+    std::cout<<"MakeLayersFromInputData: nnodes before="<<nnodes<<std::endl;
+  int temp_nintnodes;  // Temporary variable used to read number of interior nodes
+  if( !( layerinfile.eof() ) ) layerinfile >> temp_nintnodes;
+  else
+    {
       std::cerr << "Couldn't find specified input time in layer file" << std::endl;
       ReportFatalError( "Input error" );
-   }
-   if(1) //DEBUG
-     std::cout<<"nnodes after="<<nnodes<<std::endl;
+    }
+  if(1) //DEBUG
+    std::cout<<"nnodes after="<<nnodes<<std::endl;
 
-   tLayer layhelp;
-   int numg;
-   numg = infile.ReadItem( numg, "NUMGRNSIZE" );
-   layhelp.setDgradesize(numg);
+  tLayer layhelp;
+  int numg;
+  numg = infile.ReadItem( numg, "NUMGRNSIZE" );
+  layhelp.setDgradesize(numg);
 
-   int g;
-   tLNode * cn;
-   //int nActNodes = getNodeList()->getActiveSize();
-   //int NNodes = getNodeList()->get
-   nodeListIter_t ni( getNodeList() );
+  int g;
+  tLNode * cn;
+  //int nActNodes = getNodeList()->getActiveSize();
+  //int NNodes = getNodeList()->get
+  nodeListIter_t ni( getNodeList() );
+  // Hack: make layers input backwards compatible for simulations
+  // without bulk density; :
+  bool optNewLayersInput = infile.ReadBool( "OPT_NEW_LAYERSINPUT", false );
 
-   for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
-   {
-	   layerinfile >> numl;
-	   if( numl<1 )
-	   {
-		   std::cout << "In MakeLayersFromInputData: node " << cn->getPermID() << " has " << numl << " layers." << std::endl;
-		   ReportFatalError( "Each interior point must have at least one layer." );
-	   }
-	   for(i = 1; i<=numl; i++){
-		   layerinfile >> ditem;
-		   layhelp.setCtime(ditem);
-		   layerinfile >> ditem;
-		   layhelp.setRtime(ditem);
-		   layerinfile >> ditem;
-		   layhelp.setEtime(ditem);
-		   layerinfile >> ditem;
-		   if( ditem <= 0. )
-		   {
-			   std::cout << "MakeLayersFromInputData: Layer " << i << " at node " << cn->getID()
-			   << " has thickness " << ditem << std::endl;
-			   ReportFatalError("Layers must have positive thickness.");
-		   }
-		   layhelp.setDepth(ditem);
-		   layerinfile >> ditem;
-		   layhelp.setErody(ditem);
-		   layerinfile >> item;
-		   if( item<0 || item>1 )
-		   {
-			   std::cout << "MakeLayersFromInputData: Layer " << i << " at node " << cn->getID()
-			   << " has flag value " << item << std::endl;
-			   ReportFatalError("Flag value must be either zero or one.");
-		   }
-		   {
-			   tLayer::tSed_t item_ = static_cast<tLayer::tSed_t>(item);
-			   layhelp.setSed(item_);
-		   }
-		   for(g=0; g<numg; g++){
-			   layerinfile >> ditem;
-			   layhelp.setDgrade(g, ditem);
-		   }
-		   cn->InsertLayerBack( layhelp );
-	   }
+  for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+    {
+      layerinfile >> numl;
+      if( numl<1 )
+	{
+	  std::cout << "In MakeLayersFromInputData: node " 
+		    << cn->getPermID() << " has " << numl << " layers." 
+		    << std::endl;
+	  ReportFatalError( "Each interior point must have at least one layer." );
+	}
+      for(i = 1; i<=numl; i++){
+	layerinfile >> ditem;
+	layhelp.setCtime(ditem);
+	layerinfile >> ditem;
+	layhelp.setRtime(ditem);
+	layerinfile >> ditem;
+	layhelp.setEtime(ditem);
+	layerinfile >> ditem;
+	if( ditem <= 0. )
+	  {
+	    std::cout << "MakeLayersFromInputData: Layer " << i 
+		      << " at node " << cn->getID()
+		      << " has thickness " << ditem << std::endl;
+	    ReportFatalError("Layers must have positive thickness.");
+	  }
+	layhelp.setDepth(ditem);
+	layerinfile >> ditem;
+	layhelp.setErody(ditem);
+	// Hack: to make this backwards compatible,
+	// read bulk density if optNewLayersInput == true:
+	if( optNewLayersInput )
+	  {
+	    layerinfile >> ditem;
+	    layhelp.setBulkDensity(ditem);
+	  }
+	layerinfile >> item;
+	if( item<0 || item>1 )
+	  {
+	    std::cout << "MakeLayersFromInputData: Layer " << i 
+		      << " at node " << cn->getID()
+		      << " has flag value " << item << std::endl;
+	    ReportFatalError("Flag value must be either zero or one.");
+	  }
+	{
+	  tLayer::tSed_t item_ = static_cast<tLayer::tSed_t>(item);
+	  layhelp.setSed(item_);
+	}
+	for(g=0; g<numg; g++){
+	  layerinfile >> ditem;
+	  layhelp.setDgrade(g, ditem);
+	}
+	cn->InsertLayerBack( layhelp );
+      }
 	   
-   }
+    }
    
-   tArray<double> dgradebrhelp( numg );
-   double sumbr = 0.;
-   i=0;
-   char add[2];
-   add[0]='1';
-   add[1]='\0';
-   char name[20];
-   double help;
+  tArray<double> dgradebrhelp( numg );
+  double sumbr = 0.;
+  i=0;
+  char add[2];
+  add[0]='1';
+  add[1]='\0';
+  char name[20];
+  double help;
 
-   while ( i<numg ){
-      // Reading in proportions for intital regolith and bedrock
-      strcpy( name, "BRPROPORTION");
-      strcat( name, add );
-	  std::cout<<"In tMesh, reading '"<<name<<"'"<<std::endl;
-      help = infile.ReadItem( help, name);
-      dgradebrhelp[i]=help;
-      sumbr += help;
-      i++;
-      add[0]++;
-   }
+  while ( i<numg ){
+    // Reading in proportions for intital regolith and bedrock
+    strcpy( name, "BRPROPORTION");
+    strcat( name, add );
+    std::cout<<"In tMesh, reading '"<<name<<"'"<<std::endl;
+    help = infile.ReadItem( help, name);
+    dgradebrhelp[i]=help;
+    sumbr += help;
+    i++;
+    add[0]++;
+  }
 
-   assert(sumbr>0.999 && sumbr<1.001);
+  assert(sumbr>0.999 && sumbr<1.001);
 
-   layhelp.setCtime(0.);
-   layhelp.setRtime(0.);
-   //layhelp.setFlag(0);
-   layhelp.setErody(0.);
-   layhelp.setSed(tLayer::kBedRock);
-   ditem=layhelp.getDepth();
-   for(g=0; g<numg; g++){
-      layhelp.setDgrade(g, ditem*dgradebrhelp[g]);
-   }
+  layhelp.setCtime(0.);
+  layhelp.setRtime(0.);
+  //layhelp.setFlag(0);
+  layhelp.setErody(0.);
+  layhelp.setSed(tLayer::kBedRock);
+  ditem=layhelp.getDepth();
+  for(g=0; g<numg; g++){
+    layhelp.setDgrade(g, ditem*dgradebrhelp[g]);
+  }
 
-   for( cn = cn; !(ni.AtEnd()); cn=ni.NextP() ){
-      cn->InsertLayerBack( layhelp );
-   }
+  for( cn = cn; !(ni.AtEnd()); cn=ni.NextP() ){
+    cn->InsertLayerBack( layhelp );
+  }
 
 }
 

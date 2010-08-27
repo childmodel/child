@@ -202,3 +202,52 @@ tListInputDataVegetation( const tInputFile &inputfile )
       ReportIOError(IORecord, basename, SVEG, i);
   }
 }
+
+/**************************************************************************\
+ **
+ **  tListInputDataForest::tListInputDataForest()
+ **
+ **  Read state from file
+ **
+\**************************************************************************/
+tListInputDataForest::
+tListInputDataForest( const tInputFile &inputfile )
+{
+  double intime;                   // desired time
+  char basename[80];
+
+  // Read base name for triangulation files from inputfile
+  inputfile.ReadItem( basename, sizeof(basename), "INPUTDATAFILE" );
+
+  std::ifstream dataInfile;
+  openFile( dataInfile, basename, SFOREST);
+
+  // Find out which time slice we want to extract
+  intime = inputfile.ReadItem( intime, "INPUTTIME" );
+  if (1) //DEBUG
+    std::cout << "intime = " << intime << std::endl;
+
+  // Find specified input times in input data files and read # items.
+  int nn;
+  findRightTime( dataInfile, nn, intime,
+		 basename, SFOREST, "forest mask");
+  // Read in data from file
+  rootstrength.setSize(nn);
+  maxrootstrength.setSize(nn);
+  maxheightstand.setSize(nn);
+  biomassstand.setSize(nn);
+  biomassdown.setSize(nn);
+  standdeathtime.setSize(nn);
+  for( int i=0; i<nn; ++i )
+    {
+      dataInfile >> rootstrength[i];
+      dataInfile >> maxrootstrength[i];
+      dataInfile >> maxheightstand[i];
+      dataInfile >> biomassstand[i];
+      dataInfile >> biomassdown[i];
+      dataInfile >> standdeathtime[i];
+      if (dataInfile.fail())
+	ReportIOError(IORecord, basename, SFOREST, i);
+    }
+}
+

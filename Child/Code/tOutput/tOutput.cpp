@@ -366,10 +366,18 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
 
   //Layer output: only write layer information if user selects to write it
   OptLayOutput = infile.ReadBool( "OPTLAYEROUTPUT" );
+  // Hack: make backward compatible for sims without bulk density:
+  if( OptLayOutput )
+    OptNewLayOutput = infile.ReadBool( "OPT_NEW_LAYERSOUTPUT", false );
 
   // Vegetation cover: if dynamic vegetation option selected
   if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) != 0)
-    this->CreateAndOpenFile( &vegofs, SVEG );
+    {
+      this->CreateAndOpenFile( &vegofs, SVEG );
+      if( (opOpt = infile.ReadItem( opOpt, "OPTFOREST" ) ) != 0 )
+	this->CreateAndOpenFile( &forestofs, SFOREST );
+    }
+  
 
   // Flow depth: if kinematic wave option used OR if channel geometry
   // model other than "regime" used
@@ -499,6 +507,8 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   this->WriteTimeNumberElements( tauofs, time, nnodes);
   if( vegofs.good() )
     this->WriteTimeNumberElements( vegofs, time, nnodes);
+  if( forestofs.good() )
+    this->WriteTimeNumberElements( forestofs, time, nnodes );
   if( flowdepofs.good() )
     this->WriteTimeNumberElements( flowdepofs, time, nnodes);
   if( chanwidthofs.good() )
@@ -551,6 +561,7 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   texofs << std::flush;
   tauofs << std::flush;
   if( vegofs.good() ) vegofs << std::flush;
+  if( forestofs.good() ) forestofs << std::flush;
   if( flowdepofs.good() ) flowdepofs << std::flush;
   if( chanwidthofs.good() ) chanwidthofs << std::flush;
   if( flowpathlenofs.good() ) flowpathlenofs << std::flush;
@@ -617,6 +628,8 @@ tTSOutputImp<tSubNode>::tTSOutputImp( tMesh<tSubNode> *meshPtr,
   this->CreateAndOpenFile( &dvolsofs, ".dvols" );
   if( (opOpt = infile.ReadItem( opOpt, "OPTVEG" ) ) != 0)
     this->CreateAndOpenFile( &vegcovofs, ".vcov" );
+  
+  
   this->CreateAndOpenFile( &tareaofs, ".tarea" );
 }
 
@@ -654,11 +667,12 @@ void tTSOutputImp<tSubNode>::WriteTSOutput()
   mdLastVolume = volume;
   //tareaofs << area << std::endl;
 
-  if( vegcovofs.good() ) {
-    for( cn = niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
-      cover += cn->getVegCover().getVeg()*cn->getVArea();
-    vegcovofs << cover/area << std::endl;
-  }
+  if( vegcovofs.good() ) 
+    {
+      for( cn = niter.FirstP(); !(niter.AtEnd()); cn=niter.NextP() )
+	cover += cn->getVegCover().getVeg()*cn->getVArea();
+      vegcovofs << cover/area << std::endl;
+    }
 }
 
 /***********************************************************************\
