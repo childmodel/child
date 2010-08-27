@@ -99,7 +99,7 @@ tFire::tFire( const tInputFile &infile, tRunTimer* tPtr )
    //srand( seed );
    // I/O stuff:
    timePtr = tPtr;
-   optRandom = infile.ReadBool( "OPTRANDOMFIRES" );
+   optRandom = infile.ReadBool( "OPTRANDOMFIRES", false );
    if( optRandom )
      {
        // Read and initialize seed for random number generation
@@ -701,10 +701,10 @@ tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, const tInputFile &infil
       mdTauCritBare = infile.ReadItem( mdTauCritBare, "TAUC" );
       mdTauCritVeg = infile.ReadItem( mdTVeg, "VEG_TAUCVEG" );
     }
-  bool optForest = infile.ReadBool( "OPTFOREST" );
+  bool optForest = infile.ReadBool( "OPTFOREST", false );
   if( optForest )
     forest = new tForest( infile, meshPtr, stormPtr );
-  bool optFire = infile.ReadBool( "OPTFIRE" );
+  bool optFire = infile.ReadBool( "OPTFIRE", false );
   if( optFire )
     fire = new tFire( infile, tPtr );
 
