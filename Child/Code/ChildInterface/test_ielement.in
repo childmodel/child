@@ -175,6 +175,16 @@ DIFFUSIONTHRESHOLD
 0
 OPTDIFFDEP: if =1 then diffusion only erodes, never deposits
 0
+SOILBULKDENSITY:
+1500
+PRODUCTION_LAW:
+0
+CHEM_WEATHERING_LAW:
+0
+OPTFOREST:
+0
+OPTFIRE:
+0
 #
 #   Bedrock and regolith
 #

@@ -77,6 +77,7 @@ public:
   void CleanUp();
   ~childInterface();
   void ExternalErosionAndDeposition( vector<double> dz );
+  void ExternalErodeAndDepositToElevation( vector<double> z );
   void TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track,
 				    double current_time );
 	

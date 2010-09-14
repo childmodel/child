@@ -544,6 +544,36 @@ void childInterface::ExternalErosionAndDeposition( vector<double> dz )
 }
 
 
+/**************************************************************************/
+/**
+**  childInterface::ExternalErodeAndDeposit
+**
+**  This function allows a calling program to tell CHILD to perform
+**  erosion and/or deposition sufficient to bring make the new elevation
+**  field equal to z. The length of z must be equal to the total
+**  number of nodes, and must be listed in ID order 0, 1, 2 ... N-1.
+**  Note that although the vector is as long as the total number of nodes,
+**  only the interior (non-boundary) nodes are affected.
+**
+**  Presently, it is set up without any grain-size information. A future
+**  version could also pass grain-size information.
+**
+**  GT, Sep 2010
+*/
+/**************************************************************************/
+
+void childInterface::ExternalErodeAndDepositToElevation( vector<double> z )
+{
+  tMesh< tLNode >::nodeListIter_t mli( mesh->getNodeList() );  // gets nodes from the list
+  tLNode * cn;
+  for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+  {
+    int current_id = cn->getPermID();
+    cn->EroDep( z[current_id] - cn->getZ() );
+  }
+}
+
+
 
 /**************************************************************************/
 /**
