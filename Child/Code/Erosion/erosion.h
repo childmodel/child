@@ -56,6 +56,8 @@
  **       (single-size) (GT 5/02)
  **     - Added codes to go along with erosion & transport options, to
  **       enable checking against user-specified options (GT 7/02)
+ **     - Added chemical and physical weathering, nonlinear depth-dependent
+ **       supply-limited diffusion, landsliding, and debris flows (SL, 9/10)
  **
  **  $Id: erosion.h,v 1.58 2007-08-21 00:14:33 childcvs Exp $
  */
@@ -824,6 +826,328 @@ private:
   int numThinLayers;  // number of new rock layers
 };
 
+class tErosion;
+/***************************************************************************/
+/**
+ **  @class tDebrisFlow
+ **
+ **  Debris flow object containing data for individual debris flows.
+ **  Particular behaviors of debris flows are determined by rules contained
+ **  in classes derived from tDF_RunOut, tDF_Scour, and tDF_Deposit
+ **  ("contained" by tErosion as pointers). 
+ **  tDebrisFlow contains functions (Initialize, RunScourDeposit) to perform
+ **  the basic mechanics of finding scour and deposition zones, depending on 
+ **  the rules specified elsewhere.
+ **
+ **  STL, 2010
+ */
+/***************************************************************************/
+class tDebrisFlow
+{
+  friend std::ostream &operator<<( std::ostream &, tDebrisFlow const & );
+  
+public:
+  tDebrisFlow() {} //default constructor
+  tDebrisFlow( tPtrList<tLNode>&, double, vector<double>&, 
+	       vector<double>&, vector<double>&, vector<int>&,
+	       tMesh<tLNode>*, tErosion* ); //usual constructor
+  ~tDebrisFlow(); // destructor
+  //   tDebrisFlow( tInputFile& file, tErosion* ePtr ); // static variables
+  // "get" and "set":
+  double getAreaFailure() const {return areaFailure;}
+  void setAreaFailure( double val ) {areaFailure = val;}
+  double getAreaScour() const {return areaScour;}
+  void setAreaScour( double val ) {areaScour = val;}
+  double getAreaDeposit() const {return areaDeposit;}
+  void setAreaDeposit( double val ) {areaDeposit = val;}
+  double getVolumeFailure() const {return volumeFailure;}
+  void setVolumeFailure( double val ) {volumeFailure = val;}
+  double getSedimentVolume() const {return sedimentVolume;}
+  void setSedimentVolume( double val ) {sedimentVolume = val;}
+  void addSedimentVolume( double val ) {sedimentVolume += val;}
+  double getWoodVolume() const {return woodVolume;}
+  void setWoodVolume( double val ) {woodVolume = val;}
+  void addWoodVolume( double val ) {woodVolume += val;}
+  double getWaterVolume() const {return waterVolume;}
+  void setWaterVolume( double val ) {waterVolume = val;}
+  void addWaterVolume( double val ) {waterVolume += val;}
+  double getAreaFrontal() const {return areaFrontal;}
+  void setAreaFrontal( double val ) {areaFrontal = val;}
+  double getWidthFrontal() const {return widthFrontal;}
+  void setWidthFrontal( double val ) {widthFrontal = val;}
+  tLNode* getOriginPtr() const {return orgPtr;}
+  tLNode* getAtPtr() const {return atPtr;}
+  tPtrList<tLNode>* getSlideCluster() const {return slideCluster;}
+  tPtrList<tLNode>* getScourCluster() const {return scourCluster;}
+  tMesh<tLNode>* getScourZoneMesh() const {return scourZoneMesh;}
+  tPtrList<tLNode>* getDepositCluster() const {return depositCluster;}
+  tMesh<tLNode>* getDepositZoneMesh() const {return depositZoneMesh;}
+  tPtrList<tLNode>* getWasList() const {return wasList;}
+  tList<double>* getVelocityList() const {return velocityList;}
+
+  // CSDMS-compliant IRF interface:
+  void Initialize() {}
+  void Initialize( tPtrList<tLNode>&, double, vector<double>&, 
+			   vector<double>&, vector<double>&, vector<int>&, 
+			   tMesh<tLNode>*, tErosion* );//usual constructor
+  void RunScourDeposit();
+  void Finalize();
+
+protected:
+  double areaFailure;
+  double areaScour;
+  double areaDeposit;
+  double volumeFailure;
+  double sedimentVolume;
+  double woodVolume;
+  double waterVolume;
+  double areaFrontal;
+  double widthFrontal;
+  double netForce;
+  tLNode *orgPtr;
+  tLNode *atPtr;
+
+  tErosion *erosion;
+//   tDF_RunOut *runout;
+//   tDF_Scour *scour;
+//   tDF_Deposit *deposit;
+  
+  tPtrList<tLNode> *slideCluster;
+  tPtrList<tLNode> *scourCluster;
+  tMesh<tLNode> *scourZoneMesh;
+  tPtrList<tLNode> *depositCluster;
+  tMesh<tLNode> *depositZoneMesh;
+  
+  // Use pointers so they can be zero by default:
+  // pointer to list of nodes along path ("in stream")
+  tPtrList<tLNode> *wasList;
+  // pointer to list of velocities along path
+  tList<double> *velocityList;
+};
+/***************************************************************************\
+ **  overloaded output operator for tDebrisFlow:
+ **  - STL, 9/2010
+\***************************************************************************/
+std::ostream &operator<<( std::ostream &, tDebrisFlow const & );
+
+/***************************************************************************/
+/**  Inline member functions of tDebrisFlow                                */
+/***************************************************************************/
+// destructor:
+inline tDebrisFlow::~tDebrisFlow() {Finalize();}
+
+/***************************************************************************/
+/**  void tDebrisFlow::Finalize()
+ **  Called by destructor. Deletes objects that were constructed with "new".
+ **  - STL, 9/2010                                                         */
+/***************************************************************************/
+inline void tDebrisFlow::Finalize()
+{
+  if( slideCluster > 0 ) delete slideCluster;
+  if( scourCluster > 0 ) delete scourCluster;
+  if( scourZoneMesh > 0 ) delete scourZoneMesh;
+  if( depositCluster > 0 ) delete depositCluster;
+  if( depositZoneMesh > 0 ) delete depositZoneMesh;
+  if( wasList > 0 ) delete wasList;
+  if( velocityList > 0 ) delete velocityList;
+}
+/***************************************************************************/
+/**
+ **  @class tDF_RunOut
+ **
+ **  Abstract base class for debris flow runout. Derived classes will 
+ **  contain rules for runout and control whether members of tDebrisFlow 
+ **  related to runout will be instantiated  (e.g., wasList, velocityList).
+ **
+ **  STL, 2010
+ */
+/***************************************************************************/
+class tDF_RunOut
+{
+public:
+  virtual ~tDF_RunOut() {}
+  virtual bool Start( tDebrisFlow* ) = 0; // e.g., initialize list of velocities
+  virtual bool InMotion( tDebrisFlow* ) = 0;
+};
+
+/***************************************************************************/
+/**  @class tDF_RunOutNone
+ **  Derived class for debris flow runout. Choice of this sub-class will 
+ **  mean no movement of debris flow downstream of the failure zone.
+ **  STL, 2010                                                             */
+/***************************************************************************/
+class tDF_RunOutNone : public tDF_RunOut
+{
+  tDF_RunOutNone();
+public:
+  tDF_RunOutNone( const tInputFile &infile ) {}
+//   virtual ~tDF_RunOutNone() {}
+  virtual bool Start( tDebrisFlow* ptr ) {return false;}
+  virtual bool InMotion( tDebrisFlow* ptr ) {return false;}
+};
+
+/***************************************************************************/
+/**  @class tDF_RunOutNoStop
+ **  Derived class for debris flow runout. Choice of this sub-class will 
+ **  mean that debris flow continue moving all the way to the outlet and out.
+ **  STL, 2010                                                             */
+/***************************************************************************/
+class tDF_RunOutNoStop : public tDF_RunOut
+{
+  tDF_RunOutNoStop();
+public:
+  tDF_RunOutNoStop( const tInputFile &infile ) {}
+//   virtual ~tDF_RunOutNoStop() {}
+  virtual bool Start( tDebrisFlow* );
+  virtual bool InMotion( tDebrisFlow* );
+};
+
+/***************************************************************************/
+/**  Inline member functions of tDF_RunOutNoStop                           */
+/***************************************************************************/
+// just checks whether already at outlet or flowing to outlet:
+inline bool tDF_RunOutNoStop::Start( tDebrisFlow *DF )
+{return ( DF->getAtPtr()->getFlowEdg() > 0 && 
+	  DF->getAtPtr()->getFlowEdg()->getDestinationPtr()->isNonBoundary() );}
+
+// just checks whether already at outlet:
+inline bool tDF_RunOutNoStop::InMotion( tDebrisFlow* DF ) 
+{return DF->getAtPtr()->isNonBoundary();}
+
+/***************************************************************************/
+/**  @class tDF_Scour
+ **  Abstract base class for debris flow scour. Derived classes will 
+ **  contain rules for scour and control whether members of tDebrisFlow 
+ **  related to scour will be instantiated  (e.g., scourCluster, 
+ **  scourZoneMesh).
+ **  STL, 2010                                                             */
+/***************************************************************************/
+class tDF_Scour
+{
+public:
+  virtual ~tDF_Scour() {}
+  virtual bool InScourZone( tDebrisFlow* DF ) = 0;
+  virtual void BedScour( tDebrisFlow* DF, tLNode* node ) = 0;
+};
+
+/***************************************************************************/
+/**  @class tDF_ScourNone
+ **  Derived class for debris flow scour. Choice of this sub-class will 
+ **  mean no removal of material downstream of the failure zone.
+ **  STL, 2010                                                             */
+/***************************************************************************/
+class tDF_ScourNone : public tDF_Scour
+{
+  tDF_ScourNone();
+public:
+  tDF_ScourNone( const tInputFile &infile ) {}
+//   virtual ~tDF_ScourNone() {}
+  virtual bool InScourZone( tDebrisFlow* DF ) {return false;}
+  virtual void BedScour( tDebrisFlow* DF, tLNode* node ) {}
+};
+
+/***************************************************************************/
+/**  @class tDF_RunOutAllSediment
+ **  Derived class for debris flow scour. Choice of this sub-class will 
+ **  mean removal of all sediment (and wood) downstream of the failure zone.
+ **  Generally should not be used in conjunction with no-runout
+ **  tDF_RunOut sub-classes (but probably won't do any harm if so).
+ **  STL, 2010                                                             */
+/***************************************************************************/
+class tDF_ScourAllSediment : public tDF_Scour
+{
+  tDF_ScourAllSediment();
+public:
+  tDF_ScourAllSediment( const tInputFile &infile ) {}
+//   virtual ~tDF_ScourAllSediment() {}
+  virtual bool InScourZone( tDebrisFlow* DF ) {return true;}
+  virtual void BedScour( tDebrisFlow*, tLNode* );
+};
+ 
+// inline bool tDF_ScourAllSediment::InScourZone( tDebrisFlow* DF ) 
+// {return ( DF->getAtPtr() != DF->getOriginPtr() );}
+
+/***************************************************************************/
+/**
+ **  @class tDF_Deposit
+ **
+ **  Abstract base class for debris flow deposition. Derived classes will 
+ **  contain rules for deposition and control whether members of tDebrisFlow 
+ **  related to deposition will be instantiated  (e.g., depositCluster, 
+ **  depositZoneMesh).
+ **
+ **  STL, 2010
+ */
+/***************************************************************************/
+class tDF_Deposit
+{
+public:
+  virtual ~tDF_Deposit() {}
+  virtual bool InDepositionZone( tDebrisFlow* DF ) = 0;
+  virtual void FormDeposit( tDebrisFlow* DF, tLNode* node ) = 0;
+};
+
+/***************************************************************************/
+/**  @class tDF_DepositNone
+ **  Derived class for debris flow deposition. Choice of this sub-class will 
+ **  mean no deposition of material. Generally should not be used in 
+ **  conjunction with tDF_RunOut sub-classes that make debris flows stop 
+ **  short of the outlet (i.e., with failure, maybe scour, and stopping within 
+ **  bounds, having no deposition doesn't make sense) (but probably won't 
+ **  do any harm).
+ **  STL, 2010                                                             */
+/***************************************************************************/
+class tDF_DepositNone : public tDF_Deposit
+{
+  tDF_DepositNone();
+public:
+  tDF_DepositNone( const tInputFile &infile ) {}
+//   virtual ~tDF_DepositNone() {}
+  virtual bool InDepositionZone( tDebrisFlow* DF ) {return false;}
+  virtual void FormDeposit( tDebrisFlow* DF, tLNode* node ) {}
+};
+/***************************************************************************/
+/**  @class NodeNetForceIndex
+ **  Used for priority_queue in tErosion::LandslideClusters.
+ **  STL, 2010                                                             */
+/***************************************************************************/
+  class NodeNetForceIndex
+  {
+  public:
+    tLNode* node;
+    double netForce;
+    int index;
+    const NodeNetForceIndex &operator=( const NodeNetForceIndex &right )
+    {
+      node = right.node;
+      netForce = right.netForce;
+      index = right.index;
+      return *this;
+    }
+  };
+  
+/***************************************************************************/
+/**  @class NodeNetForce_Lesser
+ **  Used for priority_queue in tErosion::LandslideClusters.
+ **  STL, 2010                                                             */
+/***************************************************************************/
+  // create comparator to see which node has the lesser net downhill force:
+  class NodeNetForce_Lesser
+  {
+  public:
+    bool operator()( const NodeNetForceIndex& node1, 
+		     const NodeNetForceIndex& node2 )
+    {
+      return node1.netForce < node2.netForce;
+    }
+  };
+  
+// global function for building clusters in tErosion::LandslideClusters:
+void BuildPublicClusterWithMesh( tMesh<tLNode>* mesh, 
+				 tPtrList<tLNode>* cluster, 
+				 tLNode* seedNode, 
+				 const int flagVal );
+
 /***************************************************************************/
 /**
  **  @class tErosion
@@ -853,17 +1177,32 @@ public:
   void DiffuseNonlinearDepthDep( double dtg, double time );
   void ProduceRegolith( double dtg, double time );
   void WeatherBedrock( double dtg );
+  void LandslideClusters( double rainrate, tStreamNet* strmNet, double time );
    void UpdateExposureTime( double dtg);
    void DensifyMesh( double time );
    void ActivateSedVolumeTracking( tWaterSedTracker *water_sed_tracker_ptr )
      { track_sed_flux_at_nodes_ =true;  water_sed_tracker_ptr_ = water_sed_tracker_ptr; }
+
+  tDF_RunOut* getDF_RunOutPtr() {return runout;}
+  tDF_Scour* getDF_ScourPtr() {return scour;}
+  tDF_Deposit* getDF_DepositPtr() {return deposit;}
    
+
 private:
    tMesh<tLNode> *meshPtr;    // ptr to mesh
+  // pointers to objects governing rules for sediment transport:
    tBedErode *bedErode;        // bed erosion object
    tSedTrans *sedTrans;        // sediment transport object
+  // pointers to objects governing rules for weathering:
   tPhysicalWeathering *physWeath; // physical weathering object
   tChemicalWeathering *chemWeath; // chemical weathering object
+  // pointers to objects governing rules for debris flows:
+  tDF_RunOut *runout; // debris flow runout object
+  tDF_Scour *scour; // debris flow scour object
+  tDF_Deposit *deposit; // debris flow deposition object
+  std::ofstream *DF_fsPtr; // pointer to output stream for debris flows
+  std::ofstream *DF_Hyd_fsPtr; // pointer to output stream for debris flow tally
+
    double kd;                 // Hillslope transport (diffusion) coef
    double difThresh;          // Diffusion occurs only at areas < difThresh
    double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
@@ -872,7 +1211,14 @@ private:
    double beta; // proportion of sediment flux contributing to bedload
    bool track_sed_flux_at_nodes_; // option for tracking sed flux at nodes
    tWaterSedTracker *water_sed_tracker_ptr_;  // -> water&sed tracker object
-  double soilBulkDensity; // bulk density of soil, when made from rock (kg/m3)
+  double soilBulkDensity; // dry bulk density of soil, when made from rock (kg/m3)
+  double wetBulkDensity; // wet bulk density of soil (kg/m3)
+  double woodDensity; // density of wood (kg/m3)
+  double fricSlope; // tangent of angle of repose for soil (unitless)
+public:
+  double debris_flow_sed_bucket; // tally of debris flow sed. volume
+  double debris_flow_wood_bucket;// tally of debris flow wood volume
+
   //int optDebrisFlowRule; // option for debris flows, used in Landslides()
 };
 

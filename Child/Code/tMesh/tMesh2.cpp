@@ -8,6 +8,43 @@
 #include <stdlib.h>
 #include "TipperTriangulator.h"
 
+template< class tSubNode >
+void tMesh< tSubNode >::
+RemovePointDuplicates( tSubNode &tempnode, tList<double> &xList, 
+		       tList<double> &yList, tList<double> &zList )
+{ // use global functions used with Tipper triangulator
+  // to eliminate duplicate points:
+  double x;
+  double y;
+  double z;
+  int npoints = xList.getSize();
+  point *p = new point[npoints];
+  vector<double> zVec( npoints );
+  for( int i=0; i<npoints; ++i )
+    {
+      xList.removeFromFront( x );
+      yList.removeFromFront( y );
+      zList.removeFromFront( z );
+      p[i] = point( x, y, i );
+      zVec[i] = z;
+      //      if( zVec[i] == 0.0 ) std::cout << "zero elev\n";
+    }
+  //sort the points and move duplicated points to the end:
+  int npoints_unique;
+  tt_sort_only( npoints, p, npoints_unique );
+  // add only unique points to nodeList:
+  miNextNodeID = 0;
+  for( int i=0; i<npoints_unique; ++i )
+    {
+      tempnode.set3DCoords( p[i].x(), p[i].y(), zVec[p[i].id()] );
+      tempnode.setID( miNextNodeID++ );
+//       if( tempnode.getZ() == 0.0 )
+// 	std::cout << "zero elev after sort\n";
+      nodeList.insertAtActiveBack( tempnode );
+    }
+}      
+
+
 /**************************************************************************\
 **
 **   tMesh::MakeMeshFromScratchTipper( infile )
@@ -150,7 +187,7 @@ static inline int e_t2c(const oriented_edge &oe){
 
 template< class tSubNode >
 void tMesh< tSubNode >::
-BuildDelaunayMeshTipper()
+BuildDelaunayMeshTipper( kUpdateMesh_t updateFlag /*= kUpdateMesh*/ )
 {
    point *p = new point[nnodes];   // for Tipper triangulator
    {
@@ -177,10 +214,11 @@ BuildDelaunayMeshTipper()
    elem* elems(0);
    int nnodes_unique;
    tt_sort_triangulate(nnodes, p, &nnodes_unique, &nedgesl, &edges, &nelem, &elems);
-   if (nnodes != nnodes_unique){
+   if (nnodes != nnodes_unique)
+     {
       std::cerr << "\nDuplicated points: '" << std::endl;
       ReportFatalError( "Please fix your points file." );
-   }
+     }
 
    std::cout << "done.\n";
 
@@ -372,9 +410,11 @@ BuildDelaunayMeshTipper()
    // assertions
    assert( edgeList.getSize() == 2*nedgesl );
    assert( triList.getSize() == nelem );
-
-   CheckMeshConsistency();                     //remove CMC call from UM
-   UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
+   if( updateFlag == kUpdateMesh )
+     {
+       CheckMeshConsistency();                     //remove CMC call from UM
+       UpdateMesh(); //calls CheckMeshConsistency()  TODO: once bug-free,
+     }
 }
 
 

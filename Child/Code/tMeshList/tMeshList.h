@@ -505,6 +505,13 @@ moveToBoundFront( ListNodeType * mvnode )
       //if( InActiveList( mvnode ) ) --nActiveNodes;
       if( mvnode->getDataPtr()->isNonBoundary() )
           --nActiveNodes;
+      if( mvnode == lastactive ) 
+	{
+	  assert( lastactive->prev );
+	  lastactive = lastactive->prev;
+	  return;
+	}
+
       // Detach mvnode from its position on the list:
       if( mvnode == this->first ) {
          assert( this->first->next );

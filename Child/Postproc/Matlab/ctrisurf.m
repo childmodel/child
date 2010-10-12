@@ -58,5 +58,5 @@ elseif c==0
 end
 c = cinterpedges( x, y, c, b );  % this removes edge effects for plotting
 if size(z,2)~=nn, error('Color index (c) must have same size as # nodes'),end
-trisurf(tri,x,y,z,c)
+handle=trisurf(tri,x,y,z,c,'edgecolor','none')
 rot90(meanElev,3);

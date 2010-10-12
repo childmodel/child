@@ -201,7 +201,8 @@ public:
       kSaturatedFlow2 = 2,  // Option for sat-excess runoff w/o return flow
       kConstSoilStore = 3,  // Option for "bucket"-type flow generation
       k2DKinematicWave = 4, // Option for 2D steady kinematic wave multi-flow
-      kHydrographPeakMethod = 5  // Option for hydrograph peak method
+      kHydrographPeakMethod = 5,  // Option for hydrograph peak method
+      kSubSurf2DKinematicWave = 6 // Option for kinematic wave with Darcy's Law
     } kFlowGen_t;
 
     tStreamNet( tMesh< tLNode > &, tStorm &, const tInputFile & );
@@ -243,6 +244,7 @@ public:
     void ReInitFlowDirs();
     void FlowDirs();
     void DrainAreaVoronoi();
+//   void DrainAreaVoronoiMFD();
     void FlowPathLength();
     void RouteFlowHydrographPeak();
     void MakeFlow( double tm );
@@ -263,6 +265,8 @@ public:
     void FindHydrGeom();
     void DensifyMeshDrArea( double time=0.0 );  // Densifies mesh locally
     void ShowMeanderNeighbours(int) const;
+  // find streamlines from points specified in input file:
+  void FindStreamLines( const tInputFile &, tPtrList< tLNode > &, bool lvFEs = false );
 
 protected:
     tLNode *BuildLakeList( tPtrList< tLNode > &, tLNode *);
@@ -270,6 +274,7 @@ protected:
     inline static void RouteFlowArea( tLNode *, double );
     inline static void RouteRunoff( tLNode *, double, double );
     static void RouteError( tLNode * ) ATTRIBUTE_NORETURN;
+//   void RouteFlowAreaMultipleDirections( tLNode*, double );
 	bool FlowDirBreaksMeanderChannel( tLNode *, tEdge * ) const;
 
     typedef enum {
@@ -290,7 +295,7 @@ protected:
     double rainrate;      // current rainfall rate
     double bankfullevent; // rainfall rate corresponding to bankfull event
     double trans;         // soil transmissivity
-    double infilt;        // soil infiltration capacity
+    double infilt;        // soil infiltration capacity (also K_sat)
     double soilStore;     // soil water storage, depth equiv (m)
     tInlet inlet;         // inlet
     bool optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
@@ -305,6 +310,8 @@ protected:
     double mdMeshAdaptMaxVArea; // Max voronoi area for nodes above threshold
     double mdHydrgrphShapeFac;  // "Fhs" for hydrograph peak method
     double mdFlowVelocity;      // Runoff velocity for computing travel time
+  bool optVariableTransmissivity; // option for soil depth-dependent transmissivity
+//   bool optMultipleFlowDirections; // option for flow routing via MFD algorithm
 
   void DebugShowNbrs( tLNode * theNode ) const;  // debugging function shows neighbor nodes
 };

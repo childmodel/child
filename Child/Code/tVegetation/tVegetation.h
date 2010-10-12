@@ -203,6 +203,12 @@ public:
   double getRootStrength() const {return rootstrength;}
   void setRootStrength( double val ) {rootstrength = val;}
   void addRootStrength( double val ) {rootstrength += val;}
+  double getRootStrengthLat() const {return rootstrengthLat;}
+  void setRootStrengthLat( double val ) {rootstrengthLat = val;}
+  void addRootStrengthLat( double val ) {rootstrengthLat += val;}
+  double getRootStrengthVert() const {return rootstrengthVert;}
+  void setRootStrengthVert( double val ) {rootstrengthVert = val;}
+  void addRootStrengthVert( double val ) {rootstrengthVert += val;}
   double getRootGrowth() const {return rootgrowth;}
   void setRootGrowth( double val ) {rootgrowth = val;}
   void addRootGrowth( double val ) {rootgrowth += val;}
@@ -247,6 +253,8 @@ private:
   tForest *forest; // pointer to tForest object
   tLNode *node; // pointer to container node
   double rootstrength;
+  double rootstrengthLat; // lateral cohesion
+  double rootstrengthVert; // vertical cohesion
   double rootgrowth;
   double rootdecay;
   double maxrootstrength; // root strength at time of death

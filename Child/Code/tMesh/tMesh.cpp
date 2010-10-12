@@ -83,6 +83,8 @@ int Next3Delaunay( tPtrList< tSubNode > & /*nbrList*/,
 template< class tSubNode >
 tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
   :
+  xOffset(originalMesh->xOffset),
+  yOffset(originalMesh->yOffset),
   nodeList(originalMesh->nodeList),
   edgeList(originalMesh->edgeList),
   triList(originalMesh->triList),
@@ -127,6 +129,8 @@ template< class tSubNode >
 tMesh< tSubNode >::
 tMesh( const tInputFile &infile, bool checkMeshConsistency  )
   :
+  xOffset(0.0),
+  yOffset(0.0),
   nodeList(),
   mSearchOriginTriPtr(0),
   nnodes(0),
@@ -188,6 +192,15 @@ tMesh( const tInputFile &infile, bool checkMeshConsistency  )
    case 4:
      MakeHexMeshFromArcGrid( infile );
      break;
+   case 5:
+     {
+       // Random number generator used for mesh generation.
+       // Its seed is initialized with the appropriate keyword.
+       tRand randM( infile );
+       // create mesh from point tiles and masked ArcGrid
+       MakeMeshFromPointTilesAndArcGridMask( infile, randM );
+     }
+     break;
    default:
      std::cerr << "Valid options for reading mesh input are:\n"
 	  << "  0 -- create rectangular offset mesh\n"
@@ -196,7 +209,8 @@ tMesh( const tInputFile &infile, bool checkMeshConsistency  )
 	  << "  2 -- create mesh from a list of (x,y,z,b) points\n"
 	  << " 12 -- idem, using Tipper triangulator\n"
 	  << "  3 -- create random mesh from ArcGrid ascii output\n"
-	  << "  4 -- create hexagonal mesh from ArcGrid ascii output\n";
+	  << "  4 -- create hexagonal mesh from ArcGrid ascii output\n"
+	  << "  5 -- use point tiles and masked ascii ArcGrid\n";
      ReportFatalError( "Invalid mesh input option requested." );
      break;
    }
@@ -231,6 +245,66 @@ tMesh< tSubNode >::
   mSearchOriginTriPtr = 0;
   if (0)//DEBUG
     std::cout << "    ~tMesh()" << std::endl;
+}
+
+/***************************************************************************\
+ **  tMesh<tSubNode>::tMesh<tSubNode>( tArray<double> &x, 
+ **                                    tArray<double> &y, 
+ **                                    tArray<double> &z  )
+ **
+ **  tMesh constructor to create (usually temporary) meshes 
+ **  from arbitrary points without using an input file.
+ **  WARNING: written for making temporary meshes that may not
+ **  have all the usual calculations done.
+ **
+ **  Takes: 
+ **    - Arrays (by reference) with x, y, and z coordinates, respectively
+ **  Calls: 
+ **    - tMesh::BuildDelaunayMeshTipper
+ **    - tMesh::LocateTriangle
+ **  Called by: tDebrisFlow::RunScourDeposit in order to be able to locate
+ **    nodes within a zone and below a set of planes
+ **
+ **  - SL, 9/2010
+ **
+\***************************************************************************/
+template< class tSubNode >
+tMesh< tSubNode >::
+tMesh( tArray<double> &x, tArray<double> &y, tArray<double> &z  )
+  :
+  xOffset(0.0),
+  yOffset(0.0),
+  nodeList(),
+  mSearchOriginTriPtr(0),
+  nnodes(0),
+  nedges(0),
+  ntri(0),
+  miNextNodeID(0),
+  miNextPermNodeID(0),
+  miNextEdgID(0),
+  miNextTriID(0),
+  layerflag(false)
+{
+  // do what MakeMeshFromPointsTipper does:
+  int numpts = x.getSize();                      // no. of points in mesh
+  // temporary node used to create node list (creation is costly)
+  tSubNode tempnode;
+  tempnode.setBoundaryFlag( kNonBoundary );
+    //Read point file, make Nodelist
+  for( int i=0; i<numpts; i++ )
+    {
+      tempnode.set3DCoords( x[i], y[i], z[i] );
+      tempnode.setID( miNextNodeID++ );
+      nodeList.insertAtBack( tempnode ); 
+    }
+  nnodes = nodeList.getSize();
+  // call triangulator based on Tipper's method, don't calculate 
+  // edge lengths, voronoi areas, etc.
+  BuildDelaunayMeshTipper( kNoUpdateMesh );
+  std::cout<<"MakeMeshFromPointsTipper done.\n";
+  // areas not calculated; use first triangle as search origin:
+  triListIter_t triIter( triList );
+  mSearchOriginTriPtr = triIter.FirstP(); 
 }
 
 
@@ -1952,9 +2026,9 @@ MakeRandomPointsFromArcGrid( const tInputFile &infile )
 
    // make lowest node outlet (open boundary)
    assert( minzPtr != 0 );
-   minzPtr->setBoundaryFlag( kOpenBoundary );
    nI.Get( minzPtr->getID() );
    nodeList.moveToBoundFront( nI.NodePtr() );
+   minzPtr->setBoundaryFlag( kOpenBoundary );
    std::cout << "created open boundary outlet: " << nI.FirstBoundaryP()->getID() << "\n";
    std::cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: "
         << nedges << " NT: " << ntri << std::endl;
@@ -2166,9 +2240,9 @@ MakeHexMeshFromArcGrid( const tInputFile &infile )
 
    // make lowest node outlet (open boundary)
    assert( minzPtr != 0 );
-   minzPtr->setBoundaryFlag( kOpenBoundary );
    nI.Get( minzPtr->getID() );
    nodeList.moveToBoundFront( nI.NodePtr() );
+   minzPtr->setBoundaryFlag( kOpenBoundary );
    std::cout << "created open boundary outlet: " << nI.FirstBoundaryP()->getID() << "\n";
    std::cout << "1 NN: " << nnodes << " (" << nodeList.getActiveSize() << ")  NE: "
         << nedges << " NT: " << ntri << std::endl;
@@ -2196,6 +2270,659 @@ MakeHexMeshFromArcGrid( const tInputFile &infile )
    // Update Voronoi areas, edge lengths, etc., and test the consistency
    // of the new mesh.
    UpdateMesh();
+}
+
+/**************************************************************************\
+**
+**   tMesh::MakeMeshFromPointTilesAndArcGridMask
+**
+**  Routine to make irregular mesh from point tiles (files of x,y,z coords)
+**  for node coordinates and a regular Arc grid for masking a custom area.
+**
+**  Designed to read from a point tiles, provided by NCALM, with UTM
+**  coords of grid containing points either within an
+**		already isolated basin or containing "no data".
+**
+**
+**
+**   Calls: tInputFile::ReadItem, InBoundsOnMaskedGrid (global),
+**          UpdateMesh()
+**   Parameters: infile -- main parameter input file, rand
+**   Assumes: infile is valid and open
+**   Created: 9/10 SL
+**
+\**************************************************************************/
+template< class tSubNode >
+void tMesh< tSubNode >::
+MakeMeshFromPointTilesAndArcGridMask( const tInputFile &infile, tRand &rand )
+{
+  // Parameters defined in Input File
+  ParamMMFS_t Param(infile);
+  // get the grid file and read data; same as in Make...FromArcGrid:
+  char arcgridFilenm[120];
+  infile.ReadItem( arcgridFilenm, sizeof(arcgridFilenm), "ARCGRIDFILENAME" );
+  std::ifstream gridfile;
+  gridfile.open( arcgridFilenm );
+  if( !gridfile.good() )
+    {
+      std::cerr << "Arc grid file name: '" << arcgridFilenm << "'\n";
+      ReportFatalError( "I can't find a file by this name." );
+    }
+  char dumhead[3];
+  int numcols, numrows;
+  double minx, miny, delgrid;
+  int nodata;
+  gridfile >> dumhead >> numcols >> dumhead >> numrows >> dumhead
+	   >> minx >> dumhead >> miny >> dumhead >> delgrid
+	   >> dumhead >> nodata;
+  std::cout.setf( ios::fixed, ios::floatfield );
+  std::cout.precision(2);
+  std::cout << "Arc grid with: " << numcols << " cols; " << numrows
+	    << " rows; LL x " << minx << "; LL y " << miny
+	    << "; grid spacing (m) " << delgrid << "; nodata value "
+	    << nodata << std::endl;
+  //   const double dx = maxx - minx;
+  //   const double dy = maxy - miny;
+  // create matrix from input file:
+  // pad matrix with "nodata" cells; use these to make closed boundaries:
+  numrows += 2;
+  numcols += 2;
+  xOffset = minx - delgrid;
+  yOffset = miny - delgrid;
+  std::cout << "NOTE: subtracting offsets from all (x,y) coordinates, \n"
+	    << " X OFFSET = " << xOffset << ", Y OFFSET = " << yOffset << "\n";
+  std::cout.setf( ios::scientific, ios::floatfield );
+  std::cout.precision(4);
+  const double maxx = xOffset + ( numcols - 1 ) * delgrid;
+  const double maxy = yOffset + ( numrows - 1 ) * delgrid;
+  tMatrix< double > elev( numrows, numcols );
+  for( int j=0; j<numrows; j++ )
+    {
+      for( int i=0; i<numcols; i++ )
+	{
+	  if( gridfile.eof() )
+	    ReportFatalError( "Reached end-of-file while reading points." );
+	  if( i==0 || i == numcols-1 || j==0 || j == numrows-1 )
+	    elev( j, i ) = nodata;
+	  else
+	    gridfile >> elev( j, i );
+	}
+    }
+  gridfile.close();
+  std::cout << "finished reading file," << arcgridFilenm << std::endl;
+  // get the point tiles:
+  std::ifstream tileFile;
+  std::string tilePath = infile.ReadString( "TILE_INPUT_PATH" );
+  tList< std::string > fileNames;
+  double minz=1000000.0;
+  tList<double> xList;
+  tList<double> yList;
+  tList<double> zList;
+  bool optTiles = infile.ReadBool( "OPT_TILES_OR_SINGLE_FILE" );
+  if( optTiles )
+    {
+      int metersEastStart = infile.ReadInt( "LOWER_LEFT_EASTING" );
+      int metersNorthStart = infile.ReadInt( "LOWER_LEFT_NORTHING" );
+      int numKilometersEast = infile.ReadInt( "NUM_TILES_EAST" );
+      int numKilometersNorth = infile.ReadInt( "NUM_TILES_NORTH" );
+      const int iMinX = static_cast<int>( xOffset );
+      const int iMaxX = static_cast<int>( maxx + 0.5 );
+      const int iMinY = static_cast<int>( yOffset );
+      const int iMaxY = static_cast<int>( maxy + 0.5 );
+  
+      for( int nKME = 0; nKME < numKilometersEast; nKME++ )
+	for( int nKMN = 0; nKMN < numKilometersNorth; nKMN++ )
+	  {
+	    int Easting = metersEastStart + nKME * 1000;
+	    int Northing = metersNorthStart + nKMN * 1000;
+	    // find whether point tile will overlap the rectangle 
+	    // containing the domain;
+	    // tile files may have points >50 m outside of bounds, 
+	    // so account for slop:
+	    if( Easting - 100 <= iMaxX && Easting + 1100 >= iMinX &&
+		Northing - 100 <= iMaxY && Northing + 1100 >= iMinY )
+	      {
+		std::stringstream ss;
+		ss << tilePath << "f" << Easting << "_" << Northing << ".xyz";
+		fileNames.insertAtBack( ss.str() );
+	      }
+	  }
+    }
+  else
+    fileNames.insertAtBack( tilePath );
+  
+  while( fileNames.removeFromFront( tilePath ) > 0 )
+    {
+      tileFile.open( tilePath.c_str() );
+      do
+	{
+	  double x;
+	  double y;
+	  double z;
+	  tileFile >> x >> y >> z;
+	  x -= xOffset;
+	  y -= yOffset;
+	  // add node if it falls within the boundary:
+	  if( InBoundsOnMaskedGrid( ( x ) / delgrid, 
+				    ( y ) / delgrid, 
+				    elev, nodata ) )
+	    {
+	      if( z < minz ) minz = z;
+	      xList.insertAtBack( x );
+	      yList.insertAtBack( y );
+	      zList.insertAtBack( z );
+	    }
+	} while( !tileFile.eof() );
+      tileFile.close();
+      std::cout << "\n finished reading tile file " 
+		<< tilePath
+		<< "; NN: " << nodeList.getSize() << "\n";
+    }
+  std::cout << "finished reading points from tiles:";
+  std::cout << "\n1 NN: " << xList.getSize() 
+	    << " (" << nodeList.getActiveSize() << ") NE: "
+	    << nedges << " NT: " << ntri << std::endl;
+  // any elevations below minz?
+  if(0) //DEBUG
+    {
+      tListIter<double> zLI(zList);
+      for( double *zPtr = zLI.FirstP(); !zLI.AtEnd(); zPtr = zLI.NextP() )
+	if( *zPtr < minz ) std::cout << "elev too low:" << *zPtr << "\n";
+    }
+  tSubNode tempnode( infile );
+  tempnode.setBoundaryFlag( kNonBoundary );
+  // checks for duplicate locations, removes duplicates,
+  // and puts rest in nodeList:
+  RemovePointDuplicates( tempnode, xList, yList, zList );
+  nodeListIter_t nI( nodeList );
+  std::cout << "finished removing duplicates and adding points from tiles:";
+  nnodes = nodeList.getSize();
+  std::cout << "\n2 NN: " << nnodes 
+	    << " (" << nodeList.getActiveSize() << ") NE: "
+	    << nedges << " NT: " << ntri << std::endl;
+  if(0) //DEBUG
+    {
+      for( tSubNode *cn = nI.FirstP(); !nI.AtEnd(); cn = nI.NextP() )
+	if( cn->getZ() < minz ) 
+	  std::cout << "elev too low:" << cn->getZ() << "\n";
+    }
+  for( tSubNode *cn = nI.FirstP(); !nI.AtEnd(); cn = nI.NextP() )
+    {
+      // add small perturbations to horizontal coord's
+      // to avoid degeneracies; wait until AFTER duplicate
+      // points are removed!
+      cn->setX( cn->getX() + 0.01 * ( rand.ran3() - 0.5 ) );
+      cn->setY( cn->getY() + 0.01 * ( rand.ran3() - 0.5 ) );
+    }
+  int numOutlets=0;
+  switch( Param.boundType ) 
+    {
+    case ParamMMFS_t::kSpecifyOutlet:
+      {
+	// read number of outlets:
+	numOutlets = infile.ReadInt( "NUMBER_OUTLETS" );
+	for( int i=0; i<numOutlets; ++i )
+	  {
+	    std::stringstream ssX;
+	    ssX << "OUTLET_X_COORD";
+	    if( numOutlets > 1 )
+	      ssX << i+1;
+	    double x = infile.ReadDouble( ssX.str().c_str() );
+	    x -= xOffset;
+	    std::stringstream ssY;
+	    ssY << "OUTLET_Y_COORD";
+	    if( numOutlets > 1 )
+	      ssY << i+1;
+	    double y = infile.ReadDouble( ssY.str().c_str() );
+	    y -= yOffset;
+	    // make new open boundary node
+	    // don't like setting it to minz, so holler if this happens:
+	    const double zinterp = 
+	      InterpSquareGrid( ( x ) / delgrid, 
+				( y ) / delgrid, 
+				elev, nodata );
+	    if( zinterp > nodata )
+	      tempnode.set3DCoords( x, y, zinterp );
+	    else
+	      {
+		std::cout << "Warning: added open boundary at minimum elev: "
+			  << "x " << x << ", y " << y << "\n";
+		tempnode.set3DCoords( x, y, minz );
+	      }
+	    tempnode.setBoundaryFlag( kOpenBoundary );
+	    tempnode.setID( miNextNodeID++ );
+	    nodeList.insertAtBoundFront( tempnode );
+	    std::cout << "added specified outlets:";
+	    nnodes = nodeList.getSize();
+	    std::cout << "\n3 NN: " << nnodes 
+		      << " (" << nodeList.getActiveSize() << ") NE: "
+		      << nedges << " NT: " << ntri << std::endl;
+	    if(0) // DEBUG
+	      {
+		for( tSubNode *cn = nI.FirstP(); !nI.AtEnd(); 
+		     cn = nI.NextP() )
+		  if( cn->getZ() < minz ) 
+		    std::cout << "elev too low:" << cn->getZ() << "\n";
+	      }
+	  }
+	// note: no break! and that's on purpose!
+      case ParamMMFS_t::kAllSideClosed:
+      case ParamMMFS_t::kAllSidesOpen:
+	// add boundary nodes from ArcGrid; use "nodata" points 
+	// that have "data" neighbors:
+	// make vectors describing increments to 8 neighbors:
+	vector<int> dj(8);
+	dj[0] = dj[1] = dj[2] = -1;
+	dj[3] = dj[7] = 0;
+	dj[4] = dj[5] = dj[6] = 1;
+	vector<int> di(8);
+	di[0] = di[6] = di[7] = -1;
+	di[1] = di[5] = 0;
+	di[2] = di[3] = di[4] = 1;
+	tempnode.setBoundaryFlag( kClosedBoundary );
+	// go through each node in the grid
+	for( int j=0; j<numrows; j++ )
+	  {
+	    for( int i=0; i<numcols; i++ )
+	      if( elev( j, i ) == nodata )
+		{
+		  bool hasDataNeighbor = false;
+		  // if it's a "nodata" point, find whether it has 
+		  // "data" neighbors:
+		  for ( int k=0; k<8; ++k )
+		    {
+		      const int jIndex = j + dj[k];
+		      const int iIndex = i + di[k];
+		      if( jIndex > 0 && jIndex < numrows-1 && 
+			  iIndex > 0 && iIndex < numcols-1 )
+			if( elev( jIndex, iIndex ) != nodata )
+			  {
+			    hasDataNeighbor = true;
+			    break;
+			  }
+		    }
+		  // if it has a data neighbor, find its coordinates and add 
+		  // a closed boundary node:
+		  if( hasDataNeighbor )
+		    {
+		      const double x = 
+			( static_cast<double>(i) + 0.0001 
+			    * ( rand.ran3() - 0.5 ) ) 
+			* delgrid ;
+		      const double y = 
+			( static_cast<double>( numrows - 1 - j ) 
+			     + 0.0001 * ( rand.ran3() - 0.5 ) ) 
+			* delgrid;
+		      tempnode.set3DCoords( x, y, minz );
+		      tempnode.setID( miNextNodeID++ );
+		      nodeList.insertAtBack( tempnode );
+		    }
+		}
+	  }
+	nnodes = nodeList.getSize();
+	std::cout << "finished adding closed boundary nodes:";
+	std::cout << "\n4 NN: " << nnodes 
+		  << " (" << nodeList.getActiveSize() << ") NE: "
+		  << nedges << " NT: " << ntri << std::endl;
+	if(0) // DEBUG
+	  {
+	    for( tSubNode *cn = nI.FirstP(); !nI.AtEnd(); 
+		 cn = nI.NextP() )
+	      if( cn->getZ() < minz ) 
+		std::cout << "elev too low:" << cn->getZ() << "\n";
+	  }
+
+	// call triangulator based on Tipper's method
+	BuildDelaunayMeshTipper( kNoUpdateMesh );
+	std::cout << "finished triangulation:";
+	// 	nnodes = nodeList.getSize();
+	std::cout << "\n5 NN: " << nnodes 
+		  << " (" << nodeList.getActiveSize() << ") NE: "
+		  << nedges << " NT: " << ntri << std::endl;
+	if(0) // DEBUG
+	  {
+	    for( tSubNode *cn = nI.FirstP(); !nI.AtEnd(); 
+		 cn = nI.NextP() )
+	      if( cn->getZ() < minz ) 
+		std::cout << "elev too low:" << cn->getZ() << "\n";
+	  }
+      }
+      break;
+    case ParamMMFS_t::kOpenSide:
+    case ParamMMFS_t::kOppositeSidesOpen:
+    case ParamMMFS_t::kCornerOutlet:
+      // not allowed
+      ReportFatalError( "Must specify outlet with custom area mesh" );
+      break;
+    }
+  switch( Param.boundType ) 
+    {
+    case ParamMMFS_t::kAllSidesOpen:
+      {
+	tPtrList< nodeListNode_t > outletList; // list of places in nodeList
+	tSpkIter sI;
+	// make all points connected to boundary points into open boundaries:
+	for( tSubNode* cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+	  {
+	    sI.Reset( cn );
+	    for( tEdge* ce = sI.FirstP(); !( sI.AtEnd() ); ce = sI.NextP() )
+	      if( ce->getDestinationPtr()->getBoundaryFlag() 
+		  == kClosedBoundary )
+		{
+		  outletList.insertAtBack( nI.NodePtr() );
+		  break;
+		}
+	  }
+	nodeListNode_t * cN=0;
+	while( ( cN = outletList.removeFromFront() ) )
+	  ConvertToOpenBoundary( cN );
+      }
+      break;
+    case ParamMMFS_t::kSpecifyOutlet:
+    case ParamMMFS_t::kAllSideClosed:
+      // not allowed
+    case ParamMMFS_t::kOpenSide:
+    case ParamMMFS_t::kOppositeSidesOpen:
+    case ParamMMFS_t::kCornerOutlet:
+      break;
+    }
+  // need to find edges that are too short because they make timesteps small:
+
+  cout << "Find short edges and nodes that are too close to others..." << flush;
+
+  edgeListIter_t eI( edgeList );  
+  double mindist = delgrid / 2.0;
+  bool keepChecking = true;
+  while( keepChecking )
+    { // keep making passes until no more nodes removed:
+      keepChecking = false;
+      tPtrList< tSubNode > removeList;
+      tPtrListIter< tSubNode > mI( removeList );
+      tSpkIter sI;
+      double len;
+      // set edge lengths for next step (only, rather than call UpdateMesh):
+      tEdge *ce = eI.FirstP();
+      do
+	{
+	  len = ce->CalcLength();
+	  ce = eI.NextP();
+	  ce->setLength( len );
+	} while( (ce=eI.NextP()) != NULL);
+  
+      // check for short edges; make list of nodes to remove to new locations:
+      for( tEdge* ce = eI.FirstP(); eI.IsActive(); ce = eI.NextP() )
+	{
+	  if( ce->getLength() < mindist ) 
+	    {
+	      tSubNode* cn=0;
+	      tSubNode* on = static_cast<tSubNode*>( ce->getOriginPtrNC() );
+	      tSubNode* dn = static_cast<tSubNode*>( ce->getDestinationPtrNC() );
+	      // make sure neither end of ce is already on the list:
+	      if( !mI.Get( on ) && !mI.Get( dn ) )
+		{ // remove node with shortest average spoke length, 
+		  // but not boundaries:
+		  if( on->getBoundaryFlag() == kOpenBoundary 
+		      || dn->getBoundaryFlag() == kOpenBoundary )
+		    {
+		      if( on->getBoundaryFlag() == kNonBoundary ) cn = on;
+		      else cn = dn;
+		    }
+		  else
+		    {
+		      sI.Reset( on );
+		      double oavlen(0.0);
+		      for( tEdge* se = sI.FirstP(); !sI.AtEnd(); se = sI.NextP() )
+			oavlen += se->getLength();
+		      oavlen /= sI.getNumSpokes();
+		      sI.Reset( dn );
+		      double davlen(0.0);
+		      for( tEdge* se = sI.FirstP(); !sI.AtEnd(); se = sI.NextP() )
+			davlen += se->getLength();
+		      davlen /= sI.getNumSpokes();
+		      if( davlen < oavlen ) cn = dn;
+		      else cn = on;
+		    }
+		  assert( cn > 0 );
+		  removeList.insertAtBack( cn );
+		  keepChecking = true;
+		}
+	    }
+	  eI.Next();
+	}
+      // delete nodes from mesh and repair it:
+      {
+	tSubNode* cn = 0;
+	while( ( cn = removeList.removeFromFront() ) )
+	  DeleteNode( cn, kRepairMesh, kNoUpdateMesh );
+      }
+    } // end while( keepChecking )
+  std::cout << "deleted active nodes with short active edges\n";
+  std::cout << "9 NN: " << nnodes << " (" << nodeList.getActiveSize() 
+	    << ")  NE: " << nedges << " NT: " << ntri << std::endl;
+  // remove nodes that do not have non-boundary nbrs:
+  {
+    int numActNbrs;
+    tSpkIter sI;
+    tPtrList<nodeListNode_t> deletelist;
+    // first look for isolated non-boundary nodes:
+    for( tSubNode* cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+      {
+	numActNbrs = 0;
+	sI.Reset( cn );
+	for( tEdge* ce = sI.FirstP(); !numActNbrs && !( sI.AtEnd() ); ce = sI.NextP() )
+	  if( ce->getDestinationPtr()->getBoundaryFlag() == kNonBoundary )
+	    ++numActNbrs;
+	if( numActNbrs == 0 )
+	  deletelist.insertAtBack( nI.NodePtr() );
+      }
+    nodeListNode_t* cN = 0;
+    while( ( cN = deletelist.removeFromFront() ) )
+      DeleteNode( cN, kRepairMesh, kNoUpdateMesh );
+    // next do boundary nodes:
+    for( tSubNode* cn = nI.FirstBoundaryP(); !( nI.AtEnd() ); cn = nI.NextP() )
+      {
+	numActNbrs = 0;
+	sI.Reset( cn );
+	for( tEdge* ce = sI.FirstP(); !numActNbrs && !( sI.AtEnd() ); ce = sI.NextP() )
+	  if( ce->getDestinationPtr()->getBoundaryFlag() == kNonBoundary )
+	    ++numActNbrs;
+	if( numActNbrs == 0 )
+	  {
+	    deletelist.insertAtBack( nI.NodePtr() );
+	    // make sure we're not removing an outlet we added:
+	    if( Param.boundType == ParamMMFS_t::kSpecifyOutlet )
+	      assert( cn->getBoundaryFlag() != kOpenBoundary );
+	  }
+      }
+    cN = 0;
+    while( ( cN = deletelist.removeFromFront() ) )
+      DeleteNode( cN, kNoRepairMesh, kNoUpdateMesh );
+  }
+  
+  std::cout << "deleted superfluous boundary nodes\n";
+  std::cout << "6 NN: " << nnodes << " (" << nodeList.getActiveSize() 
+	    << ")  NE: " << nedges << " NT: " << ntri << std::endl;
+  if(0) // DEBUG
+    {
+      for( tSubNode *cn = nI.FirstP(); !nI.AtEnd(); 
+	   cn = nI.NextP() )
+	if( cn->getZ() < minz ) 
+	  std::cout << "elev too low:" << cn->getZ() << "\n";
+    }
+  MakeHullConvex(); // insures success of LocateTriangle
+  std::cout << "made hull convex\n";
+  std::cout << "7 NN: " << nnodes << " (" << nodeList.getActiveSize() 
+	    << ")  NE: " << nedges << " NT: " << ntri << std::endl;
+  if(0) // DEBUG
+    {
+      for( tSubNode *cn = nI.FirstP(); !nI.AtEnd(); 
+	   cn = nI.NextP() )
+	if( cn->getZ() < minz ) 
+	  std::cout << "elev too low:" << cn->getZ() << "\n";
+    }
+  // Update Voronoi areas, edge lengths, etc., and test the consistency
+  // of the new mesh.
+  UpdateMesh();
+}
+
+
+/**************************************************************************\
+**   tMesh::ConvertToOpenBoundary( tSubNode* )
+**
+**  Change node's "boundary" flag value to kOpenBoundary, but also
+**  do necessary bookkeeping of changing its place in nodeList, setting
+**  its "flowedge" to zero if necessary, and changing spoke edges' (and 
+**  their complements') "flowallowed" values and places in edgeList as 
+**  necessary.
+**
+**  Called by: tMesh::MakeStreamLineBoundaries
+**  Parameters: 
+**  Assumes: flow directions have been set
+**  Created: 9/10 SL
+\**************************************************************************/
+template< class tSubNode >
+void tMesh< tSubNode >::
+ConvertToOpenBoundary( tSubNode *node )
+{
+  if( node->getBoundaryFlag() == kOpenBoundary ) return;
+  nodeListIter_t nI( nodeList );
+  nI.Get( node->getID() );
+  ConvertToOpenBoundary( nI.NodePtr() );
+}
+
+// overloaded version for when we can pass the place in the nodeList:  
+template< class tSubNode >
+void tMesh< tSubNode >::
+ConvertToOpenBoundary( nodeListNode_t *listNode )
+{    
+  tSubNode *node = listNode->getDataPtrNC();
+  if( node->getBoundaryFlag() == kOpenBoundary ) return;
+  // move to front of boundary part of nodeList:
+  nodeList.moveToBoundFront( listNode );
+  // reset boundary flag (must be done after changing place in list):
+  node->setBoundaryFlag( kOpenBoundary );
+
+  edgeListIter_t eI( edgeList );  
+  // go through spokes (edges):
+  tEdge *edg = node->getEdg();
+  tEdge *ce = edg;
+  do
+    { // determine initial and final "flowallowed" values,
+      // if different, change places in list of edge and its complement:
+      tEdge::tEdgeBoundary_t initBound = ce->FlowAllowed();
+      tEdge::tEdgeBoundary_t finalBound = 
+	tEdge::isFlowAllowed( ce->getOriginPtr(), ce->getDestinationPtr() );
+      if( initBound != finalBound )
+	{ // need to change place in edgeList:
+	  eI.Get( ce->getID() );
+	  if( ce->getID()%2 == 1 ) eI.Prev();
+	  edgeListNode_t* nodePtr0 = eI.NodePtr();
+	  eI.Next();
+	  edgeListNode_t* nodePtr1 = eI.NodePtr();
+	  if( finalBound == tEdge::kFlowNotAllowed )
+	    { // non-boundary being converted open boundary,
+	      // move to front of boundary part of list:
+	      edgeList.moveToBoundFront( nodePtr1 );
+	      edgeList.moveToBoundFront( nodePtr0 );
+	    }
+	  else
+	    { // closed boundary being converted to open boundary,
+	      // move to end of active part of list:
+	      edgeList.moveToActiveBack( nodePtr0 );
+	      edgeList.moveToActiveBack( nodePtr1 );
+	    }
+	  // reset boundary flags (must be done after moving in list):
+	  ce->setFlowAllowed( finalBound );
+	  ce->getComplementEdge()->setFlowAllowed( finalBound );
+	  if(1) //DEBUG
+	    if( edgeList.getLastActive()->getDataPtr()->FlowAllowed() 
+		== tEdge::kFlowNotAllowed )
+	      {
+		std::cout << "well, that's screwed up! \n";
+		ReportFatalError( "last active edge went boundary on us!" );
+	      }
+	}
+    } while( ( ce = ce->getCCWEdg() ) != edg );
+}
+
+/**************************************************************************\
+**
+**   tMesh::MakeStreamLineBoundaries
+**
+**  Routine to make irregular open boundaries along streamlines leading
+**  to existing outlets.
+**  Called after tMesh::MakeMeshFromPointTilesAndArcGridMask and tStreamNet
+**  construction (needs flow edges to be set). Designed with the idea of 
+**  making edges of domains along channels into open boundaries, but could
+**  be used also to make all points downstream of specified channel heads
+**  into open boundaries.
+**
+**  Reads number of streamlines and coordinates of upstream ends of 
+**  streamlines from input file. 
+**
+**   Parameters: infile -- main parameter input file, strmNet
+**   Assumes: infile is valid and open, flow directions have been set
+**   Created: 9/10 SL
+**
+\**************************************************************************/
+template< class tSubNode >
+void tMesh< tSubNode >::
+MakeStreamLineBoundaries( tPtrList< tSubNode > &streamList )
+{
+  // must make stream net, do flow routing, and find streamlines first.
+  // nodes in streamList are upstream nodes first.
+  tSubNode *sn=0;
+  while( ( sn = streamList.removeFromBack() ) )
+    ConvertToOpenBoundary( sn );
+
+  std::cout << "made streamlines open boundaries\n";
+  std::cout << "8 NN: " << nnodes << " (" << nodeList.getActiveSize() 
+	    << ")  NE: " << nedges << " NT: " << ntri << std::endl;
+  nodeListIter_t nI( nodeList );
+  if(0) // DEBUG
+    {
+      for( tSubNode *cn = nI.FirstP(); !nI.AtEnd(); 
+	   cn = nI.NextP() )
+	if( cn->getZ() == 0.0 ) 
+	  std::cout << "zero elev:" << cn->getZ() << "\n";
+    }
+
+  // remove closed boundary nodes that do not have non-boundary nbrs:
+  tPtrList<nodeListNode_t> deletelist;
+  for( tSubNode* cn = nI.FirstBoundaryP(); !( nI.AtEnd() ); cn = nI.NextP() )
+    {
+      if( cn->getBoundaryFlag() == kClosedBoundary )
+	{
+	  int numActNbrs = 0;
+	  tSpkIter sI( cn );
+	  for( tEdge* ce = sI.FirstP(); !( sI.AtEnd() ); ce = sI.NextP() )
+	    if( ce->getDestinationPtr()->getBoundaryFlag() == kNonBoundary )
+	      ++numActNbrs;
+	  if( numActNbrs == 0 ) deletelist.insertAtBack( nI.NodePtr() );
+	}
+    }
+  {
+    nodeListNode_t *cN=0;
+    while( ( cN = deletelist.removeFromFront() ) )
+      {
+	DeleteNode( cN, kNoRepairMesh, kNoUpdateMesh );
+	MakeHullConvex(); // insures success of LocateTriangle
+      }
+  }
+
+  std::cout << "deleted superfluous boundary nodes (2nd time)\n";
+  std::cout << "10 NN: " << nnodes << " (" << nodeList.getActiveSize() 
+	    << ")  NE: " << nedges << " NT: " << ntri << std::endl;
+  if(0) // DEBUG
+    {
+      for( tSubNode *cn = nI.FirstP(); !nI.AtEnd(); 
+	   cn = nI.NextP() )
+	if( cn->getZ() == 0.0 ) 
+	  std::cout << "zero elev:" << cn->getZ() << "\n";
+    }
+  // Update Voronoi areas, edge lengths, etc., and test the consistency
+  // of the new mesh.
+  UpdateMesh();
 }
 
 
@@ -3384,6 +4111,9 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    assert( nedges == edgeList.getSize() );
    assert( nnodes == nodeList.getSize() );       //make sure numbers are right
    int ret =    MakeTriangle( nbrList, nbrIter );             //make final triangle
+//    if( !ret )
+//      for( tSubNode* cn=nbrIter.FirstP(); !nbrIter.AtEnd(); cn=nbrIter.NextP() )
+//        assert( cn->getBoundaryFlag() != kNonBoundary );
    assert( ret );
 
    if (0) //DEBUG
@@ -3391,6 +4121,124 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
    return 1;
 }
 
+/**************************************************************************\
+** FixHoles: finds holes in mesh and fixes them. Goes through edgeList
+**   looking for edges that don't point to triangles and aren't on the
+**   domain boundary. Such an edge should be on the boundary of a hole
+**   and pointing clockwise, so we get the edge's complement, which should
+**   be pointing ccw, and make a ccw-order list of the nodes around the
+**   hole. Finally, call RepairMesh to fix the hole.
+**
+** SL 3/99  (added to CU CHILD, 10/2010)
+\**************************************************************************/
+template< class tSubNode >
+void tMesh< tSubNode >::
+FixHoles()
+{
+  edgeListIter_t eI( edgeList );
+  // for debugging:
+  cout << "fixing holes: ";
+  int numHoles = 0;
+  // end for debugging
+  for( tEdge* ce = eI.FirstP(); !eI.AtEnd(); ce = eI.NextP() )
+    {
+      if( ce->TriWithEdgePtr() == 0
+          &&
+          ( ce->getOriginPtr()->getBoundaryFlag() == kNonBoundary
+            || ce->getDestinationPtr()->getBoundaryFlag() == kNonBoundary ) )
+	{
+	  // we've got a hole; get the edge's complement:
+	  // for debugging:
+	  numHoles++;
+	  //cout << numHoles << " ";
+	  // end for debugging
+	  tEdge* bndyedg = ce->getComplementEdge();
+	  tEdge* obedg = bndyedg;
+	  tNode* dn = bndyedg->getDestinationPtrNC();
+	  tPtrList< tSubNode > nbrList;
+	  do
+	    {
+	      tSubNode* sn = static_cast<tSubNode*>( dn );
+	      nbrList.insertAtBack( sn );
+	      bndyedg = bndyedg->getComplementEdge()->getCWEdg();
+	      dn = bndyedg->getDestinationPtrNC();
+	    } while( bndyedg != obedg );
+	  nbrList.makeCircular();
+	  // fix hole:
+	  if( !RepairMesh( nbrList ) )
+	    {
+	      cerr << "FixHoles: found hole but couldn't fix it\n";
+	      ReportFatalError( "tMesh::FixHoles failed" );
+	    }
+	}
+    }
+  cout << endl;
+  cout << "found and fixed " << numHoles << " holes in mesh\n ";
+}
+	 
+/**************************************************************************\
+**  MakeHullConvex(...): triangulates outer hull to make it convex.
+**   Function is similar to RepairMesh but stops when it stops finding
+**   points to make triangles.
+**
+**  Calls: Next3Delaunay(...), tMesh::AddEdgeAndMakeTriangle(...)
+**  Called by: MakeHexMesh...
+**  SL 3/99 (added to CU CHILD, 9/2010)
+\**************************************************************************/
+template< class tSubNode >
+void tMesh< tSubNode >::
+MakeHullConvex()
+{
+   edgeListIter_t eI( edgeList );
+   tEdge* ce;
+   tEdge* bndyedg = 0;
+   for( ce = eI.FirstBoundaryP(); !eI.AtEnd(); ce = eI.NextP() )
+   {
+      if( ce->TriWithEdgePtr() == 0 )
+      {
+         if( ce->getID()%2 == 0 ) bndyedg = eI.NextP();
+         else bndyedg = eI.PrevP();
+         break;
+      }
+   }
+   assert( bndyedg > 0 );
+   tPtrList< tSubNode > nbrList;
+   tEdge* obedg = bndyedg;
+   tSubNode* dn = static_cast<tSubNode*>( bndyedg->getDestinationPtrNC() );
+   tSpkIter spI;
+   do
+   {
+      assert( dn->getBoundaryFlag() != kNonBoundary );
+      nbrList.insertAtBack( dn );
+      spI.Reset( dn );
+      spI.Get( bndyedg->getComplementEdge() );
+      bndyedg = spI.PrevP();
+      dn = static_cast<tSubNode*>( bndyedg->getDestinationPtrNC() );
+   }
+   while( bndyedg != obedg );
+   nbrList.makeCircular();
+   
+   tPtrListIter< tSubNode > nbrIter( nbrList );
+   int success = 0;
+   // while >3 nodes, find where to add new edges and make triangles
+   // by finding 3 adjacent nodes in list which form Delaunay triangle:
+   while( nbrList.getSize() > 3 && success < nbrList.getSize() * 2 )
+   {
+      //checks for ccw and Delaunayness:
+      if( Next3Delaunay( nbrList, nbrIter ) ) 
+      {
+         success = AddEdgeAndMakeTriangle( nbrList, nbrIter );
+         assert( success );
+         //remove "closed off" pt:
+         /*tSubNode* meshnodePtr =*/ 
+	 nbrList.removeNext( nbrIter.NodePtr() );
+      }
+      else
+          ++success;
+      //step forward once in nbrList:
+      nbrIter.Next();
+   }
+}
 
 /**************************************************************************\
 **
@@ -4309,7 +5157,9 @@ UpdateMesh( bool checkMeshConsistency )
 
    edgeListIter_t elist( edgeList );
    double len;
-
+   //DEBUG
+   double minlen = 1000.;
+   
    // Edge lengths
    tEdge *curedg = elist.FirstP();
    do
@@ -4323,8 +5173,13 @@ UpdateMesh( bool checkMeshConsistency )
       curedg = elist.NextP();
       assert( curedg != 0 ); // failure = complementary edges not consecutive
       curedg->setLength( len );
+      if(1) //DEBUG
+	if( elist.IsActive() )
+	  if( len < minlen ) minlen = len;
    } while( (curedg=elist.NextP()) != NULL);
-
+   if(1) //DEBUG
+     std::cout << "minimum edge length: " << minlen << " m \n";
+   
    setVoronoiVertices();
    CalcVoronoiEdgeLengths();
    CalcVAreas();
@@ -4956,7 +5811,7 @@ AddNodesAround( tSubNode * centerNode, double time )
    // (note: we get the list first because the vertices will change
    // as soon as we add the first node)
    centerNode->getVoronoiVertexXYZList( &vvtxlist );
-   tLNode tmpnode = *centerNode;  // New node to be added -- passed to AddNode
+   tSubNode tmpnode = *centerNode;  // New node to be added--passed to AddNode
    Point3D *xyz;  // Coordinates of current vertex
 
    // Here we add a new node at each vertex. Note that the call to

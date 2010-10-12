@@ -33,6 +33,9 @@
 #include <math.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <iostream>
+#include <sstream>
+#include <string>
 #include "../Classes.h"
 #include "../Definitions.h"
 #include "../tArray/tArray.h"
@@ -124,7 +127,7 @@ class tMesh
 			   tPtrList< tSubNode > &, tRand &);
    void MakePointInterior( const ParamMMFS_t &, const tInputFile &,
 			   bool makeMesh, tRand &);
-   void BuildDelaunayMeshTipper();
+   void BuildDelaunayMeshTipper( kUpdateMesh_t updateFlag = kUpdateMesh );
    void MeshDensification( const tInputFile & );
    void MakeDelaunay( tPtrList< tTriangle > &, double time );
    void SplitNonFlippableEdge( tPtrList< tEdge > &, double time );
@@ -151,8 +154,11 @@ public:
 
    tMesh( const tInputFile &, bool checkMeshConsistency );
    tMesh( tMesh const * );
+  tMesh( tArray<double> &, tArray<double> &, tArray<double> &  );
    ~tMesh();
    void BatchAddNodes(); // quickly adds many nodes when starting w/ dense mesh
+  void RemovePointDuplicates( tSubNode &, tList<double> &, tList<double> &, 
+			      tList<double> & );
    void MakeMeshFromScratch( const tInputFile &, tRand & ); // creates a new mesh
    void MakeMeshFromScratchTipper( const tInputFile &, tRand & );   // creates a new mesh
    void MakeMeshFromInputData( const tInputFile & ); // reads in an existing mesh
@@ -160,6 +166,10 @@ public:
    void MakeMeshFromPointsTipper( const tInputFile & ); // creates mesh from list of pts
    void MakeRandomPointsFromArcGrid( const tInputFile & ); // mesh from arc (rand)
    void MakeHexMeshFromArcGrid( const tInputFile & );// mesh from arc (hex)
+  void MakeMeshFromPointTilesAndArcGridMask( const tInputFile &, tRand & );
+  void ConvertToOpenBoundary( tSubNode * );
+  void ConvertToOpenBoundary( nodeListNode_t * );
+  void MakeStreamLineBoundaries( tPtrList< tSubNode > & );
    void MakeLayersFromInputData( const tInputFile & );
    void Print() const;
    void setVoronoiVertices();
@@ -188,6 +198,8 @@ public:
    int ClearTriangle( tTriangle const* ) const;
    /*complicated; fills in (any) hole defined by circular node ptr list:*/
    int RepairMesh( tPtrList< tSubNode > & );
+  void FixHoles(); // use when deletion may or may not leave a hole
+   void MakeHullConvex(); // insure success of LocateTriangle for irregular domain
    int AddEdgeAndMakeTriangle( tPtrList< tSubNode > &,
                                tPtrListIter< tSubNode > & );
    int AddEdgeAndMakeTriangle( tSubNode*, tSubNode*, tSubNode* );
@@ -254,6 +266,9 @@ public:
    void DumpTriangles();
    void DumpNodes();
 #endif
+  // Offsets for UTM coords (big numbers -> round-off error)
+  double xOffset;
+  double yOffset;
 
 
 private:
@@ -275,6 +290,7 @@ protected:
    bool layerflag;                 // flag indicating whether nodes have layers
    bool runCheckMeshConsistency;    // shall we run the tests ?
    tIDGenerator node_ID_generator;  // generates permanent IDs for nodes
+
 };
 
 /*

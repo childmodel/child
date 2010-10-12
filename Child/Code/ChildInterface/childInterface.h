@@ -132,7 +132,11 @@ private:
     optStratGrid,      // Option to enable stratigraphy grid
     optTrackWaterSedTimeSeries,  // Option to record timeseries Q and Qs
     optNonlinearDiffusion, // Option for nonlinear creep transport
-    optDepthDependentDiffusion; // Option for depth dependent creep transport
+    optDepthDependentDiffusion, // Option for depth dependent creep transport
+    optLandslides, // Option for landsliding
+    optChemicalWeathering, // Option for chemical weathering
+    optPhysicalWeathering; // Option for physical weathering
+  bool optStreamLineBoundary; // Option for converting streamlines to open boundaries
   tRand *rand;             // -> random number generator
   tMesh<tLNode> *mesh;        // -> mesh object
   tLOutput<tLNode> *output;   // -> output handler

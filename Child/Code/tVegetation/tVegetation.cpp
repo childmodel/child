@@ -48,8 +48,7 @@
 
 /*
 **  tFire::tFire:  Constructor for fires. The default constructor
-**                   assigns a value of unity to fire depth, duration,
-**                   and interfire duration. (Note:
+**                   assigns a value of unity to interfire duration. (Note:
 **                   this constructor does not allow option for sinusoidal
 **                   variation in means).
 */
@@ -63,8 +62,8 @@ tFire::tFire()
 
 /*
 **  tFire::tFire:  The constructor that's really used assigns values for
-**                   mean fire depth, duration, and interfire duration,
-**                   initializes current depth, etc, to the mean values,
+**                   mean interfire duration,
+**                   initializes current duration to the mean values,
 **                   and initializes the random number generator. (Note:
 **                   this constructor does not allow option for sinusoidal
 **                   variation in means).
@@ -247,8 +246,7 @@ void tForest::ForestInitialize( const tInputFile& infile, tMesh<tLNode>* mPtr,
       tLNode *cn=0;
       for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
 	{
-	  // this constructor initializes data based on stand age and 
-	  // regolith depth
+	  // this constructor initializes data based on stand age 
 	  tTrees *ptr = new tTrees( cn, this, standage );
 	  cn->getVegCover().setTrees( ptr );
 	}
@@ -325,14 +323,19 @@ double tForest::RootStrengthInit( tTrees *tree )
   if( tree->getMaxRootStrength() < 0.0 )
     tree->setMaxRootStrength( MVRC + MLRC );
   // find new root strength with new soil depth:
-  const double h = tree->getNodePtr()->getRegolithDepth();
-  assert( h >= 0.0 );
-  const double expnegjZ = exp( -rootstrengthJ * h );
+//   const double h = tree->getNodePtr()->getRegolithDepth();
+//   const double costheta = cos( atan( tree->getNodePtr()->calcSlope() ) );
+//   assert( h >= 0.0 );
+//   const double expnegjZ = exp( -rootstrengthJ * h * costheta );
   const double Cv0 = tree->getMaxRootStrength() / ( 1.0 + RSPartition );
   const double Cl0 = RSPartition * Cv0;
-  return 
-    tree->getRootGrowth() * ( MVRC * expnegjZ + MLRC )
-    + tree->getRootDecay() * ( Cv0 * expnegjZ + Cl0 );
+  tree->setRootStrengthLat( tree->getRootGrowth() * MLRC + 
+			    tree->getRootDecay() * Cl0 );
+  tree->setRootStrengthVert( tree->getRootGrowth() * MVRC +
+			     tree->getRootDecay() * Cv0 );
+//   tree->setRootStrengthVert( ( tree->getRootGrowth() * MVRC +
+// 			       tree->getRootDecay() * Cv0 ) * expnegjZ );
+  return tree->getRootStrengthLat() + tree->getRootStrengthVert();
 }
 
 
@@ -370,14 +373,19 @@ double tForest::RootStrengthEvol( tTrees *tree )
   tree->setRootDecay( exp( -rootdecayK * 
 			   pow( tree->getStandDeathTime(), rootdecayN ) ) );
   // find new root strength with new soil depth:
-  const double h = tree->getNodePtr()->getRegolithDepth();
-  assert( h >= 0.0 );
-  const double expnegjZ = exp( -rootstrengthJ * h );
+//   const double h = tree->getNodePtr()->getRegolithDepth();
+//   const double costheta = cos( atan( tree->getNodePtr()->calcSlope() ) );
+//   assert( h >= 0.0 );
+//   const double expnegjZ = exp( -rootstrengthJ * h * costheta );
   const double Cv0 = tree->getMaxRootStrength() / ( 1.0 + RSPartition );
   const double Cl0 = RSPartition * Cv0;
-  return 
-    tree->getRootGrowth() * ( MVRC * expnegjZ + MLRC )
-    + tree->getRootDecay() * ( Cv0 * expnegjZ + Cl0 );
+  tree->setRootStrengthLat( tree->getRootGrowth() * MLRC + 
+			    tree->getRootDecay() * Cl0 );
+  tree->setRootStrengthVert( tree->getRootGrowth() * MVRC +
+			     tree->getRootDecay() * Cv0 );
+//   tree->setRootStrengthVert( ( tree->getRootGrowth() * MVRC +
+// 			       tree->getRootDecay() * Cv0 ) * expnegjZ );
+  return tree->getRootStrengthLat() + tree->getRootStrengthVert();
 }
 
 // set root decay constants such that root strength decays from present value

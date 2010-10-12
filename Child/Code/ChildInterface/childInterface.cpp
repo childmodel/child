@@ -106,6 +106,22 @@ Initialize( int argc, char **argv )
    
    std::cout << "Creating stream network...\n";
    strmNet = new tStreamNet( *mesh, *storm, inputFile );
+   optStreamLineBoundary = inputFile.ReadBool( "OPTSTREAMLINEBNDY", false );
+   // option to convert streamlines from specified points along streamlines
+   // into open boundary nodes; requires flow edges be set:
+   if( optStreamLineBoundary )
+     {
+       tPtrList< tLNode > streamList;
+       strmNet->FindStreamLines( inputFile, streamList );
+       mesh->MakeStreamLineBoundaries( streamList );
+       // do stuff in tStreamNet::UpdateNet(), but also need to do 
+       // tStreamNet::InitFlowDirs(), so call functions piecemeal:
+       strmNet->CalcSlopes();
+       strmNet->InitFlowDirs(); // TODO: should all be done in call to updatenet
+       strmNet->FlowDirs();
+       strmNet->CheckNetConsistency();
+       strmNet->MakeFlow( 0.0 );
+     }
    erosion = new tErosion( mesh, inputFile );
    uplift = new tUplift( inputFile );
 
@@ -122,6 +138,9 @@ Initialize( int argc, char **argv )
    optNonlinearDiffusion = inputFile.ReadBool( "OPT_NONLINEAR_DIFFUSION", false );
    optDepthDependentDiffusion = 
      inputFile.ReadBool( "OPT_DEPTH_DEPENDENT_DIFFUSION", false );
+   optLandslides = inputFile.ReadBool( "OPT_LANDSLIDES", false );
+   optChemicalWeathering = inputFile.ReadBool( "CHEM_WEATHERING_LAW", false );
+   optPhysicalWeathering = inputFile.ReadBool( "PRODUCTION_LAW", false );
    optTrackWaterSedTimeSeries = inputFile.ReadBool( "OPT_TRACK_WATER_SED_TIMESERIES", false );
    
    // create run timer object:
@@ -270,20 +289,25 @@ RunOneStorm()
 	}
     }
 
+  //-------------CHEMICAL WEATHERING------------------------------
   // Do chemical weathering before physical weathering, which may be dependent on
   // the degree of chemical weathering 
   // what this does, whether it does anything,
   // is determined by the chemical weathering option, one of which is "None."
   // this option is read in the tErosion constructor:
-  erosion->WeatherBedrock( stormPlusDryDuration );
+  if( optChemicalWeathering )
+    erosion->WeatherBedrock( stormPlusDryDuration );
 
+  //-------------PHYSICAL WEATHERING------------------------------
   // Do physical weathering before diffusion, which may be dependent on thickness
   // and availability
   // what this does, whether it does anything,
   // is determined by the physical weathering option, one of which is "None."
   // this option is read in the tErosion constructor:
-  erosion->ProduceRegolith( stormPlusDryDuration, time->getCurrentTime() );
+  if( optPhysicalWeathering )
+    erosion->ProduceRegolith( stormPlusDryDuration, time->getCurrentTime() );
 
+  //-------------DIFFUSION----------------------------------------
   //Diffusion is now before fluvial erosion in case the tools
   //detachment laws are being used.
   if( optNonlinearDiffusion )
@@ -298,8 +322,23 @@ RunOneStorm()
     }
   else
     erosion->Diffuse( stormPlusDryDuration, optDiffuseDepo );
-	
-	
+
+  //-------------VEGETATION---------------------------------------
+  // Vegetation moved up before fluvial erosion and (new) landsliding; 
+  // latter depends on vegetation
+#define NEWVEG 1
+  if( optVegetation ) {
+    if( NEWVEG )
+       vegetation->GrowVegetation( mesh, stormPlusDryDuration );
+    // previously only grew during interstorm:
+//       vegetation->GrowVegetation( mesh, stormPlusDryDuration - stormDuration );
+    else
+      vegetation->UpdateVegetation( mesh, stormDuration,
+				    stormPlusDryDuration - stormDuration );
+  }
+#undef NEWVEG
+
+  //-------------FLUVIAL------------------------------------------
   if( optDetachLim )
     erosion->ErodeDetachLim( stormDuration, strmNet,
 			     vegetation );
@@ -311,11 +350,16 @@ RunOneStorm()
       //erosion.DetachErode2( stormDuration, &strmNet,
       //                      time.getCurrentTime(), vegetation );
     }
-	
-	
+
+  //-------------LANDSLIDES---------------------------------------
+  if( optLandslides )
+    erosion->LandslideClusters( storm->getRainrate(), strmNet, 
+				time->getCurrentTime() );
+
   if(0) //DEBUG
     std::cout << "Erosion::Done.." << std::endl;
 	
+
   // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
   if( optStratGrid )
     stratGrid->UpdateStratGrid(tStratGrid::k1,time->getCurrentTime() );
@@ -338,6 +382,7 @@ RunOneStorm()
 	}	
     }
 	
+  //-------------MEANDERING-------------------------------------
   // TODO: how does Migrate know how long to migrate??
   if( optMeander )
     strmMeander->Migrate( time->getCurrentTime() );
@@ -372,18 +417,6 @@ RunOneStorm()
     } // end of floodplain stuff
 	
 	
-#define NEWVEG 1
-  if( optVegetation ) {
-    if( NEWVEG )
-       vegetation->GrowVegetation( mesh, stormPlusDryDuration );
-    // previously only grew during interstorm:
-//       vegetation->GrowVegetation( mesh, stormPlusDryDuration - stormDuration );
-    else
-      vegetation->UpdateVegetation( mesh, stormDuration,
-				    stormPlusDryDuration - stormDuration );
-  }
-#undef NEWVEG
-	
   // Do interstorm...
   //Diffusion has now been moved to before fluvial erosion NMG 07/05
   // erosion.Diffuse( storm.getStormDuration() + storm.interstormDur(),
@@ -391,11 +424,13 @@ RunOneStorm()
 	
   erosion->UpdateExposureTime( stormPlusDryDuration );
 	
+  //----------------EOLIAN------------------------------------
   if( optLoessDep )
     loess->DepositLoess( mesh,
 			 stormPlusDryDuration,
 			 time->getCurrentTime() );
 	
+  //----------------TECTONICS---------------------------------
   if( time->getCurrentTime() < uplift->getDuration() )
     uplift->DoUplift( mesh,
 		      stormPlusDryDuration, 

@@ -2,8 +2,8 @@
 /**
  **  @file erosion.cpp
  **  @brief Functions for equilibrium checking, sediment transport,
- **          bed erosion(detachment), and physical and chemical 
- **          weathering objects.
+ **          bed erosion (detachment), physical and chemical 
+ **          weathering, and debris flow objects.
  **
  **    tEquilibCheck
  **  Transport objects:
@@ -25,6 +25,19 @@
  **  Chemical weathering objects (added 6/2010 sl):
  **    tChemicalWeatheringNone
  **    tChemicalWeatheringDissolution
+ **  Debris flow objects (added 9/2010 sl):
+ **    tDebrisFlow
+ **  Debris flow runout objects (added 9/2010 sl):
+ **    tDF_RunOut
+ **    tDF_RunOutNone
+ **    tDF_RunOutNoStop
+ **  Debris flow scour objects (added 9/2010 sl):
+ **    tDF_Scour
+ **    tDF_ScourNone
+ **    tDF_ScourAllSediment
+ **  Debris flow deposition objects (added 9/2010 sl):
+ **    tDF_Deposit
+ **    tDF_DepositNone
  **
  **    Created 1/98 gt; add tEqChk 5/98 sl
  **
@@ -55,6 +68,10 @@
  **       (SL, 7/10)
  **     - Added "dummy" tBedErode and tSedTrans versions to provide a 
  **       way to turn off fluvial erosion and transport completely (SL 7/10)
+ **     - Nonlinear depth-dependent supply-limited diffusion (SL 8/10)
+ **     - Landsliding of node clusters and debris flows; choice of rules
+ **       governing debris flow runout, scour, and deposition are chosen
+ **       at run time as with tBedErode and tSedTrans, etc. (SL 9/10)
  **
  **    Known bugs:
  **     - ErodeDetachLim assumes 1 grain size. If multiple grain sizes
@@ -204,6 +221,79 @@ char const * const ChemWeathering[] =
 
 const int NUMBER_OF_CHEM_WEATHERINGS =
 sizeof(ChemWeathering)/sizeof(ChemWeathering[0]);
+
+// Debris flow runout:
+#define DF_RUNOUT_TABLE			 \
+X(NoDF_RunOut,"No debris flow runout"), \
+X(NoDF_Stop,"Runout exits domain")
+
+#define DF_RUNOUT_TABLE2 \
+X(NoDF_RunOut,tDF_RunOutNone) \
+X(NoDF_Stop,tDF_RunOutNoStop)
+
+#define X(a,b) a
+enum {
+  DF_RUNOUT_TABLE
+};
+#undef X
+
+#define X(a,b) b
+char const * const DebrisFlowRunOut[] =
+  {
+    DF_RUNOUT_TABLE
+  };
+#undef X
+
+const int NUMBER_OF_DF_RUNOUTS =
+sizeof(DebrisFlowRunOut)/sizeof(DebrisFlowRunOut[0]);
+
+// Debris flow scour:
+#define DF_SCOUR_TABLE			 \
+X(NoDF_Scour,"No debris flow scour"), \
+X(AllSediment,"Scour all sediment")
+
+#define DF_SCOUR_TABLE2 \
+X(NoDF_Scour,tDF_ScourNone) \
+X(AllSediment,tDF_ScourAllSediment)
+
+#define X(a,b) a
+enum {
+  DF_SCOUR_TABLE
+};
+#undef X
+
+#define X(a,b) b
+char const * const DebrisFlowScour[] =
+  {
+    DF_SCOUR_TABLE
+  };
+#undef X
+
+const int NUMBER_OF_DF_SCOURS =
+sizeof(DebrisFlowScour)/sizeof(DebrisFlowScour[0]);
+
+// Debris flow deposition:
+#define DF_DEPOSITION_TABLE	      \
+X(NoDF_Deposition,"No debris flow deposition")
+
+#define DF_DEPOSITION_TABLE2 \
+X(NoDF_Deposition,tDF_DepositNone)
+
+#define X(a,b) a
+enum {
+  DF_DEPOSITION_TABLE
+};
+#undef X
+
+#define X(a,b) b
+char const * const DebrisFlowDeposit[] =
+  {
+    DF_DEPOSITION_TABLE
+  };
+#undef X
+
+const int NUMBER_OF_DF_DEPOSITIONS =
+sizeof(DebrisFlowDeposit)/sizeof(DebrisFlowDeposit[0]);
 
 /***************************************************************************\
  **  FUNCTIONS FOR CLASS tEquilibCheck
@@ -2237,7 +2327,9 @@ double tPhysicalWeatheringExpLaw::SoilProduction( tLNode * n, int i )
     soilThickness += lP->getDepth();
   for( ; lP->getID() < i; lP=lI.NextP() );
   // calculate rate of bedrock lowering (hence negative sign):
-  double rate = -soilprodK * exp( -soilThickness / soilprodH );
+  const double slope = n->calcSlope();
+  const double costheta = cos( atan( slope ) );
+  double rate = -soilprodK * exp( -soilThickness * costheta / soilprodH );
   return rate;
 }
 
@@ -2261,7 +2353,9 @@ double tPhysicalWeatheringExpLaw::SoilProduction( tLNode * n )
   for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() )
     soilThickness += lP->getDepth();
   // calculate rate of bedrock lowering (hence negative sign):
-  double rate = -soilprodK * exp( -soilThickness / soilprodH );
+  const double slope = n->calcSlope();
+  const double costheta = cos( atan( slope ) );
+  double rate = -soilprodK * exp( -soilThickness * costheta / soilprodH );
   return rate;
 }
 
@@ -2348,8 +2442,10 @@ double tPhysicalWeatheringDensityDependent::SoilProduction( tLNode * n, int i )
   for( ; j < i; lP=lI.NextP(), ++j )
     soilThickness += lP->getDepth();
   // calculate rate of bedrock lowering (hence negative sign):
+  const double slope = n->calcSlope();
+  const double costheta = cos( atan( slope ) );
   double rate = -( soilprodK0 - soilprodK1 * lP->getBulkDensity() ) 
-    * exp( -soilThickness / soilprodH );
+    * exp( -soilThickness * costheta / soilprodH );
   return rate;
 }
 
@@ -2377,8 +2473,10 @@ double tPhysicalWeatheringDensityDependent::SoilProduction( tLNode * n )
   // get bedrock surface bulk density:
   double rockDensity = lP->getBulkDensity();
   // calculate rate of bedrock lowering (hence negative sign):
+  const double slope = n->calcSlope();
+  const double costheta = cos( atan( slope ) );
   double rate = -( soilprodK0 - soilprodK1 * rockDensity ) 
-    * exp( -soilThickness / soilprodH );
+    * exp( -soilThickness * costheta / soilprodH );
   return rate;
 }
 
@@ -2595,14 +2693,525 @@ double tChemicalWeatheringDissolution::Run_Step( tLNode * n )
 void tChemicalWeatheringDissolution::Finalize() {}
 
 /***************************************************************************\
+ **  FUNCTIONS FOR CLASS tDebrisFlow
+\***************************************************************************/
+//usual constructor
+inline tDebrisFlow::tDebrisFlow( tPtrList<tLNode> &PList, double netForce, 
+				 vector<double> &nodeSoilThickness, 
+				 vector<double> &nodeWoodDepth,
+				 vector<double> &nodeWaterDepth,
+				 vector<int> &nodeIndex,
+				 tMesh<tLNode> *meshPtr, tErosion *ePtr )
+{ Initialize( PList, netForce, nodeSoilThickness, nodeWoodDepth, 
+	      nodeWaterDepth, nodeIndex, meshPtr, ePtr ); }
+
+
+/***************************************************************************\
+ **  void tDebrisFlow::Initialize
+ **
+ **  Function to initialize debris flow.
+ **  Called by: tDebrisFlow constructor 
+ **  Takes: 
+ **    - PList: a copy of the slideCluster
+ **    - netForce: a copy of the initial net driving force 
+ **      (not used in this version)
+ **    - nodeSoilThickness: a reference to a vector containing soil
+ **      thicknesses for each active node
+ **    - nodeWoodDepth: similar to above
+ **    - nodeWaterDepth: similar to above
+ **    - nodeIndex: a reference to a vector containing the indexes to the
+ **      nodeSoilThickness vector by node ID
+ **    - meshPtr: a pointer to the simulation tMesh<tLNode>
+ **    - ePtr: pointer to tErosion object
+ **  Calls: 
+ **    - tMesh<tLNode>::LocateTriangle
+ **    - ScanLineNodesByPublicFlag (global)
+ **    - RightUnitVector (global)
+ **    - DotProduct2D (global)
+ **    - tDF_RunOut::Start: "rules" function governing runout
+ **  Changes: 
+ **    - this: sets slideCluster, atPtr, volumeFailure, areaFrontal, 
+ **      widthFrontal
+ **    - nodes in slideCluster: removes soil from and changes elevations
+ **
+ **  - STL, 9/2010
+\***************************************************************************/
+void tDebrisFlow::Initialize( tPtrList<tLNode> &PList, 
+			      double initNetForce,
+			      vector<double> &nodeSoilThickness,
+			      vector<double> &nodeWoodDepth,
+			      vector<double> &nodeWaterDepth,
+			      vector<int> &nodeIndex,
+			      tMesh<tLNode> *meshPtr, 
+			      tErosion *ePtr )
+{
+  // initialize quantities to zero:
+  areaFailure = areaScour = areaDeposit = volumeFailure = sedimentVolume 
+    = woodVolume = waterVolume = areaFrontal = widthFrontal = 0.0;
+  netForce = initNetForce;
+  erosion = ePtr;
+  slideCluster = new tPtrList<tLNode>( PList );
+  tPtrListIter<tLNode> cI( slideCluster );
+  scourCluster = 0;
+  scourZoneMesh = 0;
+  depositCluster = 0;
+  depositZoneMesh = 0;
+  wasList = 0;
+  velocityList = 0;
+  
+  // find downstream-most node
+  double maxArea = 0.0;
+  double volWeightSumX = 0.0;
+  double volWeightSumY = 0.0;
+  // find landslide volume:
+  // for each node in failure cluster:
+  for( tLNode *cn = cI.FirstP(); !cI.AtEnd(); cn = cI.NextP() )
+    {
+      // add up landslide area:
+      areaFailure += cn->getVArea();
+      // add up landslide volume:
+      const double nodeVolume = 
+	nodeSoilThickness[nodeIndex[cn->getID()]] * cn->getVArea();
+      volumeFailure += nodeVolume;
+      sedimentVolume += nodeVolume;
+      woodVolume += nodeWoodDepth[nodeIndex[cn->getID()]] * cn->getVArea();
+      waterVolume += nodeWaterDepth[nodeIndex[cn->getID()]] * cn->getVArea();
+      // add up volume-weighted coordinates:
+      volWeightSumX += cn->getX() * nodeVolume;
+      volWeightSumY += cn->getY() * nodeVolume;
+      tLayer cl;
+      // remove its sediment (soil) layers and change elevations:
+      while( cn->getLayerSed(0) == tLayer::kSed ) 
+	{
+	  cn->getLayersRefNC().removeFromFront( cl );
+	  cn->ChangeZ( -cl.getDepth() );
+	}
+      // find downstream-most node:
+      if( cn->getDrArea() > maxArea )
+	{
+	  atPtr = cn;
+	  maxArea = cn->getDrArea();
+	}
+    }
+  orgPtr = atPtr;
+  // set "center" of cluster to point with greatest drainage area to start:
+  tLNode *gn = orgPtr;
+  // then find geometric center if the cluster size if greater than 2 nodes:
+  const int numCluster = orgPtr->public1;
+  if( slideCluster->getSize() > 2 )
+    {
+      //       if( slideCluster->getSize() == 2 )
+      // 	{ // for two nodes, LocateTriangle can fail 'cos point is on the edge:
+      // 	  gn = cI.FirstP();
+      // 	  const double nodeVol1 = 
+      // 	    nodeSoilThickness[nodeIndex[gn->getID()]] * gn->getVArea();
+      // 	  gn = cI.NextP();
+      // 	  const double nodeVol2 =
+      // 	    nodeSoilThickness[nodeIndex[gn->getID()]] * gn->getVArea();
+      // 	  if( nodeVol1 > nodeVol2 ) gn = cI.FirstP();
+      // 	}
+      //       else
+      // 	{
+      // find coordinates of center of mass (volume):
+      const double wtAvgX = volWeightSumX / volumeFailure;
+      const double wtAvgY = volWeightSumY / volumeFailure;
+      // find triangle containing center of mass:
+      tTriangle *gt = meshPtr->LocateTriangle( wtAvgX, wtAvgY );
+      // if geometric center is within bounds:
+      if( gt>0 )
+	{ // find triangle's node with greatest drainage area (and in cluster):
+	  double gArea = 0.0;
+	  for( int i=0; i < 3; ++i )
+	    { // and if a node near that center is within the cluster:
+	      tLNode *cn = static_cast<tLNode*>( gt->pPtr(i) );
+	      if( cn->public1 == numCluster && cn->getDrArea() > gArea )
+		{ // set "center" to node at geometric center 
+		  gArea = cn->getDrArea();
+		  gn = cn;
+		}
+	    }
+	}
+      // 	}
+    }
+  // refer to "rules" object to see whether to prepare for runout:
+  if( erosion->getDF_RunOutPtr()->Start( this ) )
+    { // find nodes along line perpendicular to the flowedge of the 
+      // center-of-mass node up to and including the first nodes
+      // outside of those with the same value of tLNode::public1:
+      tPtrList<tLNode> scanLineNodesList;
+      ScanLineNodesByPublicFlag( gn, scanLineNodesList );
+      vector<tLNode*> scanLineNode( scanLineNodesList.getSize() );
+      {
+	int i=0;
+	while( tLNode* cn = scanLineNodesList.removeFromFront() )
+	  scanLineNode[i++] = cn;
+      }
+      // calculate cross-sectional area and width of landslide at center of mass;
+      // note that, although soil already stripped above, vector of soil
+      // thicknesses was not changed:
+      // find perpendicular distances from left to right with dot product:
+      areaFrontal = 0.0;
+      widthFrontal = 0.0;
+      const int numScanLine = scanLineNode.size();
+      tArray<double> rightUnitVec = RightUnitVector( gn->getFlowEdg() );
+      for( int i=0; i<numScanLine-1; ++i )
+	{
+	  double perpDist = 
+	    fabs( DotProduct2D( scanLineNode[i], scanLineNode[i+1], 
+				rightUnitVec ) );
+	  double vertDepth=0.0;
+	  if( i > 0 && i < numScanLine-2 )
+	    vertDepth = 
+	      ( nodeSoilThickness[ nodeIndex[ scanLineNode[i]->getID() ] ] 
+		+ nodeSoilThickness[ nodeIndex[ scanLineNode[i+1]->getID() ] ] ) 
+	      / 2.0;
+	  else
+	    {
+	      // if at ends, use soil thickness for node in cluster:
+	      if( i == 0 )
+		vertDepth = 
+		  nodeSoilThickness[nodeIndex[scanLineNode[i+1]->getID()]];
+	      else
+		vertDepth =
+		  nodeSoilThickness[nodeIndex[scanLineNode[i]->getID()]];
+	      // if at ends, use only half the distance:
+	      perpDist /= 2.0;
+	    }
+	  areaFrontal += perpDist * vertDepth;
+	  widthFrontal += perpDist;
+	}
+    }
+}
+
+
+
+/***************************************************************************\
+ **  void tDebrisFlow::RunScourDeposit
+ **
+ **  Function to oversee debris flow runout, scour, and deposition.
+ **  Called by: tErosion::LandslideClusters 
+ **  Takes: 
+ **    - Run time
+ **  Calls: 
+ **    - Global functions to do scanline and zone stuff:
+ **      - ScanLineNodesByDistance
+ **      - FillCrossSection
+ **      - BuildPublicClusterWithMesh
+ **    - Runout function: tDF_RunOut::InMotion
+ **    - Scour functions:
+ **      - tDF_Scour::InScourZone
+ **      - tDF_Scour::BedScour
+ **      - tDF_Deposit::InDepositionZone
+ **      - tDF_Deposit::FormDeposit
+ **    - Temporary tMesh constructor: 
+ **        tMesh<tLNode>( x-coords, y-coords, z-coords )
+ **  Changes: 
+ **    - this: sets scourCluster, depositCluster, scourZoneMesh, 
+ **      depositZoneMesh, atPtr, volumeFailure, areaFrontal, 
+ **      widthFrontal, sedimentVolume, woodVolume, waterVolume;
+ **      other objects (wasList, velocityList) will be made in runout,
+ **      scour, and deposition objects
+ **    - call of scour and deposition objects results in any erosion,
+ **      deposition, and elevation changes
+ **
+ **  - STL, 9/2010
+\***************************************************************************/
+void tDebrisFlow::RunScourDeposit()
+{
+  // initial value of atPtr is orgPtr:
+  tEdge* fe = atPtr->getFlowEdg();
+  // if at the outlet, don't need to do this:
+  if( fe == 0 || !fe->getDestinationPtr()->isNonBoundary() ) 
+    {
+      erosion->debris_flow_sed_bucket += sedimentVolume;
+      erosion->debris_flow_wood_bucket += woodVolume;      
+      return;
+    }
+  // move flow downstream node by node; scour soil off nodes in runout
+  // track and to each side up to a height such that the area above the
+  // surface is equal to areaFrontal:
+  tList< tArray<double> > scourZoneCoords;
+  tList< tArray<double> > depositZoneCoords;
+  // start at landslide:
+  while( erosion->getDF_RunOutPtr()->InMotion( this ) )
+    {
+      if( erosion->getDF_ScourPtr()->InScourZone( this ) )
+	{
+	  tPtrList<tLNode> scanLineNodesList;
+	  // finds nodes in scan line perpendicular to atPtr->flowedge;
+	  // use width of flow to limit scan:
+	  int iStream = ScanLineNodesByDistance( atPtr, widthFrontal, 
+						 scanLineNodesList );
+	  vector<tLNode*> scanLineNode( scanLineNodesList.getSize() );
+	  {
+	    int i=0;
+	    while( tLNode* cn = scanLineNodesList.removeFromFront() )
+	      scanLineNode[i++] = cn;
+	  }
+	  tArray<double> leftXYZ(3);
+	  tArray<double> rightXYZ(3);
+	  // finds endpoints of cross-section filled by areaFrontal:
+	  FillCrossSection( iStream, areaFrontal, widthFrontal, scanLineNode, 
+			    leftXYZ, rightXYZ );
+	  scourZoneCoords.insertAtBack( leftXYZ );
+	  scourZoneCoords.insertAtBack( rightXYZ );
+	}
+      // note that we haven't pre-determined that the scour and deposition
+      // zones are mutually exclusive, or that we must be in one or the other
+      // AT THIS POINT; they become mutually exclusive below:
+      if( erosion->getDF_DepositPtr()->InDepositionZone( this ) )
+	{
+	  tPtrList<tLNode> scanLineNodesList;
+	  // finds nodes in scan line perpendicular to atPtr->flowedge;
+	  // use width of flow to limit scan:
+	  int iStream = ScanLineNodesByDistance( atPtr, widthFrontal, 
+						 scanLineNodesList );
+	  vector<tLNode*> scanLineNode( scanLineNodesList.getSize() );
+	  {
+	    int i=0;
+	    while( tLNode* cn = scanLineNodesList.removeFromFront() )
+	      scanLineNode[i++] = cn;
+	  }
+	  tArray<double> leftXYZ(3);
+	  tArray<double> rightXYZ(3);
+	  // finds endpoints of cross-section filled by areaFrontal:
+	  FillCrossSection( iStream, areaFrontal, widthFrontal, scanLineNode, 
+			    leftXYZ, rightXYZ );
+	  depositZoneCoords.insertAtBack( leftXYZ );
+	  depositZoneCoords.insertAtBack( rightXYZ );
+	}
+      // finally, move one node downstream:
+      atPtr = atPtr->getDownstrmNbr();
+    }
+  { // do scour if there's a scour zone:
+    const int numVtcs = scourZoneCoords.getSize();
+    if( numVtcs > 0 )
+      {
+	tArray<double> zoneX( numVtcs );
+	tArray<double> zoneY( numVtcs );
+	tArray<double> zoneZ( numVtcs );
+	{ // write out x, y, and z arrays defining scour zone:
+	  int i=0;
+	  tArray<double> XYZ(3);
+	  while( scourZoneCoords.removeFromFront( XYZ ) )
+	    {
+	      zoneX[i] = XYZ[0];
+	      zoneY[i] = XYZ[1];
+	      zoneZ[i] = XYZ[2];
+	      ++i;
+	    }
+	}
+	// instantiate scourZoneMesh from the scour zone coordinates:
+	scourZoneMesh = new tMesh<tLNode>( zoneX, zoneY, zoneZ );
+	// instantiate scourCluster:
+	scourCluster = new tPtrList<tLNode>();
+	// start potential cluster with node downstream of orgPtr 
+	// (wouldn't have come this far in the function if it didn't have a 
+	// downstream neighbor), 
+	// use flag value from slideCluster:
+	BuildPublicClusterWithMesh( scourZoneMesh, scourCluster, 
+				    orgPtr->getDownstrmNbr(), 
+				    orgPtr->public1 );
+	// remove soil from and change elevation of nodes in scour zone:
+	tPtrListIter<tLNode> cI( scourCluster );
+	for( tLNode *cn = cI.FirstP(); !cI.AtEnd(); cn = cI.NextP() )
+	  {
+	    erosion->getDF_ScourPtr()->BedScour( this, cn );
+	    areaScour += cn->getVArea();
+	  }
+      }
+  } // end scour
+  // update buckets:
+  erosion->debris_flow_sed_bucket += sedimentVolume;
+  erosion->debris_flow_wood_bucket += woodVolume;
+  { // do deposition if there's a deposition zone:
+    const int numVtcs = depositZoneCoords.getSize();
+    if( numVtcs > 0 )
+      {
+	tArray<double> zoneX( numVtcs );
+	tArray<double> zoneY( numVtcs );
+	tArray<double> zoneZ( numVtcs );
+	{ // write out x, y, and z arrays defining deposit zone:
+	  int i=0;
+	  tArray<double> XYZ(3);
+	  while( depositZoneCoords.removeFromFront( XYZ ) )
+	    {
+	      zoneX[i] = XYZ[0];
+	      zoneY[i] = XYZ[1];
+	      zoneZ[i] = XYZ[2];
+	      ++i;
+	    }
+	}
+	// instantiate depositZoneMesh from the deposit zone coordinates:
+	depositZoneMesh = new tMesh<tLNode>( zoneX, zoneY, zoneZ );
+	// instantiate depositCluster:
+	depositCluster = new tPtrList<tLNode>();
+	// note that, here, scourCluster and depositCluster ARE mutually
+	// exclusive: the following function will not add a point to the 
+	// cluster unless its public1 flag is zero:
+	// start potential cluster with atPtr, use flag value from slideCluster:
+	BuildPublicClusterWithMesh( depositZoneMesh, depositCluster, atPtr, 
+				    orgPtr->public1 );
+	// add sediment and change elevation of nodes in deposit zone:
+	tPtrListIter<tLNode> cI( depositCluster );
+	for( tLNode *cn = cI.FirstP(); !cI.AtEnd(); cn = cI.NextP() )
+	  {
+	    erosion->getDF_DepositPtr()->FormDeposit( this, cn );
+	    areaDeposit += cn->getVArea();
+	  }
+      }
+  } // end deposition
+}
+
+/***************************************************************************\
+ **  overloaded output operator for tDebrisFlow:
+ **  - STL, 9/2010
+\***************************************************************************/
+std::ostream& operator<<( std::ostream &os, tDebrisFlow const &dflow )
+{
+  os.setf( ios::fixed, ios::floatfield );
+  os.precision(2);
+  os << dflow.orgPtr->getX() << " " << dflow.orgPtr->getY() << " " 
+     << dflow.orgPtr->getZ() << " "
+     << dflow.atPtr->getX() << " " << dflow.atPtr->getY() << " " 
+     << dflow.atPtr->getZ() << " "
+     << dflow.areaFailure << " " << dflow.areaScour << " "
+     << dflow.areaDeposit << " "
+     << dflow.volumeFailure << " " 
+     << dflow.sedimentVolume << " " << dflow.woodVolume << " "
+     << dflow.waterVolume << " "
+     << dflow.areaFrontal << " " << dflow.widthFrontal << " "
+     << dflow.netForce;
+  return os;
+}
+
+/***************************************************************************\
+ **  FUNCTIONS FOR CLASS tDF_Scour AND DERIVED CLASSES
+\***************************************************************************/
+/***************************************************************************\
+ **  void tDF_ScourAllSediment::BedScour
+ **
+ **  Function to do debris flow scour, where all sediment/soil is 
+ **    removed from each node; if there are trees, biomass is also 
+ **    removed.
+ **  Called by: tDebrisFlow::RunScourDeposit 
+ **  Takes: 
+ **    - DF: pointer to tDebrisFlow object
+ **    - cn: pointer to tLNode object
+ **  Calls: 
+ **    - various "get" and "set" functions
+ **    - tLNode::ChangeZ
+ **  Changes: 
+ **    - DF: adds scoured material to debris flow
+ **    - cn: removes soil and wood and changes elevation
+ **
+ **  - STL, 9/2010
+\***************************************************************************/
+void tDF_ScourAllSediment::BedScour( tDebrisFlow* DF, tLNode* cn )
+{
+  tLayer cl;
+  // remove its sediment (soil) layers, add to tally, and change elevations:
+  while( cn->getLayerSed(0) == tLayer::kSed ) 
+    {
+      cn->getLayersRefNC().removeFromFront( cl );
+      DF->addSedimentVolume( cl.getDepth() * cn->getVArea() );
+      cn->ChangeZ( -cl.getDepth() );
+    }
+  // remove biomass and add to debris flow tally:
+  if( cn->getVegCover().getTrees() > 0 )
+    {
+      DF->addWoodVolume( ( cn->getVegCover().getTrees()->getBioMassStand()
+			   + cn->getVegCover().getTrees()->getBioMassDown() )
+			 * cn->getVArea() );
+      cn->getVegCover().getTrees()->setBioMassStand(0.0);
+      cn->getVegCover().getTrees()->setBioMassDown(0.0);
+   }    
+}
+
+/***************************************************************************\
+ **  void BuildPublicClusterWithMesh( tMesh<tLNode>* mesh, 
+ **          			      tPtrList<tLNode>* cluster, 
+ **                                   tLNode* seedNode, 
+ **                                   const int flagVal )
+ **
+ **  Global function to build cluster defined by a tMesh and a seed node.
+ **  Start with seed node (tLNode* cn) and grow cluster of nodes that
+ **    (a) fall within one of the triangles of the mesh, and
+ **    (b) have elevations that fall below the plane of that one triangle.
+ **  Puts nodes in tPtrList<tLNode> passed by pointer.
+ **
+ **  Called by: tDebrisFlow::RunScourDeposit.
+ **  Takes: 
+ **    - mesh: pointer to tMesh<tLNode> that defines cluster;
+ **    - cluster: pointer to tPtrList containing cluster nodes;
+ **    - seedNode: pointer to tLNode that "seeds" the cluster;
+ **    - flagval: value of tNode::public1 to assign nodes in cluster;
+ **  Calls: 
+ **    - tMesh::LocateTriangle(x,y) to find whether candidate node is
+ **      within mesh;
+ **    - PlaneFit (global) to find whether candidate node's elevation
+ **      is below that of the plane of the triangle in which node is found.
+ **  Changes: values in passed arrays leftXYZ and rightXYZ.
+ **
+ **  - STL, 7/2010
+\***************************************************************************/
+void BuildPublicClusterWithMesh( tMesh<tLNode>* mesh, 
+				 tPtrList<tLNode>* cluster, 
+				 tLNode* seedNode, 
+				 const int flagVal )
+{
+  tPtrList<tLNode> seedList; // list of nodes on edge of cluster
+//   tLNode* cn = seedNode;
+  seedList.insertAtBack( seedNode );
+  cluster->insertAtBack( seedNode );
+  // set generic flag signifying node in cluster:
+  seedNode->public1 = flagVal;
+  while( !seedList.isEmpty() )
+    {
+//       tLNode* cn = seedList.removeFromFront();
+      tSpkIter sI( seedList.removeFromFront() );
+      for( tEdge* ce = sI.FirstP(); !sI.AtEnd(); ce = sI.NextP() )
+	{
+	  if( ce->getDestinationPtr()->isNonBoundary() )
+	    {
+	      tLNode* nn = static_cast<tLNode*>( ce->getDestinationPtrNC() );
+	      // if node is not already in a cluster AND point coordinates
+	      // fall within a triangle in the mesh AND
+	      // the node's elevation is at or below the triangle's plane:
+	      // NOTE: if we want flow depth (e.g., for determining 
+	      // scour), difference between node elevation and 
+	      // triangle surface elevation at that point is effectively
+	      // the depth of the flow at that point.
+	      tTriangle *ct =  mesh->LocateTriangle( nn->getX(), nn->getY() );
+	      if( nn->public1 == 0 
+		  && 
+		  ct > 0 
+		  && 
+		  nn->getZ() <= PlaneFit( nn->getX(), nn->getY(), ct ) )
+		{
+		  // then add the new node to the cluster:
+		  nn->public1 = flagVal;
+		  seedList.insertAtBack( nn );
+		  cluster->insertAtBack( nn );
+		}
+	    }
+	}
+    }
+}
+
+/***************************************************************************\
  **  FUNCTIONS FOR CLASS tErosion
  \***************************************************************************/
 
 //constructor
 tErosion::tErosion( tMesh<tLNode> *mptr, const tInputFile &infile ) :
 meshPtr(mptr),
-bedErode(0), sedTrans(0), physWeath(0), chemWeath(0),
-track_sed_flux_at_nodes_( false ), water_sed_tracker_ptr_(NULL)
+bedErode(0), sedTrans(0), physWeath(0), chemWeath(0), 
+runout(0), scour(0), deposit(0), DF_fsPtr(0), DF_Hyd_fsPtr(0),
+track_sed_flux_at_nodes_( false ), water_sed_tracker_ptr_(NULL),
+soilBulkDensity(1000.0), wetBulkDensity(1600.0), woodDensity(450.0),
+fricSlope(1.0),
+debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
 {
   assert( mptr!=0 );
   
@@ -2616,8 +3225,8 @@ track_sed_flux_at_nodes_( false ), water_sed_tracker_ptr_(NULL)
   bool optDepthDependentDiffusion = 
     infile.ReadBool( "OPT_DEPTH_DEPENDENT_DIFFUSION", false );
   if( optDepthDependentDiffusion)
-    diffusionH = infile.ReadItem( diffusionH, "DIFFDEPTHSCALE", 1.0 );
-  soilBulkDensity=infile.ReadItem( soilBulkDensity, "SOILBULKDENSITY", 1000. );
+    diffusionH = infile.ReadDouble( "DIFFDEPTHSCALE", true );
+
   int optAdaptMesh = infile.ReadItem( optAdaptMesh, "OPTMESHADAPTDZ" );
   if( optAdaptMesh )
     mdMeshAdaptMaxFlux = infile.ReadItem( mdMeshAdaptMaxFlux,
@@ -2631,11 +3240,11 @@ track_sed_flux_at_nodes_( false ), water_sed_tracker_ptr_(NULL)
                                       "DETACHMENT_LAW" );
   switch(optProcessLaw){
 #define X(a,b) case a: \
-bedErode = new b(infile); \
-break;
-      DETACHMENT_LAW_TABLE2
+    bedErode = new b(infile);			\
+    break;
+    DETACHMENT_LAW_TABLE2
 #undef X
-    default:
+  default:
     {
       std::cerr << "\nError: You requested the detachment law '"
       << optProcessLaw << "' which does not exist."  << std::endl
@@ -2656,11 +3265,11 @@ break;
                                   "TRANSPORT_LAW" );
   switch(optProcessLaw){
 #define X(a,b) case a: \
-sedTrans = new b(infile); \
-break;
-      TRANSPORT_LAW_TABLE2
+    sedTrans = new b(infile);			\
+    break;
+    TRANSPORT_LAW_TABLE2
 #undef X
-    default:
+  default:
     {
       std::cerr << "\nError: You requested the transport law '"
       << optProcessLaw << "' which does not exist."  << std::endl
@@ -2673,7 +3282,7 @@ break;
     }
   }
   std::cout << "SEDIMENT TRANSPORT OPTION: "
-  << TransportLaw[optProcessLaw] << std::endl;
+	    << TransportLaw[optProcessLaw] << std::endl;
 
   // set soil production law:
   optProcessLaw = infile.ReadItem( optProcessLaw,
@@ -2681,9 +3290,9 @@ break;
 
   switch(optProcessLaw)
     {
-#define X(a,b) case a: \
-physWeath = new b(infile); \
-break;
+#define X(a,b) case a:	   \
+      physWeath = new b(infile);		\
+      break;
       PRODUCTION_LAW_TABLE2
 #undef X
     default:
@@ -2700,16 +3309,18 @@ break;
     }
   std::cout << "SOIL PRODUCTION OPTION: "
 	    << ProductionLaw[optProcessLaw] << std::endl;
-  
+  if( optProcessLaw > 0 )
+    soilBulkDensity=infile.ReadDouble( "SOILBULKDENSITY", false );
+
   // set chemical weathering law:
   optProcessLaw = infile.ReadItem( optProcessLaw,
 				   "CHEM_WEATHERING_LAW" );
 
   switch(optProcessLaw)
     {
-#define X(a,b) case a: \
+#define X(a,b) case a:				\
       chemWeath = new b(infile, mptr);		\
-break;
+      break;
       CHEM_WEATHERING_TABLE2
 #undef X
     default:
@@ -2726,7 +3337,123 @@ break;
     }
   std::cout << "CHEMICAL WEATHERING OPTION: "
 	    << ChemWeathering[optProcessLaw] << std::endl;
-      
+
+  // Landsliding:
+  bool optLandslides = infile.ReadBool( "OPT_LANDSLIDES", false );
+  if( optLandslides )
+    {
+      int tmp_ = infile.ReadItem( tmp_, "FLOWGEN" );
+      tStreamNet::kFlowGen_t flowFlag = static_cast<tStreamNet::kFlowGen_t>(tmp_);
+      if( flowFlag != tStreamNet::kSaturatedFlow1 
+	  && flowFlag != tStreamNet::kSubSurf2DKinematicWave )
+	{
+	  std::cerr << "\nError: You selected the option for landslides, which "
+		    << "requires you also select FLOWGEN = 1 for 'type 1' "
+		    << "saturated flow hydrology or FLOWGEN = 6 for " 
+		    << "subsurface kinematic wave routing" << std::endl;
+	  ReportFatalError( "Requested landsliding and incompatible hydrology.\n" );
+	}
+      const double rockBulkDensity = infile.ReadDouble( "ROCKDENSITYINIT", false );
+      if( rockBulkDensity > 0.0 )
+	wetBulkDensity = 
+	  soilBulkDensity + RHO * ( 1.0 - soilBulkDensity / rockBulkDensity );
+      double tmp_double = infile.ReadDouble( "WOODDENSITY", false );
+      if( tmp_double > 0.0 )
+	woodDensity = tmp_double;
+      tmp_double = infile.ReadDouble( "FRICSLOPE", false );
+      if( tmp_double > 0.0 )
+	fricSlope = tmp_double;
+
+      // set runout rules:
+      optProcessLaw = infile.ReadItem( optProcessLaw, "DF_RUNOUT_RULE" );
+      switch(optProcessLaw)
+	{
+#define X(a,b) case a: \
+	  runout = new b(infile); \
+	  break;
+	  DF_RUNOUT_TABLE2
+#undef X
+	default:
+	  {
+	    std::cerr << "\nError: You requested the debris flow runout rule '"
+		      << optProcessLaw << "' which does not exist."  << std::endl
+		      << "Available options:" << std::endl;
+	    for(int i=0; i!=NUMBER_OF_DF_RUNOUTS; ++i ){
+	      std::cerr << " " << i << ": " << DebrisFlowRunOut[i] << std::endl;
+	    }
+	    ReportFatalError( "Requested debris flow runout rule not available. "
+			      "Switch options.\n" );
+	  }
+	}
+      // set scour rules:
+      optProcessLaw = infile.ReadItem( optProcessLaw, "DF_SCOUR_RULE" );
+      switch(optProcessLaw)
+	{
+#define X(a,b) case a: \
+	  scour = new b(infile); \
+	  break;
+	  DF_SCOUR_TABLE2
+#undef X
+	default:
+	  {
+	    std::cerr << "\nError: You requested the debris flow scour rule '"
+		      << optProcessLaw << "' which does not exist."  << std::endl
+		      << "Available options:" << std::endl;
+	    for(int i=0; i!=NUMBER_OF_DF_SCOURS; ++i ){
+	      std::cerr << " " << i << ": " << DebrisFlowScour[i] << std::endl;
+	    }
+	    ReportFatalError( "Requested debris flow scour rule not available. "
+			      "Switch options.\n" );
+	  }
+	}
+      // set deposition rules:
+      optProcessLaw = infile.ReadItem( optProcessLaw, "DF_DEPOSITION_RULE" );
+      switch(optProcessLaw)
+	{
+#define X(a,b) case a: \
+	  deposit = new b(infile); \
+	  break;
+	  DF_DEPOSITION_TABLE2
+#undef X
+	default:
+	  {
+	    std::cerr << "\nError: You requested the debris flow deposition rule '"
+		      << optProcessLaw << "' which does not exist."  << std::endl
+		      << "Available options:" << std::endl;
+	    for(int i=0; i!=NUMBER_OF_DF_DEPOSITIONS; ++i ){
+	      std::cerr << " " << i << ": " << DebrisFlowDeposit[i] << std::endl;
+	    }
+	    ReportFatalError( "Requested debris flow deposition rule not available. "
+			      "Switch options.\n" );
+	  }
+	}
+      // set DF_fsPtr, DF_Hyd_fsPtr by making new std::ofstreams
+      // If landslides, create files for writing them
+      DF_fsPtr = new std::ofstream();
+      {
+	char fname[87];
+#define THEEXT ".dflow"
+	infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
+	strcat( fname, THEEXT );
+#undef THEEXT
+	DF_fsPtr->open( fname );
+	if( !DF_fsPtr->good() )
+	  std::cerr << "Warning: unable to create debris flow data file '"
+		    << fname << "'\n";
+      }
+      DF_Hyd_fsPtr = new std::ofstream();
+      {
+	char fname[87];
+#define THEEXT ".dfhyd"
+	infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
+	strcat( fname, THEEXT );
+#undef THEEXT
+	DF_Hyd_fsPtr->open( fname );
+	if( !DF_Hyd_fsPtr->good() )
+	  std::cerr << "Warning: unable to create debris flow hydrograph file '"
+		    << fname << "'\n";
+      }
+    }
 }
 
 tErosion::~tErosion(){
@@ -2735,6 +3462,11 @@ tErosion::~tErosion(){
   delete sedTrans;
   delete physWeath;
   delete chemWeath;
+  if( runout > 0 ) delete runout;
+  if( scour > 0 ) delete scour;
+  if( deposit > 0 ) delete deposit;
+  if( DF_fsPtr > 0 ) delete DF_fsPtr;
+  if( DF_Hyd_fsPtr > 0 ) delete DF_Hyd_fsPtr;
 }
 
 /*****************************************************************************\
@@ -4828,8 +5560,7 @@ void tErosion::DiffuseNonlinearDepthDep( double rt, double time )
 		  // if flux out more than soil depth, 
 		  // multiply fluxes out by the factor:
 		  const double reducFactor = 
-		    ( -nodeSoilThickness * cn->getVArea() - cn->getQsin() )
-		    / cn->getQs();
+		    -nodeSoilThickness * cn->getVArea() / cn->getQs();
 		  // go through node's edges:
 		  tSpkIter sI( cn );
 		  for( ce = sI.FirstP(); !sI.AtEnd(); ce = sI.NextP() )
@@ -5033,6 +5764,411 @@ void tErosion::WeatherBedrock( double dtg )
     }
 }
 
+/***************************************************************************\
+ **  tErosion::LandslideClusters(): landslide initiation
+ **
+ **  IMPORTANT: This function requires the tStreamNet::kFlowSaturated1
+ **  option to work correctly, although calling of this function is 
+ **  governed by a separate input option.
+ **
+ **  Adapted for incorporation into CU CHILD from version in OSU CHILD. 
+ **  Old version (OSU) failed only individual nodes. This version finds 
+ **  clusters of landslide nodes. This is a BIG DEAL!
+ **
+ **  Uses a priority_queue of nodes sorted according to net downhill force.
+ **  Pops the top node of the queue (greatest net downhill force) and builds
+ **  a cluster around that node; nodes are added if (a) original node has
+ **  factor > 1 and the new node would decrease the factor or (b) original
+ **  node has factor < 1 and the new node would not make the factor > 1.
+ **  Continues to make another cluster if the current one fails (i.e., 
+ **  stops looking for subsequent failure clusters if previously found
+ **  clusters don't fail). Each landslide cluster results in the 
+ **  construction of a tDebrisFlow object, which is added to a list. 
+ **  Runout, etc., including removing soil and changing elevations in
+ **  the failure zone is done separately by the tDebrisFlow object itself.
+ **
+ **  Incorporates lateral cohesive strength due to roots, as in Schmidt 
+ **  et al., 2001. Neglects body (acive and passive) constraining stresses.
+ **
+ **  This is a big (i.e., many lines) function that does a lot of 
+ **  calculations, but actual changes to "permanent" data are made 
+ **  elsewhere. It would have been nice to use some smaller functions,
+ **  but these don't seem feasible. In particular, methods used here
+ **  may not be generalizable in the sense that multiple calculations
+ **  are required for each candidate node.
+ **
+ **  Takes: 
+ **    - Rain rate, run time, pointer to tStreamNet (but mainly relies on 
+ **      hydrologic calc's in tStreamNet::FlowSaturated1
+ **  Calls: 
+ **    - tDebrisFlow constructor for each debris flow
+ **    - tDebrisFlow::RunScourDeposit: main debris flow function for
+ **      each debris flow
+ **    - Overloaded output operator for each debris flow
+ **  Changes: 
+ **    - finds failure clusters, but those members of tDebrisFlow are
+ **      actually set within that class 
+ **    - tNode::public1
+ **
+ **  - SL, 9/2010
+ **
+\***************************************************************************/
+void tErosion::LandslideClusters( double rainrate, tStreamNet* strmNet, 
+				  double time )
+{
+  tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
+  tMesh< tLNode >::edgeListIter_t edgIter( meshPtr->getEdgeList() );
+  int numActiveEdges = meshPtr->getEdgeList()->getActiveSize();
+  int numActiveNodes = meshPtr->getNodeList()->getActiveSize();
+  int numEdges = meshPtr->getEdgeList()->getSize();
+  int numNodes = meshPtr->getNodeList()->getSize();
+  vector<double> edgeLatCohesion( numActiveEdges/2 ); // lateral cohesion
+  vector<double> edgeSlope( numActiveEdges/2 );
+  vector<double> nodeSoilThickness( numActiveNodes );
+  vector<double> nodeWoodDepth( numActiveNodes );
+  vector<double> nodeWaterDepth( numActiveNodes );
+  vector<double> nodeRootCohesionLat( numActiveNodes );
+  vector<double> nodeRootCohesionVert( numActiveNodes );
+  vector<double> nodeBasalStrength( numActiveNodes );
+  vector<double> nodeDrivingForce( numActiveNodes );
+  vector<double> nodeLatCohesion( numActiveNodes );
+  vector<double> nodeNetForce( numActiveNodes );
+//   vector<double> nodeContourWidth( numActiveNodes );
+  vector<int> tempEdgeIndex( numEdges ); // indexes to above arrays
+  vector<int> tempNodeIndex( numNodes );  
+
+  tPtrList<tDebrisFlow> dfPList; // list of failures
+
+  // empty event tallies:
+  debris_flow_sed_bucket = 0.0;
+  debris_flow_wood_bucket = 0.0;
+  
+  { // find soil depth and root cohesion at each node:
+    tLNode* cn=0;
+    int i;
+    for( cn=nodIter.FirstP(), i=0; 
+	 nodIter.IsActive(); 
+	 cn=nodIter.NextP(), ++i )
+      {
+	nodeSoilThickness[i] = cn->getRegolithDepth();
+	if( cn->getVegCover().getTrees() > 0 )
+	  {
+	    nodeWoodDepth[i] = 
+	      cn->getVegCover().getTrees()->getBioMassStand() 
+	      + cn->getVegCover().getTrees()->getBioMassDown();
+	    nodeRootCohesionLat[i] = 
+	      cn->getVegCover().getTrees()->getRootStrengthLat();
+	    nodeRootCohesionVert[i] = 
+	      cn->getVegCover().getTrees()->getRootStrengthVert()
+	      * exp( -nodeSoilThickness[i] * cos( atan( cn->calcSlope() ) )
+		     / diffusionH );
+	  }
+// 	// contour width for node is sum of Voronoi edge lengths for
+// 	// downslope neighbors:
+// 	tEdge* edg = cn->getEdg();
+// 	tEdge* ce = edg;
+// 	do
+// 	  {
+// 	    if( ce->getSlope() > 0.0 )
+// 	      nodeContourWidth[i] += ce->getVEdgLen();
+// 	    ce = ce->getCCWEdg();
+// 	  } while( ce != edg );
+	tempNodeIndex[cn->getID()] = i;
+	cn->public1 = 0; // initialize flags for cluster membership
+      }
+  }
+  { // calculate lateral cohesion at each edge:
+    tEdge* ce=0;
+    int k;
+    for( ce=edgIter.FirstP(), k=0; 
+	 edgIter.IsActive(); 
+	 ce=edgIter.NextP(), ++k )
+      {
+	edgeSlope[k] = ce->CalcSlope();
+	const double costheta = cos( atan( edgeSlope[k] ) );
+	const int iOrg = tempNodeIndex[ ce->getOriginPtr()->getID() ];
+	if( ce->getDestinationPtr()->isNonBoundary() )
+	  {
+	    const int iDest = tempNodeIndex[ ce->getDestinationPtr()->getID() ];
+	    edgeSlope[k] -= 
+	      ( nodeSoilThickness[iOrg] - nodeSoilThickness[iDest] ) 
+	      / ce->getLength();
+	    const double edgeDepth = 
+	      ( nodeSoilThickness[iOrg] + nodeSoilThickness[iDest] ) / 2.0;
+	    const double edgeRoots =
+	      ( nodeRootCohesionLat[iOrg] + nodeRootCohesionLat[iDest] ) / 2.0;
+	    edgeLatCohesion[k] = 
+	      edgeRoots * diffusionH * ce->getVEdgLen() / costheta
+	      * ( 1.0 - exp( -edgeDepth / diffusionH * costheta ) );
+	  }
+	else
+	  {
+	    edgeSlope[k] -= nodeSoilThickness[iOrg] / ce->getLength();
+	    // at boundaries use only edge origin:
+	    // (NOTE: above scheme is the same as assuming there is an identical node 
+	    // on the other side of the boundary; alternative to above is to have
+	    // zero cohesion at boundaries, but don't want to "favor" having 
+	    // failure sides at boundaries)
+	    edgeLatCohesion[k] = 
+	      nodeRootCohesionLat[iOrg] * diffusionH * ce->getVEdgLen() 
+	      * ( 1.0 - exp( -nodeSoilThickness[iOrg] / diffusionH * costheta ) );
+	  }
+	// give same index to edge and its complement:
+	tempEdgeIndex[ce->getID()] = k;
+	ce=edgIter.NextP();
+	tempEdgeIndex[ce->getID()] = k;  
+      }
+  }
+  { // calculate basal strength, driving force, and net downhill force for each node:
+    const double Ksat_soil = strmNet->getInfilt();
+    const double porosity = ( wetBulkDensity - soilBulkDensity ) / RHO;
+//     tSpkIter sI;
+    tLNode* cn=0;
+    int i;
+    for( cn=nodIter.FirstP(), i=0; 
+	 nodIter.IsActive(); 
+	 cn=nodIter.NextP(), ++i )
+      {
+	const double width = cn->getFlowEdg()->getVEdgLen();
+	if( width <= 0.0 )
+	  ReportFatalError( "Zero Voronoi edge length in BasalResistanceNode" );
+// 	// use weighted average of downhill bedrock edge slopes:
+// 	double slopeWtAvg = 0.0;
+// 	double slope = 0.0;
+// 	sI.Reset( cn );
+// 	for( tEdge *ce = sI.FirstP(); !sI.AtEnd(); ce = sI.NextP() )
+// 	  {
+// 	    const int iEdge = ce->getID();
+// 	    slope = edgeSlope[tempEdgeIndex[iEdge]];
+// 	    // remember that edge slopes are positive downhill, which we want:
+// 	    if( iEdge % 2 == 1 ) slope *= -1.0;
+// 	    if( slope > 0.0 )
+// 	      slopeWtAvg += slope * ce->getVEdgLen();
+// 	  }
+// 	if( slopeWtAvg > 0.0 )
+// 	  {
+// 	    slopeWtAvg /= nodeContourWidth[i];
+// 	    slope = slopeWtAvg;
+// 	  }
+// 	else
+// 	  { // weren't any downhill slopes; use flowedge:
+// 	    const int iEdge = cn->getFlowEdg()->getID();
+// 	    slope = edgeSlope[tempEdgeIndex[iEdge]];
+// 	    if( iEdge % 2 == 1 ) slope *= -1.0;
+// 	  }
+// 	const double slope = cn->calcSlope();
+	// use edge bedrock slope:
+	const int iEdge = cn->getFlowEdg()->getID();
+	double slope = edgeSlope[tempEdgeIndex[iEdge]];
+	if( iEdge % 2 == 1 ) slope *= -1.0;
+	const double slopeangle = atan( slope );
+	const double costheta = cos( slopeangle );
+	const double sintheta = sin( slopeangle );
+	double basalCohesion = 0.0;
+	if( cn->getVegCover().getTrees() > 0 )
+	  basalCohesion = 
+	    cn->getVArea() * nodeRootCohesionVert[i] / costheta;
+// 	    * cn->getVegCover().getTrees()->getRootStrengthVert() 
+// 	    * exp( -nodeSoilThickness[i] / diffusionH * costheta )
+// 	    / costheta;
+	//HYDROLOGY: use subsurface kinematic wave routing in tStreamNet
+	// in case sintheta is zero or negative, max depth is soil depth:
+	double saturatedDepth = cn->getHydrDepth();
+	if( saturatedDepth == 0.0 )
+	  {
+	    saturatedDepth = nodeSoilThickness[i];
+	    // otherwise solve Darcy's Law for saturated depth;
+	    // use subsurface Q set in tStreamNet
+	    if( sintheta > 0.0 )
+	      saturatedDepth = 
+		cn->getSubSurfaceDischarge() / Ksat_soil / width / sintheta;
+	  }
+	nodeWaterDepth[i] = saturatedDepth * porosity; // water fraction
+	const double basalFriction = 
+	  ( wetBulkDensity * nodeSoilThickness[i] // soil burden
+	    + woodDensity * nodeWoodDepth[i]      // wood burden
+	    - RHO * saturatedDepth )              // pore pressure
+	  * GRAV * cn->getVArea() * costheta * fricSlope;
+	nodeBasalStrength[i] = basalCohesion + basalFriction;
+	// if slope and, therefore, sintheta are negative, will just 
+	// make negative driving force and net force--no problem,
+	// since we're using net force rather than factor of safety:
+	nodeDrivingForce[i] = 
+	  ( wetBulkDensity * nodeSoilThickness[i]  // soil burden
+	    + woodDensity * nodeWoodDepth[i] )     // wood burden
+	  * cn->getVArea() * GRAV * sintheta;
+	tSpkIter sI(cn);
+	// add up lateral cohesion terms from edges:
+	for( tEdge* ce=sI.FirstP(); !sI.AtEnd(); ce=sI.NextP() )
+// 	  if( ce->FlowAllowed() )
+	  nodeLatCohesion[i] += edgeLatCohesion[ tempEdgeIndex[ce->getID()] ];
+	// find net downhill force for each node.
+	nodeNetForce[i] = 
+	  nodeDrivingForce[i] - nodeLatCohesion[i] - nodeBasalStrength[i];
+	if(0) //DEBUG
+	  cout << cn->getSubSurfaceDischarge() << " " << cn->getDrArea() << " " 
+	       << width << " " << slope << "\n ";
+      }
+//     cout << "\n";
+  }
+  typedef vector<NodeNetForceIndex> NodeContainer;
+  // construct a priority_queue type that uses the custom comparator:
+  priority_queue<NodeNetForceIndex, NodeContainer, NodeNetForce_Lesser> nodePQ;
+  // put nodes in a priority_queue with greatest net downhill force at the top.
+  for( tLNode* cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+    {
+      NodeNetForceIndex curNSFI;
+      curNSFI.node = cn;
+      curNSFI.netForce = nodeNetForce[tempNodeIndex[cn->getID()]];
+      curNSFI.index = tempNodeIndex[cn->getID()];
+      nodePQ.push( curNSFI );
+    }
+  { // pop top node in queue and build cluster...
+    bool anyFailures;
+    int numCluster = 0;
+    tSpkIter sI;
+    tSpkIter neI;
+    do
+      {
+	anyFailures = false;
+	// increment number used to flag nodes in a cluster:
+	++numCluster;
+	tPtrList<tLNode> slideCluster;
+	tPtrList<tLNode> seedList; // list of nodes on edge of cluster
+	NodeNetForceIndex curNSFI;
+	do
+	  {
+	    // start potential cluster with node with greatest net downhill force:
+	    curNSFI = nodePQ.top();
+	    // and remove it from the queue:
+	    nodePQ.pop();
+	  } while( curNSFI.node->public1 > 0 ); // if already part of a cluster, try again
+	seedList.insertAtBack( curNSFI.node );
+	slideCluster.insertAtBack( curNSFI.node );
+	double initNetForce = curNSFI.netForce;
+	double initLatCohesion = nodeLatCohesion[curNSFI.index];
+	double initBasalStrength = nodeBasalStrength[curNSFI.index];
+	double initDrivingForce = nodeDrivingForce[curNSFI.index];
+	double finalNetForce = initNetForce;
+	double finalLatCohesion = initLatCohesion;
+	double finalBasalStrength = initBasalStrength;
+	double finalDrivingForce = initDrivingForce;
+	// set generic flag signifying node in cluster:
+	curNSFI.node->public1 = numCluster;
+	while( !seedList.isEmpty() )
+	  {
+	    // get seed for cluster growth
+	    tLNode* cn = seedList.removeFromFront();
+	    sI.Reset( cn );
+	    // search seed's neighbors
+	    for( tEdge* ce = sI.FirstP(); !sI.AtEnd(); ce = sI.NextP() )
+	      if( ce->FlowAllowed() && ce->getDestinationPtr()->isNonBoundary() )
+		{ // if not on boundary:
+		  tLNode* nn = static_cast<tLNode*>( ce->getDestinationPtrNC() );
+		  // if node is not already in a cluster
+		  // AND it's connected to the cluster by a flow edge:
+		  if( nn->public1 == 0 
+		      && ( cn->flowThrough( ce ) 
+			   || nn->flowThrough( ce->getComplementEdge() ) ) )
+		    {
+		      // increment basal strength and driving force:
+		      finalBasalStrength += 
+			nodeBasalStrength[tempNodeIndex[nn->getID()]];
+		      finalDrivingForce += 
+			nodeDrivingForce[tempNodeIndex[nn->getID()]];
+		      // go through candidate's neighbors for lateral cohesion:
+		      neI.Reset( nn );
+		      for( tEdge* ne=neI.FirstP(); !neI.AtEnd(); ne=neI.NextP() )
+			if( ne->FlowAllowed() 
+			    && ne->getDestinationPtr()->isNonBoundary() )
+			  {
+			    tLNode* nnn = 
+			      static_cast<tLNode*>( ne->getDestinationPtrNC() );
+			    if( nnn->public1 > 0 )
+			      // if neighbor of neighbor already in cluster,
+			      // subtract edge's lateral cohesion:
+			      finalLatCohesion -=
+				edgeLatCohesion[tempEdgeIndex[ne->getID()]];
+			    else
+			      // if neighbor of neighbor is not in cluster,
+			      // add edge's lateral cohesion:
+			      finalLatCohesion +=
+				edgeLatCohesion[tempEdgeIndex[ne->getID()]];
+			  }
+		      // determine new net downhill force with the candidate:
+		      finalNetForce =
+			finalDrivingForce - finalLatCohesion - finalBasalStrength;
+		      // if addiiton of the new node doesn't decrease the 
+		      // net downhill force below zero OR, if the net downhill
+		      // force is already below zero, addition of the new
+		      // node increases the net downhill force:
+		      if( ( initNetForce > 0.0 && finalNetForce > 0.0 )
+			  || ( initNetForce <= 0.0 && 
+			       finalNetForce > initNetForce ) )
+			{
+			  // then add the new node to the cluster:
+			  nn->public1 = numCluster;
+			  seedList.insertAtBack( nn );
+			  slideCluster.insertAtBack( nn );
+			  // update "initial" terms:
+			  initNetForce = finalNetForce;
+			  initLatCohesion = finalLatCohesion;
+			  initBasalStrength = finalBasalStrength;
+			  initDrivingForce = finalDrivingForce;
+			}
+		      else
+			{
+			  // if node not added, reset "final" terms:
+			  finalNetForce = initNetForce;
+			  finalLatCohesion = initLatCohesion;
+			  finalBasalStrength = initBasalStrength;
+			  finalDrivingForce = initDrivingForce;
+			}
+		    }
+		}
+	  }
+	// have cluster (which may be only the node popped off the queue);
+	// check whether it fails:
+	if( initNetForce > 0.0 )
+	  {
+	    // if failure, set logical to continue finding failure clusters:
+	    anyFailures = true;
+	    // initialize new tDebrisFlow object with reference to cluster, 
+	    // copy of factor of safety, references to soil depth, wood depth, 
+	    // water depth, and node index vectors, and pointers to mesh 
+	    // and erosion objects:
+	    tDebrisFlow *dfPtr = 
+	      new tDebrisFlow( slideCluster, initNetForce,
+			       nodeSoilThickness, nodeWoodDepth, 
+			       nodeWaterDepth, tempNodeIndex,
+			       meshPtr, this );
+	    // put copy of new debris flow pointer in list:
+	    dfPList.insertAtBack( dfPtr );
+	  }
+      } while( anyFailures ); // search for new cluster if last cluster failed
+  }
+  if( !dfPList.isEmpty() )
+    {  // run out debris flows:
+      const int numDFlows = dfPList.getSize();
+      // remove debris flows from front of list (start with the
+      // presumably least stable nodes):
+      while( tDebrisFlow *dfPtr = dfPList.removeFromFront() )
+	{
+	  dfPtr->RunScourDeposit();
+	  // output using overloaded "friend" operator:
+	  *DF_fsPtr << time << " " << *dfPtr << endl;
+	  // constructed above with "new"; destroy now with "delete":
+	  delete dfPtr;
+	}
+      // write time, storm, # failures, and failed volumes to file:
+      DF_Hyd_fsPtr->setf( ios::scientific, ios::floatfield );
+      DF_Hyd_fsPtr->precision(4);   
+      *DF_Hyd_fsPtr << time << " " << rainrate << " " << numDFlows << " "
+		    << debris_flow_sed_bucket << " " 
+		    << debris_flow_wood_bucket << endl;
+
+    }
+}
 
 /***********************************************************************\
  ** tErosion::UpdateExposureTime( double dtg)                         **

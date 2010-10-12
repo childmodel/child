@@ -85,9 +85,15 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    }
    filllakes = infile.ReadBool( "LAKEFILL" );
    if( miOptFlowgen == kSaturatedFlow1 || miOptFlowgen==kSaturatedFlow2 )
-      trans = infile.ReadItem( trans, "TRANSMISSIVITY" );
+     {
+       optVariableTransmissivity = infile.ReadBool( "OPTVAR_TRANSMISSIVITY", false );
+       if( !optVariableTransmissivity )
+	 trans = infile.ReadItem( trans, "TRANSMISSIVITY" );
+     }
    if( miOptFlowgen==kSaturatedFlow2 || miOptFlowgen==kConstSoilStore
-       || miOptFlowgen==kHortonian )
+       || miOptFlowgen==kHortonian 
+       || ( miOptFlowgen==kSaturatedFlow1 && optVariableTransmissivity ) 
+       || miOptFlowgen==kSubSurf2DKinematicWave )
    {
       infilt = infile.ReadItem( infilt, "INFILTRATION" );
       optSinVarInfilt = infile.ReadBool( "OPTSINVARINFILT" );
@@ -108,6 +114,11 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
        mdKinWaveRough = knds / SECPERYEAR;
        std::cout << "mdKinWaveRough " << mdKinWaveRough << std::endl;
    }
+   else if( miOptFlowgen == kSubSurf2DKinematicWave )
+     {
+       mdKinWaveExp = 1.0;
+       mdKinWaveRough = 1.0 / infilt;
+     }
    else mdKinWaveExp = mdKinWaveRough = 0.0;
    if( miOptFlowgen == kHydrographPeakMethod )
      {
@@ -115,6 +126,7 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
        mdHydrgrphShapeFac = infile.ReadItem( mdHydrgrphShapeFac, "HYDROSHAPEFAC" );
      }
 
+//    optMultipleFlowDirections = infile.ReadBool( "OPT_MULTIPLE_FLOW_DIR", false );
 
    // Get the initial rainfall rate from the storm object, and read in option
    // for stochastic variation in rainfall
@@ -315,67 +327,67 @@ void tStreamNet::setInletNodePtr( tLNode *Ptr )
 \**************************************************************************/
 void tStreamNet::UpdateNet( double time )
 {
-   if (0) //DEBUG
-     std::cout << "UpdateNet()...";
-   CalcSlopes();          // TODO: should be in tMesh
-   FlowDirs();
+  if (0) //DEBUG
+    std::cout << "UpdateNet()...";
+  CalcSlopes();          // TODO: should be in tMesh
+  FlowDirs();
    
   if(0) //DEBUG
-  {
-         tMesh< tLNode >::nodeListIter_t mli( meshPtr->getNodeList() );  // gets nodes from the list
-		 tLNode * cn;
-		 for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
-		 {
-		    if( cn->getID()==8121 ) 
-			{
-		       tEdge * debugedg = cn->getFlowEdg();
-		       tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
-		       std::cout<<"UpdateNet 1: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
-		       std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ() << " mdr "<<cn->Meanders()<<" nbr mdr "<<nbr->Meanders()<<std::endl;
+    {
+      tMesh< tLNode >::nodeListIter_t mli( meshPtr->getNodeList() );  // gets nodes from the list
+      tLNode * cn;
+      for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+	{
+	  if( cn->getID()==8121 ) 
+	    {
+	      tEdge * debugedg = cn->getFlowEdg();
+	      tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+	      std::cout<<"UpdateNet 1: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+	      std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ() << " mdr "<<cn->Meanders()<<" nbr mdr "<<nbr->Meanders()<<std::endl;
             }
-		}
-   }
+	}
+    }
 
-   MakeFlow( time );
+  MakeFlow( time );
    
   if(0) //DEBUG
-  {
-         tMesh< tLNode >::nodeListIter_t mli( meshPtr->getNodeList() );  // gets nodes from the list
-		 tLNode * cn;
-		 for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
-		 {
-		    if( cn->getID()==8121 ) 
-			{
-		       tEdge * debugedg = cn->getFlowEdg();
-		       tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
-		       std::cout<<"UpdateNet 2: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
-		       std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ() << " mdr "<<cn->Meanders()<<" nbr mdr "<<nbr->Meanders()<<std::endl;
+    {
+      tMesh< tLNode >::nodeListIter_t mli( meshPtr->getNodeList() );  // gets nodes from the list
+      tLNode * cn;
+      for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+	{
+	  if( cn->getID()==8121 ) 
+	    {
+	      tEdge * debugedg = cn->getFlowEdg();
+	      tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+	      std::cout<<"UpdateNet 2: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+	      std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ() << " mdr "<<cn->Meanders()<<" nbr mdr "<<nbr->Meanders()<<std::endl;
             }
-		}
+	}
 
-   }
+    }
 
-   CheckNetConsistency();
+  CheckNetConsistency();
    
   if(0) //DEBUG
-  {
-         tMesh< tLNode >::nodeListIter_t mli( meshPtr->getNodeList() );  // gets nodes from the list
-		 tLNode * cn;
-		 for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
-		 {
-		    if( cn->getID()==8121 ) 
-			{
-		       tEdge * debugedg = cn->getFlowEdg();
-		       tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
-		       std::cout<<"UpdateNet 3: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
-		       std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ() << " mdr "<<cn->Meanders()<<" nbr mdr "<<nbr->Meanders()<<std::endl;
+    {
+      tMesh< tLNode >::nodeListIter_t mli( meshPtr->getNodeList() );  // gets nodes from the list
+      tLNode * cn;
+      for( cn=mli.FirstP(); mli.IsActive(); cn=mli.NextP() )
+	{
+	  if( cn->getID()==8121 ) 
+	    {
+	      tEdge * debugedg = cn->getFlowEdg();
+	      tLNode * nbr = static_cast<tLNode *>(debugedg->getDestinationPtrNC());
+	      std::cout<<"UpdateNet 3: node "<<cn->getID()<<" edge "<<debugedg->getID()<<" downstream nbr "<<nbr->getID()<<std::endl;
+	      std::cout<<"z "<<cn->getZ()<<" dsn z "<<nbr->getZ() << " mdr "<<cn->Meanders()<<" nbr mdr "<<nbr->Meanders()<<std::endl;
             }
-		}
+	}
 
-   }
+    }
 
-   if (0) //DEBUG
-     std::cout << "UpdateNet() finished" << std::endl;
+  if (0) //DEBUG
+    std::cout << "UpdateNet() finished" << std::endl;
 }
 
 void tStreamNet::UpdateNet( double time, tStorm &storm )
@@ -1446,6 +1458,51 @@ void tStreamNet::DrainAreaVoronoi()
      std::cout << "DrainAreaVoronoi() finished" << std::endl;
 }
 
+/*****************************************************************************\
+**
+**  tStreamNet::DrainAreaVoronoiMFD
+**
+**  Computes drainage area for each node by summing the Voronoi areas of all
+**  nodes that drain to it, using the following algorithm:
+**
+**    Reset drainage area for all active nodes to zero
+**    FOR each active node
+**      Cascade downstream, partitioning the area at each step downstream
+**         among the downslope neighbors, until an outlet or sink is reached
+**    IF there is an inlet, add its associated drainage area to all nodes
+**         downstream
+**
+**  Note that each node's drainage area includes its own Voronoi area.
+**
+**    Calls: RouteFlowAreaMultipleFlowDirections, tLNode::setDrArea
+**    Modifies:  node drainage area
+**
+\*****************************************************************************/
+// void tStreamNet::DrainAreaVoronoiMFD()
+// {
+//    if (0) //DEBUG
+//      std::cout << "DrainAreaVoronoiMFD()..." << std::endl;
+
+//    tLNode * curnode;
+//    tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
+
+//    // Reset drainage areas to zero
+//    for( curnode = nodIter.FirstP(); nodIter.IsActive();
+//         curnode = nodIter.NextP() )
+//        curnode->setDrArea( 0. );
+
+//    // send voronoi area for each node to the node at the other end of the
+//    // flowedge and downstream
+//    for( curnode = nodIter.FirstP(); nodIter.IsActive();
+//         curnode = nodIter.NextP() )
+//      RouteFlowAreaMultipleDirections( curnode, curnode->getVArea() );
+
+//    if( inlet.innode != 0 )
+//       RouteFlowAreaMultipleDirections( inlet.innode, inlet.inDrArea );
+
+//    if (0) //DEBUG
+//      std::cout << "DrainAreaVoronoiMFD() finished" << std::endl;
+// }
 
 /*****************************************************************************\
 **
@@ -1568,6 +1625,61 @@ void tStreamNet::RouteFlowArea( tLNode *curnode, double addedArea )
      std::cout << "RouteFlowArea() finished" << std::endl;
 }
 
+/*****************************************************************************\
+**
+**  tStreamNet::RouteFlowAreaMultipleDirections
+**
+**  Starting with the current node, this routine increments
+**  the drainage area of the node and each node downstream by some portion
+**  of _addedArea_.
+**  
+**  Instead of usine tLNode::getDownstrmNbr() as an iterator for adding area 
+**  to successive downstream _single_ neighbors, use recursion of this function
+**  to send area downstream to _multiple_ neighbors. If there isn't at least one
+**  downslope neighbor, then lake filling has produced a flowedge, so send area
+**  to the single flowedge destination. Not sure this is the most efficient way to 
+**  do this in terms of CPU time, but it's simple to code!
+**  From Quinn et al., 1991.
+**  SL, 2010
+\*****************************************************************************/
+// void tStreamNet::RouteFlowAreaMultipleDirections( tLNode *curnode, double addedArea )
+// {
+//   if( curnode->getBoundaryFlag() == kNonBoundary &&
+//       curnode->getFloodStatus() != tLNode::kSink )
+//     {
+//       curnode->AddDrArea( addedArea );
+//       tSpkIter sI( curnode );
+//       double totalSlopeLengthProd=0.0;
+//       tPtrList<tLNode> downhillNbrs;
+//       tList<double> downhillSlopeLengthProds;
+//       for( tEdge *ce = sI.FirstP(); !sI.AtEnd(); ce = sI.NextP() )
+// 	if( ce->getSlope() > 0.0 && 
+// 	    ce->getDestinationPtr()->getBoundaryFlag() != kClosedBoundary )
+// 	  { // downhill to non-boundary or open boundary:
+// 	    const double edgeSlopeLengthProd = ce->getSlope() * ce->getVEdgLen();
+// 	    totalSlopeLengthProd += edgeSlopeLengthProd;
+// 	    downhillSlopeLengthProds.insertAtBack( edgeSlopeLengthProd );
+// 	    tLNode *dn = static_cast<tLNode*>( ce->getDestinationPtrNC() );
+// 	    downhillNbrs.insertAtBack( dn );
+// 	  }
+//       if( !downhillNbrs.isEmpty() )
+// 	{
+// 	  tLNode *dn=0;
+// 	  while( ( dn = downhillNbrs.removeFromFront() ) )
+// 	    {
+// 	      double localSlopeLengthProd=0.0;
+// 	      downhillSlopeLengthProds.removeFromFront( localSlopeLengthProd );
+// 	      RouteFlowAreaMultipleDirections( dn, 
+// 					       addedArea * localSlopeLengthProd 
+// 					       / totalSlopeLengthProd );
+// 	    }
+// 	}
+//       else // if no downslope neighbors, then there's still a flowedge,
+// 	// so send all the area to that node:
+// 	RouteFlowAreaMultipleDirections( curnode->getDownstrmNbr(), addedArea );
+//     }
+// }
+
 
 /*****************************************************************************\
 **
@@ -1671,7 +1783,11 @@ void tStreamNet::MakeFlow( double tm )
 		}
    }
 
+//    if( !optMultipleFlowDirections )
    DrainAreaVoronoi();
+//    else
+//      DrainAreaVoronoiMFD();
+
 
    // If a hydrologic parameter varies through time, update it here
    // (currently, only infiltration capacity varies)
@@ -1680,27 +1796,28 @@ void tStreamNet::MakeFlow( double tm )
 
    // Call appropriate function for runoff generation option
    switch( miOptFlowgen )
-   {
-      case kSaturatedFlow1:   // Topmodel-like runoff model with steady-state
-          FlowSaturated1();   //   surface flow and possible return flow.
-          break;
-      case kSaturatedFlow2:   // Topmodel-type runoff model without return
-          FlowSaturated2();   //   flow (infiltrated water does not contribute
-          break;              //   to storm flow)
-      case kConstSoilStore:   // "Bucket" model: spatially uniform soil storage
-          FlowBucket();       //   capacity; any excess contributes to runoff.
-          break;
-      case kHydrographPeakMethod:
-	  FlowPathLength();
-	  RouteFlowHydrographPeak();
-	  break;
-      case k2DKinematicWave:
-	  RouteFlowKinWave( rainrate );
-	  break;
-      case kHortonian:
-          FlowUniform();      // Spatially uniform infiltration-excess runoff
-	  break;
-   }
+     {
+     case kSaturatedFlow1:   // Topmodel-like runoff model with steady-state
+       FlowSaturated1();   //   surface flow and possible return flow.
+       break;
+     case kSaturatedFlow2:   // Topmodel-type runoff model without return
+       FlowSaturated2();   //   flow (infiltrated water does not contribute
+       break;              //   to storm flow)
+     case kConstSoilStore:   // "Bucket" model: spatially uniform soil storage
+       FlowBucket();       //   capacity; any excess contributes to runoff.
+       break;
+     case kHydrographPeakMethod:
+       FlowPathLength();
+       RouteFlowHydrographPeak();
+       break;
+     case k2DKinematicWave:
+     case kSubSurf2DKinematicWave:
+       RouteFlowKinWave( rainrate );
+       break;
+     case kHortonian:
+       FlowUniform();      // Spatially uniform infiltration-excess runoff
+       break;
+     }
 
    if (0) //DEBUG
      std::cout << "MakeFlow() finished" << std::endl;
@@ -1778,7 +1895,12 @@ void tStreamNet::FlowSaturated1()
    {
       fedg = curnode->getFlowEdg();
       total_discharge = curnode->getDrArea() * rainrate;
-      subsurf_discharge = fedg->getSlope() * fedg->getVEdgLen() * trans;
+      if( !optVariableTransmissivity )
+	subsurf_discharge = fedg->getSlope() * fedg->getVEdgLen() * trans;
+      else
+	subsurf_discharge = 
+	  fedg->getSlope() * fedg->getVEdgLen() 
+	  * curnode->getRegolithDepth() * infilt;
       surface_discharge = total_discharge - subsurf_discharge;
       if( surface_discharge < 0. ) {
 	surface_discharge = 0.;
@@ -2810,6 +2932,12 @@ void tStreamNet::FindChanGeom()
 **  a conversion factor included to convert from seconds to years.
 **
 **  Created by GT, Jan 2000
+**  Modified by SL, Oct 2010:
+**    Added option to use kinematic flow routing for subsurface flow,
+**    in which case, exponent on slope is 1 (i.e., Darcy's Law), exponent
+**    m = 0, so 1/(m+1) = 1 = mdKinWaveExp, and Kr is the inverse of the
+**    saturated hydraulic conductivity, assumed equal to the infiltration 
+**    rate.
 **
 \**************************************************************************/
 void tStreamNet::RouteFlowKinWave( double rainrate_ )
@@ -2818,8 +2946,11 @@ void tStreamNet::RouteFlowKinWave( double rainrate_ )
    tEdge * ce;
    tMesh< tLNode >::nodeListIter_t niter( meshPtr->getNodeList() );
    double sum;                         // Sum used in to apportion flow
-   double runoff = rainrate_ - infilt;  // Local runoff rate at node
-
+   double runoff = rainrate_;
+   if( miOptFlowgen == k2DKinematicWave )
+     runoff -= infilt;  // Local runoff rate at node
+   if( miOptFlowgen == kSubSurf2DKinematicWave )
+     mdKinWaveRough = 1.0 / infilt;
    if (0) //DEBUG
      std::cout << "RouteFlowKinWave\n";
 
@@ -2850,7 +2981,12 @@ void tStreamNet::RouteFlowKinWave( double rainrate_ )
          {
             if( cn->getZ() > ce->getDestinationPtr()->getZ() &&
                 ce->FlowAllowed() )
-                sum += ce->getVEdgLen() * sqrt( ce->getSlope() );
+	      {
+		if( miOptFlowgen == k2DKinematicWave )
+		  sum += ce->getVEdgLen() * sqrt( ce->getSlope() );
+		else if( miOptFlowgen == kSubSurf2DKinematicWave )
+		  sum += ce->getVEdgLen() * ce->getSlope();
+	      }
             ce = ce->getCCWEdg();
          }
          while( ce!=cn->getEdg() );
@@ -2859,8 +2995,17 @@ void tStreamNet::RouteFlowKinWave( double rainrate_ )
          //std::cout << "Q: " << cn->getQ() << " sum: " << sum << " DEPTH: " << cn->getHydrDepth() << std::endl;
          assert( cn->getQ()>0.0 );
          if( sum>0.0 )
-             cn->setHydrDepth( pow( cn->getQ() * mdKinWaveRough / sum,
-                                    mdKinWaveExp ) );
+	   {
+	     if( miOptFlowgen == k2DKinematicWave )
+	       cn->setHydrDepth( pow( cn->getQ() * mdKinWaveRough / sum,
+				      mdKinWaveExp ) );
+	     else if( miOptFlowgen == kSubSurf2DKinematicWave )
+	       {
+		 cn->setHydrDepth( cn->getQ() * mdKinWaveRough / sum );
+		 double H = cn->getRegolithDepth();
+		 if( cn->getHydrDepth() > H ) cn->setHydrDepth( H );
+	       }
+	   }
          else
              cn->setHydrDepth( 0.0 );
 
@@ -2872,18 +3017,38 @@ void tStreamNet::RouteFlowKinWave( double rainrate_ )
             {
 	       tLNode * dn = static_cast<tLNode *>(ce->getDestinationPtrNC());
                if( cn->getZ() > dn->getZ() && ce->FlowAllowed() )
-                   dn->AddDischarge( cn->getQ()
-                                     * (sqrt(ce->getSlope())*ce->getVEdgLen())/sum );
+		 {
+		   if( miOptFlowgen == k2DKinematicWave )
+		     dn->AddDischarge( cn->getQ()
+				       * (sqrt(ce->getSlope())*ce->getVEdgLen())/sum );
+		   else if( miOptFlowgen == kSubSurf2DKinematicWave )
+		     dn->AddDischarge( cn->getQ()
+				       * ce->getSlope() * ce->getVEdgLen() / sum );
+		 }
                ce = ce->getCCWEdg();
             }
             while( ce!=cn->getEdg() );
          }
       }
       else
-          cn->setHydrDepth( 0.0 );
-
+	{ // flooded
+	  if( miOptFlowgen == kSubSurf2DKinematicWave )
+	    { // send all flow along flowedge and fill up soil
+	      cn->getDownstrmNbr()->AddDischarge( cn->getQ() );
+	      cn->setHydrDepth( cn->getRegolithDepth() );
+	    }
+	  else
+	    cn->setHydrDepth( 0.0 );
+	}
    } // end of for loop
-
+   // If subsurface flow, reset subsurface discharge to the discharge 
+   // just calculated and the surface discharge to zero everywhere
+   if( miOptFlowgen == kSubSurf2DKinematicWave )
+     for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
+       {
+	 cn->setSubSurfaceDischarge( cn->getQ() );
+	 cn->setDischarge( 0.0 );
+       }
 
 } // End of tStreamNet::RouteFlowKinWave
 
@@ -2927,6 +3092,67 @@ void tStreamNet::DensifyMeshDrArea( double time )
 
 }
 
+// Find streamlines from points specified in input file.
+// Makes list of nodes and sets their flowedges to zero
+// in preparation for conversion to open boundaries.
+// STL, 9/10
+void tStreamNet::FindStreamLines( const tInputFile &infile, 
+				  tPtrList< tLNode > &streamList,
+				  bool lvFEs /*= false*/)
+{
+  // must make stream net and do flow routing first.
+  // read number of streamlines:
+  int numStrmLines = infile.ReadInt( "NUM_STREAMLINES", 0 );
+  tMesh< tLNode >::nodeListIter_t nI( meshPtr->getNodeList() );
+  for( int i=0; i<numStrmLines; ++i )
+    {
+      std::stringstream ssX;
+      ssX << "STREAMLINE_HEAD_X_" << i+1;
+      double x = infile.ReadDouble( ssX.str().c_str() );
+      x -= meshPtr->xOffset;
+      std::stringstream ssY;
+      ssY << "STREAMLINE_HEAD_Y_" << i+1;
+      double y = infile.ReadDouble( ssY.str().c_str() );
+      y -= meshPtr->yOffset;
+      tTriangle *ot = meshPtr->LocateTriangle( x, y );
+      double smallestSquaredDistance=1000000.0;
+      tLNode *on=0;
+      for( int t=0; t<3; ++t )
+	{
+	  if( ot->pPtr(t)->getBoundaryFlag() == kNonBoundary )
+	    {
+	      const double squaredDist = 
+		( x - ot->pPtr(t)->getX() ) * ( x - ot->pPtr(t)->getX() ) +
+		( y - ot->pPtr(t)->getY() ) * ( y - ot->pPtr(t)->getY() );
+	      if( squaredDist < smallestSquaredDistance )
+		{
+		  smallestSquaredDistance = squaredDist;
+		  on = static_cast<tLNode*>( ot->pPtr(t) );
+		}
+	    }
+	}
+      if( on > 0 )
+	{
+	  // put streamline nodes in list:
+	  tLNode *dn = 0;
+	  do
+	    {
+	      dn = on->getDownstrmNbr();
+	      streamList.insertAtBack( on );
+	      if( !lvFEs ) // if going to convert to boundary
+		{ // set flowedge to zero :
+		  on->setFlowEdgToZero();
+		  on->setFloodStatus( tLNode::kNotFlooded );
+		  if( on->Meanders() ) on->setMeanderStatus( false );
+		}
+	      on = dn;
+	    } while( dn > 0 && dn->getBoundaryFlag() == kNonBoundary );
+	}
+      else
+	// shouldn't happen
+	ReportFatalError( "Couldn't find active node at upstream outlet point" );
+    }
+}
 
 
 /**************************************************************************\

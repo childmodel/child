@@ -34,6 +34,7 @@ void tt_sort_triangulate(int npoints, point *p,
 			 int *pnpoints_unique,
 			 int *pnedges, edge** edges_ret,
 			 int *pnelem, elem** pelems_ret);
+void tt_sort_only( int npoints, point *p, int &npoints_unique );
 void tt_build_elem_table(int npoints, const point *p,
 			 int nedges, const edge* edges,
 			 int *pnelem, elem** pelems_ret);

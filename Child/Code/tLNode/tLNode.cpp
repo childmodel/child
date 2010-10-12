@@ -460,6 +460,11 @@ public1(-1)
       if( help<0.0 )
 	ReportFatalError( "Erodibility factor KR must be positive." );
       layhelp.setErody(help);
+      bool OptNewLayOutput = infile.ReadBool( "OPT_NEW_LAYERSOUTPUT", false );
+      if( OptNewLayOutput ){
+	help=infile.ReadDouble( "SOILBULKDENSITY", false );
+	layhelp.setBulkDensity( help );
+      }
       help = infile.ReadItem( help, "REGINIT");
       if(help > maxregdep){
 	// too much regolith, create two layers the bottom layer is made here

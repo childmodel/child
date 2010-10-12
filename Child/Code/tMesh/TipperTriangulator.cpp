@@ -710,8 +710,8 @@ void moved_duplicated_points(int npoints, point *p, int &npoints_unique){
     int j=0;
     for(int i=1;i<npoints;++i){
       if (p[j].x() == p[i].x() && p[j].y() == p[i].y()){
-	std::cout << "Warning: point " << p[j].id() << " and point " << p[i].id()
-	     << " are duplicated." << std::endl;
+// 	std::cout << "Warning: point " << p[j].id() << " and point " << p[i].id()
+// 	     << " are duplicated." << std::endl;
 	++npoints_dup;
       } else {
 	j = i;
@@ -1120,4 +1120,14 @@ void tt_sort_triangulate(int npoints, point *p,
 			 int *pnelem, elem** pelems_ret){
   tt_sort_triangulate(npoints, p, pnpoints_unique, pnedges, edges_ret);
   tt_build_elem_table(*pnpoints_unique, p, *pnedges, *edges_ret, pnelem, pelems_ret);
+}
+
+void tt_sort_only( int npoints, point *p, int &npoints_unique )
+{
+  //sort the points - note that the point class defines the
+  // < operator so that the sort is on the x co-ordinate
+  //array p will be replaced with the array sorted in x
+  heapsort(npoints,p);
+  // report duplicated points and moved them to the end.
+  moved_duplicated_points(npoints, p, npoints_unique);
 }
