@@ -179,7 +179,7 @@ void tStreamMeander::FindMeander()
   tLNode * cn;
   tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
 
-  if (0) //DEBUG
+  if (1) //DEBUG
     std::cout << "FindMeander...()";
 
   for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
@@ -395,7 +395,7 @@ const tArray< double > tStreamMeander::FindInterpCoords( tLNode* crn, tLNode* nP
 int tStreamMeander::InterpChannel( double time )
 {
    const double timetrack = time;
-   if (0) {//DEBUG
+   if (1) {//DEBUG
       if( timetrack >= kBugTime )
           std::cout << "InterpChannel()\n";
    }
@@ -547,7 +547,7 @@ int tStreamMeander::InterpChannel( double time )
 
 void tStreamMeander::MakeReaches( double ctime)
 {
-  if (0) //DEBUG
+  if (1) //DEBUG
     std::cout<<"tStreamMeander::MakeReaches...";
   netPtr->UpdateNet( ctime ); //first update the net
   do
@@ -611,7 +611,7 @@ void tStreamMeander::FindReaches()
    tPtrList< tLNode > rnodList, *plPtr, listtodelete;
    rlListNode_t *tempnode;
 
-   if (0) //DEBUG
+   if (1) //DEBUG
        std::cout<<"tStreamMeander::FindReaches()"<<std::endl;
 
    if( !(reachList.isEmpty()) ) reachList.Flush();
@@ -831,7 +831,7 @@ void tStreamMeander::FindReaches()
 void tStreamMeander::CalcMigration( double &time, double const &duration,
                                     double &cummvmt )
 {
-   if (0) //DEBUG
+   if (1) //DEBUG
        std::cout<<"tStreamMeander::CalcMigration()...";
 
    //loop through reaches:
@@ -852,13 +852,13 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
          {
             curnode->setLatDisplace( 0.0, 0.0 );
             curnode->setNew2DCoords( curnode->getX(), curnode->getY() );
-            if (0){ //DEBUG
+            if (1){ //DEBUG
                const tArray< double > newxy = curnode->getNew2DCoords();
                std::cout << "init. new coords to " << newxy[0] << " " << newxy[1] << std::endl;
             }
          }
       }
-      if (0) //DEBUG
+      if (1) //DEBUG
           std::cout << "reach " << i << " length " << nrnodes[i] << std::endl;
 
       const int stations  // number of actual landscape nodes on reach
@@ -911,7 +911,7 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
             slopea[j] = curnode->getHydrSlope();
             widtha[j] = curnode->getHydrWidth();
             deptha[j] = curnode->getHydrDepth();
-            if (0) //DEBUG
+            if (1) //DEBUG
                 std::cout << "width, depth " << widtha[j] << " " << deptha[j] << std::endl;
             diama[j] = ( optdiamvar ) ? curnode->getDiam() : meddiam;
             lambdaa[j] = curnode->getBankRough();
@@ -950,6 +950,9 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
          for( curnode = rnIter.FirstP(), j=0; !(rnIter.AtEnd());
               curnode = rnIter.NextP(), j++ )
          {
+            if(1)
+                std::cout << "add lat displace at " << curnode->getPermID() << ": "
+                << deltaxa[j] << "," << deltaya[j] << std::endl;
             curnode->addLatDisplace( deltaxa[j], deltaya[j] );
          }
       }
@@ -1041,14 +1044,14 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
          newxy[0] += delta[0];
          newxy[1] += delta[1];
          curnode->setNew2DCoords( newxy[0], newxy[1] );
-         if (0) //DEBUG
+         if (1) //DEBUG
              std::cout << "new coords set to " << newxy[0] << " " << newxy[1] << std::endl;
       }
    }
    time += dtm;
    cummvmt += maxfrac * dtm;
 
-   if (0) //DEBUG
+   if (1) //DEBUG
        std::cout<<"done CalcMigration\n";
 
 }
@@ -1083,7 +1086,7 @@ void tStreamMeander::CalcMigration( double &time, double const &duration,
 \**********************************************************************/
 void tStreamMeander::Migrate( double ctime )
 {
-   if (0) //DEBUG
+   if (1) //DEBUG
        std::cout<<"Migrate time=" << ctime <<std::endl;
    const double duration = netPtr->getStormPtrNC()->getStormDuration()
        + ctime;
@@ -1110,7 +1113,7 @@ void tStreamMeander::Migrate( double ctime )
       }
       else ctime=duration; // If no reaches, end here (GT added 3/12/99)
    }
-   if (0) //DEBUG
+   if (1) //DEBUG
        std::cout<<"end migrate"<<std::endl;
 }
 
@@ -1304,7 +1307,7 @@ void tStreamMeander::AddChanBorder(double time)
    if( change )
    {
       meshPtr->UpdateMesh();
-      if (0){ //DEBUG
+      if (1){ //DEBUG
          if( time >= kBugTime ) std::cout << "added nodes(s), AddChanBorder finished"
                                      << std::endl;
       }
@@ -1456,7 +1459,7 @@ void tStreamMeander::ResetEffNbrCoords( tLNode *nPtr )
 tArray< double >
 tStreamMeander::FindBankErody( tLNode *nPtr ) const
 {
-   if (0) //DEBUG
+   if (1) //DEBUG
        std::cout << "FBE\n";
 
    tArray< double > lrerody(2);

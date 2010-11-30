@@ -156,6 +156,16 @@ int main( int argc, char **argv )
 	   std::cout << elevs[i] << "\t" << new_elevs[i] << std::endl;
 	}
 
+  desired_elevs = elevs;
+  myChildInterface.ExternalErodeAndDepositToElevation( elevs );
+	new_elevs = myChildInterface.GetValueSet( "elevation" );
+  std::cout << "Now they should be back to their previous values\n";
+  std::cout << "ID\tPrevious z\tNew z:\n";
+	for( long i=0; i<nt; i++ )
+	{
+	   std::cout << i << "\t";
+	   std::cout << new_elevs[i] << std::endl;
+	}
 
 	// Note that calling CleanUp() isn't strictly necessary, as the destructor will automatically clean it
 	// up when myChildInterface is deleted ... but it's nice to be able to do this at will (and free up

@@ -139,6 +139,12 @@
 #include <stdio.h> 
 #include <math.h> 
 
+#include <float.h>
+
+// temp
+//#define PC_53 2
+//#define MCW_PC 2
+
 
 
 /* On some machines, the exact arithmetic routines might be defeated by the  */ 

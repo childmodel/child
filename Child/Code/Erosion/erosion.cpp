@@ -2279,15 +2279,15 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
 tPhysicalWeatheringExpLaw::
 tPhysicalWeatheringExpLaw( const tInputFile &infile )
 {
-  soilprodK = infile.ReadItem( soilprodK, "SOILPRODRATE" );
-  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH" );
+  soilprodK = infile.ReadItem( soilprodK, "SOILPRODRATE", false );
+  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH", false );
 }
 
 // Initialize() for CSDMS IRF interface:
 void tPhysicalWeatheringExpLaw::Initialize( const tInputFile &infile )
 {
-  soilprodK = infile.ReadItem( soilprodK, "SOILPRODRATE" );
-  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH" );
+  soilprodK = infile.ReadItem( soilprodK, "SOILPRODRATE", false );
+  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH", false );
 }
 
 
@@ -2325,7 +2325,7 @@ double tPhysicalWeatheringExpLaw::SoilProduction( tLNode * n, int i )
   tLayer *lP=0;
   for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() )
     soilThickness += lP->getDepth();
-  for( ; lP->getID() < i; lP=lI.NextP() );
+  for( ; lP->getID() < i; lP=lI.NextP() ) ;
   // calculate rate of bedrock lowering (hence negative sign):
   const double slope = n->calcSlope();
   const double costheta = cos( atan( slope ) );
@@ -2531,7 +2531,7 @@ void tChemicalWeatheringDissolution::Initialize( const tInputFile &infile,
       tListIter< tLayer > lI( n->getLayersRefNC() ); // layer iterator
       tLayer *lP=0; // current layer pointer
       // find top bedrock layer and bottom soil layer:
-      for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() );
+      for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() ) ;
       lP->setBulkDensity( rockBulkDensity_0 );
       // insert copies at bottom of layer list:
       for( int i=0; i<numThinLayers; ++i )
@@ -2542,7 +2542,7 @@ void tChemicalWeatheringDissolution::Initialize( const tInputFile &infile,
 	int i;
 	for( lP=lI.FirstP(), i=0; 
 	     lP->getSed() == tLayer::kSed; 
-	     lP=lI.NextP(), ++i );
+	     lP=lI.NextP(), ++i ) ;
 	const int numLayers = n->getNumLayer();
 	for( ; i<numLayers-1; ++i, lP=lI.NextP() )
 	  lP->setDepth( rockLayerDepth );
@@ -2566,7 +2566,7 @@ double tChemicalWeatheringDissolution::SoluteFlux( tLNode * n, double dt )
   // find top of bedrock:
   tListIter< tLayer > lI( n->getLayersRefNC() );
   tLayer *lP=0;
-  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() );
+  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() ) ;
   // find bedrock depth and calculate solute flux rate at each layer:
   double bedrockDepth(0.0);
   double flux(0.0);
@@ -2629,7 +2629,7 @@ double tChemicalWeatheringDissolution::SoluteFlux( tLNode * n, int i )
   // find top of bedrock:
   tListIter< tLayer > lI( n->getLayersRefNC() );
   tLayer *lP=0;
-  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() );
+  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() ) ;
   // find bedrock depth at layer:
   double bedrockDepth(0.0);
   for( int j=0; j < i; ++j, lP=lI.NextP() )
@@ -2658,7 +2658,7 @@ double tChemicalWeatheringDissolution::SoluteFlux( tLNode * n )
   // find top of bedrock:
   tListIter< tLayer > lI( n->getLayersRefNC() );
   tLayer *lP=0;
-  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() );
+  for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() ) ;
   // find bedrock depth and calculate solute flux rate at each layer:
   double bedrockDepth(0.0);
   double rate(0.0);
@@ -3227,7 +3227,7 @@ debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
   if( optDepthDependentDiffusion)
     diffusionH = infile.ReadDouble( "DIFFDEPTHSCALE", true );
 
-  int optAdaptMesh = infile.ReadItem( optAdaptMesh, "OPTMESHADAPTDZ" );
+  int optAdaptMesh = infile.ReadItem( optAdaptMesh, "OPTMESHADAPTDZ", false );
   if( optAdaptMesh )
     mdMeshAdaptMaxFlux = infile.ReadItem( mdMeshAdaptMaxFlux,
                                          "MESHADAPT_MAXNODEFLUX" );
@@ -3286,7 +3286,7 @@ debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
 
   // set soil production law:
   optProcessLaw = infile.ReadItem( optProcessLaw,
-				   "PRODUCTION_LAW" );
+				   "PRODUCTION_LAW", false );
 
   switch(optProcessLaw)
     {
@@ -3314,7 +3314,7 @@ debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
 
   // set chemical weathering law:
   optProcessLaw = infile.ReadItem( optProcessLaw,
-				   "CHEM_WEATHERING_LAW" );
+				   "CHEM_WEATHERING_LAW", false );
 
   switch(optProcessLaw)
     {
