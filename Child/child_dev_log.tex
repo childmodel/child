@@ -47,8 +47,11 @@ The algorithm would be something like this:
   \item In matlab, modify child input file to read the modified strat file on startup or restart
 \end{enumerate}
 
-That said, it would be cleaner if CHILD's stratigraphy were managed by a quasi-independent module, as opposed to being set within tMesh.
+That said, it would be cleaner if CHILD's stratigraphy were managed by a quasi-independent module, as opposed to being set within tMesh. It would be nice if CHILD could read a stratigraphy file from scratch, for example. 
 
+Ok, here's what to do. In tMesh, layers appear via ``MakeLayersFromInputData.'' This is only called from one spot within tMesh.cpp, which could be removed and replaced with an ``external'' call to a stratigraphy manager. The stratigraphy manager uses the code from that same function (moved to a new file) to read and construct layer data.
+
+First, though, I need a regression battery to be on the safe side!
 
 
 \end{document}
