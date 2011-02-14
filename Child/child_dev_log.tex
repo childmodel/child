@@ -1,0 +1,54 @@
+
+\documentclass[12pt]{amsart}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+%\geometry{a4paper} % or letter or a5paper or ... etc
+% \geometry{landscape} % rotated page geometry
+
+% See the ``Article customise'' template for come common customisations
+
+\title{CHILD Development Log}
+\author{Greg Tucker}
+%\date{} % delete this line to display the current date
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+\maketitle
+%\tableofcontents
+
+This is a log of development work on CHILD, beginning February 2011.
+
+\section{14 Feb 2011}
+\subsection{Stratigraphy Manager}
+
+We need a more efficient way to input and/or modify stratigraphy information in CHILD. To this end, I am designing a new utility class called ChildStratigraphyManager (or something like that). Because stratigraphy management is something shared by a number of models (like SedFlux), I would like to make the high-level design fairly generic. So before I write any code, here are some thoughts on capabilities and design.
+
+Capabilities of a Stratigraphy Manager should include:
+\begin{enumerate}
+  \item Read stratigraphy data from file (for a particular model/format)
+  \item Write stratigraphy data to file
+  \item Create a new stratigraphy with a given set of properties
+  \item Get or set any property $p$ at any given element $i$
+  \item Get or create a list of properties associated with a stratigraphy
+  \item Get or set properties
+\end{enumerate}
+
+For the ``strain softening'' project with Phaedra and Peter Koons, I specifically want to be able to modify the rock erodibility parameter to a set of arbitrary values at all ``rock'' layers at all nodes, tied to the node.
+
+I'm not sure I really need to re-engineer CHILD to make this happen. If I gave CHILD the option at startup of reading an existing stratigraphy file, regardless of whether it is a restart run or not, and with a user-specified name, then I could modify any given strat file in matlab.
+The algorithm would be something like this:
+\begin{enumerate}
+  \item Run CHILD with a default stratigraphy, which is output
+  \item Run FLAC and compute cohesion
+  \item In matlab coupler script, read cohesion and convert it to erodibility
+  \item In matlab, call function to read stratigraphy file
+  \item In matlab, call function to modify stratigraphy file according to erodibility
+  \item In matlab, call function to write strat file
+  \item In matlab, modify child input file to read the modified strat file on startup or restart
+\end{enumerate}
+
+That said, it would be cleaner if CHILD's stratigraphy were managed by a quasi-independent module, as opposed to being set within tMesh.
+
+
+
+\end{document}
