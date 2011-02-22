@@ -129,8 +129,8 @@ Initialize( int argc, char **argv )
    optDetachLim = inputFile.ReadBool( "OPTDETACHLIM" );
    optDiffuseDepo = inputFile.ReadBool( "OPTDIFFDEP" );
    optVegetation = inputFile.ReadBool( "OPTVEG" );
-   optForest = inputFile.ReadBool( "OPTFOREST" );
-   optFire = inputFile.ReadBool( "OPTFIRE" );
+   optForest = inputFile.ReadBool( "OPTFOREST", false );
+   optFire = inputFile.ReadBool( "OPTFIRE", false );
    optFloodplainDep = inputFile.ReadBool( "OPTFLOODPLAIN" );
    optLoessDep = inputFile.ReadBool( "OPTLOESSDEP" );
    optMeander = inputFile.ReadBool( "OPTMEANDER" );
