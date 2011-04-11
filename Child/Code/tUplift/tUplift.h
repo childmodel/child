@@ -64,6 +64,7 @@ private:
    void UpliftRateMap( tMesh<tLNode> *mp, double delt, double currentTime );
    void PropagatingFront( tMesh<tLNode> *mp, double delt, double currentTime );
    void BaselevelFallAtOpenBoundaries( tMesh<tLNode> *mp, double delt, double currentTime );
+   void MovingBlock( tMesh<tLNode> *mp, double delt, double currentTime );
    
 private:
    typedef enum {
@@ -80,8 +81,9 @@ private:
        k10,
        k11,
        k12,
-	   k13,
-	   k14
+	     k13,
+	     k14,
+	     k15
    } tUplift_t;
    
    static tUplift_t DecodeType(int);
@@ -94,6 +96,9 @@ private:
    double faultPosition;  // Position of fault (y-location)
    double positionParam1; // Another position parameter
    double slipRate;       // Slip rate for strike-slip motion and fault prop
+   double blockMoveRate;   // Rate of movement of block
+   double blockEdge;		  // Position of block edge (x-location)
+   double blockWidth;      // Width of block
    double foldParam;      // Parameter used in folding calculation
    double foldParam2;     // Another one
    double deformStartTime1; // Parameter for onset of uplift/deformation
