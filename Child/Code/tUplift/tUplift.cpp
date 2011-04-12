@@ -38,7 +38,7 @@
 **
 \************************************************************************/
 tUplift::tUplift_t tUplift::DecodeType(int type){
-  if( type < 0 || type > 15 )
+  if( type < 0 || type > 16 )
   {
     std::cerr << "I don't recognize the uplift type you asked for ("
     << type << ")\n"
@@ -58,7 +58,8 @@ tUplift::tUplift_t tUplift::DecodeType(int type){
     " 12 - Uplift rate maps in separate files\n"
     " 13 - Propagating horizontal front\n"
     " 14 - Baselevel fall at open boundaries\n"
-    " 15 - Moving block\n";
+    " 15 - Moving block\n"
+    " 16 - Moving sinusoid\n";
     ReportFatalError( "Please specify a valid uplift type and try again." );
   }
   return static_cast<tUplift_t>(type);
@@ -204,9 +205,16 @@ duration(0.)
       break;
     case k15:
       rate2 = infile.ReadDouble( "SUBSRATE", false );
-      blockEdge = infile.ReadDouble( "BLOCKEDGEPOS" );
+      blockEdge_x = infile.ReadDouble( "BLOCKEDGEPOSX" );
       blockMoveRate = infile.ReadDouble( "BLOCKMOVERATE" );
-      blockWidth = infile.ReadDouble( "BLOCKWIDTH" );
+      blockWidth_x = infile.ReadDouble( "BLOCKWIDTHX" );
+      break;
+    case k16:
+      blockEdge_x = infile.ReadDouble( "BLOCKEDGEPOSX" );
+      blockWidth_x = infile.ReadDouble( "BLOCKWIDTHX" );
+      blockEdge_y = infile.ReadDouble( "BLOCKEDGEPOSY" );
+      blockWidth_y = infile.ReadDouble( "BLOCKWIDTHY" );
+      blockMoveRate = infile.ReadDouble( "BLOCKMOVERATE" );
       break;
   }
   
@@ -226,60 +234,63 @@ duration(0.)
 \************************************************************************/
 void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
 {
-   switch( typeCode )
-   {
-      case kNoUplift:
-          break;
-      case k1:
-          UpliftUniform( mp, delt, currentTime );
-          break;
-      case k2:
-          BlockUplift( mp, delt, currentTime );
-          break;
-      case k3:
-          BlockUplift( mp, delt, currentTime );
-          StrikeSlip( mp, delt );
-          break;
-      case k4:
-          FoldPropErf( mp, delt );
-          break;
-      case k5:
-          CosineWarp2D( mp, delt );
-          break;
-      case k6:
-	        BlockUplift( mp, delt, currentTime );
-	        PropagatingFold( mp, delt );
-	        break;
-      case k7:
-	        TwoSideDifferential( mp, delt );
-	        break;
-      case k8:
-          FaultBendFold( mp, delt );
-          FaultBendFold2( mp, delt );
-          break;
-      case k9:
-          NormalFaultTiltAccel( mp, delt, currentTime );
-          break;
-      case k10:
-          LinearUplift( mp, delt );
-          break;
-      case k11:
-          PowerLawUplift( mp, delt );
-          break;
-      case k12:
-          UpliftRateMap( mp, delt, currentTime );
-		      break;
-	    case k13:
-		      PropagatingFront( mp, delt, currentTime );
-          break;
-      case k14:
-          BaselevelFallAtOpenBoundaries( mp, delt, currentTime );
-		      break;
-	   case k15:
-		      MovingBlock(mp,delt,currentTime);
-		      break;
-   }
-   
+  switch( typeCode )
+  {
+    case kNoUplift:
+      break;
+    case k1:
+      UpliftUniform( mp, delt, currentTime );
+      break;
+    case k2:
+      BlockUplift( mp, delt, currentTime );
+      break;
+    case k3:
+      BlockUplift( mp, delt, currentTime );
+      StrikeSlip( mp, delt );
+      break;
+    case k4:
+      FoldPropErf( mp, delt );
+      break;
+    case k5:
+      CosineWarp2D( mp, delt );
+      break;
+    case k6:
+      BlockUplift( mp, delt, currentTime );
+      PropagatingFold( mp, delt );
+      break;
+    case k7:
+      TwoSideDifferential( mp, delt );
+      break;
+    case k8:
+      FaultBendFold( mp, delt );
+      FaultBendFold2( mp, delt );
+      break;
+    case k9:
+      NormalFaultTiltAccel( mp, delt, currentTime );
+      break;
+    case k10:
+      LinearUplift( mp, delt );
+      break;
+    case k11:
+      PowerLawUplift( mp, delt );
+      break;
+    case k12:
+      UpliftRateMap( mp, delt, currentTime );
+      break;
+    case k13:
+      PropagatingFront( mp, delt, currentTime );
+      break;
+    case k14:
+      BaselevelFallAtOpenBoundaries( mp, delt, currentTime );
+      break;
+    case k15:
+      MovingBlock(mp,delt,currentTime);
+      break;
+    case k16:
+      MovingSinusoid(mp,delt,currentTime);
+      break;
+  }
+  
 }
 
 
@@ -1083,17 +1094,17 @@ void tUplift::MovingBlock( tMesh<tLNode> *mp, double delt, double currentTime )
 	
 	for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
 	{
-		if( cn->getX()>=blockEdge && cn->getX()<=(blockEdge+blockWidth))
+		if( cn->getX()>=blockEdge_x && cn->getX()<=(blockEdge_x+blockWidth_x))
 		{
 			cn->ChangeZ( rise );
 			cn->setUplift( rate );
 		}
-		if( cn->getX()<blockEdge)
+		if( cn->getX()<blockEdge_x)
 		{
 			cn->ChangeZ(-sink);
 			cn->setUplift(-rate2);
 		}
-		if(cn->getX()>(blockEdge+blockWidth))
+		if(cn->getX()>(blockEdge_x+blockWidth_x))
 		{
 			cn->ChangeZ(-sink);
 			cn->setUplift(-rate2);
@@ -1101,7 +1112,56 @@ void tUplift::MovingBlock( tMesh<tLNode> *mp, double delt, double currentTime )
 		
 	}
   
-	blockEdge+=blockMoveRate*delt; // Move the location of the fault with each timestep
+	blockEdge_x+=blockMoveRate*delt; // Move the location of the fault with each timestep
+}
+
+
+
+/************************************************************************\
+ **
+ **  tUplift::MovingSinusoid
+ **
+ **  Uplift in a sinusoidal pattern inside a rectangular block that moves
+ **  in the x direction over time. The block boundaries are:
+ **
+ **                   blockEdge_y+blockWidth_y
+ **       blockEdge_x                          blockEdge_x+blockWidth_x
+ **                          blockEdge_y
+ **
+ **  The block moves in the postive x direction at rate blockMoveRate.
+ **
+ **  The wavelength of the sinusoid is blockWidth_x and blockWidth_y in the
+ **  x and y directions, respectively.
+ **
+ **  Inputs:  mp -- pointer to the mesh
+ **           delt -- duration of uplift
+ **
+ \************************************************************************/
+void tUplift::MovingSinusoid( tMesh<tLNode> *mp, double delt, double currentTime )
+{
+  static double two_pi_over_lamx = 2.0*3.14159265/blockWidth_x;
+  static double two_pi_over_lamy = 2.0*3.14159265/blockWidth_y;
+  static double three_halves_pi = 1.5*3.14159265;
+	assert( mp!=0 );
+	tLNode *cn;
+	tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+	rate = rate_ts.calc( currentTime );
+	
+	for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+	{
+		if( cn->getX()>=blockEdge_x && cn->getX()<=(blockEdge_x+blockWidth_x)
+     && cn->getY()>=blockEdge_y && cn->getY()<=(blockEdge_y+blockWidth_y) )
+		{
+      double local_rate = rate * (1.0 + sin( two_pi_over_lamx*(cn->getX()-blockEdge_x) + 
+                               three_halves_pi ) )
+                        * (1.0 + sin( two_pi_over_lamy*(cn->getY()-blockEdge_y) + 
+                               three_halves_pi ) ) / 2;
+			cn->ChangeZ( local_rate * delt );
+			cn->setUplift( local_rate );
+		}		
+	}
+  
+	blockEdge_x+=blockMoveRate*delt; // Move the location of the block with each timestep
 }
 
 
