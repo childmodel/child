@@ -2279,15 +2279,15 @@ double tSedTransMineTailings::TransCapacity( tLNode *nd, int i, double weight )
 tPhysicalWeatheringExpLaw::
 tPhysicalWeatheringExpLaw( const tInputFile &infile )
 {
-  soilprodK = infile.ReadItem( soilprodK, "SOILPRODRATE", false );
-  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH", false );
+  soilprodK = infile.ReadItem( soilprodK, "SOILPRODRATE" );
+  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH" );
 }
 
 // Initialize() for CSDMS IRF interface:
 void tPhysicalWeatheringExpLaw::Initialize( const tInputFile &infile )
 {
-  soilprodK = infile.ReadItem( soilprodK, "SOILPRODRATE", false );
-  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH", false );
+  soilprodK = infile.ReadItem( soilprodK, "SOILPRODRATE" );
+  soilprodH = infile.ReadItem( soilprodH, "SOILPRODDEPTH" );
 }
 
 
@@ -2560,7 +2560,7 @@ void tChemicalWeatheringDissolution::Initialize( const tInputFile &infile,
  **  Updates density of each rock layer.
  **  Returns total mass flux (kg), typically negative.
  **  Preferred function for doing chemical weathering at a point.
-\***************************************************************************/
+ \***************************************************************************/
 double tChemicalWeatheringDissolution::SoluteFlux( tLNode * n, double dt )
 {
   // find top of bedrock:
@@ -2571,38 +2571,38 @@ double tChemicalWeatheringDissolution::SoluteFlux( tLNode * n, double dt )
   double bedrockDepth(0.0);
   double flux(0.0);
   for( int i=0; i<numThinLayers; ++i, lP=lI.NextP() )
+  {
+    // check layer depth; if thick, insert a copy and make it thin 
+    // (compare to initial rockLayerDepth, but allow for thickening
+    // due to strain associated with weathering):
+    if( lP->getDepth() > rockLayerDepth * 20.0 )
     {
-      // check layer depth; if thick, insert a copy and make it thin 
-      // (compare to initial rockLayerDepth, but allow for thickening
-      // due to strain associated with weathering):
-      if( lP->getDepth() > rockLayerDepth * 20.0 )
-	{
-	  n->getLayersRefNC().insertAtPrev( *lP, lI.NodePtr() );
-	  lP = lI.PrevP();
-	  lP->setDepth( rockLayerDepth );
-	}
-      // calculate bedrock density change (dissolution,  
-      // hence negative sign); use depth at top of layer:
-      double deltaRho = 
-	-maxDissolution * exp( -bedrockDepth / chemDepth ) * dt;
-      // update layer bulk density:
-      lP->addBulkDensity( deltaRho );
-      // and increment total mass flux per unit area:
-      flux += deltaRho * lP->getDepth();
-      if( lP->getBulkDensity() > 0.0 )
-	// increment depth:
-	bedrockDepth += lP->getDepth();
-      else
-	{
-	  // don't expect this to happen, but if density drops to zero,
-	  // remove layer and change elevation:
-	  n->ChangeZ( -lP->getDepth() );
-	  lP = lI.PrevP();
-	  tLayer lay;
-	  n->getLayersRefNC().removeNext( lay, lI.NodePtr() );
-	  assert( n>0 );
-	}
+      n->getLayersRefNC().insertAtPrev( *lP, lI.NodePtr() );
+      lP = lI.PrevP();
+      lP->setDepth( rockLayerDepth );
     }
+    // calculate bedrock density change (dissolution,  
+    // hence negative sign); use depth at top of layer:
+    double deltaRho = 
+    -maxDissolution * exp( -bedrockDepth / chemDepth ) * dt;
+    // update layer bulk density:
+    lP->addBulkDensity( deltaRho );
+    // and increment total mass flux per unit area:
+    flux += deltaRho * lP->getDepth();
+    if( lP->getBulkDensity() > 0.0 )
+      // increment depth:
+      bedrockDepth += lP->getDepth();
+    else
+    {
+      // don't expect this to happen, but if density drops to zero,
+      // remove layer and change elevation:
+      n->ChangeZ( -lP->getDepth() );
+      lP = lI.PrevP();
+      tLayer lay;
+      n->getLayersRefNC().removeNext( lay, lI.NodePtr() );
+      assert( n>0 );
+    }
+  }
   // multiply by area for total mass flux:
   flux *=  n->getVArea();
   return flux;
@@ -3223,10 +3223,10 @@ debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
     mdSc = infile.ReadItem( mdSc, "CRITICAL_SLOPE" );
   beta=infile.ReadItem( beta, "BETA"); //For Sediment-Flux Detach Rules
   bool optDepthDependentDiffusion = 
-    infile.ReadBool( "OPT_DEPTH_DEPENDENT_DIFFUSION", false );
+  infile.ReadBool( "OPT_DEPTH_DEPENDENT_DIFFUSION", false );
   if( optDepthDependentDiffusion)
     diffusionH = infile.ReadDouble( "DIFFDEPTHSCALE", true );
-
+  
   int optAdaptMesh = infile.ReadItem( optAdaptMesh, "OPTMESHADAPTDZ", false );
   if( optAdaptMesh )
     mdMeshAdaptMaxFlux = infile.ReadItem( mdMeshAdaptMaxFlux,
@@ -3234,17 +3234,17 @@ debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
   
   // Make sure the user wants the detachment and transport options that
   // are compiled in this version
-
+  
   // set bedrock detachment law:
   int optProcessLaw = infile.ReadItem( optProcessLaw,
                                       "DETACHMENT_LAW" );
   switch(optProcessLaw){
 #define X(a,b) case a: \
-    bedErode = new b(infile);			\
-    break;
-    DETACHMENT_LAW_TABLE2
+bedErode = new b(infile);			\
+break;
+      DETACHMENT_LAW_TABLE2
 #undef X
-  default:
+    default:
     {
       std::cerr << "\nError: You requested the detachment law '"
       << optProcessLaw << "' which does not exist."  << std::endl
@@ -3265,11 +3265,11 @@ debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
                                   "TRANSPORT_LAW" );
   switch(optProcessLaw){
 #define X(a,b) case a: \
-    sedTrans = new b(infile);			\
-    break;
-    TRANSPORT_LAW_TABLE2
+sedTrans = new b(infile);			\
+break;
+      TRANSPORT_LAW_TABLE2
 #undef X
-  default:
+    default:
     {
       std::cerr << "\nError: You requested the transport law '"
       << optProcessLaw << "' which does not exist."  << std::endl
@@ -3282,178 +3282,178 @@ debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
     }
   }
   std::cout << "SEDIMENT TRANSPORT OPTION: "
-	    << TransportLaw[optProcessLaw] << std::endl;
-
+  << TransportLaw[optProcessLaw] << std::endl;
+  
   // set soil production law:
   optProcessLaw = infile.ReadItem( optProcessLaw,
-				   "PRODUCTION_LAW", false );
-
+                                  "PRODUCTION_LAW", false );
+  
   switch(optProcessLaw)
-    {
+  {
 #define X(a,b) case a:	   \
-      physWeath = new b(infile);		\
-      break;
+physWeath = new b(infile);		\
+break;
       PRODUCTION_LAW_TABLE2
 #undef X
     default:
-      {
-	std::cerr << "\nError: You requested the soil production law '"
+    {
+      std::cerr << "\nError: You requested the soil production law '"
 		  << optProcessLaw << "' which does not exist."  << std::endl
 		  << "Available options:" << std::endl;
-	for(int i=0; i!=NUMBER_OF_PRODUCTION_LAWS; ++i ){
-	  std::cerr << " " << i << ": " << ProductionLaw[i] << std::endl;
-	}
-	ReportFatalError( "Requested soil production law not available. "
-			  "Switch options.\n" );
+      for(int i=0; i!=NUMBER_OF_PRODUCTION_LAWS; ++i ){
+        std::cerr << " " << i << ": " << ProductionLaw[i] << std::endl;
       }
+      ReportFatalError( "Requested soil production law not available. "
+                       "Switch options.\n" );
     }
+  }
   std::cout << "SOIL PRODUCTION OPTION: "
-	    << ProductionLaw[optProcessLaw] << std::endl;
+  << ProductionLaw[optProcessLaw] << std::endl;
   if( optProcessLaw > 0 )
     soilBulkDensity=infile.ReadDouble( "SOILBULKDENSITY", false );
-
+  
   // set chemical weathering law:
   optProcessLaw = infile.ReadItem( optProcessLaw,
-				   "CHEM_WEATHERING_LAW", false );
-
+                                  "CHEM_WEATHERING_LAW", false );
+  
   switch(optProcessLaw)
-    {
+  {
 #define X(a,b) case a:				\
-      chemWeath = new b(infile, mptr);		\
-      break;
+chemWeath = new b(infile, mptr);		\
+break;
       CHEM_WEATHERING_TABLE2
 #undef X
     default:
-      {
-	std::cerr << "\nError: You requested the chemical weathering law '"
+    {
+      std::cerr << "\nError: You requested the chemical weathering law '"
 		  << optProcessLaw << "' which does not exist."  << std::endl
 		  << "Available options:" << std::endl;
-	for(int i=0; i!=NUMBER_OF_CHEM_WEATHERINGS; ++i ){
-	  std::cerr << " " << i << ": " << ChemWeathering[i] << std::endl;
-	}
-	ReportFatalError( "Requested chemical weathering law not available. "
-			  "Switch options.\n" );
+      for(int i=0; i!=NUMBER_OF_CHEM_WEATHERINGS; ++i ){
+        std::cerr << " " << i << ": " << ChemWeathering[i] << std::endl;
       }
+      ReportFatalError( "Requested chemical weathering law not available. "
+                       "Switch options.\n" );
     }
+  }
   std::cout << "CHEMICAL WEATHERING OPTION: "
-	    << ChemWeathering[optProcessLaw] << std::endl;
-
+  << ChemWeathering[optProcessLaw] << std::endl;
+  
   // Landsliding:
   bool optLandslides = infile.ReadBool( "OPT_LANDSLIDES", false );
   if( optLandslides )
+  {
+    int tmp_ = infile.ReadItem( tmp_, "FLOWGEN" );
+    tStreamNet::kFlowGen_t flowFlag = static_cast<tStreamNet::kFlowGen_t>(tmp_);
+    if( flowFlag != tStreamNet::kSaturatedFlow1 
+       && flowFlag != tStreamNet::kSubSurf2DKinematicWave )
     {
-      int tmp_ = infile.ReadItem( tmp_, "FLOWGEN" );
-      tStreamNet::kFlowGen_t flowFlag = static_cast<tStreamNet::kFlowGen_t>(tmp_);
-      if( flowFlag != tStreamNet::kSaturatedFlow1 
-	  && flowFlag != tStreamNet::kSubSurf2DKinematicWave )
-	{
-	  std::cerr << "\nError: You selected the option for landslides, which "
-		    << "requires you also select FLOWGEN = 1 for 'type 1' "
-		    << "saturated flow hydrology or FLOWGEN = 6 for " 
-		    << "subsurface kinematic wave routing" << std::endl;
-	  ReportFatalError( "Requested landsliding and incompatible hydrology.\n" );
-	}
-      const double rockBulkDensity = infile.ReadDouble( "ROCKDENSITYINIT", false );
-      if( rockBulkDensity > 0.0 )
-	wetBulkDensity = 
-	  soilBulkDensity + RHO * ( 1.0 - soilBulkDensity / rockBulkDensity );
-      double tmp_double = infile.ReadDouble( "WOODDENSITY", false );
-      if( tmp_double > 0.0 )
-	woodDensity = tmp_double;
-      tmp_double = infile.ReadDouble( "FRICSLOPE", false );
-      if( tmp_double > 0.0 )
-	fricSlope = tmp_double;
-
-      // set runout rules:
-      optProcessLaw = infile.ReadItem( optProcessLaw, "DF_RUNOUT_RULE" );
-      switch(optProcessLaw)
-	{
+      std::cerr << "\nError: You selected the option for landslides, which "
+      << "requires you also select FLOWGEN = 1 for 'type 1' "
+      << "saturated flow hydrology or FLOWGEN = 6 for " 
+      << "subsurface kinematic wave routing" << std::endl;
+      ReportFatalError( "Requested landsliding and incompatible hydrology.\n" );
+    }
+    const double rockBulkDensity = infile.ReadDouble( "ROCKDENSITYINIT", false );
+    if( rockBulkDensity > 0.0 )
+      wetBulkDensity = 
+      soilBulkDensity + RHO * ( 1.0 - soilBulkDensity / rockBulkDensity );
+    double tmp_double = infile.ReadDouble( "WOODDENSITY", false );
+    if( tmp_double > 0.0 )
+      woodDensity = tmp_double;
+    tmp_double = infile.ReadDouble( "FRICSLOPE", false );
+    if( tmp_double > 0.0 )
+      fricSlope = tmp_double;
+    
+    // set runout rules:
+    optProcessLaw = infile.ReadItem( optProcessLaw, "DF_RUNOUT_RULE" );
+    switch(optProcessLaw)
+    {
 #define X(a,b) case a: \
-	  runout = new b(infile); \
-	  break;
-	  DF_RUNOUT_TABLE2
+runout = new b(infile); \
+break;
+        DF_RUNOUT_TABLE2
 #undef X
-	default:
-	  {
-	    std::cerr << "\nError: You requested the debris flow runout rule '"
-		      << optProcessLaw << "' which does not exist."  << std::endl
-		      << "Available options:" << std::endl;
-	    for(int i=0; i!=NUMBER_OF_DF_RUNOUTS; ++i ){
-	      std::cerr << " " << i << ": " << DebrisFlowRunOut[i] << std::endl;
-	    }
-	    ReportFatalError( "Requested debris flow runout rule not available. "
-			      "Switch options.\n" );
-	  }
-	}
-      // set scour rules:
-      optProcessLaw = infile.ReadItem( optProcessLaw, "DF_SCOUR_RULE" );
-      switch(optProcessLaw)
-	{
-#define X(a,b) case a: \
-	  scour = new b(infile); \
-	  break;
-	  DF_SCOUR_TABLE2
-#undef X
-	default:
-	  {
-	    std::cerr << "\nError: You requested the debris flow scour rule '"
-		      << optProcessLaw << "' which does not exist."  << std::endl
-		      << "Available options:" << std::endl;
-	    for(int i=0; i!=NUMBER_OF_DF_SCOURS; ++i ){
-	      std::cerr << " " << i << ": " << DebrisFlowScour[i] << std::endl;
-	    }
-	    ReportFatalError( "Requested debris flow scour rule not available. "
-			      "Switch options.\n" );
-	  }
-	}
-      // set deposition rules:
-      optProcessLaw = infile.ReadItem( optProcessLaw, "DF_DEPOSITION_RULE" );
-      switch(optProcessLaw)
-	{
-#define X(a,b) case a: \
-	  deposit = new b(infile); \
-	  break;
-	  DF_DEPOSITION_TABLE2
-#undef X
-	default:
-	  {
-	    std::cerr << "\nError: You requested the debris flow deposition rule '"
-		      << optProcessLaw << "' which does not exist."  << std::endl
-		      << "Available options:" << std::endl;
-	    for(int i=0; i!=NUMBER_OF_DF_DEPOSITIONS; ++i ){
-	      std::cerr << " " << i << ": " << DebrisFlowDeposit[i] << std::endl;
-	    }
-	    ReportFatalError( "Requested debris flow deposition rule not available. "
-			      "Switch options.\n" );
-	  }
-	}
-      // set DF_fsPtr, DF_Hyd_fsPtr by making new std::ofstreams
-      // If landslides, create files for writing them
-      DF_fsPtr = new std::ofstream();
+      default:
       {
-	char fname[87];
-#define THEEXT ".dflow"
-	infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
-	strcat( fname, THEEXT );
-#undef THEEXT
-	DF_fsPtr->open( fname );
-	if( !DF_fsPtr->good() )
-	  std::cerr << "Warning: unable to create debris flow data file '"
-		    << fname << "'\n";
-      }
-      DF_Hyd_fsPtr = new std::ofstream();
-      {
-	char fname[87];
-#define THEEXT ".dfhyd"
-	infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
-	strcat( fname, THEEXT );
-#undef THEEXT
-	DF_Hyd_fsPtr->open( fname );
-	if( !DF_Hyd_fsPtr->good() )
-	  std::cerr << "Warning: unable to create debris flow hydrograph file '"
-		    << fname << "'\n";
+        std::cerr << "\nError: You requested the debris flow runout rule '"
+        << optProcessLaw << "' which does not exist."  << std::endl
+        << "Available options:" << std::endl;
+        for(int i=0; i!=NUMBER_OF_DF_RUNOUTS; ++i ){
+          std::cerr << " " << i << ": " << DebrisFlowRunOut[i] << std::endl;
+        }
+        ReportFatalError( "Requested debris flow runout rule not available. "
+                         "Switch options.\n" );
       }
     }
+    // set scour rules:
+    optProcessLaw = infile.ReadItem( optProcessLaw, "DF_SCOUR_RULE" );
+    switch(optProcessLaw)
+    {
+#define X(a,b) case a: \
+scour = new b(infile); \
+break;
+        DF_SCOUR_TABLE2
+#undef X
+      default:
+      {
+        std::cerr << "\nError: You requested the debris flow scour rule '"
+        << optProcessLaw << "' which does not exist."  << std::endl
+        << "Available options:" << std::endl;
+        for(int i=0; i!=NUMBER_OF_DF_SCOURS; ++i ){
+          std::cerr << " " << i << ": " << DebrisFlowScour[i] << std::endl;
+        }
+        ReportFatalError( "Requested debris flow scour rule not available. "
+                         "Switch options.\n" );
+      }
+    }
+    // set deposition rules:
+    optProcessLaw = infile.ReadItem( optProcessLaw, "DF_DEPOSITION_RULE" );
+    switch(optProcessLaw)
+    {
+#define X(a,b) case a: \
+deposit = new b(infile); \
+break;
+        DF_DEPOSITION_TABLE2
+#undef X
+      default:
+      {
+        std::cerr << "\nError: You requested the debris flow deposition rule '"
+        << optProcessLaw << "' which does not exist."  << std::endl
+        << "Available options:" << std::endl;
+        for(int i=0; i!=NUMBER_OF_DF_DEPOSITIONS; ++i ){
+          std::cerr << " " << i << ": " << DebrisFlowDeposit[i] << std::endl;
+        }
+        ReportFatalError( "Requested debris flow deposition rule not available. "
+                         "Switch options.\n" );
+      }
+    }
+    // set DF_fsPtr, DF_Hyd_fsPtr by making new std::ofstreams
+    // If landslides, create files for writing them
+    DF_fsPtr = new std::ofstream();
+    {
+      char fname[87];
+#define THEEXT ".dflow"
+      infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
+      strcat( fname, THEEXT );
+#undef THEEXT
+      DF_fsPtr->open( fname );
+      if( !DF_fsPtr->good() )
+        std::cerr << "Warning: unable to create debris flow data file '"
+		    << fname << "'\n";
+    }
+    DF_Hyd_fsPtr = new std::ofstream();
+    {
+      char fname[87];
+#define THEEXT ".dfhyd"
+      infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
+      strcat( fname, THEEXT );
+#undef THEEXT
+      DF_Hyd_fsPtr->open( fname );
+      if( !DF_Hyd_fsPtr->good() )
+        std::cerr << "Warning: unable to create debris flow hydrograph file '"
+		    << fname << "'\n";
+    }
+  }
 }
 
 tErosion::~tErosion(){
