@@ -321,7 +321,7 @@ public1(-1)
 }
 
 tLNode::tLNode( const tInputFile &infile )
-  :
+:
 tNode(), vegCover(), rock(), reg(), chan(),
 flood(kNotFlooded), flowedge(0), tracer(0),
 dzdt(0.), drdt(0.), tau(0.), taucb(0.), taucr(0.), qs(0.),
@@ -341,14 +341,14 @@ public1(-1)
   tLayer layhelp, niclay;
   tArray<double> dgradehelp;
   tArray<double> dgradebrhelp;
-
+  
   if (0) //DEBUG
     std::cout << "=>tLNode( infile )" << std::endl;
 	
   // Modified to read TAUC for both bedrock, TAUCB, and regolith, TAUCR
   taucb = infile.ReadItem( taucb, "TAUCB" );
   taucr = infile.ReadItem( taucr, "TAUCR" );
-
+  
   {
     int tmp_;
     tmp_ = infile.ReadItem( tmp_, "NUMGRNSIZE" );
@@ -360,12 +360,12 @@ public1(-1)
   KRnew = infile.ReadItem( KRnew, "KR" );
   if( KRnew<0.0 )
     ReportFatalError( "Erodibility factor KR must be positive." );
-
+  
   {
     size_t i = 0;
     add[0]='1';
     add[1]='\0';
-
+    
     while ( i<numg ){
       // Reading in grain size diameter info
       strcpy( name, "GRAINDIAM");
@@ -376,25 +376,25 @@ public1(-1)
       add[0]++;
     }
   }
-
+  
   qsm.setSize( numg );
   qsinm.setSize( numg );
-
+  
   accumdh.setSize(2);
   accumdh[0]=0.0;
   accumdh[1]=0.0;
-
+  
   bool optReadLayer = infile.ReadBool( "OPTREADLAYER" );
-
+  
   if(!optReadLayer){
-
+    
     dgradehelp.setSize( numg );
     dgradebrhelp.setSize( numg );
     sum = 0;
     sumbr = 0;
     size_t i=0;
     add[0]='1';
-
+    
     while ( i<numg ){
       // Reading in proportions for intital regolith and bedrock
       strcpy( name, "REGPROPORTION");
@@ -411,12 +411,12 @@ public1(-1)
       i++;
       add[0]++;
     }
-
+    
     if(fabs(sum-1.0)>0.001)
       ReportFatalError("Problem with the regolith proportion of grain sizes in input file");
     if(fabs(sumbr-1.0)>0.001)
       ReportFatalError("Problem with the bedrock proportion of grain sizes in input file");
-
+    
     help = infile.ReadItem( help, "REGINIT" );
     layhelp.setCtime( 0.0 );
     layhelp.setEtime( 0.0 );
@@ -429,126 +429,126 @@ public1(-1)
       // Bedrock layer items read in and set
       help = infile.ReadItem( help, "KB");
       if( help<0.0 )
-	ReportFatalError( "Erodibility factor KB must be positive." );
+        ReportFatalError( "Erodibility factor KB must be positive." );
       layhelp.setErody(help);
       layhelp.setSed(tLayer::kBedRock);
-
+      
       // in the regolith layer dgrade is saving
       // the proportion of grain size available from the bedrock
-
+      
       layhelp.setDgradesize(numg);
       i=0;
       help = infile.ReadItem( help, "BEDROCKDEPTH");
       while(i<numg){
-	layhelp.setDgrade(i, help*dgradebrhelp[i]);
-	i++;
+        layhelp.setDgrade(i, help*dgradebrhelp[i]);
+        i++;
       }
-
+      
       layerlist.insertAtBack( layhelp );
       
       if(0) //DEBUG
-	{
-	  std::cout<<"Just made BR layer thick=" << layhelp.getDepth()
-		   << " and dgrades:\n";
-	  for( i=0; i<numg; i++ )
-            std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
-	}
-
+      {
+        std::cout<<"Just made BR layer thick=" << layhelp.getDepth()
+        << " and dgrades:\n";
+        for( i=0; i<numg; i++ )
+          std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
+      }
+      
       // Regolith layer items read in and set
       layhelp.setSed(tLayer::kSed);
       help = infile.ReadItem( help, "KR" );
       if( help<0.0 )
-	ReportFatalError( "Erodibility factor KR must be positive." );
+        ReportFatalError( "Erodibility factor KR must be positive." );
       layhelp.setErody(help);
       bool OptNewLayOutput = infile.ReadBool( "OPT_NEW_LAYERSOUTPUT", false );
       if( OptNewLayOutput ){
-	help=infile.ReadDouble( "SOILBULKDENSITY", false );
-	layhelp.setBulkDensity( help );
+        help=infile.ReadDouble( "SOILBULKDENSITY", false );
+        layhelp.setBulkDensity( help );
       }
       help = infile.ReadItem( help, "REGINIT");
       if(help > maxregdep){
-	// too much regolith, create two layers the bottom layer is made here
-	const double extra = help - maxregdep;
-	//layhelp.setDepth(extra);
-	//layhelp.setDgradesize(numg);
-	i=0;
-	while(i<numg){
-	  layhelp.setDgrade(i, extra*dgradehelp[i]);
-	  i++;
-	}
-	if(extra>10000) //TODO, bettter criteria for setting deep sed. flag
-	  layhelp.setRtime(-1.);
-	layerlist.insertAtFront( layhelp );
+        // too much regolith, create two layers the bottom layer is made here
+        const double extra = help - maxregdep;
+        //layhelp.setDepth(extra);
+        //layhelp.setDgradesize(numg);
+        i=0;
+        while(i<numg){
+          layhelp.setDgrade(i, extra*dgradehelp[i]);
+          i++;
+        }
+        if(extra>10000) //TODO, bettter criteria for setting deep sed. flag
+          layhelp.setRtime(-1.);
+        layerlist.insertAtFront( layhelp );
         
         if(0) //DEBUG
-	  {
-	    std::cout<<"1Just made ALLUV layer thick=" << layhelp.getDepth()
-		     << " and dgrades:\n";
-	    for( i=0; i<numg; i++ )
-              std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
-	  }
-
-	// the top regolith layer is now made
-	layhelp.setRtime(0.);
-	i=0;
-	while(i<numg){
-	  layhelp.setDgrade(i, maxregdep*dgradehelp[i]);
-	  i++;
-	}
-	layerlist.insertAtFront( layhelp );
+        {
+          std::cout<<"1Just made ALLUV layer thick=" << layhelp.getDepth()
+          << " and dgrades:\n";
+          for( i=0; i<numg; i++ )
+            std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
+        }
+        
+        // the top regolith layer is now made
+        layhelp.setRtime(0.);
+        i=0;
+        while(i<numg){
+          layhelp.setDgrade(i, maxregdep*dgradehelp[i]);
+          i++;
+        }
+        layerlist.insertAtFront( layhelp );
         
         if(0) //DEBUG
-	  {
-	    std::cout<<"2Just made ALLUV layer thick=" << layhelp.getDepth()
-		     << " and dgrades:\n";
-	    for( i=0; i<numg; i++ )
-              std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
-	  }
-
+        {
+          std::cout<<"2Just made ALLUV layer thick=" << layhelp.getDepth()
+          << " and dgrades:\n";
+          for( i=0; i<numg; i++ )
+            std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
+        }
+        
       }
       else{
-	// create only one regolith layer
-	i=0;
-	while(i<numg){
-	  layhelp.setDgrade(i, help*dgradehelp[i]);
-	  i++;
-	}
-
-	layerlist.insertAtFront( layhelp );
+        // create only one regolith layer
+        i=0;
+        while(i<numg){
+          layhelp.setDgrade(i, help*dgradehelp[i]);
+          i++;
+        }
+        
+        layerlist.insertAtFront( layhelp );
         
         if(0) //DEBUG
-	  {
-	    std::cout<<"3Just made ALLUV layer thick=" << layhelp.getDepth()
-		     << " and dgrades:\n";
-	    for( i=0; i<numg; i++ )
-              std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
-	  }
-
+        {
+          std::cout<<"3Just made ALLUV layer thick=" << layhelp.getDepth()
+          << " and dgrades:\n";
+          for( i=0; i<numg; i++ )
+            std::cout << i << "=" << layhelp.getDgrade(i) << std::endl;
+        }
+        
       }
     }
-
+    
     else{
       // no regolith, so by default everything is bedrock
       // Bedrock layer items set
       help = infile.ReadItem( help, "KB");
       if( help<0.0 )
-	ReportFatalError( "Erodibility factor KB must be positive." );
+        ReportFatalError( "Erodibility factor KB must be positive." );
       layhelp.setErody(help);
       layhelp.setSed(tLayer::kBedRock);
       layhelp.setDgradesize(numg);
       size_t i=0;
       help = infile.ReadItem( help, "BEDROCKDEPTH");
       while(i<numg){
-	layhelp.setDgrade(i, help*dgradebrhelp[i]);
-	i++;
+        layhelp.setDgrade(i, help*dgradebrhelp[i]);
+        i++;
       }
       layerlist.insertAtBack( layhelp );
     }
-
+    
     if (0) //DEBUG
       std::cout << layerlist.getSize() << " layers created " << std::endl;
   }
-
+  
 }
 
 tLNode::tLNode( const tLNode &orig )                               //tLNode
