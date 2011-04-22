@@ -80,16 +80,16 @@
 
 /***************************************************************************/
 /*
-**  @class tEquilibCheck
-**
-**  Enables dynamic equilibrium checking, both short- and a specified long-
-**  term. The idea is to find the rate of total volume change over the mesh.
-**  With meandering, this will never be zero over the short term, but we
-**  should be able to find an average over the long term.
-**
-**  Needs to look at the mesh; can either make it a template or just use
-**  the mesh of tLNodes. Do the latter...
-*/
+ **  @class tEquilibCheck
+ **
+ **  Enables dynamic equilibrium checking, both short- and a specified long-
+ **  term. The idea is to find the rate of total volume change over the mesh.
+ **  With meandering, this will never be zero over the short term, but we
+ **  should be able to find an average over the long term.
+ **
+ **  Needs to look at the mesh; can either make it a template or just use
+ **  the mesh of tLNodes. Do the latter...
+ */
 /***************************************************************************/
 class tEquilibCheck
 {
@@ -157,7 +157,7 @@ public:
   tSedTransPwrLaw( const tInputFile &infile );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int i, double weight);
-
+  
 private:
   double kf;  // Transport capacity coefficient
   double kt;  // Shear stress coefficient
@@ -184,7 +184,7 @@ public:
   tSedTransPwrLaw2( const tInputFile &infile );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int i, double weight);
-
+  
 private:
   double kf;  // Transport capacity coefficient
   double kt;  // Shear stress coefficient
@@ -211,7 +211,7 @@ public:
   tSedTransPwrLawSimp( const tInputFile &infile );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int i, double weight);
-
+  
 private:
   double kf;  // Transport capacity coefficient
   double mf;  // Exponent on total discharge
@@ -236,7 +236,7 @@ public:
   tSedTransBridgeDom( const tInputFile &infile );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int i, double weight);
-
+  
 private:
   double kf;  // Transport capacity coefficient
   double kt;  // Shear stress coefficient
@@ -265,7 +265,7 @@ public:
   tSedTransPwrLawMulti( const tInputFile &infile );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int lyr, double weight );
-
+  
 private:
   double kf;  // Transport capacity coefficient
   double kt;  // Shear stress coefficient
@@ -296,7 +296,7 @@ public:
   double TransCapacity( tLNode * n ); // returns total volumetric load
   double TransCapacity( tLNode *n, int i, double weight);
   //returns total volumetric load
-
+  
 private:
   double taudim;
   double refs;
@@ -310,7 +310,7 @@ private:
   double gravb;
   double gravs;
   tArray< double > grade;
-
+  
 };
 
 /************************************************************************/
@@ -333,7 +333,7 @@ public:
   tSedTransMineTailings( const tInputFile &infile );
   double TransCapacity( tLNode * n ); // returns total volumetric load
   double TransCapacity( tLNode *n, int i, double weight);
-
+  
 private:
   //all of these are just the same as for tSedTransWilcock since using
   //the same critical shear stress method
@@ -349,7 +349,7 @@ private:
   double gravb;
   double gravs;
   tArray< double > grade;
-
+  
 };
 
 /***************************************************************************/
@@ -414,7 +414,7 @@ public:
   double DetachCapacity( tLNode * n );
   //Returns an estimate of maximum stable & accurate time step size
   double SetTimeStep( tLNode * n );
-
+  
 private:
   double kb;  // Erosion coefficient
   double kt;  // Shear stress (or stream power) coefficient
@@ -455,7 +455,7 @@ public:
   double DetachCapacity( tLNode * n );
   //Returns an estimate of maximum stable & accurate time step size
   double SetTimeStep( tLNode * n );
-
+  
 private:
   double kb;  // Erosion coefficient
   double kt;  // Shear stress (or stream power) coefficient
@@ -483,7 +483,7 @@ private:
  **  Assume that -> sediment transport capacity is already calculated.
  **              -> sediment routing is properly taken care of.
  **                  
-  **  Created: FEB 2004 NG
+ **  Created: FEB 2004 NG
  **
  */
 /***************************************************************************/
@@ -499,13 +499,13 @@ public:
   double DetachCapacity( tLNode * n );
   //Returns an estimate of maximum stable & accurate time step size
   double SetTimeStep( tLNode * n );
-
+  
 private:
   double kb;  // Erosion coefficient - get this from layer, but used for ts
   double mb;  // Exponent on total discharge
   double nb;  // Exponent on slope
   double beta;  // fraction of sediment which is bedload
-
+  
 };
 
 /***************************************************************************\
@@ -528,22 +528,22 @@ private:
 class tBedErodeGeneralFQS : public tBedErode
 {
 public:
-   tBedErodeGeneralFQS( const tInputFile &infile );
-     //Computes depth of potential erosion at node n over time interval dt
-   double DetachCapacity( tLNode * nd, double dt );
-   //Computes rate of potential erosion of layer i at node n 
-   double DetachCapacity( tLNode * nd, int i );
-     //Computes rate of erosion at node n
-   double DetachCapacity( tLNode * nd );
-     //Does nothing but included in just in case it's needed in the future.
-   double SetTimeStep( tLNode * nd );
-
-  private:
-   double m;
-   double n;
-   double K;
-   double beta;
-   
+  tBedErodeGeneralFQS( const tInputFile &infile );
+  //Computes depth of potential erosion at node n over time interval dt
+  double DetachCapacity( tLNode * nd, double dt );
+  //Computes rate of potential erosion of layer i at node n 
+  double DetachCapacity( tLNode * nd, int i );
+  //Computes rate of erosion at node n
+  double DetachCapacity( tLNode * nd );
+  //Does nothing but included in just in case it's needed in the future.
+  double SetTimeStep( tLNode * nd );
+  
+private:
+  double m;
+  double n;
+  double K;
+  double beta;
+  
 };
 
 /***************************************************************************/
@@ -586,7 +586,7 @@ public:
   virtual double SoilProduction( tLNode * n, int i ) = 0 ;
   //Computes rate of physical weathering at node n
   virtual double SoilProduction( tLNode * n ) = 0 ;
-
+  
   // CSDMS IRF interface:
   virtual void Initialize( const tInputFile &infile ) = 0;
   virtual double Run_Step( tLNode * n, double dt, double time ) = 0;
@@ -615,14 +615,14 @@ public:
   double SoilProduction( tLNode *, int ) {return 0.0;}
   //Computes rate of physical weathering at node n
   double SoilProduction( tLNode * ) {return 0.0;}
-
+  
   // CSDMS IRF interface:
   void Initialize( const tInputFile & ) {}
   double Run_Step( tLNode *, double, double ) {return 0.0;}
   double Run_Step( tLNode *, int ) {return 0.0;}
   double Run_Step( tLNode * ) {return 0.0;}
   void Finalize() {}
-
+  
 private:
 };
 
@@ -649,14 +649,14 @@ public:
   double SoilProduction( tLNode * n, int i );
   //Computes rate of physical weathering at node n
   double SoilProduction( tLNode * n );
-
+  
   // CSDMS IRF interface:
   void Initialize( const tInputFile &infile );
   double Run_Step( tLNode * n, double dt, double time );
   double Run_Step( tLNode * n, int i );
   double Run_Step( tLNode * n );
   void Finalize();
-
+  
 private:
   double soilprodK; // production rate at zero soil depth (m/yr)
   double soilprodH; // soil depth scale for soil production (m)
@@ -685,18 +685,18 @@ public:
   double SoilProduction( tLNode * n, int i );
   //Computes rate of physical weathering at node n
   double SoilProduction( tLNode * n );
-
+  
   // CSDMS IRF interface:
   void Initialize( const tInputFile &infile );
   double Run_Step( tLNode * n, double dt, double time );
   double Run_Step( tLNode * n, int i );
   double Run_Step( tLNode * n );
   void Finalize();
-
+  
 private:
   double soilprodK0; // prod'n rate at zero soil depth & zero density (m/yr)
   double soilprodK1; // rate of prod'n rate decrease w/ increasing density 
-                     // ( (m/yr)/(kg/m3) )
+  // ( (m/yr)/(kg/m3) )
   double soilprodH; // soil depth scale for soil production (m)
 };
 
@@ -730,10 +730,10 @@ public:
   virtual double StrainRate( tLNode * n, int i ) = 0 ;
   //Computes strain accumulation rate at node n
   virtual double StrainRate( tLNode * n ) = 0 ;
-
+  
   // CSDMS IRF interface:
   virtual void Initialize( const tInputFile &infile, 
-			   tMesh<tLNode> *meshPtr ) = 0;
+                          tMesh<tLNode> *meshPtr ) = 0;
   virtual double Run_Step( tLNode * n, double dt ) = 0;
   virtual double Run_Step( tLNode * n, int i ) = 0;
   virtual double Run_Step( tLNode * n ) = 0;
@@ -754,7 +754,7 @@ class tChemicalWeatheringNone : public tChemicalWeathering
   tChemicalWeatheringNone();
 public:
   tChemicalWeatheringNone( const tInputFile &, 
-			   tMesh<tLNode> * ) {}
+                          tMesh<tLNode> * ) {}
   //Computes dissolution at node n over time interval dt
   double SoluteFlux( tLNode *, double ) {return 0.0;}
   //Computes solute flux rate from layer i at node n
@@ -767,14 +767,14 @@ public:
   double StrainRate( tLNode *, int ) {return 0.0;}
   //Computes strain accumulation rate at node n
   double StrainRate( tLNode * ) {return 0.0;}
-
+  
   // CSDMS IRF interface:
   void Initialize( const tInputFile &, tMesh<tLNode> * ) {}
   double Run_Step( tLNode *, double ) {return 0.0;}
   double Run_Step( tLNode *, int ) {return 0.0;}
   double Run_Step( tLNode * ) {return 0.0;}
   void Finalize() {}
-
+  
 private:
 };
 
@@ -797,7 +797,7 @@ class tChemicalWeatheringDissolution : public tChemicalWeathering
   tChemicalWeatheringDissolution();
 public:
   tChemicalWeatheringDissolution( const tInputFile &infile, 
-				  tMesh<tLNode> *meshPtr );
+                                 tMesh<tLNode> *meshPtr );
   //Computes dissolution at node n over time interval dt
   double SoluteFlux( tLNode * n, double dt );
   //Computes solute flux rate from layer i at node n
@@ -810,14 +810,14 @@ public:
   double StrainRate( tLNode *, int ) {return 0.0;}
   //Computes strain accumulation rate at node n
   double StrainRate( tLNode * ) {return 0.0;}
-
+  
   // CSDMS IRF interface:
   void Initialize( const tInputFile &infile, tMesh<tLNode> *meshPtr );
   double Run_Step( tLNode * n, double dt );
   double Run_Step( tLNode * n, int i );
   double Run_Step( tLNode * n );
   void Finalize();
-
+  
 private:
   double maxDissolution; // dissolution rate at bedrock surface (kg/m3/yr)
   double chemDepth; // bedrock depth scale for dissolution (m)
@@ -849,8 +849,8 @@ class tDebrisFlow
 public:
   tDebrisFlow() {} //default constructor
   tDebrisFlow( tPtrList<tLNode>&, double, vector<double>&, 
-	       vector<double>&, vector<double>&, vector<int>&,
-	       tMesh<tLNode>*, tErosion* ); //usual constructor
+              vector<double>&, vector<double>&, vector<int>&,
+              tMesh<tLNode>*, tErosion* ); //usual constructor
   ~tDebrisFlow(); // destructor
   //   tDebrisFlow( tInputFile& file, tErosion* ePtr ); // static variables
   // "get" and "set":
@@ -884,15 +884,15 @@ public:
   tMesh<tLNode>* getDepositZoneMesh() const {return depositZoneMesh;}
   tPtrList<tLNode>* getWasList() const {return wasList;}
   tList<double>* getVelocityList() const {return velocityList;}
-
+  
   // CSDMS-compliant IRF interface:
   void Initialize() {}
   void Initialize( tPtrList<tLNode>&, double, vector<double>&, 
-			   vector<double>&, vector<double>&, vector<int>&, 
-			   tMesh<tLNode>*, tErosion* );//usual constructor
+                  vector<double>&, vector<double>&, vector<int>&, 
+                  tMesh<tLNode>*, tErosion* );//usual constructor
   void RunScourDeposit();
   void Finalize();
-
+  
 protected:
   double areaFailure;
   double areaScour;
@@ -906,11 +906,11 @@ protected:
   double netForce;
   tLNode *orgPtr;
   tLNode *atPtr;
-
+  
   tErosion *erosion;
-//   tDF_RunOut *runout;
-//   tDF_Scour *scour;
-//   tDF_Deposit *deposit;
+  //   tDF_RunOut *runout;
+  //   tDF_Scour *scour;
+  //   tDF_Deposit *deposit;
   
   tPtrList<tLNode> *slideCluster;
   tPtrList<tLNode> *scourCluster;
@@ -927,7 +927,7 @@ protected:
 /***************************************************************************\
  **  overloaded output operator for tDebrisFlow:
  **  - STL, 9/2010
-\***************************************************************************/
+ \***************************************************************************/
 std::ostream &operator<<( std::ostream &, tDebrisFlow const & );
 
 /***************************************************************************/
@@ -981,7 +981,7 @@ class tDF_RunOutNone : public tDF_RunOut
   tDF_RunOutNone();
 public:
   tDF_RunOutNone( const tInputFile &infile ) {}
-//   virtual ~tDF_RunOutNone() {}
+  //   virtual ~tDF_RunOutNone() {}
   virtual bool Start( tDebrisFlow* ptr ) {return false;}
   virtual bool InMotion( tDebrisFlow* ptr ) {return false;}
 };
@@ -997,7 +997,7 @@ class tDF_RunOutNoStop : public tDF_RunOut
   tDF_RunOutNoStop();
 public:
   tDF_RunOutNoStop( const tInputFile &infile ) {}
-//   virtual ~tDF_RunOutNoStop() {}
+  //   virtual ~tDF_RunOutNoStop() {}
   virtual bool Start( tDebrisFlow* );
   virtual bool InMotion( tDebrisFlow* );
 };
@@ -1008,7 +1008,7 @@ public:
 // just checks whether already at outlet or flowing to outlet:
 inline bool tDF_RunOutNoStop::Start( tDebrisFlow *DF )
 {return ( DF->getAtPtr()->getFlowEdg() > 0 && 
-	  DF->getAtPtr()->getFlowEdg()->getDestinationPtr()->isNonBoundary() );}
+         DF->getAtPtr()->getFlowEdg()->getDestinationPtr()->isNonBoundary() );}
 
 // just checks whether already at outlet:
 inline bool tDF_RunOutNoStop::InMotion( tDebrisFlow* DF ) 
@@ -1041,7 +1041,7 @@ class tDF_ScourNone : public tDF_Scour
   tDF_ScourNone();
 public:
   tDF_ScourNone( const tInputFile &infile ) {}
-//   virtual ~tDF_ScourNone() {}
+  //   virtual ~tDF_ScourNone() {}
   virtual bool InScourZone( tDebrisFlow* DF ) {return false;}
   virtual void BedScour( tDebrisFlow* DF, tLNode* node ) {}
 };
@@ -1059,11 +1059,11 @@ class tDF_ScourAllSediment : public tDF_Scour
   tDF_ScourAllSediment();
 public:
   tDF_ScourAllSediment( const tInputFile &infile ) {}
-//   virtual ~tDF_ScourAllSediment() {}
+  //   virtual ~tDF_ScourAllSediment() {}
   virtual bool InScourZone( tDebrisFlow* DF ) {return true;}
   virtual void BedScour( tDebrisFlow*, tLNode* );
 };
- 
+
 // inline bool tDF_ScourAllSediment::InScourZone( tDebrisFlow* DF ) 
 // {return ( DF->getAtPtr() != DF->getOriginPtr() );}
 
@@ -1102,7 +1102,7 @@ class tDF_DepositNone : public tDF_Deposit
   tDF_DepositNone();
 public:
   tDF_DepositNone( const tInputFile &infile ) {}
-//   virtual ~tDF_DepositNone() {}
+  //   virtual ~tDF_DepositNone() {}
   virtual bool InDepositionZone( tDebrisFlow* DF ) {return false;}
   virtual void FormDeposit( tDebrisFlow* DF, tLNode* node ) {}
 };
@@ -1111,42 +1111,42 @@ public:
  **  Used for priority_queue in tErosion::LandslideClusters.
  **  STL, 2010                                                             */
 /***************************************************************************/
-  class NodeNetForceIndex
+class NodeNetForceIndex
+{
+public:
+  tLNode* node;
+  double netForce;
+  int index;
+  const NodeNetForceIndex &operator=( const NodeNetForceIndex &right )
   {
-  public:
-    tLNode* node;
-    double netForce;
-    int index;
-    const NodeNetForceIndex &operator=( const NodeNetForceIndex &right )
-    {
-      node = right.node;
-      netForce = right.netForce;
-      index = right.index;
-      return *this;
-    }
-  };
-  
+    node = right.node;
+    netForce = right.netForce;
+    index = right.index;
+    return *this;
+  }
+};
+
 /***************************************************************************/
 /**  @class NodeNetForce_Lesser
  **  Used for priority_queue in tErosion::LandslideClusters.
  **  STL, 2010                                                             */
 /***************************************************************************/
-  // create comparator to see which node has the lesser net downhill force:
-  class NodeNetForce_Lesser
+// create comparator to see which node has the lesser net downhill force:
+class NodeNetForce_Lesser
+{
+public:
+  bool operator()( const NodeNetForceIndex& node1, 
+                  const NodeNetForceIndex& node2 )
   {
-  public:
-    bool operator()( const NodeNetForceIndex& node1, 
-		     const NodeNetForceIndex& node2 )
-    {
-      return node1.netForce < node2.netForce;
-    }
-  };
-  
+    return node1.netForce < node2.netForce;
+  }
+};
+
 // global function for building clusters in tErosion::LandslideClusters:
 void BuildPublicClusterWithMesh( tMesh<tLNode>* mesh, 
-				 tPtrList<tLNode>* cluster, 
-				 tLNode* seedNode, 
-				 const int flagVal );
+                                tPtrList<tLNode>* cluster, 
+                                tLNode* seedNode, 
+                                const int flagVal );
 
 /***************************************************************************/
 /**
@@ -1160,39 +1160,39 @@ void BuildPublicClusterWithMesh( tMesh<tLNode>* mesh,
 /***************************************************************************/
 class tErosion
 {
-   tErosion(const tErosion&);
-   tErosion& operator=(const tErosion&);
-   tErosion();
+  tErosion(const tErosion&);
+  tErosion& operator=(const tErosion&);
+  tErosion();
 public:
-   tErosion( tMesh< tLNode > *, const tInputFile & );
-   ~tErosion();
-   void ErodeDetachLim( double dtg, tStreamNet *, tVegetation * );
-   void ErodeDetachLim( double dtg, tStreamNet *, tUplift const * );
-   void StreamErode( double dtg, tStreamNet * );
-   void StreamErodeMulti( double dtg, tStreamNet *, double time);
-   void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
-   void DetachErode2( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
-   void Diffuse( double dtg, bool detach );
-   void DiffuseNonlinear( double dtg, bool detach );
+  tErosion( tMesh< tLNode > *, const tInputFile & );
+  ~tErosion();
+  void ErodeDetachLim( double dtg, tStreamNet *, tVegetation * );
+  void ErodeDetachLim( double dtg, tStreamNet *, tUplift const * );
+  void StreamErode( double dtg, tStreamNet * );
+  void StreamErodeMulti( double dtg, tStreamNet *, double time);
+  void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
+  void DetachErode2( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
+  void Diffuse( double dtg, bool detach );
+  void DiffuseNonlinear( double dtg, bool detach );
   void DiffuseNonlinearDepthDep( double dtg, double time );
   void ProduceRegolith( double dtg, double time );
   void WeatherBedrock( double dtg );
   void LandslideClusters( double rainrate, tStreamNet* strmNet, double time );
-   void UpdateExposureTime( double dtg);
-   void DensifyMesh( double time );
-   void ActivateSedVolumeTracking( tWaterSedTracker *water_sed_tracker_ptr )
-     { track_sed_flux_at_nodes_ =true;  water_sed_tracker_ptr_ = water_sed_tracker_ptr; }
-
+  void UpdateExposureTime( double dtg);
+  void DensifyMesh( double time );
+  void ActivateSedVolumeTracking( tWaterSedTracker *water_sed_tracker_ptr )
+  { track_sed_flux_at_nodes_ =true;  water_sed_tracker_ptr_ = water_sed_tracker_ptr; }
+  
   tDF_RunOut* getDF_RunOutPtr() {return runout;}
   tDF_Scour* getDF_ScourPtr() {return scour;}
   tDF_Deposit* getDF_DepositPtr() {return deposit;}
-   
-
+  
+  
 private:
-   tMesh<tLNode> *meshPtr;    // ptr to mesh
+  tMesh<tLNode> *meshPtr;    // ptr to mesh
   // pointers to objects governing rules for sediment transport:
-   tBedErode *bedErode;        // bed erosion object
-   tSedTrans *sedTrans;        // sediment transport object
+  tBedErode *bedErode;        // bed erosion object
+  tSedTrans *sedTrans;        // sediment transport object
   // pointers to objects governing rules for weathering:
   tPhysicalWeathering *physWeath; // physical weathering object
   tChemicalWeathering *chemWeath; // chemical weathering object
@@ -1202,15 +1202,15 @@ private:
   tDF_Deposit *deposit; // debris flow deposition object
   std::ofstream *DF_fsPtr; // pointer to output stream for debris flows
   std::ofstream *DF_Hyd_fsPtr; // pointer to output stream for debris flow tally
-
-   double kd;                 // Hillslope transport (diffusion) coef
-   double difThresh;          // Diffusion occurs only at areas < difThresh
-   double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
-   double mdSc;				  // Threshold slope for nonlinear diffusion
+  
+  double kd;                 // Hillslope transport (diffusion) coef
+  double difThresh;          // Diffusion occurs only at areas < difThresh
+  double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
+  double mdSc;				  // Threshold slope for nonlinear diffusion
   double diffusionH; // depth scale for depth-dependent diffusion
-   double beta; // proportion of sediment flux contributing to bedload
-   bool track_sed_flux_at_nodes_; // option for tracking sed flux at nodes
-   tWaterSedTracker *water_sed_tracker_ptr_;  // -> water&sed tracker object
+  double beta; // proportion of sediment flux contributing to bedload
+  bool track_sed_flux_at_nodes_; // option for tracking sed flux at nodes
+  tWaterSedTracker *water_sed_tracker_ptr_;  // -> water&sed tracker object
   double soilBulkDensity; // dry bulk density of soil, when made from rock (kg/m3)
   double wetBulkDensity; // wet bulk density of soil (kg/m3)
   double woodDensity; // density of wood (kg/m3)
@@ -1218,7 +1218,7 @@ private:
 public:
   double debris_flow_sed_bucket; // tally of debris flow sed. volume
   double debris_flow_wood_bucket;// tally of debris flow wood volume
-
+  
   //int optDebrisFlowRule; // option for debris flows, used in Landslides()
 };
 
