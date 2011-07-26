@@ -46,7 +46,7 @@
 #include "../tInputFile/tInputFile.h"
 #include "../tStorm/tStorm.h"
 #include "../globalFns.h"
-
+#include <vector>
 
 
 /**************************************************************************/
@@ -63,8 +63,8 @@
 class tInlet
 {
     friend class tStreamNet;
-    tInlet(const tInlet&);
-    tInlet& operator=(const tInlet&);
+  tInlet( const tInlet&, tMesh<tLNode>* );
+  tInlet& operator=(const tInlet&);
 public:
     tInlet();
     tInlet( tMesh< tLNode > *, const tInputFile & );
@@ -143,6 +143,7 @@ private:
 class tParkerChannels
 {
  public:
+  tParkerChannels( const tParkerChannels & );
   tParkerChannels( const tInputFile &infile );
   void CalcChanGeom( tMesh<tLNode> *meshPtr );
 
@@ -159,6 +160,12 @@ private:
   tParkerChannels();
 };
 
+inline tParkerChannels::tParkerChannels( const tParkerChannels &orig )
+  : mdPPfac(orig.mdPPfac), mdPPexp1(orig.mdPPexp1), mdPPexp2(orig.mdPPexp2), 
+    mdRough(orig.mdRough), mdDepthexp(orig.mdDepthexp), 
+    miNumGrainSizeClasses(orig.miNumGrainSizeClasses), 
+    mD50BySizeClass(orig.mD50BySizeClass) 
+{}
 
 /**************************************************************************/
 /**
@@ -191,7 +198,6 @@ private:
 /**************************************************************************/
 class tStreamNet
 {
-    tStreamNet(const tStreamNet&);
     tStreamNet& operator=(const tStreamNet&);
     tStreamNet();
 public:
@@ -206,11 +212,14 @@ public:
     } kFlowGen_t;
 
     tStreamNet( tMesh< tLNode > &, tStorm &, const tInputFile & );
+  tStreamNet( const tStreamNet&, tStorm *, tMesh<tLNode>* );
     ~tStreamNet();
     void ResetMesh( tMesh< tLNode > & );
     const tMesh< tLNode > *getMeshPtr() const;
+  inline void setMeshPtr( tMesh<tLNode>* ptr ) {meshPtr = ptr;}
     tMesh< tLNode > *getMeshPtrNC();
     const tStorm *getStormPtr() const;
+  inline void setStormPtr( tStorm* ptr ) {stormPtr = ptr;}
     tStorm *getStormPtrNC();
     kFlowGen_t getFlowGenOpt() const;
     bool getFillLakesOpt() const;

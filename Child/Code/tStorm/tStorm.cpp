@@ -65,22 +65,24 @@ tStorm::tStorm( bool optvar )
 **     history (GT)
 **
 \**************************************************************************/
-tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
+tStorm::tStorm( const tInputFile &infile, tRand *rand_, 
+		bool no_write_mode /* = false */ ) :
   rand(rand_)
 {
    // Read + set parameters for storm intensity, duration, and spacing
    optVariable = infile.ReadBool( "OPTVAR" );
-
-   infile.WarnObsoleteKeyword("PMEAN", "ST_PMEAN");
-   infile.WarnObsoleteKeyword("STDUR", "ST_STDUR");
-   infile.WarnObsoleteKeyword("ISTDUR", "ST_ISTDUR");
-   infile.WarnObsoleteKeyword("OPTSINVAR", "ST_PMEAN");
-   infile.WarnObsoleteKeyword("PERIOD", "ST_PMEAN");
-   infile.WarnObsoleteKeyword("START_CYCLE_TIME", "ST_PMEAN");
-   infile.WarnObsoleteKeyword("MAXPMEAN", "ST_PMEAN");
-   infile.WarnObsoleteKeyword("MAXSTDURMN", "ST_STDUR");
-   infile.WarnObsoleteKeyword("MAXISTDURMN", "ST_ISTDUR");
-
+   if( !no_write_mode )
+     {
+       infile.WarnObsoleteKeyword("PMEAN", "ST_PMEAN");
+       infile.WarnObsoleteKeyword("STDUR", "ST_STDUR");
+       infile.WarnObsoleteKeyword("ISTDUR", "ST_ISTDUR");
+       infile.WarnObsoleteKeyword("OPTSINVAR", "ST_PMEAN");
+       infile.WarnObsoleteKeyword("PERIOD", "ST_PMEAN");
+       infile.WarnObsoleteKeyword("START_CYCLE_TIME", "ST_PMEAN");
+       infile.WarnObsoleteKeyword("MAXPMEAN", "ST_PMEAN");
+       infile.WarnObsoleteKeyword("MAXSTDURMN", "ST_STDUR");
+       infile.WarnObsoleteKeyword("MAXISTDURMN", "ST_ISTDUR");
+     }
    infile.ReadItem( p_ts, "ST_PMEAN");
    infile.ReadItem( stdur_ts, "ST_STDUR");
    infile.ReadItem( istdur_ts, "ST_ISTDUR");
@@ -99,7 +101,7 @@ tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
    }
 
    // If variable storms used, create a file for writing them
-   if( optVariable )
+   if( optVariable && !no_write_mode )
    {
       char fname[87];
 #define THEEXT ".storm"
@@ -113,6 +115,50 @@ tStorm::tStorm( const tInputFile &infile, tRand *rand_ ) :
    }
 }
 
+tStorm::tStorm( const tStorm& orig )
+   :  stormfile(),
+      rand(orig.rand),
+      p_ts(orig.p_ts),
+      stdur_ts(orig.stdur_ts),
+      istdur_ts(orig.istdur_ts),
+      p(orig.p),
+      stdur(orig.stdur),
+      istdur(orig.istdur),
+      endtm(orig.endtm),
+      optVariable(orig.optVariable)
+{}
+/**************************************************************************\
+**
+**  tStorm::TurnOnOutput, TurnOffOutput
+**
+**  Open output file so output will be directed to it, 
+**  or close output file so there won't be output.
+**
+**  SL, 10/2010
+**
+\**************************************************************************/
+void tStorm::TurnOnOutput( const tInputFile& infile )
+{
+     // If variable storms used, create a file for writing them
+  if( !stormfile.good() && optVariable )
+   {
+      char fname[87];
+#define THEEXT ".storm"
+      infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
+      strcat( fname, THEEXT );
+#undef THEEXT
+      stormfile.open( fname );
+      if( !stormfile.good() )
+          std::cerr << "Warning: unable to create storm data file '"
+		    << fname << "'\n";
+   }
+}
+
+void tStorm::TurnOffOutput()
+{
+  if( stormfile.good() )
+    stormfile.close();
+}
 
 /**************************************************************************\
 **
@@ -170,7 +216,8 @@ void tStorm::GenerateStorm( double tm, double minp, double mind )
 		     << " mind " <<mind << std::endl;
 	 }
       } while( (p<=minp || (p*stdur)<=mind) && (tm+istdur+stdur<endtm) );
-      stormfile << istdur << " " << p << " " << stdur << std::endl;
+      if( stormfile.good() )
+	stormfile << istdur << " " << p << " " << stdur << std::endl;
    }
 }
 
@@ -201,6 +248,19 @@ double tStorm::ExpDev() const
 double tStorm::getStormDuration() const { return stdur; }
 double tStorm::interstormDur() const { return istdur; }
 double tStorm::getRainrate() const { return p; }
+
+/**************************************************************************\
+**
+**  tStorm "set" routines: set various variables
+**
+\**************************************************************************/
+void tStorm::setRainrate( double pMeanNew ) 
+{
+  std::stringstream ss;
+  ss << pMeanNew;
+  p_ts.reconfigure( ss.str().c_str() );
+}
+
 
 /**************************************************************************\
 **

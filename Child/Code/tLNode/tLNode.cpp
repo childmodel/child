@@ -291,6 +291,10 @@ const tChannel &tChannel::operator=( const tChannel &right )     //tChannel
  **       one. Once the problem was discovered, the fix was simple:
  **       use the assignment operator instead. This was probably the
  **       source of the problem noted by nmg below. (gt, 2/2000)
+ **     - Changed tLNode(infile) to call new tNode(infile), which reads
+ **       static bool tNode::freezeElevations, which is referenced within
+ **       tNode::ChangeZ(dz); if freezeElevations = true, ChangeZ will do
+ **       nothing. (SL, 11/2010)
  **
 \**************************************************************************/
 
@@ -314,6 +318,7 @@ uplift(0.),
 layerlist(),
 stratNode(0),
 qsubsurf(0.),
+netDownslopeForce(0.),
 public1(-1)
 {
   if (0) //DEBUG
@@ -322,7 +327,7 @@ public1(-1)
 
 tLNode::tLNode( const tInputFile &infile )
 :
-tNode(), vegCover(), rock(), reg(), chan(),
+tNode( infile ), vegCover(), rock(), reg(), chan(),
 flood(kNotFlooded), flowedge(0), tracer(0),
 dzdt(0.), drdt(0.), tau(0.), taucb(0.), taucr(0.), qs(0.),
 qsm(),
@@ -334,6 +339,7 @@ uplift(0.),
 layerlist(),
 stratNode(0),
 qsubsurf(0.),
+netDownslopeForce(0.),
 public1(-1)
 {
   char add[2], name[20];
@@ -552,10 +558,20 @@ public1(-1)
 }
 
 tLNode::tLNode( const tLNode &orig )                               //tLNode
-  : tNode( orig ), vegCover( orig.vegCover ), rock( orig.rock ),
-    reg( orig.reg ), chan( orig.chan ),
-    flood(orig.flood), flowedge(orig.flowedge), tracer(orig.tracer),
-    dzdt(orig.dzdt), drdt(orig.drdt), tau(orig.tau), taucb(orig.taucb), taucr(orig.taucr), qs(orig.qs),
+  : tNode( orig ), 
+    vegCover( orig.vegCover ), 
+    rock( orig.rock ),
+    reg( orig.reg ), 
+    chan( orig.chan ),
+    flood(orig.flood), 
+    flowedge(0), 
+    tracer(orig.tracer),
+    dzdt(orig.dzdt), 
+    drdt(orig.drdt), 
+    tau(orig.tau), 
+    taucb(orig.taucb), 
+    taucr(orig.taucr), 
+    qs(orig.qs),
     qsm(orig.qsm),
     qsin(orig.qsin),
     qsinm(orig.qsinm ),
@@ -563,9 +579,12 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
     qsdinm(orig.qsdinm ),
     uplift(orig.uplift),
     layerlist(),
-    stratNode(orig.stratNode),
+    stratNode(0),
     accumdh(orig.accumdh),
     qsubsurf(orig.qsubsurf),
+    netDownslopeForce(orig.netDownslopeForce),
+    cumulative_ero_dep_(orig.cumulative_ero_dep_),
+    cumulative_sed_xport_volume_(orig.cumulative_sed_xport_volume_),
     public1(orig.public1)
 {
 
@@ -601,25 +620,28 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
       //surf = right.surf;
       reg = right.reg;
       chan = right.chan;
-      flowedge = right.flowedge;
       flood = right.flood;
+      flowedge = right.flowedge;
       tracer = right.tracer;
       dzdt = right.dzdt;
       drdt = right.drdt;
-      qs = right.qs;
-      qsin = right.qsin;
-      qsdin = right.qsdin;
       tau = right.tau;
       taucb = right.taucb;
-	  taucr = right.taucr;
-      uplift = right.uplift;
+      taucr = right.taucr;
+      qs = right.qs;
       qsm = right.qsm;
+      qsin = right.qsin;
       qsinm = right.qsinm;
+      qsdin = right.qsdin;
       qsdinm = right.qsdinm;
+      uplift = right.uplift;
       layerlist = right.layerlist;
       stratNode = right.stratNode;
       accumdh = right.accumdh;
       qsubsurf = right.qsubsurf;
+      netDownslopeForce = right.netDownslopeForce;
+      cumulative_ero_dep_ = right.cumulative_ero_dep_;
+      cumulative_sed_xport_volume_ = right.cumulative_sed_xport_volume_;
       public1 = right.public1;
     }
   return *this;
@@ -1087,11 +1109,18 @@ void tLNode::TellAll() const
  **  thickness and set to zero if negative (bedrock erosion).
  **  Alluvial thickness is outdated - just use other EroDep.
  **
+ **  Modified, 11/2010: Now calls tLNode::ChangeZ(dz) (which calls 
+ **  tNode::ChangeZ(dz)) instead of changing the elevation directly so 
+ **  that a new static boolean tNode::freezeElevations is consulted to 
+ **  determine whether elevations are meant to change or not.
+ **
  **  1/15/98 gt
 \**************************************************************************/
 void tLNode::EroDep( double dz )
 {
-  z += dz;
+//   z += dz;
+  ChangeZ( dz );
+
   cumulative_ero_dep_ += dz;
   if (0) //DEBUG
     std::cout << "  eroding " << id << " by " << dz << std::endl;
@@ -1964,6 +1993,11 @@ tLNode* tLNode::getUpstrmNbr()
           below, just make a new layer.
 
   Created 6/98 ng
+ 
+  Modified, 11/2010: Now calls tLNode::ChangeZ(dz) (which calls 
+   tNode::ChangeZ(dz)) instead of changing the elevation directly so 
+   that a new static boolean tNode::freezeElevations is consulted to 
+   determine whether elevations are meant to change or not.
 
 \***********************************************************************/
 
@@ -2007,7 +2041,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
   }
   
   // val is now set to the total amount of erosion or deposition
-  z += val;
+//   z += val;
+  ChangeZ( val );
   // total elevation has now been changed
   cumulative_ero_dep_ += val;
   // elevation change has been added to cumulative (for coupling with other models)

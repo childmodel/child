@@ -39,6 +39,16 @@ private:
   const int ncols;
 };
 
+// template < class T >
+// inline tMatrix<T>::tMatrix(const tMatrix& orig)
+//   : ptr( orig.ptr ),
+//     nrows(orig.nrows),
+//     ncols(orig.ncols)
+// {}
+
+// template < class T >
+// inline tMatrix& tMatrix<T>::operator=(const tMatrix& right)
+
 // Constructor: sets the size of the matrix to nr by nc and sets all values
 // to zero.
 template < class T >

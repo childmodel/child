@@ -21,6 +21,7 @@ class tOption {
 public:
   bool silent_mode;      // Option for silent mode (no time output to stdout)
   bool checkMeshConsistency;
+  bool no_write_mode; // option to force no writing to files
   char const *inputFile;
 
   tOption(int argc, char const * const argv[]);

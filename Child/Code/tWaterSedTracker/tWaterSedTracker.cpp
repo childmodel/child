@@ -46,10 +46,24 @@ using namespace std;
 /**************************************************************************/
 tWaterSedTracker::
 tWaterSedTracker()
+  : active(false)
 {
   if(1) cout << "tWaterSedTracker constructor" << endl;
 }
 
+// copy constructor for copying to new mesh:
+tWaterSedTracker::tWaterSedTracker( const tWaterSedTracker& orig,
+				    tMesh<tLNode>* nPtr )
+  : tracking_node_list_( orig.tracking_node_list_.size() )
+{
+  output_file_base_name_ = orig.output_file_base_name_;
+  const int number_of_nodes_to_track = tracking_node_list_.size();
+  tMesh< tLNode >::nodeListIter_t nNI( nPtr->getNodeList() );
+  for( int i=0; i<number_of_nodes_to_track; ++i )
+    tracking_node_list_[i] = nNI.GetP( orig.tracking_node_list_[i]->getID() );
+  // Create and open the output files
+  CreateAndOpenWaterAndSedimentOutputFiles( number_of_nodes_to_track, 0.0 );
+}
 
 /**************************************************************************/
 /**
@@ -84,6 +98,7 @@ tWaterSedTracker::
 void tWaterSedTracker::
 InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh /*, tErosion *erosion*/ )
 {
+  active = true;
   int number_of_nodes_to_track;
   string input_string;
   stringstream input_stringstream;

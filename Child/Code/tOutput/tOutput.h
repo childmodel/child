@@ -62,8 +62,8 @@ class tOutputBase
 {
   tOutputBase(const tOutputBase&);
   tOutputBase& operator=(const tOutputBase&);
-  tOutputBase();
 protected:
+  tOutputBase();
   tOutputBase( tMesh<tSubNode> * meshPtr, const tInputFile &infile );
   virtual ~tOutputBase() { m = 0; }
 
@@ -92,11 +92,15 @@ protected:
 template< class tSubNode >
 class tOutput : public tOutputBase<tSubNode>
 {
-  tOutput(const tOutput&);
+  tOutput( const tOutput& );
   tOutput& operator=(const tOutput&);
   tOutput();
 public:
-  tOutput( tMesh<tSubNode> * meshPtr, const tInputFile &infile);
+//   tOutput( const tOutput& orig )
+//     : nodeofs(orig.nodeofs), edgofs(orig.edgofs), triofs(orig.triofs),
+//       zofs(orig.zofs), vaofs(orig.vaofs), 
+//       CanonicalNumbering(orig.CanonicalNumbering) {}
+  tOutput( tMesh<tSubNode> * meshPtr, const tInputFile &infile );
   void WriteOutput( double time );
 
 private:
@@ -182,7 +186,7 @@ class tLOutput : public tOutput<tSubNode>
   tLOutput& operator=(const tLOutput&);
   tLOutput();
 public:
-   tLOutput( tMesh<tSubNode> * meshPtr, const tInputFile &infile, tRand *);
+  tLOutput( tMesh<tSubNode> * meshPtr, const tInputFile &infile, tRand * );
    virtual ~tLOutput();
    void WriteTSOutput();
    bool OptTSOutput() const;
@@ -198,7 +202,7 @@ private:
    std::ofstream drareaofs;  // Drainage areas
    std::ofstream netofs;     // Downstream neighbor IDs
    std::ofstream slpofs;     // Slopes in the direction of flow
-   std::ofstream qofs;       // Discharge
+   std::ofstream qofs;       // Discharge (surface)
    std::ofstream layofs;     // Layer info
    std::ofstream surfofs;    // Surfer style x,y,z file with top layer properties in columns of triangular nodes
    std::ofstream texofs;     // Texture info
@@ -214,6 +218,9 @@ private:
    std::ofstream qsdinofs;   // incoming sediment flux
    std::ofstream dzdtofs;    // fluvial erosion rate at a point 
    std::ofstream permIDofs;  // File with permanent ID numbers
+  std::ofstream lsforceofs; // net downslope force for landsliding
+  std::ofstream qsubofs; // subsurface discharge
+  std::ofstream publicflagofs; // public flag used in landsliding (or whatever)
 
   tTSOutputImp<tSubNode> *TSOutput;  // Time Series output
   tStratOutputImp<tSubNode> *stratOutput;
@@ -225,6 +232,23 @@ private:
   inline void WriteActiveNodeData( tSubNode * );
   inline void WriteAllNodeData( tSubNode * );
 };
+
+// copy constructor:
+// template< class tSubNode >
+// inline tLOutput<tSubNode>::tLOutput(const tLOutput& orig)
+//   : randomofs(orig.randomofs), drareaofs(orig.drareaofs), 
+//     netofs(orig.netofs), slpofs(orig.slpofs), qofs(orig.qofs), layofs(orig.layofs), 
+//     surfofs(orig.surfofs), texofs(orig.texofs), vegofs(orig.vegofs), 
+//     forestofs(orig.forestofs), flowdepofs(orig.flowdepofs), 
+//     chanwidthofs(orig.chanwidthofs), flowpathlenofs(orig.flowpathlenofs), 
+//     tauofs(orig.tauofs), qsofs(orig.qsofs), upofs(orig.upofs), qsinofs(orig.qsinofs), 
+//     qsdinofs(orig.qsdinofs), dzdtofs(orig.dzdtofs), permIDofs(orig.permIDofs), 
+//     counter(orig.counter), Surfer(orig.Surfer)
+// {
+//   if( orig.TSOutput ) TSOutput = new tTSOutputImp<tSubNode>( *orig.TSOutput );
+//   if( orig.stratOutput ) stratOutput = new tStratOutputImp<tSubNode>( *orig.stratOutput );
+//   rand = orig.rand;
+// }
 
 // Write data, including layer info
 // Modified by SL, 7/2010: 
@@ -320,6 +344,9 @@ inline void tLOutput<tSubNode>::WriteAllNodeData( tSubNode *cn )
   if( dzdtofs.good() ) dzdtofs << cn->getDzDt() << '\n';
   if( upofs.good() ) upofs << cn->getUplift() << '\n';
   if( permIDofs.good() ) permIDofs << cn->getPermID() << '\n';
+  if( lsforceofs.good() ) lsforceofs << cn->getNetDownslopeForce() << '\n';
+  if( qsubofs.good() ) qsubofs << cn->getSubSurfaceDischarge() << '\n';
+  if( publicflagofs.good() ) publicflagofs << cn->public1 << '\n';
 }
 
 

@@ -46,14 +46,16 @@
 /**************************************************************************/
 class tEolian
 {
-    tEolian();
+  tEolian();
 public:
-    tEolian( const tInputFile &infile );
-    void DepositLoess( tMesh<tLNode> *mp, double delt, double ctime );
+  tEolian( const tInputFile &infile );
+  tEolian( const tEolian &orig )
+    : loessDepRate(orig.loessDepRate), depositDepth(orig.depositDepth) {}
+  void DepositLoess( tMesh<tLNode> *mp, double delt, double ctime );
 
 private:
-    double loessDepRate;
-    tArray<double> depositDepth;
+  double loessDepRate;
+  tArray<double> depositDepth;
 };
 
 #endif

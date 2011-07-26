@@ -8,6 +8,9 @@
 //
 // Copyright 2000 P. W. Bogaart / VUA
 // January 2004: Cleaned up and integrated in Child (AD)
+// Oct. 2010: Gave tTimeSeries a copy constructor and the various
+//  sub-classes of tTimeSeriesImp virtual Initialize_Copy f'ns
+//  so that different sub-classes are instantiated in the copy. (SL)
 //--------------------------------------------------------------
 
 #include "tTimeSeries.h"
@@ -109,6 +112,7 @@ class tTimeSeriesImp {
   virtual double calc(double time) const = 0;
   virtual void TellAll() const = 0;
   virtual ~tTimeSeriesImp() {}
+  virtual void Initialize_Copy( tTimeSeriesImp* ) =0;
 };
 
 
@@ -124,7 +128,14 @@ class  tConstantTimeSeriesImp : public tTimeSeriesImp {
   virtual void configure(const char *s);
   virtual double calc(double time) const;
   virtual void TellAll() const;
+  virtual void Initialize_Copy( tTimeSeriesImp* );
 };
+
+inline void tConstantTimeSeriesImp::Initialize_Copy(tTimeSeriesImp* oPtr)
+{
+  tConstantTimeSeriesImp* ptr=static_cast<tConstantTimeSeriesImp*>(oPtr);
+  value = ptr->value;
+}
 
 
 //--------------------------------------------------------------
@@ -139,8 +150,15 @@ class tLinearGrowthTimeSeriesImp : public tTimeSeriesImp {
   virtual void configure(const char *s);
   virtual double calc(double time) const;
   virtual void TellAll() const;
+  virtual void Initialize_Copy( tTimeSeriesImp* );
 };
 
+inline void tLinearGrowthTimeSeriesImp::Initialize_Copy(tTimeSeriesImp* oPtr)
+{
+  tLinearGrowthTimeSeriesImp* ptr=static_cast<tLinearGrowthTimeSeriesImp*>(oPtr);
+  initialValue = ptr->initialValue;
+  rate = ptr->rate;
+}
 
 //--------------------------------------------------------------
 // tWaveTimeSeriesImp is used as a common ancestor for the
@@ -153,8 +171,17 @@ class tWaveTimeSeriesImp : public tTimeSeriesImp {
   double mean, amp, period, lag;
  public:
   virtual void configure(const char *s);
+  virtual void Initialize_Copy( tTimeSeriesImp* );
 };
 
+inline void tWaveTimeSeriesImp::Initialize_Copy(tTimeSeriesImp* oPtr)
+{
+  tWaveTimeSeriesImp* ptr=static_cast<tWaveTimeSeriesImp*>(oPtr);
+  mean = ptr->mean;
+  amp = ptr->amp;
+  period = ptr->period;
+  lag = ptr->lag;
+}
 
 //--------------------------------------------------------------
 // tSinwaveTimeSeriesImp is used for parameter defs of the form
@@ -190,12 +217,26 @@ class tDataTimeSeriesImp : public tTimeSeriesImp {
   tDataTimeSeriesImp();
   ~tDataTimeSeriesImp();
   virtual double calc(double time) const;
+  virtual void Initialize_Copy( tTimeSeriesImp* );
  protected:
   double *xdata, *ydata;  // here's the data
   int    n;               // number of data pairs
   bool   interpolate;     // interpolate/forward mode switch
 };
 
+inline void tDataTimeSeriesImp::Initialize_Copy(tTimeSeriesImp* oPtr)
+{
+  tDataTimeSeriesImp* ptr=static_cast<tDataTimeSeriesImp*>(oPtr);
+  n = ptr->n;
+  interpolate = ptr->interpolate;
+  xdata = new double[n];
+  ydata = new double[n];
+  for( int i=0; i<n; ++i )
+    {
+      xdata[i] = ptr->xdata[i];
+      ydata[i] = ptr->ydata[i];
+    }
+}
 
 //--------------------------------------------------------------
 // tFileTimeSeriesImp is used for paramter defs of the form
@@ -791,7 +832,6 @@ void nr_hunt(const double *xx, int n, double x, int& jlo)
 void tConstantTimeSeriesImp::configure(const char *s)
 {
   int check;
-
   // s must be a string rep. of a floating point, e.g. "3.1415"
   check = sscanf(s,"%lf", &value);
   assert(check==1);
@@ -1092,6 +1132,28 @@ tTimeSeries::tTimeSeries() :
   ts(0)
 {}
 
+// copy constructor (SL, 10/10)
+tTimeSeries::tTimeSeries(tTimeSeries const &orig) 
+  : tagImp(orig.tagImp)
+{
+  if( tagImp == 0 )
+    ts = new tConstantTimeSeriesImp();
+  else if( tagImp == 1 )
+    ts = new tSinwaveTimeSeriesImp();
+  else if( tagImp == 2 )
+    ts = new tBlockwaveTimeSeriesImp();
+  else if( tagImp == 3 )
+    ts = new tLinearGrowthTimeSeriesImp();
+  else if( tagImp == 4 )
+    ts = new tFileTimeSeriesImp();
+  else if( tagImp == 5 )
+    ts = new tInlineTimeSeriesImp();
+  else
+    assert(0);
+  ts->Initialize_Copy( orig.ts );
+  assert( ts );
+}
+
 tTimeSeries::~tTimeSeries()
 {
   delete ts;
@@ -1105,26 +1167,32 @@ void tTimeSeries::configure(const char *s)
   if (strstr(s,"@sinwave")==s) {
     ts = new tSinwaveTimeSeriesImp();
     p = s+8;
+    tagImp = 1;
   }
   else if (strstr(s,"@blockwave")==s) {
     ts = new tBlockwaveTimeSeriesImp();
     p = s+9;
+    tagImp = 2;
   }
   else if (strstr(s,"@linear")==s) {
     ts = new tLinearGrowthTimeSeriesImp();
     p = s+7;
+    tagImp = 3;
   }
   else if (strstr(s,"@file")==s) {
     ts = new tFileTimeSeriesImp();
     p = s+5;
+    tagImp = 4;
   }
   else if (strstr(s,"@inline")==s) {
     ts = new tInlineTimeSeriesImp();
     p = s+7;
+    tagImp = 5;
   }
   else if (strstr(s,"@constant")==s) {
     ts = new tConstantTimeSeriesImp();
     p = s+9;
+    tagImp = 0;
   }
   else {
     // also parse "normal" lines, containing a float
@@ -1132,9 +1200,9 @@ void tTimeSeries::configure(const char *s)
     if (sscanf(s,"%lf",&f)==1) {
       ts = new tConstantTimeSeriesImp();
       p = s;
+      tagImp = 0;
     }
   }
-
   assert(ts!=0);
   ts->configure(p);
 }

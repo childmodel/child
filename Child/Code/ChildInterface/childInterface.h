@@ -71,7 +71,10 @@ class childInterface
 public:
   // Public methods
   childInterface();
+  void Initialize_Copy( const childInterface& );
   void Initialize( int argc, char **argv );
+  vector<double> VaryParameters( const tInputFile &, const double &, tRand &, 
+				 bool yesVary = true ); 
   double RunOneStorm();
   void Run( double run_duration );
   void CleanUp();
@@ -98,7 +101,10 @@ public:
   double GetZCoordinate( int element_index, int vertex_index );
   std::vector<double> GetValueSet( string var_name );
   void SetValueSet( string var_name, std::vector<double> values );
-	
+  void setWriteOption( bool, tInputFile& );
+  void WriteChildStyleOutput();
+  void ChangeOption( string option, int val );
+
   // Additional custom functions to accompany IElement interface
   bool IsInteriorNode( int element_index );
   long GetNodeCount();
@@ -118,10 +124,14 @@ private:
   std::vector<double> GetNodeDischargeVector();  // Creates and returns vector of Q
   std::vector<double> GetNodeSedimentFluxVector();  // Creates and returns vector of Qs
   void SetNodeElevations( std::vector<double> elevations );
+  std::vector<double> GetLandslideAreasVector(); // Creates and returns vector of landslides
   
   // Private data
   bool initialized;      // Flag indicated whether model has been initialized
-  bool optDetachLim,      // Option for detachment-limited erosion only
+  bool optNoDiffusion,   // Option to turn off diffusive processes (default to false)
+    optNoFluvial,        // Option to turn off fluvial processes (default to false)
+    optNoUplift,       // Option to turn off uplift (default to false) 
+    optDetachLim,      // Option for detachment-limited erosion only
     optFloodplainDep,  // Option for floodplain (overbank) deposition
     optLoessDep,       // Option for eolian deposition
     optVegetation,     // Option for dynamic vegetation cover
@@ -134,6 +144,7 @@ private:
     optNonlinearDiffusion, // Option for nonlinear creep transport
     optDepthDependentDiffusion, // Option for depth dependent creep transport
     optLandslides, // Option for landsliding
+    opt3DLandslides, // Option for determining which landslide function to use
     optChemicalWeathering, // Option for chemical weathering
     optPhysicalWeathering; // Option for physical weathering
   bool optStreamLineBoundary; // Option for converting streamlines to open boundaries

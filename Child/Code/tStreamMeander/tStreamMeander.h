@@ -49,7 +49,6 @@
 */
 class tStreamMeander
 {
-  tStreamMeander(const tStreamMeander&);
   tStreamMeander& operator=(const tStreamMeander&);
 public:
    //sets everything to zero:
@@ -58,6 +57,7 @@ public:
    //(will crash if ptr to tStreamNet obj. is zero);
    //does not call MakeReaches():
    tStreamMeander( tStreamNet &, tMesh< tLNode > &, tInputFile &, tRand *rand );
+  tStreamMeander(const tStreamMeander&);
    ~tStreamMeander();
    //finds "meanderability" and calls tLNode::setMeanderStatus
    //for each active node:
@@ -98,6 +98,10 @@ public:
    //only routine you need to make meandering happen for you:
    //Migrate is sent the current time
    void Migrate( double );
+  inline void setMeshPtr( tMesh<tLNode>* Ptr ) {meshPtr = Ptr;}
+  inline void setNetPtr( tStreamNet* Ptr ) {netPtr = Ptr;}
+  inline void setInfilePtr( tInputFile* Ptr ) {infilePtr = Ptr;}
+  inline void setRandPtr( tRand* Ptr ) {rand = Ptr;}
 
 protected:
       //ptrs and list stuff:

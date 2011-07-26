@@ -142,7 +142,7 @@ public:
 
 protected:
   tList< tLayer > layerlist;    // Stratigraphic layerlist at this tStratGrid node location
-  tLNode *ClosestNode;		// ptr to the closest tLNode
+  tLNode *ClosestNode;		// ptr to the closest tLNode (unused?)
   double x;         		  // x coordinate
   double y;         		  // y coordinate
   double z;         		  // z value (representing height)
@@ -173,12 +173,12 @@ protected:
 /**************************************************************************/
 class tStratGrid
 {
-  tStratGrid(const tStratGrid&);
-  tStratGrid& operator=(const tStratGrid&);
   tStratGrid();
 
 public:
   tStratGrid( tInputFile const &infile, tMesh<tLNode> *mp );
+  tStratGrid( const tStratGrid& );
+  tStratGrid& operator=(const tStratGrid&);
   ~tStratGrid();
 
   int getImax() const
@@ -223,6 +223,7 @@ public:
   double getSubsurface_mbelt(int) const;
   double getOutputTime(int) const;
   int getnWrite() const;
+  void setMesh( tMesh<tLNode>* ptr ){ mp = ptr;}
   void updateConnect();
   double CalculateMeanderCurrent(tTriangle *, double, double) const;
   double CompassAngle(tLNode *,tLNode *) const;

@@ -52,6 +52,129 @@ childInterface() : element_set_id("CHILD_node_element_set"),
 	strmMeander = NULL;
 }
 
+/**************************************************************************/
+/**
+**  Initialize_Copy
+**
+**  Like a copy constructor or assignment operator, except that the members
+**  of childInterface that refer to important Child objects are
+**  pointers. A copy constructor or assignment operator would simply copy
+**  those pointers. For separate copies of those objects, we need something
+**  different, which is this. Before calling this function, construct a 
+**  childInterface object with the default constructor, and then call this
+**  function from that uninitialized object and pass the state you want to 
+**  copy:
+**    childInterface myChildInterface;
+**    myChildInterface.Initialize( argc, argv );
+**    childInterface childCopy;
+**    childCopy.Initialize_Copy( myChildInterface );
+**
+**  I've made a strong attempt to make sure that all necessary copy 
+**  constructors and assignment operators exist, and that pointer members
+**  of the various objects are assigned the appropriate pointers that
+**  point to members of the copy rather than simply copying the pointers
+**  to members of the original. That said, be careful...
+**
+**  This function can be used to (a) store an initial condition, e.g.,
+**  for comparison to a final result, and (b) create a "daughter"
+**  simulation with all the parameter values of the "parent," where those
+**  parameter values may then be changed, e.g., in a Monte Carlo 
+**  optimization.
+**
+**  SL, 10/2010
+*/
+/**************************************************************************/
+void childInterface::Initialize_Copy( const childInterface& orig )
+{
+  initialized = orig.initialized; // if you copy an unitialized object...
+  optNoDiffusion = orig.optNoDiffusion;
+  optNoFluvial = orig.optNoFluvial;
+  optNoUplift = orig.optNoUplift;
+  optDetachLim = orig.optDetachLim;
+  optFloodplainDep = orig.optFloodplainDep;
+  optLoessDep = orig.optLoessDep;
+  optVegetation = orig.optVegetation;
+  optFire = orig.optFire;
+  optForest = orig.optForest;
+  optMeander = orig.optMeander;
+  optDiffuseDepo = orig.optDiffuseDepo;
+  optStratGrid = orig.optStratGrid;
+  optTrackWaterSedTimeSeries = orig.optTrackWaterSedTimeSeries;
+  optNonlinearDiffusion = orig.optNonlinearDiffusion;
+  optDepthDependentDiffusion = orig.optDepthDependentDiffusion;
+  optLandslides = orig.optLandslides;
+  opt3DLandslides = orig.opt3DLandslides;
+  optChemicalWeathering = orig.optChemicalWeathering;
+  optPhysicalWeathering = orig.optPhysicalWeathering;
+  optStreamLineBoundary = orig.optStreamLineBoundary;
+  
+  if( orig.rand )
+    rand = new tRand( *orig.rand );
+  if( orig.mesh )
+    mesh  = new tMesh<tLNode>( orig.mesh );
+  // copying output objects too problematic:
+  output = 0;
+//   if( orig.output )
+//     output = new tLOutput<tLNode>( *orig.output );
+  if( orig.storm )
+    {
+      storm = new tStorm( *orig.storm );
+      storm->setRand( rand );
+    }
+  if( orig.strmNet )
+    {
+//       const int nA = orig.mesh->getNodeList()->getActiveSize();
+//       vector<int> flowDest( nA );
+//       tMesh<tLNode>::nodeListIter_t oNI( orig.mesh->getNodeList() );
+//       int i=0;
+//       for( tLNode* cn = oNI.FirstP(); oNI.IsActive(); cn = oNI.NextP() )
+// 	flowDest[i] = cn->getDownstrmNbr()->getID();
+//       strmNet = new tStreamNet( *orig.strmNet, storm, mesh, flowDest );
+      strmNet = new tStreamNet( *orig.strmNet, storm, mesh );
+    }
+  if( orig.erosion )
+    erosion = new tErosion( *orig.erosion, mesh );
+  if( orig.uplift )
+    uplift = new tUplift( *orig.uplift );
+  if( orig.time )
+    time = new tRunTimer( *orig.time );
+  if( orig.vegetation )
+    {
+      vegetation = new tVegetation( *orig.vegetation );
+      if( vegetation->FirePtr() )
+	vegetation->FirePtr()->setTimePtr( time );
+      if( vegetation->ForestPtr() )
+	{
+	  vegetation->ForestPtr()->setMeshPtr( mesh ); // also sets pointers in tTrees
+	  vegetation->ForestPtr()->setStormPtr( storm );
+	}
+    }
+  if( orig.floodplain )
+    {
+      floodplain = new tFloodplain( *orig.floodplain );
+      floodplain->setMeshPtr( mesh );
+    }
+  if( orig.stratGrid )
+    {
+      stratGrid = new tStratGrid( *orig.stratGrid );
+      stratGrid->setMesh( mesh );
+      stratGrid->updateConnect();
+    }
+  if( orig.loess )
+    loess = new tEolian( *orig.loess );
+  if( orig.strmMeander )
+    {
+      strmMeander = new tStreamMeander( *orig.strmMeander );
+      strmMeander->setMeshPtr( mesh );
+      strmMeander->setNetPtr( strmNet );
+      strmMeander->setRandPtr( rand );
+    }
+
+  element_set_id = orig.element_set_id;
+  element_set_description = orig.element_set_description;
+  version = orig.version;
+
+}
 
 /**************************************************************************/
 /**
@@ -92,19 +215,49 @@ Initialize( int argc, char **argv )
    // Open main input file
    tInputFile inputFile( option.inputFile );
 
+   // Get various options
+   optNoDiffusion = inputFile.ReadBool( "OPTNODIFFUSION", false );
+   optNoFluvial = inputFile.ReadBool( "OPTNOFLUVIAL", false );
+   optNoUplift = inputFile.ReadBool( "OPTNOUPLIFT", false );
+   optDetachLim = inputFile.ReadBool( "OPTDETACHLIM" );
+   optDiffuseDepo = inputFile.ReadBool( "OPTDIFFDEP" );
+   optVegetation = inputFile.ReadBool( "OPTVEG" );
+   optForest = inputFile.ReadBool( "OPTFOREST", false );
+   optFire = inputFile.ReadBool( "OPTFIRE", false );
+   optFloodplainDep = inputFile.ReadBool( "OPTFLOODPLAIN" );
+   optLoessDep = inputFile.ReadBool( "OPTLOESSDEP" );
+   optMeander = inputFile.ReadBool( "OPTMEANDER" );
+   optStratGrid = inputFile.ReadBool( "OPTSTRATGRID" ,false);
+   optNonlinearDiffusion = inputFile.ReadBool( "OPT_NONLINEAR_DIFFUSION", false );
+   optDepthDependentDiffusion = 
+     inputFile.ReadBool( "OPT_DEPTH_DEPENDENT_DIFFUSION", false );
+   optLandslides = inputFile.ReadBool( "OPT_LANDSLIDES", false );
+   opt3DLandslides = inputFile.ReadBool( "OPT_3D_LANDSLIDES", false );
+   optChemicalWeathering = inputFile.ReadBool( "CHEM_WEATHERING_LAW", false );
+   optPhysicalWeathering = inputFile.ReadBool( "PRODUCTION_LAW", false );
+   optTrackWaterSedTimeSeries = 
+     inputFile.ReadBool( "OPT_TRACK_WATER_SED_TIMESERIES", false );
+   
+
    // Create a random number generator for the simulation itself
    rand = new tRand( inputFile );
 
    // Create and initialize objects:
-   std::cout << "Creating mesh...\n";
+   if( !option.silent_mode )
+     std::cout << "Creating mesh...\n";
    mesh = new tMesh<tLNode>( inputFile, option.checkMeshConsistency );
 
-   std::cout << "Creating output files...\n";
-   output = new tLOutput<tLNode>( mesh, inputFile, rand );
-
-   storm = new tStorm( inputFile, rand );
+   if( !option.no_write_mode )
+     {
+       if( !option.silent_mode )
+	 std::cout << "Creating output files...\n";
+       output = new tLOutput<tLNode>( mesh, inputFile, rand );
+     }
    
-   std::cout << "Creating stream network...\n";
+   storm = new tStorm( inputFile, rand, option.no_write_mode );
+   
+   if( !option.silent_mode )
+        std::cout << "Creating stream network...\n";
    strmNet = new tStreamNet( *mesh, *storm, inputFile );
    optStreamLineBoundary = inputFile.ReadBool( "OPTSTREAMLINEBNDY", false );
    // option to convert streamlines from specified points along streamlines
@@ -122,26 +275,10 @@ Initialize( int argc, char **argv )
        strmNet->CheckNetConsistency();
        strmNet->MakeFlow( 0.0 );
      }
-   erosion = new tErosion( mesh, inputFile );
-   uplift = new tUplift( inputFile );
+   erosion = new tErosion( mesh, inputFile, option.no_write_mode );
+   if( !optNoUplift )
+     uplift = new tUplift( inputFile );
 
-   // Get various options
-   optDetachLim = inputFile.ReadBool( "OPTDETACHLIM" );
-   optDiffuseDepo = inputFile.ReadBool( "OPTDIFFDEP" );
-   optVegetation = inputFile.ReadBool( "OPTVEG" );
-   optForest = inputFile.ReadBool( "OPTFOREST", false );
-   optFire = inputFile.ReadBool( "OPTFIRE", false );
-   optFloodplainDep = inputFile.ReadBool( "OPTFLOODPLAIN" );
-   optLoessDep = inputFile.ReadBool( "OPTLOESSDEP" );
-   optMeander = inputFile.ReadBool( "OPTMEANDER" );
-   optStratGrid = inputFile.ReadBool( "OPTSTRATGRID" ,false);
-   optNonlinearDiffusion = inputFile.ReadBool( "OPT_NONLINEAR_DIFFUSION", false );
-   optDepthDependentDiffusion = 
-     inputFile.ReadBool( "OPT_DEPTH_DEPENDENT_DIFFUSION", false );
-   optLandslides = inputFile.ReadBool( "OPT_LANDSLIDES", false );
-   optChemicalWeathering = inputFile.ReadBool( "CHEM_WEATHERING_LAW", false );
-   optPhysicalWeathering = inputFile.ReadBool( "PRODUCTION_LAW", false );
-   optTrackWaterSedTimeSeries = inputFile.ReadBool( "OPT_TRACK_WATER_SED_TIMESERIES", false );
    
    // create run timer object:
    time = new tRunTimer( inputFile, !option.silent_mode );
@@ -152,9 +289,11 @@ Initialize( int argc, char **argv )
        if( optFire )
 	 {
 	   if( optForest )
-	     vegetation = new tVegetation( mesh, inputFile, time, storm );
+	     vegetation = new tVegetation( mesh, inputFile, option.no_write_mode, 
+					   time, storm );
 	   else
-	     vegetation = new tVegetation( mesh, inputFile, time );
+	     vegetation = new tVegetation( mesh, inputFile, option.no_write_mode, 
+					   time );
 	 }
        else
 	 vegetation = new tVegetation( mesh, inputFile );
@@ -178,21 +317,180 @@ Initialize( int argc, char **argv )
      if (!optFloodplainDep)
        ReportFatalError("OPTFLOODPLAIN must be enabled.");
      stratGrid = new tStratGrid (inputFile, mesh);
-     output->SetStratGrid( stratGrid, strmNet );
+     if( output )
+       output->SetStratGrid( stratGrid, strmNet );
    }
-   
+
    // If applicable, set up tracking of water and sediment flux
-   if( optTrackWaterSedTimeSeries )
+   if( optTrackWaterSedTimeSeries && !option.no_write_mode )
    {
      water_sed_tracker_.InitializeFromInputFile( inputFile, mesh );
      erosion->ActivateSedVolumeTracking( &water_sed_tracker_ );
    }
 
-   std::cout << "Writing data for time zero...\n";
-   output->WriteOutput( 0. );
+   if( !option.silent_mode )
+     std::cout << "Writing data for time zero...\n";
+   if( output )
+     output->WriteOutput( 0. );
    initialized = true;
-   std::cout << "Initialization done.\n";
+   if( !option.silent_mode )
+     std::cout << "Initialization done.\n";
 
+}
+
+
+/**************************************************************************/
+/**
+**  VaryParameters
+**
+**  This method varies the parameters by amounts given be the values
+**  in the input file (typically the standard deviation of measured values)
+**  and the step size (for multiplication by the values in the input file).
+**
+**  NOTE: Need to set variable parameters "by hand" in this function, i.e.,
+**  if you want to vary a parameter, you need to include a 
+**  tInputFile::ReadDouble (or whatever) for that variable (with keyword),
+**  find what object that variable is a member of, and use the appropriate 
+**  "get" and "set" functions to change the value. You may need to write
+**  new "get" and "set" functions also, as many parameters are not meant
+**  to be changed and therefore don't have associated "get" and "set"
+**  functions. And, for some parameters, you'll need to go through every
+**  active node in the mesh to change the associated quantity. 
+**  Have fun!
+**
+**  -SL, 10/2010
+*/
+/**************************************************************************/
+vector<double> childInterface::
+VaryParameters( const tInputFile &optFile, const double &delta, 
+		tRand &rand, bool yesVary /*=true*/ )
+{
+  tList<double> paramL;
+  // precipitation rate:
+  double tmpVal = optFile.ReadDouble( "ST_PMEAN", false );
+  if( tmpVal > 0.0 )
+    {
+      storm->GenerateStorm( 0.0 );
+      double newRainrate = storm->getRainrate();
+      if(yesVary)
+	{
+	  do
+	    newRainrate += tmpVal * delta * ( rand.ran3() - 0.5 ) * 2.0;
+	  while( newRainrate <= 0.0 );
+	  storm->setRainrate( newRainrate );
+	}
+      paramL.insertAtBack( newRainrate );
+    }
+  // infiltration rate, also saturated hydraulic conductivity:
+  tmpVal = optFile.ReadDouble( "INFILTRATION", false );
+  if( tmpVal > 0.0 )
+    {
+      double newInfilt = strmNet->getInfilt();
+      if(yesVary)
+	{
+	  do
+	    newInfilt += tmpVal * delta * ( rand.ran3() - 0.5 ) * 2.0;
+	  while( newInfilt <= 0.0 );
+	  strmNet->setInfilt( newInfilt );
+	}
+      paramL.insertAtBack( newInfilt );
+    }
+  // depth scale for depth-dependent diffusion, also used with 
+  // root cohesion:
+  tmpVal = optFile.ReadDouble( "DIFFDEPTHSCALE", false );
+  if( tmpVal > 0.0 )
+    {
+      double newDiffDepth = erosion->getDiffusionH();
+      if(yesVary)
+	{
+	  do
+	    newDiffDepth += tmpVal * delta * ( rand.ran3() - 0.5 ) * 2.0;
+	  while( newDiffDepth <= 0.0 );
+	  erosion->setDiffusionH( newDiffDepth );
+	}
+      paramL.insertAtBack( newDiffDepth );
+    }
+  // soil bulk density; also resets wet bulk density (done in "set"):
+  tmpVal = optFile.ReadDouble( "SOILBULKDENSITY", false );
+  if( tmpVal > 0.0 )
+    {
+      double newSoilDens = erosion->getSoilBulkDensity();
+      if(yesVary)
+	{
+	  do
+	    newSoilDens += tmpVal * delta * ( rand.ran3() - 0.5 ) * 2.0;
+	  while( newSoilDens <= 0.0 );
+	  erosion->setSoilBulkDensity( newSoilDens );
+ 	}
+      paramL.insertAtBack( newSoilDens );
+   }
+  // soil depth:
+  tmpVal = optFile.ReadDouble( "REGINIT", false );
+  if( tmpVal > 0.0 )
+    {
+      tMesh<tLNode>::nodeListIter_t nI( mesh->getNodeList() );
+      double newRegDepth = nI.FirstP()->getRegolithDepth();
+      if(yesVary)
+	{
+	  do
+	    newRegDepth += tmpVal * delta * ( rand.ran3() - 0.5 ) * 2.0;
+	  while( newRegDepth <= 0.0 );
+	  for( tLNode* cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+	    cn->setLayerDepth( 0, newRegDepth );
+  	}
+      paramL.insertAtBack( newRegDepth );
+   }
+  // maximum (initial) root cohesion; assumes partitioning between
+  // lateral and vertical is constant, so resets lateral cohesion
+  // from new value of vertical:
+  tmpVal = optFile.ReadDouble( "MAXVERTROOTCOHESION", false );
+  if( tmpVal > 0.0 )
+    {
+      double newVertCohesion = vegetation->ForestPtr()->getMVRC();
+      if(yesVary)
+	{
+	  do
+	    newVertCohesion += tmpVal * delta * ( rand.ran3() - 0.5 ) * 2.0;
+	  while( newVertCohesion <= 0.0 );
+	  double newLatCohesion = 
+	    newVertCohesion * vegetation->ForestPtr()->getRSPartition();
+	  vegetation->ForestPtr()->setMVRC( newVertCohesion );
+	  vegetation->ForestPtr()->setMLRC( newLatCohesion );
+	  tMesh<tLNode>::nodeListIter_t nI( mesh->getNodeList() );
+	  tTrees *trees=0;
+	  for( tLNode* cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+	    {
+	      trees = cn->getVegCover().getTrees();
+	      trees->setMaxRootStrength( -1.0 );
+	      trees->TreesInitialize( cn, vegetation->ForestPtr(), 0.0 );
+	      // 	  vegetation->ForestPtr()->RootStrengthInit( trees );
+	    }
+  	}
+      paramL.insertAtBack( newVertCohesion );
+    }
+  // friction slope (or tan(phi)) for landsliding:
+  tmpVal = optFile.ReadDouble( "FRICSLOPE", false );
+  if( tmpVal > 0.0 )
+    {
+      double newFricSlope = erosion->getFricSlope();
+      if(yesVary)
+	{
+	  do
+	    newFricSlope += tmpVal * delta * ( rand.ran3() - 0.5 ) * 2.0;
+	  while( newFricSlope <= 0.0 );
+	  erosion->setFricSlope( newFricSlope );
+  	}
+      paramL.insertAtBack( newFricSlope );
+    }
+  const int sz = paramL.getSize();
+  vector<double> paramV(sz);
+  double param(0.0);
+  for( int i=0;i<sz;++i )
+    {
+      paramL.removeFromFront( param );
+      paramV[i] = param;
+    }
+  return paramV;
 }
 
 
@@ -245,7 +543,11 @@ RunOneStorm()
 	     << stormDuration << " " << storm->interstormDur() << " " << stormPlusDryDuration 
 	     << std::endl;
 			
-  strmNet->UpdateNet( time->getCurrentTime(), *storm );
+  //-------------HYDROLOGY--------------------------------------------
+  // This is where flow directions are updated and discharges are
+  // calculated:
+  if( !optNoFluvial || optLandslides)
+    strmNet->UpdateNet( time->getCurrentTime(), *storm );
   if(0) //DEBUG
     std::cout << "UpdateNet::Done.." << std::endl;
 	
@@ -310,19 +612,22 @@ RunOneStorm()
   //-------------DIFFUSION----------------------------------------
   //Diffusion is now before fluvial erosion in case the tools
   //detachment laws are being used.
-  if( optNonlinearDiffusion )
+  if( !optNoDiffusion )
     {
-      if( optDepthDependentDiffusion )
-	// note: currently only nonlinear version of depth-dependent diffusion,
-	// and this function does not allow non-deposition (optDiffuseDepo)
-	erosion->DiffuseNonlinearDepthDep( stormPlusDryDuration,
-					   time->getCurrentTime() );
+      if( optNonlinearDiffusion )
+	{
+	  if( optDepthDependentDiffusion )
+	    // note: currently only nonlinear version of depth-dependent diffusion,
+	    // and this function does not allow non-deposition (optDiffuseDepo)
+	    erosion->DiffuseNonlinearDepthDep( stormPlusDryDuration,
+					       time->getCurrentTime() );
+	  else
+	    erosion->DiffuseNonlinear( stormPlusDryDuration, optDiffuseDepo );
+	}
       else
-	erosion->DiffuseNonlinear( stormPlusDryDuration, optDiffuseDepo );
+	erosion->Diffuse( stormPlusDryDuration, optDiffuseDepo );
     }
-  else
-    erosion->Diffuse( stormPlusDryDuration, optDiffuseDepo );
-
+  
   //-------------VEGETATION---------------------------------------
   // Vegetation moved up before fluvial erosion and (new) landsliding; 
   // latter depends on vegetation
@@ -339,22 +644,31 @@ RunOneStorm()
 #undef NEWVEG
 
   //-------------FLUVIAL------------------------------------------
-  if( optDetachLim )
-    erosion->ErodeDetachLim( stormDuration, strmNet,
-			     vegetation );
-  else
+  if( !optNoFluvial )
     {
-      erosion->DetachErode( stormDuration, strmNet,
-			    time->getCurrentTime(), vegetation );
-      // To use tools rules, you must use DetachErode2 NMG 07/05
-      //erosion.DetachErode2( stormDuration, &strmNet,
-      //                      time.getCurrentTime(), vegetation );
+      if( optDetachLim )
+	erosion->ErodeDetachLim( stormDuration, strmNet,
+				 vegetation );
+      else
+	{
+	  erosion->DetachErode( stormDuration, strmNet,
+				time->getCurrentTime(), vegetation );
+	  // To use tools rules, you must use DetachErode2 NMG 07/05
+	  //erosion.DetachErode2( stormDuration, &strmNet,
+	  //                      time.getCurrentTime(), vegetation );
+	}
     }
-
+  
   //-------------LANDSLIDES---------------------------------------
   if( optLandslides )
-    erosion->LandslideClusters( storm->getRainrate(), strmNet, 
-				time->getCurrentTime() );
+    {
+      if( opt3DLandslides )
+	erosion->LandslideClusters3D( storm->getRainrate(),
+				      time->getCurrentTime() );
+      else
+	erosion->LandslideClusters( storm->getRainrate(),
+				    time->getCurrentTime() );
+    }
 
   if(0) //DEBUG
     std::cout << "Erosion::Done.." << std::endl;
@@ -431,21 +745,24 @@ RunOneStorm()
 			 time->getCurrentTime() );
 	
   //----------------TECTONICS---------------------------------
-  if( time->getCurrentTime() < uplift->getDuration() )
-    uplift->DoUplift( mesh,
-		      stormPlusDryDuration, 
-		      time->getCurrentTime() );
-	
-  if( optTrackWaterSedTimeSeries )
+  if( !optNoUplift )
+    {
+      if( time->getCurrentTime() < uplift->getDuration() )
+	uplift->DoUplift( mesh,
+			  stormPlusDryDuration, 
+			  time->getCurrentTime() );
+    }
+  
+  if( optTrackWaterSedTimeSeries && water_sed_tracker_.IsActive() )
     water_sed_tracker_.WriteAndResetWaterSedTimeseriesData( time->getCurrentTime(),
 							    stormPlusDryDuration );
 		
   time->Advance( stormPlusDryDuration );
 	
-  if( time->CheckOutputTime() )
+  if( output > 0 && time->CheckOutputTime() )
     output->WriteOutput( time->getCurrentTime() );
 	
-  if( output->OptTSOutput() ) output->WriteTSOutput();
+  if( output > 0 && output->OptTSOutput() ) output->WriteTSOutput();
   
   return( time->getCurrentTime() );
 }
@@ -522,23 +839,32 @@ CleanUp()
 		delete time;
 		time = NULL;
 	}
-	if( optVegetation && vegetation ) {
+	// why check option flags? if the pointers are
+	// non-null, then we want to delete those objects
+	// regardless of whether the option flag is set 
+	// (SL, 12/10)
+// 	if( optVegetation && vegetation ) {
+	if( vegetation ) {
 		delete vegetation;
 		vegetation = NULL;
 	}
-	if( optFloodplainDep && floodplain ) {
+// 	if( optFloodplainDep && floodplain ) {
+	if( floodplain ) {
 		delete floodplain;
 		floodplain = NULL;
 	}
-	if( optLoessDep && loess ) {
+// 	if( optLoessDep && loess ) {
+	if( loess ) {
 		delete loess;
 		loess = NULL;
 	}
-	if( optMeander && strmMeander ) {
+// 	if( optMeander && strmMeander ) {
+	if( strmMeander ) {
 		delete strmMeander;
 		strmMeander = NULL;
 	}
-	if( optStratGrid && stratGrid ) {
+// 	if( optStratGrid && stratGrid ) {
+	if( stratGrid ) {
 		delete stratGrid;
 		stratGrid = NULL;
 	}
@@ -1007,6 +1333,11 @@ GetValueSet( string var_name )
     if(1) std::cout << "request for Qs\n";
     return GetNodeSedimentFluxVector();
   }
+  else if( var_name.compare( 0,4,"land" )==0 )
+    {
+      if(1) std::cout << "request for landslides\n";
+      return GetLandslideAreasVector();
+    }
   else
   {
     if(1) std::cout << "request for NOTHING!\n";
@@ -1137,6 +1468,32 @@ GetNodeSedimentFluxVector()
 
 /**************************************************************************/
 /**
+**  childInterface::GetLandslideAreasVector
+**
+**  This private method is used to create and return a vector of landslide
+**  area values from tErosion. The vector is in order of occurrence, i.e.,
+**  it is a time series. Note that the other private methods query 
+**  instantaneous values at a node.
+**
+**  SL, Oct 2010
+*/
+/**************************************************************************/
+std::vector<double> childInterface::GetLandslideAreasVector()
+{
+  std::vector<double> slideAreas( erosion->landslideAreas.getSize() );
+  tListIter<double> aI( erosion->landslideAreas );
+  int i=0;
+  for( double* Ptr = aI.FirstP(); !aI.AtEnd(); Ptr = aI.NextP() )
+    {
+      slideAreas[i] = *Ptr;
+      ++i;
+    }
+  return slideAreas;
+}
+
+
+/**************************************************************************/
+/**
 **  childInterface::SetValueSet
 **
 **  This method sets values of a CHILD variable at each node.
@@ -1165,6 +1522,127 @@ SetValueSet( string var_name, std::vector<double> value_set )
   }
 }
 
+/**************************************************************************/
+/**
+**  childInterface::setWriteOption( bool )
+**
+**  This method sets the value of the write option. 
+**
+**  If changing from "no write" to "write" then creates a tLOutput object 
+**  and turns on timeseries writing in objects such as erosion. 
+**
+**  If changing from "write" to "no write" then deletes tLOutput object
+**  and turns off timeseries writing in objects such as erosion.
+**
+**  Takes boolean: if true then write, if false then don't write.
+**
+**  SL, Oct. 2010
+*/
+/**************************************************************************/
+void childInterface::setWriteOption( bool write_mode, tInputFile& inputFile )
+{
+  if( write_mode && output ) return; // already have output -> do nothing
+  if( !write_mode && !output ) return; // already no output -> do nothing
+  if( write_mode )
+    { // want output and have none -> create output
+      output = new tLOutput<tLNode>( mesh, inputFile, rand );
+      storm->TurnOnOutput( inputFile );
+      erosion->TurnOnOutput( inputFile );
+      if( optTrackWaterSedTimeSeries )  
+	{
+	  water_sed_tracker_.InitializeFromInputFile( inputFile, mesh );
+	  erosion->ActivateSedVolumeTracking( &water_sed_tracker_ );
+	}
+      if( vegetation && vegetation->FirePtr() )
+	vegetation->FirePtr()->TurnOnOutput( inputFile );
+    }
+  else
+    { // don't want output and have it -> destroy output
+      delete output;
+      output = NULL;
+      storm->TurnOffOutput();
+      erosion->TurnOffOutput();
+      if( optTrackWaterSedTimeSeries )
+	{
+	  water_sed_tracker_.IsActive() = false;
+	  erosion->DeactivateSedVolumeTracking();
+	}
+      if( vegetation && vegetation->FirePtr() )
+	vegetation->FirePtr()->TurnOffOutput();
+    }
+}
+
+/**************************************************************************/
+/**
+**  childInterface::WriteChildStyleOutput
+**
+**  Simply writes output in usual Child formats for the current time. 
+**  Provides a way to call a "write" from outside the childInterface scope.
+**  Note that the output object has to exist; this function won't create it.
+**
+**  SL, Oct. 2010
+*/
+/**************************************************************************/
+
+void childInterface::WriteChildStyleOutput()
+{
+  if( output )
+    output->WriteOutput( time->getCurrentTime() );
+}
+
+/**************************************************************************/
+/**
+**  childInterface::ChangeOption
+**
+**  Method to change options/switches on the fly.
+**
+**  SL, Nov. 2010
+*/
+/**************************************************************************/
+void childInterface::ChangeOption( string option, int val )
+{
+  if( option.compare( 0,7,"no diff" )==0 )
+    optNoDiffusion = ( val > 0 );
+  if( option.compare( 0,7,"no fluv" )==0 )
+    optNoFluvial = ( val > 0 );
+  if( option.compare( 0,5,"no up" )==0 )
+    optNoUplift = ( val > 0 );
+  if( option.compare( 0,6,"detach" )==0 )
+    optDetachLim = ( val > 0 );
+  if( option.compare( 0,5,"flood" )==0 )
+    optFloodplainDep = ( val > 0 );
+  if( option.compare( 0,5,"loess" )==0 )
+    optLoessDep = ( val > 0 );
+  if( option.compare( 0,3,"veg" )==0 )
+    optVegetation = ( val > 0 );
+  if( option.compare( 0,4,"fire" )==0 )
+    optFire = ( val > 0 );
+  if( option.compare( 0,6,"forest" )==0 )
+    optForest = ( val > 0 );
+  if( option.compare( 0,7,"meander" )==0 )
+    optMeander = ( val > 0 );
+  if( option.compare( 0,7,"no depo" )==0 )
+    optDiffuseDepo = ( val > 0 );
+  if( option.compare( 0,5,"strat" )==0 )
+    optStratGrid = ( val > 0 );
+  if( option.compare( 0,5,"track" )==0 )
+    optTrackWaterSedTimeSeries = ( val > 0 );
+  if( option.compare( 0,6,"nonlin" )==0 )
+    optNonlinearDiffusion = ( val > 0 );
+  if( option.compare( 0,9,"depth dep" )==0 )
+    optDepthDependentDiffusion = ( val > 0 );
+  if( option.compare( 0,6,"landsl" )==0 )
+    optLandslides = ( val > 0 );
+  if( option.compare( 0,6,"3D lan" )==0 )
+    opt3DLandslides = ( val > 0 );
+  if( option.compare( 0,4,"chem" )==0 )
+    optChemicalWeathering = ( val > 0 );
+  if( option.compare( 0,4,"phys" )==0 )
+    optPhysicalWeathering = ( val > 0 );
+  if( option.compare( 0,6,"stream" )==0 )
+    optStreamLineBoundary = ( val > 0 );
+
+}
 
 /**************************************************************************/
 /**

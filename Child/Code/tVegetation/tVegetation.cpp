@@ -59,7 +59,12 @@ tFire::tFire()
    ifrdur = 1.0;
 }
 
-
+tFire::tFire( const tFire& orig )
+  : optRandom(orig.optRandom), ifrdurMean(orig.ifrdurMean), 
+    ifrdur(orig.ifrdur), time_to_burn(orig.time_to_burn) 
+{
+  rand = new tRand(*orig.rand);
+}
 /*
 **  tFire::tFire:  The constructor that's really used assigns values for
 **                   mean interfire duration,
@@ -89,7 +94,8 @@ tFire::tFire( double mif, unsigned sd, tRunTimer* ptr )
 **  initialize the random number generator.
 **  
 */
-tFire::tFire( const tInputFile &infile, tRunTimer* tPtr )
+tFire::tFire( const tInputFile &infile, tRunTimer* tPtr
+	      , bool no_write_mode /*=false*/ )
   : rand(0)
 {
    ifrdurMean = infile.ReadItem( ifrdurMean, "IFRDUR" );
@@ -106,18 +112,55 @@ tFire::tFire( const tInputFile &infile, tRunTimer* tPtr )
        rand = new tRand( seed );
        ifrdur = ifrdurMean * rand->ExpDev();
        // If random fires used, create a file for writing them
-       char fname[87];
+       if( !no_write_mode )
+	 {
+	   char fname[87];
 #define THEEXT ".fir"
-       infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
-       strcat( fname, THEEXT );
+	   infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
+	   strcat( fname, THEEXT );
 #undef THEEXT
-       firefs.open( fname );
-       if( !firefs.good() )
-	 std::cerr << "Warning: unable to create fire data file '"
-		   << fname << "'\n";
+	   firefs.open( fname );
+	   if( !firefs.good() )
+	     std::cerr << "Warning: unable to create fire data file '"
+		       << fname << "'\n";
+	 }
      }
    time_to_burn = timePtr->getCurrentTime() + ifrdur;
 }
+
+/**************************************************************************\
+**
+**  tFire::TurnOnOutput, TurnOffOutput
+**
+**  Open output file so output will be directed to it, 
+**  or close output file so there won't be output.
+**
+**  SL, 10/2010
+**
+\**************************************************************************/
+void tFire::TurnOnOutput( const tInputFile& infile )
+{
+     // If variable storms used, create a file for writing them
+  if( !firefs.good() && optRandom )
+   {
+     char fname[87];
+#define THEEXT ".fir"
+     infile.ReadItem( fname, sizeof(fname)-sizeof(THEEXT), "OUTFILENAME" );
+     strcat( fname, THEEXT );
+#undef THEEXT
+     firefs.open( fname );
+     if( !firefs.good() )
+       std::cerr << "Warning: unable to create fire data file '"
+		 << fname << "'\n";
+   }
+}
+
+void tFire::TurnOffOutput()
+{
+  if( firefs.good() )
+    firefs.close();
+}
+
 
 /*
 **  tFire::Burn_WhenItsTime()
@@ -138,7 +181,8 @@ bool tFire::Burn_WhenItsTime()
      if( optRandom )
        {
 	 ifrdur = ifrdurMean * rand->ExpDev();
-	 firefs << time_to_burn << std::endl;
+	 if( firefs.good() )
+	   firefs << time_to_burn << std::endl;
        }
       time_to_burn += ifrdur;
       // burn now:
@@ -158,6 +202,33 @@ bool tFire::Burn_WhenItsTime()
 **  Created: 11/98 SL; Added to CHILD (CU) 8/10
 **
 \************************************************************************/
+tForest::tForest( const tForest& orig )
+  : mesh(0), storm(0), rand(0),
+    rootdecayK(orig.rootdecayK), rootdecayN(orig.rootdecayN), 
+    rootgrowthA(orig.rootgrowthA), rootgrowthB(orig.rootgrowthB), 
+    rootgrowthC(orig.rootgrowthC), rootgrowthF(orig.rootgrowthF), 
+    rootstrengthJ(orig.rootstrengthJ), MVRC(orig.MVRC), MLRC(orig.MLRC), 
+    RSPartition(orig.RSPartition), heightindex(orig.heightindex), 
+    weightMax(orig.weightMax), weightA(orig.weightA), weightB(orig.weightB), 
+    weightC(orig.weightC), weightK(orig.weightK), wooddensity(orig.wooddensity), 
+    blowparam(orig.blowparam), diamB0(orig.diamB0), diamB1(orig.diamB1), 
+    diamB2(orig.diamB2), wooddecayK(orig.wooddecayK)
+{
+  if( orig.rand )
+    rand = new tRand( *orig.rand );  
+}
+
+void tForest::setMeshPtr( tMesh<tLNode>* ptr ) 
+{
+  mesh = ptr;
+  tMesh<tLNode>::nodeListIter_t nIter( mesh->getNodeList() );
+  tLNode *cn=0;
+  for( cn = nIter.FirstP(); nIter.IsActive(); cn = nIter.NextP() )
+    {
+      cn->getVegCover().getTrees()->setForestPtr( this );
+      cn->getVegCover().getTrees()->setNodePtr( cn );
+    }
+}
 
 tForest::tForest( const tInputFile& infile, tMesh<tLNode>* mPtr, tStorm *sPtr )
 {
@@ -193,6 +264,7 @@ void tForest::ForestInitialize( const tInputFile& infile, tMesh<tLNode>* mPtr,
       weightK = infile.ReadItem( weightK, "VEGWEIGHT_K" );
       wooddensity = infile.ReadItem( wooddensity, "WOODDENSITY" );
       blowparam = infile.ReadItem( blowparam, "BLOWDOWNPARAM" );
+      rand = 0;
       if( blowparam > 0.0 )
 	{
 	  long seed = infile.ReadItem( seed, "BLOW_SEED" );
@@ -694,6 +766,7 @@ tVegetation::tVegetation()
 {}
 
 tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, const tInputFile &infile,
+			  bool no_write_mode /*=false*/, 
 			  tRunTimer *tPtr /*=0*/, tStorm *stormPtr /*=0*/ )
   :
   mdKvd(0),
@@ -714,7 +787,7 @@ tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, const tInputFile &infil
     forest = new tForest( infile, meshPtr, stormPtr );
   bool optFire = infile.ReadBool( "OPTFIRE", false );
   if( optFire )
-    fire = new tFire( infile, tPtr );
+    fire = new tFire( infile, tPtr, no_write_mode );
 
   // Loop through nodes and set initial vegetation cover & threshold
   // (for now, assume constant; later need to add restart capability)
@@ -751,6 +824,30 @@ tVegetation::tVegetation( tMesh<class tLNode> * meshPtr, const tInputFile &infil
   }
 }
 
+tVegetation::tVegetation( const tVegetation& orig )
+  : optGrassSimple(orig.optGrassSimple), mdKvd(orig.mdKvd), mdTVeg(orig.mdTVeg), 
+    mdTauCritBare(orig.mdTauCritBare), mdTauCritVeg(orig.mdTauCritVeg),
+    fire(0), forest(0)
+{
+  if( orig.fire )
+    fire = new tFire( *orig.fire );
+  if( orig.forest )
+    forest = new tForest( *orig.forest );
+}
+
+tVegetation::~tVegetation()
+{ 
+  if( fire )
+    {
+      delete fire;
+      fire = NULL;
+    }
+  if( forest )
+    {
+      delete forest;
+      forest = NULL;
+    }
+}
 /**************************************************************************\
 **
 **  tVegetation::UpdateVegetation

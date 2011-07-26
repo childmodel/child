@@ -199,13 +199,76 @@ tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
    if (0) //DEBUG
      std::cout << "finished" << std::endl;
 }
+tStreamNet::tStreamNet( const tStreamNet& orig, tStorm* sPtr, tMesh<tLNode>* mPtr )
+  : meshPtr(mPtr),  // ptr to mesh
+    stormPtr(sPtr), // ptr to storm object (for getting precip)
+    miOptFlowgen(orig.miOptFlowgen), // option for runoff generation & routing method
+    filllakes(orig.filllakes),   // option for filling lakes
+    optrainvar(orig.optrainvar), //flag w/ 1=>varying storms=>hydraulic geom != chan. geom.
+    kwds(orig.kwds),
+    ewds(orig.ewds), 
+    ewstn(orig.ewstn),//coefs & exps for dwnstrm & at-a-stn hydr. width
+    kdds(orig.kdds),
+    edds(orig.edds),
+    edstn(orig.edstn),//coefs & exps for dwnstrm & at-a-stn hydr. depth
+    knds(orig.knds),
+    ends(orig.ends),
+    enstn(orig.enstn),//coefs & exps for ds & at-a-stn hydr. roughness
+    klambda(orig.klambda), 
+    elambda(orig.elambda), //coef & exp for downstrm bank roughness length
+    rainrate(orig.rainrate),      // current rainfall rate
+    bankfullevent(orig.bankfullevent), // rainfall rate corresponding to bankfull event
+    trans(orig.trans),         // soil transmissivity
+    infilt(orig.infilt),        // soil infiltration capacity (also K_sat)
+    soilStore(orig.soilStore),     // soil water storage, depth equiv (m)
+    inlet(orig.inlet, mPtr),         // inlet
+    optSinVarInfilt(orig.optSinVarInfilt),  // opt for sinusoidal variation in infilt cap
+    miChannelType(orig.miChannelType), // code for type of channels: "regime", "parker"
+    mpParkerChannels(0),
+    infilt_dev(orig.infilt_dev),    // max +/- variation from mean infilt cap
+    infilt0(orig.infilt0),    // mean infilt cap
+    twoPiLam(orig.twoPiLam),   // Parameter for sinusoidal variation: 2pi / period
+    mdKinWaveExp(orig.mdKinWaveExp),  // Depth-disch exponent for kinematic wave routing
+    mdKinWaveRough(orig.mdKinWaveRough), // Roughness coef, units m^(1/e)-2 yr, e=above exp
+    mdMeshAdaptMinArea(orig.mdMeshAdaptMinArea),  // Dr area threshold for densifying mesh
+    mdMeshAdaptMaxVArea(orig.mdMeshAdaptMaxVArea), // Max voronoi area for nodes above threshold
+    mdHydrgrphShapeFac(orig.mdHydrgrphShapeFac),  // "Fhs" for hydrograph peak method
+    mdFlowVelocity(orig.mdFlowVelocity),      // Runoff velocity for computing travel time
+    optVariableTransmissivity(orig.optVariableTransmissivity) // option for soil depth-dependent transmissivity
+{
+  if( orig.mpParkerChannels )
+    mpParkerChannels = new tParkerChannels( *orig.mpParkerChannels );  // -> tParkerChannels object
+
+  // kluge: re-do network routing
+  // Initialize the network by calculating slopes, flow directions,
+  // drainage areas, and discharge
+  CalcSlopes();  // TODO: should be in tMesh
+//   tMesh<tLNode>::nodeListIter_t nI( meshPtr->getNodeList() );
+//   tSpkIter sI;
+//   tEdge* ce;
+//   int i=0;
+//   for( tLNode* cn = nI.FirstP(); nI.IsActive(); cn = nI.NextP() )
+//     {
+//       sI.Reset( cn );
+//       for( ce=sI.FirstP(); 
+// 	   !sI.AtEnd() && ce->getDestinationPtr()->getID() != flowDest[i]; 
+// 	   ce=sI.NextP() );
+//       cn->setFlowEdg( ce );
+//       ++i;
+//     }
+  InitFlowDirs(); // TODO: should all be done in call to updatenet
+  FlowDirs();
+  CheckNetConsistency();
+  MakeFlow( 0.0 );
+}
 
 //necessary?
 tStreamNet::~tStreamNet()
 {
    meshPtr = 0;
    stormPtr = 0;
-   delete mpParkerChannels;
+   if( mpParkerChannels )
+     delete mpParkerChannels;
    if (0) //DEBUG
      std::cout << "~tStreamNet()" << std::endl;
 }
@@ -2942,113 +3005,119 @@ void tStreamNet::FindChanGeom()
 \**************************************************************************/
 void tStreamNet::RouteFlowKinWave( double rainrate_ )
 {
-   tLNode * cn;
-   tEdge * ce;
-   tMesh< tLNode >::nodeListIter_t niter( meshPtr->getNodeList() );
-   double sum;                         // Sum used in to apportion flow
-   double runoff = rainrate_;
-   if( miOptFlowgen == k2DKinematicWave )
-     runoff -= infilt;  // Local runoff rate at node
-   if( miOptFlowgen == kSubSurf2DKinematicWave )
-     mdKinWaveRough = 1.0 / infilt;
-   if (0) //DEBUG
-     std::cout << "RouteFlowKinWave\n";
+  tLNode * cn;
+  tEdge * ce;
+  tMesh< tLNode >::nodeListIter_t niter( meshPtr->getNodeList() );
+  double sum;                         // Sum used in to apportion flow
+  double runoff = rainrate_;
+  if( miOptFlowgen == k2DKinematicWave )
+    runoff -= infilt;  // Local runoff rate at node
+  if( miOptFlowgen == kSubSurf2DKinematicWave )
+    mdKinWaveRough = 1.0 / infilt;
+  if (0) //DEBUG
+    std::cout << "RouteFlowKinWave\n";
 
-   if( runoff <= 0.0 ) return;
+  if( runoff <= 0.0 ) return;
 
-   // Reset discharge to zero everywhere
-   for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
-       cn->setDischarge( 0.0 );
+  // Reset discharge and flow depth to zero everywhere
+  for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
+    {
+      cn->setDischarge( 0.0 );
+      cn->setHydrDepth( 0.0 );
+      if( miOptFlowgen == kSubSurf2DKinematicWave )
+	cn->setSubSurfaceDischarge( 0.0 );
+    }
 
-   // Sort nodes uphill-to-downhill
-   SortNodesByNetOrder( true );
+  // Sort nodes uphill-to-downhill
+  SortNodesByNetOrder( true );
 
-   // Route flow and compute water depths
-   for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
-   {
+  // Route flow and compute water depths
+  for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
+    {
       // Add local runoff to total incoming discharge
-      cn->AddDischarge( runoff * cn->getVArea() );
+      if( miOptFlowgen == k2DKinematicWave )
+	cn->AddDischarge( runoff * cn->getVArea() );
+      else if( miOptFlowgen == kSubSurf2DKinematicWave )
+	cn->addSubSurfaceDischarge( runoff * cn->getVArea() );
 
       if( cn->getFloodStatus() == tLNode::kNotFlooded )
-      {
-         // Flow is apportioned among downhill neighbors according to
-         // slope and Voronoi edge width, so first we perform the summation
-         // of the product of Voronoi edge width and sqrt of slope in each dir
-         //if( cn->getQ()>50000.0 ) cn->TellAll();
-         sum = 0.0;
-         ce = cn->getEdg();
-         do
-         {
-            if( cn->getZ() > ce->getDestinationPtr()->getZ() &&
-                ce->FlowAllowed() )
-	      {
-		if( miOptFlowgen == k2DKinematicWave )
-		  sum += ce->getVEdgLen() * sqrt( ce->getSlope() );
-		else if( miOptFlowgen == kSubSurf2DKinematicWave )
-		  sum += ce->getVEdgLen() * ce->getSlope();
-	      }
-            ce = ce->getCCWEdg();
-         }
-         while( ce!=cn->getEdg() );
+	{
+	  // Flow is apportioned among downhill neighbors according to
+	  // slope and Voronoi edge width, so first we perform the summation
+	  // of the product of Voronoi edge width and sqrt of slope in each dir
+	  //if( cn->getQ()>50000.0 ) cn->TellAll();
+	  sum = 0.0;
+	  ce = cn->getEdg();
+	  do
+	    {
+	      if( cn->getZ() > ce->getDestinationPtr()->getZ() &&
+		  ce->FlowAllowed() )
+		{
+		  if( miOptFlowgen == k2DKinematicWave )
+		    sum += ce->getVEdgLen() * sqrt( ce->getSlope() );
+		  else if( miOptFlowgen == kSubSurf2DKinematicWave )
+		    sum += ce->getVEdgLen() * ce->getSlope();
+		}
+	      ce = ce->getCCWEdg();
+	    }
+	  while( ce!=cn->getEdg() );
 
-         // Compute the flow depth
-         //std::cout << "Q: " << cn->getQ() << " sum: " << sum << " DEPTH: " << cn->getHydrDepth() << std::endl;
-         assert( cn->getQ()>0.0 );
-         if( sum>0.0 )
-	   {
-	     if( miOptFlowgen == k2DKinematicWave )
-	       cn->setHydrDepth( pow( cn->getQ() * mdKinWaveRough / sum,
-				      mdKinWaveExp ) );
-	     else if( miOptFlowgen == kSubSurf2DKinematicWave )
-	       {
-		 cn->setHydrDepth( cn->getQ() * mdKinWaveRough / sum );
-		 double H = cn->getRegolithDepth();
-		 if( cn->getHydrDepth() > H ) cn->setHydrDepth( H );
-	       }
-	   }
-         else
-             cn->setHydrDepth( 0.0 );
+	  //std::cout << "Q: " << cn->getQ() << " sum: " << sum << " DEPTH: " << cn->getHydrDepth() << std::endl;
+	  //          assert( cn->getQ()>0.0 );
 
-         // Route flow downhill
-         if( sum>0.0 )
-         {
-            ce = cn->getEdg();
-            do
-            {
-	       tLNode * dn = static_cast<tLNode *>(ce->getDestinationPtrNC());
-               if( cn->getZ() > dn->getZ() && ce->FlowAllowed() )
-		 {
-		   if( miOptFlowgen == k2DKinematicWave )
-		     dn->AddDischarge( cn->getQ()
-				       * (sqrt(ce->getSlope())*ce->getVEdgLen())/sum );
-		   else if( miOptFlowgen == kSubSurf2DKinematicWave )
-		     dn->AddDischarge( cn->getQ()
-				       * ce->getSlope() * ce->getVEdgLen() / sum );
-		 }
-               ce = ce->getCCWEdg();
-            }
-            while( ce!=cn->getEdg() );
-         }
-      }
+	  if( sum>0.0 )
+	    {
+	      // Route flow downhill
+	      ce = cn->getEdg();
+	      do
+		{
+		  tLNode * dn = static_cast<tLNode *>(ce->getDestinationPtrNC());
+		  if( cn->getZ() > dn->getZ() && ce->FlowAllowed() )
+		    {
+		      if( miOptFlowgen == k2DKinematicWave )
+			dn->AddDischarge( cn->getQ()
+					  * (sqrt(ce->getSlope())*ce->getVEdgLen())/sum );
+		      else if( miOptFlowgen == kSubSurf2DKinematicWave )
+			dn->addSubSurfaceDischarge( cn->getSubSurfaceDischarge()
+						    * ce->getSlope() * ce->getVEdgLen() / sum );
+		    }
+		  ce = ce->getCCWEdg();
+		}
+	      while( ce!=cn->getEdg() );
+	      // Compute the flow depth
+	      if( miOptFlowgen == k2DKinematicWave )
+		cn->setHydrDepth( pow( cn->getQ() * mdKinWaveRough / sum,
+				       mdKinWaveExp ) );
+	      else if( miOptFlowgen == kSubSurf2DKinematicWave )
+		{
+		  cn->setHydrDepth( cn->getSubSurfaceDischarge() 
+				    * mdKinWaveRough / sum );
+		  // if overflowing subsurface, put extra in surface 
+		  // discharge:
+		  double H = cn->getRegolithDepth();
+		  if( cn->getHydrDepth() > H ) 
+		    {
+		      const double qSurf = 
+			cn->getSubSurfaceDischarge() 
+			* ( cn->getHydrDepth() - H ) / cn->getHydrDepth();
+		      cn->addSubSurfaceDischarge( -qSurf );
+		      cn->AddDischarge( qSurf );
+		      cn->setHydrDepth( H );
+		    }
+		}
+	    }
+	}
       else
 	{ // flooded
 	  if( miOptFlowgen == kSubSurf2DKinematicWave )
 	    { // send all flow along flowedge and fill up soil
-	      cn->getDownstrmNbr()->AddDischarge( cn->getQ() );
+	      cn->getDownstrmNbr()->addSubSurfaceDischarge( cn->getSubSurfaceDischarge() );
 	      cn->setHydrDepth( cn->getRegolithDepth() );
 	    }
 	  else
 	    cn->setHydrDepth( 0.0 );
 	}
-   } // end of for loop
-   // If subsurface flow, reset subsurface discharge to the discharge 
-   // just calculated and the surface discharge to zero everywhere
-   if( miOptFlowgen == kSubSurf2DKinematicWave )
-     for( cn=niter.FirstP(); niter.IsActive(); cn=niter.NextP() )
-       {
-	 cn->setSubSurfaceDischarge( cn->getQ() );
-	 cn->setDischarge( 0.0 );
-       }
+    } // end of for loop
 
 } // End of tStreamNet::RouteFlowKinWave
 
@@ -3192,6 +3261,19 @@ tInlet::tInlet() :
   optCalcSedFeed(false), inletSlope(0.), inletSedSizeFraction(0)
 {}
 
+tInlet::tInlet( const tInlet& orig, tMesh<tLNode> *mPtr ) :
+  innode(0), inDrArea(orig.inDrArea), inSedLoad(orig.inSedLoad), 
+  inSedLoadm(orig.inSedLoadm), meshPtr(mPtr),
+  optCalcSedFeed(orig.optCalcSedFeed), inletSlope(orig.inletSlope), 
+  inletSedSizeFraction(orig.inletSedSizeFraction)
+{
+  if( orig.innode )
+    {
+      tMesh<tLNode>::nodeListIter_t nI( meshPtr->getNodeList() );
+      innode = nI.GetP( orig.innode->getID() );
+    }
+}
+
 #define LARGE_DISTANCE 1e9
 tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
   :
@@ -3199,50 +3281,50 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
   inSedLoad(0.),
   meshPtr(gPtr)
 {
-   bool inletbc = infile.ReadBool( "OPTINLET" );
-   int i;
-   int numg = infile.ReadItem( numg, "NUMGRNSIZE" );
-   int add = 1;       // Use AddNode at for placing the inlet
-   //char end, name[20];
-   double xin, yin,   // Coords of inlet node
-       mindist,       // Minimum distance above which new node will be added
-       dist,          // Distance btwn inlet and a nearby node
-       x, y,          // Location of a nearby node
-       zin = 0,       // Elevation of inlet
-       suminvdist = 0,// Sum of 1/dist for all nearby non-boundary nodes
-       minDistFound;  // Smallest distance to nearby node found so far
-   tTriangle *intri, *ntri;
-   tLNode *cn,
-       *closestNode(0);  // -> to closest nearby node found so far
-   tPtrList< tLNode > nPL;            // List of nearby non-boundary nodes
-   tPtrListIter< tLNode > itr( nPL ); // Iterator for the above list
+  bool inletbc = infile.ReadBool( "OPTINLET" );
+  assert( meshPtr != 0 );
+  if( inletbc )
+    {
+      int i;
+      int numg = infile.ReadItem( numg, "NUMGRNSIZE" );
+      int add = 1;       // Use AddNode at for placing the inlet
+      //char end, name[20];
+      double xin, yin,   // Coords of inlet node
+	mindist,       // Minimum distance above which new node will be added
+	dist,          // Distance btwn inlet and a nearby node
+	x, y,          // Location of a nearby node
+	zin = 0,       // Elevation of inlet
+	suminvdist = 0,// Sum of 1/dist for all nearby non-boundary nodes
+	minDistFound;  // Smallest distance to nearby node found so far
+      tTriangle *intri, *ntri;
+      tLNode *cn,
+	*closestNode(0);  // -> to closest nearby node found so far
+      tPtrList< tLNode > nPL;            // List of nearby non-boundary nodes
+      tPtrListIter< tLNode > itr( nPL ); // Iterator for the above list
 
-   assert( meshPtr != 0 );
-   if( inletbc )
-   {
       // Read drainage area and sediment load at inlet. If more than one
       // grain size is simulated, read in a sediment load for each size
       // individually
-     //std::string taglinebase = "INSEDLOAD";
-     //std::string digits = "123456789";
-     //std::string tagline;
-     char tagline[12], lastdigit;
-     strcpy( tagline, "INSEDLOAD0" );
-     lastdigit = '0';
+      //std::string taglinebase = "INSEDLOAD";
+      //std::string digits = "123456789";
+      //std::string tagline;
+      char tagline[12], lastdigit;
+      strcpy( tagline, "INSEDLOAD0" );
+      lastdigit = '0';
       inDrArea = infile.ReadItem( inDrArea, "INDRAREA" );
       
       // Stuff related to option for dynamic calculation of sediment influx at inlet
       optCalcSedFeed = infile.ReadItem( optCalcSedFeed, "INLET_OPTCALCSEDFEED" );
       if( optCalcSedFeed ) 
-      {
-        inletSlope = infile.ReadItem( inletSlope, "INLET_SLOPE" );
-        inletSedSizeFraction.setSize(numg);
-      }
+	{
+	  inletSlope = infile.ReadItem( inletSlope, "INLET_SLOPE" );
+	  inletSedSizeFraction.setSize(numg);
+	}
       else
-      {
-        inletSlope = 0;
-        inletSedSizeFraction.setSize(0);
-      }
+	{
+	  inletSlope = 0;
+	  inletSedSizeFraction.setSize(0);
+	}
       
       // Read parameters related to sediment influx (either option)
       if(numg <= 1)
@@ -3252,30 +3334,30 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
           if( optCalcSedFeed ) inletSedSizeFraction[0] = 1.0;
 	}
       else{
-         inSedLoadm.setSize(numg);
-         inSedLoad=0.0;
-         //i=1;
-         //end='1';
-         for( i=0; i<numg; i++ ) {
-	   double help;
-	   //strcpy( name, "INSEDLOAD");
-           // strcat( name, &end );
-           // help = infile.ReadItem( help, name);
-	   //tagline = taglinebase + digits.substr( i, i );
-	   // std::cout << tagline << std::endl;
-	   // help = infile.ReadItem( help, tagline.c_str() );
-            lastdigit++;
-            tagline[9] = lastdigit;
-            help = infile.ReadItem( help, tagline );
-            inSedLoadm[i] = help;
-            inSedLoad += help;
-	    if (0) //DEBUG
-	      std::cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i]<<std::endl;
-            //i++;
-            //end++;
-            if( optCalcSedFeed )
-                inletSedSizeFraction[i] = inSedLoadm[i];
-         }
+	inSedLoadm.setSize(numg);
+	inSedLoad=0.0;
+	//i=1;
+	//end='1';
+	for( i=0; i<numg; i++ ) {
+	  double help;
+	  //strcpy( name, "INSEDLOAD");
+	  // strcat( name, &end );
+	  // help = infile.ReadItem( help, name);
+	  //tagline = taglinebase + digits.substr( i, i );
+	  // std::cout << tagline << std::endl;
+	  // help = infile.ReadItem( help, tagline.c_str() );
+	  lastdigit++;
+	  tagline[9] = lastdigit;
+	  help = infile.ReadItem( help, tagline );
+	  inSedLoadm[i] = help;
+	  inSedLoad += help;
+	  if (0) //DEBUG
+	    std::cout<<"insedload of "<<i-1<<" is "<<inSedLoadm[i]<<std::endl;
+	  //i++;
+	  //end++;
+	  if( optCalcSedFeed )
+	    inletSedSizeFraction[i] = inSedLoadm[i];
+	}
       }
 
       // Read in the location of the inlet node. If the specified coordinates
@@ -3287,100 +3369,100 @@ tInlet::tInlet( tMesh< tLNode > *gPtr, const tInputFile &infile )
       intri = meshPtr->LocateTriangle( xin, yin );
       assert( intri != 0 );  //TODO: should be error-check not assert
       for( i=0; i<3; i++ )
-      {
-       	 // Surrounding nodes of the Triangle
-        cn = static_cast<tLNode *>(intri->pPtr(i));
-        if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
+	{
+	  // Surrounding nodes of the Triangle
+	  cn = static_cast<tLNode *>(intri->pPtr(i));
+	  if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
 
-        // Nodes of the Triangles surrounding the one selected
-        if(add==0){
-	  ntri = intri->tPtr(i);
-	  if( ntri != 0 )
-	    {
-	      cn = static_cast<tLNode *>(ntri->pPtr( ntri->nVOp( intri ) ));
-	      if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
-	    }
+	  // Nodes of the Triangles surrounding the one selected
+	  if(add==0){
+	    ntri = intri->tPtr(i);
+	    if( ntri != 0 )
+	      {
+		cn = static_cast<tLNode *>(ntri->pPtr( ntri->nVOp( intri ) ));
+		if( cn->getBoundaryFlag() == kNonBoundary ) nPL.insertAtBack( cn );
+	      }
+	  }
 	}
-      }
       minDistFound = LARGE_DISTANCE;
       mindist = 0.000001;
       std::cout<< "x,y,z of nodes surrounding inlet are: \n";
       for( cn = itr.FirstP(); !(itr.AtEnd()); cn = itr.NextP() )
-      {
-         x = cn->getX();
-         y = cn->getY();
-         dist = sqrt( (xin - x) * (xin - x) + (yin - y) * (yin - y) );
-         if( dist < minDistFound )
-         {
-            minDistFound = dist;
-            closestNode = cn;
-         }
-         if( dist > mindist )          // find elev by interpolation
-         {
-            zin += cn->getZ() / dist;
-            suminvdist += 1 / dist;
-         }
-         else                         // we're on a existing node, re-use
-         {
-            innode = cn;
-            add = 0;
-         }
+	{
+	  x = cn->getX();
+	  y = cn->getY();
+	  dist = sqrt( (xin - x) * (xin - x) + (yin - y) * (yin - y) );
+	  if( dist < minDistFound )
+	    {
+	      minDistFound = dist;
+	      closestNode = cn;
+	    }
+	  if( dist > mindist )          // find elev by interpolation
+	    {
+	      zin += cn->getZ() / dist;
+	      suminvdist += 1 / dist;
+	    }
+	  else                         // we're on a existing node, re-use
+	    {
+	      innode = cn;
+	      add = 0;
+	    }
 
 
-         // DEBUG
-         std::cout <<cn->getX()<<' '<<cn->getY()<<' '<<cn->getZ()
-	      << ' ' << BoundName(cn->getBoundaryFlag())
-	      <<" dist= "<<dist<<std::endl;
-        /*
-         if( dist < mindist )
-         {
+	  // DEBUG
+	  std::cout <<cn->getX()<<' '<<cn->getY()<<' '<<cn->getZ()
+		    << ' ' << BoundName(cn->getBoundaryFlag())
+		    <<" dist= "<<dist<<std::endl;
+	  /*
+	    if( dist < mindist )
+	    {
             dist = mindist;
             innode = cn;
-         }*/
-      }
+	    }*/
+	}
 
       // Debug
       if( add == 0){
-       std::cout<< "ADDING INLET by resetting an existing node:" << std::endl;
-       std::cout <<"Innode boundary flag ="
-	    << BoundName(innode->getBoundaryFlag()) << '\n';
+	std::cout<< "ADDING INLET by resetting an existing node:" << std::endl;
+	std::cout <<"Innode boundary flag ="
+		  << BoundName(innode->getBoundaryFlag()) << '\n';
       }
 
       if( add ) // fix here:
-      {
-	assert( closestNode != 0 );
- 	 std::cout <<' '<<std::endl;
-         std::cout << "ADDING INLET by calling AddNode():" << std::endl;
-         std::cout <<' '<<std::endl;
-         //closestNode->TellAll();
-         //BE AWARE
-         //The following commented line caused many problems for the code:
-         //tLNode newnode( *closestNode );
-         //This did not call the copy constructor which was created for
-         //tLNode.  Most likely it called some default copy constructor
-         //which could not handle copying of user created classes.
-         //This created errors in the closestNode's layerlist.
-         //The following calls the correct copy constructor.
-	 // The comment above is not correct anymore. AD
-         tLNode newnode( *closestNode );
-         newnode.setZ( zin / suminvdist );
-         newnode.setX( xin );
-         newnode.setY( yin );
-         //zin = zin / suminvdist;
-	 //tArray< double > xyz(3);
-         //xyz[0] = xin;
-         //xyz[1] = yin;
-         //xyz[2] = zin;
-         //innode = meshPtr->AddNodeAt( xyz );
-         innode = meshPtr->AddNode( newnode, kUpdateMesh ); // true means update mesh
-         std::cout <<"Innode boundary flag ="
-	      << BoundName(innode->getBoundaryFlag())<< '\n';
-         std::cout <<"Innode x,y,z= "<<innode->getX()<<' '<<innode->getY()<<' '<<innode->getZ()<<std::endl;
-         std::cout <<' '<<std::endl;
-         //std::cout << "INLET NODE IS:\n";
-         //innode->TellAll();
-      }
-   }
+	{
+	  assert( closestNode != 0 );
+	  std::cout <<' '<<std::endl;
+	  std::cout << "ADDING INLET by calling AddNode():" << std::endl;
+	  std::cout <<' '<<std::endl;
+	  //closestNode->TellAll();
+	  //BE AWARE
+	  //The following commented line caused many problems for the code:
+	  //tLNode newnode( *closestNode );
+	  //This did not call the copy constructor which was created for
+	  //tLNode.  Most likely it called some default copy constructor
+	  //which could not handle copying of user created classes.
+	  //This created errors in the closestNode's layerlist.
+	  //The following calls the correct copy constructor.
+	  // The comment above is not correct anymore. AD
+	  tLNode newnode( *closestNode );
+	  newnode.setZ( zin / suminvdist );
+	  newnode.setX( xin );
+	  newnode.setY( yin );
+	  //zin = zin / suminvdist;
+	  //tArray< double > xyz(3);
+	  //xyz[0] = xin;
+	  //xyz[1] = yin;
+	  //xyz[2] = zin;
+	  //innode = meshPtr->AddNodeAt( xyz );
+	  innode = meshPtr->AddNode( newnode, kUpdateMesh ); // true means update mesh
+	  std::cout <<"Innode boundary flag ="
+		    << BoundName(innode->getBoundaryFlag())<< '\n';
+	  std::cout <<"Innode x,y,z= "<<innode->getX()<<' '<<innode->getY()<<' '<<innode->getZ()<<std::endl;
+	  std::cout <<' '<<std::endl;
+	  //std::cout << "INLET NODE IS:\n";
+	  //innode->TellAll();
+	}
+    }
 }
 
 tInlet::~tInlet()

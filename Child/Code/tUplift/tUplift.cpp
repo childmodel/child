@@ -74,7 +74,14 @@ duration(0.)
   typeCode_ = infile.ReadItem( typeCode_, "UPTYPE" );
   typeCode = DecodeType(typeCode_);
   
-  if( typeCode==kNoUplift ) return;
+  if( typeCode==kNoUplift ) 
+  {
+     // make sure we don't run into problems if we want to copy "this":
+     std::stringstream ss;
+     ss << 0.0;
+     rate_ts.configure( ss.str().c_str() );
+     return;
+  }
   
   // get the parameters relevant to that type
   duration = infile.ReadItem( duration, "UPDUR" );

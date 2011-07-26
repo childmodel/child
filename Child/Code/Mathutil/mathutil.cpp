@@ -34,6 +34,12 @@ tRand::tRand(long seed)
   init(seed);
 }
 
+tRand::tRand( tRand const &orig )
+  : inext(orig.inext), inextp(orig.inextp)
+{
+  for( int i=1;i<=55;i++)
+    ma[i] = orig.ma[i];
+}
 tRand::tRand( tInputFile const &infile )
 {
   initFromFile( infile );

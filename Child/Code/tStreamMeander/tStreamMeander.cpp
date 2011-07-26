@@ -149,6 +149,40 @@ tStreamMeander::tStreamMeander( tStreamNet &netRef, tMesh< tLNode > &mRef,
   assert( &reachList != 0 );
 }
 
+tStreamMeander::tStreamMeander( const tStreamMeander& orig ) :
+  reachList(&orig.reachList), rlIter(reachList)
+{
+  netPtr = orig.netPtr;
+  meshPtr = orig.meshPtr;
+  infilePtr = orig.infilePtr;
+  
+#if FIXCRITFLOWBUG
+  critarea = orig.critarea;
+#else
+  critflow = orig.critflow;
+#endif
+  optdiamvar = orig.optdiamvar;
+  meddiam = orig.meddiam;
+  optrainvar = orig.optrainvar;
+  kwds = orig.kwds;
+  kdds = orig.kdds;
+  ewds = orig.ewds;
+  edds = orig.edds;
+  ewstn = orig.ewstn;
+  edstn = orig.edstn;
+  knds = orig.knds;
+  ends = orig.ends;
+  enstn = orig.enstn;
+  klambda = orig.klambda;
+  elambda = orig.elambda;
+  dscrtwids = orig.dscrtwids;
+  allowfrac = orig.allowfrac;
+  leavefrac = orig.leavefrac;
+  rockerod = orig.rockerod;
+  Pdz = orig.Pdz;
+  rand = orig.rand; // seed already set in tMesh
+}
+
 tStreamMeander::~tStreamMeander()
 {
   //if( netPtr != 0 ) delete netPtr;

@@ -14,9 +14,9 @@ RemovePointDuplicates( tSubNode &tempnode, tList<double> &xList,
 		       tList<double> &yList, tList<double> &zList )
 { // use global functions used with Tipper triangulator
   // to eliminate duplicate points:
-  double x;
-  double y;
-  double z;
+  double x(0.0);
+  double y(0.0);
+  double z(0.0);
   int npoints = xList.getSize();
   point *p = new point[npoints];
   vector<double> zVec( npoints );

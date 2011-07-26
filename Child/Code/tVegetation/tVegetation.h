@@ -59,13 +59,17 @@ class tFire
 {
 public:
   tFire();
+  tFire( const tFire& );
   tFire( double, unsigned, tRunTimer* );
-  tFire( const tInputFile&, tRunTimer* );
+  tFire( const tInputFile&, tRunTimer*, bool no_write_mode = false );
   bool Burn_WhenItsTime();
   double interfireDur();
   double getMeanInterfireDur() const;
   void setMeanInterfireDur( double );
-   
+  void setTimePtr( tRunTimer* ptr ) {timePtr = ptr;}
+  void TurnOnOutput( const tInputFile& );
+  void TurnOffOutput();
+ 
 private:
   bool optRandom;   
   double ifrdurMean;  // Mean time between fires
@@ -81,6 +85,7 @@ class tForest
   friend class tTrees;
   friend class tVegetation;
 public:
+  tForest( const tForest& );
   tForest( const tInputFile&, tMesh<tLNode>*, tStorm* );
   // "get" and "set" functions:
   double getRootDecayK() const {return rootdecayK;}
@@ -101,6 +106,7 @@ public:
   void setMVRC( double val ) {MVRC = val;}
   double getMLRC() const {return MLRC;}
   void setMLRC( double val ) {MLRC = val;}   
+  double getRSPartition() {return RSPartition;}
   double getHeightIndex() const {return heightindex;}
   void setHeightIndex( double val ) {heightindex = val;}
   double getWeightMax() const {return weightMax;}
@@ -117,6 +123,9 @@ public:
   void setWoodDensity( double val ) {wooddensity = val;}
   double getWoodDecayK() const {return wooddecayK;}
   void setWoodDecayK( double val ) {wooddecayK = val;}
+
+  void setMeshPtr( tMesh<tLNode>* ptr );
+  void setStormPtr( tStorm* ptr ) {storm = ptr;}
 
   // functions that do things:
   double Tree_diam_from_height( tTrees* ); // simple calc
@@ -170,11 +179,15 @@ class tVegetation
 {
   public:
    tVegetation();
+  tVegetation( const tVegetation& );
   tVegetation( tMesh<class tLNode> *meshPtr, const tInputFile &infile, 
-	       tRunTimer *tPtr = 0, tStorm *stormPtr = 0 );
+	       bool no_write_mode = false, tRunTimer *tPtr = 0, tStorm *stormPtr = 0 );
+  ~tVegetation();
    void UpdateVegetation( tMesh<class tLNode> *, double, double ) const;
    void GrowVegetation( tMesh<class tLNode> *, double ) const;
    void ErodeVegetation( tMesh<class tLNode> *, double ) const;
+  tFire* FirePtr() {return fire;}
+  tForest* ForestPtr() {return forest;}
 
   private:
   bool optGrassSimple; // option for simple grass
@@ -282,7 +295,6 @@ class tVegCover
   tTrees *trees;
 };
 
-
 //
 // inline functions for tFire
 //
@@ -320,29 +332,32 @@ inline double tForest::WoodDecayFactor( double evoltime )
 // inline functions for tTrees
 //
 inline tTrees::tTrees( const tTrees& orig )
-{
-   if( &orig != 0 )
-   {
-      rootstrength = orig.rootstrength;
-      rootgrowth = orig.rootgrowth;
-      rootdecay = orig.rootdecay;
-      maxrootstrength = orig.maxrootstrength;
-      maxheightstand = orig.maxheightstand;
-      maxdiamstand = orig.maxdiamstand;
-      biomassstand = orig.biomassstand;
-      maxheightdown = orig.maxheightdown;
-      biomassdown = orig.biomassdown;
-      standdeathtime = orig.standdeathtime;
-      node = orig.node;
-      forest = orig.forest;
-   }
-}
+  : forest(0),
+    node(0),
+    rootstrength(orig.rootstrength),
+    rootstrengthLat(orig.rootstrengthLat),
+    rootstrengthVert(orig.rootstrengthVert),
+    rootgrowth(orig.rootgrowth),
+    rootdecay(orig.rootdecay),
+    maxrootstrength(orig.maxrootstrength),
+    maxheightstand(orig.maxheightstand),
+    maxdiamstand(orig.maxdiamstand),
+    biomassstand(orig.biomassstand),
+    maxheightdown(orig.maxheightdown),
+    biomassdown(orig.biomassdown),
+    standdeathtime(orig.standdeathtime)
+{}
+
 
 inline tTrees& tTrees::operator=( const tTrees& right )
 {
    if( &right != this )
    {
+      node = 0;
+      forest = 0;
       rootstrength = right.rootstrength;
+      rootstrengthLat = right.rootstrengthLat;
+      rootstrengthVert = right.rootstrengthVert;
       rootgrowth = right.rootgrowth;
       rootdecay = right.rootdecay;
       maxrootstrength = right.maxrootstrength;
@@ -352,8 +367,6 @@ inline tTrees& tTrees::operator=( const tTrees& right )
       maxheightdown = right.maxheightdown;
       biomassdown = right.biomassdown;
       standdeathtime = right.standdeathtime;
-      node = right.node;
-      forest = right.forest;
    }
    return *this;
 }  
@@ -405,8 +418,11 @@ inline tVegCover::tVegCover() :
 {}
 
 inline tVegCover::tVegCover( const tVegCover &orig ) :
-  mdVeg(orig.mdVeg), trees(orig.trees)
-{}
+  mdVeg(orig.mdVeg), trees(0)
+{
+  if( orig.trees )
+    trees = new tTrees( *orig.trees );
+}
 
 inline double tVegCover::getVeg() const {return mdVeg;}
 

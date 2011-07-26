@@ -44,6 +44,7 @@
 class tUplift
 {
 public:
+    tUplift( const tUplift& );
     tUplift( const tInputFile &infile );
     void DoUplift( tMesh<tLNode> *mp, double delt, double current_time );
     double getDuration() const;
@@ -129,6 +130,20 @@ private:
    tUplift();
 };
 
+inline tUplift::tUplift( const tUplift& orig )
+  : typeCode(orig.typeCode), duration(orig.duration), rate(orig.rate), rate2(orig.rate2), 
+    rate_ts(orig.rate_ts), faultPosition(orig.faultPosition), 
+    positionParam1(orig.positionParam1), slipRate(orig.slipRate), foldParam(orig.foldParam), 
+    deformStartTime1(orig.deformStartTime1), flatDepth(orig.flatDepth), rampDip(orig.rampDip), 
+    kinkDip(orig.kinkDip), upperKinkDip(orig.upperKinkDip), meanElevation(orig.meanElevation), 
+    decayParam(orig.decayParam), timeParam1(orig.timeParam1), width(orig.width), 
+    dupdy(orig.dupdy), optincrease(orig.optincrease), miNumUpliftMaps(orig.miNumUpliftMaps), 
+    mUpliftMapTimes(orig.mUpliftMapTimes), miCurUpliftMapNum(orig.miCurUpliftMapNum), 
+    mdNextUpliftMapTime(orig.mdNextUpliftMapTime), 
+    mdUpliftFrontGradient(orig.mdUpliftFrontGradient)
+{
+  strcat( mUpliftMapFilename, orig.mUpliftMapFilename );
+}
 #endif
 
 

@@ -48,10 +48,13 @@
 template< class tSubNode >
 class tTSOutputImp : public tOutputBase<tSubNode>
 {
-  tTSOutputImp(const tTSOutputImp&);
+  tTSOutputImp(const tTSOutputImp&); 
   tTSOutputImp& operator=(const tTSOutputImp&);
   tTSOutputImp();
 public:
+//   tTSOutputImp(const tTSOutputImp& orig) 
+//     : volsofs(orig.volsofs), dvolsofs(orig.dvolsofs), tareaofs(orig.tareaofs), 
+//       vegcovofs(orig.vegcovofs), mdLastVolume(orig.mdLastVolume) {}
   tTSOutputImp( tMesh<tSubNode> * meshPtr, const tInputFile &infile );
   void WriteTSOutput();
 private:
@@ -79,7 +82,14 @@ template< class tSubNode >
 class tStratOutputImp : public tOutputBase<tSubNode>
 {
   tStratOutputImp();
+  tStratOutputImp(const tStratOutputImp&);
 public:
+//   tStratOutputImp(const tStratOutputImp& orig) 
+//     : xyzofs(orig.xyzofs), layt3ofs(orig.layt3ofs), layt4ofs(orig.layt4ofs), 
+//       direction(orig.direction), grxyzofs(orig.grxyzofs), gravofs(orig.gravofs), 
+//       psurfofs(orig.psurfofs), pssurfofs(orig.pssurfofs), 
+//       pssurf2ofs(orig.pssurf2ofs), stratGrid(orig.stratGrid), 
+//       netPtr(orig.netPtr) {}
   tStratOutputImp(tMesh<tSubNode> * meshPtr, const tInputFile &infile );
   void WriteNodeData( double time, int );
   void SetStratGrid(tStratGrid *, tStreamNet *);
@@ -90,10 +100,9 @@ private:
   void WriteGravelBodies( double time, int );
   void WriteCompleteStratigraphy( double time, int );
   void WritePreservationPotential( double time, int );
-  void WriteSingleSection( double time,
-			   int section,
-			   std::ofstream &xyzofs, std::ofstream &lay3ofs, std::ofstream &lay4ofs,
-			   direction_t );
+  void WriteSingleSection( double time, int section,
+			   std::ofstream &xyzofs, std::ofstream &lay3ofs, 
+			   std::ofstream &lay4ofs, direction_t );
   void Flush();
 
   // stratigraphic sections 1 to 10
@@ -132,7 +141,6 @@ tOutputBase<tSubNode>::tOutputBase( tMesh<tSubNode> * meshPtr,
   m(meshPtr)
 {
   assert( meshPtr != 0 );
-
   infile.ReadItem( baseName, sizeof(baseName), "OUTFILENAME" );
 }
 
@@ -345,7 +353,7 @@ void tOutput<tSubNode>::WriteNodeData( double /* time */ )
 \*************************************************************************/
 template< class tSubNode >
 tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
-			      const tInputFile &infile, tRand *rand_) :
+			      const tInputFile &infile, tRand *rand_ ) :
   tOutput<tSubNode>( meshPtr, infile ),  // call base-class constructor
   TSOutput(0),
   stratOutput(0),
@@ -381,10 +389,16 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
 
   // Flow depth: if kinematic wave option used OR if channel geometry
   // model other than "regime" used
-  if( (static_cast<tStreamNet::kFlowGen_t>(opOpt = infile.ReadItem( opOpt, "FLOWGEN" ))
-       == tStreamNet::k2DKinematicWave )
-      || (opOpt = infile.ReadItem( opOpt, "CHAN_GEOM_MODEL"))>1 )
+  const tStreamNet::kFlowGen_t miOptFlowGen = 
+    static_cast<tStreamNet::kFlowGen_t>(opOpt = infile.ReadItem( opOpt, "FLOWGEN" ) );
+  if( ( miOptFlowGen == tStreamNet::k2DKinematicWave )
+      || ( miOptFlowGen == tStreamNet::kSubSurf2DKinematicWave )
+      || ( opOpt = infile.ReadItem( opOpt, "CHAN_GEOM_MODEL"))>1 )
     this->CreateAndOpenFile( &flowdepofs, ".dep" );
+
+  // subsurface discharge: if subsurface kinematic wave option used
+  if( miOptFlowGen == tStreamNet::kSubSurf2DKinematicWave )
+    this->CreateAndOpenFile( &qsubofs, ".qsub" );
 
   // Time-series output: if requested
   if( infile.ReadBool( "OPTTSOUTPUT" ) ) {
@@ -409,7 +423,11 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
      this->CreateAndOpenFile( &qsdinofs, ".qsdin" );
      this->CreateAndOpenFile( &dzdtofs, ".dzdt" );
   }  
-
+  if( (opOpt = infile.ReadItem( opOpt, "OPT_LANDSLIDES" ) ) == 1 )
+    {
+      this->CreateAndOpenFile( &lsforceofs, ".force" );
+      this->CreateAndOpenFile( &publicflagofs, ".flag" );
+    }
   this->CreateAndOpenFile( &upofs, ".up" );
 
   // If Rectangular Stratigraphy Grid, open several files
@@ -527,6 +545,12 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
     this->WriteTimeNumberElements( upofs, time, nnodes);
   if( permIDofs.good() )
     this->WriteTimeNumberElements( permIDofs, time, nnodes );
+  if( lsforceofs.good() ) 
+    this->WriteTimeNumberElements( lsforceofs, time, nnodes );
+  if( qsubofs.good() ) 
+    this->WriteTimeNumberElements( qsubofs, time, nnodes ); 
+  if( publicflagofs.good() )
+    this->WriteTimeNumberElements( publicflagofs, time, nnodes );
 
   // Write Random number generator state
   rand->dumpToFile( randomofs );

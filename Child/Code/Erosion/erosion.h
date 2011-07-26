@@ -138,6 +138,7 @@ public:
   virtual ~tSedTrans() {}
   virtual double TransCapacity( tLNode *n ) = 0;
   virtual double TransCapacity( tLNode *n, int i, double weight) = 0;
+  virtual void Initialize_Copy( tSedTrans* ) =0;
 };
 
 /***************************************************************************/
@@ -152,12 +153,14 @@ public:
 /***************************************************************************/
 class tSedTransPwrLaw : public tSedTrans
 {
-  tSedTransPwrLaw();
 public:
+  tSedTransPwrLaw() : kf(0.0), kt(0.0), mf(1.0), nf(1.0), pf(1.0), tauc(0.0) {}
   tSedTransPwrLaw( const tInputFile &infile );
+  tSedTransPwrLaw( const tSedTransPwrLaw & );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int i, double weight);
-  
+  void Initialize_Copy( tSedTrans* );
+
 private:
   double kf;  // Transport capacity coefficient
   double kt;  // Shear stress coefficient
@@ -179,12 +182,14 @@ private:
 /***************************************************************************/
 class tSedTransPwrLaw2 : public tSedTrans
 {
-  tSedTransPwrLaw2();
 public:
+  tSedTransPwrLaw2() : kf(0.0), kt(0.0), mf(1.0), nf(1.0), pf(1.0), tauc(0.0) {}
   tSedTransPwrLaw2( const tInputFile &infile );
+  tSedTransPwrLaw2( const tSedTransPwrLaw2 & );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int i, double weight);
-  
+  void Initialize_Copy( tSedTrans* );
+
 private:
   double kf;  // Transport capacity coefficient
   double kt;  // Shear stress coefficient
@@ -208,10 +213,13 @@ private:
 class tSedTransPwrLawSimp : public tSedTrans
 {
 public:
+  tSedTransPwrLawSimp() : kf(0.0), mf(1.0), nf(1.0) {}
   tSedTransPwrLawSimp( const tInputFile &infile );
+  tSedTransPwrLawSimp( const tSedTransPwrLawSimp & );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int i, double weight);
-  
+  void Initialize_Copy( tSedTrans* );
+
 private:
   double kf;  // Transport capacity coefficient
   double mf;  // Exponent on total discharge
@@ -231,12 +239,14 @@ private:
 /***************************************************************************/
 class tSedTransBridgeDom : public tSedTrans
 {
-  tSedTransBridgeDom();
 public:
+  tSedTransBridgeDom() : kf(0.0), kt(0.0), mf(1.0), nf(1.0), tauc(0.0), sqrtTauc(0.0) {}
   tSedTransBridgeDom( const tInputFile &infile );
+  tSedTransBridgeDom( const tSedTransBridgeDom & );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int i, double weight);
-  
+  void Initialize_Copy( tSedTrans* );
+
 private:
   double kf;  // Transport capacity coefficient
   double kt;  // Shear stress coefficient
@@ -260,12 +270,16 @@ private:
 /***************************************************************************/
 class tSedTransPwrLawMulti : public tSedTrans
 {
-  tSedTransPwrLawMulti();
 public:
+  tSedTransPwrLawMulti() : kf(0.0), kt(0.0), mf(1.0), nf(1.0), pf(1.0), 
+			   mdGrndiam(1), mdTauc(1), miNumgrnsizes(1), 
+			   mdHidingexp(1.0) {}
   tSedTransPwrLawMulti( const tInputFile &infile );
+  tSedTransPwrLawMulti( const tSedTransPwrLawMulti & );
   double TransCapacity( tLNode * n );
   double TransCapacity( tLNode *n, int lyr, double weight );
-  
+  void Initialize_Copy( tSedTrans* );
+
 private:
   double kf;  // Transport capacity coefficient
   double kt;  // Shear stress coefficient
@@ -290,11 +304,15 @@ private:
 /**************************************************************************/
 class tSedTransWilcock : public tSedTrans
 {
-  tSedTransWilcock();
 public:
+  tSedTransWilcock() : taudim(0.0), refs(0.0), refg(0.0), lowtaucs(0.0), 
+		       lowtaucg(0.0), sandb(0.0), hightaucs(0.0), hightaucg(0.0),
+		       sands(0.0), gravb(0.0), gravs(0.0), grade(2) {}
   tSedTransWilcock( const tInputFile &infile );
+  tSedTransWilcock( const tSedTransWilcock & );
   double TransCapacity( tLNode * n ); // returns total volumetric load
   double TransCapacity( tLNode *n, int i, double weight);
+  void Initialize_Copy( tSedTrans* );
   //returns total volumetric load
   
 private:
@@ -328,12 +346,17 @@ private:
 /************************************************************************/
 class tSedTransMineTailings : public tSedTrans
 {
-  tSedTransMineTailings();
 public:
+  tSedTransMineTailings() : taudim(0.0), refs(0.0), refg(0.0), lowtaucs(0.0), 
+			    lowtaucg(0.0), sandb(0.0), hightaucs(0.0), 
+			    hightaucg(0.0), sands(0.0), gravb(0.0), 
+			    gravs(0.0), grade(2) {}
   tSedTransMineTailings( const tInputFile &infile );
+  tSedTransMineTailings( const tSedTransMineTailings & );
   double TransCapacity( tLNode * n ); // returns total volumetric load
   double TransCapacity( tLNode *n, int i, double weight);
-  
+  void Initialize_Copy( tSedTrans* );
+
 private:
   //all of these are just the same as for tSedTransWilcock since using
   //the same critical shear stress method
@@ -361,11 +384,13 @@ private:
 /***************************************************************************/
 class tSedTransNone : public tSedTrans
 {
-  tSedTransNone();
 public:
+  tSedTransNone() {}
   tSedTransNone( const tInputFile & ) {}
+  tSedTransNone( const tSedTransNone & ) : tSedTrans() {}
   double TransCapacity( tLNode * ) {return 0.0;}
   double TransCapacity( tLNode *, int, double ) {return 0.0;}
+  void Initialize_Copy( tSedTrans* ) {}
 };
 
 
@@ -388,6 +413,7 @@ public:
   virtual double DetachCapacity( tLNode * n ) = 0 ;
   //Returns an estimate of maximum stable & accurate time step size
   virtual double SetTimeStep( tLNode * n ) = 0 ;
+  virtual void Initialize_Copy( tBedErode* ) =0;
 };
 
 /***************************************************************************/
@@ -403,9 +429,10 @@ public:
 /***************************************************************************/
 class tBedErodePwrLaw : public tBedErode
 {
-  tBedErodePwrLaw();
 public:
+  tBedErodePwrLaw() : kb(0.0), kt(0.0), mb(1.0), nb(1.0), pb(1.0), taucd(0.0) {}
   tBedErodePwrLaw( const tInputFile &infile );
+  tBedErodePwrLaw( const tBedErodePwrLaw & );
   //Computes depth of potential erosion at node n over time interval dt
   double DetachCapacity( tLNode * n, double dt );
   //Computes rate of potential erosion of layer i at node n
@@ -414,7 +441,8 @@ public:
   double DetachCapacity( tLNode * n );
   //Returns an estimate of maximum stable & accurate time step size
   double SetTimeStep( tLNode * n );
-  
+  void Initialize_Copy( tBedErode* );
+
 private:
   double kb;  // Erosion coefficient
   double kt;  // Shear stress (or stream power) coefficient
@@ -444,9 +472,10 @@ private:
 /***************************************************************************/
 class tBedErodePwrLaw2 : public tBedErode
 {
-  tBedErodePwrLaw2();
 public:
+  tBedErodePwrLaw2() : kb(0.0), kt(0.0), mb(1.0), nb(1.0), pb(1.0), taucd(0.0) {}
   tBedErodePwrLaw2( const tInputFile &infile );
+  tBedErodePwrLaw2( const tBedErodePwrLaw2 & );
   //Computes depth of potential erosion at node n over time interval dt
   double DetachCapacity( tLNode * n, double dt );
   //Computes rate of potential erosion of layer i at node n
@@ -455,7 +484,8 @@ public:
   double DetachCapacity( tLNode * n );
   //Returns an estimate of maximum stable & accurate time step size
   double SetTimeStep( tLNode * n );
-  
+  void Initialize_Copy( tBedErode* );
+
 private:
   double kb;  // Erosion coefficient
   double kt;  // Shear stress (or stream power) coefficient
@@ -490,7 +520,9 @@ private:
 class tBedErodeAParabolic1 : public tBedErode
 {
 public:
+  tBedErodeAParabolic1() : kb(0.0), mb(1.0), nb(1.0), beta(0.0) {}
   tBedErodeAParabolic1( const tInputFile &infile );
+  tBedErodeAParabolic1( const tBedErodeAParabolic1 & );
   //Computes depth of potential erosion at node n over time interval dt
   double DetachCapacity( tLNode * n, double dt );
   //Computes rate of potential erosion of layer i at node n
@@ -499,7 +531,8 @@ public:
   double DetachCapacity( tLNode * n );
   //Returns an estimate of maximum stable & accurate time step size
   double SetTimeStep( tLNode * n );
-  
+  void Initialize_Copy( tBedErode* );
+
 private:
   double kb;  // Erosion coefficient - get this from layer, but used for ts
   double mb;  // Exponent on total discharge
@@ -528,22 +561,25 @@ private:
 class tBedErodeGeneralFQS : public tBedErode
 {
 public:
-  tBedErodeGeneralFQS( const tInputFile &infile );
-  //Computes depth of potential erosion at node n over time interval dt
-  double DetachCapacity( tLNode * nd, double dt );
-  //Computes rate of potential erosion of layer i at node n 
-  double DetachCapacity( tLNode * nd, int i );
-  //Computes rate of erosion at node n
-  double DetachCapacity( tLNode * nd );
-  //Does nothing but included in just in case it's needed in the future.
-  double SetTimeStep( tLNode * nd );
-  
-private:
-  double m;
-  double n;
-  double K;
-  double beta;
-  
+   tBedErodeGeneralFQS() : m(1.0), n(1.0), K(0.0), beta(0.0) {}
+   tBedErodeGeneralFQS( const tInputFile &infile );
+   tBedErodeGeneralFQS( const tBedErodeGeneralFQS & );
+     //Computes depth of potential erosion at node n over time interval dt
+   double DetachCapacity( tLNode * nd, double dt );
+   //Computes rate of potential erosion of layer i at node n 
+   double DetachCapacity( tLNode * nd, int i );
+     //Computes rate of erosion at node n
+   double DetachCapacity( tLNode * nd );
+     //Does nothing but included in just in case it's needed in the future.
+   double SetTimeStep( tLNode * nd );
+  void Initialize_Copy( tBedErode* );
+
+  private:
+   double m;
+   double n;
+   double K;
+   double beta;
+   
 };
 
 /***************************************************************************/
@@ -555,9 +591,10 @@ private:
 /***************************************************************************/
 class tBedErodeNone : public tBedErode
 {
-  tBedErodeNone();
 public:
+  tBedErodeNone() {}
   tBedErodeNone( const tInputFile & ) {}
+  tBedErodeNone( const tBedErodeNone & ) : tBedErode() {}
   //Computes depth of potential erosion at node n over time interval dt
   double DetachCapacity( tLNode *, double ) {return 0.0;}
   //Computes rate of potential erosion of layer i at node n
@@ -566,6 +603,7 @@ public:
   double DetachCapacity( tLNode * ) {return 0.0;}
   //Returns an estimate of maximum stable & accurate time step size
   double SetTimeStep( tLNode * ) {return 0.0;}
+  void Initialize_Copy( tBedErode* ) {}
 };
 
 /***************************************************************************/
@@ -589,6 +627,7 @@ public:
   
   // CSDMS IRF interface:
   virtual void Initialize( const tInputFile &infile ) = 0;
+  virtual void Initialize_Copy( tPhysicalWeathering* ) = 0;
   virtual double Run_Step( tLNode * n, double dt, double time ) = 0;
   virtual double Run_Step( tLNode * n, int i ) = 0;
   virtual double Run_Step( tLNode * n ) = 0;
@@ -606,9 +645,11 @@ public:
 /***************************************************************************/
 class tPhysicalWeatheringNone : public tPhysicalWeathering
 {
-  tPhysicalWeatheringNone();
 public:
+  tPhysicalWeatheringNone() {}
   tPhysicalWeatheringNone( const tInputFile & ) {}
+  tPhysicalWeatheringNone( const tPhysicalWeatheringNone & ) 
+  : tPhysicalWeathering() {}
   //Computes depth of physical weathering at node n over time interval dt
   double SoilProduction( tLNode *, double, double ) {return 0.0;}
   //Computes rate of physical weathering of layer i at node n
@@ -618,12 +659,11 @@ public:
   
   // CSDMS IRF interface:
   void Initialize( const tInputFile & ) {}
+  void Initialize_Copy( tPhysicalWeathering* ) {}
   double Run_Step( tLNode *, double, double ) {return 0.0;}
   double Run_Step( tLNode *, int ) {return 0.0;}
   double Run_Step( tLNode * ) {return 0.0;}
   void Finalize() {}
-  
-private:
 };
 
 /***************************************************************************/
@@ -640,9 +680,10 @@ private:
 /***************************************************************************/
 class tPhysicalWeatheringExpLaw : public tPhysicalWeathering
 {
-  tPhysicalWeatheringExpLaw();
 public:
+  tPhysicalWeatheringExpLaw() : soilprodK(0.0), soilprodH(0.0) {}
   tPhysicalWeatheringExpLaw( const tInputFile &infile );
+  tPhysicalWeatheringExpLaw( const tPhysicalWeatheringExpLaw & );
   //Computes depth of physical weathering at node n over time interval dt
   double SoilProduction( tLNode * n, double dt, double time );
   //Computes rate of physical weathering of layer i at node n
@@ -652,6 +693,7 @@ public:
   
   // CSDMS IRF interface:
   void Initialize( const tInputFile &infile );
+  void Initialize_Copy( tPhysicalWeathering* );
   double Run_Step( tLNode * n, double dt, double time );
   double Run_Step( tLNode * n, int i );
   double Run_Step( tLNode * n );
@@ -676,9 +718,11 @@ private:
 /***************************************************************************/
 class tPhysicalWeatheringDensityDependent : public tPhysicalWeathering
 {
-  tPhysicalWeatheringDensityDependent();
 public:
+  tPhysicalWeatheringDensityDependent() : soilprodK0(0.0), soilprodK1(0.0), 
+					  soilprodH(0.0) {}
   tPhysicalWeatheringDensityDependent( const tInputFile &infile );
+  tPhysicalWeatheringDensityDependent( const tPhysicalWeatheringDensityDependent & );
   //Computes depth of physical weathering at node n over time interval dt
   double SoilProduction( tLNode * n, double dt, double time );
   //Computes rate of physical weathering of layer i at node n
@@ -688,6 +732,7 @@ public:
   
   // CSDMS IRF interface:
   void Initialize( const tInputFile &infile );
+  void Initialize_Copy( tPhysicalWeathering* );
   double Run_Step( tLNode * n, double dt, double time );
   double Run_Step( tLNode * n, int i );
   double Run_Step( tLNode * n );
@@ -734,6 +779,8 @@ public:
   // CSDMS IRF interface:
   virtual void Initialize( const tInputFile &infile, 
                           tMesh<tLNode> *meshPtr ) = 0;
+  virtual void Initialize( tMesh<tLNode> *meshPtr ) = 0;
+  virtual void Initialize_Copy( tChemicalWeathering* oPtr, tMesh<tLNode>* mPtr ) =0;
   virtual double Run_Step( tLNode * n, double dt ) = 0;
   virtual double Run_Step( tLNode * n, int i ) = 0;
   virtual double Run_Step( tLNode * n ) = 0;
@@ -751,10 +798,12 @@ public:
 /***************************************************************************/
 class tChemicalWeatheringNone : public tChemicalWeathering
 {
-  tChemicalWeatheringNone();
 public:
+  tChemicalWeatheringNone() {}
   tChemicalWeatheringNone( const tInputFile &, 
                           tMesh<tLNode> * ) {}
+  tChemicalWeatheringNone( const tChemicalWeatheringNone & ) 
+  : tChemicalWeathering() {}
   //Computes dissolution at node n over time interval dt
   double SoluteFlux( tLNode *, double ) {return 0.0;}
   //Computes solute flux rate from layer i at node n
@@ -770,6 +819,8 @@ public:
   
   // CSDMS IRF interface:
   void Initialize( const tInputFile &, tMesh<tLNode> * ) {}
+  void Initialize( tMesh<tLNode> * ) {}
+  void Initialize_Copy( tChemicalWeathering*, tMesh<tLNode>* ) {}
   double Run_Step( tLNode *, double ) {return 0.0;}
   double Run_Step( tLNode *, int ) {return 0.0;}
   double Run_Step( tLNode * ) {return 0.0;}
@@ -794,10 +845,13 @@ private:
 /***************************************************************************/
 class tChemicalWeatheringDissolution : public tChemicalWeathering
 {
-  tChemicalWeatheringDissolution();
 public:
+  tChemicalWeatheringDissolution() :
+    maxDissolution(0.0), chemDepth(0.0), rockBulkDensity_0(0.0), 
+    rockLayerDepth(0.0), numThinLayers(0) {} 
   tChemicalWeatheringDissolution( const tInputFile &infile, 
                                  tMesh<tLNode> *meshPtr );
+  tChemicalWeatheringDissolution( const tChemicalWeatheringDissolution & );
   //Computes dissolution at node n over time interval dt
   double SoluteFlux( tLNode * n, double dt );
   //Computes solute flux rate from layer i at node n
@@ -813,6 +867,8 @@ public:
   
   // CSDMS IRF interface:
   void Initialize( const tInputFile &infile, tMesh<tLNode> *meshPtr );
+  void Initialize( tMesh<tLNode> *meshPtr );
+  void Initialize_Copy( tChemicalWeathering*, tMesh<tLNode>* );
   double Run_Step( tLNode * n, double dt );
   double Run_Step( tLNode * n, int i );
   double Run_Step( tLNode * n );
@@ -851,6 +907,7 @@ public:
   tDebrisFlow( tPtrList<tLNode>&, double, vector<double>&, 
               vector<double>&, vector<double>&, vector<int>&,
               tMesh<tLNode>*, tErosion* ); //usual constructor
+  tDebrisFlow( const tDebrisFlow& ); //copy constructor
   ~tDebrisFlow(); // destructor
   //   tDebrisFlow( tInputFile& file, tErosion* ePtr ); // static variables
   // "get" and "set":
@@ -968,6 +1025,7 @@ public:
   virtual ~tDF_RunOut() {}
   virtual bool Start( tDebrisFlow* ) = 0; // e.g., initialize list of velocities
   virtual bool InMotion( tDebrisFlow* ) = 0;
+  virtual void Initialize_Copy( tDF_RunOut* ) =0;
 };
 
 /***************************************************************************/
@@ -978,12 +1036,14 @@ public:
 /***************************************************************************/
 class tDF_RunOutNone : public tDF_RunOut
 {
-  tDF_RunOutNone();
 public:
-  tDF_RunOutNone( const tInputFile &infile ) {}
+  tDF_RunOutNone() {}
+  tDF_RunOutNone( const tInputFile & ) {}
+  tDF_RunOutNone( const tDF_RunOutNone & ) : tDF_RunOut() {}
   //   virtual ~tDF_RunOutNone() {}
-  virtual bool Start( tDebrisFlow* ptr ) {return false;}
-  virtual bool InMotion( tDebrisFlow* ptr ) {return false;}
+  virtual bool Start( tDebrisFlow* ) {return false;}
+  virtual bool InMotion( tDebrisFlow* ) {return false;}
+  virtual void Initialize_Copy( tDF_RunOut* ) {}
 };
 
 /***************************************************************************/
@@ -994,12 +1054,14 @@ public:
 /***************************************************************************/
 class tDF_RunOutNoStop : public tDF_RunOut
 {
-  tDF_RunOutNoStop();
 public:
-  tDF_RunOutNoStop( const tInputFile &infile ) {}
+  tDF_RunOutNoStop() {}
+  tDF_RunOutNoStop( const tInputFile & ) {}
+  tDF_RunOutNoStop( const tDF_RunOutNoStop & ) : tDF_RunOut() {}
   //   virtual ~tDF_RunOutNoStop() {}
   virtual bool Start( tDebrisFlow* );
   virtual bool InMotion( tDebrisFlow* );
+  virtual void Initialize_Copy( tDF_RunOut* ) {}
 };
 
 /***************************************************************************/
@@ -1026,8 +1088,9 @@ class tDF_Scour
 {
 public:
   virtual ~tDF_Scour() {}
-  virtual bool InScourZone( tDebrisFlow* DF ) = 0;
-  virtual void BedScour( tDebrisFlow* DF, tLNode* node ) = 0;
+  virtual bool InScourZone( tDebrisFlow* ) = 0;
+  virtual void BedScour( tDebrisFlow*, tLNode* ) = 0;
+  virtual void Initialize_Copy( tDF_Scour* ) =0;
 };
 
 /***************************************************************************/
@@ -1038,12 +1101,14 @@ public:
 /***************************************************************************/
 class tDF_ScourNone : public tDF_Scour
 {
-  tDF_ScourNone();
 public:
-  tDF_ScourNone( const tInputFile &infile ) {}
+  tDF_ScourNone() {}
+  tDF_ScourNone( const tInputFile & ) {}
+  tDF_ScourNone( const tDF_ScourNone & ) : tDF_Scour() {}
   //   virtual ~tDF_ScourNone() {}
-  virtual bool InScourZone( tDebrisFlow* DF ) {return false;}
-  virtual void BedScour( tDebrisFlow* DF, tLNode* node ) {}
+  virtual bool InScourZone( tDebrisFlow* ) {return false;}
+  virtual void BedScour( tDebrisFlow*, tLNode* ) {}
+  virtual void Initialize_Copy( tDF_Scour* ) {}
 };
 
 /***************************************************************************/
@@ -1056,12 +1121,14 @@ public:
 /***************************************************************************/
 class tDF_ScourAllSediment : public tDF_Scour
 {
-  tDF_ScourAllSediment();
 public:
-  tDF_ScourAllSediment( const tInputFile &infile ) {}
+  tDF_ScourAllSediment() {}
+  tDF_ScourAllSediment( const tInputFile & ) {}
+  tDF_ScourAllSediment( const tDF_ScourAllSediment & ) : tDF_Scour() {}
   //   virtual ~tDF_ScourAllSediment() {}
-  virtual bool InScourZone( tDebrisFlow* DF ) {return true;}
+  virtual bool InScourZone( tDebrisFlow* ) {return true;}
   virtual void BedScour( tDebrisFlow*, tLNode* );
+  virtual void Initialize_Copy( tDF_Scour* ) {}
 };
 
 // inline bool tDF_ScourAllSediment::InScourZone( tDebrisFlow* DF ) 
@@ -1085,6 +1152,7 @@ public:
   virtual ~tDF_Deposit() {}
   virtual bool InDepositionZone( tDebrisFlow* DF ) = 0;
   virtual void FormDeposit( tDebrisFlow* DF, tLNode* node ) = 0;
+  virtual void Initialize_Copy( tDF_Deposit* ) =0;
 };
 
 /***************************************************************************/
@@ -1099,12 +1167,14 @@ public:
 /***************************************************************************/
 class tDF_DepositNone : public tDF_Deposit
 {
-  tDF_DepositNone();
 public:
-  tDF_DepositNone( const tInputFile &infile ) {}
+  tDF_DepositNone() {}
+  tDF_DepositNone( const tInputFile & ) {}
+  tDF_DepositNone( const tDF_DepositNone & ) : tDF_Deposit() {}
   //   virtual ~tDF_DepositNone() {}
-  virtual bool InDepositionZone( tDebrisFlow* DF ) {return false;}
-  virtual void FormDeposit( tDebrisFlow* DF, tLNode* node ) {}
+  virtual bool InDepositionZone( tDebrisFlow* ) {return false;}
+  virtual void FormDeposit( tDebrisFlow*, tLNode* ) {}
+  virtual void Initialize_Copy( tDF_Deposit* ) {}
 };
 /***************************************************************************/
 /**  @class NodeNetForceIndex
@@ -1125,7 +1195,7 @@ public:
     return *this;
   }
 };
-
+  
 /***************************************************************************/
 /**  @class NodeNetForce_Lesser
  **  Used for priority_queue in tErosion::LandslideClusters.
@@ -1160,34 +1230,44 @@ void BuildPublicClusterWithMesh( tMesh<tLNode>* mesh,
 /***************************************************************************/
 class tErosion
 {
-  tErosion(const tErosion&);
   tErosion& operator=(const tErosion&);
-  tErosion();
+   tErosion();
 public:
-  tErosion( tMesh< tLNode > *, const tInputFile & );
-  ~tErosion();
-  void ErodeDetachLim( double dtg, tStreamNet *, tVegetation * );
-  void ErodeDetachLim( double dtg, tStreamNet *, tUplift const * );
-  void StreamErode( double dtg, tStreamNet * );
-  void StreamErodeMulti( double dtg, tStreamNet *, double time);
-  void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
-  void DetachErode2( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
-  void Diffuse( double dtg, bool detach );
-  void DiffuseNonlinear( double dtg, bool detach );
+  tErosion( tMesh< tLNode > *, const tInputFile &, bool no_write_mode = false );
+   tErosion( const tErosion&, tMesh<tLNode>* );
+   ~tErosion();
+   void ErodeDetachLim( double dtg, tStreamNet *, tVegetation * );
+   void ErodeDetachLim( double dtg, tStreamNet *, tUplift const * );
+   void StreamErode( double dtg, tStreamNet * );
+   void StreamErodeMulti( double dtg, tStreamNet *, double time);
+   void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
+   void DetachErode2( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
+   void Diffuse( double dtg, bool detach );
+   void DiffuseNonlinear( double dtg, bool detach );
   void DiffuseNonlinearDepthDep( double dtg, double time );
   void ProduceRegolith( double dtg, double time );
   void WeatherBedrock( double dtg );
-  void LandslideClusters( double rainrate, tStreamNet* strmNet, double time );
-  void UpdateExposureTime( double dtg);
-  void DensifyMesh( double time );
-  void ActivateSedVolumeTracking( tWaterSedTracker *water_sed_tracker_ptr )
-  { track_sed_flux_at_nodes_ =true;  water_sed_tracker_ptr_ = water_sed_tracker_ptr; }
-  
+  void LandslideClusters( double rainrate, double time );
+  void LandslideClusters3D( double rainrate, double time );
+   void UpdateExposureTime( double dtg);
+   void DensifyMesh( double time );
+   void ActivateSedVolumeTracking( tWaterSedTracker *water_sed_tracker_ptr )
+     { track_sed_flux_at_nodes_ =true;  water_sed_tracker_ptr_ = water_sed_tracker_ptr; }
+  void DeactivateSedVolumeTracking() 
+  { track_sed_flux_at_nodes_ =true;  water_sed_tracker_ptr_ = 0; }
+  void TurnOnOutput( const tInputFile& );
+  void TurnOffOutput();
+
   tDF_RunOut* getDF_RunOutPtr() {return runout;}
   tDF_Scour* getDF_ScourPtr() {return scour;}
   tDF_Deposit* getDF_DepositPtr() {return deposit;}
-  
-  
+  double getDiffusionH() {return diffusionH;}
+  void setDiffusionH( double val ) {diffusionH = val;}
+  double getSoilBulkDensity() {return soilBulkDensity;}
+  void setSoilBulkDensity( double );
+  double getFricSlope() {return fricSlope;}
+  void setFricSlope( double val ) {fricSlope = val;}   
+
 private:
   tMesh<tLNode> *meshPtr;    // ptr to mesh
   // pointers to objects governing rules for sediment transport:
@@ -1212,15 +1292,29 @@ private:
   bool track_sed_flux_at_nodes_; // option for tracking sed flux at nodes
   tWaterSedTracker *water_sed_tracker_ptr_;  // -> water&sed tracker object
   double soilBulkDensity; // dry bulk density of soil, when made from rock (kg/m3)
+  double rockBulkDensity; // rock bulk density (kg/m3)
   double wetBulkDensity; // wet bulk density of soil (kg/m3)
   double woodDensity; // density of wood (kg/m3)
   double fricSlope; // tangent of angle of repose for soil (unitless)
 public:
   double debris_flow_sed_bucket; // tally of debris flow sed. volume
   double debris_flow_wood_bucket;// tally of debris flow wood volume
-  
-  //int optDebrisFlowRule; // option for debris flows, used in Landslides()
+  tList<double> landslideAreas; // list of all landslides by their areas
+  int optBedErosionLaw,
+    optSedTransLaw,
+    optPhysWeathLaw,
+    optChemWeathLaw,
+    optDF_RunOutLaw,
+    optDF_ScourLaw,
+    optDF_DepositLaw;
 };
 
+inline void tErosion::setSoilBulkDensity( double val ) 
+{
+  soilBulkDensity = val;       
+  if( rockBulkDensity > 0.0 )
+    wetBulkDensity = 
+      soilBulkDensity + RHO * ( 1.0 - soilBulkDensity / rockBulkDensity );
+}
 
 #endif

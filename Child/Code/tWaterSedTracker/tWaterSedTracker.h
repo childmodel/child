@@ -48,7 +48,10 @@ public:
 
   // Constructor for basic initialization
   tWaterSedTracker();
-  
+  // Copy constructor 
+  tWaterSedTracker( const tWaterSedTracker&,
+		    tMesh<tLNode>* );
+
   // Destructor
   ~tWaterSedTracker();
   
@@ -58,13 +61,15 @@ public:
   // Reset the list of nodes to track
   void ResetListOfNodesToTrack( std::vector<tLNode *> list_of_nodes_to_track, 
                                 double current_time );
-  
+
   // Write data to file, and zero out the cumulative flux records within tLNode objects
   void WriteAndResetWaterSedTimeseriesData( double period_starting_time,
                                             double period_duration );
   
   // Add to the total cumulative volume at each node
   void AddSedVolumesAtTrackingNodes( double flux_duration );
+  
+  inline bool& IsActive() {return active;}
 
 private:
 
@@ -74,6 +79,7 @@ private:
   std::vector<tLNode *> tracking_node_list_;  // List of ptrs to nodes to track
   std::vector<ofstream *> output_file_list_;  // List of ptrs to file I/O
   std::string output_file_base_name_;         // Base name for output files
+  bool active;
 };
 
 

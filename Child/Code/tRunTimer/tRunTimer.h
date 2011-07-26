@@ -23,6 +23,7 @@ class tRunTimer
 public:
 	tRunTimer( double duration, double opint, bool optprint=true );
 	tRunTimer( const tInputFile &infile, bool optprint=true );
+  tRunTimer( const tRunTimer& );
 	tRunTimer();
 	double getCurrentTime() const;     // Report the current time
 	bool Advance( double );            // Advance time by given amount
@@ -46,6 +47,16 @@ private:
 	bool optTSOutput;          // option for time series output
 	const bool optPrintEachTime;     // option for reporting time to screen
 };
+
+// copy constructor:
+inline tRunTimer::tRunTimer( const tRunTimer& orig ) 
+  : currentTime(orig.currentTime), endTime(orig.endTime), 
+    outputInterval(orig.outputInterval), nextOutputTime(orig.nextOutputTime), 
+    notifyInterval(orig.notifyInterval), nextNotify(orig.nextNotify), 
+    nextTSOutputTime(orig.nextTSOutputTime), 
+    TSOutputInterval(orig.TSOutputInterval), optTSOutput(orig.optTSOutput), 
+    optPrintEachTime(orig.optPrintEachTime) 
+{}
 
 
 #endif

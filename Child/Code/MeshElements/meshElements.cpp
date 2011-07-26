@@ -93,6 +93,8 @@ tArray2< double > FindIntersectionCoords( tArray2< double > const &xy1,
    return intxy;
 }
 
+// set static boolean for tNode:
+bool tNode::freezeElevations = false;
 
 /*****************************************************************************\
 **

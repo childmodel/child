@@ -68,6 +68,7 @@ public:
   inline tListNodeBasic();                                // default constructor
   inline tListNodeBasic( const tListNodeBasic< NodeType > & ); // copy constructor #1
   inline tListNodeBasic( const NodeType & );              // copy constructor #2
+  ~tListNodeBasic() {next = prev = 0;}
   const tListNodeBasic< NodeType >
   &operator=( const tListNodeBasic< NodeType > & );           // assignment
   inline bool operator==( const tListNodeBasic< NodeType > & ) const; // equality
@@ -266,6 +267,7 @@ public:
   tListable() : listPtr(0) {}
   // listPtr is not copied and set to 0.
   tListable(tListable const &) : listPtr(0) {}
+  ~tListable() {listPtr=0;}
   // listPtr is left identical.
   tListable& operator=(tListable const &) { return *this; }
   void setListPtr(void *ptr) { listPtr = ptr; }
@@ -294,6 +296,7 @@ public:
   inline tListNodeListable();                                // default constructor
   inline tListNodeListable( const tListNodeListable< NodeType > & ); // copy constructor #1
   inline tListNodeListable( const NodeType & );              // copy constructor #2
+  ~tListNodeListable() {next = prev = 0;}
   const tListNodeListable< NodeType >
   &operator=( const tListNodeListable< NodeType > & );           // assignment
   inline bool operator==( const tListNodeListable< NodeType > & ) const; // equality

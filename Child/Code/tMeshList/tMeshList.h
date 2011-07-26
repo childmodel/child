@@ -129,7 +129,7 @@ tMeshList( const tMeshList< NodeType, ListNodeType > *original ) :
     std::cout << "                  from tMeshList( original )" << this->first
 	 << std::endl;
   if ( nActiveNodes > 0 )
-    lastactive = tList< NodeType, ListNodeType >::getIthListNode( nActiveNodes - 1 );
+    lastactive = tList< NodeType, ListNodeType >::getIthListNodeNC( nActiveNodes - 1 );
 }
 
 template< class NodeType, class ListNodeType >
@@ -139,6 +139,7 @@ tMeshList< NodeType, ListNodeType >::
   if (0) //DEBUG
     std::cout << "                  from ~tMeshList()" << this->first
 	 << std::endl;
+  lastactive = 0;
 }
 
 

@@ -36,8 +36,9 @@ xy = xyzb(:,1:2);
 
 % Scale the colors
 cmap = colormap;
-cmin=min(c);
-crange = max(c)-cmin;
+% cmin=min(c);
+% crange = max(c)-cmin;
+crange = cmax - cmin;
 colortop = size(cmap,1);
 color_scale_param = (colortop-1) / crange;
 mycolors = round( (c-cmin)*color_scale_param + 1 );

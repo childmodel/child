@@ -22,15 +22,18 @@ class tTimeSeriesImp;
 */
 class tTimeSeries {
   tTimeSeriesImp *ts;
+  // Clunky, but need tag to find out which kind of time series
+  // "Imp" to instantiate in copy constructor:
+  int tagImp;
 public:
   tTimeSeries();
+  tTimeSeries(tTimeSeries const &);
   ~tTimeSeries();
   void configure(const char *s);
   void reconfigure(const char *s);  // GT added June 09
   double calc(double time) const;
   void TellAll() const;
 private:
-  tTimeSeries(tTimeSeries const &);
   tTimeSeries& operator=(tTimeSeries const &);
 };
 

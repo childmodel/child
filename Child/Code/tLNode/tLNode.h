@@ -531,6 +531,7 @@ public:
   inline double getSubSurfaceDischarge() const;
   inline void setDischarge( double );
   inline void setSubSurfaceDischarge( double );
+  inline void addSubSurfaceDischarge( double );
   inline void setZOld( double, double );
   inline void RevertToOldCoords();
   virtual inline void UpdateCoords();
@@ -601,6 +602,9 @@ public:
   inline void setTauCrit( double );
   inline void setUplift( double );
   inline double getUplift() const;
+  inline double getNetDownslopeForce() const;
+  inline void setNetDownslopeForce( double );
+
   inline size_t getNumg() const;
   inline void setNumg( size_t ) const;
   inline double getMaxregdep() const;
@@ -692,6 +696,11 @@ public:
    virtual void ChangeZ( double ); // overrides tNode::ChangeZ
   // add new function to find regolith/sediment depth from layers (sl, 8/10)
   double getRegolithDepth();
+  
+
+  inline virtual tArray<int> getEdgePtrIndices();
+  inline virtual void setEdgePtrsFromVector( vector<tEdge*>& );
+
 #ifndef NDEBUG
   void TellAll() const;
 #endif
@@ -733,6 +742,7 @@ protected:
   static double maxregdep;
   static double KRnew;
   double qsubsurf;   // Subsurface discharge
+  double netDownslopeForce; // force from landslide calculation
   double cumulative_ero_dep_;    // Keeps track of ero/dep since last update (for external reporting)
   double cumulative_sed_xport_volume_;  // Keeps track of flux since last reset; qty is a volume (for external reporting)
   //double safetyFactor; // Factor of safety for node (landsliding)
@@ -859,6 +869,7 @@ inline void tLNode::setChanSlope( double val )  {chan.chanslope = ( val > 0 ) ? 
 inline void tLNode::setBankRough( double val )
 {chan.migration.bankrough = ( val > 0 ) ? val : 0;}
 inline void tLNode::setSubSurfaceDischarge( double val ) {qsubsurf = val;}
+inline void tLNode::addSubSurfaceDischarge( double val ) {qsubsurf += val;}
 
 inline double tLNode::getDrArea() const {return chan.drarea;}
 
@@ -1189,6 +1200,11 @@ inline size_t tLNode::getNumg() const
   return numg;
 }
 
+double tLNode::getNetDownslopeForce() const {return netDownslopeForce;}
+
+void tLNode::setNetDownslopeForce( double val ) {netDownslopeForce = val;}
+
+
 inline void tLNode::setNumg( size_t size ) const
 {
   numg = size;
@@ -1450,6 +1466,32 @@ inline void tLNode::ChangeZ( double val )
       }
    }
 }
+
+/*******************************************************************\
+  tNode::getEdgePtrIndices() virtual function; here, returns 
+  one-member array with edg ID
+
+  10/10 SL
+\*******************************************************************/
+inline tArray< int > tLNode::getEdgePtrIndices() 
+{
+  tArray<int> ar(2);
+  ar[0] = getEdg()->getID();
+  ar[1] = flowedge->getID();
+  return ar;
+}
+
+/*******************************************************************\
+  tNode::setEdgePtrsFromVector() virtual function; here, sets edg
+
+  10/10 SL
+\*******************************************************************/
+inline void tLNode::setEdgePtrsFromVector( vector<tEdge*>& ePtrs ) 
+{
+  setEdg( ePtrs[0] );
+  flowedge = ePtrs[1];
+}
+
 
 
 

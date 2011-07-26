@@ -18,7 +18,7 @@
 
 tOption::tOption(int argc, char const * const argv[])
   : exeName(argv[0]),
-    silent_mode(false), checkMeshConsistency(true),
+    silent_mode(false), checkMeshConsistency(true), no_write_mode(false), 
     inputFile(0)
 {
   argv++;
@@ -40,6 +40,10 @@ int tOption::parseOptions(char const * const argv[]) {
 
   if (strcmp(thisOption, "--silent-mode") == 0){
     silent_mode = true;
+    return 1;
+  }
+  if (strcmp(thisOption, "--no-write-mode") == 0){
+    no_write_mode = true;
     return 1;
   }
   if (strcmp(thisOption, "--no-check") == 0){
@@ -73,6 +77,7 @@ void tOption::usage() const {
     << " --help: display this help message.\n"
     << " --no-check: disable CheckMeshConsistency().\n"
     << " --silent-mode: silent mode.\n"
+    << " --no-write-mode: no writing to output.\n"
     << " --version: display version.\n"
     << std::endl;
 }

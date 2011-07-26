@@ -167,6 +167,75 @@ tStratGrid::tStratGrid( tInputFile const &infile, tMesh<tLNode> *mp_)
   }
 } // tStratGrid constructor
 
+tStratGrid::tStratGrid( const tStratGrid& orig )
+    :   xcorner(orig.xcorner),
+	ycorner(orig.ycorner),    // starting point for spanning StratGrid
+	griddx(orig.griddx),	 // inter-node distance of tStratGrid
+	grwidth(orig.grwidth),    // x-width of tStratGrid
+	grlength(orig.grlength),    // y-width of tStratGrid
+	mp(orig.mp),              	 // ptr to triangular mesh
+	imax(orig.imax),
+	jmax(orig.jmax),
+	optSurferFiles(orig.optSurferFiles),
+	nWrite(orig.nWrite),
+	section(orig.section),          // array with 10 section locations, 5x, and 5y
+	surface(orig.surface),	 // timeslice specific surface area
+	subsurface(orig.subsurface),    // timeslice specific subsurface cummulative height in the entire floodplain
+	subsurface_mbelt(orig.subsurface_mbelt),    // timeslice specific subsurface cummulative height in meander belt
+	outputTime(orig.outputTime)    // array with all the exact timings of t
+{
+  // Matrix of StratNodes
+  const int nrM = orig.StratNodeMatrix->getNumRows();
+  const int ncM = orig.StratNodeMatrix->getNumCols();
+  StratNodeMatrix = new tMatrix<tStratNode>( nrM, ncM );
+//   for( int i=0; i<nrM; ++i)
+//     for( int j=0; j<ncM; ++j )
+//       (*StratNodeMatrix)( i, j ) = (*orig.StratNodeMatrix)( i, j );
+  // Connectivity to tMesh
+  const int nrC = orig.StratNodeMatrix->getNumRows();
+  const int ncC = orig.StratNodeMatrix->getNumCols();
+  StratConnect = new tMatrix<tTriangle*>( nrC, ncC );  
+//   for( int i=0; i<nrC; ++i)
+//     for( int j=0; j<ncC; ++j )
+//       (*StratConnect)( i, j ) = (*orig.StratConnect)( i, j );
+}
+
+tStratGrid& tStratGrid::operator=(const tStratGrid& right )
+{
+  if( &right != this )
+    {
+      xcorner = right.xcorner;
+      ycorner = right.ycorner;  // starting point for spanning StratGrid
+      griddx = right.griddx; // inter-node distance of tStratGrid
+      grwidth = right.grwidth; // x-width of tStratGrid
+      grlength = right.grlength; // y-width of tStratGrid
+      mp = right.mp;    	 // ptr to triangular mesh
+      imax = right.imax;
+      jmax = right.jmax;
+      optSurferFiles = right.optSurferFiles;
+      nWrite = right.nWrite;
+      section = right.section;       // array with 10 section locations, 5x, and 5y
+      surface = right.surface;	 // timeslice specific surface area
+      subsurface = right.subsurface;   // timeslice specific subsurface cummulative height in the entire floodplain
+      subsurface_mbelt = right.subsurface_mbelt;   // timeslice specific subsurface cummulative height in meander belt
+      outputTime = right.outputTime;     // array with all the exact timings of the out
+      const int nrM = right.StratNodeMatrix->getNumRows();
+      const int ncM = right.StratNodeMatrix->getNumCols();
+      StratNodeMatrix = new tMatrix<tStratNode>( nrM, ncM );
+      for( int i=0; i<nrM; ++i)
+	for( int j=0; j<ncM; ++j )
+	  (*StratNodeMatrix)( i, j ) = (*right.StratNodeMatrix)( i, j );
+      // Connectivity to tMesh
+      const int nrC = right.StratNodeMatrix->getNumRows();
+      const int ncC = right.StratNodeMatrix->getNumCols();
+      StratConnect = new tMatrix<tTriangle*>( nrC, ncC );  
+      for( int i=0; i<nrC; ++i)
+	for( int j=0; j<ncC; ++j )
+	  (*StratConnect)( i, j ) = (*right.StratConnect)( i, j );
+    }
+  return *this;
+}
+
 /**************************************************************************\
  **
  **  @fn tStratGrid

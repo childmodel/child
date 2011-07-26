@@ -54,11 +54,11 @@
 /**************************************************************************/
 class tMainChannelDriver
 {
-  tMainChannelDriver(const tMainChannelDriver&);
   tMainChannelDriver& operator=(const tMainChannelDriver&);
   tMainChannelDriver();
 
 public:
+  tMainChannelDriver(const tMainChannelDriver&);
   tMainChannelDriver( const tInputFile &infile );
   void UpdateMainChannelElevation( double tm, tLNode * inletNode );
   void RaiseBanks( double, tLNode *, tLNode*,double);
@@ -74,7 +74,13 @@ private:
   std::ofstream meanderfile;   // file in which every timestep some information of the channel is written
 };
 
-
+inline tMainChannelDriver::tMainChannelDriver(const tMainChannelDriver& orig)
+  : InletElevationVariation(orig.InletElevationVariation), drop(orig.drop), 
+    num_grnsize_fractions(orig.num_grnsize_fractions), kdb(orig.kdb), 
+    mqs(orig.mqs), mqbmqs(orig.mqbmqs)
+{
+  // CAUTION: meanderfile IS LEFT UNINITIALIZED
+}
 /**************************************************************************/
 /**
 **  @class tFloodplain
@@ -95,11 +101,11 @@ private:
 /**************************************************************************/
 class tFloodplain
 {
-  tFloodplain(const tFloodplain&);
   tFloodplain& operator=(const tFloodplain&);
   tFloodplain();
 
 public:
+  tFloodplain(const tFloodplain&);
   tFloodplain( const tInputFile &infile, tMesh<tLNode> *mp );
   ~tFloodplain();
   void DepositOverbank( double precip, double delt, double ctime );
@@ -109,6 +115,7 @@ public:
   double FloodplainDh2(double , double, double , double ) const;// Gross and Small, 1998
   double getSuspendedConcentration(double) const;
   double ConcentrationToHeight(double, tLNode *, double ) const;
+  void setMeshPtr( tMesh<tLNode> *ptr ) {meshPtr = ptr;}
 
 private:
   tTimeSeries fpmuVariation;   // "mu" parameter of Howard model, value dependent of time
@@ -126,6 +133,16 @@ private:
   bool optControlMainChan;  // option to treat chan elev as boundary cond
 };
 
+inline tFloodplain::tFloodplain(const tFloodplain& orig) 
+  : fpmuVariation(orig.fpmuVariation), fpmode(orig.fpmode), 
+    fplamda(orig.fplamda), kdb(orig.kdb), event_min(orig.event_min), 
+    drarea_min(orig.drarea_min), mqs(orig.mqs), mqbmqs(orig.mqbmqs), 
+    meshPtr(orig.meshPtr), deparr(orig.deparr), deparrRect(orig.deparrRect), 
+    optControlMainChan(orig.optControlMainChan) 
+{
+  if( orig.chanDriver ) 
+    chanDriver = new tMainChannelDriver( *orig.chanDriver ); 
+}
 
 /**************************************************************************/
 /**

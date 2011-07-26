@@ -53,6 +53,7 @@
 #define MESHELEMENTS_H
 
 #include <iostream>
+#include <vector>
 #include <math.h>       // for sqrt() used in inlined fn below
 #include "../Definitions.h"
 #include "../tList/tList.h"
@@ -60,6 +61,9 @@
 #include "../tArray/tArray.h"
 #include "../tArray/tArray2.h"
 #include "../Geometry/geometry.h"   // for Point2D definitions & fns
+#include "../tInputFile/tInputFile.h"
+
+using namespace std;
 
 class tEdge;
 class tTriangle;
@@ -104,6 +108,7 @@ public:
 
   tNode();                                   // default constructor
   tNode( const tNode & );                    // copy constructor
+  tNode( const tInputFile & );
   virtual ~tNode() { edg = 0; }
 
   const tNode &operator=( const tNode & );   // assignment operator
@@ -160,11 +165,16 @@ public:
   void setListPtr(void *ptr) { listObj.setListPtr(ptr); }
   void *getListPtr() const { return listObj.getListPtr(); }
 
+  inline virtual tArray<int> getEdgePtrIndices();
+  inline virtual void setEdgePtrsFromVector( vector<tEdge*>& );
+
 #ifndef NDEBUG
    void TellAll() const;  // Debugging routine that outputs node data
 #endif
 
-
+private:
+  static bool freezeElevations; // option for running model without 
+                                // changing elevations
 protected:
   tListable        listObj;
   int id;           // ID number
@@ -175,6 +185,7 @@ protected:
   double varea;     // Voronoi cell area
   double varea_rcp; // Reciprocal of Voronoi area = 1/varea (for speed)
   tBoundary_t boundary;     // Boundary status code
+
 private:
   tEdge * edg;      // Ptr to one edge
 public:
@@ -238,7 +249,7 @@ public:
   tEdge( tNode*, tNode* ); // makes edge between two nodes
   tEdge( int, tNode*, tNode* ); // makes edge between two nodes w/ given id
 
-  //~tEdge();               // destructor
+  ~tEdge() {org=dest=0; ccwedg=cwedg=compedg=0; tri=0;}               // destructor
 
   const tEdge &operator=( const tEdge & );  // assignment operator
   void InitializeEdge( tNode*, tNode*, tNode const *, bool useFuturePosn = false );
@@ -278,6 +289,9 @@ public:
   void setRVtx( tArray2< double > const &);  // sets coords of Voronoi vertex RH tri
   void setVEdgLen( double ); // sets length of corresponding Voronoi edge
   double CalcVEdgLen();      // computes, sets & returns length of V cell edg
+  inline tArray2< double > const & getEVec() const {return eVec;}
+  inline tArray2< double > const & getVVec() const {return vVec;}
+
   tEdge * FindComplement();  // returns ptr to edge's complement
   inline tTriangle* TriWithEdgePtr();
   inline void setTri( tTriangle* );
@@ -300,6 +314,9 @@ private:
   double slope;    // edge slope
   tArray2< double > rvtx; // (x,y) coords of Voronoi vertex in RH triangle
   double vedglen;        // length of Voronoi edge shared by org & dest cells
+  tArray2< double > eVec; // vector corresponding to edge
+  tArray2< double > vVec; // vector corresponding to Voronoi edge
+
   tNode *org, *dest;     // ptrs to origin and destination nodes
   tEdge *ccwedg;  // ptr to counter-clockwise (left-hand) edge w/ same origin
   tEdge *cwedg;   // ptr to clockwise (right-hand) edge w/ same origin
@@ -339,7 +356,7 @@ public:
   tTriangle( const tTriangle & ); // copy constructor
   tTriangle( int, tNode*, tNode*, tNode* );
   tTriangle( int, tNode*, tNode*, tNode*, tEdge*, tEdge*, tEdge* );
-  ~tTriangle();                   // destructor
+  ~tTriangle() {p[0]=p[1]=p[2]=0; e[0]=e[1]=e[2]=0; t[0]=t[1]=t[2]=0;} // destructor
 
   const tTriangle &operator=( const tTriangle & ); // assignment operator
   void InitializeTriangle( tNode*, tNode*, tNode* );
@@ -465,6 +482,11 @@ inline tNode::tNode( const tNode &original ) :
   boundary(original.boundary), edg(original.edg),
   public1(original.public1)
 {}
+
+inline tNode::tNode( const tInputFile & infile )
+{ // static boolean to enable running model without changing elevations:
+  freezeElevations = infile.ReadBool( "OPT_FREEZE_ELEVATIONS", false );
+}
 
 /*X tNode::~tNode()
 {
@@ -662,7 +684,8 @@ inline void tNode::setEdg( tEdge * theEdg )
 **  tNode::ChangeZ:  Adds delz to current z value
 **
 \***********************************************************************/
-inline void tNode::ChangeZ( double delz ) { z += delz; }
+inline void tNode::ChangeZ( double delz ) 
+{ if( !freezeElevations ) z += delz; }
 
 /*******************************************************************\
 **
@@ -708,6 +731,30 @@ inline void tNode::InitializeNode()
   5/2003 AD
 \*******************************************************************/
 inline tArray< double > tNode::FuturePosn() {return get2DCoords();}
+
+/*******************************************************************\
+  tNode::getEdgePtrIndices() virtual function; here, returns 
+  one-member array with edg ID
+
+  10/10 SL
+\*******************************************************************/
+inline tArray< int > tNode::getEdgePtrIndices() 
+{
+  tArray<int> ar(1);
+  ar[0] = edg->getID();
+  return ar;
+}
+
+/*******************************************************************\
+  tNode::setEdgePtrsFromVector() virtual function; here, sets edg
+
+  10/10 SL
+\*******************************************************************/
+inline void tNode::setEdgePtrsFromVector( vector<tEdge*>& ePtrs ) 
+{
+  edg = ePtrs[0];
+}
+
 
 
 
@@ -1054,15 +1101,23 @@ inline double tEdge::CalcSlope()
 **  Computes the edge length and returns it. (Length is the projected
 **  on the x,y plane). Assumes org and dest are valid.
 **
+**  Modified: Sets edge vector (eVec) for "this" and sets len and 
+**    eVec for compedg. -SL, 11/2010
 \**************************************************************************/
 inline double tEdge::CalcLength()
 {
    assert( org!=0 );  // Failure = edge has no origin and/or destination node
    assert( dest!=0 );
+   assert( compedg!=0 );
 
    double dx = org->getX() - dest->getX();
    double dy = org->getY() - dest->getY();
    len = sqrt( dx*dx + dy*dy );
+   eVec.at(0) = dx;
+   eVec.at(1) = dy;
+   compedg->len = len;
+   compedg->eVec.at(0) = -dx;
+   compedg->eVec.at(1) = -dy;
    return len;
 }
 
@@ -1084,16 +1139,23 @@ inline double tEdge::CalcLength()
 **  Returns:  the Voronoi edge length
 **  Assumes:  ccwedg valid, rvtx[] up to date
 **
+**  Modified: Sets Voronoi vector (vVec) for "this" and sets vedglen and 
+**    vVec for compedg. -SL, 11/2010
 \**************************************************************************/
 inline double tEdge::CalcVEdgLen()
 {
 	assert( ccwedg!=0 );
-
+	assert( compedg!=0 );
 	double dx, dy;
 
 	dx = rvtx.at(0) - ccwedg->rvtx.at(0);
 	dy = rvtx.at(1) - ccwedg->rvtx.at(1);
 	vedglen = sqrt( dx*dx + dy*dy );
+	vVec.at(0) = dx;
+	vVec.at(1) = dy;
+	compedg->vedglen = vedglen;
+	compedg->vVec.at(0) = -dx;
+	compedg->vVec.at(1) = -dy;
 	return( vedglen );
 }
 

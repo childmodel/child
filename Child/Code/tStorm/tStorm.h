@@ -39,17 +39,23 @@
 #include "../tTimeSeries/tTimeSeries.h"
 
 #include <iosfwd>
+#include <sstream>
 
 class tStorm
 {
 public:
     tStorm( bool optVariable = true );
-    tStorm( const tInputFile &, tRand *);
+  tStorm( const tInputFile &, tRand *, bool no_write_mode = false );
+  tStorm( const tStorm& );
     void GenerateStorm( double tm, double minp=0.0, double mind=0.0);
     double getStormDuration() const;
     double interstormDur() const;
     double getRainrate() const;
     bool getOptVar() const;
+  void TurnOnOutput( const tInputFile& );
+  void TurnOffOutput();
+  inline void setRand( tRand* ptr ) {rand = ptr;}
+  void setRainrate( double );
 
 private:
     double ExpDev() const;
@@ -70,5 +76,6 @@ private:
 
 
 inline bool tStorm::getOptVar() const {return optVariable;}
+
 
 #endif
