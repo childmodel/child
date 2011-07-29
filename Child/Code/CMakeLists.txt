@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -60,13 +60,18 @@ set (child_LIB_SRCS
   tWaterSedTracker/tWaterSedTracker.cpp
 )
 
-add_library (child-devel ${child_LIB_SRCS})
-install (TARGETS child-devel DESTINATION lib COMPONENT child)
+add_library (child-shared SHARED ${child_LIB_SRCS})
+install (TARGETS child-shared DESTINATION lib COMPONENT child)
+set_target_properties (child-shared PROPERTIES OUTPUT_NAME "child")
+
+add_library (child-static STATIC ${child_LIB_SRCS})
+set_target_properties (child-static PROPERTIES OUTPUT_NAME "child")
+install (TARGETS child-static DESTINATION lib COMPONENT child)
 
 set (child_SRCS ChildInterface/childDriver.cpp)
 
 add_executable (child ${child_SRCS})
-target_link_libraries (child child-devel)
+target_link_libraries (child child-static)
 
 install (TARGETS child DESTINATION bin COMPONENT child)
 
