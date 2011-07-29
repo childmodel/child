@@ -2599,7 +2599,7 @@ double tPhysicalWeatheringExpLaw::SoilProduction( tLNode * n, int i )
   tLayer *lP=0;
   for( lP=lI.FirstP(); lP->getSed() == tLayer::kSed; lP=lI.NextP() )
     soilThickness += lP->getDepth();
-  for( ; lP->getID() < i; lP=lI.NextP() );
+  for( ; lP->getID() < i; lP=lI.NextP() ) ;
   // calculate rate of bedrock lowering (hence negative sign):
   const double slope = n->calcSlope();
   const double costheta = cos( atan( slope ) );
@@ -6376,17 +6376,17 @@ void tErosion::LandslideClusters( double rainrate,
     tLNode* cn=0;
     int i;
     for( cn=nodIter.FirstP(), i=0; 
-        nodIter.IsActive(); 
-        cn=nodIter.NextP(), ++i )
+	 nodIter.IsActive(); 
+	 cn=nodIter.NextP(), ++i )
     {
       nodeSoilThickness[i] = cn->getRegolithDepth();
       if( cn->getVegCover().getTrees() > 0 )
       {
         nodeWoodDepth[i] = 
-	      cn->getVegCover().getTrees()->getBioMassStand() 
-	      + cn->getVegCover().getTrees()->getBioMassDown();
+	  cn->getVegCover().getTrees()->getBioMassStand() 
+	  + cn->getVegCover().getTrees()->getBioMassDown();
         nodeRootCohesionLat[i] = 
-	      cn->getVegCover().getTrees()->getRootStrengthLat();
+	  cn->getVegCover().getTrees()->getRootStrengthLat();
       }
       tempNodeIndex[cn->getID()] = i;
       cn->public1 = 0; // initialize flags for cluster membership
@@ -6399,27 +6399,27 @@ void tErosion::LandslideClusters( double rainrate,
 	 edgIter.IsActive(); 
 	 ce=edgIter.NextP(), ++k )
     {
-	edgeSlope[k] = ce->CalcSlope();
-	const double costheta = cos( atan( edgeSlope[k] ) );
-	const int iOrg = tempNodeIndex[ ce->getOriginPtr()->getID() ];
-	if( ce->getDestinationPtr()->isNonBoundary() )
-	{
-	    const int iDest = 
-	      tempNodeIndex[ ce->getDestinationPtr()->getID() ];
-	    edgeSlope[k] -= 
-	      ( nodeSoilThickness[iOrg] - nodeSoilThickness[iDest] ) 
-	      / ce->getLength();
+      edgeSlope[k] = ce->CalcSlope();
+      const double costheta = cos( atan( edgeSlope[k] ) );
+      const int iOrg = tempNodeIndex[ ce->getOriginPtr()->getID() ];
+      if( ce->getDestinationPtr()->isNonBoundary() )
+      {
+	const int iDest = 
+	  tempNodeIndex[ ce->getDestinationPtr()->getID() ];
+	edgeSlope[k] -= 
+	  ( nodeSoilThickness[iOrg] - nodeSoilThickness[iDest] ) 
+	  / ce->getLength();
         const double edgeDepth = 
-	      ( nodeSoilThickness[iOrg] + nodeSoilThickness[iDest] ) / 2.0;
-	    // use minimum of root strengths at edge endpoints:
-	    const double edgeRoots =
-	      min( nodeRootCohesionLat[iOrg], nodeRootCohesionLat[iDest] );
+	  ( nodeSoilThickness[iOrg] + nodeSoilThickness[iDest] ) / 2.0;
+	// use minimum of root strengths at edge endpoints:
+	const double edgeRoots =
+	  min( nodeRootCohesionLat[iOrg], nodeRootCohesionLat[iDest] );
 // 	    const double edgeRoots =
 // 	      ( nodeRootCohesionLat[iOrg] + nodeRootCohesionLat[iDest] ) 
 // 	      / 2.0;
         edgeLatCohesion[k] = 
-	      edgeRoots * diffusionH * ce->getVEdgLen() / costheta
-	      * ( 1.0 - exp( -edgeDepth / diffusionH * costheta ) );
+	  edgeRoots * diffusionH * ce->getVEdgLen() / costheta
+	  * ( 1.0 - exp( -edgeDepth / diffusionH * costheta ) );
       }
       else
       {
@@ -6430,9 +6430,9 @@ void tErosion::LandslideClusters( double rainrate,
         // zero cohesion at boundaries, but don't want to "favor" having 
         // failure sides at boundaries)
         edgeLatCohesion[k] = 
-	      nodeRootCohesionLat[iOrg] * diffusionH * ce->getVEdgLen() 
-	      * ( 1.0 - exp( -nodeSoilThickness[iOrg] 
-			     / diffusionH * costheta ) );
+	  nodeRootCohesionLat[iOrg] * diffusionH * ce->getVEdgLen() 
+	  * ( 1.0 - exp( -nodeSoilThickness[iOrg] 
+			 / diffusionH * costheta ) );
       }
       // give same index to edge and its complement:
       tempEdgeIndex[ce->getID()] = k;
@@ -6451,54 +6451,54 @@ void tErosion::LandslideClusters( double rainrate,
 	 nodIter.IsActive(); 
 	 cn=nodIter.NextP(), ++i )
     {
-	// use flowedge bedrock slope:
-	const int iEdge = cn->getFlowEdg()->getID();
-	double slope = edgeSlope[tempEdgeIndex[iEdge]];
-	if( iEdge % 2 == 1 ) slope *= -1.0;
-	const double slopeangle = atan( slope );
-	const double costheta = cos( slopeangle );
-	const double sintheta = sin( slopeangle );
-	double basalCohesion = 0.0;
-	if( cn->getVegCover().getTrees() > 0 )
-	  basalCohesion = 
-	    cn->getVArea() / costheta
-	    * cn->getVegCover().getTrees()->getRootStrengthVert()
-	    * exp( -nodeSoilThickness[i] * cos( atan( cn->calcSlope() ) )
-		   / diffusionH );
-	//HYDROLOGY: use subsurface kinematic wave routing in tStreamNet
-	// in case sintheta is zero or negative, max depth is soil depth:
-	double saturatedDepth = cn->getHydrDepth();
-	if( saturatedDepth == 0.0 ) // should only happen if in a pit:
-	  saturatedDepth = nodeSoilThickness[i];
+      // use flowedge bedrock slope:
+      const int iEdge = cn->getFlowEdg()->getID();
+      double slope = edgeSlope[tempEdgeIndex[iEdge]];
+      if( iEdge % 2 == 1 ) slope *= -1.0;
+      const double slopeangle = atan( slope );
+      const double costheta = cos( slopeangle );
+      const double sintheta = sin( slopeangle );
+      double basalCohesion = 0.0;
+      if( cn->getVegCover().getTrees() > 0 )
+	basalCohesion = 
+	  cn->getVArea() / costheta
+	  * cn->getVegCover().getTrees()->getRootStrengthVert()
+	  * exp( -nodeSoilThickness[i] * cos( atan( cn->calcSlope() ) )
+		 / diffusionH );
+      //HYDROLOGY: use subsurface kinematic wave routing in tStreamNet
+      // in case sintheta is zero or negative, max depth is soil depth:
+      double saturatedDepth = cn->getHydrDepth();
+      if( saturatedDepth == 0.0 ) // should only happen if in a pit:
+	saturatedDepth = nodeSoilThickness[i];
 // 	// make sure not greater than soil depth:
 // 	if( saturatedDepth > nodeSoilThickness[i] )
 // 	  saturatedDepth = nodeSoilThickness[i];
-	nodeWaterDepth[i] = saturatedDepth * porosity; // water fraction
-	const double weight = 
-	  wetBulkDensity * nodeSoilThickness[i] // soil
-	  + woodDensity * nodeWoodDepth[i];     // wood
-	const double gravTimesArea = GRAV * cn->getVArea();
-	const double basalFriction = 
-	  ( weight - RHO * saturatedDepth )              // pore pressure
-	  * gravTimesArea * costheta * fricSlope;
-	nodeBasalStrength[i] = basalCohesion + basalFriction;
-	// if slope and, therefore, sintheta are negative, will just 
-	// make negative driving force and net force--no problem,
-	// since we're using net force rather than factor of safety:
-	nodeDrivingForce[i] = weight * gravTimesArea * sintheta;
-	sI.Reset(cn);
-	// add up lateral cohesion terms from edges:
-	for( tEdge* ce=sI.FirstP(); !sI.AtEnd(); ce=sI.NextP() )
-	  nodeLatCohesion[i] += edgeLatCohesion[ tempEdgeIndex[ce->getID()] ];
-	// find net downhill force for each node.
-	nodeNetForce[i] = 
-	  nodeDrivingForce[i] - nodeLatCohesion[i] - nodeBasalStrength[i];
-	if(0) //DEBUG
-	  cout << cn->getSubSurfaceDischarge() << " " << cn->getDrArea() 
-	       << " " << slope << "\n ";
-	// record forces for nodes:
-	cn->setNetDownslopeForce( nodeNetForce[i] );
-      }
+      nodeWaterDepth[i] = saturatedDepth * porosity; // water fraction
+      const double weight = 
+	wetBulkDensity * nodeSoilThickness[i] // soil
+	+ woodDensity * nodeWoodDepth[i];     // wood
+      const double gravTimesArea = GRAV * cn->getVArea();
+      const double basalFriction = 
+	( weight - RHO * saturatedDepth )              // pore pressure
+	* gravTimesArea * costheta * fricSlope;
+      nodeBasalStrength[i] = basalCohesion + basalFriction;
+      // if slope and, therefore, sintheta are negative, will just 
+      // make negative driving force and net force--no problem,
+      // since we're using net force rather than factor of safety:
+      nodeDrivingForce[i] = weight * gravTimesArea * sintheta;
+      sI.Reset(cn);
+      // add up lateral cohesion terms from edges:
+      for( tEdge* ce=sI.FirstP(); !sI.AtEnd(); ce=sI.NextP() )
+	nodeLatCohesion[i] += edgeLatCohesion[ tempEdgeIndex[ce->getID()] ];
+      // find net downhill force for each node.
+      nodeNetForce[i] = 
+	nodeDrivingForce[i] - nodeLatCohesion[i] - nodeBasalStrength[i];
+      if(0) //DEBUG
+	cout << cn->getSubSurfaceDischarge() << " " << cn->getDrArea() 
+	     << " " << slope << "\n ";
+      // record forces for nodes:
+      cn->setNetDownslopeForce( nodeNetForce[i] );
+    }
     //     cout << "\n";
   }
   typedef vector<NodeNetForceIndex> NodeContainer;
@@ -6522,7 +6522,7 @@ void tErosion::LandslideClusters( double rainrate,
     tSpkIter neI;
     do
     {
-      anyFailures = false;
+      anyFailuresThisPass = false;
       // increment number used to flag nodes in a cluster:
       ++numCluster;
       tPtrList<tLNode> slideCluster;
@@ -6530,156 +6530,148 @@ void tErosion::LandslideClusters( double rainrate,
       NodeNetForceIndex curNSFI;
       do
       {
-	anyFailuresThisPass = false;
-	// increment number used to flag nodes in a cluster:
-	++numCluster;
-	tPtrList<tLNode> slideCluster;
-	tPtrList<tLNode> seedList; // list of nodes on edge of cluster
-	NodeNetForceIndex curNSFI;
-	do
-	  {
-	    // start potential cluster with node with greatest net downhill 
-	    // force:
-	    curNSFI = nodePQ.top();
-	    // and remove it from the queue:
-	    nodePQ.pop();
-	  } while( curNSFI.node->public1 > 0 ); // if already part of a 
-	                                        // cluster, try again
-	seedList.insertAtBack( curNSFI.node );
-	slideCluster.insertAtBack( curNSFI.node );
-	double initNetForce = curNSFI.netForce;
-	double initLatCohesion = nodeLatCohesion[curNSFI.index];
-	double initBasalStrength = nodeBasalStrength[curNSFI.index];
-	double initDrivingForce = nodeDrivingForce[curNSFI.index];
-	double finalNetForce = initNetForce;
-	double finalLatCohesion = initLatCohesion;
-	double finalBasalStrength = initBasalStrength;
-	double finalDrivingForce = initDrivingForce;
-	// set generic flag signifying node in cluster:
-	curNSFI.node->public1 = numCluster;
-	while( !seedList.isEmpty() )
-	  {
-	    // get seed for cluster growth
-	    tLNode* cn = seedList.removeFromFront();
-	    sI.Reset( cn );
-	    // search seed's neighbors
-	    for( tEdge* ce = sI.FirstP(); !sI.AtEnd(); ce = sI.NextP() )
-	      if( ce->FlowAllowed() && 
-		  ce->getDestinationPtr()->isNonBoundary() )
-		{ // if not on boundary:
-		  tLNode* nn = 
-		    static_cast<tLNode*>( ce->getDestinationPtrNC() );
-		  // if node is not already in a cluster
-		  // AND it's connected to the cluster by a flow edge:
-		  if( nn->public1 == 0 
-		      && ( cn->flowThrough( ce ) 
-			   || nn->flowThrough( ce->getComplementEdge() ) ) )
-		    {
-		      // increment basal strength and driving force:
-		      finalBasalStrength += 
-			nodeBasalStrength[tempNodeIndex[nn->getID()]];
-		      finalDrivingForce += 
-			nodeDrivingForce[tempNodeIndex[nn->getID()]];
-		      // go through candidate's neighbors for lateral 
-		      // cohesion:
-		      neI.Reset( nn );
-		      for( tEdge* ne=neI.FirstP(); !neI.AtEnd(); 
-			   ne=neI.NextP() )
-			if( ne->FlowAllowed() 
-			    && ne->getDestinationPtr()->isNonBoundary() )
-			  {
-			    tLNode* nnn = 
-			      static_cast<tLNode*>(ne->getDestinationPtrNC());
-			    if( nnn->public1 > 0 )
-			      // if neighbor of neighbor already in cluster,
-			      // subtract edge's lateral cohesion:
-			      finalLatCohesion -=
-				edgeLatCohesion[tempEdgeIndex[ne->getID()]];
-			    else
-			      // if neighbor of neighbor is not in cluster,
-			      // add edge's lateral cohesion:
-			      finalLatCohesion +=
-				edgeLatCohesion[tempEdgeIndex[ne->getID()]];
-			  }
-		      // determine new net downhill force with the candidate:
-		      finalNetForce =
-			finalDrivingForce - finalLatCohesion 
-			- finalBasalStrength;
-		      // if addiiton of the new node doesn't decrease the 
-		      // net downhill force below zero OR, if the net downhill
-		      // force is already below zero, addition of the new
-		      // node increases the net downhill force:
-		      if( ( initNetForce > 0.0 && finalNetForce > 0.0 )
-			  || ( initNetForce <= 0.0 && 
-			       finalNetForce > initNetForce ) )
-			{
-			  // then add the new node to the cluster:
-			  nn->public1 = numCluster;
-			  seedList.insertAtBack( nn );
-			  slideCluster.insertAtBack( nn );
-			  // update "initial" terms:
-			  initNetForce = finalNetForce;
-			  initLatCohesion = finalLatCohesion;
-			  initBasalStrength = finalBasalStrength;
-			  initDrivingForce = finalDrivingForce;
-			}
-		      else
-			{
-			  // if node not added, reset "final" terms:
-			  finalNetForce = initNetForce;
-			  finalLatCohesion = initLatCohesion;
-			  finalBasalStrength = initBasalStrength;
-			  finalDrivingForce = initDrivingForce;
-			}
-		    }
+	// start potential cluster with node with greatest net downhill 
+	// force:
+	curNSFI = nodePQ.top();
+	// and remove it from the queue:
+	nodePQ.pop();
+      } while( curNSFI.node->public1 > 0 ); // if already part of a 
+      // cluster, try again
+      seedList.insertAtBack( curNSFI.node );
+      slideCluster.insertAtBack( curNSFI.node );
+      double initNetForce = curNSFI.netForce;
+      double initLatCohesion = nodeLatCohesion[curNSFI.index];
+      double initBasalStrength = nodeBasalStrength[curNSFI.index];
+      double initDrivingForce = nodeDrivingForce[curNSFI.index];
+      double finalNetForce = initNetForce;
+      double finalLatCohesion = initLatCohesion;
+      double finalBasalStrength = initBasalStrength;
+      double finalDrivingForce = initDrivingForce;
+      // set generic flag signifying node in cluster:
+      curNSFI.node->public1 = numCluster;
+      while( !seedList.isEmpty() )
+      {
+	// get seed for cluster growth
+	tLNode* cn = seedList.removeFromFront();
+	sI.Reset( cn );
+	// search seed's neighbors
+	for( tEdge* ce = sI.FirstP(); !sI.AtEnd(); ce = sI.NextP() )
+	  if( ce->FlowAllowed() && 
+	      ce->getDestinationPtr()->isNonBoundary() )
+	  { // if not on boundary:
+	    tLNode* nn = 
+	      static_cast<tLNode*>( ce->getDestinationPtrNC() );
+	    // if node is not already in a cluster
+	    // AND it's connected to the cluster by a flow edge:
+	    if( nn->public1 == 0 
+		&& ( cn->flowThrough( ce ) 
+		     || nn->flowThrough( ce->getComplementEdge() ) ) )
+	    {
+	      // increment basal strength and driving force:
+	      finalBasalStrength += 
+		nodeBasalStrength[tempNodeIndex[nn->getID()]];
+	      finalDrivingForce += 
+		nodeDrivingForce[tempNodeIndex[nn->getID()]];
+	      // go through candidate's neighbors for lateral 
+	      // cohesion:
+	      neI.Reset( nn );
+	      for( tEdge* ne=neI.FirstP(); !neI.AtEnd(); 
+		   ne=neI.NextP() )
+		if( ne->FlowAllowed() 
+		    && ne->getDestinationPtr()->isNonBoundary() )
+		{
+		  tLNode* nnn = 
+		    static_cast<tLNode*>(ne->getDestinationPtrNC());
+		  if( nnn->public1 > 0 )
+		    // if neighbor of neighbor already in cluster,
+		    // subtract edge's lateral cohesion:
+		    finalLatCohesion -=
+		      edgeLatCohesion[tempEdgeIndex[ne->getID()]];
+		  else
+		    // if neighbor of neighbor is not in cluster,
+		    // add edge's lateral cohesion:
+		    finalLatCohesion +=
+		      edgeLatCohesion[tempEdgeIndex[ne->getID()]];
 		}
+	      // determine new net downhill force with the candidate:
+	      finalNetForce =
+		finalDrivingForce - finalLatCohesion 
+		- finalBasalStrength;
+	      // if addiiton of the new node doesn't decrease the 
+	      // net downhill force below zero OR, if the net downhill
+	      // force is already below zero, addition of the new
+	      // node increases the net downhill force:
+	      if( ( initNetForce > 0.0 && finalNetForce > 0.0 )
+		  || ( initNetForce <= 0.0 && 
+		       finalNetForce > initNetForce ) )
+	      {
+		// then add the new node to the cluster:
+		nn->public1 = numCluster;
+		seedList.insertAtBack( nn );
+		slideCluster.insertAtBack( nn );
+		// update "initial" terms:
+		initNetForce = finalNetForce;
+		initLatCohesion = finalLatCohesion;
+		initBasalStrength = finalBasalStrength;
+		initDrivingForce = finalDrivingForce;
+	      }
+	      else
+	      {
+		// if node not added, reset "final" terms:
+		finalNetForce = initNetForce;
+		finalLatCohesion = initLatCohesion;
+		finalBasalStrength = initBasalStrength;
+		finalDrivingForce = initDrivingForce;
+	      }
+	    }
 	  }
-	// have cluster (which may be only the node popped off the queue);
-	// check whether it fails:
-	if( initNetForce > 0.0 )
-	  {
-	    // if failure, set logical to continue finding failure clusters:
-	    anyFailuresThisPass = true;
-	    // initialize new tDebrisFlow object with reference to cluster, 
-	    // copy of factor of safety, references to soil depth, wood 
-	    // depth, water depth, and node index vectors, and pointers to 
-	    // mesh and erosion objects:
-	    tDebrisFlow *dfPtr = 
-	      new tDebrisFlow( slideCluster, initNetForce,
-			       nodeSoilThickness, nodeWoodDepth, 
-			       nodeWaterDepth, tempNodeIndex,
-			       meshPtr, this );
-	    landslideAreas.insertAtBack( dfPtr->getAreaFailure() );
-	    // put copy of new debris flow pointer in list:
-	    dfPList.insertAtBack( dfPtr );
-	  }
-      } while( anyFailuresThisPass ); // search for new cluster if last cluster failed
+      }
+      // have cluster (which may be only the node popped off the queue);
+      // check whether it fails:
+      if( initNetForce > 0.0 )
+      {
+	// if failure, set logical to continue finding failure clusters:
+	anyFailuresThisPass = true;
+	// initialize new tDebrisFlow object with reference to cluster, 
+	// copy of factor of safety, references to soil depth, wood 
+	// depth, water depth, and node index vectors, and pointers to 
+	// mesh and erosion objects:
+	tDebrisFlow *dfPtr = 
+	  new tDebrisFlow( slideCluster, initNetForce,
+			   nodeSoilThickness, nodeWoodDepth, 
+			   nodeWaterDepth, tempNodeIndex,
+			   meshPtr, this );
+	landslideAreas.insertAtBack( dfPtr->getAreaFailure() );
+	// put copy of new debris flow pointer in list:
+	dfPList.insertAtBack( dfPtr );
+      }
+    } while( anyFailuresThisPass ); // search for new cluster if last cluster failed
   }
   if( !dfPList.isEmpty() )
-    {  // run out debris flows:
-      const int numDFlows = dfPList.getSize();
-      // remove debris flows from front of list (start with the
-      // presumably least stable nodes):
-      while( tDebrisFlow *dfPtr = dfPList.removeFromFront() )
-	{
-	  dfPtr->RunScourDeposit();
-	  // output using overloaded "friend" operator:
-	  if( DF_fsPtr )
-	    *DF_fsPtr << time << " " << *dfPtr << endl;
-	  // constructed above with "new"; destroy now with "delete":
-	  delete dfPtr;
-	}
-      // write time, storm, # failures, and failed volumes to file:
-      if( DF_Hyd_fsPtr )
-	{
-	  DF_Hyd_fsPtr->setf( ios::scientific, ios::floatfield );
-	  DF_Hyd_fsPtr->precision(4);   
-	  *DF_Hyd_fsPtr 
-	    << time << " " << rainrate << " " << numDFlows << " " 
-	    << debris_flow_sed_bucket << " " 
-	    << debris_flow_wood_bucket << endl;
-	}
+  {  // run out debris flows:
+    const int numDFlows = dfPList.getSize();
+    // remove debris flows from front of list (start with the
+    // presumably least stable nodes):
+    while( tDebrisFlow *dfPtr = dfPList.removeFromFront() )
+    {
+      dfPtr->RunScourDeposit();
+      // output using overloaded "friend" operator:
+      if( DF_fsPtr )
+	*DF_fsPtr << time << " " << *dfPtr << endl;
+      // constructed above with "new"; destroy now with "delete":
+      delete dfPtr;
     }
+    // write time, storm, # failures, and failed volumes to file:
+    if( DF_Hyd_fsPtr )
+    {
+      DF_Hyd_fsPtr->setf( ios::scientific, ios::floatfield );
+      DF_Hyd_fsPtr->precision(4);   
+      *DF_Hyd_fsPtr 
+	<< time << " " << rainrate << " " << numDFlows << " " 
+	<< debris_flow_sed_bucket << " " 
+	<< debris_flow_wood_bucket << endl;
+    }
+  }
 }
 /***************************************************************************\
  **  tErosion::LandslideClusters3D(): landslide initiation
@@ -7283,7 +7275,7 @@ void tErosion::LandslideClusters3D( double rainrate,
 	tDebrisFlow* dfPtr = 0;
 	for( dfPtr = dfI.FirstP(); !dfI.AtEnd(); dfPtr = dfI.NextP() )
 	  {
-	    smallAreas[i] = dfPtr.getAreaFailure();
+	    smallAreas[i] = dfPtr->getAreaFailure();
 	    dFlowPtrs[i] = dfPtr;
 	    dfFlags[i] = dfPtr->getOriginPtr()->public1;
 	    ++i;

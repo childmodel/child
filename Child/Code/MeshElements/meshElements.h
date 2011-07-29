@@ -356,7 +356,8 @@ public:
   tTriangle( const tTriangle & ); // copy constructor
   tTriangle( int, tNode*, tNode*, tNode* );
   tTriangle( int, tNode*, tNode*, tNode*, tEdge*, tEdge*, tEdge* );
-  ~tTriangle() {p[0]=p[1]=p[2]=0; e[0]=e[1]=e[2]=0; t[0]=t[1]=t[2]=0;} // destructor
+  ~tTriangle();                  // destructor
+//  ~tTriangle() {p[0]=p[1]=p[2]=0; e[0]=e[1]=e[2]=0; t[0]=t[1]=t[2]=0;} // destructor
 
   const tTriangle &operator=( const tTriangle & ); // assignment operator
   void InitializeTriangle( tNode*, tNode*, tNode* );
