@@ -63,7 +63,7 @@ set (child_LIB_SRCS
 add_library (child-devel ${child_LIB_SRCS})
 install (TARGETS child-devel DESTINATION lib COMPONENT child)
 
-set (child_SRCS childmain.cpp)
+set (child_SRCS ChildInterface/childDriver.cpp)
 
 add_executable (child ${child_SRCS})
 target_link_libraries (child child-devel)
