@@ -81,89 +81,23 @@ int Next3Delaunay( tPtrList< tSubNode > & /*nbrList*/,
 //in tMeshList, tList, and tPtrList, which may or not give the desired
 //results! Caveat emptor! -GT
 template< class tSubNode >
-tMesh<tSubNode>::tMesh( tMesh *originalMesh )
+tMesh<tSubNode>::tMesh( tMesh const *originalMesh )
   :
   xOffset(originalMesh->xOffset),
   yOffset(originalMesh->yOffset),
-  nodeList(&originalMesh->nodeList),
-//   edgeList(&originalMesh->edgeList),
-//   triList(&originalMesh->triList),
+  nodeList(originalMesh->nodeList),
+  edgeList(originalMesh->edgeList),
+  triList(originalMesh->triList),
   mSearchOriginTriPtr(0),
   nnodes(originalMesh->nnodes),
-//   nedges(originalMesh->nedges),
-//   ntri(originalMesh->ntri),
+  nedges(originalMesh->nedges),
+  ntri(originalMesh->ntri),
   miNextNodeID(originalMesh->miNextNodeID),
-//   miNextEdgID(originalMesh->miNextEdgID),
-//   miNextTriID(originalMesh->miNextTriID),
+  miNextEdgID(originalMesh->miNextEdgID),
+  miNextTriID(originalMesh->miNextTriID),
   layerflag(originalMesh->layerflag),
   runCheckMeshConsistency(originalMesh->runCheckMeshConsistency)
-{
-  // simply re-triangulate:
-  BuildDelaunayMeshTipper();
-
-//   // pointers in new copies will point to members of original mesh,
-//   // so set new pointers to members of new mesh by finding the 
-//   // members in the new mesh with the same ID's as in the old:
-//   nodeListIter_t oNI( originalMesh->nodeList );
-//   nodeListIter_t nNI( nodeList );
-//   edgeListIter_t nEI( edgeList );
-//   tSubNode* on;
-//   tSubNode* nn;
-//   for( on = oNI.FirstP(), nn = nNI.FirstP(); 
-//        !oNI.AtEnd(); 
-//        on = oNI.NextP(), nn = nNI.NextP() )
-//    {
-//      // initialize array with virtual function because we supposedly
-//      // don't know about tLNode::flowedge:
-//      tArray<int> nodePtrInd = on->getEdgePtrIndices();
-//      const int sz = nodePtrInd.getSize();
-//      vector<tEdge*> edgePtrs( sz );
-//      for( int i = 0; i < sz; ++i )
-//        edgePtrs[i] = nEI.GetP( nodePtrInd[i] );
-//      // set edge pointers with virtual function:
-//      nn->setEdgePtrsFromVector( edgePtrs );
-//    }
-//   edgeListIter_t oEI( originalMesh->edgeList );
-//   edgeListIter_t nEI2( edgeList );
-//   triListIter_t nTI( triList );
-//   tEdge* oe;
-//   tEdge* ne;
-//   for( oe = oEI.FirstP(), ne = nEI.FirstP();
-//        !oEI.AtEnd();
-//        oe = oEI.NextP(), ne = nEI.NextP() )
-//     {
-//       ne->setOriginPtr( nNI.GetP( oe->getOriginPtr()->getID() ) );
-//       ne->setDestinationPtr( nNI.GetP( oe->getDestinationPtr()->getID() ) );
-//       ne->setCCWEdg( nEI2.GetP( oe->getCCWEdg()->getID() ) );
-//       ne->setCWEdg( nEI2.GetP( oe->getCWEdg()->getID() ) );
-//       if( ne->getID() % 2 == 0 )
-// 	{
-// 	  ne->setComplementEdge( nEI.NextP() );
-// 	  nEI.Prev();
-// 	}
-//       else
-// 	{
-// 	  ne->setComplementEdge( nEI.PrevP() );
-// 	  nEI.Next();
-// 	}
-//       ne->setTri( nTI.GetP( oe->TriWithEdgePtr()->getID() ) );
-//     }
-//   triListIter_t oTI( originalMesh->triList );
-//   triListIter_t nTI2( triList );
-//   tTriangle* ot;
-//   tTriangle* nt;
-//   for( ot = oTI.FirstP(), nt = nTI.FirstP();
-//        !oTI.AtEnd();
-//        ot = oTI.NextP(), nt = nTI.NextP() )
-//     {
-//       for( int i = 0; i < 3; ++i )
-// 	{
-// 	  nt->setPPtr( i, nNI.GetP( ot->pPtr(i)->getID() ) );
-// 	  nt->setEPtr( i, nEI.GetP( ot->ePtr(i)->getID() ) );
-// 	  nt->setTPtr( i, nTI2.GetP( ot->tPtr(i)->getID() ) );
-// 	}
-//     }
-}
+{}
 
 
 /**************************************************************************\
@@ -2217,7 +2151,7 @@ MakeHexMeshFromArcGrid( const tInputFile &infile )
       }
    }
    gridfile.close();
-   std::cout << "finished reading file," << arcgridFilename << std::endl;
+   std::cout << "finished reading file," << arcgridFilenm << std::endl;
    // Create the 3 nodes that form the supertriangle and place them on the
    // node list in counter-clockwise order. (Note that the base and height
    // of the supertriangle are 5 times the
@@ -2712,7 +2646,7 @@ MakeMeshFromPointTilesAndArcGridMask( const tInputFile &infile, tRand &rand )
 	{
 	  len = ce->CalcLength();
 	  ce = eI.NextP();
-// 	  ce->setLength( len ); // now set for complement in CalcLength
+	  ce->setLength( len );
 	} while( (ce=eI.NextP()) != NULL);
   
       // check for short edges; make list of nodes to remove to new locations:
@@ -3423,8 +3357,7 @@ void tMesh<tSubNode>::CalcVoronoiEdgeLengths()
 	{
 		vedglen = ce->CalcVEdgLen();  // Compute Voronoi edge length
 		ce = edgIter.NextP();         // Advance to complement edge and
-		// vedglen for edge complement now set in CalcVEdgLen
-// 		ce->setVEdgLen( vedglen );    //   and assign the same edge length.
+		ce->setVEdgLen( vedglen );    //   and assign the same edge length.
 	}
 }
 
@@ -5239,13 +5172,12 @@ UpdateMesh( bool checkMeshConsistency )
       assert( len>0.0 );
       curedg = elist.NextP();
       assert( curedg != 0 ); // failure = complementary edges not consecutive
-      // complement edge length now set in CalcLength:
-//       curedg->setLength( len );
-      if(0) //DEBUG
+      curedg->setLength( len );
+      if(1) //DEBUG
 	if( elist.IsActive() )
 	  if( len < minlen ) minlen = len;
    } while( (curedg=elist.NextP()) != NULL);
-   if(0) //DEBUG
+   if(1) //DEBUG
      std::cout << "minimum edge length: " << minlen << " m \n";
    
    setVoronoiVertices();
