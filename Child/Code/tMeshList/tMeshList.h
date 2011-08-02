@@ -57,10 +57,10 @@ class tMeshList : public tList< NodeType, ListNodeType >
    friend class tListIter< NodeType, ListNodeType  >;
    friend class tMeshListIter< NodeType, ListNodeType  >;
 
-   tMeshList(const tMeshList< NodeType, ListNodeType > &);
   public:
    tMeshList();
    tMeshList( const tMeshList< NodeType, ListNodeType > * );
+   tMeshList(const tMeshList< NodeType, ListNodeType > &);
    ~tMeshList();
    const tMeshList< NodeType, ListNodeType >
        &operator=( const tMeshList< NodeType, ListNodeType > & );
@@ -123,6 +123,20 @@ tMeshList< NodeType, ListNodeType >::
 tMeshList( const tMeshList< NodeType, ListNodeType > *original ) :
   tList< NodeType, ListNodeType >( original ),
   nActiveNodes(original->nActiveNodes),
+  lastactive(0)
+{
+  if (0) //DEBUG
+    std::cout << "                  from tMeshList( original )" << this->first
+	 << std::endl;
+  if ( nActiveNodes > 0 )
+    lastactive = tList< NodeType, ListNodeType >::getIthListNodeNC( nActiveNodes - 1 );
+}
+
+template< class NodeType, class ListNodeType >
+tMeshList< NodeType, ListNodeType >::
+tMeshList( const tMeshList< NodeType, ListNodeType > &original ) :
+  tList< NodeType, ListNodeType >( original ),
+  nActiveNodes(original.nActiveNodes),
   lastactive(0)
 {
   if (0) //DEBUG
