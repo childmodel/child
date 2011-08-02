@@ -509,9 +509,9 @@ class tList
 {
   friend class tListIter< NodeType, ListNodeType >;
   friend class tMeshListIter< NodeType, ListNodeType >;
-  tList(const tList&);
 public:
   inline tList();                     // default constructor
+  tList(const tList&);
   tList( const tList< NodeType, ListNodeType > * ); // copy constructor
   ~tList();                           // destructor
   const tList< NodeType, ListNodeType >
@@ -612,6 +612,28 @@ tList( const tList< NodeType, ListNodeType > *original ) :
       current = current->next;
     }
   assert( nNodes == original->nNodes );
+  if (0) //DEBUG
+    std::cout << "list copy instantiated" << first << std::endl;
+  current = first;
+
+}
+
+//copy constructor
+template< class NodeType, class ListNodeType >
+tList< NodeType, ListNodeType >::
+tList( const tList< NodeType, ListNodeType > &original ) :
+  nNodes(0), first(0), last(0), currentItem(0)
+{
+  int i;
+
+  assert( original != 0 );
+  ListNodeType * current = original.first;
+  for( i=0; i<original.nNodes; ++i )
+    {
+      insertAtBack( current->getDataRef() );
+      current = current->next;
+    }
+  assert( nNodes == original.nNodes );
   if (0) //DEBUG
     std::cout << "list copy instantiated" << first << std::endl;
   current = first;
