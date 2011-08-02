@@ -153,7 +153,7 @@ public:
    typedef tIdArray< tTriangle, tListNodeListable< tTriangle > > tIdArrayTri_t;
 
    tMesh( const tInputFile &, bool checkMeshConsistency );
-   tMesh( tMesh * );
+   tMesh( tMesh const * );
   tMesh( tArray<double> &, tArray<double> &, tArray<double> &  );
    ~tMesh();
    void BatchAddNodes(); // quickly adds many nodes when starting w/ dense mesh
