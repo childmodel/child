@@ -57,11 +57,11 @@ tLithologyManager::
  */
 /**************************************************************************/
 void tLithologyManager::
-InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh )
+InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *meshPtr )
 {
-  if(1) cout << "tWaterSedTracker::InitializeFromInputFile" << endl;
+  if(1) cout << "tLithologyManager::InitializeFromInputFile" << endl;
   
-  meshPtr_ = mesh;
+  meshPtr_ = meshPtr;
   
   // Read from the input file and do what the user requests
   
@@ -80,6 +80,14 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *mesh )
     boundary of a unit
   
   */
+	
+	// See if the user wants to start with an existing .lay file. If so, read it
+	// and set layers accordingly.
+	bool user_wants_to_read_from_layfile = inputFile.ReadBool( "OPT_READ_LAYFILE", false );
+	if( user_wants_to_read_from_layfile )
+	{
+		
+	}
   
 }
 

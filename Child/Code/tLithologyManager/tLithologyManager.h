@@ -56,14 +56,16 @@ public:
   // Constructor for basic initialization
   tLithologyManager();
   
-  void InitializeFromInputFile( tInputFile &infile, tMesh<tLNode> *mesh);
+	void SetMeshPointer( tMesh<tLNode> * meshPtr ) { meshPtr_ = meshPtr; }
+	
+  void InitializeFromInputFile( tInputFile &infile, tMesh<tLNode> *meshPtr );
   
-  void SetLithologyFromChildOutputFile( string output_filename );
+  void SetLithologyFromChildLayFile( string layfilename );
 	
   void SetPropertiesAtNode( int nodeID, double erodibility, int sediment_flag, 
 						    vector<double> grain_sizes = vector<double>(), 
 						    double bulk_density = kDefaultBulkDensity,
-						    double creation_time = 0.0, double rtime = 0.0 
+						    double creation_time = 0.0, double rtime = 0.0, 
 						    double etime = 0.0, double paleocurrent = 0.0 );
   void SetErodibilitiesAtNodes( vector<double> erodibilities );
   void SetErodibilityWithinPolygon();
