@@ -86,7 +86,7 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *meshPtr )
 	bool user_wants_to_read_from_layfile = inputFile.ReadBool( "OPT_READ_LAYFILE", false );
 	if( user_wants_to_read_from_layfile )
 	{
-		
+		SetLithologyFromChildLayFile( inputFile );
 	}
   
 }
@@ -94,9 +94,126 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *meshPtr )
 
 /**************************************************************************/
 /**
+ **  SetLithologyFromChildLayFile
+ **
  */
 /**************************************************************************/
+void tLithologyManager::
+SetLithologyFromChildLayFile( const tInputFile &infile )
+{
+  int i, item, numl;
+  int righttime, numlayernodes;
+  double time, intime;
+  double ditem;
+  char thestring[80], inname[80];
+  char headerLine[kMaxNameLength];
+  std::ifstream layerinfile;
+  infile.ReadItem( thestring, sizeof(thestring), "INPUT_LAY_FILE" );
+  
+  if (1) //DEBUG
+    std::cout<<"in ReadLayersFromLayFile..."<<std::endl;
+  
+  strcpy( inname, thestring );
+  layerinfile.open(inname); /* Layer input file pointer */
+  assert( layerinfile.good() );
+  
+  intime = infile.ReadDouble( "INPUTTIME", false );
 
+  // Read first line, which should contain the time corresponding to the run
+  layerinfile >> time;
+
+  if(1) //DEBUG
+    std::cout<<"Time="<<time<<std::endl;
+  
+  // Read second line, which specified number of interior nodes in file.
+  layerinfile >> numlayernodes;
+  if(1) //DEBUG
+    std::cout<<"nnodes in file="<<numlayernodes<<std::endl;
+  if( numlayernodes != meshPtr_->getNodeList()->getActiveSize() )
+    ReportFatalError( "Number of nodes in layer file doesn't match number in mesh" );
+  
+  // Create and initialize a tLayer object that will serve as the basic template
+  // for all layers. Set its # of grain size classes.
+  tLayer layer_template;
+  int numg;
+  numg = infile.ReadInt( "NUMGRNSIZE" );
+  layer_template.setDgradesize(numg);
+  
+  // Get an iterator for the node list
+  tLNode * cn;
+  tMesh<tLNode>::nodeListIter_t ni( meshPtr_->getNodeList() );
+    // Hack: make layers input backwards compatible for simulations
+    // without bulk density; :
+  bool optNewLayersInput = infile.ReadBool( "OPT_NEW_LAYERSINPUT", false );
+  
+  for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+  {
+    // Read the number of layers at the current node
+    layerinfile >> numl;
+    if( numl<1 )
+    {
+      std::cout << "In ReadLayersFromLayFile: node " 
+      << cn->getPermID() << " has " << numl << " layers." 
+      << std::endl;
+      ReportFatalError( "Each interior point must have at least one layer." );
+    }
+    
+    // For each layer, read its properties, assign them to our template layer,
+    // and insert a copy of that layer to the bottom of the layer list for this
+    // node.
+    for(i = 1; i<=numl; i++)
+    {
+      // Read layer properties
+      layerinfile >> ditem;     // layer creation time
+      layer_template.setCtime(ditem);
+      layerinfile >> ditem;     // layer "recent activity" time
+      layer_template.setRtime(ditem);
+      layerinfile >> ditem;     // layer surface exposure duration
+      layer_template.setEtime(ditem);
+      layerinfile >> ditem;     // layer thickness (m)
+      if( ditem <= 0. )
+      {
+        std::cout << "MakeLayersFromInputData: Layer " << i 
+        << " at node " << cn->getID()
+        << " has thickness " << ditem << std::endl;
+        ReportFatalError("Layers must have positive thickness.");
+      }
+      layer_template.setDepth(ditem);
+      layerinfile >> ditem;     // layer erodibility
+      layer_template.setErody(ditem);
+        // Hack: to make this backwards compatible,
+        // read bulk density if optNewLayersInput == true:
+      if( optNewLayersInput )
+      {
+        layerinfile >> ditem;   // layer bulk density
+        layer_template.setBulkDensity(ditem);
+      }
+      layerinfile >> item;      // layer alluvial-bedrock flag
+      if( item<0 || item>1 )
+      {
+        std::cout << "MakeLayersFromInputData: Layer " << i 
+        << " at node " << cn->getID()
+        << " has flag value " << item << std::endl;
+        ReportFatalError("Flag value must be either zero or one.");
+      }
+      {
+        tLayer::tSed_t item_ = static_cast<tLayer::tSed_t>(item);
+        layer_template.setSed(item_);
+      }
+      for(int g=0; g<numg; g++){
+        layerinfile >> ditem;   // equivalent thickness of grain size g
+        layer_template.setDgrade(g, ditem);
+      }
+      
+      // Insert a copy of the layer on the bottom of the layer stack
+      cn->InsertLayerBack( layer_template );
+    }
+    
+  }
+    
+}
+
+    
 
 /**************************************************************************/
 /**

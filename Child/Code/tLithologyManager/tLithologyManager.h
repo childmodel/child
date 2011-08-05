@@ -60,7 +60,7 @@ public:
 	
   void InitializeFromInputFile( tInputFile &infile, tMesh<tLNode> *meshPtr );
   
-  void SetLithologyFromChildLayFile( string layfilename );
+  void SetLithologyFromChildLayFile( const tInputFile &infile );
 	
   void SetPropertiesAtNode( int nodeID, double erodibility, int sediment_flag, 
 						    vector<double> grain_sizes = vector<double>(), 
