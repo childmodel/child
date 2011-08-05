@@ -33,11 +33,18 @@ tOption::tOption(int argc, char const * const argv[])
   }
 }
 
+tOption::tOption(string arguments)
+: exeName("child"),
+silent_mode(false), checkMeshConsistency(true), no_write_mode(false), 
+inputFile(0)
+{
+}
+
 // Parse options one at a time. Returns number of options consumed.
 int tOption::parseOptions(char const * const argv[]) {
-
+	
   const char * const thisOption = argv[0];
-
+	
   if (strcmp(thisOption, "--silent-mode") == 0){
     silent_mode = true;
     return 1;
@@ -66,10 +73,46 @@ int tOption::parseOptions(char const * const argv[]) {
     std::cerr << exeName << ": Several input files given." << std::endl;
     exit(EXIT_FAILURE);
   }
-
+	
   inputFile = thisOption;
   return 1;
 }
+
+// Parse options one at a time. Returns number of options consumed.
+/*int tOption::parseOptions(string thisOption) {
+	
+  /*if (strcmp(thisOption, "--silent-mode") == 0){
+    silent_mode = true;
+    return 1;
+  }
+  if (strcmp(thisOption, "--no-write-mode") == 0){
+    no_write_mode = true;
+    return 1;
+  }
+  if (strcmp(thisOption, "--no-check") == 0){
+    checkMeshConsistency = false;
+    return 1;
+  }
+  if (strcmp(thisOption, "--help") == 0){
+    usage();
+    exit(EXIT_SUCCESS);
+  }
+  if (strcmp(thisOption, "--version") == 0){
+    version();
+    exit(EXIT_SUCCESS);
+  }
+  if (thisOption[0] == '-') {
+    usage();
+    exit(EXIT_FAILURE);
+  }
+  if (inputFile != NULL)  {
+    std::cerr << exeName << ": Several input files given." << std::endl;
+    exit(EXIT_FAILURE);
+  }
+	
+  inputFile = thisOption;
+  return 1;
+}*/
 
 void tOption::usage() const {
   std::cerr

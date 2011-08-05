@@ -16,6 +16,10 @@
 #ifndef TOPTION_H
 #define TOPTION_H
 
+#include <vector>
+
+using namespace std;
+
 class tOption {
   char const * const exeName;
 public:
@@ -25,9 +29,11 @@ public:
   char const *inputFile;
 
   tOption(int argc, char const * const argv[]);
+  tOption(string arguments);
   static void version();
 private:
   int parseOptions(char const * const argv[]);
+  int parseOptions(std::string thisOption);
   void usage() const;
 private:
   tOption();
