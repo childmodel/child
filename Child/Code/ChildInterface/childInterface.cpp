@@ -186,7 +186,7 @@ void childInterface::Initialize_Copy( const childInterface& orig )
 */
 /**************************************************************************/
 void childInterface::
-Initialize( int argc, char **argv )
+Initialize( string argument_string )
 {
 		
    /****************** INITIALIZATION *************************************\
@@ -207,7 +207,7 @@ Initialize( int argc, char **argv )
    \**********************************************************************/
 
    // Check command-line arguments
-   tOption option( argc, argv );
+   tOption option( argument_string );
 
    // Say hello
    option.version();
@@ -339,6 +339,28 @@ Initialize( int argc, char **argv )
 }
 
 
+/**************************************************************************/
+/**
+ **  Initialize (argc, argv version)
+ **
+ **  This version of Initialize turns (argc, argv) into a string, and
+ **  passes it to Initialize( string ).
+ */
+/**************************************************************************/
+void childInterface::
+Initialize( int argc, char **argv )
+{
+  string argstr;
+  for( int i=1; i<argc; i++ )
+  {
+    argstr.append( argv[i] );
+    if( i<(argc-1) )
+      argstr.append( " " );
+  }
+  Initialize( argstr );
+}
+  
+  
 /**************************************************************************/
 /**
 **  VaryParameters

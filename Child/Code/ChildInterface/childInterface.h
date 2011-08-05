@@ -73,6 +73,7 @@ public:
   childInterface();
   void Initialize_Copy( const childInterface& );
   void Initialize( int argc, char **argv );
+  void Initialize( string argument_string );
   vector<double> VaryParameters( const tInputFile &, const double &, tRand &, 
 				 bool yesVary = true ); 
   double RunOneStorm();
