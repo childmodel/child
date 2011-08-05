@@ -423,7 +423,7 @@ tLOutput<tSubNode>::tLOutput( tMesh<tSubNode> *meshPtr,
      this->CreateAndOpenFile( &qsdinofs, ".qsdin" );
      this->CreateAndOpenFile( &dzdtofs, ".dzdt" );
   }  
-  if( (opOpt = infile.ReadItem( opOpt, "OPT_LANDSLIDES" ) ) == 1 )
+  if( (opOpt = infile.ReadInt( "OPT_LANDSLIDES", false ) ) == 1 )
     {
       this->CreateAndOpenFile( &lsforceofs, ".force" );
       this->CreateAndOpenFile( &publicflagofs, ".flag" );
