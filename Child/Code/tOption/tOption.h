@@ -17,6 +17,7 @@
 #define TOPTION_H
 
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -30,15 +31,17 @@ public:
 
   tOption(int argc, char const * const argv[]);
   tOption(string arguments);
+  tOption(const char * args);
   static void version();
 private:
+  string inputFileString;
   int parseOptions(char const * const argv[]);
   int parseOptions(std::string thisOption);
   void usage() const;
-private:
   tOption();
   tOption(tOption const &);
   tOption& operator=(tOption const &);
+  void ProcessOptionsFromString( string arguments );
 };
 
 #endif

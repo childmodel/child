@@ -12,6 +12,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
+#include <sstream>
 
 #include "tOption.h"
 #include "../Definitions.h"
@@ -38,7 +39,30 @@ tOption::tOption(string arguments)
 silent_mode(false), checkMeshConsistency(true), no_write_mode(false), 
 inputFile(0)
 {
+  ProcessOptionsFromString( arguments );
 }
+
+tOption::tOption(const char * args)
+: exeName("child"),
+silent_mode(false), checkMeshConsistency(true), no_write_mode(false), 
+inputFile(0)
+{
+  string arg_string( args );
+  ProcessOptionsFromString( arg_string );
+}
+
+void tOption::ProcessOptionsFromString( string arguments )
+{
+  istringstream ss( arguments );
+  string s;
+  while( ss>>s )
+    parseOptions( s );
+  if (inputFile ==NULL){
+    usage();
+    exit(EXIT_FAILURE);
+  }
+}
+
 
 // Parse options one at a time. Returns number of options consumed.
 int tOption::parseOptions(char const * const argv[]) {
@@ -79,25 +103,25 @@ int tOption::parseOptions(char const * const argv[]) {
 }
 
 // Parse options one at a time. Returns number of options consumed.
-/*int tOption::parseOptions(string thisOption) {
+int tOption::parseOptions(string thisOption) {
 	
-  /*if (strcmp(thisOption, "--silent-mode") == 0){
+  if (thisOption.compare("--silent-mode") == 0){
     silent_mode = true;
     return 1;
   }
-  if (strcmp(thisOption, "--no-write-mode") == 0){
+  if (thisOption.compare("--no-write-mode") == 0){
     no_write_mode = true;
     return 1;
   }
-  if (strcmp(thisOption, "--no-check") == 0){
+  if (thisOption.compare("--no-check") == 0){
     checkMeshConsistency = false;
     return 1;
   }
-  if (strcmp(thisOption, "--help") == 0){
+  if (thisOption.compare("--help") == 0){
     usage();
     exit(EXIT_SUCCESS);
   }
-  if (strcmp(thisOption, "--version") == 0){
+  if (thisOption.compare("--version") == 0){
     version();
     exit(EXIT_SUCCESS);
   }
@@ -110,9 +134,10 @@ int tOption::parseOptions(char const * const argv[]) {
     exit(EXIT_FAILURE);
   }
 	
-  inputFile = thisOption;
+  inputFileString = thisOption;
+  inputFile = inputFileString.c_str();
   return 1;
-}*/
+}
 
 void tOption::usage() const {
   std::cerr
