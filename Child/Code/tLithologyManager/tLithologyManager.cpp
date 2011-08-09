@@ -96,29 +96,28 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *meshPtr )
 /**
  **  SetLithologyFromChildLayFile
  **
+ **  This function sets the layers and properties based on data in a
+ **  specified CHILD-format .lay file. The previous layers are removed.
  */
 /**************************************************************************/
 void tLithologyManager::
 SetLithologyFromChildLayFile( const tInputFile &infile )
 {
   int i, item, numl;
-  int righttime, numlayernodes;
-  double time, intime;
+  int numlayernodes;
+  double time;
   double ditem;
   char thestring[80], inname[80];
-  char headerLine[kMaxNameLength];
   std::ifstream layerinfile;
   infile.ReadItem( thestring, sizeof(thestring), "INPUT_LAY_FILE" );
   
   if (1) //DEBUG
-    std::cout<<"in ReadLayersFromLayFile..."<<std::endl;
+    std::cout<<"in SetLithologyFromChildLayFile..."<<std::endl;
   
   strcpy( inname, thestring );
   layerinfile.open(inname); /* Layer input file pointer */
   assert( layerinfile.good() );
   
-  intime = infile.ReadDouble( "INPUTTIME", false );
-
   // Read first line, which should contain the time corresponding to the run
   layerinfile >> time;
 
@@ -148,11 +147,15 @@ SetLithologyFromChildLayFile( const tInputFile &infile )
   
   for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
   {
+    // Remove pre-existing layers
+    for(i=cn->getNumLayer()-1; i>=0; i-- )
+      cn->removeLayer(i);
+    
     // Read the number of layers at the current node
     layerinfile >> numl;
     if( numl<1 )
     {
-      std::cout << "In ReadLayersFromLayFile: node " 
+      std::cout << "In SetLithologyFromChildLayFile: node " 
       << cn->getPermID() << " has " << numl << " layers." 
       << std::endl;
       ReportFatalError( "Each interior point must have at least one layer." );
@@ -217,8 +220,36 @@ SetLithologyFromChildLayFile( const tInputFile &infile )
 
 /**************************************************************************/
 /**
+ **  SetRockErodibilityValuesAtAllDepths
+ **
+ **  This function sets the value of bedrock erodibility at each node
+ **  according to the values in the parameter "erody". This parameter is
+ **  assumed to be a vector of size equal to the number of nodes, and
+ **  ordered according to node (permanent) ID. All rock layers at a node
+ **  are given the same erodibility values. Sediment layers are not
+ **  affected.
  */
 /**************************************************************************/
+void tLithologyManager::
+SetRockErodibilityValuesAtAllDepths( vector<double> erody )
+{
+  tLNode * cn;
+  tMesh<tLNode>::nodeListIter_t ni( meshPtr_->getNodeList() );
+  
+  for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+  {
+    int node_id = cn->getPermID();
+    double local_erody = erody[node_id];
+    std::cout << "There are " << cn->getNumLayer() << " layers at node " << node_id << std::endl;
+    for( int i=0; i<cn->getNumLayer(); i++ )
+    {
+      std::cout << "  Working on layer " << i << std:: endl;
+      if( cn->getLayerSed(i)==tLayer::kBedRock )
+        cn->setLayerErody(i, local_erody);
+    }
+  }
+    
+}
 
 /**************************************************************************/
 /**

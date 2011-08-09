@@ -67,7 +67,7 @@ public:
 						    double bulk_density = kDefaultBulkDensity,
 						    double creation_time = 0.0, double rtime = 0.0, 
 						    double etime = 0.0, double paleocurrent = 0.0 );
-  void SetErodibilitiesAtNodes( vector<double> erodibilities );
+  void SetRockErodibilityValuesAtAllDepths( vector<double> erody );
   void SetErodibilityWithinPolygon();
 	
   // Destructor
