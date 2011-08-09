@@ -635,6 +635,7 @@ public:
   inline void setLayerErody(int, double);
   inline void setLayerSed(int, tLayer::tSed_t);
   inline void setLayerDgrade(int, size_t, double);
+  inline void ThickenBottomLayer( double added_thickness );
   void setStratNode(tStratNode *s_) {
     stratNode = s_;
   }
@@ -1306,6 +1307,13 @@ inline void tLNode::setLayerDgrade( int i, size_t g, double val)
 {
   assert( val>=0.0 );
   layerlist.getIthDataPtrNC( i )->setDgrade(g, val );
+}
+
+inline void tLNode::ThickenBottomLayer( double added_thickness )
+{
+  assert( added_thickness>=0.0 );
+  tLayer * bottom_layer = layerlist.getIthDataPtrNC( layerlist.getSize()-1 );
+  bottom_layer->setDepth( bottom_layer->getDepth() + added_thickness );
 }
 
 inline tVegCover & tLNode::getVegCover()

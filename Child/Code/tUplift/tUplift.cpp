@@ -38,7 +38,7 @@
 **
 \************************************************************************/
 tUplift::tUplift_t tUplift::DecodeType(int type){
-  if( type < 0 || type > 16 )
+  if( type < 0 || type > 17 )
   {
     std::cerr << "I don't recognize the uplift type you asked for ("
     << type << ")\n"
@@ -59,7 +59,8 @@ tUplift::tUplift_t tUplift::DecodeType(int type){
     " 13 - Propagating horizontal front\n"
     " 14 - Baselevel fall at open boundaries\n"
     " 15 - Moving block\n"
-    " 16 - Moving sinusoid\n";
+    " 16 - Moving sinusoid\n"
+    " 17 - Uplift with crustal thickening\n";
     ReportFatalError( "Please specify a valid uplift type and try again." );
   }
   return static_cast<tUplift_t>(type);
@@ -223,6 +224,9 @@ duration(0.)
       blockWidth_y = infile.ReadDouble( "BLOCKWIDTHY" );
       blockMoveRate = infile.ReadDouble( "BLOCKMOVERATE" );
       break;
+    case k17:
+      faultPosition = infile.ReadDouble( "FAULTPOS", false );
+      break;
   }
   
 }
@@ -295,6 +299,9 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
       break;
     case k16:
       MovingSinusoid(mp,delt,currentTime);
+      break;
+    case k17:
+      UpliftAndThicken(mp,delt,currentTime);
       break;
   }
   
@@ -1169,6 +1176,39 @@ void tUplift::MovingSinusoid( tMesh<tLNode> *mp, double delt, double currentTime
 	}
   
 	blockEdge_x+=blockMoveRate*delt; // Move the location of the block with each timestep
+}
+
+
+
+/************************************************************************\
+ **
+ **  tUplift::UpliftAndThicken
+ **
+ **  Raises surface elevation to one side of faultPosition, and also
+ **  thickens the lowermost rock layer at the same rate. This way one
+ **  can calculate a flexural response to thickened crust.
+ **
+ **  Inputs:  mp -- pointer to the mesh
+ **           delt -- duration of uplift
+ **
+ \************************************************************************/
+void tUplift::UpliftAndThicken( tMesh<tLNode> *mp, double delt, double currentTime )
+{
+  assert( mp!=0 );
+  tLNode *cn;
+  tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+  rate = rate_ts.calc( currentTime );
+  const double rise = rate*delt;
+  
+  for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+  {
+    if( cn->getY()>=faultPosition )
+    {
+      cn->ChangeZ( rise );
+      cn->setUplift( rate );
+      cn->ThickenBottomLayer( rise );
+    }
+  }
 }
 
 

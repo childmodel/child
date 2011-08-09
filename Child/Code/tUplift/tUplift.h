@@ -44,103 +44,105 @@
 class tUplift
 {
 public:
-    tUplift( const tUplift& );
-    tUplift( const tInputFile &infile );
-    void DoUplift( tMesh<tLNode> *mp, double delt, double current_time );
-    double getDuration() const;
-    double getRate() const;
+  tUplift( const tUplift& );
+  tUplift( const tInputFile &infile );
+  void DoUplift( tMesh<tLNode> *mp, double delt, double current_time );
+  double getDuration() const;
+  double getRate() const;
 private:
-   void UpliftUniform( tMesh<tLNode> *mp, double delt, double currentTime );
-   void BlockUplift( tMesh<tLNode> *mp, double delt, double currentTime );
-   void StrikeSlip( tMesh<tLNode> *mp, double delt ) const;
-   void FoldPropErf( tMesh<tLNode> *mp, double delt );
-   void CosineWarp2D( tMesh<tLNode> *mp, double delt );
-   void PropagatingFold( tMesh<tLNode> *mp, double delt ) const;
-   void TwoSideDifferential( tMesh<tLNode> *mp, double delt ) const;
-   void FaultBendFold( tMesh<tLNode> *mp, double delt ) const;
-   void FaultBendFold2( tMesh<tLNode> *mp, double delt ) const;
-   void NormalFaultTiltAccel( tMesh<tLNode> *mp, double delt, double currentTime ) const;
-   void LinearUplift( tMesh<tLNode> *mp, double delt );
-   void PowerLawUplift( tMesh<tLNode> *mp, double delt );
-   void UpliftRateMap( tMesh<tLNode> *mp, double delt, double currentTime );
-   void PropagatingFront( tMesh<tLNode> *mp, double delt, double currentTime );
-   void BaselevelFallAtOpenBoundaries( tMesh<tLNode> *mp, double delt, double currentTime );
-   void MovingBlock( tMesh<tLNode> *mp, double delt, double currentTime );
-   void MovingSinusoid( tMesh<tLNode> *mp, double delt, double currentTime );
-   
+  void UpliftUniform( tMesh<tLNode> *mp, double delt, double currentTime );
+  void BlockUplift( tMesh<tLNode> *mp, double delt, double currentTime );
+  void StrikeSlip( tMesh<tLNode> *mp, double delt ) const;
+  void FoldPropErf( tMesh<tLNode> *mp, double delt );
+  void CosineWarp2D( tMesh<tLNode> *mp, double delt );
+  void PropagatingFold( tMesh<tLNode> *mp, double delt ) const;
+  void TwoSideDifferential( tMesh<tLNode> *mp, double delt ) const;
+  void FaultBendFold( tMesh<tLNode> *mp, double delt ) const;
+  void FaultBendFold2( tMesh<tLNode> *mp, double delt ) const;
+  void NormalFaultTiltAccel( tMesh<tLNode> *mp, double delt, double currentTime ) const;
+  void LinearUplift( tMesh<tLNode> *mp, double delt );
+  void PowerLawUplift( tMesh<tLNode> *mp, double delt );
+  void UpliftRateMap( tMesh<tLNode> *mp, double delt, double currentTime );
+  void PropagatingFront( tMesh<tLNode> *mp, double delt, double currentTime );
+  void BaselevelFallAtOpenBoundaries( tMesh<tLNode> *mp, double delt, double currentTime );
+  void MovingBlock( tMesh<tLNode> *mp, double delt, double currentTime );
+  void MovingSinusoid( tMesh<tLNode> *mp, double delt, double currentTime );
+  void UpliftAndThicken( tMesh<tLNode> *mp, double delt, double currentTime );
+  
 private:
-   typedef enum {
-       kNoUplift = 0,
-       k1,
-       k2,
-       k3,
-       k4,
-       k5,
-       k6,
-       k7,
-       k8,
-       k9,
-       k10,
-       k11,
-       k12,
-	     k13,
-	     k14,
-	     k15,
-       k16
-   } tUplift_t;
-   
-   static tUplift_t DecodeType(int);
-   
-   tUplift_t typeCode;    // Code for the type of uplift desired
-   double duration;       // Duration of uplift
-   double rate;           // Rate of uplift
-   double rate2;          // Second rate (e.g., second structure)
-   tTimeSeries rate_ts;   // Rate of uplift as a time series
-   double faultPosition;  // Position of fault (y-location)
-   double positionParam1; // Another position parameter
-   double slipRate;       // Slip rate for strike-slip motion and fault prop
-   double blockMoveRate;   // Rate of movement of block
-   double blockEdge_x;		  // Position of block edge (x-location)
-   double blockWidth_x;      // Width of block in x
-   double blockEdge_y;		  // Position of block edge (y-location)
-   double blockWidth_y;      // Width of block in y
-   double foldParam;      // Parameter used in folding calculation
-   double foldParam2;     // Another one
-   double deformStartTime1; // Parameter for onset of uplift/deformation
-   double flatDepth;      // Depth below surface (at faultPos) of thrust flat
-   double rampDip;	   // Dip of thrust ramp (in degrees)
-   double kinkDip;	   // Dip of axial surface in hangingwall that
-   //	initiates at lower end of ramp.
-   double upperKinkDip;   // Dip of axial surface that initiates at upper
-   //	end of ramp.
-   double meanElevation;  // Mean elevation of surface at t0.
-   double decayParam;  //decay rate for powerlaw
-   double timeParam1;     // Timing parameter
-   double width;  //y-size of mesh, needed for setting up linear uplift change
-   double dupdy;  //change in uplift with y for linear uplift change
-   int optincrease; //for linear uplift change - 0=>dec to mtn frnt, 1=>inc to mtn frnt
-   char mUpliftMapFilename[120]; // Name for files containing uplift maps
-   int miNumUpliftMaps;     // Number of uplift maps
-   tArray<double> mUpliftMapTimes; // Time corresponding to each uplift map
-   int miCurUpliftMapNum;  // Current uplift map number
-   double mdNextUpliftMapTime; // Time at which to read next map
-   double mdUpliftFrontGradient; // Horizontal gradient (dy/dx) of propagating uplift front
-   
+  typedef enum {
+    kNoUplift = 0,
+    k1,
+    k2,
+    k3,
+    k4,
+    k5,
+    k6,
+    k7,
+    k8,
+    k9,
+    k10,
+    k11,
+    k12,
+    k13,
+    k14,
+    k15,
+    k16,
+    k17
+  } tUplift_t;
+  
+  static tUplift_t DecodeType(int);
+  
+  tUplift_t typeCode;    // Code for the type of uplift desired
+  double duration;       // Duration of uplift
+  double rate;           // Rate of uplift
+  double rate2;          // Second rate (e.g., second structure)
+  tTimeSeries rate_ts;   // Rate of uplift as a time series
+  double faultPosition;  // Position of fault (y-location)
+  double positionParam1; // Another position parameter
+  double slipRate;       // Slip rate for strike-slip motion and fault prop
+  double blockMoveRate;   // Rate of movement of block
+  double blockEdge_x;		  // Position of block edge (x-location)
+  double blockWidth_x;      // Width of block in x
+  double blockEdge_y;		  // Position of block edge (y-location)
+  double blockWidth_y;      // Width of block in y
+  double foldParam;      // Parameter used in folding calculation
+  double foldParam2;     // Another one
+  double deformStartTime1; // Parameter for onset of uplift/deformation
+  double flatDepth;      // Depth below surface (at faultPos) of thrust flat
+  double rampDip;	   // Dip of thrust ramp (in degrees)
+  double kinkDip;	   // Dip of axial surface in hangingwall that
+                     //	initiates at lower end of ramp.
+  double upperKinkDip;   // Dip of axial surface that initiates at upper
+                         //	end of ramp.
+  double meanElevation;  // Mean elevation of surface at t0.
+  double decayParam;  //decay rate for powerlaw
+  double timeParam1;     // Timing parameter
+  double width;  //y-size of mesh, needed for setting up linear uplift change
+  double dupdy;  //change in uplift with y for linear uplift change
+  int optincrease; //for linear uplift change - 0=>dec to mtn frnt, 1=>inc to mtn frnt
+  char mUpliftMapFilename[120]; // Name for files containing uplift maps
+  int miNumUpliftMaps;     // Number of uplift maps
+  tArray<double> mUpliftMapTimes; // Time corresponding to each uplift map
+  int miCurUpliftMapNum;  // Current uplift map number
+  double mdNextUpliftMapTime; // Time at which to read next map
+  double mdUpliftFrontGradient; // Horizontal gradient (dy/dx) of propagating uplift front
+  
 private:
-   tUplift();
+  tUplift();
 };
 
 inline tUplift::tUplift( const tUplift& orig )
-  : typeCode(orig.typeCode), duration(orig.duration), rate(orig.rate), rate2(orig.rate2), 
-    rate_ts(orig.rate_ts), faultPosition(orig.faultPosition), 
-    positionParam1(orig.positionParam1), slipRate(orig.slipRate), foldParam(orig.foldParam), 
-    deformStartTime1(orig.deformStartTime1), flatDepth(orig.flatDepth), rampDip(orig.rampDip), 
-    kinkDip(orig.kinkDip), upperKinkDip(orig.upperKinkDip), meanElevation(orig.meanElevation), 
-    decayParam(orig.decayParam), timeParam1(orig.timeParam1), width(orig.width), 
-    dupdy(orig.dupdy), optincrease(orig.optincrease), miNumUpliftMaps(orig.miNumUpliftMaps), 
-    mUpliftMapTimes(orig.mUpliftMapTimes), miCurUpliftMapNum(orig.miCurUpliftMapNum), 
-    mdNextUpliftMapTime(orig.mdNextUpliftMapTime), 
-    mdUpliftFrontGradient(orig.mdUpliftFrontGradient)
+: typeCode(orig.typeCode), duration(orig.duration), rate(orig.rate), rate2(orig.rate2), 
+rate_ts(orig.rate_ts), faultPosition(orig.faultPosition), 
+positionParam1(orig.positionParam1), slipRate(orig.slipRate), foldParam(orig.foldParam), 
+deformStartTime1(orig.deformStartTime1), flatDepth(orig.flatDepth), rampDip(orig.rampDip), 
+kinkDip(orig.kinkDip), upperKinkDip(orig.upperKinkDip), meanElevation(orig.meanElevation), 
+decayParam(orig.decayParam), timeParam1(orig.timeParam1), width(orig.width), 
+dupdy(orig.dupdy), optincrease(orig.optincrease), miNumUpliftMaps(orig.miNumUpliftMaps), 
+mUpliftMapTimes(orig.mUpliftMapTimes), miCurUpliftMapNum(orig.miCurUpliftMapNum), 
+mdNextUpliftMapTime(orig.mdNextUpliftMapTime), 
+mdUpliftFrontGradient(orig.mdUpliftFrontGradient)
 {
   strcat( mUpliftMapFilename, orig.mUpliftMapFilename );
 }
