@@ -47,8 +47,6 @@
 #include "../tMesh/tMesh.h"
 #include "../tLNode/tLNode.h"
 
-#define kDefaultBulkDensity 2000.0
-
 class tLithologyManager
 {
 public:
@@ -61,10 +59,25 @@ public:
   void InitializeFromInputFile( tInputFile &infile, tMesh<tLNode> *meshPtr );
   
   void SetLithologyFromChildLayFile( const tInputFile &infile );
+  
+  void EtchLayerAbove2DSurface(vector<double> &poly_coefs_x,
+                               vector<double> &poly_coefs_y,
+                               tLayer &layer_properties,
+                               bool keep_regolith = false,
+                               bool use_bounding_polygon = false,
+                               vector<double> bounding_poly_x = vector<double>(),
+                               vector<double> bounding_poly_y = vector<double>() );
 	
+  // Move to private after testing ...
+  bool PointInPolygon( std::vector<double> vertx, 
+                       std::vector<double> verty,
+                       double point_x, double point_y );
+  void EtchLayerAboveHeightAtNode( double layer_base_height, tLNode * node,
+                                  tLayer &layer_properties, bool keep_regolith );
+  
   void SetPropertiesAtNode( int nodeID, double erodibility, int sediment_flag, 
 						    vector<double> grain_sizes = vector<double>(), 
-						    double bulk_density = kDefaultBulkDensity,
+						    double bulk_density = kDefaultRockBulkDensity,
 						    double creation_time = 0.0, double rtime = 0.0, 
 						    double etime = 0.0, double paleocurrent = 0.0 );
   void SetRockErodibilityValuesAtAllDepths( vector<double> erody );

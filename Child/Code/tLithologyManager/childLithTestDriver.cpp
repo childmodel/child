@@ -71,7 +71,7 @@ int main( int argc, char **argv )
 
   // Now some tests on the lithology manager: 
   // First, initialize it.
-  my_lith_mgr.InitializeFromInputFile( infile, myChildInterface.GetMeshPtr() );
+  my_lith_mgr.InitializeFromInputFile( infile, myChildInterface.GetMeshPointer() );
 	
   
   // Now, see if we can re-set the rock erodibility at each node
@@ -82,6 +82,23 @@ int main( int argc, char **argv )
     else
       erody[i] = 1.0e-6;
   my_lith_mgr.SetRockErodibilityValuesAtAllDepths( erody );
+  
+  // Test the point in polygon routine
+  std::vector<double> polyx( 4 );
+  std::vector<double> polyy( 4 );
+  polyx[0] = 2.0;
+  polyx[1] = 4.0;
+  polyx[2] = 4.0;
+  polyx[3] = 2.0;
+  polyy[0] = 2.0;
+  polyy[1] = 2.0;
+  polyy[2] = 4.0;
+  polyy[3] = 4.0;
+  std::cout << "This should be false: " << my_lith_mgr.PointInPolygon( polyx, polyy, 1.0, 3.0 ) << std::endl;
+  std::cout << "This should be false: " << my_lith_mgr.PointInPolygon( polyx, polyy, 3.0, 5.0 ) << std::endl;
+  std::cout << "This should be false: " << my_lith_mgr.PointInPolygon( polyx, polyy, 5.0, 3.0 ) << std::endl;
+  std::cout << "This should be false: " << my_lith_mgr.PointInPolygon( polyx, polyy, 3.0, 1.0 ) << std::endl;
+  std::cout << "This should be true: " << my_lith_mgr.PointInPolygon( polyx, polyy, 3.0, 3.0 ) << std::endl;
   
   // Now back to the main attraction ... running the model!
     

@@ -255,6 +255,84 @@ SetRockErodibilityValuesAtAllDepths( vector<double> erody )
 /**
  */
 /**************************************************************************/
+void tLithologyManager::
+EtchLayerAboveHeightAtNode( double layer_base_height, tLNode * node,
+                           tLayer &layer_properties, bool keep_regolith )
+{
+}
+
+/**************************************************************************/
+/**
+ **  PointInPolygon
+ **
+ **  Determines whether the point (point_x, point_y) lies inside the
+ **  polygon described by vertx, verty. Ray casting algorithm,
+ **  re-written in C++ from web-published C code by W. Randolph Franklin.
+ */
+/**************************************************************************/
+bool tLithologyManager::
+PointInPolygon( std::vector<double> vertx, 
+               std::vector<double> verty,
+               double point_x, double point_y )
+{
+  unsigned i, j;
+  unsigned n_vertices = vertx.size();
+  assert( n_vertices==verty.size() );
+  bool point_is_in = false;
+  for( i=0, j = n_vertices-1; i<n_vertices; j = i++ )
+  {
+    if ( ((verty[i]>point_y) != (verty[j]>point_y)) &&
+        (point_x < (vertx[j]-vertx[i]) * (point_y-verty[i]) / (verty[j]-verty[i]) + vertx[i]) )
+      point_is_in = !point_is_in;
+  }
+  return point_is_in;
+}
+
+/**************************************************************************/
+/**
+ **  EtchLayerAbove2DSurface
+ **
+ **  This function inserts a new layer with a given set of properties
+ **  above a 2D surface described by a polynomial, and within the map
+ **  area described by a second (optional) polynomial.
+ */
+/**************************************************************************/
+void tLithologyManager::
+EtchLayerAbove2DSurface(  vector<double> &poly_coefs_x,
+                          vector<double> &poly_coefs_y,
+                          tLayer &layer_properties,
+                          bool keep_regolith,
+                          bool use_bounding_polygon,
+                          vector<double> bounding_poly_x,
+                          vector<double> bounding_poly_y )
+{
+  tLNode * cn;
+  tMesh<tLNode>::nodeListIter_t ni( meshPtr_->getNodeList() );
+  
+  for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+  {
+    bool layer_is_present_here = true;
+    if( use_bounding_polygon )
+      if( !PointInPolygon( bounding_poly_x, bounding_poly_y, cn->getX(), cn->getY() ) )
+         layer_is_present_here = false;
+    if( layer_is_present_here )
+    {
+      double x = cn->getX();
+      double y = cn->getY();
+      double new_layer_base_height = poly_coefs_x[0]*x*x*x +
+                              poly_coefs_x[1]*x*x +
+                              poly_coefs_x[2]*x +
+                              poly_coefs_x[3] +
+                              poly_coefs_y[0]*y*y*y +
+                              poly_coefs_y[1]*y*y +
+                              poly_coefs_y[2]*y +
+                              poly_coefs_y[3];
+      if( new_layer_base_height < cn->getZ() )
+        EtchLayerAboveHeightAtNode( new_layer_base_height, cn, layer_properties, keep_regolith );
+    }
+  }
+    
+}
 
 /**************************************************************************/
 /**
