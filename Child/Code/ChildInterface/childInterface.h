@@ -84,6 +84,7 @@ public:
   void ExternalErodeAndDepositToElevation( vector<double> z );
   void TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track,
 				    double current_time );
+	vector<double> GetLoads();
 	
   // Public methods that implement the OpenMI IElement interface
   string getID();
@@ -116,6 +117,9 @@ public:
   double GetRemainingRunTime();   // Returns the ending time for the run
   void AdjustElevations( std::vector<double> dz );  // changes elevs
   void AdjustInteriorElevations( std::vector<double> dz );  // changes elevs
+	
+  // Interface functions used (at the moment) only for development and testing
+  tMesh<tLNode> * GetMeshPointer() { return mesh; }
 		
 private:
 

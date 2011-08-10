@@ -1798,3 +1798,44 @@ TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track,
 }
 
 
+/**************************************************************************/
+/**
+ **  childInterface::GetLoads
+ **
+ **  Calculates and returns the weight of each rock and sediment column
+ **  at each interior node. The output can be used by a lithosphere 
+ **  flexure model to compute isostatic deflection.
+ **
+ **  GT, Aug 2011
+ */
+/**************************************************************************/
+vector<double> childInterface::
+GetLoads()
+{
+	vector<double> the_loads( mesh->getNodeList()->getSize() );
+
+	tLNode *current_node;
+	tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+	
+	for( current_node=ni.FirstP(); ni.IsActive(); current_node=ni.NextP() )
+	{
+		int node_id = current_node->getPermID();
+		std::cout << "Getting load for node " << node_id << std::endl;
+	  double load = 0.0;
+		double varea = current_node->getVArea();
+		tListIter<tLayer> li( current_node->getLayersRefNC() );
+		int j=0;
+		for( tLayer * layp = li.FirstP(); !li.AtEnd(); layp=li.NextP() )
+		{
+			std::cout << " Layer " << j;
+			load += layp->getDepth() * layp->getBulkDensity() * varea;
+			std::cout << " sum so far=" << load << std::endl;
+		}
+		std::cout<< "Back from loop\n";
+		the_loads[node_id] = load;
+		std::cout << "Total for node " << node_id << "=" << load << std::endl;
+	}
+	
+	return the_loads;
+
+}

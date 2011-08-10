@@ -622,6 +622,7 @@ public:
   inline double getLayerEtime(int) const;
   inline double getLayerDepth(int) const;
   inline double getLayerErody(int) const;
+	inline double getLayerBulkDensity(int) const;
   inline tLayer::tSed_t getLayerSed(int) const;
   inline double getLayerDgrade(int, size_t) const;  // first int is layer index
   // second int is grade index - see note above for indexing directions
@@ -1245,6 +1246,11 @@ inline double tLNode::getLayerDepth( int i ) const
 inline double tLNode::getLayerErody( int i ) const
 {
   return layerlist.getIthDataRef(i).getErody();
+}
+
+inline double tLNode::getLayerBulkDensity( int i ) const
+{
+  return layerlist.getIthDataRef(i).getBulkDensity();
 }
 
 inline tLayer::tSed_t tLNode::getLayerSed( int i ) const

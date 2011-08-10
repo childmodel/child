@@ -64,7 +64,16 @@ int main( int argc, char **argv )
 	   std::cout << vertices[3*i+1] << "\t" 
 	             << vertices[3*i+2] << std::endl;
 	}
-
+	
+	// Let's see how heavy CHILD's layer columns are ...
+	std::cout << "LOADS:" << std::endl;
+	std::vector<double> loads = myChildInterface.GetLoads();
+	for( long i=0; i<nt; i++ )
+	{
+		std::cout << i << "\t";
+		std::cout << loads[i] << std::endl;
+	}
+		
 
     // Now back to the main attraction ... running the model!
     
@@ -122,6 +131,15 @@ int main( int argc, char **argv )
 	             << vertices[3*i+2] << std::endl;
 	}
   
+	// Let's see how heavy CHILD's layer columns are ...
+	std::cout << "LOADS:" << std::endl;
+	loads = myChildInterface.GetLoads();
+	for( long i=0; i<nt; i++ )
+	{
+		std::cout << i << "\t";
+		std::cout << loads[i] << std::endl;
+	}
+	
   std::cout << "\nTest of AdjustElevations() and AdjustInteriorElevations:\n\n";
   std::vector<double> dz( nn, 1.0 );
   myChildInterface.AdjustInteriorElevations( dz );
@@ -156,6 +174,16 @@ int main( int argc, char **argv )
 	   std::cout << elevs[i] << "\t" << new_elevs[i] << std::endl;
 	}
 
+	// Let's see how heavy CHILD's layer columns are ...
+	std::cout << "LOADS:" << std::endl;
+	loads = myChildInterface.GetLoads();
+	for( long i=0; i<nt; i++ )
+	{
+		std::cout << i << "\t";
+		std::cout << loads[i] << std::endl;
+	}
+	
+	// Go back to previous elevations
   desired_elevs = elevs;
   myChildInterface.ExternalErodeAndDepositToElevation( elevs );
 	new_elevs = myChildInterface.GetValueSet( "elevation" );
