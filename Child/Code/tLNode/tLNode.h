@@ -678,7 +678,7 @@ public:
   // only called from EroDep because appropriate checking needs
   // to be done first - also used for erosion from the surface layer
   void makeNewLayerBelow(int, tLayer::tSed_t, double, tArray<double> const &,
-			 double);
+			 double, double );
   void removeLayer(int);
   void InsertLayerBack( tLayer const & );
   void LayerInterpolation( tTriangle const *, double, double, double );
@@ -743,6 +743,7 @@ protected:
   // want to put this somewhere else
   static double maxregdep;
   static double KRnew;
+  static double new_sed_bulk_density_;
   double qsubsurf;   // Subsurface discharge
   double netDownslopeForce; // force from landslide calculation
   double cumulative_ero_dep_;    // Keeps track of ero/dep since last update (for external reporting)

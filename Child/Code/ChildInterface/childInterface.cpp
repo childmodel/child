@@ -911,6 +911,8 @@ childInterface::
 **  Presently, it is set up without any grain-size information. A future
 **  version could also pass grain-size information.
 **
+**  WARNING: THIS ONLY CHANGES ELEVATIONS; NEED TO CALL ALTERNATE ERODEP
+**
 **  GT, June 09 
 */
 /**************************************************************************/
@@ -941,6 +943,8 @@ void childInterface::ExternalErosionAndDeposition( vector<double> dz )
 **  Presently, it is set up without any grain-size information. A future
 **  version could also pass grain-size information.
 **
+ **  WARNING: THIS ONLY CHANGES ELEVATIONS; NEED TO CALL ALTERNATE ERODEP
+ **
 **  GT, Sep 2010
 */
 /**************************************************************************/
@@ -1804,7 +1808,9 @@ TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track,
  **
  **  Calculates and returns the weight of each rock and sediment column
  **  at each interior node. The output can be used by a lithosphere 
- **  flexure model to compute isostatic deflection.
+ **  flexure model to compute isostatic deflection. Returns a vector of
+ **  loads in Newtons. Assumes gravitational acceleration given by GRAV,
+ **  so change this if you want to apply it to another planet!
  **
  **  GT, Aug 2011
  */
@@ -1824,16 +1830,16 @@ GetLoads()
 	  double load = 0.0;
 		double varea = current_node->getVArea();
 		tListIter<tLayer> li( current_node->getLayersRefNC() );
-		int j=0;
+		//int j=0;
 		for( tLayer * layp = li.FirstP(); !li.AtEnd(); layp=li.NextP() )
 		{
-			std::cout << " Layer " << j;
-			load += layp->getDepth() * layp->getBulkDensity() * varea;
-			std::cout << " sum so far=" << load << std::endl;
+			//std::cout << " Layer bulk density=" << layp->getBulkDensity();
+      //std::cout << " Thickness=" << layp->getDepth();
+			load += layp->getDepth() * layp->getBulkDensity() * varea * GRAV;
+			//std::cout << " sum so far=" << load << std::endl;
 		}
-		std::cout<< "Back from loop\n";
 		the_loads[node_id] = load;
-		std::cout << "Total for node " << node_id << "=" << load << std::endl;
+		//std::cout << "Total for node " << node_id << "=" << load << std::endl;
 	}
 	
 	return the_loads;

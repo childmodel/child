@@ -3558,7 +3558,9 @@ meshPtr(mptr),
 bedErode(0), sedTrans(0), physWeath(0), chemWeath(0), 
 runout(0), scour(0), deposit(0), DF_fsPtr(0), DF_Hyd_fsPtr(0),
 track_sed_flux_at_nodes_( false ), water_sed_tracker_ptr_(NULL),
-soilBulkDensity(1000.0), rockBulkDensity(2700.), wetBulkDensity(1600.0), 
+soilBulkDensity(kDefaultSoilBulkDensity),
+rockBulkDensity(kDefaultRockBulkDensity),
+wetBulkDensity(kDefaultWetBulkDensity), 
 woodDensity(450.0), fricSlope(1.0),
 debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
 {
@@ -3659,7 +3661,10 @@ break;
   std::cout << "SOIL PRODUCTION OPTION: "
 	    << ProductionLaw[optPhysWeathLaw] << std::endl;
   if( optPhysWeathLaw > 0 )
+  {
     soilBulkDensity=infile.ReadDouble( "SOILBULKDENSITY", false );
+    if( soilBulkDensity<=0.0 ) soilBulkDensity = kDefaultSoilBulkDensity;
+  }
 
   // set chemical weathering law:
   optChemWeathLaw = infile.ReadItem( optChemWeathLaw,
@@ -3703,8 +3708,8 @@ break;
       ReportFatalError( "Requested landsliding and incompatible hydrology.\n" );
     }
     rockBulkDensity = infile.ReadDouble( "ROCKDENSITYINIT", false );
-    if( rockBulkDensity > 0.0 )
-      wetBulkDensity = 
+    if( rockBulkDensity<=0.0 ) rockBulkDensity = kDefaultRockBulkDensity;
+    wetBulkDensity = 
       soilBulkDensity + RHO * ( 1.0 - soilBulkDensity / rockBulkDensity );
     double tmp_double = infile.ReadDouble( "WOODDENSITY", false );
     if( tmp_double > 0.0 )
@@ -3807,6 +3812,7 @@ break;
 	}
     }
 }
+
 
 // copy constructor for copying to new mesh:
 tErosion::tErosion( const tErosion& orig, tMesh<tLNode>* Ptr )

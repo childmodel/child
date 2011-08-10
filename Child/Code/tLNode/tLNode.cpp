@@ -303,6 +303,7 @@ size_t tLNode::numg = 0;
 tArray<double> tLNode::grade = 1;
 double tLNode::maxregdep = 1;
 double tLNode::KRnew = 1.0;
+double tLNode::new_sed_bulk_density_ = kDefaultSoilBulkDensity;
 
 tLNode::tLNode()                                                   //tLNode
   :
@@ -366,6 +367,8 @@ public1(-1)
   KRnew = infile.ReadItem( KRnew, "KR" );
   if( KRnew<0.0 )
     ReportFatalError( "Erodibility factor KR must be positive." );
+  new_sed_bulk_density_ = infile.ReadDouble( "SOILBULKDENSITY", false );
+  if( new_sed_bulk_density_<=0.0 ) new_sed_bulk_density_ = kDefaultSoilBulkDensity;
   
   {
     size_t i = 0;
@@ -438,6 +441,9 @@ public1(-1)
         ReportFatalError( "Erodibility factor KB must be positive." );
       layhelp.setErody(help);
       layhelp.setSed(tLayer::kBedRock);
+      help = infile.ReadDouble( "ROCKDENSITYINIT", false );
+      if( help<=0.0 ) help = kDefaultRockBulkDensity;
+      layhelp.setBulkDensity(help);
       
       // in the regolith layer dgrade is saving
       // the proportion of grain size available from the bedrock
@@ -466,11 +472,9 @@ public1(-1)
       if( help<0.0 )
         ReportFatalError( "Erodibility factor KR must be positive." );
       layhelp.setErody(help);
-      bool OptNewLayOutput = infile.ReadBool( "OPT_NEW_LAYERSOUTPUT", false );
-      if( OptNewLayOutput ){
-        help=infile.ReadDouble( "SOILBULKDENSITY", false );
-        layhelp.setBulkDensity( help );
-      }
+      help=infile.ReadDouble( "SOILBULKDENSITY", false );
+      if( help<=0.0 ) help = kDefaultSoilBulkDensity;
+      layhelp.setBulkDensity( help );
       help = infile.ReadItem( help, "REGINIT");
       if(help > maxregdep){
         // too much regolith, create two layers the bottom layer is made here
@@ -531,7 +535,7 @@ public1(-1)
         }
         
       }
-    }
+    } // if REGINIT > 0
     
     else{
       // no regolith, so by default everything is bedrock
@@ -541,6 +545,9 @@ public1(-1)
         ReportFatalError( "Erodibility factor KB must be positive." );
       layhelp.setErody(help);
       layhelp.setSed(tLayer::kBedRock);
+      help = infile.ReadDouble( "ROCKDENSITYINIT", false );
+      if( help<=0.0 ) help = kDefaultRockBulkDensity;
+      layhelp.setBulkDensity(help);
       layhelp.setDgradesize(numg);
       size_t i=0;
       help = infile.ReadItem( help, "BEDROCKDEPTH");
@@ -2167,7 +2174,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
             g++;
           }
           assert( getLayerDepth(i)>0.0 );
-          makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt);
+          makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt,
+                            getLayerBulkDensity(i) );
           
           //When new layer is created then you change the recent time.
           // put material into a new layer which is made below
@@ -2194,7 +2202,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       // value read in at begining
       // Also use this if the amount of material deposited is
       // greater than maxregdep
-      makeNewLayerBelow(-1, tLayer::kSed, KRnew, valgrd, tt);
+      makeNewLayerBelow(-1, tLayer::kSed, KRnew, valgrd, tt, 
+                        new_sed_bulk_density_ );
     }
   }
   else if(max>0.0000000001 && min<-0.0000000001)
@@ -2275,7 +2284,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
           }
 	      }
 	      assert( getLayerDepth(i)>0.0 );
-	      makeNewLayerBelow(i-1, tLayer::kSed, KRnew, update, tt);
+	      makeNewLayerBelow(i-1, tLayer::kSed, KRnew, update, tt, 
+                          new_sed_bulk_density_);
 	      //New layer made with deposited material
 	    }
       assert( getLayerDepth(i) > -1e-7 ); // can't be much < 0
@@ -2367,7 +2377,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
               g++;
             }
             assert( getLayerDepth(i)>0.0 );
-            makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt);
+            makeNewLayerBelow(i, getLayerSed(i), getLayerErody(i), update, tt,
+                              getLayerBulkDensity(i) );
             setLayerEtime(i+1, olde);
             //When new layer is created then you change the time.
             // put material into a new layer which is made below
@@ -2392,7 +2403,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
 	    {
 	      //Layer is bedrock, so make a new layer on top to deposit into
 	      //or, depositing more than maxregdep
-	      makeNewLayerBelow(i-1, tLayer::kSed, KRnew, update, tt);
+	      makeNewLayerBelow(i-1, tLayer::kSed, KRnew, update, tt, 
+                          new_sed_bulk_density_);
 	    }
       }
     }
@@ -2406,7 +2418,8 @@ tArray<double> tLNode::EroDep( int i, tArray<double> valgrd, double tt)
       hupdate[g]=-1* hupdate[g];
       assert( hupdate[g]>=0.0 ); //GT
     }
-    makeNewLayerBelow(-1, tLayer::kSed, getLayerErody(i), hupdate, tt);
+    makeNewLayerBelow(-1, tLayer::kSed, getLayerErody(i), hupdate, tt, 
+                      new_sed_bulk_density_);
     setLayerRtime(i,0.);
   }
   
@@ -2584,7 +2597,8 @@ void tLNode::removeLayer(int i)
  ** in erodep.
  ********************************************************************/
 void tLNode::makeNewLayerBelow(int i, tLayer::tSed_t sd, double erd,
-			       tArray<double> const &sz, double tt)
+			       tArray<double> const &sz, double tt, 
+             double bulk_density )
 {
   tLayer hlp, niclay;
   size_t n;
@@ -2592,6 +2606,7 @@ void tLNode::makeNewLayerBelow(int i, tLayer::tSed_t sd, double erd,
   hlp.setCtime(tt);
   hlp.setRtime(tt);
   hlp.setEtime(0.);
+  hlp.setBulkDensity(bulk_density);
   n=0;
   hlp.setDgradesize(numg);
   while(n<numg){

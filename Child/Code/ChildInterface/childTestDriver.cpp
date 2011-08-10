@@ -163,10 +163,10 @@ int main( int argc, char **argv )
   
   // Now we'll test ExternalErodeAndDepositToElevation
   elevs = new_elevs;
-  std::vector<double> desired_elevs( nn, 2.5 );
+  std::vector<double> desired_elevs( nn, 250.0 );
   myChildInterface.ExternalErodeAndDepositToElevation( desired_elevs );
 	new_elevs = myChildInterface.GetValueSet( "elevation" );
-  std::cout << "Now all interior nodes should be 2.5m elevation\n";
+  std::cout << "Now all interior nodes should be 250 m elevation\n";
   std::cout << "ID\tPrevious z\tNew z:\n";
 	for( long i=0; i<nt; i++ )
 	{

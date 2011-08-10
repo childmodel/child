@@ -87,4 +87,9 @@ typedef enum { false=0, true } bool;
 
 #define OPTREADINPUT_PREVIOUS 1
 
+// Default density values for rock, sediment, and wet sediment (kg/m3)
+#define kDefaultSoilBulkDensity 1000.0
+#define kDefaultRockBulkDensity 2700.0
+#define kDefaultWetBulkDensity 1600.0
+
 #endif
