@@ -117,6 +117,8 @@ public:
   double GetRemainingRunTime();   // Returns the ending time for the run
   void AdjustElevations( std::vector<double> dz );  // changes elevs
   void AdjustInteriorElevations( std::vector<double> dz );  // changes elevs
+	void GetNodeXCoords( std::vector<double> & x );  // returns node x coordinates
+	void GetNodeYCoords( std::vector<double> & y );  // returns node y coordinates
 	
   // Interface functions used (at the moment) only for development and testing
   tMesh<tLNode> * GetMeshPointer() { return mesh; }

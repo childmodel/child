@@ -1845,3 +1845,53 @@ GetLoads()
 	return the_loads;
 
 }
+
+
+/**************************************************************************/
+/**
+ **  childInterface::GetNodeXCoords
+ **
+ **  GT, Aug 2011
+ */
+/**************************************************************************/
+void childInterface::
+GetNodeXCoords( vector<double> & x )
+{
+	if( x.size() != mesh->getNodeList()->getSize() )
+		x.resize( mesh->getNodeList()->getSize() );
+	
+	tLNode *current_node;
+	tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+	
+	for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
+	{
+		int node_id = current_node->getPermID();
+		x[node_id] = current_node->getX();
+	}
+	
+}
+
+/**************************************************************************/
+/**
+ **  childInterface::GetNodeYCoords
+ **
+ **  GT, Aug 2011
+ */
+/**************************************************************************/
+void childInterface::
+GetNodeYCoords( vector<double> & y )
+{
+	if( y.size() != mesh->getNodeList()->getSize() )
+		y.resize( mesh->getNodeList()->getSize() );
+	
+	tLNode *current_node;
+	tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+	
+	for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
+	{
+		int node_id = current_node->getPermID();
+		y[node_id] = current_node->getY();
+	}
+	
+}
+
