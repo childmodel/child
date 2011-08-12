@@ -1721,7 +1721,7 @@ AdjustElevations( std::vector<double> dz )
    
    for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
    {
-      if(1) std::cout << "Adjust elevations: node " << current_node->getPermID()
+      if(0) std::cout << "Adjust elevations: node " << current_node->getPermID()
                       << " changing z from " << current_node->getZ() 
                       << " to " 
                       << current_node->getZ() + dz[current_node->getPermID()] 
@@ -1826,7 +1826,7 @@ GetLoads()
 	for( current_node=ni.FirstP(); ni.IsActive(); current_node=ni.NextP() )
 	{
 		int node_id = current_node->getPermID();
-		std::cout << "Getting load for node " << node_id << std::endl;
+		if(0) std::cout << "Getting load for node " << node_id << std::endl;
 	  double load = 0.0;
 		double varea = current_node->getVArea();
 		tListIter<tLayer> li( current_node->getLayersRefNC() );
