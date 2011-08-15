@@ -119,6 +119,8 @@ public:
   void AdjustInteriorElevations( std::vector<double> dz );  // changes elevs
 	void GetNodeXCoords( std::vector<double> & x );  // returns node x coordinates
 	void GetNodeYCoords( std::vector<double> & y );  // returns node y coordinates
+	std::vector<double> GetNodeXCoords();  // returns node x coordinates
+	std::vector<double> GetNodeYCoords();  // returns node y coordinates
 	
   // Interface functions used (at the moment) only for development and testing
   tMesh<tLNode> * GetMeshPointer() { return mesh; }

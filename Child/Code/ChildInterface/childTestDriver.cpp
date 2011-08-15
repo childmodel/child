@@ -65,13 +65,17 @@ int main( int argc, char **argv )
 	             << vertices[3*i+2] << std::endl;
 	}
 	
-	// Let's see how heavy CHILD's layer columns are ...
-	std::cout << "LOADS:" << std::endl;
-	std::vector<double> loads = myChildInterface.GetLoads();
+	// Let's see how heavy CHILD's layer columns are ... and at the same time try out
+	// asking for x and y coordinates via GetValueSet
+	std::cout << "X,Y COORDINATES AND LOADS:" << std::endl;
+	std::vector<double> loads = myChildInterface.GetValueSet("load");
+	std::vector<double> x = myChildInterface.GetValueSet("xcoord");
+	std::vector<double> y = myChildInterface.GetValueSet("ycoord");
+	std::cout << "Node ID\tX (m)\tY (m)\tLoad (N)\n";
 	for( long i=0; i<nt; i++ )
 	{
 		std::cout << i << "\t";
-		std::cout << loads[i] << std::endl;
+		std::cout << x[i] << "\t" << y[i] << "\t" << loads[i] << std::endl;
 	}
 		
 
@@ -174,7 +178,7 @@ int main( int argc, char **argv )
 	   std::cout << elevs[i] << "\t" << new_elevs[i] << std::endl;
 	}
 
-	// Let's see how heavy CHILD's layer columns are ...
+	// Let's see how heavy CHILD's layer columns are 
 	std::cout << "LOADS:" << std::endl;
 	loads = myChildInterface.GetLoads();
 	for( long i=0; i<nt; i++ )

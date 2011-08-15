@@ -1338,11 +1338,21 @@ std::vector<double> childInterface::
 GetValueSet( string var_name )
 {
   if(1) std::cout << "childInterface::GetValueSet() here with request '"
-                  << var_name << "'\n";
+		<< var_name << "'\n";
   if( var_name.compare( 0,4,"elev" )==0 )
   {
     if(1) std::cout << "request for elevs\n";
     return GetNodeElevationVector();
+  }
+  if( var_name.compare( 0,1,"x" )==0 || var_name.compare( 0,5,"nodex" )==0)
+  {
+    if(1) std::cout << "request for node x coordinates\n";
+    return GetNodeXCoords();
+  }
+  if( var_name.compare( 0,1,"y" )==0 || var_name.compare( 0,5,"nodey" )==0)
+  {
+    if(1) std::cout << "request for node y coordinates\n";
+    return GetNodeYCoords();
   }
   else if( var_name.compare( 0,2,"dz" )==0 || var_name.compare( 0,3,"ero" )==0 )
   {
@@ -1360,10 +1370,15 @@ GetValueSet( string var_name )
     return GetNodeSedimentFluxVector();
   }
   else if( var_name.compare( 0,4,"land" )==0 )
-    {
-      if(1) std::cout << "request for landslides\n";
-      return GetLandslideAreasVector();
-    }
+	{
+		if(1) std::cout << "request for landslides\n";
+		return GetLandslideAreasVector();
+	}
+  else if( var_name.compare( 0,4,"load" )==0 )
+	{
+		if(1) std::cout << "request for loads\n";
+		return GetLoads();
+	}
   else
   {
     if(1) std::cout << "request for NOTHING!\n";
@@ -1892,6 +1907,54 @@ GetNodeYCoords( vector<double> & y )
 		int node_id = current_node->getPermID();
 		y[node_id] = current_node->getY();
 	}
+	
+}
+
+/**************************************************************************/
+/**
+ **  childInterface::GetNodeXCoords
+ **
+ **  GT, Aug 2011
+ */
+/**************************************************************************/
+std::vector<double> childInterface::
+GetNodeXCoords()
+{
+	tLNode *current_node;
+	tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+	std::vector<double> x( mesh->getNodeList()->getSize() );
+	
+	for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
+	{
+		int node_id = current_node->getPermID();
+		if(1) std::cout << "  In GetNodeXCoords, node " << node_id << " has X coord " << current_node->getX() << std::endl;
+		x[node_id] = current_node->getX();
+	}
+	return x;
+	
+}
+
+/**************************************************************************/
+/**
+ **  childInterface::GetNodeYCoords
+ **
+ **  GT, Aug 2011
+ */
+/**************************************************************************/
+std::vector<double> childInterface::
+GetNodeYCoords()
+{
+	tLNode *current_node;
+	tMesh<tLNode>::nodeListIter_t ni( mesh->getNodeList() );
+	std::vector<double> y( mesh->getNodeList()->getSize() );
+	
+	for( current_node=ni.FirstP(); !ni.AtEnd(); current_node=ni.NextP() )
+	{
+		int node_id = current_node->getPermID();
+		if(1) std::cout << "  In GetNodeYCoords, node " << node_id << " has Y coord " << current_node->getY() << std::endl;
+		y[node_id] = current_node->getY();
+	}
+	return y;
 	
 }
 
