@@ -485,6 +485,13 @@ inline tNode::tNode( const tNode &original ) :
 {}
 
 inline tNode::tNode( const tInputFile & infile )
+:
+  listObj(),
+  id(0),
+  x(0.), y(0.), z(0.),
+  varea(0.), varea_rcp(0.),
+  boundary(kNonBoundary), edg(0),
+  public1(-1)
 { // static boolean to enable running model without changing elevations:
   freezeElevations = infile.ReadBool( "OPT_FREEZE_ELEVATIONS", false );
 }

@@ -596,7 +596,7 @@ MakeMeshFromInputData( const tInputFile &infile )
   nnodes = input.x.getSize();
   nedges = input.orgid.getSize();
   ntri = input.p0.getSize();
-  if (0) //DEBUG
+  if (1) //DEBUG
     std::cout << "nnodes, nedges, ntri: "
 	  << nnodes << " " << nedges << " " << ntri << std::endl;
   assert( nnodes > 0 );
@@ -717,6 +717,11 @@ MakeMeshFromInputData( const tInputFile &infile )
       do
       {
         curnode = nodIter.DatPtr();
+				if(0) { // debug
+					std::cout << "current node's edg = " << curnode->getEdg() << std::endl;
+				  if( curnode->getEdg()!=0 ) std::cout << "this edg's ID = " << curnode->getEdg()->getID() << 
+				  " org id " << curnode->getEdg()->getOriginPtr()->getID() << std::endl;
+				}
         tSpkIter spkI( curnode );
         const int edgid1 = input.edgid[curnode->getID()];  //fix of above error
         spkI.insertAtBack(  EdgeTable[edgid1] );

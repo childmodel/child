@@ -48,7 +48,7 @@ tWaterSedTracker::
 tWaterSedTracker()
   : active(false)
 {
-  if(1) cout << "tWaterSedTracker constructor" << endl;
+  if(0) cout << "tWaterSedTracker constructor" << endl;
 }
 
 // copy constructor for copying to new mesh:
@@ -75,7 +75,7 @@ tWaterSedTracker::tWaterSedTracker( const tWaterSedTracker& orig,
 tWaterSedTracker::
 ~tWaterSedTracker()
 {
-  if(1) cout << "tWaterSedTracker destructor" << endl;
+  if(0) cout << "tWaterSedTracker destructor" << endl;
   
   for( unsigned i=0; i<output_file_list_.size(); i++ )
   {
