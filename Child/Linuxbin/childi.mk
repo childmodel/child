@@ -21,7 +21,6 @@ OBJECTS = \
  tTimeSeries.$(OBJEXT) ParamMesh_t.$(OBJEXT) TipperTriangulator.$(OBJEXT) \
  TipperTriangulatorError.$(OBJEXT) tWaterSedTracker.$(OBJEXT) \
  tLithologyManager.$(OBJEXT)
- TipperTriangulatorError.$(OBJEXT) tWaterSedTracker.$(OBJEXT)
 
 all : $(EXENAME)
 .PHONY : all clean
