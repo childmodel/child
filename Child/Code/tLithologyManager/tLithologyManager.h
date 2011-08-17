@@ -43,10 +43,30 @@
 
 #include <vector>
 #include <string>
+#include <queue>
 #include "../tInputFile/tInputFile.h"
 #include "../tMesh/tMesh.h"
 #include "../tLNode/tLNode.h"
 
+class Etchlayer
+{
+public:
+  tLayer layer_properties_;
+  double ax,
+    bx,
+    cx,
+    ay,
+    by,
+    cy,
+    d;
+  bool keep_regolith_,
+    use_bounding_polygon_,
+    layer_is_inside_poly_;
+  std::vector<double> px;
+  std::vector<double> py;
+};
+  
+  
 class tLithologyManager
 {
 public:
@@ -59,6 +79,10 @@ public:
   void InitializeFromInputFile( tInputFile &infile, tMesh<tLNode> *meshPtr );
   
   void SetLithologyFromChildLayFile( const tInputFile &infile );
+  
+  void SetLithologyFromEtchFile( const tInputFile &infile );
+  
+  void ReadEtchFile( const tInputFile &infile, std::queue<Etchlayer> &etch_queue );
   
   void EtchLayerAbove2DSurface(vector<double> &poly_coefs_x,
                                vector<double> &poly_coefs_y,

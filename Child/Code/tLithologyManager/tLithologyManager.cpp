@@ -90,6 +90,14 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *meshPtr )
 		SetLithologyFromChildLayFile( inputFile );
 	}
   
+	// See if the user wants to modify layers according to an Etch File.
+  // An Etch File specifies one or more layers, with given properties, to be
+  // "etched in" to the current topography and lithology.
+	bool user_wants_to_read_from_etchfile = inputFile.ReadBool( "OPT_READ_ETCHFILE", false );
+	if( user_wants_to_read_from_etchfile )
+	{
+		SetLithologyFromEtchFile( inputFile );
+	}
 }
 
 
@@ -217,6 +225,20 @@ SetLithologyFromChildLayFile( const tInputFile &infile )
     
 }
 
+
+/**************************************************************************/
+/**
+ **  SetLithologyFromEtchFile
+ **
+ **  This function sets the layers and properties based on data in a
+ **  specified Etchfile.
+ */
+/**************************************************************************/
+void tLithologyManager::
+SetLithologyFromEtchFile( const tInputFile &infile )
+{
+
+}
     
 
 /**************************************************************************/
