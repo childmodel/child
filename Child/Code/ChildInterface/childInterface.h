@@ -37,6 +37,7 @@
 #include "../tOption/tOption.h"
 #include "../tWaterSedTracker/tWaterSedTracker.h"
 #include "../tMeshList/tMeshList.h"
+#include "../tLithologyManager/tLithologyManager.h"
 
 using namespace std;
 
@@ -166,7 +167,7 @@ private:
   tUplift *uplift;            // -> uplift/baselevel module
   tRunTimer *time;             // -> run timer
   tWaterSedTracker water_sed_tracker_;   // Water and sediment tracker
-	
+	tLithologyManager lithology_manager_;  // Lithology manager
   tVegetation *vegetation;  // -> vegetation object
   tFloodplain *floodplain;  // -> floodplain object
   tStratGrid *stratGrid;     // -> Stratigraphy Grid object

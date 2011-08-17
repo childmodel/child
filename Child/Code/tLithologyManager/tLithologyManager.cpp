@@ -30,7 +30,8 @@ using namespace std;
  */
 /**************************************************************************/
 tLithologyManager::
-tLithologyManager()
+tLithologyManager() :
+  meshPtr_(0)
 {
   if(1) cout << "tLithologyManager default constructor" << endl;
 }
