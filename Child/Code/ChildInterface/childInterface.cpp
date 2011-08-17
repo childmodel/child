@@ -1589,8 +1589,13 @@ SetValueSet( string var_name, std::vector<double> value_set )
                   << var_name << "'\n";
   if( var_name.compare( 0,4,"elev" )==0 )
   {
-    if(1) std::cout << "request for elevs\n";
-    return SetNodeElevations( value_set );
+    if(1) std::cout << "request to set elevs\n";
+    SetNodeElevations( value_set );
+  }
+  else if( var_name.compare( 0,2,"kr")==0 || var_name.compare( 0,2,"KR" )==0 )
+  {
+    if(1) std::cout << "request to set KR\n";
+    lithology_manager_.SetRockErodibilityValuesAtAllDepths( value_set );
   }
   else
   {
