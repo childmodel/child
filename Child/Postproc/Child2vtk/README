@@ -1,0 +1,10 @@
+Child2vtk is a small utility to convert CHILD outputs to VTK format, it is written in Fortran 95.
+
+VTK files can be visualized with softwares such as Paraview (http://www.paraview.org).
+
+Usage: after compilation just type the name of the executable in a terminal and you will be prompted for the base name of the output files. A VTK file is produced for every output time-slice.
+
+I have been testing this utility for a limited number of cases and I do not know if it can handle every possible model configuration (mesh structures, etc ...), so feedback is welcome.
+
+Contact: Vincent Godard, CEREGE, Aix-Marseille University, France (godard@cerege.fr)
+
