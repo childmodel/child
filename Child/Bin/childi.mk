@@ -19,7 +19,8 @@ OBJECTS = \
  predicates.$(OBJEXT) tVegetation.$(OBJEXT) tListInputData.$(OBJEXT) \
  tStratGrid.$(OBJEXT) tOption.$(OBJEXT) \
  tTimeSeries.$(OBJEXT) ParamMesh_t.$(OBJEXT) TipperTriangulator.$(OBJEXT) \
- TipperTriangulatorError.$(OBJEXT) tWaterSedTracker.$(OBJEXT)
+ TipperTriangulatorError.$(OBJEXT) tWaterSedTracker.$(OBJEXT) \
+ tLithologyManager.$(OBJEXT)
 
 all : $(EXENAME)
 .PHONY : all clean
@@ -47,6 +48,9 @@ tLNode.$(OBJEXT): $(PT)/tLNode/tLNode.cpp
 
 tListInputData.$(OBJEXT): $(PT)/tListInputData/tListInputData.cpp
 	$(CXX) $(CFLAGS) $(PT)/tListInputData/tListInputData.cpp
+
+tLithologyManager.$(OBJEXT): $(PT)/tLithologyManager/tLithologyManager.cpp
+	$(CXX) $(CFLAGS) $(PT)/tLithologyManager/tLithologyManager.cpp
 
 tOption.$(OBJEXT): $(PT)/tOption/tOption.cpp
 	$(CXX) $(CFLAGS) $(PT)/tOption/tOption.cpp
@@ -142,6 +146,7 @@ HFILES = \
 	$(PT)/tList/tList.h \
 	$(PT)/tList/tListFwd.h \
 	$(PT)/tListInputData/tListInputData.h \
+	$(PT)/tLithologyManager/tLithologyManager.h \
 	$(PT)/tMatrix/tMatrix.h \
 	$(PT)/tMesh/ParamMesh_t.h \
 	$(PT)/tMesh/TipperTriangulator.h \
@@ -183,6 +188,7 @@ tFloodplain.$(OBJEXT): $(HFILES)
 tInputFile.$(OBJEXT): $(HFILES)
 tLNode.$(OBJEXT): $(HFILES)
 tListInputData.$(OBJEXT): $(HFILES)
+tLithologyManager.$(OBJEXT): $(HFILES)
 tOption.$(OBJEXT): $(HFILES)
 tRunTimer.$(OBJEXT): $(HFILES)
 tStorm.$(OBJEXT) : $(HFILES)
