@@ -9,7 +9,6 @@ include gcclib.mk
 LIBNAME = libchild$(LIBEXT)
 
 OBJECTS = \
- childDriver.$(OBJEXT) \
  childInterface.$(OBJEXT) erosion.$(OBJEXT) \
  meshElements.$(OBJEXT) mathutil.$(OBJEXT) tIDGenerator.$(OBJEXT) \
  tInputFile.$(OBJEXT) tLNode.$(OBJEXT) tRunTimer.$(OBJEXT) \
@@ -112,9 +111,6 @@ meander.$(OBJEXT): $(PT)/tStreamMeander/meander.cpp
 childInterface.$(OBJEXT): $(PT)/ChildInterface/childInterface.cpp
 	$(CXX) $(CFLAGS) $(PT)/ChildInterface/childInterface.cpp
 
-childDriver.$(OBJEXT): $(PT)/ChildInterface/childDriver.cpp
-	$(CXX) $(CFLAGS) $(PT)/ChildInterface/childDriver.cpp
-
 clean::
 	rm -f $(EXENAME)
 	rm -f *.$(OBJEXT)
@@ -175,7 +171,6 @@ ParamMesh_t.$(OBJEXT): $(HFILES)
 TipperTriangulator.$(OBJEXT) : $(HFILES)
 TipperTriangulatorError.$(OBJEXT) : $(HFILES)
 childInterface.$(OBJEXT) : $(HFILES)
-childInterfaceDriver.$(OBJEXT) : $(HFILES)
 erosion.$(OBJEXT): $(HFILES)
 errors.$(OBJEXT): $(HFILES)
 globalFns.$(OBJEXT): $(HFILES)
