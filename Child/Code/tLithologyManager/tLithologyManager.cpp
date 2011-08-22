@@ -153,6 +153,14 @@ SetLithologyFromChildLayFile( const tInputFile &infile )
     // Hack: make layers input backwards compatible for simulations
     // without bulk density; :
   bool optNewLayersInput = infile.ReadBool( "OPT_NEW_LAYERSINPUT", false );
+	double rock_density, sed_density;
+	if( !optNewLayersInput )
+	{
+		rock_density = infile.ReadDouble( "ROCKDENSITYINIT", false );
+		if( rock_density==0.0 ) rock_density = kDefaultRockBulkDensity;
+		sed_density = infile.ReadDouble( "SOILBULKDENSITY", false );
+		if( sed_density==0.0 ) sed_density = kDefaultSoilBulkDensity;
+	}
   
   for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
   {
@@ -193,26 +201,42 @@ SetLithologyFromChildLayFile( const tInputFile &infile )
       layer_template.setDepth(ditem);
       layerinfile >> ditem;     // layer erodibility
       layer_template.setErody(ditem);
-        // Hack: to make this backwards compatible,
-        // read bulk density if optNewLayersInput == true:
+
+			// layer alluvial-bedrock flag
+			tLayer::tSed_t bedrock_alluvial_flag;
+			int item;
+      layerinfile >> item;
+			if( item==0 )
+				bedrock_alluvial_flag = tLayer::kBedRock;
+			else 
+			{
+				if( item==1 )
+					bedrock_alluvial_flag = tLayer::kSed;      
+				else
+				{
+					std::cout << "MakeLayersFromInputData: Layer " << i 
+					<< " at node " << cn->getID()
+					<< " has flag value " << bedrock_alluvial_flag << std::endl;
+					ReportFatalError("Flag value must be either zero or one.");
+				}
+			}
+		  layer_template.setSed(bedrock_alluvial_flag);
+				
+			// Hack: to make this backwards compatible,
+			// read bulk density if optNewLayersInput == true; otherwise, use values
+			// specified in input file or defaults, as above.
       if( optNewLayersInput )
       {
         layerinfile >> ditem;   // layer bulk density
         layer_template.setBulkDensity(ditem);
       }
-      layerinfile >> item;      // layer alluvial-bedrock flag
-      if( item<0 || item>1 )
-      {
-        std::cout << "MakeLayersFromInputData: Layer " << i 
-        << " at node " << cn->getID()
-        << " has flag value " << item << std::endl;
-        ReportFatalError("Flag value must be either zero or one.");
-      }
-      {
-        tLayer::tSed_t item_ = static_cast<tLayer::tSed_t>(item);
-        layer_template.setSed(item_);
-      }
-      for(int g=0; g<numg; g++){
+			else 
+			{
+				if( bedrock_alluvial_flag==tLayer::kSed ) layer_template.setBulkDensity( sed_density );
+				else layer_template.setBulkDensity( rock_density );
+			}
+			
+			for(int g=0; g<numg; g++){
         layerinfile >> ditem;   // equivalent thickness of grain size g
         layer_template.setDgrade(g, ditem);
       }
