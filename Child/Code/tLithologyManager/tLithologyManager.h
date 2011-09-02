@@ -51,6 +51,7 @@
 class Etchlayer
 {
 public:
+  void TellData();
   tLayer layer_properties_;
   double ax,
     bx,

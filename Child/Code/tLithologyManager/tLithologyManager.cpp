@@ -24,6 +24,39 @@ using namespace std;
 
 /**************************************************************************/
 /**
+ **  Etchlayer's TellData() method
+ **
+ **  (used for debugging)
+ */
+/**************************************************************************/
+void Etchlayer::
+TellData()
+{
+  cout << "Data in Etchlayer\n";
+  cout << "  Erody = " << layer_properties_.getErody() << endl;
+  cout << "  Sed type = " << layer_properties_.getSed() << endl;
+  cout << "  ax = " << ax << endl;
+  cout << "  bx = " << bx << endl;
+  cout << "  cx = " << cx << endl;
+  cout << "  ay = " << ay << endl;
+  cout << "  by = " << by << endl;
+  cout << "  cy = " << cy << endl;
+  cout << "  d = " << d << endl;
+  cout << "  keep_regolith = " << keep_regolith_ << endl;
+  cout << "  use poly = " << use_bounding_polygon_ << endl;
+  cout << "  in poly = " << layer_is_inside_poly_ << endl;
+  if( layer_is_inside_poly_ )
+  {
+    cout << "  poly coords:\n";
+    for( unsigned i=0; i<px.size(); i++ )
+      cout << "    x: " << px[i] << " y: " << py[i] << endl;
+  }
+  
+}
+
+
+/**************************************************************************/
+/**
  **  Basic constructor
  **
  **  (does nothing at the moment)
@@ -261,8 +294,73 @@ SetLithologyFromChildLayFile( const tInputFile &infile )
 void tLithologyManager::
 SetLithologyFromEtchFile( const tInputFile &infile )
 {
-
+  // Open the etch file
+  ifstream etchfile;
+  string etchfile_name = infile.ReadString( "ETCHFILE_NAME" );
+  etchfile.open( etchfile_name.c_str() );
+  if( !etchfile.good() )
+    ReportFatalError( "Unable to find or open etchfile" );
+  
+  // Read through the etch file, assigning new layers accordingly
+  unsigned num_grain_sizes = infile.ReadInt( "NUMG" );
+  unsigned num_layers_to_etch;
+  etchfile >> num_layers_to_etch;
+  if( num_layers_to_etch>1000 )
+  {
+    cout << "WARNING: The etch file is asking for " << num_layers_to_etch << " layers.\n";
+    cout << "Are you sure there isn't an error in the etch file?\n";
+  }
+  for( unsigned i=0; i<num_layers_to_etch; i++ )
+  {
+    Etchlayer new_etch_layer;
+    double thickness, erody, bulk_density, dgrade, cum_fraction;
+    unsigned sedrockflag;
+    tLayer layer_properties;
+    
+    // Read properties for the current layer
+    if(1) cout << "Reading properties for layer " << i << endl;
+    etchfile >> erody;
+    new_etch_layer.layer_properties_.setErody( erody );
+    etchfile >> bulk_density;
+    new_etch_layer.layer_properties_.setBulkDensity( bulk_density );
+    etchfile >> sedrockflag;
+    tLayer::tSed_t flag = ( sedrockflag>0 ) ? tLayer::kSed : tLayer::kBedRock;
+    new_etch_layer.layer_properties_.setSed( flag );
+    cum_fraction = 0.0;
+    for( unsigned j=1; j<num_grain_sizes; j++ )
+    {
+      etchfile >> dgrade;   // Note: dgrades are meant to be proportion, not
+      cum_fraction += dgrade; // thickness! Convert when setting thickness ...
+      new_etch_layer.layer_properties_.setDgrade( j, dgrade );
+    }
+    new_etch_layer.layer_properties_.setDgrade( 0, 1.0 - cum_fraction );
+    
+    // Read coefficients for 2D polynomial lower surface of layer, and also
+    // bounding polygon if applicable
+    etchfile >> new_etch_layer.ax >> new_etch_layer.bx >> new_etch_layer.cx; 
+    etchfile >> new_etch_layer.ay >> new_etch_layer.by >> new_etch_layer.cy;
+    etchfile >> new_etch_layer.d;
+    etchfile >> new_etch_layer.keep_regolith_ >> new_etch_layer.use_bounding_polygon_;
+    if( new_etch_layer.use_bounding_polygon_ )
+    {
+      etchfile >> new_etch_layer.layer_is_inside_poly_;
+      unsigned npoints;
+      etchfile >> npoints;
+      new_etch_layer.px.resize( npoints );
+      new_etch_layer.py.resize( npoints );
+      for( unsigned j=0; j<npoints; j++ )
+      {
+        etchfile >> new_etch_layer.px[j] >> new_etch_layer.py[j];
+      }
+    }
+    if(1) new_etch_layer.TellData();
+    
+    // "etch" this layer into the existing stratigraphy
+    // (TO BE ADDED...)
+  }
+  
 }
+
     
 
 /**************************************************************************/
