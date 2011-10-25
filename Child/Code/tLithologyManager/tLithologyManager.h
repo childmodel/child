@@ -83,15 +83,11 @@ public:
   
   void SetLithologyFromEtchFile( const tInputFile &infile );
   
+  void SetRockErodyFromFile( const tInputFile &infile );
+  
   void ReadEtchFile( const tInputFile &infile, std::queue<Etchlayer> &etch_queue );
   
-  void EtchLayerAbove2DSurface(vector<double> &poly_coefs_x,
-                               vector<double> &poly_coefs_y,
-                               tLayer &layer_properties,
-                               bool keep_regolith = false,
-                               bool use_bounding_polygon = false,
-                               vector<double> bounding_poly_x = vector<double>(),
-                               vector<double> bounding_poly_y = vector<double>() );
+  void EtchLayerAbove2DSurface( Etchlayer &etchlay );
 	
   // Move to private after testing ...
   bool PointInPolygon( std::vector<double> vertx, 

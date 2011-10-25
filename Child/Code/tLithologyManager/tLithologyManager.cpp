@@ -131,6 +131,16 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *meshPtr )
 	{
 		SetLithologyFromEtchFile( inputFile );
 	}
+
+	// See if the user wants to set initial rock erodibility values at all depths
+  // based on values in a file.
+	bool user_wants_erody_from_file = inputFile.ReadBool( "OPT_SET_ERODY_FROM_FILE", false );
+	if( user_wants_erody_from_file )
+	{
+		SetRockErodyFromFile( inputFile );
+	}
+  
+
 }
 
 
@@ -362,6 +372,36 @@ SetLithologyFromEtchFile( const tInputFile &infile )
 }
 
     
+/**************************************************************************/
+/**
+ **  SetRockErodyFromFile
+ **
+  */
+/**************************************************************************/
+void tLithologyManager::
+SetRockErodyFromFile( const tInputFile &infile )
+{
+  // Open the etch file
+  ifstream erodyfile;
+  string erodyfile_name = infile.ReadString( "ERODYFILE_NAME" );
+  erodyfile.open( erodyfile_name.c_str() );
+  if( !erodyfile.good() )
+    ReportFatalError( "Unable to find or open erodyfile" );
+  
+  // Read the contents
+  unsigned nnodes = meshPtr_->getNodeList()->getSize();
+  vector<double> erody( nnodes );
+  for( unsigned i=0; i<nnodes; i++ )
+  {
+    if( erodyfile.eof() )
+      ReportFatalError( "Reached EOF while reading erody file" );
+    erodyfile >> erody[i];
+  }
+  
+  // Set the erodibility field
+  SetRockErodibilityValuesAtAllDepths( erody );
+  
+}
 
 /**************************************************************************/
 /**
@@ -401,9 +441,42 @@ SetRockErodibilityValuesAtAllDepths( vector<double> erody )
  */
 /**************************************************************************/
 void tLithologyManager::
-EtchLayerAboveHeightAtNode( double layer_base_height, tLNode * node,
+EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
                            tLayer &layer_properties, bool keep_regolith )
 {
+  bool layer_found = false;
+  int numlay = node->getNumLayer();
+  tListIter<tLayer> li ( node->getLayersRefNC() );
+  tLayer * curlay;
+  double current_layer_base_height = node->getZ(); // Elevation of layer's base
+  int layer_number = 0;
+  curlay = li.FirstP();
+  
+  // Find which layer the new layer cuts through, if any
+  while( !layer_found && !li.AtEnd() )
+  {
+    
+    std::cout << "Checking layer " << layer_number << std::endl;
+    current_layer_base_height -= curlay->getDepth();
+    if( new_layer_base_height > current_layer_base_height )
+    {
+      layer_found = true;
+    }
+    else
+    {
+      curlay = li.NextP();
+      layer_number++;
+    }
+    
+  }
+  
+  // If the new layer doesn't cut through an existing one, then it must cut 
+  // *below* the layers, so insert one at the bottom of the stack
+  // (TO ADD!!)
+  
+  // REST OF ALGORITHM GOES HERE ...
+    
+  
 }
 
 /**************************************************************************/
@@ -443,13 +516,7 @@ PointInPolygon( std::vector<double> vertx,
  */
 /**************************************************************************/
 void tLithologyManager::
-EtchLayerAbove2DSurface(  vector<double> &poly_coefs_x,
-                          vector<double> &poly_coefs_y,
-                          tLayer &layer_properties,
-                          bool keep_regolith,
-                          bool use_bounding_polygon,
-                          vector<double> bounding_poly_x,
-                          vector<double> bounding_poly_y )
+EtchLayerAbove2DSurface( Etchlayer &etchlay )
 {
   tLNode * cn;
   tMesh<tLNode>::nodeListIter_t ni( meshPtr_->getNodeList() );
@@ -457,23 +524,24 @@ EtchLayerAbove2DSurface(  vector<double> &poly_coefs_x,
   for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
   {
     bool layer_is_present_here = true;
-    if( use_bounding_polygon )
-      if( !PointInPolygon( bounding_poly_x, bounding_poly_y, cn->getX(), cn->getY() ) )
+    if( etchlay.use_bounding_polygon_ )
+      if( !PointInPolygon( etchlay.px, etchlay.py, cn->getX(), cn->getY() ) )
          layer_is_present_here = false;
     if( layer_is_present_here )
     {
       double x = cn->getX();
       double y = cn->getY();
-      double new_layer_base_height = poly_coefs_x[0]*x*x*x +
-                              poly_coefs_x[1]*x*x +
-                              poly_coefs_x[2]*x +
-                              poly_coefs_x[3] +
-                              poly_coefs_y[0]*y*y*y +
-                              poly_coefs_y[1]*y*y +
-                              poly_coefs_y[2]*y +
-                              poly_coefs_y[3];
+      double new_layer_base_height = etchlay.ax*x*x*x +
+                              etchlay.bx*x*x +
+                              etchlay.cx*x +
+                              etchlay.ay*y*y*y +
+                              etchlay.by*y*y +
+                              etchlay.cy*y +
+                              etchlay.d;
       if( new_layer_base_height < cn->getZ() )
-        EtchLayerAboveHeightAtNode( new_layer_base_height, cn, layer_properties, keep_regolith );
+        EtchLayerAboveHeightAtNode( new_layer_base_height, cn, 
+                                    etchlay.layer_properties_, 
+                                    etchlay.keep_regolith_ );
     }
   }
     
