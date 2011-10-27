@@ -11,9 +11,9 @@
  
  % See the ``Article customise'' template for come common customisations
  
- \title{CHILD Users Guide for version R9.4.1}
+ \title{CHILD Users Guide for version R10.7}
  \author{Gregory E. Tucker \and Cooperative Institute for Research in Environmental Sciences (CIRES) \and and Department of Geological Sciences \and University of Colorado, Boulder, CO 80309 USA}
- \date{Last modified: June, 2010} % delete this line to display the current date
+ \date{Last modified: April, 2011} % delete this line to display the current date
  
  %%% BEGIN DOCUMENT
  \begin{document}
@@ -835,7 +835,7 @@ Note that data elements are always listed in order by ID number, starting from z
 
 \subsection{Surfer-Compatible Output}
 
-Quintijn Clevis (now at Royal Dutch Shell) developed an option for Surfer-compatible output. If the SURFER option is switched on, the model will generate an ascii output file that can be imported into Surfer for plotting. The file format has the time on the first line and the number of nodes on the second line, followed by one row for each node that contains the $x$, $y$, and $z$ coordinates, the drainage area divided by 10,000, the thickness of the topmost layer, the creation time of the topmost layer, and the recent activity time of the topmost layer.
+Quintijn Clevis (now at Royal Dutch Shell) developed an option for Surfer-compatible output. If the SURFER option is switched on, the model will generate an ascii output file that can be imported into Surfer for plotting. The file format has the time on the first line and the number of nodes on the second line, followed by one row for each node that contains the $x$, $y$, and $z$ coordinates, the drainage area divided by 10,000, the thickness of the topmost layer, the creation time of the topmost layer, and the recent activity time of the topmost layer. The files are called {\em basename}{\tt .surf}$n$, where {\em basename} is the base name of the run and $n$ is the time slice number, with zero being the starting topography. For example, Surfer-style output for the initial model state in a run called ``frog'' would be recorded in a file called {\tt frog.surf0}.
 
 \section{Error Messages}
 

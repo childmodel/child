@@ -1,0 +1,694 @@
+
+\documentclass[12pt]{amsart}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+\usepackage{natbib}
+%\geometry{a4paper} % or letter or a5paper or ... etc
+% \geometry{landscape} % rotated page geometry
+
+% See the ``Article customise'' template for come common customisations
+
+\title{Introduction to Landscape Evolution Modeling with CHILD}
+\author{G.\ E.\ Tucker, University of Colorado}
+\date{Community Surface Dynamics Modeling System (CSDMS) CHILD Model Clinic, October 2011} % delete this line to display the current date
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Overview}
+
+The learning goals of this section of the short course are:
+\begin{itemize}
+\item To gain a clearer understanding of how a typical landscape evolution model (LEM) computes the development of a topographic surface.
+\item To understand how continuity of mass is maintained by a typical LEM, and some of the limitations that arise.
+\item To appreciate some of the ways in which climate and hydrology can be represented in a LEM, and some of the simplifications involved.
+\item To appreciate that working with LEMs involves choosing a level of simplification in the governing physics that is appropriate to the problem at hand.
+\item To gain hands-on experience actually using a LEM.
+\item To get a sense for how and why hillslope diffusion produces convex hillslopes.
+\item To appreciate the concepts of transient versus steady topography.
+\item To acquire a feel for the similarity and difference between detachment-limited and transport-limited modes of fluvial erosion.
+\item To understand the connection between fluvial physics and slope-area plots.
+\item To appreciate that LEMs (1) are able to reproduce (and therefore, at least potentially, explain) common forms in fluvially carved landscapes, (2) can enhance our insight into dynamics via visualization and experimentation, but (3) leave open many important questions regarding long-term process physics.
+\item To develop a sense for how to use landscape evolution models.
+\end{itemize}
+
+\section{Introduction to LEMs}
+
+\subsection{Brief History}
+\begin{itemize}
+\item G.K.\ Gilbert's ``word pictures'' \citep{gilbert1877report}
+\item 1960s: 1D models (Culling, Ahnert, Kirkby, Young)
+\item 1970s: 2D models 
+\item Late 1980s and 1990s: beginning of ``modern era,'' (SIBERIA, GILBERT, DRAINAL, followed by others).
+\item Today: many model codes (see Table 1 for a partial list), many applications, scales, and objectives, ranging from soil erosion to continental collision.
+\end{itemize}
+
+\subsection{Brief Overview of Models and their Uses}
+
+\begin{itemize}
+\item Some examples: coupled erosion-deposition systems, meandering, Mars cratering, forecasting mine-spoil degradation, estimating erosion risk to buried hazardous waste.
+\item Overview: powerful tools, but with process ingredients that are provisional and subject to test. Important to have continuing cross-talk between models and observations (subjects for later in the week).
+\item This clinic: overview of how CHILD works, including how terrain and water flow are represented numerically and how the processes are computed.
+\end{itemize}
+
+
+\begin{center}
+\begin{table}
+\caption{Partial list of numerical landscape models published between 1991 and 2005.}
+\small
+ \begin{tabular}{ l c c}
+  %\label{mytable}
+   \hline
+   Model & Example reference & Notes\\
+   \hline
+   SIBERIA & \citet{willgoose1991coupled} & Transport-limited; \\
+   & & Channel activator function \\
+   DRAINAL & \citet{beaumont1992erosional} & ``Undercapacity'' concept \\
+   GILBERT & \citet{chase1992fluvial} & Precipiton \\
+   DELIM/MARSSIM & \citet{howard1994detachment} & Detachment-limited; \\
+   & & Nonlinear diffusion \\
+   GOLEM & \citet{tucker1994erosional} & Regolith generation; \\
+   & & Threshold landsliding \\
+   CASCADE & \citet{braun1997modelling} & Irregular discretization \\
+   CAESAR & \citet{coulthard1996cellular} & Cellular automaton algorithm \\
+   & & for 2D flow field \\
+   ZSCAPE & \citet{densmore1998landsliding} & Stochastic bedrock \\
+   & & landsliding algorithm \\
+   CHILD & \citet{tucker2000stochastic} & Stochastic rainfall \\
+   EROS & \citet{crave2001stochastic} & Modified precipiton \\
+   TISC & \citet{garcia2002interplay} & Thrust stacking \\
+   LAPSUS & \citet{schoorl2002modeling} & Multiple flow directions \\
+   APERO/CIDRE & \citet{carretier2005does} & Single or multiple \\
+   & & flow directions \\
+   \hline
+  \end{tabular}
+  \normalsize
+  \label{table1}
+ \end{table}
+\end{center}
+
+
+\section{Continuity of Mass and Discretization}
+
+A typical mass continuity equation for a column of soil or rock is:
+\begin{equation}
+\frac{\partial \eta}{\partial t} = B - \nabla \vec{q}_s
+\end{equation}
+This is one of several variations; for discussion of others, see \cite{tucker2010modelling}. Some models, for example, distinguish between a regolith layer and the bedrock underneath. Note that this type of mass continuity equation applies only to terrain that has one and only one surface point for each coordinate; not, for example, a vertical cliff or an overhang. A LEM computes $\eta (x,y,t)$ given (1) process rules, (2) initial conditions, and (3) boundary conditions.
+
+One thing all LEMs have in common is that they divide the terrain into discrete elements. Often these are square elements, but not always (CASCADE and CHILD). For a discrete element, continuity of mass is represented by the following equation (in words):
+
+{\em Time rate of change of mass in element = mass rate in at boundaries - mass rate out at boundaries + inputs or outputs from above or below (tectonics, dust deposition, etc.)}
+
+Mathematically, 
+\begin{equation}
+\label{eq:finvol}
+\frac{d\eta_i}{dt} = B + \frac{1}{\Lambda_i} \sum_{j=1}^N q_{sj} \lambda_j
+\end{equation}
+Notice that, for the sake of simplicity, I've pulled a trick here in writing this in terms of {\em volumetric} fluxes. This is known as a {\em finite-volume} method because it is based on computing fluxes in and out along the boundaries of a finite volume of space.
+
+Some terminology: a {\em cell} is a patch of ground with boundaries called {\em faces}. A {\em node} is the point inside a cell at which we track elevation (and other properties). On a raster grid, cells are square and nodes fall at the center of the cell. On the irregular mesh used by CASCADE and CHILD, the {\em cell} is the area of land that is closer to that particular node than to any other node in the mesh. (It is a mathematical entity known as a {\em Voronoi cell} or {\em Thiessen polygon}; for more, see \citet{braun1997modelling}, \citet{tucker2001object})
+
+Equation~\ref{eq:finvol} gives us the time derivatives of every node on the grid. How do we solve for the new elevations at time $t$? There are many ways to do this, including matrix-based implicit solvers (see for example \citet{fagherazzi2002implicit}). We won't get into the details of numerical solutions (at least not yet), but for now note that the simplest solution is the forward-difference approximation:
+\begin{eqnarray}
+\frac{d\eta_i}{dt} \approx \frac{\eta_i(t+\Delta t) - \eta_i(t)}{\Delta t} \\
+\eta_i(t+\Delta t) = \eta_i(t) + U\Delta t  + \Delta t \frac{1}{\Lambda_i} \sum_{j=1}^N q_{sj} \lambda_j
+\end{eqnarray}
+The main disadvantage of this approach is that very small time steps are typically needed in order to ensure numerical stability. (CHILD uses a variant of this that finds the minimum stable value of $\Delta t$ over all cells at each iteration). A good discussion of numerical stability, accuracy, and alternative methods for diffusion-like problems can be found in \citet{press2007numerical}.
+
+
+\section{Gravitational Hillslope Transport}
+
+Geomorphologists often distinguish between hillslope and channel processes. It's a useful distinction, although one has to bear in mind that the transition is not always abrupt, and even where it is abrupt, it is often either discontinuous or highly dynamic or both.
+
+Alternatively, one can also distinguish between processes that are driven nearly exclusively by gravitational processes, and those that involve a fluid phase (normally water or ice). This distinction too has a gray zone: landslides are gravitational phenomena but often triggered by fluid pore pressure, while debris flows are surges of mixed fluid and solid. Nonetheless, we will start with a consideration of one form of gravitational transport on hillslopes: soil creep. 
+
+For relatively gentle, soil-mantled slopes, there is reasonably strong support for a transport law of the form:
+\begin{equation}
+\vec{q}_s = -D \nabla \eta
+\end{equation}
+Using the finite-volume method outlined in equation \ref{eq:finvol}, we want to calculate $\vec{q_s}$ at each of the cell faces. Suppose node $i$ and node $k$ are neighboring nodes that share a common face (we'll call this face $j$). We approximate the downhill gradient between nodes $i$ and $k$ as:
+\begin{equation}
+S_{ik} = \frac{\eta_k - \eta_i}{L_{ik}}
+\end{equation} 
+where $L_{ik}$ is the distance between nodes. On a raster grid, $L_{ik} = \Delta x$ is simply the grid spacing. The sediment flux per unit width is then
+\begin{equation}
+q_{sik} = D \frac{\eta_k - \eta_i}{L_{ik}}
+\end{equation} 
+where $q_{sik}$ is the volume flux per unit width from node $k$ to node $i$ (if negative, sediment flows from $i$ to $k$). To compute the total sediment flux through face $j$, we simply multiply the unit flux by the width of face $j$, which we denote $\lambda_{ij}$ (read as ``the $j$-th face of cell $i$):
+\begin{equation}
+Q_{sik} = q_{sik} \lambda_{ij}
+\end{equation}
+
+
+\subsection*{\em Getting Set Up with CHILD}
+
+Our first exercise is simply to run the executable file to make sure it is installed and working correctly. In some cases, it might be necessary to create a new executable file from the source code. For these exercises, the executables should be in folders under {\tt ChildExercises/Executables}, with folders for {\tt IntelMacOS10.6}, {\tt IntelMacOS10.5andEarlier}, {\tt Cygwin} and {\tt Win32}. For convenience, copy the binary for your platform from its subfolder to the {\tt ChildExercises} folder.
+
+To navigate folders and run CHILD, you will need to use a UNIX shell (unless working in the Command window under Windows): either the {\bf Terminal} application on a Mac, or a UNIX emulator shell such as cygwin on a PC. To change folders (``directories'' in UNIX-speak), use {\tt cd} followed by the folder name. A single period represents the current working directory; two periods represent the next directory up. For example, the command {\tt cd ..} takes you one level up. To get a list of files in a directory, use {\tt ls}. (For Command prompt under windows, use {\tt dir} instead of {\tt ls} and backslashes instead of forward slashes).
+
+{\bf On a Mac:} create a new terminal window by running the Terminal application (usually found under Applications/Utilities). Navigate to the folder containing the executable file {\tt child} and type {\tt ./child}.
+
+{\bf On a Linux computer:} create a new unix terminal window. Navigate to the folder containing the executable file {\tt child} and type {\tt ./child}.
+
+{\bf On a PC with Cygwin:} start up cygwin. In the cygwin command window, navigate to the folder containing the executable file {\tt child.exe} and type {\tt ./child}.
+
+{\bf On a PC:} start up Command Window. In the command window, navigate to the folder containing the executable file {\tt child.exe} and type {\tt child}.
+
+You should see something like the following:
+\begin{verbatim}
+
+Usage: ./child [options] <input file>
+ --help: display this help message.
+ --no-check: disable CheckMeshConsistency().
+ --silent-mode: silent mode.
+ --version: display version.
+
+\end{verbatim}
+
+While we're at it, let's get ready to visualize the output. Start Matlab. The first thing we will do is tell Matlab where to look for the plotting programs that we will use. At the Matlab command prompt type:
+
+{\tt path( path, '}{\em childFolderLocation}{\tt /ChildExercises/MatlabScripts' )}
+
+\noindent For {\em childFolderLocation}, use the path name of the folder that contains the CHILD package.
+
+In Matlab, navigate the current folder to the location of the example input file {\tt hillslope1.in} (which should end in: {\tt ChildExercises/Hillslope1}).
+
+(Windows note: use a backslash instead of a forward slash).
+
+
+\subsection*{\em CHILD Exercise: Hillslope Diffusion and Parabolic Slopes}
+{\em
+\begin{enumerate}
+\item
+In your terminal window, navigate to the {\tt ChildExercises/Hillslope1} folder. 
+\item
+To run the example, in your terminal window type:
+
+\noindent
+{\tt ../child hillslope1.in}
+
+\item
+A series of numbers will flash by on the screen. These numbers represent time intervals in years. The 2-million-year run takes about 20 seconds on a 2GHz Intel Mac. When it finishes, return to Matlab and type: 
+
+{\tt m = cmovie( 'hillslope1', 21, 200, 200, 100, 50 );}
+
+\noindent (This command says ``generate a 21-frame movie from the run `hillslope1' with the x-, y- and z- axes set to 200, 200 and 100m, respectively, and with the color range representing 0 to 50m elevation).
+\item
+To replay the movie, type {\tt movie(m)}.
+
+\end{enumerate}
+(Windows note: we found that under Vista and Windows 7, the movie figure gets erased after display; slightly re-sizing the figure window seems to fix this).
+}
+\medskip
+
+The analytical solution to elevation as a function of cross-ridge distance $y$ is:
+\begin{equation}
+z(y) = \frac{u}{2D} \left( L^2 - (y-y_0)^2 \right)
+\end{equation}
+where $L$ is the half-width of the ridge (100m in this case) and $y0$ is the position of the ridge crest (also 100m). The effective uplift rate $u$, represented in the input file by the parameter {\tt UPRATE}, is $10^{-4}m/yr$. The diffusivity coefficient $D$, represented in the input file by parameter {\tt KD}, is 0.01m$^2$/yr. Next, we'll make a plot that compares the computed and analytical solutions. 
+
+\medskip
+{\em
+Type the following in Matlab:
+\begin{enumerate}
+\item
+{\tt ya = 0:200;} \hskip1em This is our x-coordinate
+\item
+{\tt u = 0.0001; D = 0.01; y0 = 100; L = 100;}
+\item
+{\tt za = (u/(2*D))*(L\^{ }2-(ya-y0).\^{ }2);}
+\item
+{\tt figure(2), plot( ya, za ), hold on}
+\item
+{\tt xyz = creadxyz( 'hillslope1', 21 );}\hskip1em Reads node coords, time 21
+\item
+{\tt plot( xyz(:,2), xyz(:,3), 'r.' ), hold off}
+\item
+{\tt legend( 'Analytical solution', 'CHILD Nodes' )}
+\end{enumerate}
+Diffusion theory predicts that equilibrium height varies linearly with $u$, inversely with $D$, and as the square of $L$. Make a copy of {\tt hillslope1.in} and open the copy in a text editor. Change one of these three parameters. To change $u$, edit the number below the line that starts with {\tt UPRATE}. Similarly, to change $D$, edit the value of parameter {\tt KD}. If you want to try a different ridge width $L$, change both {\tt Y\_GRID\_SIZE} and {\tt GRID\_SPACING} by the same proportion (changing {\tt GRID\_SPACING} will ensure that you keep the same number of model nodes). Re-run CHILD with your modified input file and see what happens.
+}
+
+\subsection{Nonlinear Diffusion}
+
+The simple slope-linear transport law works poorly for slopes that begin to approach the angle of repose for sediment and rock. The next example explores what happens to our ridge when we (1) increase the relative uplift rate, and (2) use the nonlinear diffusion transport law:
+\begin{equation}
+\vec{q}_s = \frac{-D \nabla z}{1-|\nabla z/S_c|^2}
+\end{equation}
+
+\subsection*{\em Nonlinear Diffusion and Planar Slopes}
+
+{\em
+\begin{enumerate}
+\item
+Navigate to the {\tt Hillslope2} folder
+\item
+Run CHILD: \hskip1em {\tt ../child hillslope2.in}
+\item
+In Matlab, navigate to the {\tt Hillslope2} folder
+\item
+When the 70,000-year run ($\sim$1 minute on a 2GHz mac) finishes, type in Matlab:
+
+{\tt m = cmovie( 'hillslope2', 21, 200, 200, 100, 70 );}
+\end{enumerate}
+If we had used linear diffusion, the equilibrium slope gradient along the edges of the ridge would be $S = uL/D = (0.001)(100)/(0.01) = 10$m/m, or about 84$^\circ$! Instead, the actual computed gradient is close to the threshold limit of 0.7. Notice too how the model solution speed slowed down as the run went on. This reflects the need for especially small time steps when the slopes are close to the threshold angle.
+}
+
+\subsection{Remarks}
+
+There is a lot more to mass movement than what is encoded in these simple diffusion-like transport laws. Some models include stochastic landsliding algorithms (e.g., CASCADE, ZSCAPE). Some impose threshold slopes (e.g., GOLEM). The most recent version of CHILD even includes debris-flow generation and routing \citep{lancaster2003effects}.
+
+\section{Rainfall, Runoff, and Drainage Networks}
+
+In order to calculate erosion, sediment transport, and deposition by running water, a model needs to know how much surface water is flowing through each cell in the model. Usually, the erosion/transport equations require either the total discharge, $Q$ [L$^3$/T], the discharge per unit channel width, $q$ [L$^2$/T], or the flow depth, $H$.
+
+There are three main alternative methods for modeling the flow of water across the landscape:
+\begin{enumerate}
+\item Methods based on contributing drainage area
+\item Numerical solutions to the 2D, vertically integrated and time-averaged Navier-Stokes equations
+\item Cellular automaton methods
+\end{enumerate}
+
+\subsection{Methods Based on Drainage Area}
+
+{\em Drainage area} is the horizontally projected area of land that contributes flow through to a particular channel cross-section or to unit length of contour on a hillslope.
+
+Quick refresher: $A$ is the size of the land area that contributes flow to a particular cross-section of stream channel. $A/b$ is the area per unit contour length ($b$ is contour length) contributing flow to a particular point on a hillslope.
+
+For a numerical landscape model that uses discrete cells, $A$ is defined as the area that contributes flow to a particular cell. When topography is represented as a raster grid, the most common method for computing drainage area is the {\em D8 method}. Each cell is assigned a flow direction toward one of its 8 surrounding neighbors. An algorithm is then used to trace flow paths downstream and add up the number of cells that contribute flow each cell.
+
+For the Voronoi cell matrix that CHILD and CASCADE use, the simplest routing procedure is a generalization of D8. Each cell $i$ has $N_i$ neighbors. As we noted earlier, the slope from cell $i$ to neighbor cell $k$ is defined as the elevation difference between the nodes divided by the horizontal distance between them. Thus, one can define a slope for every {\em edge} that connects each pair of nodes. There is a slope value for each of the $N_i$ neighbors of node $i$. The flow direction is assigned as the steepest of these slopes.
+
+Single-direction flow algorithms have advantages and disadvantages. Some models use a {\em multiple flow direction} approach to represent the divergence of flow on relatively gentle slopes or divergent landforms. This is most appropriate for models that operate on a grid resolution significantly smaller than the length of a hillslope. When grid cells are relatively large, conceptually each cell contains a primary channel, narrower than the cell, that is tracked.
+
+\bigskip
+\subsection*{\em Flow Over Noisy, Inclined Topography}
+
+{\em
+\begin{enumerate}
+\item
+In the terminal window, navigate to the {\tt Network1} folder and run the input file by typing:
+
+{\tt ../child network1.in}
+\item
+In Matlab, navigate to the {\tt Network1} folder
+\item
+{\tt figure(1), clf}
+\item
+{\tt colormap pink}
+\item
+{\tt a = cread( 'network1.area', 1 );}
+\item
+{\tt ctrisurf( 'network1', 1, a );}
+\item
+{\tt view( 0, 90 ), shading interp, axis equal}
+\end{enumerate}
+
+The networks are formed because of noise ($\pm1m$ in this case) in the initial surface, which causes flow to converge in some places.
+}
+
+\medskip
+
+The simplest method for computing discharge from drainage area is to simply assume (1) all rain runs off, and (2) rain lasts long enough that the entire drainage network is in hydrologic steady state. In this case, and if precipitation rate $P$ is uniform,
+\begin{equation}
+Q = PA
+\end{equation}
+A number landscape modeling studies have used this assumption, on the basis of its simplicity, even though it tends to make hydrologists faint! The simplicity is indeed a virtue, but one needs to be extremely careful in using this equation, for at least three reasons. First, obviously $Q$ varies substantially over time in response to changing seasons, floods, droughts, etc. We will return to this issue shortly. Second, there is probably no drainage basin on earth, bigger than a hectare or so, from which {\em all} precipitation runs off. Typically, evapotranspiration returns more than half of incoming precipitation to the atmosphere. Third, hydrologic steady state is rare and tends to occur only in small basins, though it may be a reasonable approximation for mean annual discharge in some basins.
+
+River discharge, whether defined as mean annual, bankfull, mean peak, or some other way, often shows a power-law-like correlation with drainage area. Some models take advantage of this fact by computing discharge using an empirical approach:
+\begin{equation}
+Q = b A^c
+\end{equation}
+where $c$ typically ranges from 0.5-1 and $b$ is a runoff coefficient with awkward units that represents a long-term ``effective'' precipitation regime.
+
+CHILD's default method for computing discharge during a storm takes runoff at each cell to be the difference between storm rainfall intensity $P$ and soil infiltration capacity $I$:
+\begin{equation}
+Q = (P-I) A
+\end{equation}
+which of course is taken to be zero when $P<I$.
+
+
+\subsection{Shallow-Water Equations}
+
+Some landscape models are designed to address relatively small-scale problems such as channel initiation, inundation of alluvial fan surfaces, channel flood flow, etc. In such cases, the convergence and divergence of water in response to evolving topography is an important component of the problem, and is not adequately captured by the simple routing schemes described above. Instead, a tempting tool of choice is some form of the {\em shallow-water equations}, which are the vertically integrated form of the general (time-averaged) viscous fluid-flow equations. One form of the full shallow-water equations is:
+\begin{eqnarray}
+\frac{\partial \eta}{\partial t} = i - \left( \frac{\partial q_x}{\partial x}
++ \frac{\partial q_y}{\partial y} \right ) \\
+\frac{\partial q_x}{\partial t} + \frac{\partial q_x u}{\partial x}
++ \frac{\partial q_y u}{\partial y}
++ g h \frac{\partial h}{\partial x}
++ g h \frac{\partial \eta}{\partial x}
++ \frac{\tau_{bx}}{\rho} = 0 \\
+\frac{\partial q_y}{\partial t} + \frac{\partial q_y v}{\partial y}
++ \frac{\partial q_x v}{\partial x}
++ g h \frac{\partial h}{\partial y}
++ g h \frac{\partial \eta}{\partial y}
++ \frac{\tau_{by}}{\rho} = 0
+\end{eqnarray}
+These equations express continuity of mass, x-directed momentum, and y-directed momentum, respectively. They are challenging and computationally expensive to integrate numerically in their full form. However, there are several approximate forms that are commonly used, including the non-accelerating flow form (in which convective accelerations are assumed negligible) and the kinematic-wave equations (in which gravitational and friction forces are assumed to dominate). An example of use of the shallow-water equations in a landform evolution model can be found in the work of T.R.\ Smith and colleagues. Various forms of the shallow-water equations can often be found in hydrologic models, and sometimes in soil-erosion models (e.g., Mitas and Mitasova, 1998\nocite{mitas1998distributed}).
+
+\subsection{Cellular Automata}
+
+Some models use cellular automaton methods to calculate flow over a cellular topography. These include:
+\begin{itemize}
+\item Chase's precipiton algorithm
+\item Crave-Davy modified precipiton algorithm
+\item Murray-Paola multiple-flow-direction river-flow algorithm
+\item Coulthard's generalization of Murray-Paola for 2D flow (CAESAR model)
+\end{itemize}
+
+\subsection{Depressions in the Terrain}
+
+What happens when flow enters a topographic depression? In the real world, three possibilities: complete evaporation/infiltration, formation of a lake with overflow, or formation of a closed lake. CHILD uses a lake-fill algorithm.
+
+
+\subsection{Precipitation and Discharge}
+
+\begin{itemize}
+\item Water supply to channel network varies dramatically in both time and space
+\item Big gap in time scale between storms/floods and topographic evolution
+\item ``Effective discharge'' concept: discharge that represents the cumulative geomorphic effect of the natural sequence of storms and floods
+\item \citet{willgoose1991coupled}: use mean peak discharge
+\item \citet{huang2006evaluation}: effective discharge not necessarily the same at different times and places
+\end{itemize}
+Basically, landscape models tend to use one of four methods:
+\begin{enumerate}
+\item Steady flow, uniform precipitation or runoff coefficient (effective discharge concept)
+\item Steady flow, nonuniform precipitation/runoff (e.g., orographic precipitation)
+\item Stochastic-in-time, spatially uniform runoff generation
+\item ``Short storms'' model \citep{solyom2004effect}
+\end{enumerate}
+We do not have time to look in detail at all of these. Instead, we will take a brief look at the Poisson rectangular pulse model implemented in CHILD.
+
+\subsection*{\em Visualizing a Poisson Storm Sequence}
+
+{\em
+\begin{enumerate}
+\item
+In the terminal window, navigate to the {\tt Rainfall1} folder and run the input file by typing:
+
+{\tt ../child rainfall1.in}
+\item
+In Matlab, navigate to the {\tt Rainfall1} folder
+\item
+In Matlab: {\tt figure(1), clf, cstormplot( 'rainfall1' );}
+\item
+{\tt figure(2), clf, cstormplot( 'rainfall1', 10 );}
+\end{enumerate}
+The first plot shows a 1-year simulated storm sequence; the second shows just the first 10 storms.}
+
+The motivation for using a stochastic flow model is (1) that nature {\em is} effectively stochastic, and (2) variability matters when the erosion or transport rate is a nonlinear function of flow. For more on this, see \citet{tucker2000stochastic,snyder2003importance,tucker2004drainage}, and DiBiase et al.\ (2009).
+
+\subsection{Remarks}
+
+Landscape evolution models can be, and have been, used to study climate impacts on erosion, topography, and mountain building. But be careful---climate and hydrology amount to much more than a ``sprinkler over the landscape.''
+
+\section{Hydraulic Geometry}
+
+\begin{itemize}
+\item Channel size, shape, and roughness controls delivery of hydraulic force to the bed and banks
+\item Most landscape models either implicitly assume constant width (practical but dangerous) or use the empirical relation $W = K_w Q^b$, where $b\approx 0.5$.
+\item Models with time-varying discharge must also specify how width varies at a point along the channel as $Q$ rises and falls.
+\item Width-discharge scaling is practical but incomplete, because we observe that channels can narrow or widen downstream in concert with variations in incision rate.
+\item Examples from Taiwan, Italy.
+\item Model examples from \citet{wobus2006self}, \citet{attal2008modeling}.
+\item Full treatment of the channel geometry adjustment problem is a frontier area.
+\end{itemize}
+
+\section{Erosion and Transport by Running Water}
+
+\begin{itemize}
+\item Several competing models for erosion by channelized flow
+\item Detachment-limited models: assume that eroded material leaves the system without significant re-deposition; lowering of channel limited by detachment
+\item Transport-limited models: assume plentiful supply of loose sediment; lowering of channel limited capacity to transport sediment
+\item Simple hybrid: lowering may be limited either by excess transport capacity by detachment rate, depending on local sediment supply and substrate resistance
+\item Undercapacity concept: detachment rate depends on surplus transport capacity
+\item Saltation-abrasion model: detachment driven by grain impacts, limited by sediment shielding
+\end{itemize}
+
+\subsection{Detachment-Limited Models}
+
+On a bed with little loose sediment, detachment of particles may be driven primarily by hydraulic lift and drag (``plucking''). Most models assume that the rate of detachment (or more generally the capacity for detachment) depends on excess bed shear stress:
+\begin{equation}
+D_c = K_b \left( \tau - \tau_c \right)^{p_b}
+\end{equation}
+where $\tau$ is local bed shear stress, $\tau_c$ is a threshold stress below which detachment is ineffective, $K_b$ is a constant, and $p_b$ is an exponent.
+
+Bed shear stress fluctuates in space and time, but is often treated using the cross-sectional average, which in turn is based on a force balance between gravity and friction.
+
+Some models assume detachment rate depends on stream power per unit width $\omega = (Q/W) S$:
+\begin{equation}
+D_c = K_b \left( \frac{Q}{W}S - \Phi_c \right)
+\end{equation}
+Stream power per unit width turns out to be proportional to $\tau^{3/2}$, so the two erosion formulas are closely related \citep{whipple1999dynamics}. In the following example, we will use the unit stream power formula with $\Phi_c=0$.
+
+\subsection*{\em Detachment-Limited Hills and Mountains}
+
+{ \em
+\begin{enumerate}
+\item
+In the terminal window, navigate to the {\tt Dlim} folder and run the input file by typing:
+
+{\tt ../child dlim.in}
+
+The 3m.y.\ run should take about 20 seconds.
+\item
+In Matlab, navigate to the {\tt Dlim} folder
+\item
+In Matlab: {\tt figure(1), clf, colormap jet}
+\item
+{\tt cmovie( 'dlim', 31, 3e4, 3e4, 1e3, 500 );}
+\item
+{\tt figure(2), clf}
+\item
+{\tt csa( 'dlim', 31 );} \hskip1em Shows slope-area graph
+\end{enumerate}
+}
+
+\noindent
+Notice that the landscape has come close to a state of equilibrium between erosion and relative uplift. The resulting terrain has about 200m of relief over a 30km half-width mountain range---more Appalachian than Himalayan. Notice that the log-log slope-area graph shows a straight line, indicating a power-law relationship. This is exactly to be expected, and we can predict the plot slope and intercept analytically. Finally, note the points on the upper left of the graph. These ``first order'' cells, about 2500m$^2$ in area, have slopes less than 10\%. They represent embedded channels, not hillslopes, which are too small to resolve at this grid spacing.
+
+Now, what happens when we increase the relative uplift rate?
+
+{ \em
+\begin{enumerate}
+\item
+Run the {\tt dlimC1.in} input file by typing:
+
+{\tt ../child dlimC1.in}
+
+This run starts off where the previous one ended, but with a 10x higher rate of relative uplift.
+\item
+In Matlab: {\tt figure(1)}
+\item
+{\tt cmovie( 'dlimC1', 31, 3e4, 3e4, 1e4, 5000 );} \hskip1em 10x vertical scale
+\item
+{\tt figure(2)}
+\item
+{\tt hold on, csa( 'dlimC1', 31, 'r.' ); hold off}
+\end{enumerate}
+}
+
+Because we are using a slope-linear detachment law, a 10x increase in relative uplift rate leads to a 10x increase in relief. Notice that the points have shifted upward by a factor of 10 on the slope-area graph.
+
+We still do not see any hillslopes, because the scale of landscape dissection is too fine for the model to resolve. Next, we will ``zoom in'' by repeating the {\tt dlim} run but with a twenty-fold decrease in domain size and model cell size.
+
+\subsection*{\em Zooming in to the Hillslopes}
+
+{ \em
+\begin{enumerate}
+\item
+Run the {\tt dlim\_small.in} input file by typing:
+
+{\tt ../child dlim\_small.in}
+
+This run is identical to {\tt dlim} but with a domain of 1.5 by 1.5km and $\sim$25m wide cells, instead of 30x30km and $\sim$500m cells.
+\item
+In Matlab: {\tt figure(1)}
+\item
+{\tt cmovie( 'dlim\_small', 31, 1.5e3, 1.5e3, 500, 200 );}
+\item
+{\tt figure(2)}
+\item
+{\tt hold on, csa( 'dlim\_small', 31, 'g.' ); hold off}
+\end{enumerate}
+}
+
+Note how the hillslopes become evident in the topography. In the slope-area plot, the points seem to continue the trend of the coarser-scale run, but somewhat shifted upward. Can you guess why they are shifted upward? (The answer is subtle, and lies hidden in {\tt dlim\_small2.in}).
+
+For the next exercise, we return to our earlier {\tt dlimC1} run and plot a representative stream profile at different times, to look at how the profile responds to the increased rate of relative uplift.
+
+\subsection*{\em Knickzones and Transient Response}
+
+{ \em
+\begin{enumerate}
+\item
+In Matlab: {\tt figure(1), clf}
+\item
+{\tt [d,h,x,y] = cstrmproseries( 'dlimC1', 10, 15000, 29000 );}
+
+\noindent
+This command traces the stream profile starting from $x=15km$, $y=29km$. It will plot the first 10 profiles.
+\item
+{\tt figure(2), clf, plot( x, y ), axis equal}
+
+\noindent
+This shows the horizontal trace of the stream course.
+\end{enumerate}
+}
+
+\noindent
+During the period of transient response, the stream profile shows a pronounced convexity, or knickzone, along the profile. The knickzone marches upstream through time. This pattern is characteristic of the ``stream power'' erosion law, which is actually a form of wave equation.
+
+\subsection{Transport-Limited Models}
+
+We next explore the dynamics of landscapes and networks with transport-limited models. One caution as we do so: we will assume that channel width is independent of grain size, slope, etc.
+
+\subsection*{\em A Pile of Fine Sand}
+
+{ \em
+\begin{enumerate}
+\item
+In the terminal window, navigate to the {\tt Tlim} folder and run:
+
+{\tt ../child tlim1.in}
+
+The 1m.y.\ run should take about 2 minutes.
+\item
+In Matlab, navigate to the {\tt Tlim} folder
+\item
+In Matlab: {\tt figure(1), clf}
+\item
+{\tt cmovie( 'tlim1', 21, 3e4, 3e4, 40, 10 );}
+\item
+{\tt figure(2), clf}
+\item
+{\tt csa( 'tlim1', 21 ); axis([1e-1 1e3 1e-4 1e-3])}
+\end{enumerate}
+}
+
+\noindent
+In this run, we are effectively assuming that 0.1mm sand moves as bed-load, according to a Meyer-Peter and Mueller-like transport formula. The landscape takes on an effectively uniform and very shallow gradient, on the order of $3\times 10^{-4}$.
+
+Now let's try the same experiment with 5cm cobbles.
+
+\subsection*{\em A Pile of Cobbles}
+
+{ \em
+\begin{enumerate}
+\item
+Run:
+
+{\tt ../child tlim2.in}
+
+The 3m.y.\ run should take about 2-3 minutes.
+\item
+In Matlab: {\tt figure(1), clf}
+\item
+{\tt cmovie( 'tlim2', 31, 3e4, 3e4, 1000, 300 );}
+\item
+{\tt figure(2)}
+\item
+{\tt hold on, csa( 'tlim2', 31, 'r.' ); hold off, axis([0.1 1000 1e-4 1e-1])}
+\end{enumerate}
+}
+
+Lesson: grain size matters! 
+
+But let's remember the caveat that channel width matters too, and we haven't taken that into account with these simple runs. Also, Nicole Gasparini's work \citep{gasparini1999downstream,gasparini2004network} tells us that channel concavity is less sensitive to grain size when there is a mixture of sizes available to the river.
+
+{\em {\bf Optional exercise:} Make a copy of {\tt tlim2.in} and configure it to re-start from {\tt tlim2} but with a higher uplift rate. Use the Matlab script {\tt cstrmproseries} to plot fluvial profiles undergoing transient response. How do these compare with the detachment-limited model?}
+
+\subsection{Hybrid Model: Combining Detachment and Transport}
+
+Next, we'll look at a more complex situation with simultaneous erosion and sedimentation, and simultaneous detachment-limited and transport-limited behavior. In this case, we use a fluvial model in which erosion rate can be limited either by transport capacity or by detachment capacity, depending on their relative magnitudes:
+\begin{equation}
+E_i =
+\begin{cases}
+\frac{Q_c - \sum_{j=1}^{N_i} Q_{sij}}{\Lambda_i} & \text{if $\frac{Q_c - \sum_{j=1}^{N_i} Q_{sij}}{\Lambda_i} < D_c$} \\
+D_c & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\subsection*{\em Erosion and Deposition, Together at Last}
+
+{ \em
+\begin{enumerate}
+\item
+In the terminal window, navigate to the {\tt Hybrid} folder and run:
+
+{\tt ../child erodep1.in}
+
+\noindent
+The 1m.y.\ run should take about 5 minutes (but of course you can peek at earlier time steps while the run is going, by reducing the number of frames in your movie).
+\item
+In Matlab: {\tt figure(1), clf}
+\item
+{\tt cmovie( 'erodep1', 21, 6e4, 6e4, 4000 );}
+\end{enumerate}
+}
+
+\noindent
+Here we have a block rising at 1mm/yr and an adjacent block subsiding at 0.25mm/yr. Uplift and subsidence shut down after 500ky. The subsiding block forms a large lake that gradually fills in with fan-deltas.
+
+\subsection{Other Sediment-Flux-Dependent Fluvial Models}
+
+\begin{itemize}
+\item ``Under-capacity'' models (detachment rate depends on degree to which sediment flux falls below transport capacity)
+\item Saltation-abrasion models (detachment rate driven by particle impacts, and limited by alluvial shielding of bed)
+\item \citet{gasparini2007predictions} explore behavior of these models with CHILD simulations
+\end{itemize}
+
+\section{Multiple Grain Sizes}
+
+Interesting issues regarding grain size include:
+\begin{itemize}
+\item Bed armoring and its impact on transport rates
+\item Downstream fining
+\item Abrasion and lithologic controls
+\end{itemize}
+
+\section{Exotica}
+
+\begin{itemize}
+\item Stream meandering in the context of landscape evolution and valley stratigraphy (Clevis et al., 2006a,b).\nocite{clevis2006geoarchaeological}\nocite{clevis2006simple}
+\item Vegetation \citep{collins2004modeling,istanbulluoglu2005vegetation}
+\item Alternate forms of mass wasting \citep{densmore1998landsliding,lancaster2003effects,istanbulluoglu2005implications}
+\item Knickpoints, hanging valleys, plunge pools \citep{flores2006development,crosby2007formation}
+\item Glaciation \citep{herman2006fluvial,herman2007tectonomorphic,herman2008evolution}
+\end{itemize}
+
+\section{Forecasting or Speculation?}
+
+Some mathematical models in the physical sciences have such firm foundations that they can be relied upon to forecast the behavior of the natural world. For example, laws of motion of objects in a vacuum are absolutely reliable (as long as their speed is much less than that of light). The same can be said for numerical solutions to these equations, provided the solution is reasonably accurate. For these kinds of model, the verb ``to model'' means to calculate with high reliability what would happen under a particular set of initial and boundary conditions.
+
+At the other end of the spectrum, we have mathematical models that are essentially tentative hypotheses. Such models are often based on intuition about a physical system, and represent a sort of educated guess about the quantitative relationships between things. For example, when \citet{ahnert1976} presented his inverse-exponential equation for regolith generation from bedrock, he was essentially expressing a conceptual hypothesis in mathematical terms. For these models-as-hypotheses, the phrase ``to model'' means to perform a quantitative ``what if'' experiment, asking the question: what kinds of pattern would I see if my hypothesis were correct? Comparing the prediction with observations provides a test of the hypothesis.
+
+One can find many models that fall between these extremes. There are models that are based on well-known physics, but which are forced to use approximations of unknown accuracy in order to solve the governing equations. For example, climate models typically use simple parameterization schemes to represent convective mass and energy transport. Then too there are models that combine basic physical principles with elements of intuition, empiricism, and approximation. Arguably, many sediment-transport laws fall into this category: they are based on firm mechanical foundations (the force balance on a sediment grain) but also rely on strong approximations of factors like grain geometry, local flow velocity, and so on.
+
+By now, it should be obvious that landscape evolution models also fall somewhere between the end-member cases of ``model as truth'' and ``model as speculative hypothesis.'' There is a varying degree of experimental and observational support for the individual transport, weathering and erosion laws that go into a typical landscape model. In that sense, then, these models amount to more than just speculation. But equally there is still an element of speculation behind many of the process laws used in landscape models. Also, the process laws and algorithms represent a significant amount of upscaling in space and (especially) time. For example, the use of a steady precipitation rate as a proxy for the natural sequence of flows in a river channel represents a major approximation. For these reasons, I believe that three of the most important frontiers in landscape evolution research are (1) continuing to test individual process laws in the field and lab, (2) testing whole-landscape models using natural experiments, and (3) using mathematics, computation and experiments to study how the rates of various processes scale upward in time and space, and how these can be effectively parameterized.
+
+\section{Ten Commandments of Landscape Evolution Modeling}
+
+\begin{enumerate}
+\item Thou shalt not use a model without understanding the ingredients therein.
+\item Be thou ever mindful of uncertainty.
+\item Thou shalt use thy model to develop insight.
+\item Thou shalt take delight when thy model surprises thee.
+\item Thou shalt kick thy model hard, that it may notice thee (an injunction borrowed gratefully from the 10 Climate Modeling Commandments).
+\item Thou shalt diagnose the reasons for thy model's behavior.
+\item Thou shalt conduct sensitivity experiments and ``play around.''
+\item Thou shalt use thy model to discover the necessary and sufficient conditions needed to explain thy target problem.
+\item If thou darest use a model to calculate what happened in your field area in the past, thou shalt find a way to test and calibrate it first.
+\item If thou darest to predict future erosion, thou shalt heed the previous commandment ten times over (but thou mightest point out to skeptics that a process-based prediction is usually better than one based on pure guesswork, provided that commandment \#2 is obeyed).
+\end{enumerate}
+
+\bibliography{/Users/gtucker/Documents/Literature/gt_library}
+\bibliographystyle{/Users/gtucker/Documents/Literature/jponew}
+
+
+
+\end{document}
