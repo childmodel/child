@@ -27,6 +27,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/tStreamMeander
   ${CMAKE_CURRENT_SOURCE_DIR}/tStreamMeander
   ${CMAKE_CURRENT_SOURCE_DIR}/tWaterSedTracker
+  ${CMAKE_CURRENT_SOURCE_DIR}/tLithologyManager
 )
 
 set (child_LIB_SRCS
@@ -58,6 +59,7 @@ set (child_LIB_SRCS
   tStreamMeander/tStreamMeander.cpp
   tStreamMeander/meander.cpp
   tWaterSedTracker/tWaterSedTracker.cpp
+  tLithologyManager/tLithologyManager.cpp
 )
 
 add_library (child-shared SHARED ${child_LIB_SRCS})
