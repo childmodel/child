@@ -53,5 +53,72 @@ Ok, here's what to do. In tMesh, layers appear via ``MakeLayersFromInputData.'' 
 
 First, though, I need a regression battery to be on the safe side!
 
+\section{17 Feb 2011}
+\subsection{Stratigraphy Manager}
+
+I can see that there are some general capabilities one would want a Stratigraphy Manager to have. These include, in addition to the above,
+\begin{enumerate}
+
+  \item Read (from file or via parameter passing) a set of Properties.
+  
+  These would presumably have to be typed, so you have sub-lists for integer, boolean, floating point, and string properties. (others? complex?)
+  
+  \item Maintain a way to access individual voxels (or perhaps alternately voxel boundaries). 
+  
+  In CHILD, this is done directly through the mesh for the ``normal'' strat.
+  
+  You want to be able to access the j-th voxel 
+  
+\section{22 Feb 2011}
+\subsection{Stratigraphy Manager}
+
+Notes on a possible design for a Stratigraphy Manager:
+\begin{itemize}
+\item The manager can ``point to'' or include a Stratigraphy (which means it can point to a stratigraphy that is embedded in another model, like CHILD)
+\item It can read a Stratigraphy from a file and assign it to the Stratigraphy to which it is pointing (or create a new one if needed)
+\item It can set its Stratigraphy pointer
+\item Either the Stratigraphy or the StratigraphyManager maintains a PropertyList, which is a list of the properties that a particular stratigraphy knows/has.
+\item Interface functions: get/set number of surface elements, get/set vector of how many layers there are at each point, get/set property list, get/set i-th property at j-th layer of k-th node.
+\item ... and: set a given property to a given value at a 3D point that falls within a voxel. 
+\item Set property uniformly over a depth range at a point, either ``slicing'' it in or averaging or whatever
+\item And similarly for other setting of properties ...
+\end{itemize}
+
+Probably makes sense to have the Stratigraphy Manager contain a list of properties. Handling types might be tricky. Something like:
+\begin{verbatim}
+class PropertyList
+{
+public:
+  GetNProperties();
+  SetNProperties();
+  GetNBoolProperties();
+  ... etc.
+  bool GetProperty( int n );
+  int GetProperty( int n );
+  ... etc.
+  bool GetPropertyByTag( char * tag );
+  int GetPropertyByTag( char * tag );
+  ... etc.
+
+private:
+  int n_properties_;
+  int n_bool_properties_;
+  int n_int_properties_;
+  int n_float_properties_;
+  int n_string_properties_;
+  vector<bool> bool_property_;
+  vector<int> int_property_;
+  vector<double> float_property_;
+  vector<string> string_property_;
+};
+\end{verbatim}
+The idea is that you use type checking to make sure that if the user calls the integer version of GetProperty( n ) that property n is actually an integer.
+
+But for now, this is all a bit cumbersome for what I want to do.
+
+  
+\end{enumerate}
+
+
 
 \end{document}
