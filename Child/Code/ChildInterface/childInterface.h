@@ -70,6 +70,41 @@ enum ElementType
 class childInterface
 {
 public:
+  // CSDMS Basic Modeling Interface (version 1.0)
+  //   BMI IRF Functions
+  void initialize( string config_file );
+  void update( double dt );
+  void finalize();
+  void run_model( string config_file );
+  //   BMI Model description functions
+  vector<string> get_input_var_names();
+  vector<string> get_output_var_names();
+  string get_attribute( string att_name );
+  //   BMI Variable description functions
+  string get_var_type( string long_var_name ); // ( returns type_string, e.g. ‘double’)
+  string get_var_units( string long_var_name ); // ( returns unit_string, e.g. ‘meters’ )
+  int get_var_rank( string long_var_name ); // ( returns array rank or 0 for scalar)
+  string get_var_name( string long_var_name ); // ( returns model’s internal, short name )
+  double get_time_step(); // (returns the model’s current timestep;  adaptive or fixed.)
+  string get_time_units(); // (returns unit string for model time, e.g. ‘seconds’, ‘years’)
+  double get_start_time();
+  double get_current_time();
+  double get_end_time();
+  //   BMI Variable getters and setters
+  double get_0d_double( string long_var_name );
+  vector<double> get_1d_double( string long_var_name  );
+  vector<vector<double> > get_2d_double( string long_var_name );
+  vector<double> get_2d_double_at_indices( string long_var_name, vector<int> indices );
+  void set_0d_double( string long_var_name, double scalar );
+  void set_1d_double( string long_var_name, vector<double> array);
+  void set_2d_double( string long_var_name, vector<vector<double> > array);
+  void set_2d_double_at_indices( string long_var_name, vector<int> indices, vector<vector<double> > array);
+  //   BMI Grid description functions for unstructured mesh 
+	vector<double> get_grid_x( string long_var_name );
+  vector<double> get_grid_y( string long_var_name );
+  vector<int> get_grid_connectivity( string long_var_name );
+  vector<int> get_grid_offset( string long_var_name );
+  
   // Public methods
   childInterface();
   void Initialize_Copy( const childInterface& );
@@ -86,7 +121,7 @@ public:
   void TrackWaterAndSedFluxAtNodes( vector<int> ids_of_nodes_to_track,
 				    double current_time );
 	vector<double> GetLoads();
-	
+  
   // Public methods that implement the OpenMI IElement interface
   string getID();
   string getDescription();

@@ -52,6 +52,42 @@ childInterface() : element_set_id("CHILD_node_element_set"),
 	strmMeander = NULL;
 }
 
+
+/***** BMI Functions here *************************************************/
+
+
+/**************************************************************************/
+/**
+ **  BMI initialize
+ **
+ **  Note that "config_file" is actually used to parse the full
+ **  command-line string, including options.
+ */
+/**************************************************************************/
+void childInterface::
+initialize( string config_file )
+{
+  Initialize( config_file );
+}
+
+/**************************************************************************/
+/**
+ **  BMI update
+ **
+ **  -1 means run one model time step (in this case, a storm).
+ */
+/**************************************************************************/
+void childInterface::
+update( double dt )
+{
+  if( dt<0.0 ) RunOneStorm();
+  else Run( dt );
+}
+
+
+/***** End of BMI Functions *************************************************/
+
+
 /**************************************************************************/
 /**
 **  Initialize_Copy
