@@ -6,39 +6,39 @@
 \contentsline {subsection}{\numberline {4.2}Output Files}{6}
 \contentsline {subsection}{\numberline {4.3}Plotting Output}{6}
 \contentsline {section}{\numberline {5}Configuring an Input File and Starting a Run}{6}
-\contentsline {section}{\numberline {6}Setting Up the Initial Mesh}{10}
+\contentsline {section}{\numberline {6}Setting Up the Initial Mesh}{9}
 \contentsline {subsection}{\numberline {6.1}Creating a Mesh from Scratch}{10}
-\contentsline {subsubsection}{\numberline {6.1.1}Setting Up the Configuration of a Synthetic Mesh}{11}
-\contentsline {subsubsection}{\numberline {6.1.2}Boundary Configuration Options}{11}
-\contentsline {subsection}{\numberline {6.2}Reading in an Existing Mesh}{13}
-\contentsline {subsection}{\numberline {6.3}Creating a Mesh from a Set of Points}{14}
-\contentsline {subsection}{\numberline {6.4}Generating a Mesh from an ArcInfo Grid DEM}{15}
-\contentsline {section}{\numberline {7}Run Control Parameters: Name, Duration, Output, and Options}{15}
-\contentsline {section}{\numberline {8}Climate Parameters}{17}
-\contentsline {section}{\numberline {9}Runoff Generation and Flow Routing}{18}
-\contentsline {subsection}{\numberline {9.1}Lakes and Sinks}{18}
-\contentsline {subsection}{\numberline {9.2}Adding an Inlet}{19}
-\contentsline {section}{\numberline {10}Hydraulic Geometry}{19}
-\contentsline {section}{\numberline {11}Erosion and Sediment Transport Parameters}{21}
-\contentsline {subsection}{\numberline {11.1}Rock and Regolith}{21}
-\contentsline {subsection}{\numberline {11.2}Overview of Transport, Erosion, and Deposition by Running Water}{21}
-\contentsline {subsubsection}{\numberline {11.2.1}Detachment-Limited Mode}{22}
-\contentsline {subsection}{\numberline {11.3}Choosing Detachment and Transport Laws}{23}
-\contentsline {subsubsection}{\numberline {11.3.1}Detachment-Capacity Laws}{23}
-\contentsline {subsubsection}{\numberline {11.3.2}Transport Capacity Laws}{24}
-\contentsline {subsection}{\numberline {11.4}Soil Creep}{26}
-\contentsline {section}{\numberline {12}Working with Multiple Grain Size Classes}{27}
-\contentsline {section}{\numberline {13}Working with Stratigraphy}{27}
-\contentsline {section}{\numberline {14}Tectonics and Baselevel Control}{30}
-\contentsline {section}{\numberline {15}Parameters that Vary in Time}{32}
-\contentsline {subsection}{\numberline {15.1}How to Create {\em tTimeSeries}-Compatible Parameter Files}{32}
-\contentsline {subsubsection}{\numberline {15.1.1}Wave-Form Parameters}{33}
-\contentsline {subsubsection}{\numberline {15.1.2}Parameter Values Read from a File}{33}
-\contentsline {subsubsection}{\numberline {15.1.3}In-Line Parameter Definition}{35}
-\contentsline {section}{\numberline {16}Output Files}{36}
-\contentsline {subsection}{\numberline {16.1}Surfer-Compatible Output}{38}
-\contentsline {section}{\numberline {17}Error Messages}{38}
-\contentsline {section}{\numberline {18}FAQ and Common Errors}{38}
-\contentsline {subsection}{\numberline {18.1}``Error in Lake Filling algorithm: Unable to find a drainage outlet''}{38}
-\contentsline {section}{\numberline {19}Alphabetical List of Parameters}{39}
-\contentsline {section}{\numberline {20}Release Notes}{49}
+\contentsline {subsubsection}{\numberline {6.1.1}Setting Up the Configuration of a Synthetic Mesh}{10}
+\contentsline {subsubsection}{\numberline {6.1.2}Boundary Configuration Options}{12}
+\contentsline {subsection}{\numberline {6.2}Reading in an Existing Mesh}{12}
+\contentsline {subsection}{\numberline {6.3}Creating a Mesh from a Set of Points}{13}
+\contentsline {subsection}{\numberline {6.4}Generating a Mesh from an ArcInfo Grid DEM}{14}
+\contentsline {section}{\numberline {7}Run Control Parameters: Name, Duration, Output, and Options}{14}
+\contentsline {section}{\numberline {8}Climate Parameters}{16}
+\contentsline {section}{\numberline {9}Runoff Generation and Flow Routing}{17}
+\contentsline {subsection}{\numberline {9.1}Lakes and Sinks}{17}
+\contentsline {subsection}{\numberline {9.2}Adding an Inlet}{17}
+\contentsline {section}{\numberline {10}Hydraulic Geometry}{18}
+\contentsline {section}{\numberline {11}Erosion and Sediment Transport Parameters}{19}
+\contentsline {subsection}{\numberline {11.1}Rock and Regolith}{19}
+\contentsline {subsection}{\numberline {11.2}Overview of Transport, Erosion, and Deposition by Running Water}{20}
+\contentsline {subsubsection}{\numberline {11.2.1}Detachment-Limited Mode}{21}
+\contentsline {subsection}{\numberline {11.3}Choosing Detachment and Transport Laws}{21}
+\contentsline {subsubsection}{\numberline {11.3.1}Detachment-Capacity Laws}{21}
+\contentsline {subsubsection}{\numberline {11.3.2}Transport Capacity Laws}{22}
+\contentsline {subsection}{\numberline {11.4}Soil Creep}{25}
+\contentsline {section}{\numberline {12}Working with Multiple Grain Size Classes}{25}
+\contentsline {section}{\numberline {13}Working with Stratigraphy}{26}
+\contentsline {section}{\numberline {14}Tectonics and Baselevel Control}{28}
+\contentsline {section}{\numberline {15}Parameters that Vary in Time}{30}
+\contentsline {subsection}{\numberline {15.1}How to Create {\em tTimeSeries}-Compatible Parameter Files}{30}
+\contentsline {subsubsection}{\numberline {15.1.1}Wave-Form Parameters}{31}
+\contentsline {subsubsection}{\numberline {15.1.2}Parameter Values Read from a File}{32}
+\contentsline {subsubsection}{\numberline {15.1.3}In-Line Parameter Definition}{33}
+\contentsline {section}{\numberline {16}Output Files}{34}
+\contentsline {subsection}{\numberline {16.1}Surfer-Compatible Output}{36}
+\contentsline {section}{\numberline {17}Error Messages}{36}
+\contentsline {section}{\numberline {18}FAQ and Common Errors}{36}
+\contentsline {subsection}{\numberline {18.1}``Error in Lake Filling algorithm: Unable to find a drainage outlet''}{36}
+\contentsline {section}{\numberline {19}Alphabetical List of Parameters}{37}
+\contentsline {section}{\numberline {20}Release Notes}{46}

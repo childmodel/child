@@ -6,7 +6,7 @@
  \usepackage{amsmath}
  \usepackage{fancyvrb}
  \usepackage{gt}
- %\geometry{a4paper} % or letter or a5paper or ... etc
+ \geometry{a4paper} % or letter or a5paper or ... etc
  % \geometry{landscape} % rotated page geometry
  
  % See the ``Article customise'' template for come common customisations
@@ -812,25 +812,36 @@ Note that data elements are always listed in order by ID number, starting from z
 	{\bf File extension} & {\bf Contents} \\
 	\hline
 	{\tt .area} & Drainage area (m$^2$) \\
-	{\tt .dvols} & Change in landscape volume over one storm \\
-	{\tt .edges} & IDs of origin and destination nodes, ID of ccw edge \\
+	{\tt .dvols} & Change in landscape volume over one storm$^1$ \\
+	{\tt .edges} & IDs of origin and destination nodes, ID of ccw edge$^{2,3}$ \\
 	{\tt .inputs} & Record of input parameters \\
-	{\tt .lay}{\em i} & Layer information for time slice $i$ \\
-	{\tt .net} & ID of downstream neighbor \\
-	{\tt .nodes} & Node (x,y) coordinates, ID of one spoke, and boundary code \\
+	{\tt .lay}{\em i} & Layer information for time slice $i$ $^4$ \\
+	{\tt .net} & ID of downstream neighbor$^2$ \\
+	{\tt .nodes} & Node (x,y) coordinates, ID of one spoke,$^2$ and boundary code$^5$ \\
 	{\tt .q} & Water discharge at each node (m$^3$/yr) \\
 	{\tt .random} & Data for re-starting the random number sequence \\
 	{\tt .slp} & Gradient in downstream direction \\
-	{\tt .storm} & Inter-storm duration (yr), intensity (m/yr), duration (yr) \\
+	{\tt .storm} & Inter-storm duration (yr), intensity (m/yr), duration (yr)$^1$ \\
 	{\tt .tau} & Shear stress (Pa) \\
-	{\tt .tri} &	 IDs of vertices, neighbor triangles, and edges \\
-	{\tt .tx} & Volumetric proportion finest grain size in top layer \\
+	{\tt .tri} &	 IDs of vertices, neighbor triangles, and edges$^2$ \\
+	{\tt .tx} & Volumetric proportion finest grain size in top layer$^6$ \\
 	{\tt .varea} & Voronoi area of each node (m$^2$) \\
-	{\tt .vols} & Landscape volume at each storm \\
+	{\tt .vols} & Landscape volume at each storm$^1$ \\
 	{\tt .z} & Node elevations in meters \\
 	\hline
   \end{tabular}
 \end{center}
+  $^1$ Only written when using stochastic storm generation.
+  
+  $^2$ IDs of all objects are numbered starting from zero.
+  
+  $^3$ ``ccw edge'' means the directed edge that lies immediately counter-clockwise; that is, it is connected to the same origin point but connects to the next neighbor node in the counter-clockwise direction.
+  
+  $^4$ Only written when option for layer output is on.
+  
+  $^5$ Boundary codes are: 0 for interior nodes, 1 for closed-boundary (no-flux) nodes, and 2 for open-boundary nodes.
+  
+  $^6$ Only written when more than one grain-size class is used.
 \end{table}
 
 \subsection{Surfer-Compatible Output}
