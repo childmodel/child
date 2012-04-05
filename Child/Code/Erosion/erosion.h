@@ -1242,8 +1242,8 @@ public:
    void StreamErodeMulti( double dtg, tStreamNet *, double time);
    void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
    void DetachErode2( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
-   void Diffuse( double dtg, bool detach );
-   void DiffuseNonlinear( double dtg, bool detach );
+   void Diffuse( double dtg, bool detach, double time );
+   void DiffuseNonlinear( double dtg, bool detach, double time );
   void DiffuseNonlinearDepthDep( double dtg, double time );
   void ProduceRegolith( double dtg, double time );
   void WeatherBedrock( double dtg );
@@ -1284,6 +1284,7 @@ private:
   std::ofstream *DF_Hyd_fsPtr; // pointer to output stream for debris flow tally
   
   double kd;                 // Hillslope transport (diffusion) coef
+  tTimeSeries kd_ts;         // Hillslope transport coef as time series
   double difThresh;          // Diffusion occurs only at areas < difThresh
   double mdMeshAdaptMaxFlux; // For dynamic point addition: max ero flux rate
   double mdSc;				  // Threshold slope for nonlinear diffusion

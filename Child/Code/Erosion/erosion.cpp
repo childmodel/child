@@ -3567,7 +3567,9 @@ debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
   assert( mptr!=0 );
   
   // Read parameters needed from input file
-  kd = infile.ReadItem( kd, "KD" );  // Hillslope diffusivity coefficient
+  infile.ReadItem( kd_ts, "KD" );  // Hillslope diffusivity coefficient
+  kd = kd_ts.calc(0.);
+  //kd = infile.ReadItem( kd, "KD" );  // Hillslope diffusivity coefficient
   difThresh = infile.ReadItem( difThresh, "DIFFUSIONTHRESHOLD");
   bool optNonlinearDiffusion = infile.ReadBool( "OPT_NONLINEAR_DIFFUSION", false );
   if( optNonlinearDiffusion )
@@ -3819,6 +3821,7 @@ tErosion::tErosion( const tErosion& orig, tMesh<tLNode>* Ptr )
   : meshPtr(Ptr), bedErode(0), sedTrans(0), physWeath(0), chemWeath(0), runout(0),
     scour(0), deposit(0), DF_fsPtr(0), DF_Hyd_fsPtr(0),
     kd(orig.kd),                 // Hillslope transport (diffusion) coef
+    kd_ts(orig.kd_ts),
     difThresh(orig.difThresh),   // Diffusion occurs only at areas < difThresh
     mdMeshAdaptMaxFlux(orig.mdMeshAdaptMaxFlux), // For dynamic point addition: max ero flux rate
     mdSc(orig.mdSc),  // Threshold slope for nonlinear diffusion
@@ -5618,7 +5621,7 @@ void tErosion::DetachErode2(double dtg, tStreamNet *strmNet, double time,
  \*****************************************************************************/
 //#define kVerySmall 1e-6
 #define kEpsOver2 0.1
-void tErosion::Diffuse( double rt, bool noDepoFlag )
+void tErosion::Diffuse( double rt, bool noDepoFlag, double time )
 {
   tLNode * cn;
   tEdge * ce;
@@ -5631,6 +5634,8 @@ void tErosion::Diffuse( double rt, bool noDepoFlag )
 #ifdef TRACKFNS
   std::cout << "tErosion::Diffuse()" << std::endl;
 #endif
+	
+  kd = kd_ts.calc( time );
   
   if( kd==0 ) return;
   //initialize Qsd, which will record the total amount of diffused material
@@ -5782,7 +5787,7 @@ void tErosion::Diffuse( double rt, bool noDepoFlag )
 //#define kVerySmall 1e-6
 #define kEpsOver2 0.1
 #define kBeta 0.999    // Dz/Sc isn't allowed to go higher than this
-void tErosion::DiffuseNonlinear( double rt, bool noDepoFlag )
+void tErosion::DiffuseNonlinear( double rt, bool noDepoFlag, double time )
 {
   tLNode * cn;
   tEdge * ce;
@@ -5800,6 +5805,8 @@ void tErosion::DiffuseNonlinear( double rt, bool noDepoFlag )
 #ifdef TRACKFNS
   std::cout << "tErosion::DiffuseNonlinear()" << std::endl;
 #endif
+	
+  kd = kd_ts.calc( time );
   
   if( kd==0 ) return;
   
@@ -5968,6 +5975,8 @@ void tErosion::DiffuseNonlinearDepthDep( double rt, double time )
 #ifdef TRACKFNS
   std::cout << "tErosion::DiffuseNonlinear()" << std::endl;
 #endif
+	
+  kd = kd_ts.calc( time );
   
   if( kd==0 ) return;
   
