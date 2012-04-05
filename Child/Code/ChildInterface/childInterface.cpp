@@ -716,10 +716,10 @@ RunOneStorm()
 	    erosion->DiffuseNonlinearDepthDep( stormPlusDryDuration,
 					       time->getCurrentTime() );
 	  else
-	    erosion->DiffuseNonlinear( stormPlusDryDuration, optDiffuseDepo );
+	    erosion->DiffuseNonlinear( stormPlusDryDuration, optDiffuseDepo, time->getCurrentTime() );
 	}
       else
-	erosion->Diffuse( stormPlusDryDuration, optDiffuseDepo );
+	erosion->Diffuse( stormPlusDryDuration, optDiffuseDepo, time->getCurrentTime() );
     }
   
   //-------------VEGETATION---------------------------------------
