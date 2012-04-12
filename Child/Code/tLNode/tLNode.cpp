@@ -320,6 +320,7 @@ layerlist(),
 stratNode(0),
 qsubsurf(0.),
 netDownslopeForce(0.),
+is_moving_(false),
 public1(-1)
 {
   if (0) //DEBUG
@@ -341,6 +342,7 @@ layerlist(),
 stratNode(0),
 qsubsurf(0.),
 netDownslopeForce(0.),
+is_moving_(false),
 public1(-1)
 {
   char add[2], name[20];
@@ -592,6 +594,7 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
     netDownslopeForce(orig.netDownslopeForce),
     cumulative_ero_dep_(orig.cumulative_ero_dep_),
     cumulative_sed_xport_volume_(orig.cumulative_sed_xport_volume_),
+    is_moving_(orig.is_moving_),
     public1(orig.public1)
 {
 
@@ -649,6 +652,7 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
       netDownslopeForce = right.netDownslopeForce;
       cumulative_ero_dep_ = right.cumulative_ero_dep_;
       cumulative_sed_xport_volume_ = right.cumulative_sed_xport_volume_;
+	  is_moving_ = right.is_moving_;
       public1 = right.public1;
     }
   return *this;

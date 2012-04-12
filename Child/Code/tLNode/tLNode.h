@@ -496,6 +496,7 @@ public:
   inline double getDSlopeDt();
   inline bool Meanders() const;
   inline void setMeanderStatus( bool );
+  inline void setMovingStatus( bool is_moving ) { is_moving_ = is_moving; }
   inline void setHydrWidth( double );
   inline void setChanWidth( double );
   inline double getHydrWidth() const;
@@ -685,7 +686,7 @@ public:
   virtual void WarnSpokeLeaving(tEdge *);
   virtual void InitializeNode();
   virtual tArray< double > FuturePosn();
-  virtual bool isMobile() const { return Meanders();}
+  virtual bool isMobile() const { return Meanders() || is_moving_; }
   inline virtual bool flowThrough( tEdge const *e) const;
   virtual tNode *splitFlowEdge();
   inline virtual void setDownstrmNbr( tNode* ); // overrides tNode
@@ -749,6 +750,7 @@ protected:
   double cumulative_ero_dep_;    // Keeps track of ero/dep since last update (for external reporting)
   double cumulative_sed_xport_volume_;  // Keeps track of flux since last reset; qty is a volume (for external reporting)
   //double safetyFactor; // Factor of safety for node (landsliding)
+  bool is_moving_;       // Flag indicating whether the node is moving
 public:
   int public1; // a "public" member that can be used for various purpose
 };

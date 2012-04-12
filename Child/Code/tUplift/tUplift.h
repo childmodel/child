@@ -52,7 +52,7 @@ public:
 private:
   void UpliftUniform( tMesh<tLNode> *mp, double delt, double currentTime );
   void BlockUplift( tMesh<tLNode> *mp, double delt, double currentTime );
-  void StrikeSlip( tMesh<tLNode> *mp, double delt ) const;
+  void StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime );
   void FoldPropErf( tMesh<tLNode> *mp, double delt );
   void CosineWarp2D( tMesh<tLNode> *mp, double delt );
   void PropagatingFold( tMesh<tLNode> *mp, double delt ) const;
@@ -99,8 +99,10 @@ private:
   double rate2;          // Second rate (e.g., second structure)
   tTimeSeries rate_ts;   // Rate of uplift as a time series
   double faultPosition;  // Position of fault (y-location)
+  tTimeSeries faultPosition_ts;  // Fault position as a time series
   double positionParam1; // Another position parameter
   double slipRate;       // Slip rate for strike-slip motion and fault prop
+  tTimeSeries slipRate_ts;  // Slip rate as time series
   double blockMoveRate;   // Rate of movement of block
   double blockEdge_x;		  // Position of block edge (x-location)
   double blockWidth_x;      // Width of block in x

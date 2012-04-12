@@ -93,12 +93,12 @@ duration(0.)
     case k1:
       break;
     case k2:
-      faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
+      infile.ReadItem( faultPosition_ts, "FAULTPOS" );
       rate2 = infile.ReadItem( rate2, "SUBSRATE" );
       break;
     case k3:
-      faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
-      slipRate = infile.ReadItem( slipRate, "SLIPRATE" );
+      infile.ReadItem( faultPosition_ts, "FAULTPOS" );
+      infile.ReadItem( slipRate_ts, "SLIPRATE" );
       break;
     case k4:
       faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
@@ -257,7 +257,7 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
       break;
     case k3:
       BlockUplift( mp, delt, currentTime );
-      StrikeSlip( mp, delt );
+      StrikeSlip( mp, delt, currentTime );
       break;
     case k4:
       FoldPropErf( mp, delt );
@@ -359,6 +359,7 @@ void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt, double currentTime )
    tLNode *cn;
    tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
    rate = rate_ts.calc( currentTime );
+   faultPosition = faultPosition_ts.calc( currentTime );
    const double rise = rate*delt,
      sink = rate2*delt;
 
@@ -390,11 +391,12 @@ void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt, double currentTime )
 **           delt -- duration of uplift
 **
 \************************************************************************/
-void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt ) const
+void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
 {
    assert( mp!=0 );
    tLNode *cn;
    tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+   slipRate = slipRate_ts.calc( currentTime );
    double slip = slipRate*delt;
 
    std::cout << "StrikeSlip by " << slip << std::endl;
@@ -403,7 +405,8 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt ) const
    {
      if( cn->getY()<faultPosition )
      {
-        cn->setMeanderStatus( true );  // redundant: TODO
+		//cn->setMeanderStatus( true );  // redundant: TODO
+		cn->setMovingStatus( true );  // redundant: TODO
         cn->setNew2DCoords( cn->getX()+slip, cn->getY() );
      }
    }

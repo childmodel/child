@@ -1414,12 +1414,14 @@ void tStreamNet::FlowDirs()
 
 
 
+      if(0) {
       if(selectslope <= 0.0 && curnode->Meanders()){
       	std::cout<<"WARNING-Type 1, from tStreamNet::CalcSlopes....detected a meander node without positive drainage"<<std::endl;
         std::cout<<"ID= "<<curnode->getID()<<", X= "<<curnode->getX()<<", Y= "<<curnode->getY()<<", Z= "<<curnode->getZ()<<std::endl;
 
         //DebugShowNbrs( curnode );
         //exit(1);
+      }
       }
 
        // If the selected node has a positve slope
@@ -1429,7 +1431,7 @@ void tStreamNet::FlowDirs()
       }
       else{
          curnode->setFloodStatus( tLNode::kSink );
-         if( curnode->Meanders() ){
+         if( 0 && curnode->Meanders() ){
           std::cout<<"WARNING-Type 2, from tStreamNet::CalcSlopes....detected a meander node without positive drainage"<<std::endl;
           std::cout<<"ID= "<<curnode->getID()<<", X= "<<curnode->getX()<<", Y= "<<curnode->getY()<<", Z= "<<curnode->getZ()<<std::endl;
 
