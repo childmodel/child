@@ -3466,7 +3466,7 @@ DeleteNode( nodeListNode_t *nodPtr, kRepairMesh_t repairFlag,
   
 #if 1
   // Quintijn & Arnaud's debug code
-  if ( !allowMobileDeletion && node->isMobile() ) {
+  if ( !allowMobileDeletion && /*node->isMobile()*/ node->Meanders() ) {
     std::cout << "YYYYYY DeleteNode()in tMesh: About to delete a Meandering node: "
     << node->getX() << " " << node->getY() <<" ,ID= " << node->getID() << std::endl;
     ::abort();
@@ -5543,6 +5543,7 @@ CheckTriEdgeIntersect()
       for( i=0; i<3; i++ )
       {
         cn = static_cast<tSubNode *>(ct->pPtr(i));
+        //if( cn->isMobile() ) std::cout << "Triangle " << ct->getID() << " includes a moving node\n";
         if( cn->isMobile() ) break;
       }
       if( i!=3 ) triptrList.insertAtBack( ct );
@@ -5551,14 +5552,24 @@ CheckTriEdgeIntersect()
     for( ct = tpIter.FirstP(); !(triptrList.isEmpty());
         ct = triptrList.removeFromFront(), ct = tpIter.FirstP() )
     {
+      if(0) {
+        std::cout << "Tri " << ct->getID() << " with verts ";
+        for( int debug_ctr=0; debug_ctr<3; debug_ctr++ )
+          std::cout << ct->pPtr(debug_ctr)->getX() << "," << ct->pPtr(debug_ctr)->getY() << " ";
+        std::cout << endl;
+      }
       //std::cout<<"PA: check triangle "<<ct->id<<", w edges "
-      //<<ct->e[0]->id<<", "<<ct->e[1]->id<<", "<<ct->e[2]->id<<std::endl;
+      //         <<ct->e[0]->id<<", "<<ct->e[1]->id<<", "<<ct->e[2]->id<<std::endl;
       if( !NewTriCCW( ct ) )
       {
+        if(0) std::cout << "NewTriCCW says false\n";
         flipped = true;
         for( i=0, j=0; i<3; i++ )
         {
           if( ct->pPtr(i)->getBoundaryFlag() != kNonBoundary ) j++;
+        }
+        if(1) {
+          std::cout << " It has " << j << " boundary verts.\n";
         }
         if( j > 1 )
         {
@@ -5573,6 +5584,7 @@ CheckTriEdgeIntersect()
         }
         else
         {
+          if(0) std::cout << "In else clause\n";
           crossed = false;
           bool no_edge = true;
           bool useFuturePosn = false;

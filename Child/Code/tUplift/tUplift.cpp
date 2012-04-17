@@ -393,25 +393,27 @@ void tUplift::BlockUplift( tMesh<tLNode> *mp, double delt, double currentTime )
 \************************************************************************/
 void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
 {
-   assert( mp!=0 );
-   tLNode *cn;
-   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
-   slipRate = slipRate_ts.calc( currentTime );
-   double slip = slipRate*delt;
-
-   std::cout << "StrikeSlip by " << slip << std::endl;
-
-   for( cn=ni.FirstP(); !(ni.AtEnd()); cn=ni.NextP() )
-   {
-     if( cn->getY()<faultPosition )
-     {
-		//cn->setMeanderStatus( true );  // redundant: TODO
-		cn->setMovingStatus( true );  // redundant: TODO
-        cn->setNew2DCoords( cn->getX()+slip, cn->getY() );
-     }
-   }
-   mp->MoveNodes( 0., false );
-
+  assert( mp!=0 );
+  tLNode *cn;
+  tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+  slipRate = slipRate_ts.calc( currentTime );
+  double slip = slipRate*delt;
+  
+  std::cout << "StrikeSlip by " << slip << std::endl;
+  
+  for( cn=ni.FirstP(); !(ni.AtEnd()); cn=ni.NextP() )
+  {
+    if( cn->getY()<faultPosition )
+    {
+      cn->setMeanderStatus( true );  // redundant: TODO
+                                     //cn->setMovingStatus( true );
+      cn->setNew2DCoords( cn->getX()+slip, cn->getY() );
+    }
+    else
+      cn->setMovingStatus( false );
+  }
+  mp->MoveNodes( 0., false );
+  
 }
 
 /************************************************************************\

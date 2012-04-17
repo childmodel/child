@@ -1894,7 +1894,8 @@ void tLNode::InitializeNode()
   5/2003 AD
 \*******************************************************************/
 tArray< double > tLNode::FuturePosn() {
-  return Meanders() ? getNew2DCoords() : get2DCoords();
+  //return Meanders() ? getNew2DCoords() : get2DCoords();
+  return isMobile() ? getNew2DCoords() : get2DCoords();
 }
 
 /***********************************************************************\

@@ -895,7 +895,7 @@ inline void tLNode::setZOld( double right, double left )
 inline tArray< double >
 tLNode::getNew2DCoords() const
 {
-  return Meanders() ?
+  return isMobile() /*Meanders()*/ ?
     tArray< double >( chan.migration.newx, chan.migration.newy ):
     tArray< double >( x, y );
 }
@@ -903,7 +903,7 @@ tLNode::getNew2DCoords() const
 inline tArray< double >                                                   //tNode
 tLNode::getNew3DCoords() const
 {
-  return Meanders() ?
+  return isMobile() /*Meanders()*/ ?
     tArray< double >( chan.migration.newx, chan.migration.newy, z ):
     tArray< double >( x, y, z );
 }
@@ -944,7 +944,7 @@ inline void tLNode::RevertToOldCoords()
 
 inline void tLNode::UpdateCoords()
 {
-  if (Meanders()) {
+  if (isMobile()) {
     x = chan.migration.newx;
     y = chan.migration.newy;
   }
@@ -1477,7 +1477,7 @@ inline bool tLNode::NoMoreTracers() const
 inline void tLNode::ChangeZ( double val )
 {
    tNode::ChangeZ( val );
-   if( Meanders() ){
+   if( isMobile() /*Meanders()*/ ){
       if( chan.migration.xyzd[3] != 0.0 ){
          chan.migration.xyzd[2] += val;
       }

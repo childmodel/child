@@ -237,15 +237,24 @@ int NewTriCCW( tTriangle const *ct )
    cn = static_cast<tLNode *>(ct->pPtr(0));
    tArray< double > p0( cn->get2DCoords() );
 
-   if( cn->Meanders() ) p0 = cn->getNew2DCoords();
+   if( /*cn->Meanders()*/ cn->isMobile() ) p0 = cn->getNew2DCoords();
    cn = static_cast<tLNode *>(ct->pPtr(1));
    tArray< double > p1( cn->get2DCoords() );
-   if( cn->Meanders() ) p1 = cn->getNew2DCoords();
+   if( /*cn->Meanders()*/ cn->isMobile() ) p1 = cn->getNew2DCoords();
    cn = static_cast<tLNode *>(ct->pPtr(2));
    tArray< double > p2( cn->get2DCoords() );
-   if( cn->Meanders() ) p2 = cn->getNew2DCoords();
+   if( /*cn->Meanders()*/ cn->isMobile() ) p2 = cn->getNew2DCoords();
+  
    if( PointsCCW( p0, p1, p2 ) ) return 1;
-   else return 0;
+   else {
+     if( 0 ) {
+       std::cout << "Tri " << ct->getID() << std::endl;
+         std::cout << "p0=" << p0[0] << "," << p0[1] << " ";
+         std::cout << "p1=" << p1[0] << "," << p1[1] << " ";
+         std::cout << "p2=" << p2[0] << "," << p2[1] << std::endl;
+     }
+     return 0;
+   }
 }
 
 
