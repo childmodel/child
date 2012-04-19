@@ -1,6 +1,15 @@
-function m=cmovie(basenm,nframes)
+function m=cmovie(basenm,nframes,ax,ay,az,ac)
 % CMOVIE: animation of CHILD surface (or any other field) through time.
-%    Usage: m = cmovie( basenm, nframes )
+%    Usage: m = cmovie( basenm, nframes, ax, ay, az, ac )
+%
+% Parameters:
+%   basenm - base file name of CHILD run
+%   nframes - number of frames
+%   ax (optional) - extent of x-axis
+%   ay (optional) - extent of y-axis
+%   az (optional) - extent of z-axis
+%   ac (optional) - upper end of color axis
+%
 
 % Open files
 filesys='';
@@ -35,19 +44,22 @@ for i=1:nframes
   b = n(4,:);
 
   % Remove edge effects
-  z = cinterpedges( x, y, z, b );  % this removes edge effects for plotting
+  %z = cinterpedges( x, y, z, b );  % this removes edge effects for plotting
   
   % Plot
   trisurf(tri,x,y,z,z);
   
   % Set plotting stuff
-  axis([0 10000 0 10000 0 1000])
-  view(-30,60)
-  shading interp
+  if nargin>=5
+    axis([0 ax 0 ay 0 az])
+  end
+  if nargin>=6
+    caxis([0 ac])
+  end
+  %view(-30,60)
+  %shading interp
   %colormap pink
   %colorit(2)
-  caxis([-250 500])
-  %caxis([0 2000])
   
   % Capture the frame
   m(i)=getframe;
