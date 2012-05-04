@@ -393,9 +393,13 @@ SetRockErodyFromFile( const tInputFile &infile )
   vector<double> erody( nnodes );
   for( unsigned i=0; i<nnodes; i++ )
   {
+	int node_id;
+	double node_erody;
     if( erodyfile.eof() )
       ReportFatalError( "Reached EOF while reading erody file" );
-    erodyfile >> erody[i];
+	erodyfile >> node_id >> node_erody;
+	erody[node_id] = node_erody;
+	  //erodyfile >> erody[i];
   }
   
   // Set the erodibility field
