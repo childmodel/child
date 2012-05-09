@@ -180,10 +180,10 @@ RunOneStorm()
 	//detachment laws are being used.
 	if( optNonlinearDiffusion )
 		erosion->DiffuseNonlinear( storm->getStormDuration() + storm->interstormDur(),
-								   optDiffuseDepo );
+								   optDiffuseDepo, time->getCurrentTime() );
 	else
 		erosion->Diffuse( storm->getStormDuration() + storm->interstormDur(),
-						  optDiffuseDepo );
+						  optDiffuseDepo, time->getCurrentTime() );
 	
 	
 	if( optDetachLim )
