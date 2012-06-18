@@ -622,9 +622,13 @@ InActiveList( ListNodeType const * theNode )
 \**************************************************************************/
 template< class NodeType, class ListNodeType >
 int tMeshList< NodeType, ListNodeType >::
-CheckConsistency( const char *ListName ){
+CheckConsistency( const char *ListName )
+{
   NodeType *cl;
   tMeshListIter<NodeType, ListNodeType> Iter( this );
+  
+  // Check to see whether there are any non-active (boundary) elements in the
+  // active (interior) portion of the list
   int nactive = 0;
   for( cl=Iter.FirstP(); ; cl=Iter.NextP() ){
     if (!Iter.IsActive()){
@@ -640,12 +644,17 @@ CheckConsistency( const char *ListName ){
       abort();
     }
   }
+  
+  // Make sure the list "knows" it has the right # of elements
   if (nactive != this->getActiveSize()){
     std::cerr << "The " << ListName << " list contains " << nactive
 	      << " elements but 'getActiveSize()' gives "
 	      << this->getActiveSize() << ".\n";
     return 1;
   }
+  
+  // Check to see whether there are any active (interior) elements in the
+  // non-active (boundary) portion of the list  
   for( cl=Iter.FirstBoundaryP(); !(Iter.AtEnd()); cl=Iter.NextP() ){
     if (Iter.IsActive()){
       std::cerr << "Element #" << cl->getID()
