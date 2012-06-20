@@ -38,7 +38,7 @@
 **
 \************************************************************************/
 tUplift::tUplift_t tUplift::DecodeType(int type){
-  if( type < 0 || type > 17 )
+  if( type < 0 || type > 18 )
   {
     std::cerr << "I don't recognize the uplift type you asked for ("
     << type << ")\n"
@@ -60,7 +60,8 @@ tUplift::tUplift_t tUplift::DecodeType(int type){
     " 14 - Baselevel fall at open boundaries\n"
     " 15 - Moving block\n"
     " 16 - Moving sinusoid\n"
-    " 17 - Uplift with crustal thickening\n";
+    " 17 - Uplift with crustal thickening"
+    " 18 - Uplift and whole-landscape tilting\n";
     ReportFatalError( "Please specify a valid uplift type and try again." );
   }
   return static_cast<tUplift_t>(type);
@@ -90,15 +91,18 @@ duration(0.)
   rate = rate_ts.calc( 0.0 );      // For fns that don't use time series, set rate to rate at time zero
   switch( typeCode ) {
     case kNoUplift:
-    case k1:
+    case k1: // Uniform
       break;
-    case k2:
+    case k2: // "Block" with fault position and subsidence
       infile.ReadItem( faultPosition_ts, "FAULTPOS" );
       rate2 = infile.ReadItem( rate2, "SUBSRATE" );
       break;
-    case k3:
+    case k3: // Strike slip
       infile.ReadItem( faultPosition_ts, "FAULTPOS" );
       infile.ReadItem( slipRate_ts, "SLIPRATE" );
+      positionParam1 = infile.ReadDouble( "X_GRID_SIZE" );
+      opt_wrap_boundaries_ = infile.ReadBool( "SS_OPT_WRAP_BOUNDARIES" );
+      buffer_width_ = infile.ReadDouble( "SS_BUFFER_WIDTH" );
       break;
     case k4:
       faultPosition = infile.ReadItem( faultPosition, "FAULTPOS" );
@@ -227,6 +231,12 @@ duration(0.)
     case k17:
       faultPosition = infile.ReadDouble( "FAULTPOS", false );
       break;
+    case k18:
+      double tiltrate = infile.ReadDouble( "TILT_RATE" );
+      double orientation = infile.ReadDouble( "TILT_ORIENTATION" );
+      tilt_rate_x_ = tiltrate*cos( 3.14159 * orientation / 180.0 );
+      tilt_rate_y_ = tiltrate*sin( 3.14159 * orientation / 180.0 );
+      break;
   }
   
 }
@@ -302,6 +312,10 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
       break;
     case k17:
       UpliftAndThicken(mp,delt,currentTime);
+      break;
+    case k18:
+      UpliftUniform(mp,delt,currentTime);
+      Tilt(mp,delt,currentTime);
       break;
   }
   
@@ -401,18 +415,105 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
   
   std::cout << "StrikeSlip by " << slip << std::endl;
   
+  // Move the nodes laterally on one side of the fault
   for( cn=ni.FirstP(); !(ni.AtEnd()); cn=ni.NextP() )
   {
     if( cn->getY()<faultPosition )
     {
-      cn->setMeanderStatus( true );  // redundant: TODO
-                                     //cn->setMovingStatus( true );
+      cn->setMovingStatus( true );
       cn->setNew2DCoords( cn->getX()+slip, cn->getY() );
     }
     else
       cn->setMovingStatus( false );
   }
   mp->MoveNodes( 0., false );
+  
+  // If requested by user, wrap boundaries
+  if( opt_wrap_boundaries_ )
+  {
+    std::cout << "in opt wrap block\n" << std::flush;
+    
+    // When nodes go off the edge of the domain, move them to the other side.
+    // We do this by adding a copy on the opposite side, then deleting the
+    // original.
+    for( cn=ni.FirstP(); !(ni.AtEnd()); cn=ni.NextP() )
+    {
+      // If node has moved beyond left edge, move it to the right side.
+      if( cn->getX()<0.0 )
+      {
+        tLNode newnode( *cn );
+        
+        // Update the x coordinate (this "moves" it)
+        std::cout << "node " << cn->getPermID() << " is off left side.\n" << std::flush;
+        //cn->setX( cn->getX() + positionParam1 );  // positionParam1 is the length of grid domain in x
+        newnode.setX( newnode.getX() + positionParam1 );  // positionParam1 is the length of grid domain in x
+        
+        // Add a copy of the node on the right side
+        std::cout << "adding to right side.\n" << std::flush;
+        //mp->AddNode( *cn, kNoUpdateMesh, currentTime, kNoFlip );
+        mp->AddNode( newnode, kNoUpdateMesh, currentTime, kNoFlip );
+        
+        // Delete original
+        std::cout << "deleting original.\n" << std::flush;
+        mp->DeleteNode( cn );
+      }
+      
+      // If node has moved beyond right edge, move it to the left side.
+      if( cn->getX()>positionParam1 )
+      {
+        // Update the x coordinate (this "moves" it)
+        cn->setX( cn->getX() - positionParam1 );  // positionParam1 is the length of grid domain in x
+        
+        // Add a copy of the node on the left side
+        mp->AddNode( *cn, kUpdateMesh, currentTime, kFlip );
+        
+        // Delete original
+        mp->DeleteNode( cn );
+      }
+    }
+    
+    // Re-assign boundary status based on location. Nodes within buffer_width_
+    // of the left or right side are flagged as closed boundary nodes. Nodes 
+    // outside of these buffers are flagged as interior nodes.
+    for( cn=ni.FirstP(); !(ni.AtEnd()); cn=ni.NextP() )
+    {
+      // Check whether node is in the left-hand buffer zone
+      if( cn->getX() < buffer_width_ )
+      {
+        // If node isn't an open boundary, and isn't already flagged as a 
+        // closed boundary, set it to be a closed boundary and move it to the
+        // boundary portion of the node list.
+        if( cn->getBoundaryFlag()==kNonBoundary )
+        {
+          cn->setBoundaryFlag( kClosedBoundary );
+          mp->getNodeList()->moveToBack( cn );
+        }
+      }
+      // Check whether it is in right-hand buffer zone
+      else if( cn->getX() > ( positionParam1 - buffer_width_ ) )
+      {
+        // If node isn't an open boundary, and isn't already flagged as a 
+        // closed boundary, set it to be a closed boundary and move it to the
+        // boundary portion of the node list.
+        if( cn->getBoundaryFlag()==kNonBoundary )
+        {
+          cn->setBoundaryFlag( kClosedBoundary );
+          mp->getNodeList()->moveToBack( cn );
+        }          
+      }
+      else
+      {
+        // If node isn't an open boundary, and isn't already flagged as an
+        // interior node, change its status to interior and move it into the
+        // "active" portion of the node list.
+        if( cn->getBoundaryFlag()==kClosedBoundary )
+        {
+          cn->setBoundaryFlag( kNonBoundary );
+          mp->getNodeList()->moveToActiveBack( ni.NodePtr() );
+        }          
+      }
+    }  
+  }
   
 }
 
@@ -451,7 +552,7 @@ void tUplift::FoldPropErf( tMesh<tLNode> *mp, double delt )
    // uplift rate is negative (ie, subsidence occurs) where Y < pivot point.
    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
    {
-      uprate = rate * erf( foldParam * ( cn->getY() - faultPosition ) );
+      uprate = rate * (1.0 + erf( foldParam * ( cn->getY() - faultPosition ) ) );
       cn->ChangeZ( uprate*delt );
    }
 
@@ -1213,6 +1314,33 @@ void tUplift::UpliftAndThicken( tMesh<tLNode> *mp, double delt, double currentTi
       cn->setUplift( rate );
       cn->ThickenBottomLayer( rise );
     }
+  }
+}
+
+
+/************************************************************************\
+ **
+ **  tUplift::Tilt
+ **
+ **  Tilts the entire domain, including boundaries. The tilt pattern is
+ **  computed from tilt_rate_x_ and tilt_rate_y_, both in m/y/m.
+ **
+ **  Inputs:  mp -- pointer to the mesh
+ **           delt -- duration of uplift
+ **
+ \************************************************************************/
+void tUplift::Tilt( tMesh<tLNode> *mp, double delt, double currentTime )
+{
+  tLNode *cn;
+  tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+
+  double rate;
+  
+  for( cn=ni.FirstP(); !ni.AtEnd(); cn=ni.NextP() )
+  {
+    rate = tilt_rate_x_ * cn->getX() + tilt_rate_y_ * cn->getY();
+    cn->ChangeZ( rate*delt );
+    cn->setUplift( rate );
   }
 }
 

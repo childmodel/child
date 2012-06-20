@@ -68,6 +68,7 @@ private:
   void MovingBlock( tMesh<tLNode> *mp, double delt, double currentTime );
   void MovingSinusoid( tMesh<tLNode> *mp, double delt, double currentTime );
   void UpliftAndThicken( tMesh<tLNode> *mp, double delt, double currentTime );
+  void Tilt( tMesh<tLNode> *mp, double delt, double currentTime );
   
 private:
   typedef enum {
@@ -88,7 +89,8 @@ private:
     k14,
     k15,
     k16,
-    k17
+    k17,
+    k18
   } tUplift_t;
   
   static tUplift_t DecodeType(int);
@@ -102,6 +104,8 @@ private:
   tTimeSeries faultPosition_ts;  // Fault position as a time series
   double positionParam1; // Another position parameter
   double slipRate;       // Slip rate for strike-slip motion and fault prop
+  bool opt_wrap_boundaries_; // Option for wrapping boundaries w/ strike-slip motion
+  double buffer_width_;      // Width of buffer (boundary zone) for use in strike-slip boundary wrapping
   tTimeSeries slipRate_ts;  // Slip rate as time series
   double blockMoveRate;   // Rate of movement of block
   double blockEdge_x;		  // Position of block edge (x-location)
@@ -129,6 +133,8 @@ private:
   int miCurUpliftMapNum;  // Current uplift map number
   double mdNextUpliftMapTime; // Time at which to read next map
   double mdUpliftFrontGradient; // Horizontal gradient (dy/dx) of propagating uplift front
+  double tilt_rate_x_;    // tilt rate in x direction (m/yr/m)
+  double tilt_rate_y_;    // tilt rate in y direction (m/yr/m)
   
 private:
   tUplift();
