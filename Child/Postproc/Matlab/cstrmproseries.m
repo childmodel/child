@@ -100,15 +100,20 @@ for i=1:ts
   dy=dy.*dy;
   dist=sqrt(dx+dy);
   [mindist index]=min(dist);
-  figure(2)
+  %figure(2)
   [dist,h,xp,yp,sp,ap]=cfindstrmprofile( xyzb, dir, index, s, a );
   if max(dist) > distmax, distmax = max(dist); end
-  plot( dist, h )
+  plot( dist/1000.0, h )
   hold on
 
 fprintf('Maximum profile distance is %f\n',distmax);
   
 end
+
+set(gca,'fontsize',14);
+xlabel( 'Distance downstream (km)' )
+ylabel( 'Elevation (m)' )
+hold off
 
 
 
