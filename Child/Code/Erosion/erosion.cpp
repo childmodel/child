@@ -4791,7 +4791,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
     double inletSlope = strmNet->getInletSlope();
     
     //DEBUGGING 
-    if( 0 ) {
+    if( 1 ) {
       std::cout<<"inletSlope = "<< inletSlope <<std::endl;
       for( size_t i=0; i<cn->getNumg(); i++ )
         std::cout<<"sedfrac "<<i<<"="<<inletBedSizeFraction[i]<<std::endl;
@@ -4812,6 +4812,8 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
     // is used up
     do
     {
+      if(1) std::cout << "DetachErode: top of do loop\n" << std::flush;
+      
       // Zero out sed influx of all sizes
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
@@ -4905,6 +4907,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
       // NOTE - in this first loop we are only dealing with
       // totals for time-step calculations, however transport
       // rates for each size are also set within the function call.
+      if(1) std::cout << "DetachErode: estimating rates\n" << std::flush;
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
         depck=0.;
@@ -4980,6 +4983,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
       }//ends for( cn = ni.FirstP...
       
       //Find local time-step based on dzdt
+      if(1) std::cout << "DetachErode: finding time step size\n" << std::flush;
       dtmax = dtg/frac;
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
@@ -5037,6 +5041,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
       //At this point: we have drdt and qs for each node, plus dtmax
       
       // Do erosion/deposition
+      if(1) std::cout << "DetachErode: eroding\n" << std::flush;
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
         //need to recalculate cause qsin may change due to time step calc
@@ -5227,7 +5232,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
   }//end if rainrate-infilt>0
   
   
-  if(0) std::cout<<"ending detach erode"<<std::endl;
+  if(1) std::cout<<"ending detach erode\n"<<std::flush;
   
 }// End erosion algorithm
 
@@ -5636,6 +5641,7 @@ void tErosion::Diffuse( double rt, bool noDepoFlag, double time )
 #endif
 	
   kd = kd_ts.calc( time );
+  if(0) std::cout << "kd = " << kd << std::endl;
   
   if( kd==0 ) return;
   //initialize Qsd, which will record the total amount of diffused material
@@ -5649,9 +5655,11 @@ void tErosion::Diffuse( double rt, bool noDepoFlag, double time )
   // (Note: for a fixed mesh, this calculation only needs to be done once;
   // performance could be improved by having this block only called if
   // mesh has changed since last time through)
+  if(0) std::cout << "About to enter edge loop...\n" << std::flush;
   dtmax = rt;  // Initialize dtmax to total time rt
   for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
   {
+    assert( ce!=0 );
     if( 0 ) //DEBUG
     {
       std::cout << "In Diffuse(), large vedglen detected: " << ce->getVEdgLen() << std::endl;
@@ -5730,6 +5738,8 @@ void tErosion::Diffuse( double rt, bool noDepoFlag, double time )
     
     rt -= dtmax;
     if( dtmax>rt ) dtmax=rt;
+    
+    if(0) std::cout << "bottom of do loop in Diffuse()\n" << std::flush;
     
   } while( rt>0.0 );
   
