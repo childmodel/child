@@ -94,9 +94,11 @@ for i=1:ts
 
   distmax = 0.0;  % Maximum streamwise distance found so far
 
-  dx=xyzb(:,1)-x;
+  b=xyzb(:,4);
+  interior_nodes = find( b<1 );
+  dx=xyzb(interior_nodes,1)-x;
   dx=dx.*dx;
-  dy=xyzb(:,2)-y;
+  dy=xyzb(interior_nodes,2)-y;
   dy=dy.*dy;
   dist=sqrt(dx+dy);
   [mindist index]=min(dist);
