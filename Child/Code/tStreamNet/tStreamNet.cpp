@@ -183,7 +183,7 @@ mpParkerChannels(0)
       break;
     case kFinneganChannels:
     {
-      if(1) std::cout << "Finnegan law's chosen for channel width \n";
+      if(0) std::cout << "Finnegan law's chosen for channel width \n";
       kwds = infile.ReadItem( kwds, "HYDR_WID_COEFF_DS" );
       assert( kwds > 0 );
       kdds = infile.ReadItem( kdds, "HYDR_DEP_COEFF_DS" );
@@ -2597,7 +2597,7 @@ void tStreamNet::FlowDirs()
       tMesh< tLNode >::nodeList_t *nodeList = meshPtr->getNodeList();
       int nUnsortedNodes = nodeList->getActiveSize();  // Number not yet sorted
       tMesh< tLNode >::nodeListIter_t listIter( nodeList );
-      if(1) std::cout << "SortNodesByNetOrder, optMultiFlow=" << optMultiFlow << std::endl;
+      if(0) std::cout << "SortNodesByNetOrder, optMultiFlow=" << optMultiFlow << std::endl;
       
       //test
       /*std::cout << "BEFORE: " << std::endl;
@@ -2616,7 +2616,7 @@ void tStreamNet::FlowDirs()
         for( cn=listIter.FirstP(); listIter.IsActive(); cn=listIter.NextP() )
         {
           cn->ActivateSortTracer();
-          if(1) 
+          if(0) 
           {
             debug_int++;
             if( cn->getBoundaryFlag()!=kNonBoundary )
@@ -2628,11 +2628,11 @@ void tStreamNet::FlowDirs()
           }
         }
         
-        if(1) std::cout << "we found " << debug_int << " interior nodes; the list thinks it has " << nUnsortedNodes << " of them\n" << std::flush;
+        if(0) std::cout << "we found " << debug_int << " interior nodes; the list thinks it has " << nUnsortedNodes << " of them\n" << std::flush;
         
         do
         {
-          if(1) std::cout << "position 1\n" << std::flush;
+          if(0) std::cout << "position 1\n" << std::flush;
           
           // Send tracers downstream
           cn = listIter.FirstP();
@@ -2645,7 +2645,7 @@ void tStreamNet::FlowDirs()
             cn = listIter.NextP();
           }
           
-          if(1) std::cout << "position 2\n" << std::flush;
+          if(0) std::cout << "position 2\n" << std::flush;
           
           // Scan for any nodes that have no tracers, and move them to the
           // bottom of the list.
@@ -2790,7 +2790,7 @@ void tStreamNet::FlowDirs()
       tLNode *cn;
       tMesh< tLNode >::nodeListIter_t nIter( meshPtr->getNodeList() );
       
-      if(1) std::cout << "tStreamNet::FindHydrGeom()\n";
+      if(0) std::cout << "tStreamNet::FindHydrGeom()\n";
       
       // If rainfall and hence discharge varies in time, set flow width, depth
       // and roughness using power law functions of their bankfull values
@@ -2919,7 +2919,7 @@ void tStreamNet::FlowDirs()
      \*****************************************************************************/
     void tStreamNet::FindChanGeom()
     {
-      if(1) std::cout << "tStreamNet::FindChanGeom()\n";
+      if(0) std::cout << "tStreamNet::FindChanGeom()\n";
       
       if( miChannelType==kParkerChannels )
       {
