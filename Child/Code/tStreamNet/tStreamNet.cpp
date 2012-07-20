@@ -10,6 +10,7 @@
  **     - 6/01 added functions to implement Parker-Paola self-formed
  **       channel model GT
  **     - 2/02 changes to tParkerChannels, tInlet GT
+ **     - 12/06 integration of the Finnegan's law to calculate channel width MA 
  **
  **  $Id: tStreamNet.cpp,v 1.84 2006-11-12 23:39:46 childcvs Exp $
  */
@@ -24,12 +25,14 @@ tStreamNet::kChannelType_t tStreamNet::IntToChannelType( int c ){
   switch(c){
     case 1: return kRegimeChannels;
     case 2: return kParkerChannels;
+    case 3: return kFinneganChannels;   // Add MA
     default:
       std::cout << "You asked for channel geometry model number " << c
       << " but there is no such thing.\n"
       "Available models are:\n"
       " 1. Regime theory (empirical power-law scaling)\n"
-      " 2. Parker-Paola self-formed channel theory\n";
+      " 2. Parker-Paola self-formed channel theory\n"
+      " 3. Finnegan slope-dependent channel width model\n";
       ReportFatalError( "Unrecognized channel geometry model code.\n" );
   }
 }
@@ -58,7 +61,8 @@ tStreamNet::kChannelType_t tStreamNet::IntToChannelType( int c ){
  **       - GT added input of parameters for sinusoidal variation in
  **         infiltration capacity, 7/20/98.
  **       - GT commented out mndrchngprob, which appears to be unused, 6/99
- \**************************************************************************/
+ **       - MA added the case kFinneganChannels in switch(miChannelType) block, 12/06
+\**************************************************************************/
 
 tStreamNet::tStreamNet( tMesh< tLNode > &meshRef, tStorm &storm,
                        const tInputFile &infile )
@@ -176,6 +180,18 @@ mpParkerChannels(0)
       break;
     case kParkerChannels:
       mpParkerChannels = new tParkerChannels( infile );
+      break;
+    case kFinneganChannels:
+    {
+      if(1) std::cout << "Finnegan law's chosen for channel width \n";
+      kwds = infile.ReadItem( kwds, "HYDR_WID_COEFF_DS" );
+      assert( kwds > 0 );
+      kdds = infile.ReadItem( kdds, "HYDR_DEP_COEFF_DS" );
+      ewds = infile.ReadItem( ewds, "HYDR_WID_EXP_DS" );
+      edds = infile.ReadItem( edds, "HYDR_DEP_EXP_DS" );
+      edstn = infile.ReadItem( edstn, "HYDR_DEP_EXP_STN" );
+      eslope = infile.ReadItem( eslope, "HYDR_SLOPE_EXP"); // Slope exponent (to add into .in file) (MA)
+    }
       break;
   }
   
@@ -2751,6 +2767,18 @@ void tStreamNet::FlowDirs()
      **               This allows us to retain the power-law regime functions for
      **               at-a-station values while using Parker for bankfull
      **               conditions. Also moved the if-else out of the node loop. (GT)
+     **       - 12/06 MA: channel width can be calculated using Finnegan's equation
+     **                         W=k*(Q^0.375)*(S^(-0.1875))
+     **               Reference: Finnegan, N. J., Roe, G., Montgomery, D. R., and
+     **               Hallet, B., 2005, Controls on the channel width of rivers:
+     **               Implications for modelling fluvial incision of bedrock,
+     **               Geology, v. 33, p229-232.
+     **               TO USE THE EQUATION:
+     **               - CHAN_GEOM_MODEL = 3,
+     **               - HYDR_WIDTH_COEFF_DS = k in the equation,
+     **               - HYDR_WID_EXP_DS = 0.375,
+     **               - HYDR_WID_EXP_STN = 0.375,
+     **               - HYDR_SLOPE_EXP = -0.1875 (parameter "eslope").
      **
      \*****************************************************************************/
     void tStreamNet::FindHydrGeom()
@@ -2810,9 +2838,15 @@ void tStreamNet::FlowDirs()
           //based on the channel width "downstream":
           if( cn->getQ()>0.0 )
           {
+            // Convert discharge from m3/yr to m3/s
             qpsec = cn->getQ()/SECPERYEAR;
-            width = pow(cn->getChanWidth(), widpow) * kwdspow
-            * pow(qpsec, ewstn);
+            
+            // Calculate width using either a discharge power law, or the
+            // Finnegan slope-discharge equation
+            if( miChannelType==kFinneganChannels && cn->calcSlope()!=0 )
+              width = pow(cn->getChanWidth(), widpow) * kwdspow * pow(qpsec, ewstn) * pow(cn->calcSlope(), eslope);
+            else
+              width = pow(cn->getChanWidth(), widpow) * kwdspow * pow(qpsec, ewstn);
             cn->setHydrWidth( width );
             depth = pow(cn->getChanDepth(), deppow) * kddspow
             * pow(qpsec, edstn);
@@ -2916,10 +2950,22 @@ void tStreamNet::FlowDirs()
         // current discharge will be used instead.
         qbf = cn->getDrArea()*bankfullevent;
         if( !qbf ) qbf = cn->getQ()/SECPERYEAR;  // q is in m^3/s
-        width = kwds * pow(qbf, ewds);
+        
+        // Calculate channel width using either discharge power-law or
+        // slope-discharge power-law
+        if( miChannelType==kFinneganChannels  && cn->calcSlope()!=0 )
+        {
+          width = kwds * pow(qbf, ewds) * pow(cn->calcSlope(), eslope);
+        }
+        else
+          width = kwds * pow(qbf, ewds);
+          
+        // Calculate depth, roughness, and lambda
         depth = kdds * pow(qbf, edds);
         rough = knds * pow(qbf, ends);
         lambda = klambda * pow(qbf, elambda);
+        
+        // Assign all these to the current node, and calculate its slope
         cn->setChanWidth( width );
         cn->setChanDepth( depth );
         cn->setChanRough( rough );
