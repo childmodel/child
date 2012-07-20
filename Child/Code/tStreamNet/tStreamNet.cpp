@@ -2883,7 +2883,7 @@ void tStreamNet::FlowDirs()
         }
       }
       
-      if (1) //DEBUG
+      if (0) //DEBUG
         std::cout << "done tStreamNet::FindHydrGeom" << std::endl;
     }
     
