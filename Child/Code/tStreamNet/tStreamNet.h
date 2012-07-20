@@ -28,6 +28,8 @@
 **   - added option to tInlet to have sediment influx calculated for each
 **     storm, based on a prescribed slope and bed grain-size distribution.
 **     (GT 5/06)
+**   - added kFinneganChannels and eslope parameters to calculate
+**     channel width using Finnegan's equation (MA 12/06)
 **
 **  $Id: tStreamNet.h,v 1.65 2006-11-12 23:39:46 childcvs Exp $
 */
@@ -193,6 +195,11 @@ inline tParkerChannels::tParkerChannels( const tParkerChannels &orig )
 **   - 6/01 GT added miChannelType and mpParkerChannels parameters to
 **     implement alternative "Parker Channels"
 **     (see new class tParkerChannels)
+**   - 12/06 MA added kFinneganChannels and eslope parameters to calculate
+**     channel width using Finnegan's equation: W=k*(Q^0.375)*(S^(-0.1875)).
+**     Reference: Finnegan, N. J., Roe, G., Montgomery, D. R., and Hallet, B.,
+**     2005, Controls on the channel width of rivers:  Implications for
+**     modelling fluvial incision of bedrock, Geology, v. 33, p229-232.
 **
 */
 /**************************************************************************/
@@ -288,7 +295,8 @@ protected:
 
     typedef enum {
       kRegimeChannels = 1,
-      kParkerChannels = 2
+      kParkerChannels = 2,
+      kFinneganChannels = 3
     } kChannelType_t;
     static kChannelType_t IntToChannelType( int );
 
@@ -301,6 +309,7 @@ protected:
     double kdds, edds, edstn;//coefs & exps for dwnstrm & at-a-stn hydr. depth
     double knds, ends, enstn;//coefs & exps for ds & at-a-stn hydr. roughness
     double klambda, elambda; //coef & exp for downstrm bank roughness length
+    double eslope;//slope exponent for Finnegan's law (Channel Width), add MA.
     double rainrate;      // current rainfall rate
     double bankfullevent; // rainfall rate corresponding to bankfull event
     double trans;         // soil transmissivity
@@ -308,7 +317,7 @@ protected:
     double soilStore;     // soil water storage, depth equiv (m)
     tInlet inlet;         // inlet
     bool optSinVarInfilt;  // opt for sinusoidal variation in infilt cap
-    kChannelType_t miChannelType; // code for type of channels: "regime", "parker"
+    kChannelType_t miChannelType; // code for type of channels: "regime", "parker", "finnegan"
     tParkerChannels *mpParkerChannels;  // -> tParkerChannels object
     double infilt_dev;    // max +/- variation from mean infilt cap
     double infilt0;    // mean infilt cap
