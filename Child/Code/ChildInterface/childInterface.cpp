@@ -738,7 +738,7 @@ RunOneStorm()
 #undef NEWVEG
   
   //-------------FLUVIAL------------------------------------------
-  if(1) std::cout << "Calculating fluvial erosion and transport ...\n" << std::flush;
+  if(0) std::cout << "Calculating fluvial erosion and transport ...\n" << std::flush;
   if( !optNoFluvial )
   {
     if( optDetachLim )
@@ -765,7 +765,7 @@ RunOneStorm()
                                  time->getCurrentTime() );
   }
   
-  if(1) //DEBUG
+  if(0) //DEBUG
     std::cout << "Erosion::Done.." << std::flush;
 	
   
