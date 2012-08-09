@@ -1,0 +1,347 @@
+\begin{thebibliography}{60}
+\providecommand{\natexlab}[1]{#1}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
+  \providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
+  \urlstyle{rm}\Url}\fi
+
+\bibitem[{\textit{Ahnert}(1971)}]{ahnert1971general}
+Ahnert, F. (1971), A general and comprehensive theoretical model of slope
+  profile development.
+
+\bibitem[{\textit{Ahnert}(1976)}]{ahnert1976}
+Ahnert, F. (1976), Brief description of a comprehensive three-dimensional
+  process-response model of landform development, \textit{Zeitschrift f\&uuml;r
+  Geomorfologie, Supplementband}, \textit{25}, 29--49.
+
+\bibitem[{\textit{Amos and Burbank}(2007)}]{amos2007channel}
+Amos, C., and D.~Burbank (2007), Channel width response to differential uplift,
+  \textit{Journal of geophysical research}, \textit{112}(F2), F02,010.
+
+\bibitem[{\textit{Attal et~al.}(2008)\textit{Attal, Tucker, Whittaker, Cowie,
+  and Roberts}}]{attal2008modeling}
+Attal, M., G.~E. Tucker, A.~C. Whittaker, P.~A. Cowie, and G.~P. Roberts
+  (2008), Modeling fluvial incision and transient landscape evolution:
+  Influence of dynamic channel adjustment, \textit{Journal of Geophysical
+  Research}, \textit{113}, F03,013.
+
+\bibitem[{\textit{Beaumont et~al.}(1992)\textit{Beaumont, Fullsack, and
+  Hamilton}}]{beaumont1992erosional}
+Beaumont, C., P.~Fullsack, and J.~Hamilton (1992), {Erosional control of active
+  compressional orogens}, \textit{Thrust tectonics}, \textit{99}, 1--18.
+
+\bibitem[{\textit{Birnir et~al.}(2001)\textit{Birnir, Smith, and
+  Merchant}}]{birnir2001scaling}
+Birnir, B., T.~Smith, and G.~Merchant (2001), The scaling of fluvial
+  landscapes, \textit{Computers \& geosciences}, \textit{27}(10), 1189--1216.
+
+\bibitem[{\textit{Braun and Sambridge}(1997)}]{braun1997modelling}
+Braun, J., and M.~Sambridge (1997), Modelling landscape evolution on geological
+  time scales: a new method based on irregular spatial discretization,
+  \textit{Basin Research}, \textit{9}, 27--52.
+
+\bibitem[{\textit{Carretier and Lucazeau}(2005)}]{carretier2005does}
+Carretier, S., and F.~Lucazeau (2005), {How does alluvial sedimentation at
+  range fronts modify the erosional dynamics of mountain catchments?},
+  \textit{Basin Research}, \textit{17}(3), 361--381.
+
+\bibitem[{\textit{Chase}(1992)}]{chase1992fluvial}
+Chase, C.~G. (1992), Fluvial landsculpting and the fractal dimension of
+  topography, \textit{Geomorphology}, \textit{5}, 39--57.
+
+\bibitem[{\textit{Clevis et~al.}(2006)\textit{Clevis, Tucker, Lancaster,
+  Desitter, Gasparini, and Lock}}]{clevis2006simple}
+Clevis, Q., G.~Tucker, S.~Lancaster, A.~Desitter, N.~Gasparini, and G.~Lock
+  (2006), A simple algorithm for the mapping of tin data onto a static grid:
+  Applied to the stratigraphic simulation of river meander deposits,
+  \textit{Computers \& geosciences}, \textit{32}(6), 749--766.
+
+\bibitem[{\textit{Clevis et~al.}({2006})\textit{Clevis, Tucker, Lock,
+  Lancaster, Gasparini, Desitter, and Bras}}]{clevis2006geoarchaeological}
+Clevis, Q., G.~E. Tucker, G.~Lock, S.~T. Lancaster, N.~Gasparini, A.~Desitter,
+  and R.~L. Bras ({2006}), {Geoarchaeological simulation of meandering river
+  deposits and settlement distributions: A three-dimensional approach},
+  \textit{{Geoarchaeology}}, \textit{{21}}({8}), {843--874},
+  \doi{{10.1002/gea.20142}}.
+
+\bibitem[{\textit{Collins et~al.}({2004})\textit{Collins, Bras, and
+  Tucker}}]{collins2004modeling}
+Collins, D., R.~Bras, and G.~Tucker ({2004}), {Modeling the effects of
+  vegetation-erosion coupling on landscape evolution}, \textit{{Journal of
+  Geophysical Research---Earth Surface}}, \textit{{109}}({F3}),
+  \doi{{10.1029/2003JF000028}}.
+
+\bibitem[{\textit{Coulthard et~al.}(1996)\textit{Coulthard, Kirkby, and
+  Macklin}}]{coulthard1996cellular}
+Coulthard, T., M.~Kirkby, and M.~Macklin (1996), {A cellular automaton
+  landscape evolution model}, in \textit{Proceedings of the First International
+  Conference on GeoComputation}, vol.~1, pp. 248--81.
+
+\bibitem[{\textit{Crave and Davy}(2001)}]{crave2001stochastic}
+Crave, A., and P.~Davy (2001), A stochastic 'precipiton' model for simulating
+  erosion/sedimentation dynamics, \textit{Computers and Geosciences},
+  \textit{27}, 815--827.
+
+\bibitem[{\textit{Crosby et~al.}({2007})\textit{Crosby, Whipple, Gasparini, and
+  Wobus}}]{crosby2007formation}
+Crosby, B.~T., K.~X. Whipple, N.~M. Gasparini, and C.~W. Wobus ({2007}),
+  {Formation of fluvial hanging valleys: Theory and simulation},
+  \textit{{JOURNAL OF GEOPHYSICAL RESEARCH-EARTH SURFACE}},
+  \textit{{112}}({F3}), \doi{{10.1029/2006JF000566}}.
+
+\bibitem[{\textit{Culling}(1963)}]{culling1963soil}
+Culling, W. (1963), Soil creep and the development of hillside slopes,
+  \textit{The Journal of Geology}, pp. 127--161.
+
+\bibitem[{\textit{Densmore et~al.}(1998)\textit{Densmore, Ellis, and
+  Anderson}}]{densmore1998landsliding}
+Densmore, A.~L., M.~A. Ellis, and R.~S. Anderson (1998), Landsliding and the
+  evolution of normal-fault-bounded mountains, \textit{Journal of Geophysical
+  Research}, \textit{103}, 15,203--15,219.
+
+\bibitem[{\textit{DiBiase and Whipple}(2011)}]{dibiase2011influence}
+DiBiase, R., and K.~Whipple (2011), The influence of erosion thresholds and
+  runoff variability on the relationships among topography, climate, and
+  erosion rate, \textit{Journal of Geophysical Research}, \textit{116}(F4),
+  F04,036.
+
+\bibitem[{\textit{Duvall et~al.}(2004)\textit{Duvall, Kirby, and
+  Burbank}}]{duvall2004tectonic}
+Duvall, A., E.~Kirby, and D.~Burbank (2004), Tectonic and lithologic controls
+  on bedrock channel profiles and processes in coastal california, \textit{J.
+  Geophys. Res}, \textit{109}(10.1029).
+
+\bibitem[{\textit{Fagherazzi et~al.}(2002)\textit{Fagherazzi, Howard, and
+  Wiberg}}]{fagherazzi2002implicit}
+Fagherazzi, S., A.~Howard, and P.~Wiberg (2002), {An implicit finite difference
+  method for drainage basin evolution}, \textit{Water Resources Research},
+  \textit{38}(7), 21.
+
+\bibitem[{\textit{Flores-Cervantes et~al.}(2006)\textit{Flores-Cervantes,
+  Istanbulluoglu, and Bras}}]{flores2006development}
+Flores-Cervantes, H., E.~Istanbulluoglu, and R.~L. Bras (2006), Development of
+  gullies on the landscape: A model of headcut retreat resulting from plunge
+  pool erosion, \textit{Journal of Geophysical Research}, \textit{111},
+  F01,010.
+
+\bibitem[{\textit{Garcia-Castellanos}(2002)}]{garcia2002interplay}
+Garcia-Castellanos, D. (2002), Interplay between lithospheric flexure and river
+  transport in foreland basins, \textit{Basin Research}, \textit{14}(2),
+  89--104.
+
+\bibitem[{\textit{Gasparini et~al.}(1999)\textit{Gasparini, Tucker, and
+  Bras}}]{gasparini1999downstream}
+Gasparini, N., G.~Tucker, and R.~Bras (1999), {Downstream fining through
+  selective particle sorting in an equilibrium drainage network},
+  \textit{Geology}, \textit{27}(12), 1079.
+
+\bibitem[{\textit{Gasparini et~al.}({2004})\textit{Gasparini, Tucker, and
+  Bras}}]{gasparini2004network}
+Gasparini, N., G.~Tucker, and R.~Bras ({2004}), {Network-scale dynamics of
+  grain-size sorting: Implications for downstream fining, stream-profile
+  concavity, and drainage basin morphology}, \textit{{EARTH SURFACE PROCESSES
+  AND LANDFORMS}}, \textit{{29}}({4}), {401--421}, \doi{{10.1002/esp.1031}}.
+
+\bibitem[{\textit{Gasparini et~al.}({2007})\textit{Gasparini, Whipple, and
+  Bras}}]{gasparini2007predictions}
+Gasparini, N.~M., K.~X. Whipple, and R.~L. Bras ({2007}), {Predictions of
+  steady state and transient landscape morphology using sediment-flux-dependent
+  river incision models}, \textit{{JOURNAL OF GEOPHYSICAL RESEARCH-EARTH
+  SURFACE}}, \textit{{112}}({F3}), \doi{{10.1029/2006JF000567}}.
+
+\bibitem[{\textit{Gilbert}(1877)}]{gilbert1877report}
+Gilbert, G. (1877), {Report on the geology of the Henry Mountains: US Geog. and
+  Geol}, \textit{Survey, Rocky Mtn. Region}, \textit{160}.
+
+\bibitem[{\textit{Herman and Braun}(2006)}]{herman2006fluvial}
+Herman, F., and J.~Braun (2006), {Fluvial response to horizontal shortening and
+  glaciations: a study in the Southern Alps of New Zealand}, \textit{Journal of
+  Geophysical Research-Earth Surface}, \textit{111}(F1), F01,008.
+
+\bibitem[{\textit{Herman and Braun}(2008)}]{herman2008evolution}
+Herman, F., and J.~Braun (2008), {Evolution of the glacial landscape of the
+  Southern Alps of New Zealand: Insights from a glacial erosion model},
+  \textit{Journal of Geophysical Research-Earth Surface}, \textit{113}(F2),
+  F02,009.
+
+\bibitem[{\textit{Herman et~al.}(2007)\textit{Herman, Braun, and
+  Dunlap}}]{herman2007tectonomorphic}
+Herman, F., J.~Braun, and W.~Dunlap (2007), {Tectonomorphic scenarios in the
+  Southern Alps of New Zealand}, \textit{Journal of Geophysical Research-Solid
+  Earth}, \textit{112}(B4), B04,201.
+
+\bibitem[{\textit{Howard}(1971)}]{howard1971simulation}
+Howard, A. (1971), Simulation model of stream capture, \textit{Geological
+  Society of America Bulletin}, \textit{82}(5), 1355--1376.
+
+\bibitem[{\textit{Howard}(1994)}]{howard1994detachment}
+Howard, A.~D. (1994), A detachment-limited model of drainage basin evolution,
+  \textit{Water Resources Research}, \textit{30}(7), 2261--2285.
+
+\bibitem[{\textit{Huang and Niemann}(2006)}]{huang2006evaluation}
+Huang, X., and J.~Niemann (2006), {An evaluation of the geomorphically
+  effective event for fluvial processes over long periods}, \textit{Journal of
+  Geophysical Research}, \textit{111}(F3), F03,015.
+
+\bibitem[{\textit{Istanbulluoglu and
+  Bras}(2005)}]{istanbulluoglu2005vegetation}
+Istanbulluoglu, E., and R.~L. Bras (2005), Vegetation-modulated landscape
+  evolution: Effects of vegetation on landscape processes, drainage density,
+  and topography, \textit{Journal of Geophysical Research}, \textit{110},
+  F02,012.
+
+\bibitem[{\textit{Istanbulluoglu et~al.}(2005)\textit{Istanbulluoglu, Bras,
+  Flores-Cervantes, and Tucker}}]{istanbulluoglu2005implications}
+Istanbulluoglu, E., R.~L. Bras, H.~Flores-Cervantes, and G.~E. Tucker (2005),
+  Implications of bank failures and fluvial erosion for gully development:
+  Field observations and modeling, \textit{Journal of Geophysical Research},
+  \textit{110}, F01,014.
+
+\bibitem[{\textit{Kirkby}(1971)}]{kirkby1971hillslope}
+Kirkby, M. (1971), {Hillslope process-response models based on the continuity
+  equation}, \textit{Inst. Br. Geogr. Spec. Publ}, \textit{3}, 15--30.
+
+\bibitem[{\textit{Lancaster et~al.}(2003)\textit{Lancaster, Hayes, and
+  Grant}}]{lancaster2003effects}
+Lancaster, S., S.~Hayes, and G.~Grant (2003), {Effects of wood on debris flow
+  runout in small mountain watersheds}, \textit{Water Resources Research},
+  \textit{39}(6), 1168.
+
+\bibitem[{\textit{Lav{\'e} and Avouac}(2001)}]{lave2001fluvial}
+Lav{\'e}, J., and J.~Avouac (2001), {Fluvial incision and tectonic uplift
+  across the Himalayas of central Nepal}, \textit{Journal of Geophysical
+  Research}, \textit{106}(B11), 26,561.
+
+\bibitem[{\textit{Mitas and Mitasova}(1998)}]{mitas1998distributed}
+Mitas, L., and H.~Mitasova (1998), {Distributed soil erosion simulation for
+  effective erosion prevention}, \textit{Water Resources Research},
+  \textit{34}(3), 505--516.
+
+\bibitem[{\textit{Murray and Paola}(1994)}]{murray1994cellular}
+Murray, A., and C.~Paola (1994), {A cellular model of braided rivers},
+  \textit{Nature}, \textit{371}(6492), 54--57.
+
+\bibitem[{\textit{Perron}(2011)}]{perron2011numerical}
+Perron, J. (2011), Numerical methods for nonlinear hillslope transport laws,
+  \textit{Journal of Geophysical Research}, \textit{116}(F2), F02,021.
+
+\bibitem[{\textit{Press et~al.}(2007)\textit{Press, Teukolsky, Vetterling, and
+  Flannery}}]{press2007numerical}
+Press, W., S.~Teukolsky, W.~Vetterling, and B.~Flannery (2007),
+  \textit{{Numerical recipes: the art of scientific computing}}, Cambridge Univ
+  Pr.
+
+\bibitem[{\textit{Sch{\"a}uble et~al.}(2008)\textit{Sch{\"a}uble, Marinoni, and
+  Hinderer}}]{schauble2008gis}
+Sch{\"a}uble, H., O.~Marinoni, and M.~Hinderer (2008), A gis-based method to
+  calculate flow accumulation by considering dams and their specific operation
+  time, \textit{Computers \& Geosciences}, \textit{34}(6), 635--646.
+
+\bibitem[{\textit{Schoorl et~al.}(2002)\textit{Schoorl, Veldkamp, and
+  Bouma}}]{schoorl2002modeling}
+Schoorl, J., A.~Veldkamp, and J.~Bouma (2002), {Modeling water and soil
+  redistribution in a dynamic landscape context}, \textit{Soil Science Society
+  of America Journal}, \textit{66}(5), 1610.
+
+\bibitem[{\textit{Snyder et~al.}(2003)\textit{Snyder, Whipple, Tucker, and
+  Merritts}}]{snyder2003importance}
+Snyder, N., K.~Whipple, G.~Tucker, and D.~Merritts (2003), Importance of a
+  stochastic distribution of floods and erosion thresholds in the bedrock river
+  incision problem, \textit{Journal of Geophysical Research}, \textit{108}(B2),
+  2117.
+
+\bibitem[{\textit{S\'{o}lyom and Tucker}(2004)}]{solyom2004effect}
+S\'{o}lyom, P., and G.~Tucker (2004), {Effect of limited storm duration on
+  landscape evolution, drainage basin geometry, and hydrograph shapes},
+  \textit{Journal of Geophysical Research}, \textit{109}, 13.
+
+\bibitem[{\textit{Tucker}({2004})}]{tucker2004drainage}
+Tucker, G. ({2004}), {Drainage basin sensitivity to tectonic and climatic
+  forcing: Implications of a stochastic model for the role of entrainment and
+  erosion thresholds}, \textit{Earth Surface Processes and Landforms},
+  \textit{{29}}({2}), {185--205}, \doi{{10.1002/esp.1020}}.
+
+\bibitem[{\textit{Tucker and Bras}(2000)}]{tucker2000stochastic}
+Tucker, G.~E., and R.~L. Bras (2000), A stochastic approach to modeling the
+  role of rainfall variability in drainage basin evolution, \textit{Water
+  Resources Research}, \textit{36}(7), 1953--1964.
+
+\bibitem[{\textit{Tucker and Hancock}(2010)}]{tucker2010modelling}
+Tucker, G.~E., and G.~R. Hancock (2010), Modelling landscape evolution,
+  \textit{Earth Surface Processes and Landforms}, \textit{46}, 28--50.
+
+\bibitem[{\textit{Tucker and Slingerland}(1994)}]{tucker1994erosional}
+Tucker, G.~E., and R.~L. Slingerland (1994), Erosional dynamics, flexural
+  isostasy, and long-lived escarpments: A numerical modeling study,
+  \textit{Journal of Geophysical Research}, \textit{99}, 12,229--12,243.
+
+\bibitem[{\textit{Tucker et~al.}(2001{\natexlab{a}})\textit{Tucker, Lancaster,
+  Gasparini, Bras, and Rybarczyk}}]{tucker2001object}
+Tucker, G.~E., S.~T. Lancaster, N.~M. Gasparini, R.~L. Bras, and S.~M.
+  Rybarczyk (2001{\natexlab{a}}), An object-oriented framework for hydrologic
+  and geomorphic modeling using triangular irregular networks,
+  \textit{Computers and Geosciences}, \textit{27}, 959--973.
+
+\bibitem[{\textit{Tucker et~al.}(2001{\natexlab{b}})\textit{Tucker, Lancaster,
+  Gasparini, and Bras}}]{tucker2001channel}
+Tucker, G.~E., S.~T. Lancaster, N.~M. Gasparini, and R.~L. Bras
+  (2001{\natexlab{b}}), {The Channel-Hillslope Integrated Landscape Development
+  Model (CHILD)}, in \textit{Landscape Erosion and Evolution Modeling}, edited
+  by R.~S. Harmon and W.~W. Doe, pp. 349--388, Kluwer Press, Dordrecht.
+
+\bibitem[{\textit{Turowski et~al.}(2009)\textit{Turowski, Lague, Hovius
+  et~al.}}]{turowski2009response}
+Turowski, J., D.~Lague, N.~Hovius, et~al. (2009), Response of bedrock channel
+  width to tectonic forcing: Insights from a numerical model, theoretical
+  considerations, and comparison with field data, \textit{J. Geophys. Res},
+  \textit{114}, F03,016.
+
+\bibitem[{\textit{Whipple and Tucker}(1999)}]{whipple1999dynamics}
+Whipple, K.~X., and G.~E. Tucker (1999), Dynamics of the stream-power river
+  incision model: Implications for height limits of mountain ranges, landscape
+  response timescales, and research needs, \textit{Journal of Geophysical
+  Research}, \textit{104}, 17,661--17,674.
+
+\bibitem[{\textit{Whipple and Tucker}(2002)}]{whipple2002implications}
+Whipple, K.~X., and G.~E. Tucker (2002), Implications of
+  sediment-flux-dependent river incision models for landscape evolution,
+  \textit{Journal of Geophysical Research}, \textit{107}, doi
+  10.1029/2000JB000044.
+
+\bibitem[{\textit{Whittaker et~al.}(2007)\textit{Whittaker, Cowie, Attal,
+  Tucker, and Roberts}}]{whittaker2007bedrock}
+Whittaker, A., P.~Cowie, M.~Attal, G.~Tucker, and G.~Roberts (2007), Bedrock
+  channel adjustment to tectonic forcing: Implications for predicting river
+  incision rates, \textit{Geology}, \textit{35}(2), 103.
+
+\bibitem[{\textit{Willgoose et~al.}(1991)\textit{Willgoose, Bras, and
+  Rodriguez-Iturbe}}]{willgoose1991coupled}
+Willgoose, G., R.~L. Bras, and I.~Rodriguez-Iturbe (1991), A coupled channel
+  network growth and hillslope evolution model, 1, theory, \textit{Water
+  Resources Research}, \textit{27}(7), 1671--1684.
+
+\bibitem[{\textit{Wobus et~al.}(2006)\textit{Wobus, Tucker, and
+  Anderson}}]{wobus2006self}
+Wobus, C., G.~Tucker, and R.~Anderson (2006), {Self-formed bedrock channels},
+  \textit{Geophys.\ Res.\ Lett}, \textit{33}, 1--6.
+
+\bibitem[{\textit{Wobus et~al.}(2008)\textit{Wobus, Kean, Tucker, and
+  Anderson}}]{wobus2008modeling}
+Wobus, C., J.~Kean, G.~Tucker, and R.~Anderson (2008), {Modeling the evolution
+  of channel shape: Balancing computational efficiency with hydraulic
+  fidelity}, \textit{Journal of Geophysical Research}, \textit{113}.
+
+\bibitem[{\textit{Yanites and Tucker}(2010)}]{yanites2010controls}
+Yanites, B., and G.~Tucker (2010), Controls and limits on bedrock channel
+  geometry, \textit{Journal of Geophysical Research}, \textit{115}(F4),
+  F04,019.
+
+\bibitem[{\textit{Yanites et~al.}(2010)\textit{Yanites, Tucker, Mueller, Chen,
+  Wilcox, Huang, and Shi}}]{yanites2010incision}
+Yanites, B., G.~Tucker, K.~Mueller, Y.~Chen, T.~Wilcox, S.~Huang, and K.~Shi
+  (2010), {Incision and channel morphology across active structures along the
+  Peikang River, central Taiwan: Implications for the importance of channel
+  width}, \textit{Geological Society of America Bulletin}, \textit{122}(7-8),
+  1192.
+
+\end{thebibliography}
