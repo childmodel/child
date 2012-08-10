@@ -12,8 +12,11 @@ s=cread([fname '.slp'], ts );
 a=cread([fname '.area'], ts );
 s=s(1:size(a,1));
 if nargin==2
-  loglog(a,s,'.')
+  loglog(a/1e6,s,'.')
 end
 if nargin==3
-  loglog(a,s,psym)
+  loglog(a/1e6,s,psym)
 end
+set(gca,'fontsize',14);
+xlabel( 'Drainage area (km^2)' )
+ylabel( 'Slope (m/m)' )
