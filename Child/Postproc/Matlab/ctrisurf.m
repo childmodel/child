@@ -54,7 +54,7 @@ tri = [ rot90(t(1,:),3) rot90(t(2,:),3) rot90(t(3,:),3)]+1;
 x = n(1,:);
 y = n(2,:);
 b = n(4,:);
-if nargin<3 || length(c)<length(z)
+if nargin<3 %|| length(c)<length(z)
     c=z; 
 elseif c==0
     c=z;
