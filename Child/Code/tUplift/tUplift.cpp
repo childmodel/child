@@ -101,6 +101,7 @@ duration(0.)
       infile.ReadItem( faultPosition_ts, "FAULTPOS" );
       infile.ReadItem( slipRate_ts, "SLIPRATE" );
       positionParam1 = infile.ReadDouble( "X_GRID_SIZE" );
+      rate2 = infile.ReadItem( rate2, "SUBSRATE" );
       opt_wrap_boundaries_ = infile.ReadBool( "SS_OPT_WRAP_BOUNDARIES" );
       buffer_width_ = infile.ReadDouble( "SS_BUFFER_WIDTH" );
       break;
