@@ -1060,7 +1060,7 @@ void tLNode::TellAll() const
 {
   tLNode * nbr;
 
-  std::cout << " NODE " << id << ":\n";
+  std::cout << " NODE temp id " << id << " perm id " << permid << ":\n";
   std::cout << "  x=" << x << " y=" << y << " z=" << z;
   if( getEdg() ) {
     std::cout << "  points to edg #" << getEdg()->getID() << std::endl;

@@ -815,6 +815,7 @@ inline double tLNode::getQ() const
 \************************************************************************/
 inline double tLNode::calcSlope()
 {
+  assert( flowedge!=0 );
   assert( flowedge->getLength()>0 ); // failure means lengths not init'd
 
   const double slp =
@@ -1423,7 +1424,14 @@ inline void tLNode::DeactivateSortTracer()
 inline void tLNode::MoveSortTracerDownstream()
 {
   tracer--;
-  if( flood!=kSink ) getDownstrmNbr()->AddTracer();
+  //if( flood!=kSink ) getDownstrmNbr()->AddTracer();
+  if( flood!=kSink ) 
+  {
+    tLNode *dsnbr = getDownstrmNbr();
+    if( dsnbr==0 ) TellAll();
+    assert( dsnbr!=0 );
+    dsnbr->AddTracer();
+  }
 }
 
 inline void tLNode::FlagDownhillNodes()
