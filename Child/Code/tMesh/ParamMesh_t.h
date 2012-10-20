@@ -21,6 +21,7 @@ public:
     kOppositeSidesOpen = 2,  // two opposite sides (upper and lower)
     kAllSidesOpen = 3,       // all sides
     kSpecifyOutlet = 4 ,     // specify outlet coordinates
+    kAdjacentSidesOpen = 5,  // two adjacent sides (bottom and right)
     kAllSideClosed = -1      // all sides closed
   } tOpenBoundary_t;
 

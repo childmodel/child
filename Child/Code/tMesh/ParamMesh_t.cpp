@@ -27,7 +27,7 @@ ParamMMFS_t::ParamMMFS_t(const tInputFile &infile) :
   {
     int tmp_;
     tmp_ = infile.ReadItem( tmp_, "TYP_BOUND" );
-     if (tmp_<-1 || tmp_>4)
+     if (tmp_<-1 || tmp_>5)
        ReportFatalError("Illegal value for TYP_BOUND");
     boundType = static_cast<tOpenBoundary_t>(tmp_);
   }
