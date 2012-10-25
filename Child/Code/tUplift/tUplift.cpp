@@ -413,12 +413,18 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
   tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
   slipRate = slipRate_ts.calc( currentTime );
   double slip = slipRate*delt;
+  static double cumulative_displacement = 0;
   
-  std::cout << "StrikeSlip by " << slip << std::endl;
+  cumulative_displacement += slip;
+  
+  if(1) std::cout << "StrikeSlip by " << slip << "; cum displacement is " 
+    << cumulative_displacement << std::endl;
   
   // Move the nodes laterally on one side of the fault
   for( cn=ni.FirstP(); !(ni.AtEnd()); cn=ni.NextP() )
   {
+    // Move nodes on "lower" side of fault, by setting their Moving Status flag
+    // true, and assigning new coordinates
     if( cn->getY()<faultPosition )
     {
       cn->setMovingStatus( true );
@@ -426,6 +432,18 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
     }
     else
       cn->setMovingStatus( false );
+    
+    // If we're not wrapping, we'll convert any nodes "exposed to the edge" by
+    // strike-slip motion to open boundaries
+    if( !opt_wrap_boundaries_ 
+       && (cn->getX()+slip) > (positionParam1 + cumulative_displacement)
+       && cn->getY() > (faultPosition-buffer_width_) 
+       && cn->getY() < (faultPosition+buffer_width_) 
+       && cn->getBoundaryFlag()==kNonBoundary )
+    {
+      mp->getNodeList()->moveToBack( cn );
+      cn->setBoundaryFlag( kOpenBoundary );
+    }
   }
   mp->MoveNodes( 0., false );
   
@@ -449,14 +467,45 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
         //cn->setX( cn->getX() + positionParam1 );  // positionParam1 is the length of grid domain in x
         newnode.setX( newnode.getX() + positionParam1 );  // positionParam1 is the length of grid domain in x
         
+        // Debug
+        if(1) 
+        {
+          std::cout << "Place 1: getActiveSize says " << mp->getNodeList()->getActiveSize() << " interior nodes\n";
+          int n_int_nodes = 0;
+          for( ni.FirstP(); ni.IsActive(); ni.NextP() )
+            n_int_nodes++;
+          std::cout << " count says " << n_int_nodes << " interior nodes.\n";
+        }
+        
         // Add a copy of the node on the right side
         std::cout << "adding to right side.\n" << std::flush;
         //mp->AddNode( *cn, kNoUpdateMesh, currentTime, kNoFlip );
-        mp->AddNode( newnode, kNoUpdateMesh, currentTime, kNoFlip );
+        mp->AddNode( newnode, kUpdateMesh, currentTime, kFlip );
+        
+        // Debug
+        if(1) 
+        {
+          std::cout << "Place 2: getActiveSize says " << mp->getNodeList()->getActiveSize() << " interior nodes\n";
+          int n_int_nodes = 0;
+          for( ni.FirstP(); ni.IsActive(); ni.NextP() )
+            n_int_nodes++;
+          std::cout << " count says " << n_int_nodes << " interior nodes.\n";
+        }
         
         // Delete original
         std::cout << "deleting original.\n" << std::flush;
-        mp->DeleteNode( cn );
+        mp->DeleteNode( cn, kNoRepairMesh );
+        
+        // Debug
+        if(1) 
+        {
+          std::cout << "Place 3: getActiveSize says " << mp->getNodeList()->getActiveSize() << " interior nodes\n";
+          int n_int_nodes = 0;
+          for( ni.FirstP(); ni.IsActive(); ni.NextP() )
+            n_int_nodes++;
+          std::cout << " count says " << n_int_nodes << " interior nodes.\n";
+        }
+        
       }
       
       // If node has moved beyond right edge, move it to the left side.
@@ -469,7 +518,7 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
         mp->AddNode( *cn, kUpdateMesh, currentTime, kFlip );
         
         // Delete original
-        mp->DeleteNode( cn );
+        mp->DeleteNode( cn, kNoRepairMesh );
       }
     }
     
@@ -478,6 +527,7 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
     // outside of these buffers are flagged as interior nodes.
     for( cn=ni.FirstP(); !(ni.AtEnd()); cn=ni.NextP() )
     {
+      if(1) std::cout << "In StrikeSlip: node id " << cn->getID() << " pid " << cn->getPermID() << std::endl << std::flush;
       // Check whether node is in the left-hand buffer zone
       if( cn->getX() < buffer_width_ )
       {
@@ -486,8 +536,18 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
         // boundary portion of the node list.
         if( cn->getBoundaryFlag()==kNonBoundary )
         {
-          cn->setBoundaryFlag( kClosedBoundary );
           mp->getNodeList()->moveToBack( cn );
+          cn->setBoundaryFlag( kClosedBoundary );
+          // Debug
+          if(1) 
+          {
+            std::cout << "Place 4: getActiveSize says " << mp->getNodeList()->getActiveSize() << " interior nodes\n";
+            int n_int_nodes = 0;
+            for( ni.FirstP(); ni.IsActive(); ni.NextP() )
+              n_int_nodes++;
+            std::cout << " count says " << n_int_nodes << " interior nodes.\n";
+          }
+          
         }
       }
       // Check whether it is in right-hand buffer zone
@@ -498,8 +558,18 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
         // boundary portion of the node list.
         if( cn->getBoundaryFlag()==kNonBoundary )
         {
-          cn->setBoundaryFlag( kClosedBoundary );
           mp->getNodeList()->moveToBack( cn );
+          cn->setBoundaryFlag( kClosedBoundary );
+          // Debug
+          if(1) 
+          {
+            std::cout << "Place 5: getActiveSize says " << mp->getNodeList()->getActiveSize() << " interior nodes\n";
+            int n_int_nodes = 0;
+            for( ni.FirstP(); ni.IsActive(); ni.NextP() )
+              n_int_nodes++;
+            std::cout << " count says " << n_int_nodes << " interior nodes.\n";
+          }
+          
         }          
       }
       else
@@ -509,12 +579,43 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
         // "active" portion of the node list.
         if( cn->getBoundaryFlag()==kClosedBoundary )
         {
-          cn->setBoundaryFlag( kNonBoundary );
           mp->getNodeList()->moveToActiveBack( ni.NodePtr() );
+          cn->setBoundaryFlag( kNonBoundary );
+          cn->setFlowEdg( cn->getEdg() );  // we need to assign a temporary (arbitrary) flow edge so tOutput doesn't crash when trying to calculate a slope
+          // Debug
+          if(1) 
+          {
+            std::cout << "Place 6: getActiveSize says " << mp->getNodeList()->getActiveSize() << " interior nodes\n";
+            int n_int_nodes = 0;
+            for( ni.FirstP(); ni.IsActive(); ni.NextP() )
+              n_int_nodes++;
+            std::cout << " count says " << n_int_nodes << " interior nodes.\n";
+          }
+          
         }          
       }
-    }  
+    }
+    
+    // Update boundary status of edges to accommodate any changes to node
+    // boundary status. The rule is: an edge is "no flux" if either of its
+    // endpoints is a closed boundary.
+    tEdge *ce;
+    tMesh<tLNode>::edgeListIter_t ei( mp->getEdgeList() );
+    for( ce=ei.FirstP(); !ei.AtEnd(); ce=ei.NextP() )
+      ce->setFlowAllowed( ce->getOriginPtr(), ce->getDestinationPtr() );    
+    
   }
+  
+  // Debug
+  if(1) 
+  {
+    std::cout << "Place 7: getActiveSize says " << mp->getNodeList()->getActiveSize() << " interior nodes\n" << std::flush;
+    int n_int_nodes = 0;
+    for( ni.FirstP(); ni.IsActive(); ni.NextP() )
+      n_int_nodes++;
+    std::cout << " count says " << n_int_nodes << " interior nodes.\n";
+  }
+  
   
 }
 
