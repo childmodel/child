@@ -668,6 +668,8 @@ public:
   inline double getCumulativeSedXportVolume() { return cumulative_sed_xport_volume_; }
   inline void AddInfluxToCumulativeSedXportVolume( double flux_duration ) 
     { cumulative_sed_xport_volume_ += qsin*flux_duration; }
+  inline bool IsMasked() { return is_masked_; }
+  inline void setMask( bool is_masked ) { is_masked_ = is_masked; }
 
   tArray<double> addtoLayer(int, double);
   // Used if removing material from lower layers -
@@ -750,6 +752,7 @@ protected:
   double cumulative_ero_dep_;    // Keeps track of ero/dep since last update (for external reporting)
   double cumulative_sed_xport_volume_;  // Keeps track of flux since last reset; qty is a volume (for external reporting)
   //double safetyFactor; // Factor of safety for node (landsliding)
+  bool is_masked_;    // Indicates a "masked out" node
   bool is_moving_;       // Flag indicating whether the node is moving
 public:
   int public1; // a "public" member that can be used for various purpose

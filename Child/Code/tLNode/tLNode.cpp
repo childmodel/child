@@ -319,6 +319,7 @@ uplift(0.),
 layerlist(),
 stratNode(0),
 qsubsurf(0.),
+is_masked_(false),
 netDownslopeForce(0.),
 is_moving_(false),
 public1(-1)
@@ -341,6 +342,7 @@ uplift(0.),
 layerlist(),
 stratNode(0),
 qsubsurf(0.),
+is_masked_(false),
 netDownslopeForce(0.),
 is_moving_(false),
 public1(-1)
@@ -591,6 +593,7 @@ tLNode::tLNode( const tLNode &orig )                               //tLNode
     stratNode(0),
     accumdh(orig.accumdh),
     qsubsurf(orig.qsubsurf),
+    is_masked_(false),
     netDownslopeForce(orig.netDownslopeForce),
     cumulative_ero_dep_(orig.cumulative_ero_dep_),
     cumulative_sed_xport_volume_(orig.cumulative_sed_xport_volume_),
@@ -649,6 +652,7 @@ const tLNode &tLNode::operator=( const tLNode &right )                  //tNode
       stratNode = right.stratNode;
       accumdh = right.accumdh;
       qsubsurf = right.qsubsurf;
+      is_masked_ = right.is_masked_;
       netDownslopeForce = right.netDownslopeForce;
       cumulative_ero_dep_ = right.cumulative_ero_dep_;
       cumulative_sed_xport_volume_ = right.cumulative_sed_xport_volume_;
