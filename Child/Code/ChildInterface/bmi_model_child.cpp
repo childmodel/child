@@ -99,27 +99,20 @@ void bmi::Model::GetDouble(const char * var_name, double * const dest) {
       std::cout << "childInterface::GetValueSet() here with request '"
         << var_name << "'\n";
 
-    if (strcmp (var_name, "Elevation")==0 ||
-        strcmp (var_name, "SeaFloorElevation")==0 ||
-        strcmp (var_name, "CellElevation")==0) {
+    if (strcmp (var_name, "surface__elevation") == 0 ||
+        strcmp (var_name, "sea_floor_surface__elevation")) {
       CopyNodeElevations (dest);
     }
-    else if (strcmp (var_name, "DepositionToElevation")==0 ||
-             strcmp (var_name, "CellDepositionToElevation")==0) {
+    else if (strcmp (var_name, "surface_elevation__increment")==0) {
       CopyNodeElevations (dest);
     }
-    else if (strcmp (var_name, "dz")==0 ||
-             strcmp (var_name, "Erosion")==0 ||
-             strcmp (var_name, "CellErosion")==0) {
+    else if (strcmp (var_name, "sediment__erosion_rate")==0) {
       CopyNodeErosion (dest);
     }
-    else if (strcmp (var_name, "WaterDischarge")==0 ||
-             strcmp (var_name, "CellWaterDischarge")==0 ||
-             strcmp (var_name, "water")==0) {
+    else if (strcmp (var_name, "channel_water__discharge")==0) {
       CopyNodeDischarge (dest);
     }
-    else if (strcmp (var_name, "BedLoadFlux")==0 ||
-             strcmp (var_name, "CellBedLoadFlux")==0) {
+    else if (strcmp (var_name, "bed_load__mass_flow_rate")==0) {
       CopyNodeSedimentFlux (dest);
     }
     else {
@@ -136,14 +129,14 @@ void bmi::Model::SetDouble (const char * var_name, double *vals) {
                   << var_name << "'\n";
 
   //if (var_name.compare (0, 9, "Elevation")==0)
-  if (strcmp (var_name, "Elevation")==0 ||
-      strcmp (var_name, "SeaFloorElevation")==0 ||
-      strcmp (var_name, "SeaFloorBasement")==0 ||
-      strcmp (var_name, "Basement")==0)
+  if (strcmp (var_name, "surface__elevation")==0 ||
+      strcmp (var_name, "sea_floor__elevation")==0 ||
+      strcmp (var_name, "sea_floor_bedrock_surface__elevation")==0 ||
+      strcmp (var_name, "bedrock_surface__elevation")==0)
   {
     return SetNodeElevations (vals);
   }
-  else if (strcmp (var_name, "Uplift")==0) {
+  else if (strcmp (var_name, "bedrock_surface__uplift_rate")==0) {
     return SetNodeUplift (vals);
   }
   else

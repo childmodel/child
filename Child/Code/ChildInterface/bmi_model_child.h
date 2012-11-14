@@ -52,27 +52,20 @@ class Model : public Child {
  public:
   Model () {
     const char *inputs[] = {
-      "Elevation",
-      "SeaFloorElevation",
-      "SeaFloorBasement",
-      "Basement",
-      "Uplift",
+      "surface__elevation",
+      "sea_floor__elevation",
+      "sea_floor_bedrock_surface__elevation",
+      "bedrock_surface__elevation",
+      "bedrock_surface__uplift_rate",
       NULL,
     };
     const char *outputs[] = {
-      "Elevation",
-      "SeaFloorElevation",
-      "CellElevation",
-      "DepositionToElevation",
-      "CellDepositionToElevation",
-      "dz",
-      "Erosion",
-      "CellErosion",
-      "WaterDischarge",
-      "CellWaterDischarge",
-      "water",
-      "BedLoadFlux",
-      "CellBedLoadFlux",
+      "surface__elevation",
+      "sea_floor__elevation",
+      "surface__elevation_increment",
+      "sediment__erosion_rate",
+      "channel_water__discharge",
+      "bed_load__mass_flow_rate",
       NULL,
     };
     input_var_names = NULL;
