@@ -3561,12 +3561,13 @@ track_sed_flux_at_nodes_( false ), water_sed_tracker_ptr_(NULL),
 soilBulkDensity(kDefaultSoilBulkDensity),
 rockBulkDensity(kDefaultRockBulkDensity),
 wetBulkDensity(kDefaultWetBulkDensity), 
-woodDensity(450.0), fricSlope(1.0),
+woodDensity(450.0), fricSlope(1.0), num_grain_sizes_(1),
 debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
 {
   assert( mptr!=0 );
   
   // Read parameters needed from input file
+  num_grain_sizes_ = infile.ReadInt( "NUMG" );
   infile.ReadItem( kd_ts, "KD" );  // Hillslope diffusivity coefficient
   kd = kd_ts.calc(0.);
   //kd = infile.ReadItem( kd, "KD" );  // Hillslope diffusivity coefficient
@@ -3834,6 +3835,7 @@ tErosion::tErosion( const tErosion& orig, tMesh<tLNode>* Ptr )
     wetBulkDensity(orig.wetBulkDensity), // wet bulk density of soil (kg/m3)
     woodDensity(orig.woodDensity), // density of wood (kg/m3)
     fricSlope(orig.fricSlope), // tangent of angle of repose for soil (unitless)
+    num_grain_sizes_(orig.num_grain_sizes_), // # grain size classes
     debris_flow_sed_bucket(0.0), // tally of debris flow sed. volume
     debris_flow_wood_bucket(0.0), // tally of debris flow wood volume
     landslideAreas(),
@@ -4759,8 +4761,7 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
 void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
                            tVegetation * /*pVegetation*/ )
 {
-  
-  //Added 4/00, if there is no runoff, this would crash, so check
+    //Added 4/00, if there is no runoff, this would crash, so check
   if(strmNet->getRainRate()-strmNet->getInfilt()>0){
     
     double dtmax;       // time increment: initialize to arbitrary large val
@@ -5636,6 +5637,15 @@ void tErosion::Diffuse( double rt, bool noDepoFlag, double time )
   tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
   tMesh< tLNode >::edgeListIter_t edgIter( meshPtr->getEdgeList() );
   
+  // Temporary fix for "diffusion doesn't update layers" bug GT 11/12
+  // For now, we will assume all deposition comes in size class 0. This could
+  // obviously become problematic with multiple size classes, and should be
+  // updated. A good solution would be to have two separate diffusion algorithms,
+  // one for single-size, and one for multi-size.
+  tArray<double> deposition_depth( num_grain_sizes_ );
+  for( int i=1; i<num_grain_sizes_; i++ )
+    deposition_depth[i] = 0.0;
+  
 #ifdef TRACKFNS
   std::cout << "tErosion::Diffuse()" << std::endl;
 #endif
@@ -5723,7 +5733,9 @@ void tErosion::Diffuse( double rt, bool noDepoFlag, double time )
         << " dz: " << cn->getQsin() / cn->getVArea() << std::endl;
       if( noDepoFlag && cn->getQsin() > 0.0 )
         cn->setQsin( 0.0 );
-      cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area    
+      deposition_depth[0] = cn->getQsin() / cn->getVArea();
+      cn->EroDep( 0, deposition_depth, time );  // add or subtract net flux/area    
+      //cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area    
       cn->getDownstrmNbr()->addQsdin(-1 * cn->getQsin()/dtmax);
       //this won't work if time steps are varying, because you are adding fluxes
       

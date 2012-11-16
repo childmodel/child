@@ -1297,6 +1297,7 @@ private:
   double wetBulkDensity; // wet bulk density of soil (kg/m3)
   double woodDensity; // density of wood (kg/m3)
   double fricSlope; // tangent of angle of repose for soil (unitless)
+  unsigned num_grain_sizes_;  // number of grain-size classes used
 public:
   double debris_flow_sed_bucket; // tally of debris flow sed. volume
   double debris_flow_wood_bucket;// tally of debris flow wood volume
