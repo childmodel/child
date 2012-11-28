@@ -378,7 +378,7 @@ template< class NodeType, class ListNodeType >
 void tMeshList< NodeType, ListNodeType >::
 moveToBack( ListNodeType * mvnode )
 {
-   if (0) //DEBUG
+   if (1) //DEBUG
      std::cout << "moveToBack( ListNodeType )\n";
 
    assert( mvnode!=0 );
@@ -693,7 +693,6 @@ class tMeshListIter
    inline bool IsActive() const;
    NodeType * LastActiveP();
    NodeType * FirstBoundaryP();
-   NodeType * GetNodePtrByPermID( int pid );
 };
 
 /**************************************************************************\
