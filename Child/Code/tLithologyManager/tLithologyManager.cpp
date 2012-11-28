@@ -163,8 +163,10 @@ SetLithologyFromChildLayFile( const tInputFile &infile )
   std::ifstream layerinfile;
   infile.ReadItem( thestring, sizeof(thestring), "INPUT_LAY_FILE" );
   
-  if (1) //DEBUG
+  if (0) //DEBUG
     std::cout<<"in SetLithologyFromChildLayFile..."<<std::endl;
+  
+  meshPtr_->RenumberIDCanonically();
   
   strcpy( inname, thestring );
   layerinfile.open(inname); /* Layer input file pointer */
@@ -205,14 +207,22 @@ SetLithologyFromChildLayFile( const tInputFile &infile )
 		if( sed_density==0.0 ) sed_density = kDefaultSoilBulkDensity;
 	}
   
-  for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
+  // Loop over node IDs from 0 to Na-1, where Na is the # of active nodes.
+  // We assume the layer file is ordered by ID!
+  for( int k=0; k<meshPtr_->getNodeList()->getSize(); k++ )
   {
+    // Find the node with the current ID #
+    cn = ni.GetP( k );
+    
+    if (0) std::cout << "read lays at node " << cn->getID() << " pid=" << cn->getPermID() << "(x,y)=" << cn->getX() << "," << cn->getY() << std::endl;
+    
     // Remove pre-existing layers
     for(i=cn->getNumLayer()-1; i>=0; i-- )
       cn->removeLayer(i);
     
     // Read the number of layers at the current node
     layerinfile >> numl;
+    if (0) std::cout << " " << numl << "lays\n";
     if( numl<1 )
     {
       std::cout << "In SetLithologyFromChildLayFile: node " 
@@ -241,6 +251,7 @@ SetLithologyFromChildLayFile( const tInputFile &infile )
         << " has thickness " << ditem << std::endl;
         ReportFatalError("Layers must have positive thickness.");
       }
+      if (0) std::cout << "  lay" << i << " thickness=" << ditem << std::endl;
       layer_template.setDepth(ditem);
       layerinfile >> ditem;     // layer erodibility
       layer_template.setErody(ditem);
@@ -282,6 +293,7 @@ SetLithologyFromChildLayFile( const tInputFile &infile )
 			for(int g=0; g<numg; g++){
         layerinfile >> ditem;   // equivalent thickness of grain size g
         layer_template.setDgrade(g, ditem);
+        if (0) std::cout << "   thick of " << g << "=" << ditem << std::endl;
       }
       
       // Insert a copy of the layer on the bottom of the layer stack
@@ -475,8 +487,62 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
   }
   
   // If the new layer doesn't cut through an existing one, then it must cut 
-  // *below* the layers, so insert one at the bottom of the stack
-  // (TO ADD!!)
+  // *below* (or right at the base of) the layers, so we'll need to insert a
+  // a layer at the bottom of the stack
+  if( !layer_found )
+  {
+    if(1) std::cout << "Did not find a layer at depth "
+      << new_layer_base_height << " at node " << node->getPermID() << std::endl;
+    
+    // Create a new layer to be copied and added at the bottom of the current
+    // node's layer list. We'll initialize it with the properties of the 
+    // current bottom layer, then modify these below.
+    tLayer new_bottom_layer( *curlay );
+    
+    // Set the layer's thickness such that its base lies at new_layer_base_height.
+    new_bottom_layer.setDepth( current_layer_base_height - new_layer_base_height );
+    
+    // Add a copy of the new layer to the bottom of the layer list
+    node->InsertLayerBack( new_bottom_layer );
+    
+    // Set the new bottom layer as the "current" layer, and set its base height.
+    curlay = li.LastP();  // our new layer is the last on the list
+    current_layer_base_height = new_layer_base_height;
+  }
+  
+  // At this point, the base of the current layer could be either equal to or 
+  // deeper (smaller) than the base of the new etch layer. If it is *deeper*, 
+  // then we need to split it in two, adding a new layer above. (We only call
+  // the base "deeper" if it is deeper by more than a small tolerance value 
+  // equal to one tenth of the standard layer thickness "maxregdepth").
+  if( (current_layer_base_height-new_layer_base_height) > 0.1*node->getMaxregdep() )
+  {
+    // TODO: WRITE A SPLIT LAYER FUNCTION
+    
+    // Create a new layer, with default properties identical to those of the 
+    // current layer. This layer represents the "bottom" portion of the layer
+    // we are slicing in two.
+    //tLayer new_layer( *curlay );
+    
+    // Set its thickness: its top is at new_layer_base_height, and its bottom
+    // is at current_layer_base_height, so its thickness is the difference 
+    // between these two.
+    //double layer_thickness = current_layer_base_height - new_layer_base_height;
+    //new_layer.setDepth( layer_thickness );
+    
+    // Insert this layer below the current one.
+    //node->getLayersRefNC().insertAtNext( new_layer, curlay );
+    
+    // Reduce the thickness of the "top" portion (which is pointed to by 
+    // (curlay).
+    //layer_thickness = curlay->getDepth() - layer_thickness;
+    //assert( layer_thickness > 0.0 );
+    //curlay->setDepth( layer_thickness );
+  }
+  
+  // Set the properties of the current layer and all layers above it to those
+  // specified in layer_properties.
+  
   
   // REST OF ALGORITHM GOES HERE ...
     
