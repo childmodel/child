@@ -3049,6 +3049,8 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
   if (!runCheckMeshConsistency)
     return;
   
+  if(1) std::cout << "CheckMeshConsistency() ...\n";
+  
   nodeListIter_t nodIter( nodeList );
   edgeListIter_t edgIter( edgeList );
   triListIter_t triIter( triList );
@@ -3056,7 +3058,7 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
   tEdge * ce, * cne;
   tTriangle * ct, * optr;
   bool boundary_check_ok;
-  const bool verbose = false;
+  const bool verbose = true;
   int i, nvop;
   
   // Edges: make sure complementary pairs are together in the list
@@ -3269,6 +3271,7 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
         }
       }
       // check flip test
+      if(0) std::cout << " About to do flip test ... ";
       if( ct->tPtr(i) != 0 )
       {
         switch(CheckForFlip( ct, i, false, false )) {
@@ -3283,6 +3286,10 @@ CheckMeshConsistency( bool boundaryCheckFlag /* default: true */)
             std::cerr << "TRIANGLE #" << ct->getID()
             << ": flip test failed for edge opposite to vertex "
             << cn->getID() << ".\n";
+            if(1) {
+              cn->TellAll();
+              ct->TellAll();
+            }
             goto error;
           case FLIP_ERROR:
             std::cerr << "TRIANGLE #" << ct->getID()
@@ -3521,6 +3528,7 @@ DeleteNode( nodeListNode_t *nodPtr, kRepairMesh_t repairFlag,
 {
   tPtrList< tSubNode > nbrList;
   tSubNode *node = nodPtr->getDataPtrNC();
+  tBoundary_t deleted_node_boundary_status = node->getBoundaryFlag();
   
 #if 1
   // Quintijn & Arnaud's debug code
@@ -3531,15 +3539,40 @@ DeleteNode( nodeListNode_t *nodPtr, kRepairMesh_t repairFlag,
   }
 #endif
   
-  if (0) //DEBUG
+  if (1) //DEBUG
+  {
     std::cout << "DeleteNode: " << node->getID() << " at " << node->getX() << " "
 	  << node->getY() << " " << node->getZ() << std::endl;
+    int nactive = 0, ntotalnodes = 0;
+    nodeListIter_t nodIter( nodeList );
+    for( nodIter.FirstP(); !nodIter.AtEnd(); nodIter.NextP() )
+    {
+      if( nodIter.IsActive() ) nactive++;
+      ntotalnodes++;
+      //std::cout << "node " << cn->getID() << std::endl;
+    }
+    std::cout << "At start of DeleteNode(), Node list has " << nactive << " active nodes, and thinks it has " << nodeList.getActiveSize() << std::endl;
+    std::cout << " It has " << ntotalnodes << " total nodes\n";
+  }
   //assert( repairFlag == kRepairMesh ||
   //        node->getBoundaryFlag()==kClosedBoundary );
   
   // extricate node from mesh and get list of its neighbors:
   if( !( ExtricateNode( node, nbrList ) ) ) return 0;
   
+  if (1) //DEBUG
+  {
+    int nactive = 0, ntotalnodes = 0;
+    nodeListIter_t nodIter( nodeList );
+    for( nodIter.FirstP(); !nodIter.AtEnd(); nodIter.NextP() )
+    {
+      if( nodIter.IsActive() ) nactive++;
+      ntotalnodes++;
+      //std::cout << "node " << cn->getID() << std::endl;
+    }
+    std::cout << "At point A of DeleteNode(), Node list has " << nactive << " active nodes, and thinks it has " << nodeList.getActiveSize() << std::endl;
+  }
+
   // remove node from nodeList:
   tSubNode nodeVal;
   if( node->getBoundaryFlag() != kNonBoundary )
@@ -3553,14 +3586,26 @@ DeleteNode( nodeListNode_t *nodPtr, kRepairMesh_t repairFlag,
     nodeList.removeFromFront( nodeVal );
   }
   
-  //std::cout << "Removed node " << nodeVal.getID() << " at x, y "
-  // << nodeVal.getX() << ", " << nodeVal.getY() << "; " << std::endl;
+  if(1) 
+  {
+    std::cout << "Removed node " << nodeVal.getID() << " at x, y "
+      << nodeVal.getX() << ", " << nodeVal.getY() << "; " << std::endl;
+    int nactive = 0;
+    nodeListIter_t nodIter( nodeList );
+    for( nodIter.FirstP(); nodIter.IsActive(); nodIter.NextP() )
+    {
+      nactive++;
+      //std::cout << "node " << cn->getID() << std::endl;
+    }
+    std::cout << "At point B of DeleteNode(), Node list has " << nactive << " nodes, and thinks it has " << nodeList.getActiveSize() << std::endl;
+  }
+  
   nnodes = nodeList.getSize();
   nedges = edgeList.getSize();
   ntri = triList.getSize();
-  //std::cout << "nn " << nnodes << "  ne " << nedges << "  nt " << ntri << std::endl;
   
-  if (0) { //DEBUG
+  if (1) { //DEBUG
+    std::cout << "nn " << nnodes << "  ne " << nedges << "  nt " << ntri << std::endl;
     tPtrListIter< tSubNode > nbrIter( nbrList );
     std::cout << "leaving hole defined by \n"
 	  << "   Node  x  y " << std::endl;
@@ -3572,6 +3617,17 @@ DeleteNode( nodeListNode_t *nodPtr, kRepairMesh_t repairFlag,
     }
   }
   
+  // Debug test to see if we can handle boundary status by simply saying "if 
+  // the deleted node was a boundary node, make all its neighbors around the 
+  // hole into boundaries as well"
+  if( deleted_node_boundary_status != kNonBoundary )
+  {
+    tPtrListIter< tSubNode > nbrIter( nbrList );
+    for( nbrIter.First(); (!nbrIter.AtEnd()); nbrIter.Next() )
+      nbrIter.DatPtr()->setBoundaryFlag( deleted_node_boundary_status );
+      // handle edges too, or is that done automatically?
+  }
+  
   if( repairFlag == kRepairMesh )
   {
     nbrList.makeCircular();
@@ -3581,14 +3637,17 @@ DeleteNode( nodeListNode_t *nodPtr, kRepairMesh_t repairFlag,
   //reset node id's
   ResetNodeIDIfNecessary();
   
-  if (0) { //DEBUG
+  if (1) { //DEBUG
     std::cout << "Mesh repaired" << std::endl;
     nodeListIter_t nodIter( nodeList );
     tSubNode *cn;
+    int nactive = 0;
     for( cn = nodIter.FirstP(); nodIter.IsActive(); cn = nodIter.NextP() )
     {
-      std::cout << "node " << cn->getID() << std::endl;
+      nactive++;
+      //std::cout << "node " << cn->getID() << std::endl;
     }
+    std::cout << "Node list has " << nactive << " nodes, and thinks it has " << nodeList.getActiveSize() << std::endl;
   }
   
   if( updateFlag == kUpdateMesh ) UpdateMesh();
@@ -3627,11 +3686,25 @@ template< class tSubNode >
 int tMesh< tSubNode >::
 ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
 {
-  if (0) //DEBUG
+  if (1) //DEBUG
     std::cout << "ExtricateNode: " << node->getID() << std::endl;
   tSpkIter spokIter( node );
   tEdge *ce;
   tSubNode *nbrPtr;
+  
+  if (1) //DEBUG
+  {
+    int nactive = 0, ntotalnodes = 0;
+    nodeListIter_t nodIter( nodeList );
+    for( nodIter.FirstP(); !nodIter.AtEnd(); nodIter.NextP() )
+    {
+      if( nodIter.IsActive() ) nactive++;
+      ntotalnodes++;
+      //std::cout << "node " << cn->getID() << std::endl;
+    }
+    std::cout << "At point A of ExtricateNode(), Node list has " << nactive << " active nodes, and thinks it has " << nodeList.getActiveSize() << std::endl;
+    std::cout << " It has " << ntotalnodes << " total nodes\n";
+  }
   
   //std::cout << "Removing spokes: " << std::endl;
   //assert( ExtricateEdge( edgptrIter.DatPtr() ) );
@@ -3643,8 +3716,21 @@ ExtricateNode( tSubNode *node, tPtrList< tSubNode > &nbrList )
     if( node->getBoundaryFlag() != kNonBoundary
        && nbrPtr->getBoundaryFlag()==kNonBoundary )
     {
-      nbrPtr->ConvertToClosedBoundary();
       nodeList.moveToBack( nbrPtr );
+      nbrPtr->ConvertToClosedBoundary();
+    }
+    if (1) //DEBUG
+    {
+      int nactive = 0, ntotalnodes = 0;
+      nodeListIter_t nodIter( nodeList );
+      for( nodIter.FirstP(); !nodIter.AtEnd(); nodIter.NextP() )
+      {
+        if( nodIter.IsActive() ) nactive++;
+        ntotalnodes++;
+        //std::cout << "node " << cn->getID() << std::endl;
+      }
+      std::cout << "At point B of ExtricateNode(), nbr node = " << nbrPtr->getPermID() << ", Node list has " << nactive << " active nodes, and thinks it has " << nodeList.getActiveSize() << std::endl;
+      std::cout << " It has " << ntotalnodes << " total nodes\n";
     }
     if( !DeleteEdge( ce ) )
       return 0;
@@ -4001,6 +4087,7 @@ template< class tSubNode >
 tTriangle *tMesh< tSubNode >::
 TriWithEdgePtr( tEdge *edgPtr ) const
 {
+  if(1) std::cout << "tMesh::TriWithEdgePtr\n";
   assert( edgPtr != 0 );
   return edgPtr->TriWithEdgePtr();
 }
@@ -4145,21 +4232,48 @@ template< class tSubNode >
 int tMesh< tSubNode >::
 RepairMesh( tPtrList< tSubNode > &nbrList )
 {
-  if (0) //DEBUG
+  if (1) //DEBUG
     std::cout << "RepairMesh: " << std::endl;
   if( nbrList.getSize() < 3 ) return 0;
   nbrList.makeCircular();
   tPtrListIter< tSubNode > nbrIter( nbrList );
+  int ret = 0;
+  
+  // If the hole in the mesh is adjacent to the mesh boundary, it's possible to
+  // have a pair of nodes in the "hole boundary" list that don't have an edge 
+  // between them. Here we check for this case, and add an edge pair if needed.
+  tSubNode * a = nbrIter.FirstP(),
+    * b = nbrIter.NextP(),
+    * c = nbrIter.NextP(),
+    * d = nbrIter.NextP();
+  for( int i=1; i<=nbrList.getSize(); i++ )
+  {
+    // Check whether an edge exists between the current pair of adjacent nodes
+    // on the "hole boundary".
+    if( b->EdgToNod( c )==0 ) // If no edge between them
+      AddEdgeAtMeshBoundary( a, b, c, d );
+    
+    // Advance to next node on the neighbor list.
+    a = b;
+    b = c;
+    c = d;
+    d = nbrIter.NextP();
+  }
   
   // Keep stitching until only 3 nodes are left
+  //int max_iterations = 10*nbrList.getSize();
+  //int n_iterations = 0;
   while( nbrList.getSize() > 3 )
   {
-    //std::cout << "in loop, nbr size = " << nbrList.getSize() << std::endl;
+    //n_iterations++;
+    //if( n_iterations > max_iterations )
+    //ReportFatalError( "Too many iterations in RepairMesh()" );
+    if(1) std::cout << "in loop, nbr size = " << nbrList.getSize() << std::endl;
     //Xflowflag = 1;  // PURPOSE??
     if( Next3Delaunay( nbrList, nbrIter ) ) //checks for ccw and Del.
     {
-      //std::cout << "found 3 Delaun!\n";
-      int ret = AddEdgeAndMakeTriangle( nbrList, nbrIter );
+      if(1) std::cout << "found 3 Delaun!\n";
+      ret = AddEdgeAndMakeTriangle( nbrList, nbrIter );
       assert( ret );
       //remove "closed off" pt
       /* tSubNode * meshnodePtr = */
@@ -4173,7 +4287,34 @@ RepairMesh( tPtrList< tSubNode > &nbrList )
   assert( ntri == triList.getSize() );
   assert( nedges == edgeList.getSize() );
   assert( nnodes == nodeList.getSize() );       //make sure numbers are right
-  int ret =    MakeTriangle( nbrList, nbrIter );             //make final triangle
+  
+  // THIS SHOULD NOW BE OBSOLETE
+  // Determine whether we need to call MakeTriangle or AddEdgeAndMakeTriangle. 
+  // We only need to call the latter if the "hole" in the mesh is on the edge
+  // and as a result there is a missing edge between two of the remaining points.
+  if(1) std::cout << "Checking whether we need to add a new edge...\n";
+  bool new_edge_needed = false;    // assume we don't need to add an edge unless proven otherwise
+  tSubNode *cn = nbrIter.FirstP(); // start w/ first node on list of 3
+  tSubNode *next_node_ccw = nbrIter.NextP();  // next one counter-clockwise
+  for( int j=0; j<3; j++ )  // check each pair in the group of 3
+  {
+    tEdge *ce = cn->EdgToNod( next_node_ccw );  // find the edge, if any, connecting these
+    if( ce==0 )
+    {
+      if(1) std::cout << "aha, there's no edge from node " << cn->getID() << " to node " << next_node_ccw->getID() << std::endl;
+      new_edge_needed = true;
+      ret = AddEdgeAndMakeTriangle( nbrList, nbrIter );
+      break;
+    }
+    cn = next_node_ccw;
+    next_node_ccw = nbrIter.NextP();
+  }
+  
+  if( !new_edge_needed )
+  {
+    if(1) std::cout << "all edges seem to be present and accounted for\n";
+    ret = MakeTriangle( nbrList, nbrIter );             //make final triangle
+  }
                                                              //    if( !ret )
                                                              //      for( tSubNode* cn=nbrIter.FirstP(); !nbrIter.AtEnd(); cn=nbrIter.NextP() )
                                                              //        assert( cn->getBoundaryFlag() != kNonBoundary );
@@ -4331,7 +4472,7 @@ int tMesh< tSubNode >::
 AddEdge( tSubNode *node1, tSubNode *node2, tSubNode const *node3 )
 {
   assert( node1 != 0 && node2 != 0 && node3 != 0 );
-  if (0) //DEBUG
+  if (1) //DEBUG
     std::cout << "AddEdge"
 	  << "between nodes " << node1->getID()
 	  << " and " << node2->getID() << " w/ ref to node "
@@ -4438,10 +4579,120 @@ AddEdge( tSubNode *node1, tSubNode *node2, tSubNode const *node3 )
   // Reset edge id's
   ResetEdgeIDIfNecessary();
   
-  if (0) //DEBUG
+  if (1) //DEBUG
     std::cout << "AddEdge() done\n" << std::flush;
   return 1;
 }
+
+/**************************************************************************\
+ **
+ **  tMesh::AddEdgeAtMeshBoundary
+ **
+ **  This function was created to handle the situation when a node is
+ **  removed from the edge of the mesh. In this case the "hole" identified
+ **  in RepairMesh will have a gap, in the form of a missing edge pair. We use
+ **  this function to replace the missing edge pair.
+ **
+ **  GT and AD July 2012
+ **  Written while trying to get "wraparound strike slip" working ...
+ **
+ \**************************************************************************/
+template< class tSubNode >
+int tMesh< tSubNode >::
+AddEdgeAtMeshBoundary( tSubNode *a, tSubNode *b, tSubNode *c, tSubNode *d )
+{
+  if(1)
+  {
+    std::cout << "AddEdgeAtMeshBoundary here, about to add a pair of edges ";
+    std::cout << "between nodes " << b->getPermID() << " and " << c->getPermID();
+    std::cout << " with reference to " << a->getPermID() << " and " << d->getPermID();
+    std::cout << std::endl << std::flush;
+  }
+  
+  tEdge *ce, 
+    *edge_from_b_to_c,
+    *edge_from_c_to_b;
+  
+  tEdge
+  tempEdge1(miNextEdgID++, b, c),
+  tempEdge2(miNextEdgID++, c, b);
+  
+  // Place new edge pair on the list: active back if not a boundary
+  // edge, back otherwise
+  if( tempEdge1.FlowAllowed() )
+  {
+    edgeList.insertAtActiveBack( tempEdge1 );  //put edge1 active in list
+    edge_from_b_to_c = edgeList.getLastActive()->getDataPtrNC();
+    edgeList.insertAtActiveBack( tempEdge2 );  //put edge2 active in list
+    edge_from_c_to_b = edgeList.getLastActive()->getDataPtrNC();
+    edge_from_b_to_c->setComplementEdge(edge_from_c_to_b);
+    edge_from_c_to_b->setComplementEdge(edge_from_b_to_c);
+  }
+  else
+  {
+    edgeList.insertAtBack( tempEdge1 );        //put edge1 in list
+    edge_from_b_to_c = edgeList.getLastNC()->getDataPtrNC();
+    edgeList.insertAtBack( tempEdge2 );        //put edge2 in list
+    edge_from_c_to_b = edgeList.getLastNC()->getDataPtrNC();
+    edge_from_b_to_c->setComplementEdge(edge_from_c_to_b);
+    edge_from_c_to_b->setComplementEdge(edge_from_b_to_c);
+  }
+  
+  // For node c, add a pointer to the new edge to its spokeList
+  tSpkIter spokIter;
+  spokIter.Reset( c );
+  if( spokIter.isEmpty()
+     // only one spoke
+     || ( spokIter.ReportNextP() == spokIter.CurSpoke() )
+     )
+    spokIter.insertAtFront( edge_from_c_to_b );
+  else
+  {
+    // Cycle through the spokes until we find one that goes to node d. 
+    // As a fail-safe, we don't iterate beyond the end of the list.
+    for( ce = spokIter.FirstP();
+        ce->getDestinationPtr() != d && !( spokIter.AtEnd() );
+        ce = spokIter.NextP() ) ;
+    
+    // Make sure we found what we're looking for
+    assert( ce->getDestinationPtr()==d );
+    
+    // Add the new spoke in the right position
+    spokIter.insertAtNext( edge_from_c_to_b );
+  }
+
+  // For node b, add a pointer to the new edge to its spokeList
+  spokIter.Reset( b );
+  if( spokIter.isEmpty()
+     // only one spoke
+     || ( spokIter.ReportNextP() == spokIter.CurSpoke() )
+     )
+    spokIter.insertAtFront( edge_from_b_to_c );
+  else
+  {
+    // Cycle through the spokes until we find one that goes to node a. 
+    // As a fail-safe, we don't iterate beyond the end of the list.
+    for( ce = spokIter.FirstP();
+        ce->getDestinationPtr() != a && !( spokIter.AtEnd() );
+        ce = spokIter.NextP() ) ;
+    
+    // Make sure we found what we're looking for
+    assert( ce->getDestinationPtr()==a );
+    
+    // Add the new spoke in the right position
+    spokIter.insertAtPrev( edge_from_b_to_c );
+  }
+  
+  nedges+=2;
+  
+  // Reset edge id's
+  ResetEdgeIDIfNecessary();
+  
+  if (1) //DEBUG
+    std::cout << "AddEdge() done\n" << std::flush;
+  return 1;
+}
+  
 
 
 /**************************************************************************\
@@ -4466,8 +4717,8 @@ int tMesh< tSubNode >::
 AddEdgeAndMakeTriangle( tPtrList< tSubNode > & /*nbrList*/,
                        tPtrListIter< tSubNode > &nbrIter )
 {
-  if (0) //DEBUG
-    std::cout << "AddEdgeAndMakeTriangle" << std::endl;
+  if (1) //DEBUG
+    std::cout << "AddEdgeAndMakeTriangle 1" << std::endl;
   tSubNode *cn, *cnn, *cnnn;
   cn = nbrIter.DatPtr();
   cnn = nbrIter.NextP();
@@ -4480,8 +4731,11 @@ template< class tSubNode >
 int tMesh< tSubNode >::
 AddEdgeAndMakeTriangle( tSubNode* cn, tSubNode* cnn, tSubNode* cnnn )
 {
+  if (1) //DEBUG
+    std::cout << "AddEdgeAndMakeTriangle 2" << std::endl;
   if( !AddEdge( cnnn, cn, cnn ) ) return 0;
   if( !MakeTriangle( cn, cnn, cnnn ) ) return 0;
+  if(1) std::cout << "Done with AddEdgeAndMakeTriangle\n";
   return 1;
 }
 
@@ -4513,6 +4767,7 @@ int tMesh< tSubNode >::
 MakeTriangle( tPtrList< tSubNode > const &nbrList,
              tPtrListIter< tSubNode > &nbrIter )
 {
+  if(1) std::cout << "MakeTriangle 1\n";
   assert( nbrList.getSize() == 3 );
   tSubNode *cn, *cnn, *cnnn;
   cn = nbrIter.FirstP();      // cn, cnn, and cnnn are the 3 nodes in the tri
@@ -4529,8 +4784,8 @@ MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
   assert( cn != 0 && cnn != 0 && cnnn != 0 );
   assert( cn != cnn && cn != cnnn && cnn != cnnn );
   
-  if (0) //DEBUG
-    std::cout << "MakeTriangle" << std::endl;
+  if (1) //DEBUG
+    std::cout << "MakeTriangle 2" << std::endl;
   const tArray< double > p0( cn->get2DCoords() ), p1( cnn->get2DCoords() ),
   p2( cnnn->get2DCoords() );
   
@@ -4574,6 +4829,7 @@ MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
   {
     // Find edge ce that connects p(j)->p(j+1)
     tEdge *ce = ct->pPtr(j)->EdgToNod( ct->pPtr( (j+1)%3 ) );
+    if(1) std::cout << "in loop j=" << j << " and ce=" << ce << std::endl;
     
     if( nbrtriPtr != 0 && TriWithEdgePtr( ce ) == nbrtriPtr )
     {
@@ -4584,6 +4840,7 @@ MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
     
     // Find the triangle, if any, that shares (points to) this edge
     // and assign it as the neighbor triangle t((j+2)%3).
+    if(1) std::cout << "In MakeTriangle(2) calling TriWithEdgePtr for edge " << ce << std::endl;
     nbrtriPtr = TriWithEdgePtr( ce );
     
     ct->setTPtr( (j+2)%3, nbrtriPtr );      //set tri TRI ptr (j+2)%3
@@ -4618,6 +4875,7 @@ MakeTriangle( tSubNode *cn, tSubNode *cnn, tSubNode *cnnn )
   //we have active and inactive members), but I'm sure it doesn't hurt; better safe
   //than sorry...
   ResetTriangleIDIfNecessary();
+  if(1) std::cout << "End of MakeTriangle 2\n";
   return 1;
 }
 
@@ -4656,7 +4914,7 @@ AddNode( tSubNode &nodeRef, kUpdateMesh_t updatemesh, double time,
 {
   const tArray< double > xyz( nodeRef.get3DCoords() );
   
-  if (0) //DEBUG
+  if (1) //DEBUG
     std::cout << "AddNode at " << xyz[0] << ", " << xyz[1]
 	  << ", " << xyz[2] << " time "<<time<<std::endl;
   
@@ -4668,12 +4926,12 @@ AddNode( tSubNode &nodeRef, kUpdateMesh_t updatemesh, double time,
   nodeRef.setPermID( node_ID_generator.getNextID() );
   miNextPermNodeID++;
   
-  if (0) //DEBUG
+  if (1) //DEBUG
     std::cout << "call InsertNode" << std::endl;
   tSubNode* newNodePtr = InsertNode(&nodeRef, time);
   if(newNodePtr == 0)
     return 0;
-  if (0) //DEBUG
+  if (1) //DEBUG
     std::cout << "call CheckTrianglesAt" << std::endl;
   if( flip == kFlip &&  xyz.getSize() == 3 )
     CheckTrianglesAt( newNodePtr, time );
@@ -4877,13 +5135,29 @@ InsertNode( tSubNode* newNodePtr, double time )
 {
   if (1) //DEBUG
     std::cout << "tMesh::InsertNode()" << std::endl;
+  
   tTriangle *tri = LocateTriangle( newNodePtr->getX(), newNodePtr->getY() );
+  
   if( tri == 0 )
   {
-    std::cerr << "tMesh::InsertNode(...): node coords out of bounds: "
+    std::cout << "tMesh::InsertNode(...): node coords out of bounds: "
     << newNodePtr->getX() << " " << newNodePtr->getY() << std::endl;
+    newNodePtr->TellAll();
+    std::cout << std::flush;
     return 0;
   }
+
+  if(1) //DEBUG
+  {
+    for( int i=0; i<3; i++ )
+    {
+      std::cout << "Vertex " << i << "==>\n" << std::flush;
+      std::cout << " tri=" << tri << std::flush;
+      std::cout << " pPtr(" << i << ")=" << tri->pPtr(i) << std::endl << std::flush;
+      tri->pPtr(i)->TellAll();
+    }  
+  }
+  
   if( layerflag && time > 0. )
     newNodePtr->PrepForAddition( tri, time );
   
@@ -4891,6 +5165,7 @@ InsertNode( tSubNode* newNodePtr, double time )
   tSubNode *cn = AddToList(*newNodePtr);
   
   tSubNode *newNodePtr2 = AttachNode( cn, tri);
+  
   // if couldn't add to triangulation (probably because node
   // already existed at that location) remove the node
   if( newNodePtr2 == NULL )
@@ -4985,6 +5260,8 @@ template< class tSubNode >
 tSubNode* tMesh< tSubNode >::
 AttachNode( tSubNode* cn, tTriangle* tri )
 {
+  if(1) std::cout << "AttachNode()\n";
+  
   assert( tri != 0 && cn != 0 );
   int i;
   const tArray< double > xyz( cn->get3DCoords() );
@@ -5019,8 +5296,8 @@ AttachNode( tSubNode* cn, tTriangle* tri )
                           // If we need to access new coords:
                           //size of xyz is basically the flag; the 4th element is never used o.w.
   {
-    //std::cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
-    //     << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << std::endl;
+    if(1) std::cout << "   in triangle w/ vtcs. at " << p3[0] << " " << p3[1] << "; "
+         << p1[0] << " " << p1[1] << "; " << p4[0] << " " << p4[1] << std::endl;
     if( !PointsCCW( p3, p1, p2 ) ||
        !PointsCCW( p2, p1, p4 ) ||
        !PointsCCW( p2, p4, p3 ) )
@@ -5033,6 +5310,7 @@ AttachNode( tSubNode* cn, tTriangle* tri )
   }
   else
   {
+    if(1) std::cout << "In ELSE clause ...\n";
     // use virtual function that will return new coords for nodes
     p1 = node1->FuturePosn();
     p2 = node2->FuturePosn();
@@ -5056,7 +5334,7 @@ AttachNode( tSubNode* cn, tTriangle* tri )
     // ABN and edge pair AN. AEMT is called again to create tri NBC and edge
     // pair CN. With all the edge pairs created, it remains only to call
     // MakeTriangle to create tri NCA.
-    //std::cout << "calling AE, AEMT, AEMT, and MT\n" << std::flush;
+    if(1) std::cout << "calling AE, AEMT, AEMT, and MT\n" << std::flush;
     
     AddEdge( node1, node2, node3 );  //add edge between node1 and node2
     AddEdgeAndMakeTriangle( node3, node1, node2 ); // ABN
@@ -5310,6 +5588,7 @@ CheckForFlip( tTriangle * tri, int nv, bool flip, bool useFuturePosn )
   // coordinates rather than current coordinates
   if( !flip && useFuturePosn)
   {
+    if(1) std::cout << "  Doing flip test based on future position\n";
     // use virtual function that will return new coords for nodes
     p0 = node0->FuturePosn();
     p1 = node1->FuturePosn();
@@ -5320,9 +5599,14 @@ CheckForFlip( tTriangle * tri, int nv, bool flip, bool useFuturePosn )
   // If p0-p1-p2 passes the test, no flip is necessary
   if( TriPasses( ptest, p0, p1, p2 ) ) return FLIP_NOT_NEEDED;
   
+  if(1) std::cout << "CheckForFlip: case flip needed\n";
+  
   // Now a flip is necessary
   if ( !tri->ePtr( (nv+2)%3)->isFlippable() )
+  {
+    if(1) std::cout << "In CheckForFlip, case FLIP_NOT_ALLOWED\n";
     return FLIP_NOT_ALLOWED;
+  }
   
   // Otherwise, a flip is needed, provided that the new triangles are
   // counter-clockwise (would this really ever happen??) and that the
@@ -5331,7 +5615,7 @@ CheckForFlip( tTriangle * tri, int nv, bool flip, bool useFuturePosn )
   {
     if( !PointsCCW( p0, p1, ptest ) || !PointsCCW( p0, ptest, p2 ) )
       return FLIP_ERROR;
-    //std::cout << "calling Flip edge from cff" << std::endl;
+    if(1) std::cout << "calling Flip edge from cff" << std::endl;
     FlipEdge( tri, triop, nv, nvop );
     return FLIP_DONE;
   }
@@ -5397,8 +5681,13 @@ bool tMesh< tSubNode >::
 FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop,
          bool useFuturePosn )
 {
-  if (0) //DEBUG
+  if (1) //DEBUG
+  {
     std::cout << "FlipEdge(...)..." << std::endl;
+    std::cout << " with tri = #" << tri->getID() << " p0=" << tri->pPtr(0)->getID()  << " p1=" << tri->pPtr(1)->getID() << " p2=" << tri->pPtr(2)->getID() << std::endl;
+    std::cout << " with triop = #" << triop->getID() << " p0=" << triop->pPtr(0)->getID()  << " p1=" << triop->pPtr(1)->getID() << " p2=" << triop->pPtr(2)->getID() << std::endl;
+    std::cout << " nv=" << nv << " nvop=" << nvop << " useFuturePosn=" << useFuturePosn << std::endl;
+  }
   tSubNode* na = static_cast<tSubNode *>(tri->pPtr(nv));
   tSubNode* nc = static_cast<tSubNode *>(triop->pPtr( nvop ));
   // make sure that na and nc are not identical and not connected
@@ -5413,6 +5702,16 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop,
   BOOL(
        tEdge::isFlowAllowed(na, nc) != tEdge::isFlowAllowed(nb, nd)
        );
+  
+  if (1) {
+    std::cout << " move=" << move << std::endl;
+    std::cout << " na: " << na->getX() << " " << na->getY() << " " << na->getID() << " " << na->getBoundaryFlag() << std::endl;
+    std::cout << " nb: " << nb->getX() << " " << nb->getY() << " " << nb->getID() << " " << nb->getBoundaryFlag() << std::endl;
+    std::cout << " nc: " << nc->getX() << " " << nc->getY() << " " << nc->getID() << " " << nc->getBoundaryFlag() << std::endl;
+    std::cout << " nd: " << nd->getX() << " " << nd->getY() << " " << nd->getID() << " " << nd->getBoundaryFlag() << std::endl;
+    std::cout << " edg=" << edg->getID() << " edgop=" << edgop->getID() << std::endl;
+    std::cout << " edg flow=" << edg->getBoundaryFlag() << " edgop flow=" << edgop->getBoundaryFlag() << std::endl;
+  }
   
   edgeListNode_t *enodePtr1=0;
   edgeListNode_t *enodePtr2=0;
@@ -5436,6 +5735,7 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop,
   {
     if( edg->FlowAllowed() )
     {
+      if (1) std::cout << " case flow allowed\n";
       edgeList.moveToActiveBack( enodePtr1 );
       edgeList.setNActiveNodes(edgeList.getActiveSize()+1);
       edgeList.moveToActiveBack( enodePtr2 );
@@ -5443,6 +5743,7 @@ FlipEdge( tTriangle * tri, tTriangle * triop ,int nv, int nvop,
     }
     else
     {
+      if (1) std::cout << " case flow not allowed\n";
       edgeList.moveToBack( enodePtr1 );
       edgeList.setNActiveNodes(edgeList.getActiveSize()-1);
       edgeList.moveToBack( enodePtr2 );
@@ -6424,6 +6725,57 @@ ForceFlow( tSubNode* un, tSubNode* dn, double time )
   tSubNode* mn = static_cast< tSubNode* >( un->getDownstrmNbr() );
   assert( mn->getDownstrmNbr() == dn );
 }
+
+
+/*******************************************************************\
+ **
+ **  ConvertNodeToOpenBoundary
+ **
+ **  Makes the node into an open boundary by setting its boundary
+ **  status flag. The function also updates the boundary ("flow
+ **  allowed") status of the node's spokes and their complements.
+ **
+ \*******************************************************************/
+template<class tSubNode>
+void tMesh<tSubNode>::
+ConvertNodeToOpenBoundary( tSubNode * node )
+{
+  tEdge *ce;   // an edge and its complement
+  
+  // If it's already an open boundary, do nothing
+  if ( node->getBoundaryFlag() == kOpenBoundary ) return;
+  
+  // Reset boundary flag
+  node->setBoundaryFlag( kOpenBoundary );
+  
+  // Update all connected edges and their complements. The rule is this:
+  // * If the edge is no-flow, and the destination node is an interior node,
+  //   then we set it to flow allowed (this happens when we go 1->2).
+  // * If the edge is flow, and the destination node is an open boundary,
+  //   then we set it to flow NOT allowed (happens with 0->2)
+  ce = node->getEdg();
+  do
+  {
+    assert( ce!=0 );
+    if( ce->getBoundaryFlag()==tEdge::kFlowNotAllowed 
+       && ce->getDestinationPtr()->getBoundaryFlag()==kNonBoundary )
+    {
+      ce->setFlowAllowed( tEdge::kFlowAllowed );
+      ce->compedg->setFlowAllowed( tEdge::kFlowAllowed );
+      // move edge and complement to active portion of list
+    }
+    else if ( ce->getBoundaryFlag()==tEdge::kFlowAllowed
+             && ce->getDestinationPtr()->getBoundaryFlag()==kOpenBoundary )
+    {
+      ce->setFlowAllowed( tEdge::kFlowNotAllowed );
+      ce->getComplementEdge()->setFlowAllowed( tEdge::kFlowNotAllowed );
+    }
+    
+  } while( (ce=ce->getCCWEdg()) != node->getEdg() );
+  
+}
+
+
 
 #include "tMesh2.cpp"
 

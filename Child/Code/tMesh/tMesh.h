@@ -207,6 +207,7 @@ public:
                      tPtrListIter< tSubNode > & );
    int MakeTriangle( tSubNode*, tSubNode*, tSubNode* );
    int AddEdge( tSubNode *, tSubNode *, tSubNode const * );
+   int AddEdgeAtMeshBoundary( tSubNode *, tSubNode *, tSubNode *, tSubNode * );
    void CheckTrianglesAt( tSubNode *, double time  );
    tSubNode *AddToList( tSubNode const& );
    void RemoveFromList( tSubNode * ); // removes the last node added
@@ -258,6 +259,8 @@ public:
    // find triangles between one node and the next, not connected by an edge
    tPtrList< tTriangle > InterveningTriangles( tNode*, tNode* ) const;
    void ForceFlow( tSubNode*, tSubNode*, double );
+  
+  void ConvertNodeToOpenBoundary( tSubNode * node );
 
 #ifndef NDEBUG
    /*'dump' routines for debugging*/
