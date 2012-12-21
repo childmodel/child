@@ -282,6 +282,7 @@ public:
   static tEdgeBoundary_t isFlowAllowed( const tNode*, const tNode* );
   void setFlowAllowed( tEdgeBoundary_t );        // sets boundary code
   inline void setFlowAllowed( const tNode*, const tNode* ); // sets boundary code
+  void UpdateBoundaryStatusForEdgeAndComplement( tEdgeBoundary_t new_boundary_status );
   double CalcLength();               // computes & sets length
   double CalcSlope();                // computes & sets slope
   void setCCWEdg( tEdge * edg );     // sets ptr to counter-clockwise neighbor
