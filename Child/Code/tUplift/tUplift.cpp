@@ -441,8 +441,9 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
        && cn->getY() < (faultPosition+buffer_width_) 
        && cn->getBoundaryFlag()==kNonBoundary )
     {
-      mp->getNodeList()->moveToBack( cn );
-      cn->setBoundaryFlag( kOpenBoundary );
+      //mp->getNodeList()->moveToBack( cn );
+      //cn->setBoundaryFlag( kOpenBoundary );
+      mp->ConvertToOpenBoundary( cn );
     }
   }
   mp->MoveNodes( 0., false );
