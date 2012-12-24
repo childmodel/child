@@ -260,8 +260,6 @@ public:
    tPtrList< tTriangle > InterveningTriangles( tNode*, tNode* ) const;
    void ForceFlow( tSubNode*, tSubNode*, double );
   
-  void ConvertNodeToOpenBoundary( tSubNode * node );
-
 #ifndef NDEBUG
    /*'dump' routines for debugging*/
    void DumpEdges();

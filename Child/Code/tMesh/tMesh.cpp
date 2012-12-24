@@ -6727,54 +6727,6 @@ ForceFlow( tSubNode* un, tSubNode* dn, double time )
 }
 
 
-/*******************************************************************\
- **
- **  ConvertNodeToOpenBoundary
- **
- **  Makes the node into an open boundary by setting its boundary
- **  status flag. The function also updates the boundary ("flow
- **  allowed") status of the node's spokes and their complements.
- **
- \*******************************************************************/
-template<class tSubNode>
-void tMesh<tSubNode>::
-ConvertNodeToOpenBoundary( tSubNode * node )
-{
-  tEdge *ce;   // an edge and its complement
-  
-  // If it's already an open boundary, do nothing
-  if ( node->getBoundaryFlag() == kOpenBoundary ) return;
-  
-  // Reset boundary flag
-  node->setBoundaryFlag( kOpenBoundary );
-  
-  // Update all connected edges and their complements. The rule is this:
-  // * If the edge is no-flow, and the destination node is an interior node,
-  //   then we set it to flow allowed (this happens when we go 1->2).
-  // * If the edge is flow, and the destination node is an open boundary,
-  //   then we set it to flow NOT allowed (happens with 0->2)
-  ce = node->getEdg();
-  do
-  {
-    assert( ce!=0 );
-    if( ce->getBoundaryFlag()==tEdge::kFlowNotAllowed 
-       && ce->getDestinationPtr()->getBoundaryFlag()==kNonBoundary )
-    {
-      ce->setFlowAllowed( tEdge::kFlowAllowed );
-      ce->compedg->setFlowAllowed( tEdge::kFlowAllowed );
-      // move edge and complement to active portion of list
-    }
-    else if ( ce->getBoundaryFlag()==tEdge::kFlowAllowed
-             && ce->getDestinationPtr()->getBoundaryFlag()==kOpenBoundary )
-    {
-      ce->setFlowAllowed( tEdge::kFlowNotAllowed );
-      ce->getComplementEdge()->setFlowAllowed( tEdge::kFlowNotAllowed );
-    }
-    
-  } while( (ce=ce->getCCWEdg()) != node->getEdg() );
-  
-}
-
 
 
 #include "tMesh2.cpp"
