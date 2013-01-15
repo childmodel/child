@@ -222,7 +222,7 @@ void childInterface::Initialize_Copy( const childInterface& orig )
  */
 /**************************************************************************/
 void childInterface::
-Initialize( string argument_string )
+Initialize( std::string argument_string )
 {
   
   /****************** INITIALIZATION *************************************\
