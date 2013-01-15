@@ -719,7 +719,12 @@ RunOneStorm()
         erosion->DiffuseNonlinear( stormPlusDryDuration, optDiffuseDepo, time->getCurrentTime() );
     }
     else
-      erosion->Diffuse( stormPlusDryDuration, optDiffuseDepo, time->getCurrentTime() );
+    {
+      if( erosion->getNumGrainSizes()>1 )
+        erosion->DiffuseMultiSize( stormPlusDryDuration, optDiffuseDepo, time->getCurrentTime() );
+      else
+        erosion->Diffuse( stormPlusDryDuration, optDiffuseDepo, time->getCurrentTime() );
+    }
   }
   
   //-------------VEGETATION---------------------------------------
@@ -1306,7 +1311,7 @@ std::vector<double> childInterface::GetNodeCoords()
     coords[3*current_node->getPermID()+0] = current_node->getX();
     coords[3*current_node->getPermID()+1] = current_node->getY();
     coords[3*current_node->getPermID()+2] = current_node->getZ();
-    if(1) std::cout << "Node " << current_node->getPermID()
+    if(0) std::cout << "Node " << current_node->getPermID()
       << " x=" << current_node->getX()
       << " y=" << current_node->getY()
       << " z=" << current_node->getZ() << std::endl;
