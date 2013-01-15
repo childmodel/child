@@ -5637,14 +5637,9 @@ void tErosion::Diffuse( double rt, bool noDepoFlag, double time )
   tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
   tMesh< tLNode >::edgeListIter_t edgIter( meshPtr->getEdgeList() );
   
-  // Temporary fix for "diffusion doesn't update layers" bug GT 11/12
-  // For now, we will assume all deposition comes in size class 0. This could
-  // obviously become problematic with multiple size classes, and should be
-  // updated. A good solution would be to have two separate diffusion algorithms,
-  // one for single-size, and one for multi-size.
-  tArray<double> deposition_depth( num_grain_sizes_ );
-  for( int i=1; i<num_grain_sizes_; i++ )
-    deposition_depth[i] = 0.0;
+  // Fix for "diffusion doesn't update layers" bug GT 11/12. We assume
+  // that for multi-sizes, we'll call DiffuseMultiSize instead
+  static tArray<double> deposition_depth( 1 );
   
 #ifdef TRACKFNS
   std::cout << "tErosion::Diffuse()" << std::endl;
@@ -5758,6 +5753,150 @@ void tErosion::Diffuse( double rt, bool noDepoFlag, double time )
   
 }
 #undef kEpsOver2
+
+
+
+#define kEpsOver2 0.1
+void tErosion::DiffuseMultiSize( double rt, bool noDepoFlag, double time )
+{
+  tLNode * cn;
+  tLNode * dn;
+  tEdge * ce;
+  double volout,  // Sediment volume output from a node (neg=input)
+  delt,       // Max local step size
+  dtmax;      // Max global step size (initially equal to total time rt)
+  tMesh< tLNode >::nodeListIter_t nodIter( meshPtr->getNodeList() );
+  tMesh< tLNode >::edgeListIter_t edgIter( meshPtr->getEdgeList() );
+  int i;
+  
+  // Here we create arrays to handle flux and deposition in the 
+  // various size classes
+  static tArray<double> deposition_depth( num_grain_sizes_ );
+  static tArray<double> volout_by_size( num_grain_sizes_ );
+  
+  if (1) std::cout << "tErosion::DiffuseMultiSize()" << std::endl;
+	
+  kd = kd_ts.calc( time );
+  if(0) std::cout << "kd = " << kd << std::endl;
+  
+  if( kd==0 ) return;
+  //initialize Qsd, which will record the total amount of diffused material
+  //fluxing into a node for the entire time-step.
+  //if Qsd is negative, then material was deposited in that node.
+  for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+    cn->setQsdin( 0. );
+  
+  // Compute maximum stable time-step size based on Courant condition
+  // for FTCS (here used as an approximation).
+  // (Note: for a fixed mesh, this calculation only needs to be done once;
+  // performance could be improved by having this block only called if
+  // mesh has changed since last time through)
+  if(0) std::cout << "About to enter edge loop...\n" << std::flush;
+  dtmax = rt;  // Initialize dtmax to total time rt
+  for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
+  {
+    assert( ce!=0 );
+    if( 0 ) //DEBUG
+    {
+      std::cout << "In Diffuse(), large vedglen detected: " << ce->getVEdgLen() << std::endl;
+      ce->TellCoords();
+    }
+    //Xif( (denom=kd*ce->getVEdgLen() ) > kVerySmall )
+    // Evaluate DT <= DX^2 / Kd
+    assert( kd > 0.0 );
+    delt = kEpsOver2 * ce->getLength()*ce->getLength() / kd;
+    if( delt < dtmax )
+    {
+      dtmax = delt;
+      if(0) { //DEBUG
+        std::cout << "TIME STEP CONSTRAINED TO " << dtmax << " AT EDGE:\n";
+        ce->TellCoords(); }
+    }
+  }
+  
+  // Loop until we've used up the entire time interval rt
+  do
+  {
+    // Reset sed input for each node for the new iteration
+    for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+    {
+      cn->setQsin( 0. );
+      for( i=0; i<num_grain_sizes_; i++ )
+        cn->setQsin( i, 0. );
+    }
+    
+    // Compute sediment volume transfer along each edge
+    for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
+    {
+      // Record outgoing flux from origin
+      volout = kd*ce->CalcSlope()*ce->getVEdgLen()*dtmax; // volume out
+      cn = static_cast<tLNode *>(ce->getOriginPtrNC());  // get node
+      dn = static_cast<tLNode *>(ce->getDestinationPtrNC());
+      if( difThresh>0.0 && cn->getDrArea()>difThresh ) // switch off?
+        volout=0;
+      cn->addQsin( -volout );
+      dn->addQsin( volout );
+      for( int g=0; g<num_grain_sizes_; g++ ) // volume+flux by size
+      {
+        volout_by_size[g] = volout * ( cn->getLayerDgrade( 0, g ) / cn->getLayerDepth(0) );
+        cn->addQsin( g, -volout_by_size[g] );
+        dn->addQsin( g, volout_by_size[g] );
+      }
+      
+      if( 1 ) { //DEBUG
+        std::cout << volout << " mass exch. from " << ce->getOriginPtr()->getID()
+        << " to "
+        << ce->getDestinationPtr()->getID()
+        << " on slp " << ce->getSlope() << " ve " << ce->getVEdgLen()
+        << " kd=" << kd << " dtmax=" << dtmax
+        << "\nvp " << ce->getRVtx().at(0)
+        << " " << ce->getRVtx().at(1) << std::endl;
+        int gg;
+        for ( gg=0; gg<num_grain_sizes_; gg++ )
+          std::cout << "  size " << gg << " volout is " << volout_by_size[gg] << std::endl;
+        static_cast<tLNode *>(ce->getOriginPtrNC())->TellAll();
+        static_cast<tLNode *>(ce->getDestinationPtrNC())->TellAll();
+        std::cout << std::endl;
+      }
+      
+      /*ce =*/ edgIter.NextP();  // Skip complementary edge
+    }
+    
+    // Compute erosion/deposition for each node
+    for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
+    {
+      if( 0 ) //DEBUG
+        std::cout << "Node " << cn->getID() << " Qsin: " << cn->getQsin()
+        << " dz: " << cn->getQsin() / cn->getVArea() << std::endl;
+      if( noDepoFlag && cn->getQsin() > 0.0 )
+        cn->setQsin( 0.0 );
+      for( i=0; i<num_grain_sizes_; i++ )
+        deposition_depth[i] = cn->getQsin(i) / cn->getVArea();
+      cn->EroDep( 0, deposition_depth, time );  // add or subtract net flux/area    
+      //cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area    
+      cn->getDownstrmNbr()->addQsdin(-1 * cn->getQsin()/dtmax);
+      //this won't work if time steps are varying, because you are adding fluxes
+      
+      if( 0 ) //DEBUG
+        std::cout<<cn->getZ()<<" Q: "<<cn->getQ()
+        <<" dz "<<cn->getQsin() / cn->getVArea()
+        <<" dt "<<dtmax<<std::endl;
+      /*if( cn->id==700 ) {
+       cn->TellAll();
+       }*/
+    }
+    
+    rt -= dtmax;
+    if( dtmax>rt ) dtmax=rt;
+    
+    if(0) std::cout << "bottom of do loop in Diffuse()\n" << std::flush;
+    
+  } while( rt>0.0 );
+  
+  
+}
+#undef kEpsOver2
+
 
 
 /*****************************************************************************\

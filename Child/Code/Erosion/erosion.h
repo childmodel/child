@@ -1243,6 +1243,7 @@ public:
    void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
    void DetachErode2( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
    void Diffuse( double dtg, bool detach, double time );
+  void DiffuseMultiSize( double dtg, bool detach, double time );
    void DiffuseNonlinear( double dtg, bool detach, double time );
   void DiffuseNonlinearDepthDep( double dtg, double time );
   void ProduceRegolith( double dtg, double time );
@@ -1267,6 +1268,7 @@ public:
   void setSoilBulkDensity( double );
   double getFricSlope() {return fricSlope;}
   void setFricSlope( double val ) {fricSlope = val;}   
+  unsigned getNumGrainSizes() { return num_grain_sizes_; }
 
 private:
   tMesh<tLNode> *meshPtr;    // ptr to mesh
