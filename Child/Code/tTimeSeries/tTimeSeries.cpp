@@ -986,7 +986,7 @@ void tFileTimeSeriesImp::configure(const char *s)
   int xcol, ycol;
   char xcolid[64], ycolid[64];
   int ntok;
-
+  
   // tokenize config string
   toklist.parse(s);
   ntok = toklist.size();
@@ -1050,7 +1050,7 @@ void tFileTimeSeriesImp::configure(const char *s)
   // make 1-based
   xdata--;
   ydata--;
-
+  
   return;
 }
 
@@ -1183,6 +1183,7 @@ void tTimeSeries::configure(const char *s)
     ts = new tFileTimeSeriesImp();
     p = s+5;
     tagImp = 4;
+    std::cout << "just created new file timeseries\n";
   }
   else if (strstr(s,"@inline")==s) {
     ts = new tInlineTimeSeriesImp();
