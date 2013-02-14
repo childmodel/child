@@ -124,8 +124,8 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *meshPtr )
 	}
   
 	// See if the user wants to modify layers according to an Etch File.
-  // An Etch File specifies one or more layers, with given properties, to be
-  // "etched in" to the current topography and lithology.
+    // An Etch File specifies one or more layers, with given properties, to be
+    // "etched in" to the current topography and lithology.
 	bool user_wants_to_read_from_etchfile = inputFile.ReadBool( "OPT_READ_ETCHFILE", false );
 	if( user_wants_to_read_from_etchfile )
 	{
@@ -133,7 +133,7 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *meshPtr )
 	}
 
 	// See if the user wants to set initial rock erodibility values at all depths
-  // based on values in a file.
+    // based on values in a file.
 	bool user_wants_erody_from_file = inputFile.ReadBool( "OPT_SET_ERODY_FROM_FILE", false );
 	if( user_wants_erody_from_file )
 	{
@@ -316,6 +316,8 @@ SetLithologyFromChildLayFile( const tInputFile &infile )
 void tLithologyManager::
 SetLithologyFromEtchFile( const tInputFile &infile )
 {
+  if(1) std::cout << "tLithologyManager::SetLithologyFromEtchFile here\n";
+  
   // Open the etch file
   ifstream etchfile;
   string etchfile_name = infile.ReadString( "ETCHFILE_NAME" );
@@ -378,7 +380,7 @@ SetLithologyFromEtchFile( const tInputFile &infile )
     if(1) new_etch_layer.TellData();
     
     // "etch" this layer into the existing stratigraphy
-    // (TO BE ADDED...)
+    EtchLayerAbove2DSurface( new_etch_layer );
   }
   
 }
@@ -468,12 +470,24 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
   int layer_number = 0;
   curlay = li.FirstP();
   
-  // Find which layer the new layer cuts through, if any
+  // Find which layer the new layer cuts through, if any.
+  // To do this, we'll start at the top layer and work downward until we
+  // either find an existing layer whose base is lower than that of the new
+  // layer to be added, or we hit the bottom of the layer stack.
   while( !layer_found && !li.AtEnd() )
   {
+    if(1) std::cout << "Checking layer " << layer_number << std::endl;
     
-    std::cout << "Checking layer " << layer_number << std::endl;
+    // To get the height of the current layer's base, we take its current
+    // value (which starts at the land surface) and subtract the thickness
+    // ("depth") of the current layer.
     current_layer_base_height -= curlay->getDepth();
+    
+    // If the the base of the new layer to be added is at a higher
+    // elevation than the base of the current layer, then the new layer
+    // will cut through the current layer, so we flag that we've found the
+    // layer we were looking for. Otherwise, we move down to the next
+    // layer in the stack and continue the loop.
     if( new_layer_base_height > current_layer_base_height )
     {
       layer_found = true;
@@ -498,55 +512,81 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
     // node's layer list. We'll initialize it with the properties of the 
     // current bottom layer, then modify these below.
     tLayer new_bottom_layer( *curlay );
-    
-    // Set the layer's thickness such that its base lies at new_layer_base_height.
+
+    // Set the layer's thickness such that its base lies 
+    // at new_layer_base_height.
     new_bottom_layer.setDepth( current_layer_base_height - new_layer_base_height );
     
     // Add a copy of the new layer to the bottom of the layer list
     node->InsertLayerBack( new_bottom_layer );
     
-    // Set the new bottom layer as the "current" layer, and set its base height.
+    // Set the new bottom layer as the "current" layer, 
+    // and set its base height.
     curlay = li.LastP();  // our new layer is the last on the list
     current_layer_base_height = new_layer_base_height;
   }
-  
+
   // At this point, the base of the current layer could be either equal to or 
   // deeper (smaller) than the base of the new etch layer. If it is *deeper*, 
   // then we need to split it in two, adding a new layer above. (We only call
   // the base "deeper" if it is deeper by more than a small tolerance value 
   // equal to one tenth of the standard layer thickness "maxregdepth").
-  if( (current_layer_base_height-new_layer_base_height) > 0.1*node->getMaxregdep() )
+  if( (new_layer_base_height-current_layer_base_height) > 0.1*node->getMaxregdep() )
   {
-    // TODO: WRITE A SPLIT LAYER FUNCTION
+    if(1) std::cout << "Now splitting layer ...\n";
+    // Our layer splitting function will use the following algorithm:
+    //  - Create a new layer, copying from the current layer
+    //  - Assign the bottom (new) layer the top layer's original thickness 
+    //    minus its new thickness
+    //  - Insert the new layer in the list after the current layer
+    //  - Assign the top layer its new thickness
     
     // Create a new layer, with default properties identical to those of the 
     // current layer. This layer represents the "bottom" portion of the layer
     // we are slicing in two.
-    //tLayer new_layer( *curlay );
+    tLayer new_layer( *curlay );
     
     // Set its thickness: its top is at new_layer_base_height, and its bottom
     // is at current_layer_base_height, so its thickness is the difference 
     // between these two.
-    //double layer_thickness = current_layer_base_height - new_layer_base_height;
-    //new_layer.setDepth( layer_thickness );
+    double layer_thickness = new_layer_base_height - current_layer_base_height;
+    new_layer.setDepth( layer_thickness );
+    if(1) std::cout << "Setting thickness of new layer to " << layer_thickness << std::endl;
     
     // Insert this layer below the current one.
-    //node->getLayersRefNC().insertAtNext( new_layer, curlay );
+    node->getLayersRefNC().insertAtNext( new_layer, li.NodePtr() );
     
     // Reduce the thickness of the "top" portion (which is pointed to by 
     // (curlay).
-    //layer_thickness = curlay->getDepth() - layer_thickness;
-    //assert( layer_thickness > 0.0 );
-    //curlay->setDepth( layer_thickness );
+    layer_thickness = curlay->getDepth() - layer_thickness;
+    assert( layer_thickness > 0.0 );
+    curlay->setDepth( layer_thickness );
+    std::cout << "The remaining upper layer has been reduced to " << layer_thickness << std::endl;
+    std::cout << "To confirm: " << curlay->getDepth() << std::endl;
   }
   
   // Set the properties of the current layer and all layers above it to those
-  // specified in layer_properties.
-  
-  
-  // REST OF ALGORITHM GOES HERE ...
-    
-  
+  // specified in layer_properties. To do this, we'll walk down from the top 
+  // layer. We know that the lowest layer that will have our new "etch" 
+  // properties is number "layer_number", so that's our count.
+  curlay = li.FirstP();
+  for( int i=0; i<=layer_number; i++, curlay=li.NextP() )
+  {
+    std::cout << "Layer " << i << " has thickness " << curlay->getDepth() << std::endl;
+
+    // Here we apply the properties of this "etch layer" to the current
+    // layer. We don't use the overloaded assignment operator, because that
+    // would also apply the thickness.
+    curlay->setErody( layer_properties.getErody() );
+    curlay->setCtime( 0.0 );
+    curlay->setRtime( 0.0 );
+    curlay->setEtime( 0.0 );
+    curlay->setBulkDensity( layer_properties.getBulkDensity() );
+    curlay->setDgradesize( layer_properties.getDgradesize() );
+    for( size_t j=0; j<layer_properties.getDgradesize(); j++ )
+      curlay->setDgrade( j, layer_properties.getDgrade( j ) );
+  }
+
 }
 
 /**************************************************************************/
@@ -588,17 +628,27 @@ PointInPolygon( std::vector<double> vertx,
 void tLithologyManager::
 EtchLayerAbove2DSurface( Etchlayer &etchlay )
 {
+  if(1) std::cout << "tLithologyManager::EtchLayerAbove2DSurface here\n";
+  
   tLNode * cn;
   tMesh<tLNode>::nodeListIter_t ni( meshPtr_->getNodeList() );
   
+  // Loop over all active (interior) nodes
   for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
   {
+    // Find out whether the node falls within the layer's bounding polygon,
+    // if there is one.
     bool layer_is_present_here = true;
     if( etchlay.use_bounding_polygon_ )
       if( !PointInPolygon( etchlay.px, etchlay.py, cn->getX(), cn->getY() ) )
          layer_is_present_here = false;
+    
+    // If indeed the layer should be added here, go ahead and add it
     if( layer_is_present_here )
     {
+      // Find out the height of the base of the layer at this node by
+      // applying the polynomial coefficients to this particular node
+      // location.
       double x = cn->getX();
       double y = cn->getY();
       double new_layer_base_height = etchlay.ax*x*x*x +
@@ -608,10 +658,18 @@ EtchLayerAbove2DSurface( Etchlayer &etchlay )
                               etchlay.by*y*y +
                               etchlay.cy*y +
                               etchlay.d;
+
+      // If the base of the layer falls below the ground surface, then
+      // go ahead and "etch" it in.
+      if(1) std::cout << "About to etch at " << new_layer_base_height << std::endl;
       if( new_layer_base_height < cn->getZ() )
         EtchLayerAboveHeightAtNode( new_layer_base_height, cn, 
                                     etchlay.layer_properties_, 
                                     etchlay.keep_regolith_ );
+      if(1) std::cout << "Our top layer is now " << cn->getLayerDepth(0) << std::endl;
+      
+      // CURRENT PROBLEM AS OF 2/13/13: TOP LAYER IS SOMEHOW GETTING SET BACK
+      // TO 1 FROM WHATEVER THICKNESS IT IS ASSIGNED IN THE ABOVE FUNCTION!
     }
   }
     
