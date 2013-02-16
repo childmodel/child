@@ -563,6 +563,7 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
     curlay->setDepth( layer_thickness );
     std::cout << "The remaining upper layer has been reduced to " << layer_thickness << std::endl;
     std::cout << "To confirm: " << curlay->getDepth() << std::endl;
+    std::cout << "Top layer thickness: " << node->getLayerDepth(0) << std::endl;
   }
   
   // Set the properties of the current layer and all layers above it to those
@@ -573,6 +574,7 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
   for( int i=0; i<=layer_number; i++, curlay=li.NextP() )
   {
     std::cout << "Layer " << i << " has thickness " << curlay->getDepth() << std::endl;
+    std::cout << "Via the node: " << node->getLayerDepth(i) << std::endl;
 
     // Here we apply the properties of this "etch layer" to the current
     // layer. We don't use the overloaded assignment operator, because that
@@ -584,7 +586,11 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
     curlay->setBulkDensity( layer_properties.getBulkDensity() );
     curlay->setDgradesize( layer_properties.getDgradesize() );
     for( size_t j=0; j<layer_properties.getDgradesize(); j++ )
-      curlay->setDgrade( j, layer_properties.getDgrade( j ) );
+    {
+      double proportion_of_this_size = layer_properties.getDgrade(j) / layer_properties.getDepth();
+      curlay->setDgrade( j, proportion_of_this_size*curlay->getDepth() );
+    }
+    std::cout << "Now at end of loop we have layer thickness " << curlay->getDepth() << " and " << node->getLayerDepth(i) << std::endl;
   }
 
 }
