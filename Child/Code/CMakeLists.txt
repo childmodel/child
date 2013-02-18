@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 ENABLE_TESTING ()
 ADD_TEST (bmi_model_child_test ${CMAKE_CURRENT_BINARY_DIR}/bmi_model_child_test ${CMAKE_CURRENT_SOURCE_DIR}/ChildInterface/test_ielement.in)
 
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/child.pc.cmake ${CMAKE_CURRENT_SOURCE_DIR}/child.pc )
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Erosion
@@ -80,14 +82,16 @@ set (child_SRCS ChildInterface/childDriver.cpp)
 add_executable (child ${child_SRCS})
 target_link_libraries (child child-static)
 
+install(FILES child.pc DESTINATION lib/pkgconfig  COMPONENT child)
+
 install (TARGETS child DESTINATION bin COMPONENT child)
 
 add_executable (bmi_model_child_test ChildInterface/tests/bmi_model_child_test.cpp)
 target_link_libraries (bmi_model_child_test child-shared)
 
 install (FILES
-  ChildInterface/bmi_model_child.h
-  DESTINATION include/child/ COMPONENT child)
+  ChildInterface/bmi_model_child.h ChildInterface/child.h
+  DESTINATION include/child/ChildInterface COMPONENT child)
 install (FILES
   ChildInterface/childInterface.h
   DESTINATION include/child/ChildInterface COMPONENT child)
