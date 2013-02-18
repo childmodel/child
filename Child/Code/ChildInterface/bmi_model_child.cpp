@@ -13,7 +13,19 @@
 #endif
 
 void bmi::Model::Initialize (const char *file) {
-  Child::Initialize (std::string (file));
+  if (VERBOSE)
+    std::cout << "My initialization file is: " << std::string (file) << std::endl;
+
+  FILE *fp = fopen (file, "r");
+  if (fp) {
+    char line[2048];
+    fgets (line, 2048,fp);
+    Child::Initialize (std::string (line));
+  }
+  else {
+    throw bmi::BAD_VAR_NAME;
+  }
+
   return;
 }
 
@@ -76,7 +88,7 @@ void bmi::Model::GetVarUnits (const char * var_name,
 
 int bmi::Model::GetVarRank (const char * var_name) {
   CHECK_OR_THROW(HasOutputVar (var_name) || HasInputVar (var_name), bmi::BAD_VAR_NAME);
-  return 2;
+  return 1;
 }
 
 double bmi::Model::GetStartTime () {
@@ -92,6 +104,9 @@ double bmi::Model::GetEndTime () {
 }
 
 void bmi::Model::GetDouble(const char * var_name, double * const dest) {
+  if (VERBOSE)
+    std::cout << "childInterface::GetValueSet() here with request '" << var_name << "'\n";
+
   CHECK_OR_THROW(HasOutputVar (var_name), bmi::BAD_VAR_NAME);
 
   if (var_name && dest) {
@@ -100,7 +115,7 @@ void bmi::Model::GetDouble(const char * var_name, double * const dest) {
         << var_name << "'\n";
 
     if (strcmp (var_name, "surface__elevation") == 0 ||
-        strcmp (var_name, "sea_floor_surface__elevation")) {
+        strcmp (var_name, "sea_floor_surface__elevation") == 0) {
       CopyNodeElevations (dest);
     }
     else if (strcmp (var_name, "surface_elevation__increment")==0) {
@@ -148,7 +163,13 @@ void bmi::Model::SetDouble (const char * var_name, double *vals) {
 }
 
 int bmi::Model::GetVarPointCount (const char *var_name) {
+  if (VERBOSE)
+    std::cout << "INFO: getting point count" << var_name << std::endl;
+
   CHECK_OR_THROW(HasOutputVar (var_name) || HasInputVar (var_name), bmi::BAD_VAR_NAME);
+
+  if (VERBOSE)
+    std::cout << "INFO: my point count is" << mesh->getNodeList ()->getSize () << std::endl;
 
   return mesh->getNodeList ()->getSize ();
 }
@@ -156,19 +177,28 @@ int bmi::Model::GetVarPointCount (const char *var_name) {
 int bmi::Model::GetVarCellCount (const char *var_name) {
   CHECK_OR_THROW(HasOutputVar (var_name) || HasInputVar (var_name), bmi::BAD_VAR_NAME);
 
+  if (VERBOSE)
+    std::cout << "INFO: my cell count is" << mesh->getTriList ()->getSize () << std::endl;
+
+  return mesh->getTriList()->getSize();
+  /*
   if (strncmp (var_name, "Cell", 4) == 0)
     return mesh->getTriList()->getSize();
   else
     return mesh->getNodeList ()->getSize ();
+  */
 }
 
 int bmi::Model::GetVarVertexCount (const char *var_name) {
   CHECK_OR_THROW(HasOutputVar (var_name) || HasInputVar (var_name), bmi::BAD_VAR_NAME);
 
+  return mesh->getTriList()->getSize()*3;
+  /*
   if (strncmp (var_name, "Cell", 4) == 0)
     return mesh->getTriList()->getSize()*3;
   else
     return mesh->getTriList()->getSize();
+  */
 }
 
 void bmi::Model::GetGridX (const char * var_name, double * const x) {
@@ -225,7 +255,8 @@ void bmi::Model::GetGridConnectivity (const char *var_name,
     if (VERBOSE)
       std::cerr << "CHILD: var_name is " << var_name << std::endl;
 
-    if (strcmp (var_name, "Cell") == 0) {
+    //if (strcmp (var_name, "Cell") == 0) {
+    {
       int i=0;
       tMesh<tLNode>::triListIter_t ti (mesh->getTriList ());
       for (tTriangle * current_tri=ti.FirstP(); !ti.AtEnd();
@@ -235,6 +266,7 @@ void bmi::Model::GetGridConnectivity (const char *var_name,
         connectivity[i+2] = current_tri->pPtr (2)->getPermID ();
       }
     }
+    /*
     else {
       int i=0;
       tMesh<tLNode>::nodeListIter_t ni(mesh->getNodeList ());
@@ -244,6 +276,7 @@ void bmi::Model::GetGridConnectivity (const char *var_name,
           connectivity[i] = current_node->getPermID ();
       }
     }
+    */
   }
   else
     throw bmi::BAD_ARGUMENT;
@@ -257,14 +290,17 @@ void bmi::Model::GetGridOffset (const char * var_name,
 
   if (var_name && offset) {
     const int n_offsets = GetVarCellCount (var_name);
-    if (strcmp (var_name, "Cell") == 0) {
+    //if (strcmp (var_name, "Cell") == 0) {
+    {
       for (int i=0, offset_id=3; i<n_offsets; i++, offset_id+=3)
         offset[i] = offset_id;
     }
+    /*
     else {
       for (int i=0, offset_id=1; i<n_offsets; i++, offset_id++)
         offset[i] = offset_id;
     }
+    */
   }
 
   return;
@@ -284,10 +320,17 @@ bool bmi::Model::HasInputVar (const char * var_name) {
 }
 
 bool bmi::Model::HasOutputVar (const char * var_name) {
+  if (VERBOSE)
+    std::cout << "INFO: looking for output var: " << std::string (var_name) << std::endl;
+
   for (int i=0; i<this->output_var_name_count; i++) {
     if (strcmp (output_var_names[i], var_name) == 0)
       return true;
   }
+
+  if (VERBOSE)
+    std::cout << "ERROR: Child lacks output var: " << std::string (var_name) << std::endl;
+
   return false;
 }
 

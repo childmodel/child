@@ -3,6 +3,8 @@
 
 #include "child.h"
 
+#define BMI_GET_GRID_CONNECTIVITY
+
 namespace bmi {
 
 const int COMPONENT_NAME_MAX = 2048;
@@ -56,7 +58,7 @@ class Model : public Child {
       "sea_floor__elevation",
       "sea_floor_bedrock_surface__elevation",
       "bedrock_surface__elevation",
-      "bedrock_surface__uplift_rate",
+      "bedrock_surface__elevation_increment",
       NULL,
     };
     const char *outputs[] = {
