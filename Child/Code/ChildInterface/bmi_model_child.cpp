@@ -115,10 +115,10 @@ void bmi::Model::GetDouble(const char * var_name, double * const dest) {
         << var_name << "'\n";
 
     if (strcmp (var_name, "surface__elevation") == 0 ||
-        strcmp (var_name, "sea_floor_surface__elevation") == 0) {
+        strcmp (var_name, "sea_floor__elevation") == 0) {
       CopyNodeElevations (dest);
     }
-    else if (strcmp (var_name, "surface_elevation__increment")==0) {
+    else if (strcmp (var_name, "surface__elevation_increment")==0) {
       CopyNodeElevations (dest);
     }
     else if (strcmp (var_name, "sediment__erosion_rate")==0) {
@@ -151,7 +151,7 @@ void bmi::Model::SetDouble (const char * var_name, double *vals) {
   {
     return SetNodeElevations (vals);
   }
-  else if (strcmp (var_name, "bedrock_surface__uplift_rate")==0) {
+  else if (strcmp (var_name, "bedrock_surface__elevation_increment")==0) {
     return SetNodeUplift (vals);
   }
   else
