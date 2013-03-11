@@ -141,7 +141,6 @@ main (int argc, char *argv[])
       int rank;
       int number_of_points;
       bmi::GridType grid_type;
-      double *buffer = NULL;
       int *shape;
       double *spacing;
       double *origin;
@@ -156,9 +155,9 @@ main (int argc, char *argv[])
 
       CHECK_INTERFACE_FUNC ("Get_var_point_count", number_of_points = child.GetVarPointCount (*name));
 
-      buffer = (double*) malloc (sizeof (double) * number_of_points);
-
       if (number_of_points > 0) {
+        double *buffer = (double*) malloc (sizeof (double) * number_of_points);
+
         /* Variable getters */
         CHECK_INTERFACE_FUNC ("Get_double", child.GetDouble (*name, buffer));
 
@@ -208,7 +207,7 @@ main (int argc, char *argv[])
             CHECK_INTERFACE_FUNC ("GetGridX", child.GetGridX (*name, x));
             CHECK_INTERFACE_FUNC ("GetGridY", child.GetGridX (*name, y));
             CHECK_INTERFACE_FUNC ("GetGridConnectivity", child.GetGridConnectivity (*name, c));
-            CHECK_INTERFACE_FUNC ("GetGridOffset", child.GetGridConnectivity (*name, o));
+            CHECK_INTERFACE_FUNC ("GetGridOffset", child.GetGridOffset (*name, o));
 
             delete x, y, c, o;
           }

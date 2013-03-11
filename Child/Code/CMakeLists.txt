@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 
 ENABLE_TESTING ()
-ADD_TEST (bmi_model_child_test ${CMAKE_CURRENT_BINARY_DIR}/bmi_model_child_test ${CMAKE_CURRENT_SOURCE_DIR}/ChildInterface/test_ielement.in)
+ADD_TEST (bmi_model_child_test ${CMAKE_CURRENT_BINARY_DIR}/bmi_model_child_test test_input_files.txt)
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/ChildInterface/tests/test_input_files.txt.cmake test_input_files.txt)
 
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/child.pc.cmake ${CMAKE_CURRENT_SOURCE_DIR}/child.pc )
 
