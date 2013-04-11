@@ -3580,6 +3580,9 @@ debris_flow_sed_bucket(0), debris_flow_wood_bucket(0)
   infile.ReadBool( "OPT_DEPTH_DEPENDENT_DIFFUSION", false );
   if( optDepthDependentDiffusion)
     diffusionH = infile.ReadDouble( "DIFFDEPTHSCALE", true );
+  else
+    if( num_grain_sizes_>1 )
+	  ReportFatalError( "When using multiple grain sizes, you must select depth-dependent diffusion and give a value for DIFFDEPTHSCALE" );
   
   int optAdaptMesh = infile.ReadItem( optAdaptMesh, "OPTMESHADAPTDZ", false );
   if( optAdaptMesh )
@@ -4789,8 +4792,8 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
     tArray <double> insed( strmNet->getInSedLoadm() );
     tArray <double> inletBedSizeFraction( strmNet->getInletSedSizeFraction() );  // TEMP 6/06: stores desired bed sed proportions at inlet
     // fractions must sum to 1 in input file (INSED1, INSED2, etc)
-    double inletSlope = strmNet->getInletSlope();
-    
+    double inletSlope;	
+	    
     //DEBUGGING 
     if(0) {
       std::cout<<"inletSlope = "<< inletSlope <<std::endl;
@@ -4834,7 +4837,11 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
           // We set the inlet node's erodibility values (for each layer) to zero so it can't be eroded.
           // Also set the grain-size distribution in the upper layers to the values specified in the input 		// file by INSED1, 2, etc. Variable inletBedSizeFraction contains INSED1, 2, etc, which are
           // assumed to be fractions that sum to 1.0 (the user can screw this up ... it isn't checked!)	
-          size_t numLayersInlet = cn->getNumLayer();
+        double inletSlope = strmNet->getInletSlope( time );
+		    if(0) {
+                std::cout<<"inletSlope = "<< inletSlope <<std::endl;
+                   }
+		  size_t numLayersInlet = cn->getNumLayer();
           if(0) std::cout<<numLayersInlet<<" lay inlt\n";
           for( size_t i=0; i<numLayersInlet; i++ ) {
             cn->setLayerErody( i, 0.0 );
@@ -4859,7 +4866,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
           double len = cn->getFlowEdg()->getLength();   // TEMP TEST
           
           //Xdouble temporary_myslope = 0.05;  // Ultimately, read this from input file
-          cn->ChangeZ( (zdown+len*inletSlope)-cn->getZ() );
+          cn->ChangeZ( (zdown+len * strmNet->getInletSlope( time ) )-cn->getZ() );
           
           // Next, we call TransCapacity, which automatically sets Qs in each size class
           insedloadtotal = sedTrans->TransCapacity( cn, 0, 1.0 );
@@ -5730,8 +5737,10 @@ void tErosion::Diffuse( double rt, bool noDepoFlag, double time )
         cn->setQsin( 0.0 );
       deposition_depth[0] = cn->getQsin() / cn->getVArea();
       cn->EroDep( 0, deposition_depth, time );  // add or subtract net flux/area    
-      //cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area    
-      cn->getDownstrmNbr()->addQsdin(-1 * cn->getQsin()/dtmax);
+      //cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area   
+
+	  
+      cn->getDownstrmNbr()->addQsdin(-1 * cn->getQsin()/dtmax);  
       //this won't work if time steps are varying, because you are adding fluxes
       
       if( 0 ) //DEBUG
@@ -5761,7 +5770,9 @@ void tErosion::DiffuseMultiSize( double rt, bool noDepoFlag, double time )
 {
   tLNode * cn;
   tLNode * dn;
+  tLNode * hn;
   tEdge * ce;
+  double hst=diffusionH;	//H_star in m
   double volout,  // Sediment volume output from a node (neg=input)
   delt,       // Max local step size
   dtmax;      // Max global step size (initially equal to total time rt)
@@ -5774,7 +5785,7 @@ void tErosion::DiffuseMultiSize( double rt, bool noDepoFlag, double time )
   static tArray<double> deposition_depth( num_grain_sizes_ );
   static tArray<double> volout_by_size( num_grain_sizes_ );
   
-  if (1) std::cout << "tErosion::DiffuseMultiSize()" << std::endl;
+  if (0) std::cout << "tErosion::DiffuseMultiSize()" << std::endl;
 	
   kd = kd_ts.calc( time );
   if(0) std::cout << "kd = " << kd << std::endl;
@@ -5828,22 +5839,41 @@ void tErosion::DiffuseMultiSize( double rt, bool noDepoFlag, double time )
     // Compute sediment volume transfer along each edge
     for( ce=edgIter.FirstP(); edgIter.IsActive(); ce=edgIter.NextP() )
     {
+	  cn = static_cast<tLNode *>(ce->getOriginPtrNC());  // get node
+      dn = static_cast<tLNode *>(ce->getDestinationPtrNC()); 
+	  
+	  if (cn->getZ() > dn->getZ() )	  
+		hn = cn;
+	  else
+		hn = dn;
+		
+		//DEBUG
+		if (0){
+		std::cout << " Height cn: " << cn->getZ() << " Height dn: " << dn->getZ() << " Height hn: " << hn->getZ() << std::endl;
+		}
+		
+			  
       // Record outgoing flux from origin
-      volout = kd*ce->CalcSlope()*ce->getVEdgLen()*dtmax; // volume out
-      cn = static_cast<tLNode *>(ce->getOriginPtrNC());  // get node
-      dn = static_cast<tLNode *>(ce->getDestinationPtrNC());
-      if( difThresh>0.0 && cn->getDrArea()>difThresh ) // switch off?
+      volout = kd*ce->CalcSlope()*ce->getVEdgLen()*dtmax * (1.0-exp((-1.0*hn->getRegolithDepth())/hst)); // volume out 
+	  
+      if( difThresh>0.0 && cn->getDrArea()>difThresh ) 
         volout=0;
-      cn->addQsin( -volout );
-      dn->addQsin( volout );
-      for( int g=0; g<num_grain_sizes_; g++ ) // volume+flux by size
-      {
-        volout_by_size[g] = volout * ( cn->getLayerDgrade( 0, g ) / cn->getLayerDepth(0) );
-        cn->addQsin( g, -volout_by_size[g] );
-        dn->addQsin( g, volout_by_size[g] );
-      }
-      
-      if( 1 ) { //DEBUG
+     
+	
+	  for( int g=0; g<num_grain_sizes_; g++ ) // volume+flux by size
+		{
+			volout_by_size[g] = volout * ( hn->getLayerDgrade( 0, g ) / hn->getLayerDepth(0) );
+			cn->addQsin( g, -volout_by_size[g] );
+			dn->addQsin( g, volout_by_size[g] );
+			
+		 }
+		 	if (0){
+			std::cout  << " Regolith Depth hn: " << hn->getRegolithDepth() << std::endl;
+			}
+			
+		 //DEBUG
+		
+		if( 0 ) { //DEBUG
         std::cout << volout << " mass exch. from " << ce->getOriginPtr()->getID()
         << " to "
         << ce->getDestinationPtr()->getID()
@@ -5853,37 +5883,50 @@ void tErosion::DiffuseMultiSize( double rt, bool noDepoFlag, double time )
         << " " << ce->getRVtx().at(1) << std::endl;
         int gg;
         for ( gg=0; gg<num_grain_sizes_; gg++ )
+		{
           std::cout << "  size " << gg << " volout is " << volout_by_size[gg] << std::endl;
+		  std::cout << "  size " << gg << " percent vol is " << volout_by_size[gg]/volout << std::endl;
+		  }
         static_cast<tLNode *>(ce->getOriginPtrNC())->TellAll();
         static_cast<tLNode *>(ce->getDestinationPtrNC())->TellAll();
         std::cout << std::endl;
-      }
-      
+      }  
+		
+			 
       /*ce =*/ edgIter.NextP();  // Skip complementary edge
     }
     
     // Compute erosion/deposition for each node
     for( cn=nodIter.FirstP(); nodIter.IsActive(); cn=nodIter.NextP() )
     {
-      if( 0 ) //DEBUG
-        std::cout << "Node " << cn->getID() << " Qsin: " << cn->getQsin()
-        << " dz: " << cn->getQsin() / cn->getVArea() << std::endl;
+    
       if( noDepoFlag && cn->getQsin() > 0.0 )
         cn->setQsin( 0.0 );
       for( i=0; i<num_grain_sizes_; i++ )
+	  {
         deposition_depth[i] = cn->getQsin(i) / cn->getVArea();
+		}
+		
+		
       cn->EroDep( 0, deposition_depth, time );  // add or subtract net flux/area    
-      //cn->EroDep( cn->getQsin() / cn->getVArea() );  // add or subtract net flux/area    
-      cn->getDownstrmNbr()->addQsdin(-1 * cn->getQsin()/dtmax);
-      //this won't work if time steps are varying, because you are adding fluxes
-      
-      if( 0 ) //DEBUG
-        std::cout<<cn->getZ()<<" Q: "<<cn->getQ()
-        <<" dz "<<cn->getQsin() / cn->getVArea()
-        <<" dt "<<dtmax<<std::endl;
-      /*if( cn->id==700 ) {
-       cn->TellAll();
-       }*/
+	  cn->getDownstrmNbr()->addQsdin(-1 * cn->getQsin()/dtmax);  //what does this do? removed or added in, can't see diff
+	  
+	  
+	  if( 0 ) //DEBUG
+	   {
+        std::cout << "Node " << cn->getID() << " Qsin: " << cn->getQsin()
+        << " dz: " << cn->getQsin() / cn->getVArea() << std::endl;
+		int gg;
+		  for ( gg=0; gg<num_grain_sizes_; gg++ )
+		 {
+          std::cout << "  size " << gg << " depo depth is " << deposition_depth[gg] << std::endl;
+		  std::cout << "  size " << gg << " Qsin " << cn->getQsin(gg) << std::endl;
+		  std::cout << "  size " << gg << " percent depo depth " << 
+		  deposition_depth[gg] / (cn->getQsin() / cn->getVArea()) << std::endl;
+		  }
+		}
+		
+         
     }
     
     rt -= dtmax;
