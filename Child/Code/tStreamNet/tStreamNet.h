@@ -92,6 +92,7 @@ private:
     // IN PROGRESS: ALTERNATIVE HANDLING OF SED FEED, MAY 06
     bool optCalcSedFeed;  // Option to calculate sediment influx based on prescribed gradient & bed grain sizes
     double inletSlope;    // Fixed slope for inlet, if used
+	tTimeSeries inletSlope_ts;	//AL: inletslope as time series object
     tArray<double> inletSedSizeFraction;  // Proportion of each sediment class on bed at inlet
     
 };
@@ -239,7 +240,7 @@ public:
     tArray< double > getInSedLoadm() const;
     tLNode const *getInletNodePtr() const;
     tLNode *getInletNodePtrNC();
-    double getInletSlope() const;   // Returns slope of inlet node if fixed slope option is used
+    double getInletSlope( double time);   // Returns slope of inlet node if fixed slope option is used
     tArray< double > getInletSedSizeFraction() const;  // Returns sed size fractions on bed of inlet node if appl.
     void setFlowGenOpt( kFlowGen_t );
     void setFillLakesOpt( bool );

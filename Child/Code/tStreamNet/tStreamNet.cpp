@@ -333,7 +333,7 @@ tArray< double > tStreamNet::getInSedLoadm( ) const {return inlet.inSedLoadm;}
 tLNode const *tStreamNet::getInletNodePtr() const {return inlet.innode;}
 tLNode *tStreamNet::getInletNodePtrNC() {   return inlet.innode;}
 
-double tStreamNet::getInletSlope() const { return inlet.inletSlope; }
+double tStreamNet::getInletSlope(double time) { return inlet.inletSlope_ts.calc(time); }	//AL
 
 tArray< double > tStreamNet::getInletSedSizeFraction() const {return inlet.inletSedSizeFraction; }
 
@@ -3340,7 +3340,7 @@ optCalcSedFeed(false), inletSlope(0.), inletSedSizeFraction(0)
 tInlet::tInlet( const tInlet& orig, tMesh<tLNode> *mPtr ) :
 innode(0), inDrArea(orig.inDrArea), inSedLoad(orig.inSedLoad), 
 inSedLoadm(orig.inSedLoadm), meshPtr(mPtr),
-optCalcSedFeed(orig.optCalcSedFeed), inletSlope(orig.inletSlope), 
+optCalcSedFeed(orig.optCalcSedFeed), inletSlope(orig.inletSlope), inletSlope_ts(orig.inletSlope_ts),
 inletSedSizeFraction(orig.inletSedSizeFraction)
 {
   if( orig.innode )
@@ -3393,7 +3393,9 @@ meshPtr(gPtr)
     optCalcSedFeed = infile.ReadItem( optCalcSedFeed, "INLET_OPTCALCSEDFEED" );
     if( optCalcSedFeed ) 
     {
-      inletSlope = infile.ReadItem( inletSlope, "INLET_SLOPE" );
+      //inletSlope = infile.ReadItem( inletSlope, "INLET_SLOPE" );
+	  infile.ReadItem( inletSlope_ts, "INLET_SLOPE" );  //AL
+	  inletSlope=inletSlope_ts.calc(0.);
       inletSedSizeFraction.setSize(numg);
     }
     else
