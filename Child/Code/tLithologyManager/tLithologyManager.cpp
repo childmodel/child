@@ -506,7 +506,7 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
   // layer to be added, or we hit the bottom of the layer stack.
   while( !layer_found && !li.AtEnd() )
   {
-    if(1) std::cout << "Checking layer " << layer_number << std::endl;
+    if(0) std::cout << "Checking layer " << layer_number << std::endl;
     
     // To get the height of the current layer's base, we take its current
     // value (which starts at the land surface) and subtract the thickness
@@ -537,7 +537,7 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
   // a layer at the bottom of the stack
   if( !layer_found )
   {
-    if(1) std::cout << "Did not find a layer at depth "
+    if(0) std::cout << "Did not find a layer at depth "
       << new_layer_base_height << " at node " << node->getPermID() << std::endl;
     
     // Create a new layer to be copied and added at the bottom of the current
@@ -565,7 +565,7 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
   // equal to one tenth of the standard layer thickness "maxregdepth").
   if( (new_layer_base_height-current_layer_base_height) > 0.1*node->getMaxregdep() )
   {
-    if(1) std::cout << "Now splitting layer ...\n";
+    if(0) std::cout << "Now splitting layer ...\n";
     // Our layer splitting function will use the following algorithm:
     //  - Create a new layer, copying from the current layer
     //  - Assign the bottom (new) layer the top layer's original thickness 
@@ -583,7 +583,7 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
     // between these two.
     double layer_thickness = new_layer_base_height - current_layer_base_height;
     new_layer.setDepth( layer_thickness );
-    if(1) std::cout << "Setting thickness of new layer to " << layer_thickness << std::endl;
+    if(0) std::cout << "Setting thickness of new layer to " << layer_thickness << std::endl;
     
     // Insert this layer below the current one.
     node->getLayersRefNC().insertAtNext( new_layer, li.NodePtr() );
@@ -593,9 +593,11 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
     layer_thickness = curlay->getDepth() - layer_thickness;
     assert( layer_thickness > 0.0 );
     curlay->setDepth( layer_thickness );
-    std::cout << "The remaining upper layer has been reduced to " << layer_thickness << std::endl;
-    std::cout << "To confirm: " << curlay->getDepth() << std::endl;
-    std::cout << "Top layer thickness: " << node->getLayerDepth(0) << std::endl;
+    if(0) {
+      std::cout << "The remaining upper layer has been reduced to " << layer_thickness << std::endl;
+      std::cout << "To confirm: " << curlay->getDepth() << std::endl;
+      std::cout << "Top layer thickness: " << node->getLayerDepth(0) << std::endl;
+    }
   }
   
   // Set the properties of the current layer and all layers above it to those
@@ -605,9 +607,11 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
   curlay = li.FirstP();
   for( int i=0; i<=layer_number; i++, curlay=li.NextP() )
   {
-    std::cout << "Layer " << i << " has thickness " << curlay->getDepth() << std::endl;
-    std::cout << "Via the node: " << node->getLayerDepth(i) << std::endl;
-
+    if(0) {
+      std::cout << "Layer " << i << " has thickness " << curlay->getDepth() << std::endl;
+      std::cout << "Via the node: " << node->getLayerDepth(i) << std::endl;
+    }
+    
     // Here we apply the properties of this "etch layer" to the current
     // layer. We don't use the overloaded assignment operator, because that
     // would also apply the thickness.
@@ -625,10 +629,10 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
     for( size_t j=0; j<layer_properties.getDgradesize(); j++ )
     {
       double proportion_of_this_size = layer_properties.getDgrade(j);
-      if(1) std::cout << "Setting dgrade " << j << " to " << proportion_of_this_size << " times " << thickness << " = " << proportion_of_this_size*thickness << std::endl;
+      if(0) std::cout << "Setting dgrade " << j << " to " << proportion_of_this_size << " times " << thickness << " = " << proportion_of_this_size*thickness << std::endl;
       curlay->setDgrade( j, proportion_of_this_size*thickness );
     }
-    std::cout << "Now at end of loop we have layer thickness " << curlay->getDepth() << " and " << node->getLayerDepth(i) << std::endl;
+    if(0) std::cout << "Now at end of loop we have layer thickness " << curlay->getDepth() << " and " << node->getLayerDepth(i) << std::endl;
   }
 
 }
@@ -672,7 +676,7 @@ PointInPolygon( std::vector<double> vertx,
 void tLithologyManager::
 EtchLayerAbove2DSurface( Etchlayer &etchlay )
 {
-  if(1) std::cout << "tLithologyManager::EtchLayerAbove2DSurface here\n";
+  if(0) std::cout << "tLithologyManager::EtchLayerAbove2DSurface here\n";
   
   tLNode * cn;
   tMesh<tLNode>::nodeListIter_t ni( meshPtr_->getNodeList() );
@@ -705,12 +709,12 @@ EtchLayerAbove2DSurface( Etchlayer &etchlay )
 
       // If the base of the layer falls below the ground surface, then
       // go ahead and "etch" it in.
-      if(1) std::cout << "About to etch at " << new_layer_base_height << std::endl;
+      if(0) std::cout << "About to etch at " << new_layer_base_height << std::endl;
       if( new_layer_base_height < cn->getZ() )
         EtchLayerAboveHeightAtNode( new_layer_base_height, cn, 
                                     etchlay.layer_properties_, 
                                     etchlay.keep_regolith_ );
-      if(1) std::cout << "Our top layer is now " << cn->getLayerDepth(0) << std::endl;
+      if(0) std::cout << "Our top layer is now " << cn->getLayerDepth(0) << std::endl;
       
     }
   }
