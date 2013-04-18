@@ -155,7 +155,7 @@ InitializeFromInputFile( tInputFile &inputFile, tMesh<tLNode> *meshPtr )
 void tLithologyManager::
 SetLithologyFromChildLayFile( const tInputFile &infile )
 {
-  int i, item, numl;
+  int i, numl;
   int numlayernodes;
   double time;
   double ditem;
@@ -326,6 +326,7 @@ SetLithologyFromEtchFile( const tInputFile &infile )
     ReportFatalError( "Unable to find or open etchfile" );
   
   // Read through the etch file, assigning new layers accordingly
+  // First, find out the number of layers to etch.
   unsigned num_grain_sizes = infile.ReadInt( "NUMG" );
   unsigned num_layers_to_etch;
   etchfile >> num_layers_to_etch;
@@ -334,14 +335,18 @@ SetLithologyFromEtchFile( const tInputFile &infile )
     cout << "WARNING: The etch file is asking for " << num_layers_to_etch << " layers.\n";
     cout << "Are you sure there isn't an error in the etch file?\n";
   }
+  
+  // Next, read through layer by layer.
+  Etchlayer new_etch_layer;
+  new_etch_layer.layer_properties_.setDgradesize( num_grain_sizes );
+  std::cout << " new etch seems to allow for " << new_etch_layer.layer_properties_.getDgradesize() << std::endl;
   for( unsigned i=0; i<num_layers_to_etch; i++ )
   {
-    Etchlayer new_etch_layer;
-    double thickness, erody, bulk_density, dgrade, cum_fraction;
+    double erody, bulk_density, grain_size_proportion, cum_fraction;
     unsigned sedrockflag;
-    tLayer layer_properties;
+    //tLayer layer_properties;
     
-    // Read properties for the current layer
+    // Read properties for the current layer: general properties
     if(1) cout << "Reading properties for layer " << i << endl;
     etchfile >> erody;
     new_etch_layer.layer_properties_.setErody( erody );
@@ -351,11 +356,16 @@ SetLithologyFromEtchFile( const tInputFile &infile )
     tLayer::tSed_t flag = ( sedrockflag>0 ) ? tLayer::kSed : tLayer::kBedRock;
     new_etch_layer.layer_properties_.setSed( flag );
     cum_fraction = 0.0;
+    
+    // Read properties: grain-size related
     for( unsigned j=1; j<num_grain_sizes; j++ )
     {
-      etchfile >> dgrade;   // Note: dgrades are meant to be proportion, not
-      cum_fraction += dgrade; // thickness! Convert when setting thickness ...
-      new_etch_layer.layer_properties_.setDgrade( j, dgrade );
+      if(1) std::cout << " Reading dgrade info for size " << j << " of " << num_grain_sizes << std::endl;
+      etchfile >> grain_size_proportion;   // Note: dgrades are meant to be proportion, not
+      if( grain_size_proportion < 0.0 || grain_size_proportion > 1.0 )
+        ReportFatalError( "Grain size proportions must be 0 to 1." );
+      cum_fraction += grain_size_proportion;
+      new_etch_layer.layer_properties_.setDgrade( j, grain_size_proportion );
     }
     new_etch_layer.layer_properties_.setDgrade( 0, 1.0 - cum_fraction );
     
@@ -365,11 +375,22 @@ SetLithologyFromEtchFile( const tInputFile &infile )
     etchfile >> new_etch_layer.ay >> new_etch_layer.by >> new_etch_layer.cy;
     etchfile >> new_etch_layer.d;
     etchfile >> new_etch_layer.keep_regolith_ >> new_etch_layer.use_bounding_polygon_;
+    
+    if(1) new_etch_layer.TellData();
+
     if( new_etch_layer.use_bounding_polygon_ )
     {
       etchfile >> new_etch_layer.layer_is_inside_poly_;
-      unsigned npoints;
+      if(1) std::cout << "layer in poly = " << new_etch_layer.layer_is_inside_poly_ << std::endl;
+      int npoints;
       etchfile >> npoints;
+      if( npoints < 3 || npoints>1000 )
+      {
+        std::cout << "Your etchfile asks for a polygon with " << npoints 
+        << " points, which seems unlikely.\n";
+        ReportFatalError( "Error in etchfile format" );
+      }
+      if(1) std::cout << "Using bounding polygon with " << npoints << " points.\n";
       new_etch_layer.px.resize( npoints );
       new_etch_layer.py.resize( npoints );
       for( unsigned j=0; j<npoints; j++ )
@@ -378,6 +399,15 @@ SetLithologyFromEtchFile( const tInputFile &infile )
       }
     }
     if(1) new_etch_layer.TellData();
+    
+    // Do some error checking.
+    // Some potential signs of a problem with the etch file format:
+    //  - if the depth parameter d is below the center of the earth (6400 km)
+    if( new_etch_layer.d < -6400000.0 )
+    {
+      std::cout << "I'm reading the depth to the base of the etch layer as " << new_etch_layer.d << ", which seems improbable!\n";
+      ReportFatalError( "Error in etch file format." );
+    }
     
     // "etch" this layer into the existing stratigraphy
     EtchLayerAbove2DSurface( new_etch_layer );
@@ -463,7 +493,7 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
                            tLayer &layer_properties, bool keep_regolith )
 {
   bool layer_found = false;
-  int numlay = node->getNumLayer();
+  //int numlay = node->getNumLayer();
   tListIter<tLayer> li ( node->getLayersRefNC() );
   tLayer * curlay;
   double current_layer_base_height = node->getZ(); // Elevation of layer's base
@@ -499,6 +529,8 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
     }
     
   }
+  
+  // TODO: IMPLEMENT PRESERVATION OF REGOLITH
   
   // If the new layer doesn't cut through an existing one, then it must cut 
   // *below* (or right at the base of) the layers, so we'll need to insert a
@@ -584,11 +616,17 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
     curlay->setRtime( 0.0 );
     curlay->setEtime( 0.0 );
     curlay->setBulkDensity( layer_properties.getBulkDensity() );
+    
+    // Now we're applying the grain size information. We assume that
+    // layer_properties stores the PROPORTION not the THICKNESS of each
+    // size class, so we have to translate.
+    double thickness = curlay->getDepth();
     curlay->setDgradesize( layer_properties.getDgradesize() );
     for( size_t j=0; j<layer_properties.getDgradesize(); j++ )
     {
-      double proportion_of_this_size = layer_properties.getDgrade(j) / layer_properties.getDepth();
-      curlay->setDgrade( j, proportion_of_this_size*curlay->getDepth() );
+      double proportion_of_this_size = layer_properties.getDgrade(j);
+      if(1) std::cout << "Setting dgrade " << j << " to " << proportion_of_this_size << " times " << thickness << " = " << proportion_of_this_size*thickness << std::endl;
+      curlay->setDgrade( j, proportion_of_this_size*thickness );
     }
     std::cout << "Now at end of loop we have layer thickness " << curlay->getDepth() << " and " << node->getLayerDepth(i) << std::endl;
   }
@@ -674,8 +712,6 @@ EtchLayerAbove2DSurface( Etchlayer &etchlay )
                                     etchlay.keep_regolith_ );
       if(1) std::cout << "Our top layer is now " << cn->getLayerDepth(0) << std::endl;
       
-      // CURRENT PROBLEM AS OF 2/13/13: TOP LAYER IS SOMEHOW GETTING SET BACK
-      // TO 1 FROM WHATEVER THICKNESS IT IS ASSIGNED IN THE ABOVE FUNCTION!
     }
   }
     
