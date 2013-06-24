@@ -33,6 +33,8 @@
 #include "../tEolian/tEolian.h"
 #include "../tOption/tOption.h"
 
+#include "../TravelDis/TravelDis.h"
+
 #include "../tMeshList/tMeshList.h"
 
 using namespace std;
@@ -69,7 +71,8 @@ private:
         optLoessDep,       // Option for eolian deposition
         optDiffuseDepo,    // Option for deposition / no deposition by diff'n
         optStratGrid,      // Option to enable stratigraphy grid
-		optNonlinearDiffusion; // Option for nonlinear creep transport
+		optNonlinearDiffusion, // Option for nonlinear creep transport
+        optTravelDis;       // Option to enable travel distance probabilities
 	tRand *rand;             // -> random number generator
 	tMesh<tLNode> *mesh;        // -> mesh object
 	tLOutput<tLNode> *output;   // -> output handler
@@ -81,7 +84,7 @@ private:
 	tStratGrid *stratGrid;     // -> Stratigraphy Grid object
 	tEolian *loess;           // -> eolian deposition object
 	tVegetation *vegetation;  // -> vegetation object
-	
+	TravelDis *traveldistance;  // -> traveldistance object
 	
 };
 

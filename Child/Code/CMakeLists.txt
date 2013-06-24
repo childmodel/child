@@ -34,6 +34,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/tStreamMeander
   ${CMAKE_CURRENT_SOURCE_DIR}/tWaterSedTracker
   ${CMAKE_CURRENT_SOURCE_DIR}/tLithologyManager
+${CMAKE_CURRENT_SOURCE_DIR}/TravelDis
 )
 
 set (child_LIB_SRCS
@@ -68,6 +69,7 @@ set (child_LIB_SRCS
   tStreamMeander/meander.cpp
   tWaterSedTracker/tWaterSedTracker.cpp
   tLithologyManager/tLithologyManager.cpp
+  TravelDis/TravelDis.cpp
 )
 
 add_library (child-shared SHARED ${child_LIB_SRCS})
@@ -197,6 +199,9 @@ install (FILES
 install (FILES
   tWaterSedTracker/tWaterSedTracker.h
   DESTINATION include/child/tWaterSedTracker COMPONENT child)
+install (FILES
+  TravelDis/TravelDis.h
+  DESTINATION include/child/TravelDis COMPONENT child)
 install (FILES
   Classes.h
   Definitions.h

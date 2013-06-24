@@ -43,6 +43,7 @@ childRInterface()
 	stratGrid = NULL;
 	loess = NULL;
 	vegetation = NULL;
+    traveldistance = NULL;
 }
 
 
@@ -110,6 +111,7 @@ Initialize( int argc, char **argv )
    optStratGrid = inputFile.ReadBool( "OPTSTRATGRID" ,false);
    optNonlinearDiffusion = inputFile.ReadBool( "OPT_NONLINEAR_DIFFUSION", false );
    optVegetation = inputFile.ReadBool( "OPTVEG" );
+   optTravelDis = inputFile.ReadBool( "OPTTRAVELDIS" );
    
    // If applicable, create Vegetation object
    if( optVegetation )
@@ -127,6 +129,13 @@ Initialize( int argc, char **argv )
      stratGrid = new tStratGrid (inputFile, mesh);
      output->SetStratGrid( stratGrid, strmNet );
    }
+    
+    // If applicable, call TravelDis to read the target nodes and find the upstream nodes for each catchment
+    if( optTravelDis ) {
+        
+        traveldistance = new TravelDis( inputFile, mesh );
+        erosion -> ActivateTravelDisAtNodes(traveldistance);
+    }
 
    std::cout << "Writing data for time zero...\n";
    time = new tRunTimer( inputFile, !option.silent_mode );
@@ -191,7 +200,7 @@ RunOneStorm()
 								 vegetation );
 	else{
 		erosion->DetachErode( storm->getStormDuration(), strmNet,
-							  time->getCurrentTime(), vegetation );
+							  time->getCurrentTime(), vegetation, traveldistance ); // TravelDis is now called from here
 		// To use tools rules, you must use DetachErode2 NMG 07/05
 		//erosion.DetachErode2( storm.getStormDuration(), &strmNet,
 		//                      time.getCurrentTime(), vegetation );
@@ -317,6 +326,10 @@ CleanUp()
 	if( optStratGrid && stratGrid ) {
 		delete stratGrid;
 		stratGrid = NULL;
+	}
+    if( optTravelDis && traveldistance ) {
+		delete traveldistance;
+		traveldistance = NULL;
 	}
 	initialized = false;
 }

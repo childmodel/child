@@ -25,6 +25,7 @@ class tDeposit;
 class tMeander;
 class tBedrock;
 class tSurface;
+class TravelDis;
 
 template< class T > class tArray;
 #include "tList/tListFwd.h"

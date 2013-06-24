@@ -80,7 +80,7 @@ int main( int argc, char **argv )
    tRand rand( inputFile );
 
    // Create and initialize objects:
-   std::cout << "Creating mesh...\n";
+   std::cout << "Creating 2mesh...\n";
    tMesh<tLNode> mesh( inputFile, option.checkMeshConsistency );
 
    std::cout << "Creating output files...\n";

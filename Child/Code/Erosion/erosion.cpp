@@ -4759,11 +4759,14 @@ void tErosion::StreamErodeMulti( double dtg, tStreamNet *strmNet, double time )
  **  if the stream has the capacity to carry it. Handles multiple grain
  **  sizes. Replaces StreamErode and StreamErodeMulti.
  **
+ **  Added 06/2013 - call to TravelDis to calculate depositional probabilities
+ **
  \************************************************************************/
 
 void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
-                           tVegetation * /*pVegetation*/ )
+                           tVegetation *, /*pVegetation*/ TravelDis *)
 {
+    
     //Added 4/00, if there is no runoff, this would crash, so check
   if(strmNet->getRainRate()-strmNet->getInfilt()>0){
     
@@ -4783,6 +4786,8 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
     tLNode * inletNode = strmNet->getInletNodePtrNC();
     double insedloadtotal = strmNet->getInSedLoad();
     int debugCount = 0;
+      
+      double dtg_o=dtg; // initial dtg
     
     cn = ni.FirstP();
     
@@ -4817,7 +4822,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
     do
     {
       if(0) std::cout << "DetachErode: top of do loop\n" << std::flush;
-      
+        
       // Zero out sed influx of all sizes
       for( cn = ni.FirstP(); ni.IsActive(); cn = ni.NextP() )
       {
@@ -4938,7 +4943,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
             qs += 
             sedTrans->TransCapacity(cn,i,cn->getLayerDepth(i)
                                     /cn->getChanDepth());
-            if(0&&cn==inletNode) 
+            if(0&&cn==inletNode)
               std::cout<<"1depck="<<depck<<" qs="<<qs
               <<"wt="<<cn->getLayerDepth(i)/cn->getChanDepth()
               <<" qs/wt="<<qs/(cn->getLayerDepth(i)/cn->getChanDepth())
@@ -5011,6 +5016,7 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
               std::cout<< " "<<i<<"="<<insed[i]<<std::endl;
           }
 	      }
+          
         
         dn = cn->getDownstrmNbr();
         ratediff = dn->getDzDt() - cn->getDzDt(); //Are the pts converging?
@@ -5223,8 +5229,12 @@ void tErosion::DetachErode(double dtg, tStreamNet *strmNet, double time,
 #define NEWVEG 0
       if( pVegetation && NEWVEG ) pVegetation->ErodeVegetation( meshPtr, dtmax );
 #undef NEWVEG
-#endif
+#endif?
       
+        if( travel_dis_prob_at_nodes_ ) {
+            travel_dis_tracker_ptr_->TravelDis_InsideStorm( meshPtr, time, dtg_o, dtg, dtmax );
+        }
+        
       // Update time remainig
       dtg -= dtmax;
       

@@ -43,6 +43,7 @@
 #include "tStratGrid/tStratGrid.h"
 #include "tEolian/tEolian.h"
 #include "tOption/tOption.h"
+#include "TravelDis/TravelDis.h"
 
 #include "tMeshList/tMeshList.h"
 
@@ -58,6 +59,7 @@ int main( int argc, char **argv )
         optDiffuseDepo,    // Option for deposition / no deposition by diff'n
         optStratGrid,      // Option to enable stratigraphy grid
 		optNonlinearDiffusion; // Option for nonlinear creep transport
+        optTravelDis        // Option to enable calculation of travel distance probabilities
    tVegetation *vegetation(0);  // -> vegetation object
    tFloodplain *floodplain(0);  // -> floodplain object
    tStratGrid *stratGrid(0);     // -> Stratigraphy Grid object
@@ -115,6 +117,7 @@ int main( int argc, char **argv )
    optMeander = inputFile.ReadBool( "OPTMEANDER" );
    optStratGrid = inputFile.ReadBool( "OPTSTRATGRID" ,false);
    optNonlinearDiffusion = inputFile.ReadBool( "OPT_NONLINEAR_DIFFUSION", false );
+   optTravelDis = inputFile.ReadBool( "OPTTRAVELDIS");
    
    // If applicable, create Vegetation object
    if( optVegetation )
@@ -131,7 +134,13 @@ int main( int argc, char **argv )
    // If applicable, create Stream Meander object
    if( optMeander )
      strmMeander = new tStreamMeander( strmNet, mesh, inputFile, &rand );
-
+    
+    // If applicable, read the coordinates for the target nodes for TravelDis
+    if( optTravelDis ) {
+       std::cout << "optTravelDis is enabled\n";
+       TravelDis.InitializeFromFile( inputFile, &mesh);
+    }
+        
    // If applicable, create Stratigraphy Grid object
    // and pass it to output
    if( optStratGrid ) {
@@ -217,6 +226,10 @@ OptTSOutput." );
 		 }
 
 	  }
+       
+       // Updates the drainage areas above target nodes if optTravelDis is selected !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       // if( optTravelDis )
+       
 
       // Link tLNodes to StratNodes, adjust elevation StratNode to surrounding tLNodes
       if( optStratGrid )
@@ -255,6 +268,10 @@ OptTSOutput." );
       else{
          erosion.DetachErode( storm.getStormDuration(), &strmNet,
                              time.getCurrentTime(), vegetation );
+          // Calculate the probability for each node above a target node if optTravelDis is selected !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          // if( optTravelDis ){
+            // travel.CalculateProbability( storm.getStormDuration(), &strmNet, time.getCurrentTime() );
+          //}
 		 // To use tools rules, you must use DetachErode2 NMG 07/05
          //erosion.DetachErode2( storm.getStormDuration(), &strmNet,
          //                      time.getCurrentTime(), vegetation );
@@ -336,6 +353,8 @@ OptTSOutput." );
 
       erosion.UpdateExposureTime( storm.getStormDuration() +
                                       storm.interstormDur() );
+       
+       // if optTravelDis is selected, output the probabilities at the end of the storm for every point above a target node
 
       if( optLoessDep )
           loess->DepositLoess( &mesh,

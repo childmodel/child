@@ -77,6 +77,7 @@
 #include "../tRunTimer/tRunTimer.h"
 #include "../tVegetation/tVegetation.h"
 #include "../tWaterSedTracker/tWaterSedTracker.h"
+#include "../TravelDis/TravelDis.h"
 
 /***************************************************************************/
 /*
@@ -1240,7 +1241,7 @@ public:
    void ErodeDetachLim( double dtg, tStreamNet *, tUplift const * );
    void StreamErode( double dtg, tStreamNet * );
    void StreamErodeMulti( double dtg, tStreamNet *, double time);
-   void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
+   void DetachErode( double dtg, tStreamNet *, double time, tVegetation * pVegetation, TravelDis * );
    void DetachErode2( double dtg, tStreamNet *, double time, tVegetation * pVegetation );
    void Diffuse( double dtg, bool detach, double time );
   void DiffuseMultiSize( double dtg, bool detach, double time );
@@ -1254,6 +1255,8 @@ public:
    void DensifyMesh( double time );
    void ActivateSedVolumeTracking( tWaterSedTracker *water_sed_tracker_ptr )
      { track_sed_flux_at_nodes_ =true;  water_sed_tracker_ptr_ = water_sed_tracker_ptr; }
+ void ActivateTravelDisAtNodes( TravelDis *travel_dis_tracker_ptr )
+    { travel_dis_prob_at_nodes_ =true; travel_dis_tracker_ptr_ = travel_dis_tracker_ptr;}
   void DeactivateSedVolumeTracking() 
   { track_sed_flux_at_nodes_ =true;  water_sed_tracker_ptr_ = 0; }
   void TurnOnOutput( const tInputFile& );
@@ -1292,8 +1295,11 @@ private:
   double mdSc;				  // Threshold slope for nonlinear diffusion
   double diffusionH; // depth scale for depth-dependent diffusion
   double beta; // proportion of sediment flux contributing to bedload
-  bool track_sed_flux_at_nodes_; // option for tracking sed flux at nodes
-  tWaterSedTracker *water_sed_tracker_ptr_;  // -> water&sed tracker object
+  bool track_sed_flux_at_nodes_; // option for tracking sed flux at nodes    
+    tWaterSedTracker *water_sed_tracker_ptr_;  // -> water&sed tracker object
+  bool travel_dis_prob_at_nodes_; // option for calculating the travel distance probs !!!!!!!!!!!!!
+    TravelDis *travel_dis_tracker_ptr_;  // -> water&sed tracker object
+    
   double soilBulkDensity; // dry bulk density of soil, when made from rock (kg/m3)
   double rockBulkDensity; // rock bulk density (kg/m3)
   double wetBulkDensity; // wet bulk density of soil (kg/m3)
