@@ -354,7 +354,9 @@ SetLithologyFromEtchFile( const tInputFile &infile )
     new_etch_layer.layer_properties_.setBulkDensity( bulk_density );
     etchfile >> sedrockflag;
     tLayer::tSed_t flag = ( sedrockflag>0 ) ? tLayer::kSed : tLayer::kBedRock;
+    if(1) cout << "  Sed/rock flag = " << sedrockflag << endl;
     new_etch_layer.layer_properties_.setSed( flag );
+    if(1) cout << "  Confirming: sed/rock flag = " << new_etch_layer.layer_properties_.getSed() << endl;
     cum_fraction = 0.0;
     
     // Read properties: grain-size related
@@ -620,6 +622,7 @@ EtchLayerAboveHeightAtNode( double new_layer_base_height, tLNode * node,
     curlay->setRtime( 0.0 );
     curlay->setEtime( 0.0 );
     curlay->setBulkDensity( layer_properties.getBulkDensity() );
+    curlay->setSed( layer_properties.getSed() );
     
     // Now we're applying the grain size information. We assume that
     // layer_properties stores the PROPORTION not the THICKNESS of each

@@ -38,7 +38,7 @@
 **
 \************************************************************************/
 tUplift::tUplift_t tUplift::DecodeType(int type){
-  if( type < 0 || type > 18 )
+  if( type < 0 || type > 19 )
   {
     std::cerr << "I don't recognize the uplift type you asked for ("
     << type << ")\n"
@@ -61,7 +61,8 @@ tUplift::tUplift_t tUplift::DecodeType(int type){
     " 15 - Moving block\n"
     " 16 - Moving sinusoid\n"
     " 17 - Uplift with crustal thickening"
-    " 18 - Uplift and whole-landscape tilting\n";
+    " 18 - Uplift and whole-landscape tilting\n"
+    " 19 - Migrating Gaussian bump\n";
     ReportFatalError( "Please specify a valid uplift type and try again." );
   }
   return static_cast<tUplift_t>(type);
@@ -233,11 +234,24 @@ duration(0.)
       faultPosition = infile.ReadDouble( "FAULTPOS", false );
       break;
     case k18:
+    {
       double tiltrate = infile.ReadDouble( "TILT_RATE" );
       double orientation = infile.ReadDouble( "TILT_ORIENTATION" );
       tilt_rate_x_ = tiltrate*cos( 3.14159 * orientation / 180.0 );
       tilt_rate_y_ = tiltrate*sin( 3.14159 * orientation / 180.0 );
       break;
+    }
+    case k19:
+    {
+      bump_migration_rate_ = infile.ReadDouble( "BUMP_MIGRATION_RATE" );
+      bump_initial_position_ = infile.ReadDouble( "BUMP_INITIAL_POSITION" );
+      bump_amplitude_ = infile.ReadDouble( "BUMP_AMPLITUDE" );
+      double bump_wavelength = infile.ReadDouble( "BUMP_WAVELENGTH" );
+      bump_wavelength_squared_ = bump_wavelength*bump_wavelength;
+      create_initial_bump_ = infile.ReadBool( "OPT_INITIAL_BUMP", false );
+      std::cout << "create_initial_bump_=" << create_initial_bump_ << std::endl;
+      break;
+    }
   }
   
 }
@@ -317,6 +331,10 @@ void tUplift::DoUplift( tMesh<tLNode> *mp, double delt, double currentTime )
     case k18:
       UpliftUniform(mp,delt,currentTime);
       Tilt(mp,delt,currentTime);
+      break;
+    case k19:
+      UpliftUniform(mp,delt,currentTime);
+      MigratingGaussianBump(mp, delt, currentTime);
       break;
   }
   
@@ -1444,6 +1462,58 @@ void tUplift::Tilt( tMesh<tLNode> *mp, double delt, double currentTime )
     rate = tilt_rate_x_ * cn->getX() + tilt_rate_y_ * cn->getY();
     cn->ChangeZ( rate*delt );
     cn->setUplift( rate );
+  }
+}
+
+
+/************************************************************************\
+ **
+ **  tUplift::MigratingGaussianBump
+ **
+ **  A Gaussian-shaped uplift migrates horizontally in the y-direction,
+ **  so that the rate of change of rock elevation is:
+ **
+ **    dz/dt = - [ 2 v z0 (y - v t) / L^2 ] exp( -(y-vt)/L^2 )
+ **
+ **  where v is migration velocity (positive toward y=0), y is node's
+ **  y-coordinate, z0 is maximum bump amplitude (m), L is wavelength
+ **  (half the width of the bump), and t is time.
+ **
+ **  See Braun and Willett, 2013, Geophysical Research Letters, v. 40.
+ **
+ **  Inputs:  mp -- pointer to the mesh
+ **           delt -- duration of uplift
+ **
+ \************************************************************************/
+void tUplift::MigratingGaussianBump( tMesh<tLNode> *mp, double delt, double currentTime )
+{
+  tLNode *cn;
+  tMesh<tLNode>::nodeListIter_t ni( mp->getNodeList() );
+  
+  double vt = bump_migration_rate_*currentTime;
+  //std::cout << "MigratingGaussianBump here, vt = " << vt << " time=" << currentTime << std::endl;
+  
+  if( create_initial_bump_ )
+  {
+    std::cout << "CREATING INITIAL BUMP\n";
+    for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+    {
+      //double dz = bump_amplitude_*exp(-pow(bump_initial_position_-cn->getY(),2)/bump_wavelength_squared_);
+      cn->ChangeZ( bump_amplitude_*exp(-pow(bump_initial_position_-cn->getY(),2)/bump_wavelength_squared_) );
+      //std::cout << "y=" << cn->getY() << " dz=" << dz << " newz=" << cn->getZ() << std::endl;
+    }
+    create_initial_bump_ = false;
+  }
+  
+  for( cn=ni.FirstP(); ni.IsActive(); cn=ni.NextP() )
+  {
+    rate = (2.0*bump_migration_rate_*bump_amplitude_
+             *((bump_initial_position_- cn->getY())-vt)
+             /bump_wavelength_squared_)
+           * exp(-pow(((bump_initial_position_-cn->getY())-vt),2)/bump_wavelength_squared_);
+    cn->ChangeZ( rate*delt );
+    cn->setUplift( rate );
+    //std::cout << "y=" << cn->getY() << " dz=" << rate*delt << " NEWZ=" << cn->getZ() << std::endl;
   }
 }
 

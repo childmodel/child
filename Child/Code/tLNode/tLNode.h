@@ -685,6 +685,7 @@ public:
   void removeLayer(int);
   void InsertLayerBack( tLayer const & );
   void LayerInterpolation( tTriangle const *, double, double, double );
+  void SplitLayer( unsigned layer_number, double split_at_depth );
   virtual void WarnSpokeLeaving(tEdge *);
   virtual void InitializeNode();
   virtual tArray< double > FuturePosn();

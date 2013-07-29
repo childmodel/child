@@ -69,6 +69,8 @@ private:
   void MovingSinusoid( tMesh<tLNode> *mp, double delt, double currentTime );
   void UpliftAndThicken( tMesh<tLNode> *mp, double delt, double currentTime );
   void Tilt( tMesh<tLNode> *mp, double delt, double currentTime );
+  void MigratingGaussianBump( tMesh<tLNode> *mp, double delt, double currentTime );
+
   
 private:
   typedef enum {
@@ -90,7 +92,8 @@ private:
     k15,
     k16,
     k17,
-    k18
+    k18,
+    k19
   } tUplift_t;
   
   static tUplift_t DecodeType(int);
@@ -135,6 +138,11 @@ private:
   double mdUpliftFrontGradient; // Horizontal gradient (dy/dx) of propagating uplift front
   double tilt_rate_x_;    // tilt rate in x direction (m/yr/m)
   double tilt_rate_y_;    // tilt rate in y direction (m/yr/m)
+  double bump_migration_rate_; // Horizontal movement rate of Gaussian bump (m/yr)
+  double bump_initial_position_;  // Initial y coordinate of crest of Gaussian bump (m)
+  double bump_amplitude_;  // Max amplitude of Gaussian bump (m)
+  double bump_wavelength_squared_; // Square of wavelength of Gaussian bump (m)
+  bool create_initial_bump_;  // Option to create an initial bump in topo
   
 private:
   tUplift();
