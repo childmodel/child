@@ -23,9 +23,11 @@ if nargin<3
 end
 
 if ots<1, error('ts must be >1'), end
+z = cread( [fname '.z'], ts );
 [t2,s2,r2] = clayerthick( fname, ts );
 [t1,s1,r1] = clayerthick( fname, ots );
-erodep = t2 - t1;
+erodep = zeros(size(z));
+erodep(1:length(t2)) = t2 - t1;
 
 
 
