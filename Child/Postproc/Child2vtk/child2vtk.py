@@ -101,23 +101,23 @@ def read_time_and_number(the_file):
         return t, n
         
         
-def read_gridded_data_for_one_time_slice(the_file, nrows, ncols, datatype=float):
+#def read_gridded_data_for_one_time_slice(the_file, nrows, ncols, datatype=float):
     
-    if ncols>1:
-        data = numpy.zeros((nrows, ncols), dtype=datatype)
-    else:
-        data = numpy.zeros(nrows, dtype=datatype)
+ #   if ncols>1:
+  #      data = numpy.zeros((nrows, ncols), dtype=datatype)
+   # else:
+    #    data = numpy.zeros(nrows, dtype=datatype)
             
-    for row in range(0, nrows):
+    #for row in range(0, nrows):
         
-        if ncols==1:
-            data[row] = datatype(the_file.readline())
-        else:
-            row_text_items = the_file.readline().split()
-            for col in range(0, ncols):
-                data[row,col] = datatype(row_text_items[col])
+     #   if ncols==1:
+      #      data[row] = datatype(the_file.readline())
+       # else:
+        #    row_text_items = the_file.readline().split()
+         #   for col in range(0, ncols):
+          #      data[row,col] = datatype(row_text_items[col])
                 
-    return data
+    #return data
     
     
 def read_file_to_string_list(myfile):
@@ -227,12 +227,38 @@ def read_and_write_files(child_files, run_name):
         vtkfile.write('CELL_TYPES {0:10d}\n'.format(nt))
         for i in range(nt):
             vtkfile.write(' 5\n')
+        
+        vtkfile.write('POINT_DATA{0:10d}\n'.format(n))
             
         # Elevation (altitude)
         vtkfile.write('SCALARS Altitude float 1\n')
+        vtkfile.write('LOOKUP_TABLE default\n')
         for i in range(n):
             vtkfile.write(str(z[i])+'\n')
         
+        # Shear stress
+        vtkfile.write('SCALARS Shear_stress float 1\n')
+        vtkfile.write('LOOKUP_TABLE default\n')
+        for i in range(n):
+            vtkfile.write(str(tau[i])+'\n')
+        
+        # Discharge
+        vtkfile.write('SCALARS Discharge float 1\n')
+        vtkfile.write('LOOKUP_TABLE default\n')
+        for i in range(n):
+            vtkfile.write(str(q[i])+'\n')
+        
+        # Slope
+        vtkfile.write('SCALARS Slope float 1\n')
+        vtkfile.write('LOOKUP_TABLE default\n')
+        for i in range(n):
+            vtkfile.write(str(s[i])+'\n')
+        
+        # Drainage area
+        vtkfile.write('SCALARS Drainage_area float 1\n')
+        vtkfile.write('LOOKUP_TABLE default\n')
+        for i in range(n):
+            vtkfile.write(str(area[i])+'\n')
         
         vtkfile.close()
         
