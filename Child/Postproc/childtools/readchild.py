@@ -88,6 +88,41 @@ def creadlayers(basenm, ts, numg=1, format_version=0):
         layer_data.append(layer_list)
         
     return layer_data
+    
+    
+def find_number_of_nodes(run_name, time_slice):
+    
+    f = open(run_name+'.z', 'r')
+    for i in range(time_slice):
+        t = f.readline()
+        n = int(f.readline())
+        if i<(time_slice-1):
+            for j in range(n):
+                f.readline()
+    f.close()
+
+    return n
+        
+    
+def cregthick(run_name, time_slice, layer_data=None, num_grain_size=1):
+    
+    if layer_data is None:
+        layer_data = creadlayers(run_name, time_slice, numg=num_grain_size)
+        
+    num_nodes = find_number_of_nodes(run_name, time_slice)
+    regolith_thickness = numpy.zeros(num_nodes)
+    
+    node_num = 0
+    for layer_list in layer_data:
+        for layer in layer_list:
+            if layer.is_regolith:
+                regolith_thickness[node_num] += layer.thickness
+            else:
+                break
+        node_num += 1
+            
+    return regolith_thickness
+    
         
 # Here's some temporary testing stuff
 
