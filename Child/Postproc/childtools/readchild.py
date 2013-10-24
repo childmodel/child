@@ -37,14 +37,14 @@ class Layer():
         
 def layers_exist(run_name):
     
-    print 'layers_exist here ...'
+    #print 'layers_exist here ...'
     try:
         open(run_name+'.lay0', 'r')
     except IOError:
-        print 'returning False'
+        #print 'returning False'
         return False
     else:
-        print 'returning True'
+        #print 'returning True'
         return True
         
 
@@ -72,7 +72,7 @@ def creadlayers(basenm, ts, numg=1, format_version=0):
         
         # Read the number of layers at this node
         num_layers[i] = int(layinfo.pop(0))
-        print 'node',i,'has',num_layers[i],'layers'
+        #print 'node',i,'has',num_layers[i],'layers'
         assert (num_layers[i]>0), 'Node '+i+' has only '+num_layers[i]+' layers'
         assert (num_layers[i]<maxlayers), 'Node '+i+' claims to have '+num_layers[i]+' layers'
     
@@ -103,6 +103,30 @@ def creadlayers(basenm, ts, numg=1, format_version=0):
     return layer_data
     
     
+def calc_total_layer_thickness(layer_data, num_nodes):
+    
+    thickness = numpy.zeros(num_nodes)
+    
+    i=0
+    for layerlist in layer_data:
+        for layer in layerlist:
+            thickness[i] += layer.thickness
+        i+=1
+        
+    return thickness
+    
+    
+def calc_total_layer_thickness_from_file(run_name, time_slice, numgsize=1,
+                                         num_nodes=None):
+    
+    if num_nodes is None:
+        num_nodes = find_number_of_nodes(run_name, time_slice)
+    layer_data = creadlayers(run_name, time_slice, num_rain_sizes=numgsize)
+    lay_thick = calc_total_layer_thickness(layer_data, num_nodes)
+    
+    return lay_thick
+    
+    
 def find_number_of_nodes(run_name, time_slice):
     
     f = open(run_name+'.z', 'r')
@@ -117,12 +141,8 @@ def find_number_of_nodes(run_name, time_slice):
     return n
         
     
-def cregthick(run_name, time_slice, layer_data=None, num_grain_size=1):
+def calc_reg_thickness(layer_data, num_nodes):
     
-    if layer_data is None:
-        layer_data = creadlayers(run_name, time_slice, numg=num_grain_size)
-        
-    num_nodes = find_number_of_nodes(run_name, time_slice)
     regolith_thickness = numpy.zeros(num_nodes)
     
     node_num = 0
@@ -137,6 +157,14 @@ def cregthick(run_name, time_slice, layer_data=None, num_grain_size=1):
     return regolith_thickness
     
         
+def calc_reg_thickness_from_file(run_name, time_slice, num_grain_size=1):
+    
+    layer_data = creadlayers(run_name, time_slice, numg=num_grain_size)
+    num_nodes = find_number_of_nodes(run_name, time_slice)
+    reg_thick = calc_reg_thickness(layer_data, num_nodes)
+    return reg_thick
+    
+    
 # Here's some temporary testing stuff
 
 #ld = creadlayers('/Users/gtucker/Runs/Test/readlaytest', 21)

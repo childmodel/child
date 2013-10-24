@@ -185,9 +185,21 @@ def read_and_write_files(child_files, run_name):
             
         # Optional data
         if layers_exist(run_name):
-            reg = cregthick(run_name, time_slice)
+            layer_data = creadlayers(run_name, time_slice)
+            reg = calc_reg_thickness(layer_data, n)
+            tot_lay_thick = calc_total_layer_thickness(layer_data, n)
+            if time_slice > 1: 
+                dep_ero_rate = (prev_tot_lay_thick-tot_lay_thick)/(t-prev_t)
+                tot_ero = starting_lay_thick-tot_lay_thick
+            else:
+                dep_ero_rate = numpy.zeros(n)
+                tot_ero = numpy.zeros(n)
+                starting_lay_thick = numpy.copy(tot_lay_thick)
+            prev_tot_lay_thick = numpy.copy(tot_lay_thick)
+            prev_t = t
         else:
             reg = None
+            dep_ero_rate = None
     
         # Extract triangle data
         t = float(trd.pop(0))
@@ -261,18 +273,32 @@ def read_and_write_files(child_files, run_name):
         for i in range(n):
             vtkfile.write(str(s[i])+'\n')
         
-        # Drainage area
+        # Regolith thickness
+        if reg is not None:
+            vtkfile.write('SCALARS Regolith float 1\n')
+            vtkfile.write('LOOKUP_TABLE default\n')
+            for i in range(n):
+                vtkfile.write(str(reg[i])+'\n')
+        
+        # Deposition/erosion rate
+        if dep_ero_rate is not None:
+            vtkfile.write('SCALARS Depo-Ero float 1\n')
+            vtkfile.write('LOOKUP_TABLE default\n')
+            for i in range(n):
+                vtkfile.write(str(dep_ero_rate[i])+'\n')
+        
+         # Total erosion depth since start of run
+        if tot_ero is not None:
+            vtkfile.write('SCALARS Total_erosion_depth float 1\n')
+            vtkfile.write('LOOKUP_TABLE default\n')
+            for i in range(n):
+                vtkfile.write(str(tot_ero[i])+'\n')
+        
+       # Drainage area
         vtkfile.write('SCALARS Drainage_area float 1\n')
         vtkfile.write('LOOKUP_TABLE default\n')
         for i in range(n):
             vtkfile.write(str(area[i])+'\n')
-        
-        # Regolith thickness
-        if reg is not None:
-            vtkfile.write('SCALARS Regolith_thickness float 1\n')
-            vtkfile.write('LOOKUP_TABLE default\n')
-            for i in range(n):
-                vtkfile.write(str(reg[i])+'\n')
         
         vtkfile.close()
         
