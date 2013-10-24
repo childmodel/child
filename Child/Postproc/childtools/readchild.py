@@ -34,6 +34,19 @@ class Layer():
         print 'Erodibility:',self.erodibility
         print 'Grain size fractions:',self.grain_size_fractions
         
+        
+def layers_exist(run_name):
+    
+    print 'layers_exist here ...'
+    try:
+        open(run_name+'.lay0', 'r')
+    except IOError:
+        print 'returning False'
+        return False
+    else:
+        print 'returning True'
+        return True
+        
 
 def creadlayers(basenm, ts, numg=1, format_version=0):
     
@@ -126,9 +139,9 @@ def cregthick(run_name, time_slice, layer_data=None, num_grain_size=1):
         
 # Here's some temporary testing stuff
 
-ld = creadlayers('/Users/gtucker/Runs/Test/readlaytest', 21)
+#ld = creadlayers('/Users/gtucker/Runs/Test/readlaytest', 21)
 
-for node in ld:
-    print '\n**** LAYERS AT NODE ****'
-    for lay in node:
-        lay.report()
+#for node in ld:
+#    print '\n**** LAYERS AT NODE ****'
+#    for lay in node:
+#        lay.report()

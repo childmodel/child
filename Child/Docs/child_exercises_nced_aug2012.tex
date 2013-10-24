@@ -661,7 +661,7 @@ In Matlab, type:
 \item
 {\tt cmovie( 'dlimC1', 31, 3e4, 3e4, 1e4, 5000 );} \hskip1em {\em \% 10$\times$ vertical scale}
 \item
-{\tt figure(2), clf}
+{\tt figure(2)}
 \item
 {\tt hold on, csa( 'dlimC1', 31, 'r.' ); hold off}
 \end{itemize}
@@ -698,9 +698,9 @@ In Matlab, type:
 \item
 {\tt figure(1)}
 \item
-{\tt cmovie( 'dlim\_small', 31, 1.5e3, 1.5e4, 500, 200 );}
+{\tt cmovie( 'dlim\_small', 31, 1.5e3, 1.5e3, 500, 200 );}
 \item
-{\tt figure(2), clf}
+{\tt figure(2)}
 \item
 {\tt hold on, csa( 'dlim\_small', 31, 'g.' ); hold off}
 \end{itemize}
@@ -809,11 +809,13 @@ In Matlab, type:
 \item
 {\tt figure(1), clf}
 \item
-{\tt cmovie( 'tlim2', 21, 3e4, 3e4, 1000, 300 );}
+{\tt cmovie( 'tlim2', 31, 3e4, 3e4, 1000, 300 );}
 \item
 {\tt figure(2)}
 \item
 {\tt hold on, csa( 'tlim2', 31, 'r.' ); hold off}
+\item
+{\tt axis([1e-1 1e3 1e-4 1e-1])}
 \end{itemize}
 
 Lesson: grain size matters! 
@@ -864,7 +866,7 @@ number of frames in your movie).
 \end{enumerate}
 
 \noindent
-In Matlab, type: 
+In Matlab, navigate to the {\tt Hybrid} folder and type: 
 \begin{itemize}
 \setcounter{enumi}{1}
 \item

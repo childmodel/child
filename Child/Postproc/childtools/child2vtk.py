@@ -9,6 +9,7 @@ Created GT Oct 2013
 
 import sys    # for command-line arguments
 import numpy
+from readchild import *
 
 _CHILD_REQUIRED_FILES = {
     'node' : 'nodes',
@@ -146,7 +147,7 @@ def read_and_write_files(child_files, run_name):
     qrd = read_file_to_string_list(child_files['discharge'])
     taurd = read_file_to_string_list(child_files['shear_stress'])
     
-    time_slice = 0
+    time_slice = 1
  
     while nrd:
     
@@ -180,8 +181,14 @@ def read_and_write_files(child_files, run_name):
             s[i] = float(srd.pop(0))
             q[i] = float(qrd.pop(0))
             tau[i] = float(taurd.pop(0))
-            print x[i], y[i], z[i], eid[i], b[i], s[i], q[i], tau[i]
+            #print x[i], y[i], z[i], eid[i], b[i], s[i], q[i], tau[i]
             
+        # Optional data
+        if layers_exist(run_name):
+            reg = cregthick(run_name, time_slice)
+        else:
+            reg = None
+    
         # Extract triangle data
         t = float(trd.pop(0))
         nt = int(trd.pop(0))
@@ -259,6 +266,13 @@ def read_and_write_files(child_files, run_name):
         vtkfile.write('LOOKUP_TABLE default\n')
         for i in range(n):
             vtkfile.write(str(area[i])+'\n')
+        
+        # Regolith thickness
+        if reg is not None:
+            vtkfile.write('SCALARS Regolith_thickness float 1\n')
+            vtkfile.write('LOOKUP_TABLE default\n')
+            for i in range(n):
+                vtkfile.write(str(reg[i])+'\n')
         
         vtkfile.close()
         
