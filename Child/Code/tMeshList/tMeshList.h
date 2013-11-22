@@ -276,7 +276,7 @@ insertAtBoundFront( const NodeType &value )
       return;
    }
    // Usual case: list and active part of list NOT empty:
-   insertAtNext( value, lastactive );
+   this->insertAtNext( value, lastactive );
 }
 
 
@@ -415,7 +415,7 @@ template< class NodeType, class ListNodeType >
 void tMeshList< NodeType, ListNodeType >::
 moveToBack( NodeType const * mvnodedata )
 {
-   ListNodeType * mvnode = getListNode( mvnodedata );
+   ListNodeType * mvnode = this->getListNode( mvnodedata );
    assert( mvnode!=0 );  // failure: null or not on list
    moveToBack( mvnode );
 }
