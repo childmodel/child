@@ -276,7 +276,7 @@ insertAtBoundFront( const NodeType &value )
       return;
    }
    // Usual case: list and active part of list NOT empty:
-   this->insertAtNext( value, lastactive );
+  this->insertAtNext( value, lastactive );
 }
 
 
