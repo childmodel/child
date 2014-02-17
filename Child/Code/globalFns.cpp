@@ -100,7 +100,7 @@ int TriPasses( tArray< double > const &ptest,
                tArray< double > const &p2 )
 {
    if (0) //DEBUG
-     std::cout << "TriPasses? ";
+     std::cout << "TriPasses?\n";
 #if 1
    double ans = predicate.incircle( p0.getArrayPtr(), p1.getArrayPtr(),
 				    p2.getArrayPtr(), ptest.getArrayPtr() );
@@ -162,7 +162,7 @@ bool PointsCCW( tArray< double > const &p0,
 		tArray< double > const &p2 )
 {
    if (0) //DEBUG
-     std::cout << "PointsCCW? ";
+     std::cout << "PointsCCW? 1";
 
    if( p0 == p1 || p0 == p2 || p1 == p2 )
        return false;
@@ -180,7 +180,7 @@ bool PointsCCW( tArray2< double > const &p0,
 		tArray2< double > const &p2 )
 {
    if (0) //DEBUG
-     std::cout << "PointsCCW? ";
+     std::cout << "PointsCCW? 2";
 
    if( p0 == p1 || p0 == p2 || p1 == p2 )
      return false;

@@ -249,7 +249,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
   const int nedges = this->m->getEdgeList()->getSize();  // "    edges "
   const int ntri = this->m->getTriList()->getSize();     // "    triangles "
 
-  if (1)//DEBUG
+  if(1)//DEBUG
     std::cout << "tOutput::WriteOutput() time=" << time << std::endl;
 
   // Renumber IDs in order by position on list
@@ -258,6 +258,9 @@ void tOutput<tSubNode>::WriteOutput( double time )
   else
     this->m->RenumberIDCanonically();
 
+  if(1)//DEBUG
+    std::cout << "tOutput::WriteOutput() loc 1" << std::endl;
+  
   // Write node file, z file, and varea file
   this->WriteTimeNumberElements( nodeofs, time, nnodes);
   this->WriteTimeNumberElements( zofs, time, nnodes);
@@ -272,6 +275,9 @@ void tOutput<tSubNode>::WriteOutput( double time )
       WriteNodeRecord( RNode[i] );
   }
 
+  if(1)//DEBUG
+    std::cout << "tOutput::WriteOutput() loc 2" << std::endl;
+  
   // Write edge file
   this->WriteTimeNumberElements( edgofs, time, nedges);
   if (!CanonicalNumbering) {
@@ -284,6 +290,9 @@ void tOutput<tSubNode>::WriteOutput( double time )
       WriteEdgeRecord( REdge[i] );
   }
 
+  if(1)//DEBUG
+    std::cout << "tOutput::WriteOutput() loc 3" << std::endl;
+  
   // Write triangle file
   this->WriteTimeNumberElements( triofs, time, ntri);
   if (!CanonicalNumbering) {
@@ -307,7 +316,7 @@ void tOutput<tSubNode>::WriteOutput( double time )
   // Call virtual function to write any additional data
   WriteNodeData( time );
 
-  if (0)//DEBUG
+  if (1)//DEBUG
     std::cout << "tOutput::WriteOutput() Output done" << std::endl;
 }
 
@@ -478,6 +487,9 @@ tLOutput<tSubNode>::~tLOutput()
 template< class tSubNode >
 void tLOutput<tSubNode>::WriteNodeData( double time )
 {
+  if(1)//DEBUG
+    std::cout << "tLOutput::WriteNodeData 1\n" << std::flush;
+  
   //for writing out layer info to different files at each time
   const char* const nums("0123456789");
 
@@ -552,6 +564,9 @@ void tLOutput<tSubNode>::WriteNodeData( double time )
   if( publicflagofs.good() )
     this->WriteTimeNumberElements( publicflagofs, time, nnodes );
 
+  if(1)//DEBUG
+    std::cout << "tLOutput::WriteNodeData 2\n" << std::flush;
+  
   // Write Random number generator state
   rand->dumpToFile( randomofs );
   // Write data

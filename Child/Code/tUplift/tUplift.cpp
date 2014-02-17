@@ -438,6 +438,21 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
   if(1) std::cout << "StrikeSlip by " << slip << "; cum displacement is " 
     << cumulative_displacement << std::endl;
   
+  if ( 1 )
+  {
+    tEdge * anedge;
+    tMesh<tLNode>::edgeListIter_t ei( mp->getEdgeList() );
+    for ( anedge=ei.FirstP(); !ei.AtEnd(); anedge=ei.NextP() )
+      if ( anedge->getID()==29580 )
+      {
+        std::cout << "edg 29580 " << anedge->getBoundaryFlag() << std::endl;
+        if ( ei.IsActive() ) std::cout << "on active part of list\n";
+        else std::cout << "on BOUNDARY part of list\n";
+        anedge->getOriginPtr()->TellAll();
+        anedge->getDestinationPtr()->TellAll();
+      }
+  }
+  
   // Move the nodes laterally on one side of the fault
   for( cn=ni.FirstP(); !(ni.AtEnd()); cn=ni.NextP() )
   {
@@ -462,6 +477,16 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
       //mp->getNodeList()->moveToBack( cn );
       //cn->setBoundaryFlag( kOpenBoundary );
       mp->ConvertToOpenBoundary( cn );
+      std::cout << "Making node " << cn->getID() << " an open boundary\n";
+      std::cout << " spokes are:\n";
+      tEdge * frogedg = cn->getEdg();
+      bool done = false;
+      while ( !done )
+      {
+        std::cout << frogedg->getID() << std::endl;
+        frogedg = frogedg->getCCWEdg();
+        if ( frogedg==cn->getEdg() ) done = true;
+      }
     }
   }
   mp->MoveNodes( 0., false );
@@ -617,11 +642,21 @@ void tUplift::StrikeSlip( tMesh<tLNode> *mp, double delt, double currentTime )
     
     // Update boundary status of edges to accommodate any changes to node
     // boundary status. The rule is: an edge is "no flux" if either of its
-    // endpoints is a closed boundary.
+    // endpoints is a closed boundary, or if both are open boundaries.
     tEdge *ce;
     tMesh<tLNode>::edgeListIter_t ei( mp->getEdgeList() );
     for( ce=ei.FirstP(); !ei.AtEnd(); ce=ei.NextP() )
+    {
+      if ( ce->getID()==30700 )
+      {
+        std::cout << "edg 30700 " << ce->getBoundaryFlag() << std::endl;
+        ce->getOriginPtr()->TellAll();
+        ce->getDestinationPtr()->TellAll();
+      }
+      if ( ce->getBoundaryFlag() != ce->isFlowAllowed( ce->getOriginPtr(), ce->getDestinationPtr() ) )
+        std::cout << " flow status for edge " << ce->getID() << " changing from " << ce->getBoundaryFlag() << std::endl;
       ce->setFlowAllowed( ce->getOriginPtr(), ce->getDestinationPtr() );    
+    }
     
   }
   

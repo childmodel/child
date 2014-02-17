@@ -263,6 +263,9 @@ private:
 template< class tSubNode >
 inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
 {
+  if(0) //DEBUG
+    std::cout << "WriteActiveNodeData for node " << cn->getPermID() << std::endl;
+  
   assert( cn!=0 );
   // Write X,Y,Z,surface properties file, for Surfer visualisation
   // devide drainage area by 10000., easier in visualisation script of surfer.
@@ -314,7 +317,15 @@ inline void tLOutput<tSubNode>::WriteActiveNodeData( tSubNode *cn )
 template< class tSubNode >
 inline void tLOutput<tSubNode>::WriteAllNodeData( tSubNode *cn )
 {
+  if(0) //DEBUG
+    std::cout << "WriteAllNodeData for node " << cn->getPermID() << std::endl;
+  
+  
   slpofs << (cn->getBoundaryFlag() == kNonBoundary ? cn->calcSlope():0.) << '\n';
+
+  if(0) //DEBUG
+    std::cout << "WriteAllNodeData 2\n" << std::flush;
+  
   qofs << cn->getQ() << '\n';
   if( vegofs.good() ) vegofs << cn->getVegCover().getVeg() << '\n';
   if( forestofs.good() ) 
@@ -347,6 +358,9 @@ inline void tLOutput<tSubNode>::WriteAllNodeData( tSubNode *cn )
   if( lsforceofs.good() ) lsforceofs << cn->getNetDownslopeForce() << '\n';
   if( qsubofs.good() ) qsubofs << cn->getSubSurfaceDischarge() << '\n';
   if( publicflagofs.good() ) publicflagofs << cn->public1 << '\n';
+  if(0) //DEBUG
+    std::cout << "WriteAllNodeData done\n" << std::flush;
+  
 }
 
 
