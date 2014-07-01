@@ -13,7 +13,7 @@
  
  \title{CHILD Users Guide for version R10.7}
  \author{Gregory E. Tucker \and Cooperative Institute for Research in Environmental Sciences (CIRES) \and and Department of Geological Sciences \and University of Colorado, Boulder, CO 80309 USA}
- \date{Last modified: April, 2011} % delete this line to display the current date
+ \date{Last modified: July 2014} % delete this line to display the current date
  
  %%% BEGIN DOCUMENT
  \begin{document}
@@ -369,6 +369,8 @@ M_{b} = k_M Q_b^{\mu_b} \\
 {M \over M_b} = {Q \over Q_b}^{\mu_s}
 \end{eqnarray}
 where $R_b$ is bankfull runoff rate (m/yr), $A$ is drainage area, and the subscripts $b$ and $s$ refer to bankfull and at-a-station values, respectively. Of particular importance is channel width, because shear stress is calculated on the basis of discharge per unit width. The other three hydraulic geometry variables are used only in special cases.
+
+{\bf Note:} when NOT using stochastic precipitation, set BANKFULLEVENT to zero. This will force CHILD to use the actual (steady) discharge when computing channel width (and depth and roughness, when these matter). If you have stochastic precipitation switched off but BANKFULLEVENT set to a non-zero value, the model will use the value of BANKFULLEVENT to calculate hydraulic geometry, regardless of the actual discharge.
 
 Parameters relating to hydraulic geometry must always be provided in the input file; their use in the model depends on which process options are used. For simulations that do not use the 
 detachment-limited option, channel depth is computed and used as the effective vertical depth over which sediment layers are ``seen'' by flowing water. This will have an influence on erosion and transport only when the material is vertically heterogeneous. 
