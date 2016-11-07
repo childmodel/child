@@ -37,7 +37,8 @@ include_directories(
 )
 
 set (child_LIB_SRCS
-  ChildInterface/bmi_model_child.cpp
+  ChildInterface/bmi_model.cpp
+  # ChildInterface/bmi_model_child.cpp
   ChildInterface/child.cpp
   ChildInterface/childDriver.cpp
   ChildInterface/childInterface.cpp
@@ -91,7 +92,8 @@ add_executable (bmi_model_child_test ChildInterface/tests/bmi_model_child_test.c
 target_link_libraries (bmi_model_child_test child-shared)
 
 install (FILES
-  ChildInterface/bmi_model_child.h ChildInterface/child.h
+  ChildInterface/bmi_model.h ChildInterface/child.h
+  # ChildInterface/bmi_model_child.h ChildInterface/child.h
   DESTINATION include/child/ChildInterface COMPONENT child)
 install (FILES
   ChildInterface/childInterface.h
