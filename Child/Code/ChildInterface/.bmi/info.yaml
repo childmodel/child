@@ -1,0 +1,9 @@
+summary: CHILD computes the time evolution of a topographic
+  surface z(x,y,t) by fluvial and hillslope erosion and
+  sediment transport.
+url: http://csdms.colorado.edu/wiki/Model:CHILD
+author: Greg Tucker
+email: gtucker@colorado.edu
+version: "10.6"
+license: GPLv2
+doi: "10.1594/IEDA/100102"

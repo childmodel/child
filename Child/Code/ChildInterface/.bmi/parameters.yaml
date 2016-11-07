@@ -1,0 +1,81 @@
+run_duration:
+  description: Simulation run time
+  value:
+    default: 5000.
+    range:
+      max: 1.79769313486e+308
+      min: 1.0
+    type: float
+    units: y
+grid_x_size:
+  description: Length of grid in x-dimension
+  value:
+    default: 20000.
+    range:
+      max: 2147483647
+      min: 30
+    type: float
+    units: "m"
+grid_y_size:
+  description: Length of grid in y-dimension
+  value:
+    default: 40000.
+    range:
+      max: 2147483647
+      min: 30
+    type: float
+    units: "m"
+grid_node_spacing:
+  description: Mean distance between grid nodes
+  value:
+    default: 1000.
+    range:
+      max: 1.79769e308
+      min: 1.0
+    type: float
+    units: m
+uplift_type:
+  description: Type of uplift (0=none, 1=uniform, 2=block, etc)
+  value:
+    type: choice
+    default: 0
+    choices:
+    - 0
+    - 1
+    - 2
+uplift_duration:
+  description: Duration of uplift
+  value:
+    default: 1.
+    range:
+      max: 1.79769e308
+      min: 1.0
+    type: float
+    units: "y"
+uplift_rate:
+  description: Uplift rate
+  value:
+    default: 30
+    range:
+      max: 1.79769e308
+      min: 1.0
+    type: float
+    units: "m / y"
+fault_position:
+  description: Fault position
+  value:
+    default: 30000
+    range:
+      max: 1.79769e308
+      min: 1.0
+    type: float
+    units: "m"
+subsidence_rate:
+  description: Subsidence rate
+  value:
+    default: 50.
+    range:
+      max: 1.79769e308
+      min: 1.0
+    type: float
+    units: "m / y"

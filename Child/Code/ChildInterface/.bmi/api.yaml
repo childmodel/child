@@ -1,0 +1,12 @@
+name: Child
+
+language: cxx
+register: register_bmi_cem
+# bmi_type: bmi::Model
+includes:
+  - "#include <ChildInterface/bmi_model.h>"
+cflags:
+  pkgconfig: child
+libs:
+  pkgconfig: child
+
