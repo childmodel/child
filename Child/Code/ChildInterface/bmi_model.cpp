@@ -181,6 +181,16 @@ double bmi::Model::GetEndTime () {
   return stop;
 }
 
+void bmi::Model::GetTimeUnits (char * const units) {
+  strncpy(units, "y", 2048);
+}
+
+
+double bmi::Model::GetTimeStep () {
+  return -1.;
+}
+
+
 int bmi::Model::GetVarItemsize(const char * name) {
   int itemsize = 0;
 
