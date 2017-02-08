@@ -16,15 +16,16 @@
 
 
 void bmi::Model::Initialize (const char *file) {
-  FILE *fp = fopen (file, "r");
-  if (fp) {
-    char line[2048];
-    fgets (line, 2048,fp);
-    Child::Initialize (std::string (line));
-  }
-  else {
-    throw bmi::BAD_VAR_NAME;
-  }
+  Child::Initialize(std::string(file));
+  // FILE *fp = fopen (file, "r");
+  // if (fp) {
+  //   char line[2048];
+  //   fgets (line, 2048,fp);
+  //   Child::Initialize (std::string (line));
+  // }
+  // else {
+  //   throw bmi::BAD_VAR_NAME;
+  // }
 }
 
 void bmi::Model::Update () {
