@@ -292,6 +292,16 @@ void bmi::Model::GetGridY (const int grid_id, double * const y) {
 void bmi::Model::GetGridConnectivity (const int grid_id, int * connectivity) {
   if (grid_id == 0) {
     // Implement this: connectivity for this grid.
+    {
+      int i = 0;
+      tMesh<tLNode>::triListIter_t ti(mesh->getTriList());
+      for (tTriangle * current_tri=ti.FirstP(); !ti.AtEnd();
+           i+=3, current_tri=ti.NextP ()) {
+        connectivity[i] = current_tri->pPtr(0)->getPermID();
+        connectivity[i+1] = current_tri->pPtr(1)->getPermID();
+        connectivity[i+2] = current_tri->pPtr(2)->getPermID();
+      }
+    }
   } else {
     throw bmi::FAILURE;
   }
@@ -300,6 +310,10 @@ void bmi::Model::GetGridConnectivity (const int grid_id, int * connectivity) {
 void bmi::Model::GetGridOffset (const int grid_id, int * const offset) {
   if (grid_id == 0) {
     // Implement this: connectivity for this grid.
+    const int n_offsets = mesh->getTriList()->getSize();
+    offset[0] = 3;
+    for (int i=1; i<n_offsets; i++)
+      offset[i] = offset[i-1] + 3;
   } else {
     throw bmi::FAILURE;
   }
