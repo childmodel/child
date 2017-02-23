@@ -289,6 +289,25 @@ void bmi::Model::GetGridY (const int grid_id, double * const y) {
   }
 }
 
+
+int bmi::Model::GetGridFaceCount(const int grid_id) {
+  if (grid_id == 0) {
+    return mesh->getTriList()->getSize();
+  } else {
+    throw bmi::FAILURE;
+  }
+}
+
+
+int bmi::Model::GetGridVertexCount(const int grid_id) {
+  if (grid_id == 0) {
+    return 3. * GetGridFaceCount(grid_id);
+  } else {
+    throw bmi::FAILURE;
+  }
+}
+
+
 void bmi::Model::GetGridConnectivity (const int grid_id, int * connectivity) {
   if (grid_id == 0) {
     // Implement this: connectivity for this grid.

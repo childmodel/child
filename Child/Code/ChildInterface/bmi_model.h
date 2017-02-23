@@ -114,6 +114,8 @@ class Model : public Child {
     throw bmi::FUNCTION_NOT_IMPLEMENTED;
   }
 
+  int GetGridFaceCount(const int);
+  int GetGridVertexCount(const int);
   void GetGridConnectivity (const int, int * const );
   void GetGridOffset (const int, int * const);
 
