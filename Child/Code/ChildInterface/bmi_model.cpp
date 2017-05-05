@@ -183,7 +183,7 @@ double bmi::Model::GetEndTime () {
 }
 
 void bmi::Model::GetTimeUnits (char * const units) {
-  strncpy(units, "y", 2048);
+  strncpy(units, "year", 2048);
 }
 
 
