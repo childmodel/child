@@ -7,3 +7,10 @@ email: gtucker@colorado.edu
 version: "10.6"
 license: GPLv2
 doi: "10.1594/IEDA/100102"
+cite_as: |
+  @article{tucker2010child,
+    title={CHILD Users Guide for version R9. 4.1},
+    author={Tucker, Gregory E},
+    journal={Cooperative Institute for Research in Environmental Sciences (CIRES) and Department of Geological Sciences, University of Colorado, Boulder, USA},
+    year={2010}
+  }
