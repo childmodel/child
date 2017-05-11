@@ -340,7 +340,7 @@ void bmi::Model::GetGridOffset (const int grid_id, int * const offset) {
 
 void bmi::Model::GetGridType (const int grid_id, char * const gtype) {
   if (grid_id == 0) {
-    strncpy(gtype, "points", 2048);
+    strncpy(gtype, "unstructured", 2048);
   } else {
     throw bmi::FAILURE;
   }
