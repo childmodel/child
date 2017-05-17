@@ -76,7 +76,7 @@ void bmi::Model::GetOutputVarNames (char * const * const names) {
 void bmi::Model::GetVarType (const char * name, char * const vtype) {
   if (strcmp(name, "surface__elevation") == 0 ) {
     strncpy(vtype, "double", bmi::MAX_UNITS_NAME);
-  } else if (strcmp(name, "sea_floor__elevation") == 0 ) {
+  } else if (strcmp(name, "sea_bottom_surface__elevation") == 0 ) {
     strncpy(vtype, "double", bmi::MAX_UNITS_NAME);
   } else if (strcmp(name, "sea_floor_bedrock_surface__elevation") == 0 ) {
     strncpy(vtype, "double", bmi::MAX_UNITS_NAME);
@@ -101,7 +101,7 @@ void bmi::Model::GetVarUnits (const char * name,
                               char * const units) {
   if (strcmp(name, "surface__elevation") == 0 ) {
     strncpy(units, "m", bmi::MAX_UNITS_NAME);
-  } else if (strcmp(name, "sea_floor__elevation") == 0 ) {
+  } else if (strcmp(name, "sea_bottom_surface__elevation") == 0 ) {
     strncpy(units, "m", bmi::MAX_UNITS_NAME);
   } else if (strcmp(name, "sea_floor_bedrock_surface__elevation") == 0 ) {
     strncpy(units, "m", bmi::MAX_UNITS_NAME);
@@ -127,7 +127,7 @@ int bmi::Model::GetVarGrid (const char * name) {
 
   if (strcmp(name, "surface__elevation") == 0 ) {
     grid_id = 0;
-  } else if (strcmp(name, "sea_floor__elevation") == 0 ) {
+  } else if (strcmp(name, "sea_bottom_surface__elevation") == 0 ) {
     grid_id = 0;
   } else if (strcmp(name, "sea_floor_bedrock_surface__elevation") == 0 ) {
     grid_id = 0;
@@ -197,7 +197,7 @@ int bmi::Model::GetVarItemsize(const char * name) {
 
   if (strcmp(name, "surface__elevation") == 0 ) {
     itemsize = sizeof(double);
-  } else if (strcmp(name, "sea_floor__elevation") == 0 ) {
+  } else if (strcmp(name, "sea_bottom_surface__elevation") == 0 ) {
     itemsize = sizeof(double);
   } else if (strcmp(name, "sea_floor_bedrock_surface__elevation") == 0 ) {
     itemsize = sizeof(double);
@@ -231,7 +231,7 @@ int bmi::Model::GetVarNbytes(const char * name) {
 void bmi::Model::GetValue(const char * name, void * const dest) {
   if (strcmp(name, "surface__elevation") == 0 ) {
     CopyNodeElevations ((double*)dest);
-  } else if (strcmp(name, "sea_floor__elevation") == 0 ) {
+  } else if (strcmp(name, "sea_bottom_surface__elevation") == 0 ) {
     CopyNodeElevations ((double*)dest);
   } else if (strcmp(name, "surface__elevation_increment") == 0 ) {
     CopyNodeElevations ((double*)dest);
@@ -249,7 +249,7 @@ void bmi::Model::GetValue(const char * name, void * const dest) {
 void bmi::Model::SetValue (const char * name, void *vals) {
   if (strcmp(name, "surface__elevation") == 0 ) {
     return SetNodeElevations ((double*)vals);
-  } else if (strcmp(name, "sea_floor__elevation") == 0 ) {
+  } else if (strcmp(name, "sea_bottom_surface__elevation") == 0 ) {
     return SetNodeElevations ((double*)vals);
   } else if (strcmp(name, "sea_floor_bedrock_surface__elevation") == 0 ) {
     return SetNodeElevations ((double*)vals);
