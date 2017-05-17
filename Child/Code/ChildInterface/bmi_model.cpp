@@ -90,7 +90,7 @@ void bmi::Model::GetVarType (const char * name, char * const vtype) {
     strncpy(vtype, "double", bmi::MAX_UNITS_NAME);
   } else if (strcmp(name, "channel_water__discharge") == 0 ) {
     strncpy(vtype, "double", bmi::MAX_UNITS_NAME);
-  } else if (strcmp(name, "bed_load__mass_flow_rate") == 0 ) {
+  } else if (strcmp(name, "channel_water_sedimentbedload__mass_flow_rate") == 0 ) {
     strncpy(vtype, "double", bmi::MAX_UNITS_NAME);
   } else {
     throw bmi::BAD_VAR_NAME;
@@ -115,7 +115,7 @@ void bmi::Model::GetVarUnits (const char * name,
     strncpy(units, "m / s", bmi::MAX_UNITS_NAME);
   } else if (strcmp(name, "channel_water__discharge") == 0 ) {
     strncpy(units, "m^3 / s", bmi::MAX_UNITS_NAME);
-  } else if (strcmp(name, "bed_load__mass_flow_rate") == 0 ) {
+  } else if (strcmp(name, "channel_water_sedimentbedload__mass_flow_rate") == 0 ) {
     strncpy(units, "kg / s", bmi::MAX_UNITS_NAME);
   } else {
     throw bmi::BAD_VAR_NAME;
@@ -141,7 +141,7 @@ int bmi::Model::GetVarGrid (const char * name) {
     grid_id = 0;
   } else if (strcmp(name, "channel_water__discharge") == 0 ) {
     grid_id = 0;
-  } else if (strcmp(name, "bed_load__mass_flow_rate") == 0 ) {
+  } else if (strcmp(name, "channel_water_sedimentbedload__mass_flow_rate") == 0 ) {
     grid_id = 0;
   } else {
     throw bmi::BAD_VAR_NAME;
@@ -211,7 +211,7 @@ int bmi::Model::GetVarItemsize(const char * name) {
     itemsize = sizeof(double);
   } else if (strcmp(name, "channel_water__discharge") == 0 ) {
     itemsize = sizeof(double);
-  } else if (strcmp(name, "bed_load__mass_flow_rate") == 0 ) {
+  } else if (strcmp(name, "channel_water_sedimentbedload__mass_flow_rate") == 0 ) {
     itemsize = sizeof(double);
   } else {
     throw bmi::BAD_VAR_NAME;
@@ -239,7 +239,7 @@ void bmi::Model::GetValue(const char * name, void * const dest) {
     CopyNodeErosion ((double*)dest);
   } else if (strcmp(name, "channel_water__discharge") == 0 ) {
     CopyNodeDischarge ((double*)dest);
-  } else if (strcmp(name, "bed_load__mass_flow_rate") == 0 ) {
+  } else if (strcmp(name, "channel_water_sedimentbedload__mass_flow_rate") == 0 ) {
     CopyNodeSedimentFlux ((double*)dest);
   } else {
     throw bmi::BAD_VAR_NAME;

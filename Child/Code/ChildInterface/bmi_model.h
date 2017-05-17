@@ -42,7 +42,7 @@ class Model : public Child {
       "surface__elevation_increment",
       "sediment__erosion_rate",
       "channel_water__discharge",
-      "bed_load__mass_flow_rate",
+      "channel_water_sediment~bedload__mass_flow_rate",
       NULL,
     };
     input_var_names = NULL;
