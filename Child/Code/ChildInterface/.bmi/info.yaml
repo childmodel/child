@@ -2,15 +2,32 @@ summary: CHILD computes the time evolution of a topographic
   surface z(x,y,t) by fluvial and hillslope erosion and
   sediment transport.
 url: http://csdms.colorado.edu/wiki/Model:CHILD
-author: Greg Tucker
+author:
+  - Greg Tucker
+  - Stephen Lancaster
+  - Nicole Gasparini
+  - Rafael Bras
+  - Scott Rybarczyk
 email: gtucker@colorado.edu
 version: "10.6"
 license: GPLv2
 doi: "10.1594/IEDA/100102"
-cite_as: |
-  @article{tucker2010child,
-    title={CHILD Users Guide for version R9. 4.1},
-    author={Tucker, Gregory E},
-    journal={Cooperative Institute for Research in Environmental Sciences (CIRES) and Department of Geological Sciences, University of Colorado, Boulder, USA},
-    year={2010}
-  }
+cite_as:
+  - |
+    @article{tucker2010child,
+      title={CHILD Users Guide for version R9. 4.1},
+      author={Tucker, Gregory E},
+      journal={Cooperative Institute for Research in Environmental Sciences (CIRES) and Department of Geological Sciences, University of Colorado, Boulder, USA},
+      year={2010}
+    }
+  - |
+    @article{tucker2001object,
+      title={An object-oriented framework for distributed hydrologic and geomorphic modeling using triangulated irregular networks},
+      author={Tucker, Gregory E and Lancaster, Stephen T and Gasparini, Nicole M and Bras, Rafael L and Rybarczyk, Scott M},
+      journal={Computers \& Geosciences},
+      volume={27},
+      number={8},
+      pages={959--973},
+      year={2001},
+      publisher={Elsevier}
+    }
