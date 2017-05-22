@@ -29,7 +29,7 @@ class Model : public Child {
  public:
   Model () {
     const char *inputs[] = {
-      "surface__elevation",
+      "land_surface__elevation",
       "sea_bottom_surface__elevation",
       "sea_floor_bedrock_surface__elevation",
       "bedrock_surface__elevation",
@@ -37,9 +37,9 @@ class Model : public Child {
       NULL,
     };
     const char *outputs[] = {
-      "surface__elevation",
+      "land_surface__elevation",
       "sea_bottom_surface__elevation",
-      "surface__elevation_increment",
+      "land_surface__elevation_increment",
       "sediment__erosion_rate",
       "channel_water__discharge",
       "channel_water_sediment~bedload__mass_flow_rate",
