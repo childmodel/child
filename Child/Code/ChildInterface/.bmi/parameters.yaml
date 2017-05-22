@@ -6,7 +6,7 @@ run_duration:
       max: 1.79769313486e+308
       min: 1.0
     type: float
-    units: y
+    units: year
 grid_x_size:
   description: Length of grid in x-dimension
   value:
@@ -60,7 +60,7 @@ uplift_rate:
       max: 1.79769e308
       min: 1.0
     type: float
-    units: "m / y"
+    units: "m / year"
 fault_position:
   description: Fault position
   value:
@@ -78,4 +78,4 @@ subsidence_rate:
       max: 1.79769e308
       min: 1.0
     type: float
-    units: "m / y"
+    units: "m / year"
