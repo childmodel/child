@@ -1995,7 +1995,7 @@ MakeRandomPointsFromArcGrid( const tInputFile &infile )
     }
   }
   gridfile.close();
-  std::cout << "finished reading file," << gridfile << std::endl;
+  // std::cout << "finished reading file," << gridfile << std::endl;
   // Create the 3 nodes that form the supertriangle and place them on the
   // node list in counter-clockwise order. (Note that the base and height
   // of the supertriangle are 5 times the
