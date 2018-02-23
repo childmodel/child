@@ -560,10 +560,10 @@ double Child::RunOneStorm() {
   
   time->Advance( stormPlusDryDuration );
 	
-  if( output > 0 && time->CheckOutputTime() )
+  if( output != nullptr && time->CheckOutputTime() )
     output->WriteOutput( time->getCurrentTime() );
 	
-  if( output > 0 && output->OptTSOutput() ) output->WriteTSOutput();
+  if( output != nullptr && output->OptTSOutput() ) output->WriteTSOutput();
   
   return( time->getCurrentTime() );
 }
