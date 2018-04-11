@@ -6,6 +6,8 @@ configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/ChildInterface/tests/test_input_file
 
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/child.pc.cmake ${CMAKE_CURRENT_SOURCE_DIR}/child.pc )
 
+set(CMAKE_MACOSX_RPATH 1)
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Erosion
