@@ -1059,9 +1059,9 @@ double tLNode::DistNew(tLNode const * p0,tLNode const * p1 ) const
  **  ...is a debugging routine that prints out a bunch of info about a node.
  **
 \**************************************************************************/
-#ifndef NDEBUG
 void tLNode::TellAll() const
 {
+#ifndef NDEBUG
   tLNode * nbr;
 
   std::cout << " NODE temp id " << id << " perm id " << permid << ":\n";
@@ -1110,8 +1110,8 @@ void tLNode::TellAll() const
 
   std::cout << "layerlist addresses are:\n";
   layerlist.DebugTellPtrs();
-}
 #endif
+}
 
 
 /**************************************************************************\

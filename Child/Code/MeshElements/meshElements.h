@@ -168,9 +168,7 @@ public:
   inline virtual tArray<int> getEdgePtrIndices();
   inline virtual void setEdgePtrsFromVector( vector<tEdge*>& );
 
-#ifndef NDEBUG
    void TellAll() const;  // Debugging routine that outputs node data
-#endif
 
 private:
   static bool freezeElevations; // option for running model without 
@@ -303,9 +301,7 @@ public:
   void setListPtr(void *ptr) { listObj.setListPtr(ptr); }
   void *getListPtr() const { return listObj.getListPtr(); }
 
-#ifndef NDEBUG
   void TellCoords();  // debug routine that reports edge coordinates
-#endif
 
 private:
   tListable        listObj;
@@ -379,9 +375,7 @@ public:
   bool containsPoint(double, double) const; // does "this" contains the point (x,y)
   tTriangle* NbrToward( double, double );
 
-#ifndef NDEBUG
   void TellAll() const;  // debugging routine
-#endif
 
   void setListPtr(void *ptr) { listObj.setListPtr(ptr); }
   void *getListPtr() const { return listObj.getListPtr(); }
