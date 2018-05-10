@@ -15,6 +15,42 @@
 #endif
 
 
+bmi::Model::Model () {
+    const char *inputs[] = {
+      "land_surface__elevation",
+      "sea_bottom_surface__elevation",
+      "sea_floor_bedrock_surface__elevation",
+      "bedrock_surface__elevation",
+      "bedrock_surface__elevation_increment",
+      NULL,
+    };
+    const char *outputs[] = {
+      "land_surface__elevation",
+      "sea_bottom_surface__elevation",
+      "land_surface__elevation_increment",
+      "sediment__erosion_rate",
+      "channel_water__discharge",
+      "channel_water_sediment~bedload__mass_flow_rate",
+      NULL,
+    };
+
+    strcpy(input_var_names[0], "land_surface__elevation");
+    strcpy(input_var_names[1], "sea_bottom_surface__elevation");
+    strcpy(input_var_names[2], "sea_floor_bedrock_surface__elevation");
+    strcpy(input_var_names[3], "bedrock_surface__elevation");
+    strcpy(input_var_names[4], "bedrock_surface__elevation_increment");
+    input_var_name_count = 5;
+
+    strcpy(output_var_names[0], "land_surface__elevation");
+    strcpy(output_var_names[1], "sea_bottom_surface__elevation");
+    strcpy(output_var_names[2], "land_surface__elevation_increment");
+    strcpy(output_var_names[3], "sediment__erosion_rate");
+    strcpy(output_var_names[4], "channel_water__discharge");
+    strcpy(output_var_names[5], "channel_water_sediment~bedload__mass_flow_rate");
+    output_var_name_count = 6;
+}
+
+
 void bmi::Model::Initialize (const char *file) {
   Child::Initialize(std::string(file));
   // FILE *fp = fopen (file, "r");
@@ -63,7 +99,8 @@ int bmi::Model::GetOutputVarNameCount (void) {
 
 void bmi::Model::GetInputVarNames (char * const * const names) {
   for (int i=0; i<this->input_var_name_count; i++) {
-    strcpy (names[i], input_var_names[i]);
+    // printf("%s\n", this->input_var_names[i]);
+    strncpy (names[i], input_var_names[i], 2048);
   }
 }
 
@@ -144,7 +181,8 @@ int bmi::Model::GetVarGrid (const char * name) {
   } else if (strcmp(name, "channel_water_sediment~bedload__mass_flow_rate") == 0 ) {
     grid_id = 0;
   } else {
-    throw bmi::BAD_VAR_NAME;
+    throw std::runtime_error("unknown var name");
+    // throw bmi::BAD_VAR_NAME;
   }
   return grid_id;
 }
@@ -227,6 +265,10 @@ int bmi::Model::GetVarNbytes(const char * name) {
   return itemsize * size;
 }
 
+void bmi::Model::GetVarLocation(const char * name, char * const location) {
+  strcpy(location, "node");
+}
+
 
 void bmi::Model::GetValue(const char * name, void * const dest) {
   if (strcmp(name, "land_surface__elevation") == 0 ) {
@@ -290,6 +332,15 @@ void bmi::Model::GetGridY (const int grid_id, double * const y) {
 }
 
 
+int bmi::Model::GetGridNumberOfFaces(const int grid_id) {
+  if (grid_id == 0) {
+    return mesh->getTriList()->getSize();
+  } else {
+    throw bmi::FAILURE;
+  }
+}
+
+
 int bmi::Model::GetGridFaceCount(const int grid_id) {
   if (grid_id == 0) {
     return mesh->getTriList()->getSize();
@@ -302,6 +353,37 @@ int bmi::Model::GetGridFaceCount(const int grid_id) {
 int bmi::Model::GetGridVertexCount(const int grid_id) {
   if (grid_id == 0) {
     return 3. * GetGridFaceCount(grid_id);
+  } else {
+    throw bmi::FAILURE;
+  }
+}
+
+
+void bmi::Model::GetGridNodesPerFace (const int grid_id, int * edges_per_face) {
+  if (grid_id == 0) {
+    int i = 0;
+    const int n_faces = GetGridFaceCount(grid_id);
+    for (i=0; i<n_faces; i++)
+      edges_per_face[i] = 3;
+  } else {
+    throw bmi::FAILURE;
+  }
+}
+
+
+void bmi::Model::GetGridFaceNodes (const int grid_id, int * face_nodes) {
+  if (grid_id == 0) {
+    // Implement this: connectivity for this grid.
+    {
+      int i = 0;
+      tMesh<tLNode>::triListIter_t ti(mesh->getTriList());
+      for (tTriangle * current_tri=ti.FirstP(); !ti.AtEnd();
+           i+=3, current_tri=ti.NextP ()) {
+        face_nodes[i] = current_tri->pPtr(0)->getPermID();
+        face_nodes[i+1] = current_tri->pPtr(1)->getPermID();
+        face_nodes[i+2] = current_tri->pPtr(2)->getPermID();
+      }
+    }
   } else {
     throw bmi::FAILURE;
   }
@@ -325,6 +407,7 @@ void bmi::Model::GetGridConnectivity (const int grid_id, int * connectivity) {
     throw bmi::FAILURE;
   }
 }
+
 
 void bmi::Model::GetGridOffset (const int grid_id, int * const offset) {
   if (grid_id == 0) {
@@ -360,44 +443,4 @@ bool bmi::Model::HasOutputVar (const char * var_name) {
       return true;
   }
   return false;
-}
-
-void bmi::Model::SetInputVarNames (const char **names) {
-  if (input_var_names) {
-    for (int i=0; i<input_var_name_count; ++i)
-      free (input_var_names[i]);
-    delete input_var_names;
-  }
-  input_var_name_count = 0;
-
-  if (names) {
-    for (const char **name=names; *name; ++name)
-      ++input_var_name_count;
-
-    input_var_names = new char*[input_var_name_count];
-    for (int i=0; i<input_var_name_count; ++i)
-      input_var_names[i] = strdup (names[i]);
-  }
-  else
-    input_var_names = NULL;
-}
-
-void bmi::Model::SetOutputVarNames (const char **names) {
-  if (output_var_names) {
-    for (int i=0; i<output_var_name_count; ++i)
-      free (output_var_names[i]);
-    delete output_var_names;
-  }
-  output_var_name_count = 0;
-
-  if (names) {
-    for (const char **name=names; *name; ++name)
-      ++output_var_name_count;
-
-    output_var_names = new char*[output_var_name_count];
-    for (int i=0; i<output_var_name_count; ++i)
-      output_var_names[i] = strdup (names[i]);
-  }
-  else
-    output_var_names = NULL;
 }
