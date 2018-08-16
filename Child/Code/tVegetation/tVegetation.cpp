@@ -573,7 +573,7 @@ void tForest::TreeFall( tTrees *tree )
       const double segx = tree->getNodePtr()->getX() + dist * cosangle;
       const double segy = tree->getNodePtr()->getY() + dist * sinangle;
       nt = ct->NbrToward( segx, segy );
-      if( nt > 0 )
+      if( nt != nullptr )
 	ct = nt;
       // find which node to give wood:
       int i;

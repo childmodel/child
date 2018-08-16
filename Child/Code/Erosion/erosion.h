@@ -1000,13 +1000,13 @@ inline tDebrisFlow::~tDebrisFlow() {Finalize();}
 /***************************************************************************/
 inline void tDebrisFlow::Finalize()
 {
-  if( slideCluster > 0 ) delete slideCluster;
-  if( scourCluster > 0 ) delete scourCluster;
-  if( scourZoneMesh > 0 ) delete scourZoneMesh;
-  if( depositCluster > 0 ) delete depositCluster;
-  if( depositZoneMesh > 0 ) delete depositZoneMesh;
-  if( wasList > 0 ) delete wasList;
-  if( velocityList > 0 ) delete velocityList;
+  if( slideCluster != nullptr ) delete slideCluster;
+  if( scourCluster != nullptr ) delete scourCluster;
+  if( scourZoneMesh != nullptr ) delete scourZoneMesh;
+  if( depositCluster != nullptr ) delete depositCluster;
+  if( depositZoneMesh != nullptr ) delete depositZoneMesh;
+  if( wasList != nullptr ) delete wasList;
+  if( velocityList != nullptr ) delete velocityList;
 }
 /***************************************************************************/
 /**
@@ -1069,7 +1069,7 @@ public:
 /***************************************************************************/
 // just checks whether already at outlet or flowing to outlet:
 inline bool tDF_RunOutNoStop::Start( tDebrisFlow *DF )
-{return ( DF->getAtPtr()->getFlowEdg() > 0 && 
+{return ( DF->getAtPtr()->getFlowEdg() != nullptr && 
          DF->getAtPtr()->getFlowEdg()->getDestinationPtr()->isNonBoundary() );}
 
 // just checks whether already at outlet:

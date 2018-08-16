@@ -27,33 +27,7 @@ typedef enum {
 
 class Model : public Child {
  public:
-  Model () {
-    const char *inputs[] = {
-      "land_surface__elevation",
-      "sea_bottom_surface__elevation",
-      "sea_floor_bedrock_surface__elevation",
-      "bedrock_surface__elevation",
-      "bedrock_surface__elevation_increment",
-      NULL,
-    };
-    const char *outputs[] = {
-      "land_surface__elevation",
-      "sea_bottom_surface__elevation",
-      "land_surface__elevation_increment",
-      "sediment__erosion_rate",
-      "channel_water__discharge",
-      "channel_water_sediment~bedload__mass_flow_rate",
-      NULL,
-    };
-    input_var_names = NULL;
-    output_var_names = NULL;
-    SetInputVarNames (inputs);
-    SetOutputVarNames (outputs);
-  }
-  ~Model () {
-    SetInputVarNames (NULL);
-    SetOutputVarNames (NULL);
-  }
+  Model ();
 
   // Model control functions.
   void Initialize (const char *);
@@ -74,6 +48,7 @@ class Model : public Child {
   void GetVarUnits (const char * var_name, char * const units);
   int GetVarItemsize(const char * name);
   int GetVarNbytes(const char * name);
+  void GetVarLocation(const char * name, char * const location);
 
   double GetCurrentTime ();
   double GetStartTime ();
@@ -119,17 +94,24 @@ class Model : public Child {
   void GetGridConnectivity (const int, int * const );
   void GetGridOffset (const int, int * const);
 
+  int GetGridNumberOfEdges(const int);
+  int GetGridNumberOfFaces(const int);
+
+  void GetGridEdgeNodes(const int, int * const);
+  void GetGridFaceEdges(const int, int * const);
+  void GetGridFaceNodes(const int, int * const);
+  void GetGridNodesPerFace(const int, int * const);
+
+
  private:
   bool HasInputVar (const char * var_name);
   bool HasOutputVar (const char * var_name);
-  void SetInputVarNames (const char **names);
-  void SetOutputVarNames (const char **names);
 
   int input_var_name_count;
   int output_var_name_count;
 
-  char** input_var_names;
-  char** output_var_names;
+  char input_var_names[5][2048];
+  char output_var_names[6][2048];
 };
 
 } // namespace bmi

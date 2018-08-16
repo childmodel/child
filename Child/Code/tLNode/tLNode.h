@@ -707,9 +707,7 @@ public:
   inline virtual tArray<int> getEdgePtrIndices();
   inline virtual void setEdgePtrsFromVector( vector<tEdge*>& );
 
-#ifndef NDEBUG
   void TellAll() const;
-#endif
 
 protected:
   double CalcSlopeMeander(); // specialisation of CalcSlope()

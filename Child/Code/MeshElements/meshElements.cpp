@@ -591,9 +591,9 @@ void tNode::ConvertToClosedBoundary()
 **  ...is a debugging routine that prints out a bunch of info about a node.
 **
 \**************************************************************************/
-#ifndef NDEBUG
 void tNode::TellAll() const
 {
+#ifndef NDEBUG
    std::cout << " NODE " << id << ":\n";
    std::cout << "  x=" << x << " y=" << y << " z=" << z;
    std::cout << "  boundary: " << BoundName(boundary)
@@ -601,9 +601,8 @@ void tNode::TellAll() const
    if( edg )
        std::cout << "  points to edg #" << edg->getID() << std::endl;
    else std::cout << "  edg is undefined!\n";
-
-}
 #endif
+}
 
 
 /**************************************************************************\
@@ -1029,9 +1028,9 @@ bool tTriangle::containsPoint(double x, double y) const
 }
 
 /* TellAll: debugging output routine */
-#ifndef NDEBUG
 void tTriangle::TellAll() const
 {
+#ifndef NDEBUG
    int i;
 
    assert( this!=0 );
@@ -1050,7 +1049,7 @@ void tTriangle::TellAll() const
       else std::cout << "(ndef)";
       std::cout << std::endl;
    }
-}
 #endif
+}
 
 

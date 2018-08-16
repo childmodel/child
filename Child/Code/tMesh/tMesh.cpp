@@ -1995,7 +1995,7 @@ MakeRandomPointsFromArcGrid( const tInputFile &infile )
     }
   }
   gridfile.close();
-  std::cout << "finished reading file," << gridfile << std::endl;
+  // std::cout << "finished reading file," << gridfile << std::endl;
   // Create the 3 nodes that form the supertriangle and place them on the
   // node list in counter-clockwise order. (Note that the base and height
   // of the supertriangle are 5 times the
@@ -2745,7 +2745,7 @@ MakeMeshFromPointTilesAndArcGridMask( const tInputFile &infile, tRand &rand )
             if( davlen < oavlen ) cn = dn;
             else cn = on;
           }
-          assert( cn > 0 );
+          assert( cn != nullptr );
           removeList.insertAtBack( cn );
           keepChecking = true;
         }
@@ -4405,7 +4405,7 @@ MakeHullConvex()
       break;
     }
   }
-  assert( bndyedg > 0 );
+  assert( bndyedg != nullptr );
   tPtrList< tSubNode > nbrList;
   tEdge* obedg = bndyedg;
   tSubNode* dn = static_cast<tSubNode*>( bndyedg->getDestinationPtrNC() );

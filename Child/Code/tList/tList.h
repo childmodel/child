@@ -528,9 +528,7 @@ public:
   inline int removePrev( NodeType &, ListNodeType * );
   void Flush();        // clears and reinitializes list
   inline bool isEmpty() const; // returns true is list is empty, false otherwise
-#ifndef NDEBUG
   void print() const;  // prints contents of list - DEBUG ONLY
-#endif
   inline int getSize() const; // returns # of items on list
   inline ListNodeType const * getFirst() const; // returns ptr to 1st list node
   inline ListNodeType const * getLast() const;  // returns ptr to last list node
@@ -553,9 +551,7 @@ public:
   const ListNodeType * getIthListNode( int ) const;
   ListNodeType * getIthListNodeNC( int );
 
-#ifndef NDEBUG
   void DebugTellPtrs() const;
-#endif
 
 protected:
   int nNodes;                          // # of items on list
@@ -970,11 +966,11 @@ isEmpty() const
 }
 
 //display list contents -- for debugging only
-
 template< class NodeType, class ListNodeType >
 void tList< NodeType, ListNodeType >::
 print() const
 {
+#ifndef NDEBUG
   if( isEmpty() )
     {
       std::cout<<"The list is empty\n"<<std::endl;
@@ -987,8 +983,8 @@ print() const
       current = current->next;
     }
   std::cout<< '\n' <<std::endl;
+#endif
 }
-
 
 /**************************************************************************\
  **
@@ -1318,11 +1314,12 @@ makeCircular()
 
 
 template< class NodeType, class ListNodeType >
-void tList< NodeType, ListNodeType >::
-DebugTellPtrs() const
+void tList< NodeType, ListNodeType >::DebugTellPtrs() const
 {
+#ifndef NDEBUG
   std::cout << "first: " << first << std::endl;
   std::cout << "last: " << last << std::endl;
+#endif
 }
 
 

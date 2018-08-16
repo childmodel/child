@@ -2922,7 +2922,7 @@ double tChemicalWeatheringDissolution::SoluteFlux( tLNode * n, double dt )
       lP = lI.PrevP();
       tLayer lay;
       n->getLayersRefNC().removeNext( lay, lI.NodePtr() );
-      assert( n>0 );
+      assert( n != nullptr );
     }
   }
   // multiply by area for total mass flux:
@@ -3164,7 +3164,7 @@ void tDebrisFlow::Initialize( tPtrList<tLNode> &PList,
     // find triangle containing center of mass:
     tTriangle *gt = meshPtr->LocateTriangle( wtAvgX, wtAvgY );
     // if geometric center is within bounds:
-    if( gt>0 )
+    if( gt != nullptr )
     { // find triangle's node with greatest drainage area (and in cluster):
       double gArea = 0.0;
       for( int i=0; i < 3; ++i )
@@ -3466,7 +3466,7 @@ void tDF_ScourAllSediment::BedScour( tDebrisFlow* DF, tLNode* cn )
     cn->ChangeZ( -cl.getDepth() );
   }
   // remove biomass and add to debris flow tally:
-  if( cn->getVegCover().getTrees() > 0 )
+  if( cn->getVegCover().getTrees() != nullptr )
   {
     DF->addWoodVolume( ( cn->getVegCover().getTrees()->getBioMassStand()
                         + cn->getVegCover().getTrees()->getBioMassDown() )
@@ -3533,7 +3533,7 @@ void BuildPublicClusterWithMesh( tMesh<tLNode>* mesh,
 	      tTriangle *ct =  mesh->LocateTriangle( nn->getX(), nn->getY() );
 	      if( nn->public1 == 0 
            && 
-           ct > 0 
+           ct != nullptr 
            && 
            nn->getZ() <= PlaneFit( nn->getX(), nn->getY(), ct ) )
         {
@@ -3952,11 +3952,11 @@ tErosion::~tErosion(){
   delete sedTrans;
   delete physWeath;
   delete chemWeath;
-  if( runout > 0 ) delete runout;
-  if( scour > 0 ) delete scour;
-  if( deposit > 0 ) delete deposit;
-  if( DF_fsPtr > 0 ) delete DF_fsPtr;
-  if( DF_Hyd_fsPtr > 0 ) delete DF_Hyd_fsPtr;
+  if( runout != nullptr ) delete runout;
+  if( scour != nullptr ) delete scour;
+  if( deposit != nullptr ) delete deposit;
+  if( DF_fsPtr != nullptr ) delete DF_fsPtr;
+  if( DF_Hyd_fsPtr != nullptr ) delete DF_Hyd_fsPtr;
 }
 
 /**************************************************************************\
@@ -6471,7 +6471,7 @@ void tErosion::ProduceRegolith( double dtg, double time )
       for( size_t j=0; j<n->getNumg(); ++j ) 
         erolist[j] = soilDeltaH * rockP->getDgrade(j)/rockP->getDepth();
       // is there a soil layer?
-      if( soilP > 0 )
+      if( soilP != nullptr )
         // yes; add material to layer above top rock layer:
         n->EroDep( i-1, erolist, time );
       else
@@ -6599,7 +6599,7 @@ void tErosion::LandslideClusters( double rainrate,
 	 cn=nodIter.NextP(), ++i )
     {
       nodeSoilThickness[i] = cn->getRegolithDepth();
-      if( cn->getVegCover().getTrees() > 0 )
+      if( cn->getVegCover().getTrees() != nullptr )
       {
         nodeWoodDepth[i] = 
 	  cn->getVegCover().getTrees()->getBioMassStand() 
@@ -6678,7 +6678,7 @@ void tErosion::LandslideClusters( double rainrate,
       const double costheta = cos( slopeangle );
       const double sintheta = sin( slopeangle );
       double basalCohesion = 0.0;
-      if( cn->getVegCover().getTrees() > 0 )
+      if( cn->getVegCover().getTrees() != nullptr )
 	basalCohesion = 
 	  cn->getVArea() / costheta
 	  * cn->getVegCover().getTrees()->getRootStrengthVert()
@@ -6996,7 +6996,7 @@ void tErosion::LandslideClusters3D( double rainrate,
 	      nodeSaturatedDepth[i] = nodeSoilThickness[i];
 	    nodeWaterDepth[i] = 
 	      nodeSaturatedDepth[i] * porosity; // water fraction
-	    if( cn->getVegCover().getTrees() > 0 )
+	    if( cn->getVegCover().getTrees() != nullptr )
 	      { // wood depth and root cohesion
 		nodeWoodDepth[i] = 
 		  cn->getVegCover().getTrees()->getBioMassStand() 
@@ -7082,7 +7082,7 @@ void tErosion::LandslideClusters3D( double rainrate,
 		nodeGradientY[i] += 
 		  weightedSlopeByLength * ce->getEVec().at(1);
 		// for lateral cohesion, sum up cohesion along edges:
-		if( cn->getVegCover().getTrees() > 0 )
+		if( cn->getVegCover().getTrees() != nullptr )
 		  nodeLatCohesion[i] += edgeLatCohesion[iEdge];
 	      }
 	    nodeGradientX[i] /= sumWeights;
@@ -7098,7 +7098,7 @@ void tErosion::LandslideClusters3D( double rainrate,
 	    nodeNetForceMag[i] = -nodeLatCohesion[i];
 	    // add basal root cohesion (resistance) to force balance
 	    // (uses flowedge surface slope angle):
-	    if( cn->getVegCover().getTrees() > 0 )
+	    if( cn->getVegCover().getTrees() != nullptr )
 	      nodeNetForceMag[i] -= 
 		cn->getVArea() / costheta
 		* cn->getVegCover().getTrees()->getRootStrengthVert()

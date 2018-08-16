@@ -859,10 +859,10 @@ RunOneStorm()
   
   time->Advance( stormPlusDryDuration );
 	
-  if( output > 0 && time->CheckOutputTime() )
+  if( output != nullptr && time->CheckOutputTime() )
     output->WriteOutput( time->getCurrentTime() );
 	
-  if( output > 0 && output->OptTSOutput() ) output->WriteTSOutput();
+  if( output != nullptr && output->OptTSOutput() ) output->WriteTSOutput();
   
   return( time->getCurrentTime() );
 }
@@ -1174,7 +1174,7 @@ GetXCoordinate( int element_index, int vertex_index )
   tArray2<double> right_hand_voronoi_vertex_coords;
   
   my_node = ni.GetPByPermID( element_index );
-  if( my_node<=0 ) return( -9999 );   // Temporary hacked NODATA code
+  if( my_node == nullptr ) return( -9999 );   // Temporary hacked NODATA code
   
   current_edge = my_node->getEdg();
   if( !current_edge ) return( -9999 );
@@ -1200,7 +1200,7 @@ GetYCoordinate( int element_index, int vertex_index )
   tArray2<double> right_hand_voronoi_vertex_coords;
   
   my_node = ni.GetPByPermID( element_index );
-  if( my_node<=0 ) return( -9999 );   // Temporary hacked NODATA code
+  if( my_node == nullptr ) return( -9999 );   // Temporary hacked NODATA code
   
   current_edge = my_node->getEdg();
   if( !current_edge ) return( -9999 );
@@ -1231,7 +1231,7 @@ GetZCoordinate( int element_index, int vertex_index )
   
   // Get the node
   my_node = ni.GetPByPermID( element_index );
-  if( my_node<=0 ) return( -9999 );   // Temporary hacked NODATA code
+  if( my_node == nullptr ) return( -9999 );   // Temporary hacked NODATA code
   
   // Get the right edge
   current_edge = my_node->getEdg();

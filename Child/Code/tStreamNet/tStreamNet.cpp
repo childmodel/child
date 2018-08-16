@@ -3276,7 +3276,7 @@ void tStreamNet::FindStreamLines( const tInputFile &infile,
         }
       }
     }
-    if( on > 0 )
+    if( on != nullptr )
     {
       // put streamline nodes in list:
       tLNode *dn = 0;
@@ -3291,7 +3291,7 @@ void tStreamNet::FindStreamLines( const tInputFile &infile,
           if( on->Meanders() ) on->setMeanderStatus( false );
         }
         on = dn;
-      } while( dn > 0 && dn->getBoundaryFlag() == kNonBoundary );
+      } while( dn != nullptr && dn->getBoundaryFlag() == kNonBoundary );
     }
     else
       // shouldn't happen

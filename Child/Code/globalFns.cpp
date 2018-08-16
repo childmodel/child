@@ -1008,7 +1008,7 @@ int ScanLineNodesByDistance( tLNode *cn, double maxDist,
 	{
 	  closeEnough = false;
 	  tLNode* nxtPtr = ScanLineNextNode( prvPtr, curPtr, abc ); // global fn
-	  if( nxtPtr > 0 && nxtPtr->isNonBoundary() )
+	  if( nxtPtr != nullptr && nxtPtr->isNonBoundary() )
 	    {
 	      leftList.insertAtFront( nxtPtr );
 	      perpDist += fabs( DotProduct2D( curPtr, nxtPtr, uVec ) );
@@ -1036,7 +1036,7 @@ int ScanLineNodesByDistance( tLNode *cn, double maxDist,
 	{
 	  closeEnough = false;
 	  tLNode* nxtPtr = ScanLineNextNode( prvPtr, curPtr, abc ); // global fn
-	  if( nxtPtr > 0 && nxtPtr->isNonBoundary() )
+	  if( nxtPtr != nullptr && nxtPtr->isNonBoundary() )
 	    {
 	      rightList.insertAtBack( nxtPtr );
 	      perpDist += fabs( DotProduct2D( curPtr, nxtPtr, uVec ) );
