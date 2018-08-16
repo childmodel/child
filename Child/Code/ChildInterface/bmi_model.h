@@ -28,7 +28,6 @@ typedef enum {
 class Model : public Child {
  public:
   Model ();
-  ~Model ();
 
   // Model control functions.
   void Initialize (const char *);
