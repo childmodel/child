@@ -40,10 +40,7 @@ include_directories(
 
 set (child_LIB_SRCS
   ChildInterface/bmi_model.cpp
-  # ChildInterface/bmi_model_child.cpp
   ChildInterface/child.cpp
-  ChildInterface/childDriver.cpp
-  ChildInterface/childInterface.cpp
   Erosion/erosion.cpp
   MeshElements/meshElements.cpp
   Mathutil/mathutil.cpp
@@ -81,7 +78,7 @@ add_library (child-static STATIC ${child_LIB_SRCS})
 set_target_properties (child-static PROPERTIES OUTPUT_NAME "child")
 install (TARGETS child-static DESTINATION lib COMPONENT child)
 
-set (child_SRCS ChildInterface/childDriver.cpp)
+set(child_SRCS ChildInterface/childDriver.cpp)
 
 add_executable (child ${child_SRCS})
 target_link_libraries (child child-static)
@@ -93,10 +90,11 @@ install (TARGETS child DESTINATION bin COMPONENT child)
 add_executable (bmi_model_child_test ChildInterface/tests/bmi_model_child_test.cpp)
 target_link_libraries (bmi_model_child_test child-shared)
 
-install (FILES
-  ChildInterface/bmi_model.h ChildInterface/child.h
-  # ChildInterface/bmi_model_child.h ChildInterface/child.h
-  DESTINATION include/child/ChildInterface COMPONENT child)
+install(
+  FILES ChildInterface/bmi_model.h ChildInterface/child.h
+  DESTINATION include/child/ChildInterface
+  COMPONENT child
+)
 install (FILES
   ChildInterface/childInterface.h
   DESTINATION include/child/ChildInterface COMPONENT child)
@@ -211,5 +209,3 @@ install (FILES
   Template_model.h
   DESTINATION include/child COMPONENT child
 )
-
-
