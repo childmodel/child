@@ -16,35 +16,25 @@
 */
 /**************************************************************************/
 
-#include "childInterface.h"
+#include "bmi_model.h"
 
-int main( int argc, char **argv )
+
+int
+main(int argc, char *argv[])
 {
-	childInterface myChildInterface;
-	
-	myChildInterface.Initialize( argc, argv );
+  bmi::Model child;
+  string argstr;
 
-	if(1) // make this zero to use "example 2" below
-	{
-		// Example 1: using "Run" method, and setting run duration to zero so model reads duration from input file
-		myChildInterface.Run( 0 );
-	}
-	else
-	{
-		// Example 2: using "RunOneStorm" 
-		double mytime = 0;
-		double myrunduration = 100000;
-		
-		while( mytime<myrunduration )
-		{
-			mytime = myChildInterface.RunOneStorm();
-		}
-	}
-	
-	// Note that calling CleanUp() isn't strictly necessary, as the destructor will automatically clean it
-	// up when myChildInterface is deleted ... but it's nice to be able to do this at will (and free up
-	// memory)
-	myChildInterface.CleanUp();
-	
-	return 0;
+  for (int i=1; i<argc; i++ ) {
+    argstr.append(argv[i]);
+    if (i < (argc - 1))
+      argstr.append( " " );
+  }
+
+  child.Initialize(argstr.c_str());
+  child.Run(0);
+
+  child.Finalize();
+
+  return 0;
 }
