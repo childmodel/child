@@ -1,5 +1,7 @@
 #include "child.h"
 
+Predicates predicate;
+
 #define VERBOSE (false)
 
 void Child::Initialize (std::string argument_string) {
