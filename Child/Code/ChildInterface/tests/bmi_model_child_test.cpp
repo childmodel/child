@@ -23,7 +23,7 @@
 int
 main (int argc, char *argv[])
 {
-  bmi::Model child;
+  Model child;
   char input_file[2048];
 
   if (argc>1)
