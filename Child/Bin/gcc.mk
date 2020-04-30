@@ -17,7 +17,7 @@ WARNINGFLAGS += -Wold-style-cast
 ARCH := 
 # optimise
 #PROFILE = -pg
-CFLAGS = $(WARNINGFLAGS) -g $(PROFILE) -O2 $(ARCH) -c
+CFLAGS = $(WARNINGFLAGS) -g $(PROFILE) -O2 $(ARCH) -std=c++11 -c
 LDFLAGS = $(WARNINGFLAGS) -g $(PROFILE) -O2 $(ARCH)
 # no optimisation, build is faster
 #CFLAGS = $(WARNINGFLAGS) -g $(ARCH) -c
