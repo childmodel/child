@@ -3,7 +3,7 @@ function m=cmovie(filenm,nframes)
 %    Usage: m = cmovie( filenm, nframes )
 m=moviein(nframes);
 for i=1:nframes
-  q=readcrd([filenm '.q'],i);
+  q=cread([filenm '.q'],i);
   nd=ctrisurf(filenm,i,q);
   %axis off
   view(-30,60)
