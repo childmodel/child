@@ -343,15 +343,13 @@ int Model::GetGridNodeCount(const int grid_id) {
 
 
 int Model::GetGridEdgeCount(const int grid_id) {
-  return 0;
-  // return this->model.mesh->getEdgeList()->getSize();
+  return this->model.mesh->getEdgeList()->getSize();
 }
 
 
 int Model::GetGridFaceCount(const int grid_id) {
   if (grid_id == 0) {
-    return 0;
-    // return this->model.mesh->getTriList()->getSize();
+    return this->model.mesh->getTriList()->getSize();
   } else {
     throw bmi::BMI_FAILURE;
   }
@@ -387,8 +385,23 @@ void Model::GetGridFaceNodes (const int grid_id, int * face_nodes) {
 }
 
 
-void Model::GetGridEdgeNodes(const int grid, int *edge_nodes) {
-  throw NotImplemented();
+void Model::GetGridEdgeNodes(const int grid_id, int *edge_nodes) {
+  if (grid_id == 0) {
+    int i = 0;
+    tMesh<tLNode>::edgeListIter_t edgeIter(this->model.mesh->getEdgeList());
+    tEdge *current_edge;
+
+    for (
+        current_edge=edgeIter.FirstP();
+        !edgeIter.AtEnd();
+        i += 2, current_edge=edgeIter.NextP()
+    ) {
+      edge_nodes[i] = current_edge->getOriginPtr()->getPermID();
+      edge_nodes[i + 1] = current_edge->getDestinationPtr()->getPermID();
+    }
+  } else {
+    throw bmi::BMI_FAILURE;
+  }
 }
 
 
