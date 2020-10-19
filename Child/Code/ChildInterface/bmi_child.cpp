@@ -262,7 +262,7 @@ void *Model::GetValuePtr(std::string name) {
 }
 
 
-void Model::GetValueAtIndices(std::string name, void *dest, long *inds, int count) {
+void Model::GetValueAtIndices(std::string name, void *dest, int *inds, int count) {
   throw NotImplemented();
 }
 
@@ -284,12 +284,12 @@ void Model::SetValue (std::string name, void *vals) {
 }
 
 
-void Model::SetValueAtIndices(std::string name, long *inds, int len, void *src) {
+void Model::SetValueAtIndices(std::string name, int *inds, int len, void *src) {
   throw NotImplemented();
 }
 
 
-void Model::GetGridShape(const int grid, long *shape) {
+void Model::GetGridShape(const int grid, int *shape) {
   throw NotImplemented();
 }
 
@@ -355,7 +355,7 @@ int Model::GetGridFaceCount(const int grid) {
   }
 }
 
-void Model::GetGridNodesPerFace (const int grid, long * edges_per_face) {
+void Model::GetGridNodesPerFace (const int grid, int * edges_per_face) {
   if (grid == 0) {
     int i = 0;
     const int n_faces = GetGridFaceCount(grid);
@@ -367,7 +367,7 @@ void Model::GetGridNodesPerFace (const int grid, long * edges_per_face) {
 }
 
 
-void Model::GetGridFaceNodes (const int grid, long * face_nodes) {
+void Model::GetGridFaceNodes (const int grid, int * face_nodes) {
   if (grid == 0) {
     {
       int i = 0;
@@ -385,7 +385,7 @@ void Model::GetGridFaceNodes (const int grid, long * face_nodes) {
 }
 
 
-void Model::GetGridEdgeNodes(const int grid, long *edge_nodes) {
+void Model::GetGridEdgeNodes(const int grid, int *edge_nodes) {
   if (grid == 0) {
     int i = 0;
     tMesh<tLNode>::edgeListIter_t edgeIter(this->model.mesh->getEdgeList());
@@ -405,7 +405,7 @@ void Model::GetGridEdgeNodes(const int grid, long *edge_nodes) {
 }
 
 
-void Model::GetGridFaceEdges(const int grid, long *face_edges) {
+void Model::GetGridFaceEdges(const int grid, int *face_edges) {
   throw NotImplemented();
 }
 
