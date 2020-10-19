@@ -46,18 +46,18 @@ namespace bmi {
       // Variable getters
       virtual void GetValue(std::string name, void *dest) = 0;
       virtual void *GetValuePtr(std::string name) = 0;
-      virtual void GetValueAtIndices(std::string name, void *dest, int *inds, int count) = 0;
+      virtual void GetValueAtIndices(std::string name, void *dest, long *inds, int count) = 0;
 
       // Variable setters
       virtual void SetValue(std::string name, void *src) = 0;
-      virtual void SetValueAtIndices(std::string name, int *inds, int count, void *src) = 0;
+      virtual void SetValueAtIndices(std::string name, long *inds, int count, void *src) = 0;
 
       // Grid information functions
       virtual int GetGridRank(const int grid) = 0;
       virtual int GetGridSize(const int grid) = 0;
       virtual std::string GetGridType(const int grid) = 0;
 
-      virtual void GetGridShape(const int grid, int *shape) = 0;
+      virtual void GetGridShape(const int grid, long *shape) = 0;
       virtual void GetGridSpacing(const int grid, double *spacing) = 0;
       virtual void GetGridOrigin(const int grid, double *origin) = 0;
 
@@ -69,10 +69,10 @@ namespace bmi {
       virtual int GetGridEdgeCount(const int grid) = 0;
       virtual int GetGridFaceCount(const int grid) = 0;
 
-      virtual void GetGridEdgeNodes(const int grid, int *edge_nodes) = 0;
-      virtual void GetGridFaceEdges(const int grid, int *face_edges) = 0;
-      virtual void GetGridFaceNodes(const int grid, int *face_nodes) = 0;
-      virtual void GetGridNodesPerFace(const int grid, int *nodes_per_face) = 0;
+      virtual void GetGridEdgeNodes(const int grid, long *edge_nodes) = 0;
+      virtual void GetGridFaceEdges(const int grid, long *face_edges) = 0;
+      virtual void GetGridFaceNodes(const int grid, long *face_nodes) = 0;
+      virtual void GetGridNodesPerFace(const int grid, long *nodes_per_face) = 0;
   };
 }
 

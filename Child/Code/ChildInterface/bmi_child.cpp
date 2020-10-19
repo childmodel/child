@@ -128,37 +128,37 @@ Model::GetVarUnits (std::string name) {
 
 
 int Model::GetVarGrid (std::string name) {
-  int grid_id;
+  int grid;
 
   if (name.compare("land_surface__elevation") == 0 ) {
-    grid_id = 0;
+    grid = 0;
   } else if (name.compare("sea_bottom_surface__elevation") == 0 ) {
-    grid_id = 0;
+    grid = 0;
   } else if (name.compare("sea_floor_bedrock_surface__elevation") == 0 ) {
-    grid_id = 0;
+    grid = 0;
   } else if (name.compare("bedrock_surface__elevation") == 0 ) {
-    grid_id = 0;
+    grid = 0;
   } else if (name.compare("bedrock_surface__elevation_increment") == 0 ) {
-    grid_id = 0;
+    grid = 0;
   } else if (name.compare("land_surface__elevation_increment") == 0 ) {
-    grid_id = 0;
+    grid = 0;
   } else if (name.compare("sediment__erosion_rate") == 0 ) {
-    grid_id = 0;
+    grid = 0;
   } else if (name.compare("channel_water__discharge") == 0 ) {
-    grid_id = 0;
+    grid = 0;
   } else if (name.compare("channel_water_sediment~bedload__mass_flow_rate") == 0 ) {
-    grid_id = 0;
+    grid = 0;
   } else {
     throw std::runtime_error("unknown var name");
     // throw BAD_VAR_NAME;
   }
-  return grid_id;
+  return grid;
 }
 
-int Model::GetGridRank (const int grid_id) {
+int Model::GetGridRank (const int grid) {
   int rank;
 
-  if (grid_id == 0) {
+  if (grid == 0) {
     rank = 2;
   } else {
     throw BAD_VAR_NAME;
@@ -166,7 +166,7 @@ int Model::GetGridRank (const int grid_id) {
   return rank;
 }
 
-int Model::GetGridSize (const int grid_id) {
+int Model::GetGridSize (const int grid) {
   int size = 0;
   size = this->model.mesh->getNodeList()->getSize();
   return size;
@@ -262,7 +262,7 @@ void *Model::GetValuePtr(std::string name) {
 }
 
 
-void Model::GetValueAtIndices(std::string name, void *dest, int *inds, int count) {
+void Model::GetValueAtIndices(std::string name, void *dest, long *inds, int count) {
   throw NotImplemented();
 }
 
@@ -284,12 +284,12 @@ void Model::SetValue (std::string name, void *vals) {
 }
 
 
-void Model::SetValueAtIndices(std::string name, int *inds, int len, void *src) {
+void Model::SetValueAtIndices(std::string name, long *inds, int len, void *src) {
   throw NotImplemented();
 }
 
 
-void Model::GetGridShape(const int grid, int *shape) {
+void Model::GetGridShape(const int grid, long *shape) {
   throw NotImplemented();
 }
 
@@ -304,8 +304,8 @@ void Model::GetGridOrigin(const int grid, double *origin) {
 }
 
 
-void Model::GetGridX (const int grid_id, double * const x) {
-  if (grid_id == 0) {
+void Model::GetGridX (const int grid, double * const x) {
+  if (grid == 0) {
     tLNode *current_node;
     tMesh<tLNode>::nodeListIter_t ni( this->model.mesh->getNodeList() );
 
@@ -318,8 +318,8 @@ void Model::GetGridX (const int grid_id, double * const x) {
   }
 }
 
-void Model::GetGridY (const int grid_id, double * const y) {
-  if (grid_id == 0) {
+void Model::GetGridY (const int grid, double * const y) {
+  if (grid == 0) {
     tLNode *current_node;
     tMesh<tLNode>::nodeListIter_t ni( this->model.mesh->getNodeList() );
 
@@ -332,33 +332,33 @@ void Model::GetGridY (const int grid_id, double * const y) {
 }
 
 
-void Model::GetGridZ (const int grid_id, double * const y) {
+void Model::GetGridZ (const int grid, double * const y) {
   throw NotImplemented();
 }
 
 
-int Model::GetGridNodeCount(const int grid_id) {
+int Model::GetGridNodeCount(const int grid) {
   return this->model.mesh->getNodeList()->getSize();
 }
 
 
-int Model::GetGridEdgeCount(const int grid_id) {
+int Model::GetGridEdgeCount(const int grid) {
   return this->model.mesh->getEdgeList()->getSize();
 }
 
 
-int Model::GetGridFaceCount(const int grid_id) {
-  if (grid_id == 0) {
+int Model::GetGridFaceCount(const int grid) {
+  if (grid == 0) {
     return this->model.mesh->getTriList()->getSize();
   } else {
     throw bmi::BMI_FAILURE;
   }
 }
 
-void Model::GetGridNodesPerFace (const int grid_id, int * edges_per_face) {
-  if (grid_id == 0) {
+void Model::GetGridNodesPerFace (const int grid, long * edges_per_face) {
+  if (grid == 0) {
     int i = 0;
-    const int n_faces = GetGridFaceCount(grid_id);
+    const int n_faces = GetGridFaceCount(grid);
     for (i=0; i<n_faces; i++)
       edges_per_face[i] = 3;
   } else {
@@ -367,8 +367,8 @@ void Model::GetGridNodesPerFace (const int grid_id, int * edges_per_face) {
 }
 
 
-void Model::GetGridFaceNodes (const int grid_id, int * face_nodes) {
-  if (grid_id == 0) {
+void Model::GetGridFaceNodes (const int grid, long * face_nodes) {
+  if (grid == 0) {
     {
       int i = 0;
       tMesh<tLNode>::triListIter_t ti(this->model.mesh->getTriList());
@@ -385,8 +385,8 @@ void Model::GetGridFaceNodes (const int grid_id, int * face_nodes) {
 }
 
 
-void Model::GetGridEdgeNodes(const int grid_id, int *edge_nodes) {
-  if (grid_id == 0) {
+void Model::GetGridEdgeNodes(const int grid, long *edge_nodes) {
+  if (grid == 0) {
     int i = 0;
     tMesh<tLNode>::edgeListIter_t edgeIter(this->model.mesh->getEdgeList());
     tEdge *current_edge;
@@ -405,13 +405,13 @@ void Model::GetGridEdgeNodes(const int grid_id, int *edge_nodes) {
 }
 
 
-void Model::GetGridFaceEdges(const int grid, int *face_edges) {
+void Model::GetGridFaceEdges(const int grid, long *face_edges) {
   throw NotImplemented();
 }
 
 
-std::string Model::GetGridType (const int grid_id) {
-  if (grid_id == 0) {
+std::string Model::GetGridType (const int grid) {
+  if (grid == 0) {
     return "unstructured";
     // return "unstructured_triangular";
   } else {

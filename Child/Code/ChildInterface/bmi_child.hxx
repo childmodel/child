@@ -73,16 +73,16 @@ class Model : public bmi::Bmi {
 
     void GetValue(std::string name, void *dest);
     void *GetValuePtr(std::string name);
-    void GetValueAtIndices(std::string name, void *dest, int *inds, int count);
+    void GetValueAtIndices(std::string name, void *dest, long *inds, int count);
 
     void SetValue(std::string name, void *src);
-    void SetValueAtIndices(std::string name, int *inds, int len, void *src);
+    void SetValueAtIndices(std::string name, long *inds, int len, void *src);
 
     int GetGridRank(const int grid);
     int GetGridSize(const int grid);
     std::string GetGridType(const int grid);
 
-    void GetGridShape(const int grid, int *shape);
+    void GetGridShape(const int grid, long *shape);
     void GetGridSpacing(const int grid, double *spacing);
     void GetGridOrigin(const int grid, double *origin);
 
@@ -94,10 +94,10 @@ class Model : public bmi::Bmi {
     int GetGridEdgeCount(const int grid);
     int GetGridFaceCount(const int grid);
 
-    void GetGridEdgeNodes(const int grid, int *edge_nodes);
-    void GetGridFaceEdges(const int grid, int *face_edges);
-    void GetGridFaceNodes(const int grid, int *face_nodes);
-    void GetGridNodesPerFace(const int grid, int *nodes_per_face);
+    void GetGridEdgeNodes(const int grid, long *edge_nodes);
+    void GetGridFaceEdges(const int grid, long *face_edges);
+    void GetGridFaceNodes(const int grid, long *face_nodes);
+    void GetGridNodesPerFace(const int grid, long *nodes_per_face);
 
   private:
     Child model;
