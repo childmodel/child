@@ -1,8 +1,9 @@
 #ifndef BMI_CHILD_H_INCLUDED
 #define BMI_CHILD_H_INCLUDED
 
-#include <string>
 #include <iostream>
+#include <string>
+#include <vector>
 
 #include "bmi.hxx"
 #include "child.h"

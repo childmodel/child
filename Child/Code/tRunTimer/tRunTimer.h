@@ -18,6 +18,9 @@
 #define TRUNTIMER_H
 
 
+#include <fstream>
+
+
 class tRunTimer
 {
 public:

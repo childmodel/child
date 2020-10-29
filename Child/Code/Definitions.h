@@ -13,7 +13,8 @@
 #define DEFINITIONS_H
 
 /** DEFINITIONS *************************************************************/
-#define CHILD_VERSION "9.5.0dev, May 2009"
+#define CHILD_VERSION "20.10.29, October 2020"
+// #define CHILD_VERSION "20.10.29 9.5.0dev, October 2020"
 
 #include <stdlib.h> // abort()
 #include <assert.h>
