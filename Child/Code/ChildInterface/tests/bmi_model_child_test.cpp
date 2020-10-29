@@ -19,6 +19,9 @@
   } \
 }
 
+Predicates predicate;
+
+
 int
 main (int argc, char *argv[])
 {

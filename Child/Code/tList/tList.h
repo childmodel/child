@@ -41,8 +41,12 @@
 #ifndef TLIST_H
 #define TLIST_H
 
+#include <assert.h>
+#include <iostream>
+
 #include "tListFwd.h"
 #include "../compiler.h"
+#include "../Definitions.h"
 
 /**************************************************************************/
 /**
