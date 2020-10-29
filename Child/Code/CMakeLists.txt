@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 
-ENABLE_TESTING ()
-# ADD_TEST (bmi_model_child_test ${CMAKE_CURRENT_BINARY_DIR}/bmi_model_child_test test_input_files.txt)
+project(CHILD)
+
+ENABLE_TESTING()
 ADD_TEST(
   bmi_model_child_test
   ${CMAKE_CURRENT_BINARY_DIR}/bmi_model_child_test
@@ -12,7 +13,10 @@ configure_file(
   test_input_files.txt
 )
 
-configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/child.pc.cmake ${CMAKE_CURRENT_SOURCE_DIR}/child.pc )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/child.pc.cmake
+  ${CMAKE_CURRENT_SOURCE_DIR}/child.pc
+)
 
 set(CMAKE_MACOSX_RPATH 1)
 
@@ -46,12 +50,9 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/tLithologyManager
 )
 
-set (child_LIB_SRCS
+set(child_LIB_SRCS
   ChildInterface/bmi_child.cpp
-  # ChildInterface/bmi_model_child.cpp
   ChildInterface/child.cpp
-  # ChildInterface/childDriver.cpp
-  # ChildInterface/childInterface.cpp
   Erosion/erosion.cpp
   MeshElements/meshElements.cpp
   Mathutil/mathutil.cpp
@@ -81,86 +82,86 @@ set (child_LIB_SRCS
   tLithologyManager/tLithologyManager.cpp
 )
 
-add_library (child-shared SHARED ${child_LIB_SRCS})
-install (TARGETS child-shared DESTINATION lib COMPONENT child)
-set_target_properties (child-shared PROPERTIES OUTPUT_NAME "child")
+add_library(child-shared SHARED ${child_LIB_SRCS})
+install(TARGETS child-shared DESTINATION lib COMPONENT child)
+set_target_properties(child-shared PROPERTIES OUTPUT_NAME "child")
 
-add_library (child-static STATIC ${child_LIB_SRCS})
-set_target_properties (child-static PROPERTIES OUTPUT_NAME "child")
-install (TARGETS child-static DESTINATION lib COMPONENT child)
+add_library(child-static STATIC ${child_LIB_SRCS})
+set_target_properties(child-static PROPERTIES OUTPUT_NAME "child")
+install(TARGETS child-static DESTINATION lib COMPONENT child)
 
-set (child_SRCS ChildInterface/childDriver.cpp ChildInterface/childInterface.cpp)
+set(child_SRCS ChildInterface/childDriver.cpp ChildInterface/childInterface.cpp)
 
-add_executable (child ${child_SRCS})
-target_link_libraries (child child-static)
+add_executable(child ${child_SRCS})
+target_link_libraries(child child-static)
 
 install(FILES child.pc DESTINATION lib/pkgconfig  COMPONENT child)
 
-install (TARGETS child DESTINATION bin COMPONENT child)
+install(TARGETS child DESTINATION bin COMPONENT child)
 
-add_executable (bmi_model_child_test ChildInterface/tests/bmi_model_child_test.cpp)
-target_link_libraries (bmi_model_child_test child-shared)
+add_executable(bmi_model_child_test ChildInterface/tests/bmi_model_child_test.cpp)
+target_link_libraries(bmi_model_child_test child-shared)
 
-install (FILES
-  ChildInterface/bmi_child.hxx ChildInterface/child.h ChildInterface/bmi.hxx
-  # ChildInterface/bmi_model_child.h ChildInterface/child.h
+install(FILES
+  ChildInterface/bmi_child.hxx
+  ChildInterface/child.h ChildInterface/bmi.hxx
   DESTINATION include/child/ChildInterface COMPONENT child)
-install (FILES
+install(FILES
   ChildInterface/childInterface.h
   DESTINATION include/child/ChildInterface COMPONENT child)
-install (FILES
+install(FILES
   Erosion/erosion.h
   DESTINATION include/child/Erosion COMPONENT child)
-install (FILES
+install(FILES
   Geometry/geometry.h
   DESTINATION include/child/Geometry COMPONENT child)
-install (FILES
+install(FILES
   Mathutil/mathutil.h
   DESTINATION include/child/Mathutil COMPONENT child)
-install (FILES
+install(FILES
   tIDGenerator/tIDGenerator.h
   DESTINATION include/child/tIDGenerator COMPONENT child)
-install (FILES
+install(FILES
   MeshElements/meshElements.h
   DESTINATION include/child/MeshElements COMPONENT child)
-install (FILES
+install(FILES
   Predicates/predicates.h
   DESTINATION include/child/Predicates COMPONENT child)
-install (FILES
+install(FILES
   errors/errors.h
   DESTINATION include/child/errors COMPONENT child)
-install (FILES
+install(FILES
   tArray/tArray.h
   tArray/tArray2.h
   tArray/tArray.cpp
   DESTINATION include/child/tArray COMPONENT child)
-install (FILES
+install(FILES
   tEolian/tEolian.h
   DESTINATION include/child/tEolian COMPONENT child)
-install (FILES
+install(FILES
   tFloodplain/tFloodplain.h
   DESTINATION include/child/tFloodplain COMPONENT child)
-install (FILES
+install(FILES
   tInputFile/tInputFile.h
   DESTINATION include/child/tInputFile COMPONENT child)
-install (FILES
+install(FILES
   tLNode/tLNode.h
   DESTINATION include/child/tLNode COMPONENT child)
-install (FILES
+install(FILES
   tList/tList.h
   tList/tListFwd.h
   DESTINATION include/child/tList COMPONENT child)
-install (FILES
+install(FILES
   tListInputData/tListInputData.h
   DESTINATION include/child/tListInputData COMPONENT child)
-install (FILES
+install(FILES
   tLithologyManager/tLithologyManager.h
   DESTINATION include/child/tLithologyManager COMPONENT child)
-install (FILES
+install(FILES
   tMatrix/tMatrix.h
   tMatrix/tMatrix.cpp
   DESTINATION include/child/tMatrix COMPONENT child)
-install (FILES
+install(FILES
   tMesh/ParamMesh_t.h
   tMesh/TipperTriangulator.h
   tMesh/heapsort.h
@@ -168,48 +169,48 @@ install (FILES
   tMesh/tMesh.cpp
   tMesh/tMesh2.cpp
   DESTINATION include/child/tMesh COMPONENT child)
-install (FILES
+install(FILES
   tMeshList/tMeshList.h
   DESTINATION include/child/tMeshList COMPONENT child)
-install (FILES
+install(FILES
   tOption/tOption.h
   DESTINATION include/child/tOption COMPONENT child)
-install (FILES
+install(FILES
   tOutput/tOutput.h
   tOutput/tOutput.cpp
   DESTINATION include/child/tOutput COMPONENT child)
-install (FILES
+install(FILES
   tPtrList/tPtrList.h
   DESTINATION include/child/tPtrList COMPONENT child)
-install (FILES
+install(FILES
   tRunTimer/tRunTimer.h
   DESTINATION include/child/tRunTimer COMPONENT child)
-install (FILES
+install(FILES
   tStorm/tStorm.h
   DESTINATION include/child/tStorm COMPONENT child)
-install (FILES
+install(FILES
   tStratGrid/tStratGrid.h
   DESTINATION include/child/tStratGrid COMPONENT child)
-install (FILES
+install(FILES
   tStreamMeander/meander.h
   tStreamMeander/tStreamMeander.h
   DESTINATION include/child/tStreamMeander COMPONENT child)
-install (FILES
+install(FILES
   tStreamNet/tStreamNet.h
   DESTINATION include/child/tStreamNet COMPONENT child)
-install (FILES
+install(FILES
   tTimeSeries/tTimeSeries.h
   DESTINATION include/child/tTimeSeries COMPONENT child)
-install (FILES
+install(FILES
   tUplift/tUplift.h
   DESTINATION include/child/tUplift COMPONENT child)
-install (FILES
+install(FILES
   tVegetation/tVegetation.h
   DESTINATION include/child/tVegetation COMPONENT child)
-install (FILES
+install(FILES
   tWaterSedTracker/tWaterSedTracker.h
   DESTINATION include/child/tWaterSedTracker COMPONENT child)
-install (FILES
+install(FILES
   Classes.h
   Definitions.h
   trapfpe.h
