@@ -13,22 +13,19 @@ before_install:
   fi
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    curl -L https://micromamba.snakepit.net/api/micromamba/osx-64/latest | tar -xvj bin/micromamba
+    curl https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > $HOME/miniconda.sh
   else
-    curl -L https://micromamba.snakepit.net/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
+    curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh > $HOME/miniconda.sh
   fi
-- ./bin/micromamba shell init -s bash -p ~/micromamba
-- |
-  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    source $HOME/.bash_profile
-  else
-    source $HOME/.bashrc
-  fi
-- micromamba activate
-- micromamba install mamba --yes -c conda-forge
+- bash $HOME/miniconda.sh -b -p $(pwd)/anaconda
+- export PATH="$(pwd)/anaconda/bin:$PATH"
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda create -n test_env python=$CONDA_ENV
+- source activate test_env
+- conda info -a && conda list
 install:
-- mamba install cmake cxx-compiler pkg-config -c conda-forge --yes
-- mamba list
+- conda install cmake cxx-compiler pkg-config -c conda-forge --yes
 script:
 - |
   cd Child/Code
