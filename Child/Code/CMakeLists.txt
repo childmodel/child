@@ -50,8 +50,8 @@ set (child_LIB_SRCS
   ChildInterface/bmi_child.cpp
   # ChildInterface/bmi_model_child.cpp
   ChildInterface/child.cpp
-  ChildInterface/childDriver.cpp
-  ChildInterface/childInterface.cpp
+  # ChildInterface/childDriver.cpp
+  # ChildInterface/childInterface.cpp
   Erosion/erosion.cpp
   MeshElements/meshElements.cpp
   Mathutil/mathutil.cpp
@@ -89,7 +89,7 @@ add_library (child-static STATIC ${child_LIB_SRCS})
 set_target_properties (child-static PROPERTIES OUTPUT_NAME "child")
 install (TARGETS child-static DESTINATION lib COMPONENT child)
 
-set (child_SRCS ChildInterface/childDriver.cpp)
+set (child_SRCS ChildInterface/childDriver.cpp ChildInterface/childInterface.cpp)
 
 add_executable (child ${child_SRCS})
 target_link_libraries (child child-static)
