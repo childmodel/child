@@ -1,0 +1,4 @@
+bmi-cxx
+cxx-compiler
+cmake
+pkg-config
