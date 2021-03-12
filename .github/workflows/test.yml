@@ -63,4 +63,7 @@ jobs:
 
       - name: Test
         working-directory: ${{ github.workspace }}/src/build
-        run: ctest --output-on-failure
+        run: |
+          child --version
+          child --help
+          ctest --output-on-failure
