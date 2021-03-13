@@ -19,6 +19,7 @@
 /**************************************************************************/
 #include <assert.h>
 #include <math.h>
+#include <algorithm>
 #include "../errors/errors.h"
 #include "tStratGrid.h"
 #include "../tLNode/tLNode.h"
