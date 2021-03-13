@@ -47,7 +47,7 @@ jobs:
 
       - name: Configure cmake (WINDOWS)
         if: matrix.os == 'windows-latest'
-        working-directory: ${{ github.workspace }}\build
+        working-directory: ${{ github.workspace }}/src/build
         shell: pwsh
         run: |
           & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" x86
