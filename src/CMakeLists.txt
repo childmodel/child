@@ -1,6 +1,12 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 project(CHILD)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(BMICXX REQUIRED IMPORTED_TARGET bmicxx)
+include_directories(${BMICXX_INCLUDE_DIRS})
+
+set(CMAKE_MACOSX_RPATH 1)
+set(BUILD_SHARED_LIBS ON)
 
 ENABLE_TESTING()
 ADD_TEST(
@@ -83,8 +89,13 @@ set(child_LIB_SRCS
 )
 
 add_library(child-shared SHARED ${child_LIB_SRCS})
+set_target_properties(
+  child-shared PROPERTIES
+  WINDOWS_EXPORT_ALL_SYMBOLS true
+  CXX_VISIBILITY_PRESET default
+  OUTPUT_NAME "child"
+)
 install(TARGETS child-shared DESTINATION lib COMPONENT child)
-set_target_properties(child-shared PROPERTIES OUTPUT_NAME "child")
 
 add_library(child-static STATIC ${child_LIB_SRCS})
 set_target_properties(child-static PROPERTIES OUTPUT_NAME "child")
